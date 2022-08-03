@@ -403,6 +403,7 @@ module ActiveJob
       else
         jobs = enqueued_jobs
       end
+
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
         potential_matches << deserialized_job

@@ -419,7 +419,6 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-
   def test_assert_enqueued_email_with_params_and_args
     assert_nothing_raised do
       assert_enqueued_email_with TestHelperMailer, :test_args, params: { all: "good" }, args: ["some_email", "some_name"] do
@@ -438,7 +437,6 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
   end
-end
 
 class AnotherTestHelperMailerTest < ActionMailer::TestCase
   tests TestHelperMailer
