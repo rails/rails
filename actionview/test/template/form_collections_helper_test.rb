@@ -10,11 +10,11 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   def with_collection_radio_buttons(*args, &block)
-    @output_buffer = collection_radio_buttons(*args, &block)
+    @rendered = collection_radio_buttons(*args, &block)
   end
 
   def with_collection_check_boxes(*args, &block)
-    @output_buffer = collection_check_boxes(*args, &block)
+    @rendered = collection_check_boxes(*args, &block)
   end
 
   # COLLECTION RADIO BUTTONS
@@ -197,7 +197,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio buttons with fields for" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    @output_buffer = fields_for(:post) do |p|
+    @rendered = fields_for(:post) do |p|
       p.collection_radio_buttons :category_id, collection, :id, :name
     end
 
@@ -397,7 +397,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     user = Struct.new(:category_ids).new(2)
     collection = (1..3).map { |i| [i, "Category #{i}"] }
 
-    @output_buffer = fields_for(:user, user) do |p|
+    @rendered = fields_for(:user, user) do |p|
       p.collection_check_boxes :category_ids, collection, :first, :last, checked: [1, 3]
     end
 
@@ -470,7 +470,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes with fields for" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    @output_buffer = fields_for(:post) do |p|
+    @rendered = fields_for(:post) do |p|
       p.collection_check_boxes :category_ids, collection, :id, :name
     end
 

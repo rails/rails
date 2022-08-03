@@ -21,7 +21,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   class Context < ActionView::Base
     def initialize(*)
       super
-      @output_buffer = "original"
+      @output_buffer << "original"
       @virtual_path = nil
     end
 
@@ -53,7 +53,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     def my_buffer
-      @output_buffer
+      @output_buffer.to_s
     end
   end
 
