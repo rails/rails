@@ -389,7 +389,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_enqueued_email_with_parames
+  def test_assert_enqueued_email_with_params
     assert_nothing_raised do
       assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" } do
         silence_stream($stdout) do
