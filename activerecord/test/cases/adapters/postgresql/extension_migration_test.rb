@@ -17,6 +17,18 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  class CreateJapanese < ActiveRecord::Migration::Current
+    def change
+      create_collation "japanese", provider: "libc", locale: "ja_JP"
+    end
+  end
+
+  class DropJapanese < ActiveRecord::Migration::Current
+    def change
+      drop_collation "japanese", provider: "libc", locale: "ja_JP"
+    end
+  end
+
   def setup
     super
 
@@ -86,5 +98,25 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     assert_not @connection.extension_enabled?("hstore"), "extension hstore should not be enabled"
   ensure
     @connection.drop_table(:hstores, if_exists: true)
+  end
+
+  def test_create_collation_migration_ignores_prefix_and_suffix
+    assert_not_includes @connection.collations, "japanese"
+    CreateJapanese.new.migrate(:up)
+    assert_includes @connection.collations, "japanese"
+  ensure
+    @connection.execute "DROP COLLATION IF EXISTS japanese"
+    @connection.execute "DROP COLLATION IF EXISTS p_japanese_s"
+  end
+
+  def test_drop_collation_migration_ignores_prefix_and_suffix
+    @connection.execute "CREATE COLLATION japanese (provider = libc, locale = 'ja_JP')"
+
+    assert_includes @connection.collations, "japanese"
+    DropJapanese.new.migrate(:up)
+    assert_not_includes @connection.collations, "japanese"
+  ensure
+    @connection.execute "DROP COLLATION IF EXISTS japanese"
+    @connection.execute "DROP COLLATION IF EXISTS p_japanese_s"
   end
 end

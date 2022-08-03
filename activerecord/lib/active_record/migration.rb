@@ -934,7 +934,7 @@ module ActiveRecord
 
       say_with_time "#{method}(#{arg_list})" do
         unless connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
+          unless arguments.empty? || non_table_name_methods.include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
             if method == :rename_table ||
               (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
@@ -1042,6 +1042,10 @@ module ActiveRecord
 
       def command_recorder
         CommandRecorder.new(connection)
+      end
+
+      def non_table_name_methods
+        [:execute, :enable_extension, :disable_extension, :create_collation, :drop_collation]
       end
   end
 
