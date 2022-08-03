@@ -1445,9 +1445,9 @@ module ActiveRecord
       end
 
       private
-	def check_constraint_exists?(table_name, **options)
-	  check_constraint_for(table_name, **options).present?
-	end
+        def check_constraint_exists?(table_name, **options)
+          check_constraint_for(table_name, **options).present?
+        end
 
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
@@ -1508,7 +1508,7 @@ module ActiveRecord
 
           if matching_indexes.count > 1
             raise ArgumentError, "Multiple indexes found on #{table_name} columns #{column_names}. " \
-                                 "Specify an index name from #{matching_indexes.map(&:name).join(', ')}"
+              "Specify an index name from #{matching_indexes.map(&:name).join(', ')}"
           elsif matching_indexes.none?
             raise ArgumentError, "No indexes found on #{table_name} with the options provided."
           else
