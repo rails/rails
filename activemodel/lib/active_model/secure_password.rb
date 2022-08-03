@@ -16,32 +16,17 @@ module ActiveModel
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
-      # This mechanism requires you to have a +XXX_digest+ attribute.
-      # Where +XXX+ is the attribute name of your desired password.
       #
-      # The following validations are added automatically:
-      # * Password must be present on creation
-      # * Password length should be less than or equal to 72 bytes
-      # * Confirmation of password (using a +XXX_confirmation+ attribute)
-      #
-      # If confirmation validation is not needed, simply leave out the
-      # value for +XXX_confirmation+ (i.e. don't provide a form field for
-      # it). When this attribute has a +nil+ value, the validation will not be
-      # triggered.
-      #
-      # Additionally, a +XXX_challenge+ attribute is created. When set to a
-      # value other than +nil+, it will validate against the currently persisted
-      # password. This validation relies on dirty tracking, as provided by
-      # ActiveModel::Dirty; if dirty tracking methods are not defined, this
-      # validation will fail.
-      #
-      # All of the above validations can be omitted by passing
-      # <tt>validations: false</tt> as an argument. This allows complete
-      # customizability of validation behavior.
-      #
-      # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
+      # To use +has_secure_password+, you must add +bcrypt+ to your Gemfile:
       #
       #   gem 'bcrypt', '~> 3.1.7'
+      #
+      # Your model must also have a +XXX_digest+ (e.g. +password_digest+)
+      # attribute.
+      #
+      # +has_secure_password+ adds several validations via #validates_secure_password,
+      # including password presence and confirmation validations. To omit these
+      # validations, specify <tt>validations: false</tt>.
       #
       # ==== Examples
       #
@@ -78,28 +63,6 @@ module ActiveModel
       #   user.authenticate("vr00m")                                     # => false, old password
       #   user.authenticate("nohack4u")                                  # => user
       #
-      # ===== Conditionally requiring a password
-      #
-      #   class Account
-      #     include ActiveModel::SecurePassword
-      #
-      #     attr_accessor :is_guest, :password_digest
-      #
-      #     has_secure_password
-      #
-      #     def errors
-      #       errors = super
-      #       errors.delete(:password, :blank) if is_guest
-      #       errors
-      #     end
-      #   end
-      #
-      #   account = Account.new
-      #   account.valid? # => false, password required
-      #
-      #   account.is_guest = true
-      #   account.valid? # => true
-      #
       def has_secure_password(attribute = :password, validations: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
@@ -113,30 +76,90 @@ module ActiveModel
 
         include InstanceMethodsOnActivation.new(attribute)
 
-        if validations
-          include ActiveModel::Validations
+        validates_secure_password(attribute) if validations
+      end
 
-          # This ensures the model has a password by checking whether the password_digest
-          # is present, so that this works with both new and existing records. However,
-          # when there is an error, the message is added to the password attribute instead
-          # so that the error message will make sense to the end-user.
-          validate do |record|
-            record.errors.add(attribute, :blank) unless record.public_send("#{attribute}_digest").present?
-          end
+      # Adds the following validations:
+      #
+      # * Password must not be blank, unless a password has already been set.
+      #
+      #   This validation ensures that a password is present upon record
+      #   creation, without requiring the password for subsequent record updates.
+      #
+      #   <em>This validation expects a +XXX_digest+ (e.g. +password_digest+)
+      #   attribute to be defined.</em>
+      #
+      # * Password length must be less than or equal to 72 bytes.
+      #
+      #   72 bytes is the maximum password length supported by BCrypt.
+      #
+      # * Password must match the value of the +XXX_confirmation+ (e.g.
+      #   +password_confirmation+) attribute, unless +XXX_confirmation+ is +nil+.
+      #
+      #   When password confirmation is not necessary, simply omit the
+      #   +XXX_confirmation+ attribute, such as by not providing a form field
+      #   for it.
+      #
+      # * The <em>currently persisted</em> password must match the value of the
+      #   +XXX_challenge+ (e.g. +password_challenge+) attribute, unless
+      #   +XXX_challenge+ is +nil+.
+      #
+      #   This validation can be used to verify that the current user is
+      #   actually the current password owner. It relies on dirty tracking, as
+      #   provided by ActiveModel::Dirty. If dirty tracking methods are not
+      #   defined, this validation will fail.
+      #
+      #   <em>This validation expects a +XXX_challenge+ attribute and
+      #   +XXX_digest_was+ method to be defined.</em>
+      #
+      # Options passed to this method are forwarded to the "password must not be
+      # blank" validation.
+      #
+      # This method is automatically called by #has_secure_password, unless
+      # +has_secure_password+ is called with <tt>validations: false</tt>.
+      #
+      # ==== Examples
+      #
+      # ===== Conditionally requiring a password
+      #
+      #   class Account
+      #     include ActiveModel::SecurePassword
+      #
+      #     attr_accessor :is_guest, :password_digest
+      #
+      #     has_secure_password validations: false
+      #     validates_secure_password unless: :is_guest
+      #   end
+      #
+      #   account = Account.new
+      #   account.valid? # => false, password required
+      #
+      #   account.is_guest = true
+      #   account.valid? # => true
+      #
+      def validates_secure_password(attribute = :password, **options)
+        include ActiveModel::Validations
 
-          validate do |record|
-            if challenge = record.public_send(:"#{attribute}_challenge")
-              digest_was = record.public_send(:"#{attribute}_digest_was") if record.respond_to?(:"#{attribute}_digest_was")
+        # This ensures the model has a password by checking whether the password_digest
+        # is present, so that this works with both new and existing records. However,
+        # when there is an error, the message is added to the password attribute instead
+        # so that the error message will make sense to the end-user.
+        validate(options) do |record|
+          record.errors.add(attribute, :blank) unless record.public_send("#{attribute}_digest").present?
+        end
 
-              unless digest_was.present? && BCrypt::Password.new(digest_was).is_password?(challenge)
-                record.errors.add(:"#{attribute}_challenge")
-              end
+        validate do |record|
+          if challenge = record.public_send(:"#{attribute}_challenge")
+            digest_was = record.public_send(:"#{attribute}_digest_was") if record.respond_to?(:"#{attribute}_digest_was")
+
+            unless digest_was.present? && BCrypt::Password.new(digest_was).is_password?(challenge)
+              record.errors.add(:"#{attribute}_challenge")
             end
           end
-
-          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
-          validates_confirmation_of attribute, allow_blank: true
         end
+
+        validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+        validates_confirmation_of attribute, allow_blank: true
       end
     end
 
