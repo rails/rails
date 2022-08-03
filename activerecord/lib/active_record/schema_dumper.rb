@@ -52,6 +52,7 @@ module ActiveRecord
     def dump(stream)
       header(stream)
       extensions(stream)
+      collations(stream)
       types(stream)
       tables(stream)
       trailer(stream)
@@ -102,6 +103,10 @@ module ActiveRecord
 
       # extensions are only supported by PostgreSQL
       def extensions(stream)
+      end
+
+      # collations are only supported by PostgreSQL
+      def collations(stream)
       end
 
       # (enum) types are only supported by PostgreSQL

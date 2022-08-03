@@ -28,6 +28,23 @@ module ActiveRecord
             end
           end
 
+          def collations(stream)
+            collations = @connection.collation_definitions
+            if collations.any?
+              stream.puts "  # Custom collations defined in this database."
+              collations.sort_by(&:name).each do |collation|
+                create_collation = "  create_collation #{collation.name.inspect}"
+                create_collation << ", provider: #{collation.provider.inspect}"
+                create_collation << ", lc_collate: #{collation.lc_collate.inspect}"
+                create_collation << ", lc_ctype: #{collation.lc_ctype.inspect}"
+                create_collation << ", deterministic: #{collation.deterministic.inspect}"
+
+                stream.puts create_collation
+              end
+              stream.puts
+            end
+          end
+
           def exclusion_constraints_in_create(table, stream)
             if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
               add_exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|

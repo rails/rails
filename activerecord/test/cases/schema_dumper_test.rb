@@ -381,6 +381,26 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
     end
+
+    def test_schema_dump_includes_collations_in_alphabetical_order
+      connection = ActiveRecord::Base.connection
+
+      collation_definitions = ["japanese", "zulu", "french", "german"].map do |language|
+        ActiveRecord::ConnectionAdapters::PostgreSQL::CollationDefinition.new(
+          collname: language,
+          collprovider: "libc",
+          collcollate: "ja_JP",
+          collctype: "ja_JP",
+          collisdeterministic: true
+        )
+      end
+
+      connection.stub(:collation_definitions, collation_definitions) do
+        output = perform_schema_dump
+        extension_names = output.scan(%r{create_collation "([a-z]+)"}).flatten
+        assert_equal ["french", "german", "japanese", "zulu"], extension_names
+      end
+    end
   end
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
