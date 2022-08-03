@@ -714,6 +714,15 @@ module ActiveRecord
         raise NotImplementedError, "change_column_default is not implemented"
       end
 
+      # Builds a ChangeColumnDefaultDefinition object.
+      #
+      # This definition object contains information about the column change that would occur
+      # if the same arguments were passed to #change_column_default. See #change_column_default for
+      # information about passing a +table_name+, +column_name+, +type+ and other options that can be passed.
+      def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
+        raise NotImplementedError, "build_change_column_default_definition is not implemented"
+      end
+
       # Sets or removes a <tt>NOT NULL</tt> constraint on a column. The +null+ flag
       # indicates whether the value can be +NULL+. For example
       #
@@ -1705,11 +1714,8 @@ module ActiveRecord
         end
 
         def change_column_default_for_alter(table_name, column_name, default_or_changes)
-          column = column_for(table_name, column_name)
-          return unless column
-
-          default = extract_new_default_value(default_or_changes)
-          schema_creation.accept(ChangeColumnDefaultDefinition.new(column, default))
+          cd = build_change_column_default_definition(table_name, column_name, default_or_changes)
+          cd.ddl
         end
 
         def rename_column_sql(table_name, column_name, new_column_name)
