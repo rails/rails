@@ -35,11 +35,8 @@ module ActiveModel
       # ActiveModel::Dirty; if dirty tracking methods are not defined, this
       # validation will fail.
       #
-      # The password presence validation can be conditionally enforced by
-      # passing an options hash to +:validations+ with the standard +:if+ /
-      # +:unless+ / +:on+ keys. (See ActiveModel::Validations::ClassMethods#validates
-      # for more information.) Alternatively, all of the above validations can
-      # be omitted by passing <tt>validations: false</tt>. This allows complete
+      # All of the above validations can be omitted by passing
+      # <tt>validations: false</tt> as an argument. This allows complete
       # customizability of validation behavior.
       #
       # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
@@ -96,13 +93,11 @@ module ActiveModel
         if validations
           include ActiveModel::Validations
 
-          validation_options = validations.is_a?(Hash) ? validations : {}
-
           # This ensures the model has a password by checking whether the password_digest
           # is present, so that this works with both new and existing records. However,
           # when there is an error, the message is added to the password attribute instead
           # so that the error message will make sense to the end-user.
-          validate(validation_options) do |record|
+          validate do |record|
             record.errors.add(attribute, :blank) unless record.public_send("#{attribute}_digest").present?
           end
 
