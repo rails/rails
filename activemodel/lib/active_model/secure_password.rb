@@ -45,7 +45,7 @@ module ActiveModel
       #
       # ==== Examples
       #
-      # Using Active Record, which automatically includes ActiveModel::SecurePassword:
+      # ===== Using Active Record (which automatically includes ActiveModel::SecurePassword)
       #
       #   # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
       #   class User < ActiveRecord::Base
@@ -77,6 +77,29 @@ module ActiveModel
       #
       #   user.authenticate("vr00m")                                     # => false, old password
       #   user.authenticate("nohack4u")                                  # => user
+      #
+      # ===== Conditionally requiring a password
+      #
+      #   class Account
+      #     include ActiveModel::SecurePassword
+      #
+      #     attr_accessor :is_guest, :password_digest
+      #
+      #     has_secure_password
+      #
+      #     def errors
+      #       errors = super
+      #       errors.delete(:password, :blank) if is_guest
+      #       errors
+      #     end
+      #   end
+      #
+      #   account = Account.new
+      #   account.valid? # => false, password required
+      #
+      #   account.is_guest = true
+      #   account.valid? # => true
+      #
       def has_secure_password(attribute = :password, validations: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
