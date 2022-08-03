@@ -391,6 +391,10 @@ module ActiveRecord
           options[:comment] = column.comment
         end
 
+        unless options.key?(:collation)
+          options[:collation] = column.collation
+        end
+
         unless options.key?(:auto_increment)
           options[:auto_increment] = column.auto_increment?
         end
