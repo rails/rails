@@ -116,7 +116,7 @@ module ActionMailer
     #     assert_enqueued_email_with ContactMailer, :welcome, args: [{ greeting: "Hello", farewell: "Goodbye" }]
     #   end
     #
-    #   def test_email_with_parameters_and_arguments
+    #   def test_email_with_parameterized_mailer_and_arguments
     #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: ["Cheers", "Goodbye"]
     #   end
