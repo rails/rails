@@ -1692,6 +1692,14 @@ module ActiveRecord
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 
+        def change_column_default_for_alter(table_name, column_name, default_or_changes)
+          column = column_for(table_name, column_name)
+          return unless column
+
+          default = extract_new_default_value(default_or_changes)
+          schema_creation.accept(ChangeColumnDefaultDefinition.new(column, default))
+        end
+
         def rename_column_sql(table_name, column_name, new_column_name)
           "RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
         end

@@ -94,6 +94,8 @@ module ActiveRecord
 
     ChangeColumnDefinition = Struct.new(:column, :name, :ddl) # :nodoc:
 
+    ChangeColumnDefaultDefinition = Struct.new(:column, :default, :ddl) # :nodoc:
+
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists, :ddl) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:

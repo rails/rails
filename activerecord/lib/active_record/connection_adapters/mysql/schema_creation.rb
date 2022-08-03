@@ -24,6 +24,16 @@ module ActiveRecord
             o.ddl = add_column_position!(change_column_sql, column_options(o.column))
           end
 
+          def visit_ChangeColumnDefaultDefinition(o)
+            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} SET DEFAULT "
+            if o.default.nil?
+              sql << "NULL"
+            else
+              sql << quote_default_expression(o.default, o.column)
+            end
+            o.ddl = sql
+          end
+
           def visit_CreateIndexDefinition(o)
             sql = visit_IndexDefinition(o.index, true)
             sql << " #{o.algorithm}" if o.algorithm

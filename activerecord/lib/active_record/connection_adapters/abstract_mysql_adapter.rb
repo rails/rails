@@ -347,8 +347,7 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-        default = extract_new_default_value(default_or_changes)
-        change_column table_name, column_name, nil, default: default
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
