@@ -42,7 +42,7 @@ module ActionView
       #
       def capture(*args)
         value = nil
-        buffer = with_output_buffer { value = yield(*args) }
+        buffer = output_buffer.capture { value = yield(*args) }
 
         case string = buffer.presence || value
         when OutputBuffer
@@ -200,22 +200,6 @@ module ActionView
       #   </html>
       def content_for?(name)
         @view_flow.get(name).present?
-      end
-
-      # Use an alternate output buffer for the duration of the block.
-      # Defaults to a new empty string.
-      def with_output_buffer(buf = nil) # :nodoc:
-        unless buf
-          buf = ActionView::OutputBuffer.new
-          if output_buffer && output_buffer.respond_to?(:encoding)
-            buf.force_encoding(output_buffer.encoding)
-          end
-        end
-        self.output_buffer, old_buffer = buf, output_buffer
-        yield
-        output_buffer
-      ensure
-        self.output_buffer = old_buffer
       end
     end
   end

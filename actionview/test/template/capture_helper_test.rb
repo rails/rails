@@ -177,51 +177,6 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "hi<p>title</p>", content_for(:title)
   end
 
-  def test_with_output_buffer_swaps_the_output_buffer_given_no_argument
-    assert_predicate @av.output_buffer, :empty?
-    buffer = @av.with_output_buffer do
-      @av.output_buffer << "."
-    end
-    assert_equal ".", buffer.to_s
-    assert_predicate @av.output_buffer, :empty?
-  end
-
-  def test_with_output_buffer_swaps_the_output_buffer_with_an_argument
-    assert_predicate @av.output_buffer, :empty?
-    buffer = ActionView::OutputBuffer.new(".")
-    @av.with_output_buffer(buffer) do
-      @av.output_buffer << "."
-    end
-    assert_equal "..", buffer.to_s
-    assert_predicate @av.output_buffer, :empty?
-  end
-
-  def test_with_output_buffer_restores_the_output_buffer
-    buffer = ActionView::OutputBuffer.new
-    @av.output_buffer = buffer
-    @av.with_output_buffer do
-      @av.output_buffer << "."
-    end
-    assert buffer.equal?(@av.output_buffer)
-  end
-
-  def test_with_output_buffer_sets_proper_encoding
-    @av.output_buffer = ActionView::OutputBuffer.new
-
-    # Ensure we set the output buffer to an encoding different than the default one.
-    alt_encoding = alt_encoding(@av.output_buffer)
-    @av.output_buffer.force_encoding(alt_encoding)
-
-    @av.with_output_buffer do
-      assert_equal alt_encoding, @av.output_buffer.encoding
-    end
-  end
-
-  def test_with_output_buffer_does_not_assume_there_is_an_output_buffer
-    assert_predicate @av.output_buffer, :empty?
-    assert_equal "", @av.with_output_buffer { }.to_s
-  end
-
   def alt_encoding(output_buffer)
     output_buffer.encoding == Encoding::US_ASCII ? Encoding::UTF_8 : Encoding::US_ASCII
   end

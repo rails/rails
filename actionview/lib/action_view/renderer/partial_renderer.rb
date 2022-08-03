@@ -248,11 +248,18 @@ module ActionView
           identifier: template.identifier,
           layout: layout && layout.virtual_path
         ) do |payload|
-          content = template.render(view, locals, add_to_stack: !block) do |*name|
-            view._layout_for(*name, &block)
+          buffer = view.output_buffer
+          content = buffer.capture do
+            template.render(view, locals, buffer, add_to_stack: !block) do |*name|
+              view._layout_for(*name, &block)
+            end
           end
 
-          content = layout.render(view, locals) { content } if layout
+          if layout
+            content = buffer.capture do
+              layout.render(view, locals, buffer) { content }
+            end
+          end
           payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
           build_rendered_template(content, template)
         end

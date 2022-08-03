@@ -14,7 +14,7 @@ module ActionView
             # Dup properties so that we don't modify argument
             properties = Hash[properties]
 
-            properties[:bufvar]     ||= "@output_buffer"
+            properties[:bufvar]     ||= "output_buffer"
             properties[:preamble]   ||= ""
             properties[:postamble]  ||= "#{properties[:bufvar]}.to_s"
 
