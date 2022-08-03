@@ -161,7 +161,7 @@ module ActiveRecord
     #   Person.in_batches.each_record(&:party_all_night!)
     #
     # ==== Options
-    # * <tt>:of</tt> - Specifies the size of the batch. Defaults to 1000.
+    # * <tt>:of</tt> - Specifies the size of the batch(should be a numeric). Defaults to 1000.
     # * <tt>:load</tt> - Specifies if the relation should be loaded. Defaults to false.
     # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
@@ -207,9 +207,11 @@ module ActiveRecord
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc, use_ranges: nil)
-      raise ArgumentError, ":of should not be nil" if of.nil?
       relation = self
 
+      unless of.is_a?(Numeric)
+        raise ArgumentError, ":of must be a number, got #{of.inspect}"
+      end
       unless [:asc, :desc].include?(order)
         raise ArgumentError, ":order must be :asc or :desc, got #{order.inspect}"
       end

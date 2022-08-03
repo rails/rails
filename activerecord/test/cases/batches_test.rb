@@ -545,11 +545,13 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_in_batches_should_error_if_of_is_nil
-    error = assert_raise(ArgumentError) do
-      Post.in_batches(of: nil) { }
+  test "test in_batches should error if of is non-numeric" do
+    [ nil, "foo", :bar, false ].each do |invalid|
+      error = assert_raise(ArgumentError) do
+        Post.in_batches(of: invalid) { }
+      end
+      assert_match(/:of must be a number/, error.message)
     end
-    assert_equal ":of should not be nil", error.message
   end
 
   def test_in_batches_should_not_ignore_default_scope_without_order_statements
