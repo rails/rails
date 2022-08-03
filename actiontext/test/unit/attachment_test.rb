@@ -56,7 +56,7 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
   end
 
   test "converts HTML content attachment" do
-    attachment = attachment_from_html(%Q(<action-text-attachment content-type="text/html" content="abc"></action-text-attachment>))
+    attachment = attachment_from_html('<action-text-attachment content-type="text/html" content="abc"></action-text-attachment>')
     attachable = attachment.attachable
 
     assert_kind_of ActionText::Attachables::ContentAttachment, attachable
