@@ -615,9 +615,11 @@ actions automatically. Below are some of the actions that `change` supports:
 * [`change_column_default`][] (must supply a `:from` and `:to` option)
 * [`change_column_null`][]
 * [`change_table_comment`][] (must supply a `:from` and `:to` option)
+* `create_collation`
 * [`create_join_table`][]
 * [`create_table`][]
 * `disable_extension`
+* `drop_collation`
 * [`drop_join_table`][]
 * [`drop_table`][] (must supply a block)
 * `enable_extension`

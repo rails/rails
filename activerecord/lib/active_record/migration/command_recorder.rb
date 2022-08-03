@@ -18,10 +18,12 @@ module ActiveRecord
     # * change_column_null
     # * change_column_comment (must supply a +:from+ and +:to+ option)
     # * change_table_comment (must supply a +:from+ and +:to+ option)
+    # * create_collation
     # * create_enum
     # * create_join_table
     # * create_table
     # * disable_extension
+    # * drop_collation
     # * drop_enum (must supply a list of values)
     # * drop_join_table
     # * drop_table (must supply a block)
@@ -48,7 +50,8 @@ module ActiveRecord
         :change_column_comment, :change_table_comment,
         :add_check_constraint, :remove_check_constraint,
         :add_exclusion_constraint, :remove_exclusion_constraint,
-        :create_enum, :drop_enum
+        :create_enum, :drop_enum,
+        :create_collation, :drop_collation
       ]
       include JoinTable
 
@@ -148,7 +151,8 @@ module ActiveRecord
               add_check_constraint: :remove_check_constraint,
               add_exclusion_constraint: :remove_exclusion_constraint,
               enable_extension:  :disable_extension,
-              create_enum:       :drop_enum
+              create_enum:       :drop_enum,
+              create_collation:  :drop_collation
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
