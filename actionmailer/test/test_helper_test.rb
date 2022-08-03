@@ -437,6 +437,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
   end
+end
 
 class AnotherTestHelperMailerTest < ActionMailer::TestCase
   tests TestHelperMailer
