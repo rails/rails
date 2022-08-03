@@ -889,6 +889,17 @@ module ActiveRecord
         @base.remove_check_constraint(name, *args, **options)
       end
 
+      # Checks if a check_constraint exists on a table.
+      #
+      #  unless t.check_constraint_exists?(name: "price_check")
+      #    t.check_constraint("price > 0", name: "price_check")
+      #  end
+      #
+      # See {connection.check_constraint_exists?}[rdoc-ref:SchemaStatements#check_constraint_exists?]
+      def check_constraint_exists?(*args, **options)
+        @base.check_constraint_exists?(name, *args, **options)
+      end
+
       private
         def raise_on_if_exist_options(options)
           unrecognized_option = options.keys.find do |key|

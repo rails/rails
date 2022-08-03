@@ -184,6 +184,22 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_empty @connection.check_constraints("trades")
         end
 
+        def test_removing_check_constraint_with_if_exists_option
+          @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+          @connection.remove_check_constraint :trades, name: "quantity_check"
+
+          error = assert_raises ArgumentError do
+            @connection.remove_check_constraint :trades, name: "quantity_check"
+          end
+
+          assert_equal "Table 'trades' has no check constraint for {:name=>\"quantity_check\"}", error.message
+
+          assert_nothing_raised do
+            @connection.remove_check_constraint :trades, name: "quantity_check", if_exists: true
+          end
+        end
+
         def test_remove_non_existing_check_constraint
           assert_raises(ArgumentError) do
             @connection.remove_check_constraint :trades, name: "nonexistent"

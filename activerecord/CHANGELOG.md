@@ -1,3 +1,10 @@
+*   Adds support for `if_exists` option when removing a check constraint.
+
+    The `remove_check_constraint` method now accepts an `if_exists` option. If set
+    to true an error won't be raised if the check constraint doesn't exist.
+
+    *Margaret Parsa* and *Aditya Bhutani*
+
 *   `find_or_create_by` now try to find a second time if it hits a unicity constraint.
 
     `find_or_create_by` always has been inherently racy, either creating multiple
