@@ -94,11 +94,16 @@ module ActionMailer
     end
 
     # Asserts that a specific email has been enqueued, optionally
-    # matching arguments.
+    # matching arguments and/or params.
     #
     #   def test_email
     #     ContactMailer.welcome.deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome
+    #   end
+    #
+    #   def test_email_with_parameters
+    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, args: { greeting: "Hello" }
     #   end
     #
     #   def test_email_with_arguments
@@ -106,17 +111,12 @@ module ActionMailer
     #     assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
     #   end
     #
-    #   def test_email_with_parameterized_arguments
-    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, args: { greeting: "Hello" }
-    #   end
-    #
     #   def test_email_with_named_arguments
     #     ContactMailer.welcome(greeting: "Hello", farewell: "Goodbye").deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome, args: [{ greeting: "Hello", farewell: "Goodbye" }]
     #   end
     #
-    #   def test_email_with_parameterized_mailer_and_arguments
+    #   def test_email_with_parameters_and_arguments
     #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: ["Cheers", "Goodbye"]
     #   end
