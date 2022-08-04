@@ -419,11 +419,21 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_enqueued_email_with_params_and_args
+  def test_assert_enqueued_email_with_with_params_and_args
     assert_nothing_raised do
       assert_enqueued_email_with TestHelperMailer, :test_args, params: { all: "good" }, args: ["some_email", "some_name"] do
         silence_stream($stdout) do
           TestHelperMailer.with(all: "good").test_args("some_email", "some_name").deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_with_params_and_named_args
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test_named_args, params: { all: "good" }, args: [{ email: "some_email", name: "some_name" }] do
+        silence_stream($stdout) do
+          TestHelperMailer.with(all: "good").test_named_args(email: "some_email", name: "some_name").deliver_later
         end
       end
     end
