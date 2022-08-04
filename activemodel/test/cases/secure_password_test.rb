@@ -31,6 +31,29 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_not_respond_to @visitor, :valid?
   end
 
+  test "support presence validation options" do
+    class VisitorOrUser < Struct.new(:is_visitor, :password_digest)
+      include ActiveModel::SecurePassword
+      has_secure_password validations: false
+      validates_secure_password unless: :is_visitor
+    end
+
+    visitor = VisitorOrUser.new(true)
+    assert_predicate visitor, :valid?
+
+    visitor.password = "password"
+    assert_predicate visitor, :valid?
+
+    visitor.password_confirmation = "not password"
+    assert_predicate visitor, :invalid?
+
+    user = VisitorOrUser.new(false)
+    assert_predicate user, :invalid?
+
+    user.password = "password"
+    assert_predicate user, :valid?
+  end
+
   test "create a new user with validations and valid password/confirmation" do
     @user.password = "password"
     @user.password_confirmation = "password"

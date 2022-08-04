@@ -1,3 +1,27 @@
+*   Add `validates_secure_password`.
+
+    This method, in conjunction with `has_secure_password`, provides an API for
+    conditionally requiring a password.  For example:
+
+    ```ruby
+    class Account
+      include ActiveModel::SecurePassword
+
+      attr_accessor :is_guest, :password_digest
+
+      has_secure_password validations: false
+      validates_secure_password unless: :is_guest
+    end
+
+    account = Account.new
+    account.valid? # => false, password required
+
+    account.is_guest = true
+    account.valid? # => true
+    ```
+
+    *Jonathan Hefner* and *Kevin Jacoby*
+
 *   `has_secure_password` now supports password challenges via a
     `password_challenge` accessor and validation.
 
