@@ -23,7 +23,6 @@ module Rails
       def edit(*)
         require_application!
 
-        ensure_editor_available(command: executable(:edit)) || (return)
         ensure_encryption_key_has_been_added
         ensure_encrypted_configuration_has_been_added
 
@@ -60,11 +59,13 @@ module Rails
         end
 
         def change_encrypted_configuration_in_system_editor
-          catch_editing_exceptions do
+          using_system_editor do
             encrypted_configuration.change { |tmp_path| system_editor(tmp_path) }
             say "File encrypted and saved."
             warn_if_encrypted_configuration_is_invalid
           end
+        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          say error.message
         rescue ActiveSupport::MessageEncryptor::InvalidMessage
           say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
         end

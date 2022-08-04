@@ -29,8 +29,6 @@ module Rails
         require_application!
         load_generators
 
-        ensure_editor_available(command: executable(:edit)) || (return)
-
         ensure_encryption_key_has_been_added
         ensure_credentials_have_been_added
         ensure_diffing_driver_is_configured
@@ -91,11 +89,13 @@ module Rails
         end
 
         def change_credentials_in_system_editor
-          catch_editing_exceptions do
+          using_system_editor do
             credentials.change { |tmp_path| system_editor(tmp_path) }
             say "File encrypted and saved."
             warn_if_credentials_are_invalid
           end
+        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          say error.message
         rescue ActiveSupport::MessageEncryptor::InvalidMessage
           say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
         end

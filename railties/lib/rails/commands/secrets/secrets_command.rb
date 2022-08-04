@@ -2,10 +2,13 @@
 
 require "active_support"
 require "rails/secrets"
+require "rails/command/helpers/editor"
 
 module Rails
   module Command
     class SecretsCommand < Rails::Command::Base # :nodoc:
+      include Helpers::Editor
+
       no_commands do
         def help
           say "Usage:\n  #{self.class.banner}"
@@ -19,26 +22,12 @@ module Rails
       end
 
       def edit
-        if ENV["EDITOR"].to_s.empty?
-          say "No $EDITOR to open decrypted secrets in. Assign one like this:"
-          say ""
-          say %(EDITOR="mate --wait" #{executable(:edit)})
-          say ""
-          say "For editors that fork and exit immediately, it's important to pass a wait flag,"
-          say "otherwise the secrets will be saved immediately with no chance to edit."
-
-          return
-        end
-
         require_application_and_environment!
 
-        Rails::Secrets.read_for_editing do |tmp_path|
-          system("#{ENV["EDITOR"]} #{tmp_path}")
+        using_system_editor do
+          Rails::Secrets.read_for_editing { |tmp_path| system_editor(tmp_path) }
+          say "File encrypted and saved."
         end
-
-        say "New secrets encrypted and saved."
-      rescue Interrupt
-        say "Aborted changing encrypted secrets: nothing saved."
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
       rescue Errno::ENOENT => error

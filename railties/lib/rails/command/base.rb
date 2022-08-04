@@ -178,6 +178,14 @@ module Rails
 
       no_commands do
         delegate :executable, to: :class
+        attr_reader :current_subcommand
+
+        def invoke_command(command, *) # :nodoc:
+          original_subcommand, @current_subcommand = @current_subcommand, command.name
+          super
+        ensure
+          @current_subcommand = original_subcommand
+        end
       end
 
       def help
