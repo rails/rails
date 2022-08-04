@@ -100,6 +100,23 @@ module ActiveRecord
         ensure
           connection.drop_table(:test) if connection.table_exists?(:test)
         end
+
+        def test_build_change_column_default_definition
+          connection.create_table(:test) do |t|
+            t.column :foo, :string
+          end
+
+          change_default_cd = connection.build_change_column_default_definition(:test, :foo, "new")
+          assert_match "SET DEFAULT 'new'", change_default_cd.ddl
+          assert_equal "new", change_default_cd.default
+
+          change_col = change_default_cd.column
+          assert_equal "foo", change_col.name.to_s
+          assert change_col.type
+          assert change_col.sql_type
+        ensure
+          connection.drop_table(:test) if connection.table_exists?(:test)
+        end
       end
     end
   end
