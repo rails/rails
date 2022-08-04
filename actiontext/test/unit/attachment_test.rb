@@ -69,6 +69,16 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_equal "abc", trix_attachment.attributes["content"]
   end
 
+  test "renders content attachment" do
+    html = '<action-text-attachment content-type="text/html" content="&lt;p&gt;abc&lt;/p&gt;"></action-text-attachment>'
+    attachment = attachment_from_html(html)
+    attachable = attachment.attachable
+
+    ActionText::Content.with_renderer MessagesController.renderer do
+      assert_equal "<p>abc</p>", attachable.to_html.strip
+    end
+  end
+
   test "defaults trix partial to model partial" do
     attachable = Page.create! title: "Homepage"
     assert_equal "pages/page", attachable.to_trix_content_attachment_partial_path

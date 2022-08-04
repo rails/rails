@@ -20,7 +20,7 @@ module ActionText
       end
 
       def to_html
-        @to_html ||= content_instance.render
+        @to_html ||= content_instance.render(content_instance)
       end
 
       def to_s
