@@ -16,7 +16,7 @@ module ActionView
 
             properties[:bufvar]     ||= "@output_buffer"
             properties[:preamble]   ||= ""
-            properties[:postamble]  ||= "#{properties[:bufvar]}.to_s"
+            properties[:postamble]  ||= "#{properties[:bufvar]}"
 
             # Tell Eruby that whether template will be compiled with `frozen_string_literal: true`
             properties[:freeze_template_literals] = !Template.frozen_string_literal

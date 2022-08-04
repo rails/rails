@@ -58,7 +58,7 @@ module ActionView
 
           if ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html
             options[:preamble] = "@output_buffer.safe_append='<!-- BEGIN #{template.short_identifier} -->';"
-            options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer.to_s"
+            options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer"
           end
 
           self.class.erb_implementation.new(erb, options).src
