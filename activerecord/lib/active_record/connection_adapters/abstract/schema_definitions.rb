@@ -94,6 +94,8 @@ module ActiveRecord
 
     ChangeColumnDefinition = Struct.new(:column, :name, :ddl) # :nodoc:
 
+    ChangeColumnDefaultDefinition = Struct.new(:column, :default, :ddl) # :nodoc:
+
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists, :ddl) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
@@ -885,6 +887,17 @@ module ActiveRecord
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
       def remove_check_constraint(*args, **options)
         @base.remove_check_constraint(name, *args, **options)
+      end
+
+      # Checks if a check_constraint exists on a table.
+      #
+      #  unless t.check_constraint_exists?(name: "price_check")
+      #    t.check_constraint("price > 0", name: "price_check")
+      #  end
+      #
+      # See {connection.check_constraint_exists?}[rdoc-ref:SchemaStatements#check_constraint_exists?]
+      def check_constraint_exists?(*args, **options)
+        @base.check_constraint_exists?(name, *args, **options)
       end
 
       private

@@ -428,6 +428,17 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
         end
 
+        def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
+          column = column_for(table_name, column_name)
+          return unless column
+
+          default = extract_new_default_value(default_or_changes)
+          change_column_default_definition = ChangeColumnDefaultDefinition.new(column, default)
+          schema_creation.accept(change_column_default_definition)
+
+          change_column_default_definition
+        end
+
         def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
           validate_change_column_null_argument!(null)
 
@@ -853,21 +864,6 @@ module ActiveRecord
             sqls = [change_col_def.ddl]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
-          end
-
-          def change_column_default_for_alter(table_name, column_name, default_or_changes)
-            column = column_for(table_name, column_name)
-            return unless column
-
-            default = extract_new_default_value(default_or_changes)
-            alter_column_query = "ALTER COLUMN #{quote_column_name(column_name)} %s"
-            if default.nil?
-              # <tt>DEFAULT NULL</tt> results in the same behavior as <tt>DROP DEFAULT</tt>. However, PostgreSQL will
-              # cast the default to the columns type, which leaves us with a default like "default NULL::character varying".
-              alter_column_query % "DROP DEFAULT"
-            else
-              alter_column_query % "SET DEFAULT #{quote_default_expression(default, column)}"
-            end
           end
 
           def change_column_null_for_alter(table_name, column_name, null, default = nil)

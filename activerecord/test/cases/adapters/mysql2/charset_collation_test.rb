@@ -48,6 +48,15 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
     assert_equal "utf8mb4_general_ci", column.collation
   end
 
+  test "change column preserves collation" do
+    @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
+    @connection.change_column :charset_collations, :description, :text
+
+    column = @connection.columns(:charset_collations).find { |c| c.name == "description" }
+    assert_equal :text, column.type
+    assert_equal "utf8mb4_unicode_ci", column.collation
+  end
+
   test "schema dump includes collation" do
     output = dump_table_schema("charset_collations")
     assert_match %r/create_table "charset_collations", id: { type: :string, collation: "utf8mb4_bin" }/, output

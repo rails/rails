@@ -31,16 +31,6 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_not_respond_to @visitor, :valid?
   end
 
-  test "support conditional validation" do
-    user = Struct.new(:requires_password, :password_digest) do
-      include ActiveModel::SecurePassword
-      has_secure_password validations: { if: :requires_password }
-    end
-
-    assert_predicate user.new(false), :valid?
-    assert_predicate user.new(true), :invalid?
-  end
-
   test "create a new user with validations and valid password/confirmation" do
     @user.password = "password"
     @user.password_confirmation = "password"

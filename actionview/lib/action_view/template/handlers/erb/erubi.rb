@@ -18,6 +18,9 @@ module ActionView
             properties[:preamble]   ||= ""
             properties[:postamble]  ||= "#{properties[:bufvar]}.to_s"
 
+            # Tell Eruby that whether template will be compiled with `frozen_string_literal: true`
+            properties[:freeze_template_literals] = !Template.frozen_string_literal
+
             properties[:escapefunc] = ""
 
             super
@@ -30,11 +33,11 @@ module ActionView
             if text == "\n"
               @newline_pending += 1
             else
-              src << bufvar << ".safe_append='"
-              src << "\n" * @newline_pending if @newline_pending > 0
-              src << text.gsub(/['\\]/, '\\\\\&')
-              src << "'.freeze;"
-
+              with_buffer do
+                src << ".safe_append='"
+                src << "\n" * @newline_pending if @newline_pending > 0
+                src << text.gsub(/['\\]/, '\\\\\&') << @text_end
+              end
               @newline_pending = 0
             end
           end
@@ -44,16 +47,18 @@ module ActionView
           def add_expression(indicator, code)
             flush_newline_if_pending(src)
 
-            if (indicator == "==") || @escape
-              src << bufvar << ".safe_expr_append="
-            else
-              src << bufvar << ".append="
-            end
+            with_buffer do
+              if (indicator == "==") || @escape
+                src << ".safe_expr_append="
+              else
+                src << ".append="
+              end
 
-            if BLOCK_EXPR.match?(code)
-              src << " " << code
-            else
-              src << "(" << code << ");"
+              if BLOCK_EXPR.match?(code)
+                src << " " << code
+              else
+                src << "(" << code << ")"
+              end
             end
           end
 
@@ -69,7 +74,7 @@ module ActionView
 
           def flush_newline_if_pending(src)
             if @newline_pending > 0
-              src << bufvar << ".safe_append='#{"\n" * @newline_pending}'.freeze;"
+              with_buffer { src << ".safe_append='#{"\n" * @newline_pending}" << @text_end }
               @newline_pending = 0
             end
           end

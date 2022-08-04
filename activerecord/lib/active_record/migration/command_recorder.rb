@@ -45,7 +45,8 @@ module ActiveRecord
         :add_foreign_key, :remove_foreign_key,
         :change_column_comment, :change_table_comment,
         :add_check_constraint, :remove_check_constraint,
-        :add_exclusion_constraint, :remove_exclusion_constraint
+        :add_exclusion_constraint, :remove_exclusion_constraint,
+        :create_enum, :drop_enum
       ]
       include JoinTable
 
@@ -144,7 +145,8 @@ module ActiveRecord
               add_foreign_key:   :remove_foreign_key,
               add_check_constraint: :remove_check_constraint,
               add_exclusion_constraint: :remove_exclusion_constraint,
-              enable_extension:  :disable_extension
+              enable_extension:  :disable_extension,
+              create_enum:       :drop_enum
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1

@@ -35,11 +35,8 @@ module ActiveModel
       # ActiveModel::Dirty; if dirty tracking methods are not defined, this
       # validation will fail.
       #
-      # The password presence validation can be conditionally enforced by
-      # passing an options hash to +:validations+ with the standard +:if+ /
-      # +:unless+ / +:on+ keys. (See ActiveModel::Validations::ClassMethods#validates
-      # for more information.) Alternatively, all of the above validations can
-      # be omitted by passing <tt>validations: false</tt>. This allows complete
+      # All of the above validations can be omitted by passing
+      # <tt>validations: false</tt> as an argument. This allows complete
       # customizability of validation behavior.
       #
       # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
@@ -48,7 +45,7 @@ module ActiveModel
       #
       # ==== Examples
       #
-      # Using Active Record, which automatically includes ActiveModel::SecurePassword:
+      # ===== Using Active Record (which automatically includes ActiveModel::SecurePassword)
       #
       #   # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
       #   class User < ActiveRecord::Base
@@ -80,6 +77,29 @@ module ActiveModel
       #
       #   user.authenticate("vr00m")                                     # => false, old password
       #   user.authenticate("nohack4u")                                  # => user
+      #
+      # ===== Conditionally requiring a password
+      #
+      #   class Account
+      #     include ActiveModel::SecurePassword
+      #
+      #     attr_accessor :is_guest, :password_digest
+      #
+      #     has_secure_password
+      #
+      #     def errors
+      #       errors = super
+      #       errors.delete(:password, :blank) if is_guest
+      #       errors
+      #     end
+      #   end
+      #
+      #   account = Account.new
+      #   account.valid? # => false, password required
+      #
+      #   account.is_guest = true
+      #   account.valid? # => true
+      #
       def has_secure_password(attribute = :password, validations: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
@@ -96,13 +116,11 @@ module ActiveModel
         if validations
           include ActiveModel::Validations
 
-          validation_options = validations.is_a?(Hash) ? validations : {}
-
           # This ensures the model has a password by checking whether the password_digest
           # is present, so that this works with both new and existing records. However,
           # when there is an error, the message is added to the password attribute instead
           # so that the error message will make sense to the end-user.
-          validate(validation_options) do |record|
+          validate do |record|
             record.errors.add(attribute, :blank) unless record.public_send("#{attribute}_digest").present?
           end
 

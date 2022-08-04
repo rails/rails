@@ -281,17 +281,8 @@ module ActionView
         controller.read_fragment(name, options)
       end
 
-      def write_fragment_for(name, options)
-        pos = output_buffer.length
-        yield
-        output_safe = output_buffer.html_safe?
-        # We need to modify the buffer in place to be deal with the view handlers
-        # like `builder` that don't access the buffer through `@output_buffer` but
-        # keep the initial reference.
-        fragment = output_buffer.slice!(pos..-1)
-        if output_safe
-          self.output_buffer = output_buffer.class.new(output_buffer)
-        end
+      def write_fragment_for(name, options, &block)
+        fragment = output_buffer.capture(&block)
         controller.write_fragment(name, fragment, options)
       end
 

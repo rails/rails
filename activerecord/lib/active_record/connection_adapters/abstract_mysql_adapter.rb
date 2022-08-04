@@ -347,8 +347,18 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
+      end
+
+      def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
+        column = column_for(table_name, column_name)
+        return unless column
+
         default = extract_new_default_value(default_or_changes)
-        change_column table_name, column_name, nil, default: default
+        change_column_default_definition = ChangeColumnDefaultDefinition.new(column, default)
+        schema_creation.accept(change_column_default_definition)
+
+        change_column_default_definition
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
@@ -389,6 +399,10 @@ module ActiveRecord
 
         unless options.key?(:comment)
           options[:comment] = column.comment
+        end
+
+        unless options.key?(:collation)
+          options[:collation] = column.collation
         end
 
         unless options.key?(:auto_increment)

@@ -1,13 +1,3 @@
-*   Support passing `Hash` with keys `:if / :unless / :on` to SecurePassword.
-    This provides more flexibility when you want to trigger or skip validations on
-    specific conditions
-
-    ```ruby
-    secure_password validations: {if: :requires_password?}`
-    ```
-
-    *Kevin Jacoby*
-
 *   `has_secure_password` now supports password challenges via a
     `password_challenge` accessor and validation.
 

@@ -714,6 +714,15 @@ module ActiveRecord
         raise NotImplementedError, "change_column_default is not implemented"
       end
 
+      # Builds a ChangeColumnDefaultDefinition object.
+      #
+      # This definition object contains information about the column change that would occur
+      # if the same arguments were passed to #change_column_default. See #change_column_default for
+      # information about passing a +table_name+, +column_name+, +type+ and other options that can be passed.
+      def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
+        raise NotImplementedError, "build_change_column_default_definition is not implemented"
+      end
+
       # Sets or removes a <tt>NOT NULL</tt> constraint on a column. The +null+ flag
       # indicates whether the value can be +NULL+. For example
       #
@@ -1227,15 +1236,23 @@ module ActiveRecord
         options
       end
 
-      # Removes the given check constraint from the table.
+      # Removes the given check constraint from the table. Removing a check constraint
+      # that does not exist will raise an error.
       #
       #   remove_check_constraint :products, name: "price_check"
+      #
+      # To silently ignore a non-existent check constraint rather than raise an error,
+      # use the `if_exists` option.
+      #
+      #   remove_check_constraint :products, name: "price_check", if_exists: true
       #
       # The +expression+ parameter will be ignored if present. It can be helpful
       # to provide this in a migration's +change+ method so it can be reverted.
       # In that case, +expression+ will be used by #add_check_constraint.
       def remove_check_constraint(table_name, expression = nil, **options)
         return unless supports_check_constraints?
+
+        return if options[:if_exists] && !check_constraint_exists?(table_name, **options)
 
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
@@ -1437,6 +1454,10 @@ module ActiveRecord
       end
 
       private
+        def check_constraint_exists?(table_name, **options)
+          check_constraint_for(table_name, **options).present?
+        end
+
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
             raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"
@@ -1496,7 +1517,7 @@ module ActiveRecord
 
           if matching_indexes.count > 1
             raise ArgumentError, "Multiple indexes found on #{table_name} columns #{column_names}. " \
-                                 "Specify an index name from #{matching_indexes.map(&:name).join(', ')}"
+              "Specify an index name from #{matching_indexes.map(&:name).join(', ')}"
           elsif matching_indexes.none?
             raise ArgumentError, "No indexes found on #{table_name} with the options provided."
           else
@@ -1690,6 +1711,11 @@ module ActiveRecord
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column_name, type, **options)
           schema_creation.accept(AddColumnDefinition.new(cd))
+        end
+
+        def change_column_default_for_alter(table_name, column_name, default_or_changes)
+          cd = build_change_column_default_definition(table_name, column_name, default_or_changes)
+          cd.ddl
         end
 
         def rename_column_sql(table_name, column_name, new_column_name)
