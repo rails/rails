@@ -396,12 +396,12 @@ module ActiveRecord
       end
 
       def test_reload_type_map_for_newly_defined_types
-        @connection.execute "CREATE TYPE feeling AS ENUM ('good', 'bad')"
+        @connection.create_enum "feeling", ["good", "bad"]
         result = @connection.select_all "SELECT 'good'::feeling"
         assert_instance_of(PostgreSQLAdapter::OID::Enum,
                            result.column_types["feeling"])
       ensure
-        @connection.execute "DROP TYPE IF EXISTS feeling"
+        @connection.drop_enum "feeling", if_exists: true
         reset_connection
       end
 

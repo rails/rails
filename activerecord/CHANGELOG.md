@@ -1,3 +1,10 @@
+*   Add `drop_enum` migration command for PostgreSQL
+
+    This does the inverse of `create_enum`. Before dropping an enum, ensure you have
+    dropped columns that depend on it.
+
+    *Alex Ghiculescu*
+
 *   Adds support for `if_exists` option when removing a check constraint.
 
     The `remove_check_constraint` method now accepts an `if_exists` option. If set

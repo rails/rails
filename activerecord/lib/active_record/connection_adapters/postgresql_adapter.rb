@@ -486,6 +486,17 @@ module ActiveRecord
         exec_query(query)
       end
 
+      # Drops an enum type.
+      # If the `if_exists: true` option is provided, the enum is only dropped if it exists.
+      # Otherwise, if the enum doesn't exist, an error is raised.
+      def drop_enum(name, *args)
+        options = args.extract_options!
+        query = <<~SQL
+          DROP TYPE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(name)};
+        SQL
+        exec_query(query)
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
