@@ -44,7 +44,7 @@ module ActiveRecord
 
           config = ActiveRecord::Base.configurations.configs_for(
             env_name: Rails.env,
-            name: options[:database]
+            name: database
           )
 
           Array(config&.migrations_paths).first
