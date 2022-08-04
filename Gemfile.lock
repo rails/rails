@@ -181,7 +181,7 @@ GEM
     crass (1.0.6)
     cssbundling-rails (1.1.0)
       railties (>= 6.0.0)
-    curses (1.4.3)
+    curses (1.4.4)
     daemons (1.4.1)
     dalli (3.2.0)
     dante (0.2.0)
@@ -303,9 +303,6 @@ GEM
       railties (>= 6.0.0)
     json (2.6.1)
     jwt (2.3.0)
-    kindlerb (1.2.0)
-      mustache
-      nokogiri
     libxml-ruby (3.2.1)
     listen (3.7.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -336,7 +333,6 @@ GEM
     msgpack (1.4.2)
     multi_json (1.15.0)
     multipart-post (2.1.1)
-    mustache (1.1.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
     mysql2 (0.5.4)
@@ -583,7 +579,6 @@ DEPENDENCIES
   importmap-rails
   jsbundling-rails
   json (>= 2.0.0)
-  kindlerb (~> 1.2.0)
   libxml-ruby
   listen (~> 3.3)
   minitest (>= 5.15.0)
@@ -614,6 +609,7 @@ DEPENDENCIES
   rubocop-packaging
   rubocop-performance
   rubocop-rails
+  rubyzip (~> 2.0)
   sdoc (>= 2.4.0)
   selenium-webdriver (>= 4.0.0)
   sequel
@@ -637,4 +633,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.3.14
+   2.3.17
