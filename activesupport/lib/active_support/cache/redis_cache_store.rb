@@ -388,7 +388,9 @@ module ActiveSupport
 
         # Deletes multiple entries in the cache. Returns the number of entries deleted.
         def delete_multi_entries(entries, **_options)
-          redis.then { |c| c.del(entries) }
+          failsafe :delete_multi_entries, returning: 0 do
+            redis.then { |c| c.del(entries) }
+          end
         end
 
         # Nonstandard store provider API to write multiple values at once.
