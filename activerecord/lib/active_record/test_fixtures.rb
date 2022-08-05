@@ -117,7 +117,6 @@ module ActiveRecord
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
           connection_name = payload[:connection_name] if payload.key?(:connection_name)
           shard = payload[:shard] if payload.key?(:shard)
-          setup_shared_connection_pool
 
           if connection_name
             begin
@@ -126,10 +125,14 @@ module ActiveRecord
               connection = nil
             end
 
-            if connection && !@fixture_connections.include?(connection)
-              connection.begin_transaction joinable: false, _lazy: false
-              connection.pool.lock_thread = true if lock_threads
-              @fixture_connections << connection
+            if connection
+              setup_shared_connection_pool
+
+              if !@fixture_connections.include?(connection)
+                connection.begin_transaction joinable: false, _lazy: false
+                connection.pool.lock_thread = true if lock_threads
+                @fixture_connections << connection
+              end
             end
           end
         end
