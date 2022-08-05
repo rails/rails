@@ -8,6 +8,16 @@ require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class EncryptedConfiguration < EncryptedFile
+    class InvalidContentError < RuntimeError
+      def initialize(content_path)
+        super "Invalid YAML in '#{content_path}'."
+      end
+
+      def message
+        cause.is_a?(Psych::SyntaxError) ? "#{super}\n\n  #{cause.message}" : super
+      end
+    end
+
     delegate :[], :fetch, to: :config
     delegate_missing_to :options
 
@@ -23,10 +33,8 @@ module ActiveSupport
       ""
     end
 
-    def write(contents)
-      deserialize(contents)
-
-      super
+    def validate! # :nodoc:
+      deserialize(read)
     end
 
     def config
@@ -48,9 +56,14 @@ module ActiveSupport
         @options ||= ActiveSupport::InheritableOptions.new(deep_transform(config))
       end
 
-      def deserialize(config)
-        doc = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(config) : YAML.load(config)
-        doc.presence || {}
+      def deserialize(content)
+        config = YAML.respond_to?(:unsafe_load) ?
+          YAML.unsafe_load(content, filename: content_path) :
+          YAML.load(content, filename: content_path)
+
+        config.presence || {}
+      rescue Psych::SyntaxError
+        raise InvalidContentError.new(content_path)
       end
   end
 end

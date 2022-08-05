@@ -207,9 +207,11 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs within a transaction with append_on_assign config uploads all the files" do
     append_on_assign do
-      ActiveRecord::Base.transaction do
-        @user.highlights.attach fixture_file_upload("racecar.jpg")
-        @user.highlights.attach fixture_file_upload("video.mp4")
+      assert_deprecated do
+        ActiveRecord::Base.transaction do
+          @user.highlights.attach fixture_file_upload("racecar.jpg")
+          @user.highlights.attach fixture_file_upload("video.mp4")
+        end
       end
 
       assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
@@ -221,10 +223,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs within a transaction with append_on_assign config create the exact amount of records" do
     append_on_assign do
-      assert_difference -> { ActiveStorage::Blob.count }, +2 do
-        ActiveRecord::Base.transaction do
-          @user.highlights.attach fixture_file_upload("racecar.jpg")
-          @user.highlights.attach fixture_file_upload("video.mp4")
+      assert_deprecated do
+        assert_difference -> { ActiveStorage::Blob.count }, +2 do
+          ActiveRecord::Base.transaction do
+            @user.highlights.attach fixture_file_upload("racecar.jpg")
+            @user.highlights.attach fixture_file_upload("video.mp4")
+          end
         end
       end
 
@@ -879,7 +883,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     Rails.configuration.active_storage.stub(:service, nil) do
       error = assert_raises RuntimeError do
         User.class_eval do
-          has_one_attached :featured_photos
+          has_many_attached :featured_photos
         end
       end
 
@@ -907,11 +911,51 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
-  test "raises error when unknown variant name is used" do
+  test "raises error when unknown variant name is used to generate variant" do
     @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
 
     error = assert_raises ArgumentError do
       @user.highlights_with_variants.first.variant(:unknown).processed
+    end
+
+    assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
+  end
+
+  test "creating preview by variation name" do
+    @user.highlights_with_variants.attach fixture_file_upload("report.pdf")
+    preview = @user.highlights_with_variants.first.preview(:thumb).processed
+
+    image = read_image(preview.send(:variant))
+    assert_equal "PNG", image.type
+    assert_equal 77, image.width
+    assert_equal 100, image.height
+  end
+
+  test "raises error when unknown variant name is used to generate preview" do
+    @user.highlights_with_variants.attach fixture_file_upload("report.pdf")
+
+    error = assert_raises ArgumentError do
+      @user.highlights_with_variants.first.preview(:unknown).processed
+    end
+
+    assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
+  end
+
+  test "creating representation by variation name" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    variant = @user.highlights_with_variants.first.representation(:thumb).processed
+
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
+
+  test "raises error when unknown variant name is used to generate representation" do
+    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+
+    error = assert_raises ArgumentError do
+      @user.highlights_with_variants.first.representation(:unknown).processed
     end
 
     assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)

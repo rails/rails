@@ -1,3 +1,33 @@
+*   Add `routes --unused` option to detect extraneous routes.
+
+    Example:
+
+    ```
+    > bin/rails rails --unused
+
+    Found 2 unused routes:
+
+    Prefix Verb URI Pattern    Controller#Action
+       one GET  /one(.:format) action#one
+       two GET  /two(.:format) action#two
+    ```
+
+    *Gannon McGibbon*
+
+*   Add `--parent` option to controller generator to specify parent class of job.
+
+    Example:
+
+    `bin/rails g controller admin/users --parent=admin_controller` generates:
+
+    ```ruby
+    class Admin::UsersController < AdminController
+      # ...
+    end
+    ```
+
+    *Gannon McGibbon*
+
 *   In-app custom credentials templates are now supported.  When a credentials
     file does not exist, `rails credentials:edit` will now try to use
     `lib/templates/rails/credentials/credentials.yml.tt` to generate the
@@ -10,9 +40,10 @@
 
     *Jonathan Hefner*
 
-*   Newly generated per-environment credentials files (e.g.
-    `config/credentials/production.yml.enc`) now include a `secret_key_base` for
-    convenience, just as `config/credentials.yml.enc` does.
+*   Except for `dev` and `test` environments, newly generated per-environment
+    credentials files (e.g. `config/credentials/production.yml.enc`) now include
+    a `secret_key_base` for convenience, just as `config/credentials.yml.enc`
+    does.
 
     *Jonathan Hefner*
 

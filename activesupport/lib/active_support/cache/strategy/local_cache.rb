@@ -132,7 +132,7 @@ module ActiveSupport
 
             local_entries = local_cache.read_multi_entries(keys)
             local_entries.transform_values! do |payload|
-              deserialize_entry(payload).value
+              deserialize_entry(payload)&.value
             end
             missed_keys = keys - local_entries.keys
 

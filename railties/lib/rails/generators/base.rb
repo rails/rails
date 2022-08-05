@@ -208,6 +208,7 @@ module Rails
         remove_invocation(*names)
 
         names.each do |name|
+          singleton_class.undef_method("#{name}_generator")
           hooks.delete(name)
         end
       end

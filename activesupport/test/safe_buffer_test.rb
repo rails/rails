@@ -171,6 +171,13 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_not_predicate @buffer.dup, :html_safe?
   end
 
+  test "Can call html_safe on a safe buffer" do
+    @buffer = "hello".html_safe
+    extra_safe = @buffer.html_safe
+    assert_equal "hello", extra_safe
+    assert_predicate extra_safe, :html_safe?
+  end
+
   test "Should return safe buffer when added with another safe buffer" do
     clean = "<script>".html_safe
     result_buffer = @buffer + clean

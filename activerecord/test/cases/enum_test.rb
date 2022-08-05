@@ -1006,4 +1006,18 @@ class EnumTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.logger = old_logger
   end
+
+  test "raises for columnless enums" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      enum columnless_genre: [:adventure, :comic]
+    end
+
+    error = assert_raises(RuntimeError) do
+      klass.columns # load schema
+    end
+    assert_equal "Unknown enum attribute 'columnless_genre' for Book", error.message
+  end
 end

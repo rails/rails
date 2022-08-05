@@ -126,23 +126,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_same @cache.redis, redis_instance
     end
 
-    test "fetch caches nil" do
-      cache = build
-      cache.write("foo", nil)
-      assert_not_called(cache, :write) do
-        assert_nil cache.fetch("foo") { "baz" }
-      end
-    end
-
-    test "skip_nil is passed to ActiveSupport::Cache" do
-      cache = build(skip_nil: true)
-      cache.clear
-      assert_not_called(cache, :write) do
-        assert_nil cache.fetch("foo") { nil }
-        assert_equal false, cache.exist?("foo")
-      end
-    end
-
     private
       def build(**kwargs)
         ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs.merge(pool: false)).tap(&:redis)
@@ -209,42 +192,49 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def test_increment_expires_in
-      assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
-        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
-          @cache.increment "foo", 1, expires_in: 60
-        end
-      end
+      @cache.increment "foo", 1, expires_in: 60
+      assert @cache.redis.exists?("#{@namespace}:foo")
+      assert @cache.redis.ttl("#{@namespace}:foo") > 0
 
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
-      assert_not_called @cache.redis, :expire do
-        @cache.increment "bar", 1, expires_in: 2.minutes
-      end
+      @cache.increment "bar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:bar") > 60
 
       # key exist but not have expire
       @cache.redis.set "#{@namespace}:dar", 10
-      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
-        @cache.increment "dar", 1, expires_in: 60
-      end
+      @cache.increment "dar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:dar") > 0
     end
 
     def test_decrement_expires_in
-      assert_called_with @cache.redis, :decrby, [ "#{@namespace}:foo", 1 ] do
-        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
-          @cache.decrement "foo", 1, expires_in: 60
-        end
-      end
+      @cache.decrement "foo", 1, expires_in: 60
+      assert @cache.redis.exists?("#{@namespace}:foo")
+      assert @cache.redis.ttl("#{@namespace}:foo") > 0
 
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
-      assert_not_called @cache.redis, :expire do
-        @cache.decrement "bar", 1, expires_in: 2.minutes
-      end
+      @cache.decrement "bar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:bar") > 60
 
       # key exist but not have expire
       @cache.redis.set "#{@namespace}:dar", 10
-      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
-        @cache.decrement "dar", 1, expires_in: 60
+      @cache.decrement "dar", 1, expires_in: 60
+      assert @cache.redis.ttl("#{@namespace}:dar") > 0
+    end
+
+    test "fetch caches nil" do
+      @cache.write("foo", nil)
+      assert_not_called(@cache, :write) do
+        assert_nil @cache.fetch("foo") { "baz" }
+      end
+    end
+
+    test "skip_nil is passed to ActiveSupport::Cache" do
+      @cache = lookup_store(skip_nil: true)
+      assert_not_called(@cache, :write) do
+        assert_nil @cache.fetch("foo") { nil }
+        assert_equal false, @cache.exist?("foo")
       end
     end
 
@@ -408,7 +398,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, MaxClientsReachedRedisClient)
 
-        yield ActiveSupport::Cache::RedisCacheStore.new
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace)
       ensure
         Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, old_client)

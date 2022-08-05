@@ -1,3 +1,86 @@
+*   Add `drop_enum` migration command for PostgreSQL
+
+    This does the inverse of `create_enum`. Before dropping an enum, ensure you have
+    dropped columns that depend on it.
+
+    *Alex Ghiculescu*
+
+*   Adds support for `if_exists` option when removing a check constraint.
+
+    The `remove_check_constraint` method now accepts an `if_exists` option. If set
+    to true an error won't be raised if the check constraint doesn't exist.
+
+    *Margaret Parsa* and *Aditya Bhutani*
+
+*   `find_or_create_by` now try to find a second time if it hits a unicity constraint.
+
+    `find_or_create_by` always has been inherently racy, either creating multiple
+    duplicate records or failing with `ActiveRecord::RecordNotUnique` depending on
+    whether a proper unicity constraint was set.
+
+    `create_or_find_by` was introduced for this use case, however it's quite wasteful
+    when the record is expected to exist most of the time, as INSERT require to send
+    more data than SELECT and require more work from the database. Also on some
+    databases it can actually consume a primary key increment which is undesirable.
+
+    So for case where most of the time the record is expected to exist, `find_or_create_by`
+    can be made race-condition free by re-trying the `find` if the `create` failed
+    with `ActiveRecord::RecordNotUnique`. This assumes that the table has the proper
+    unicity constraints, if not, `find_or_create_by` will still lead to duplicated records.
+
+    *Jean Boussier*, *Alex Kitchens*
+
+*   Introduce a simpler constructor API for ActiveRecord database adapters.
+
+    Previously the adapter had to know how to build a new raw connection to
+    support reconnect, but also expected to be passed an initial already-
+    established connection.
+
+    When manually creating an adapter instance, it will now accept a single
+    config hash, and only establish the real connection on demand.
+
+    *Matthew Draper*
+
+*   Avoid redundant `SELECT 1` connection-validation query during DB pool
+    checkout when possible.
+
+    If the first query run during a request is known to be idempotent, it can be
+    used directly to validate the connection, saving a network round-trip.
+
+    *Matthew Draper*
+
+*   Automatically reconnect broken database connections when safe, even
+    mid-request.
+
+    When an error occurs while attempting to run a known-idempotent query, and
+    not inside a transaction, it is safe to immediately reconnect to the
+    database server and try again, so this is now the default behavior.
+
+    This new default should always be safe -- to support that, it's consciously
+    conservative about which queries are considered idempotent -- but if
+    necessary it can be disabled by setting the `connection_retries` connection
+    option to `0`.
+
+    *Matthew Draper*
+
+*   Avoid removing a PostgreSQL extension when there are dependent objects.
+
+    Previously, removing an extension also implicitly removed dependent objects. Now, this will raise an error.
+
+    You can force removing the extension:
+
+    ```ruby
+    disable_extension :citext, force: :cascade
+    ```
+
+    Fixes #29091.
+
+    *fatkodima*
+
+*   Allow nested functions as safe SQL string
+
+    *Michael Siegfried*
+
 *   Allow `destroy_association_async_job=` to be configured with a class string instead of a constant.
 
     Defers an autoloading dependency between `ActiveRecord::Base` and `ActiveJob::Base`

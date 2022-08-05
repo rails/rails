@@ -639,6 +639,24 @@ module ActiveRecord
         end
       end
 
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_disable_extension_on_7_0
+          enable_extension!(:hstore, connection)
+
+          migration = Class.new(ActiveRecord::Migration[7.0]) do
+            def up
+              add_column :testings, :settings, :hstore
+              disable_extension :hstore
+            end
+          end
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          assert_not connection.extension_enabled?(:hstore)
+        ensure
+          disable_extension!(:hstore, connection)
+        end
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)

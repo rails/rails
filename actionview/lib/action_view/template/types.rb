@@ -38,18 +38,15 @@ module ActionView
       end
 
       class << self
-        attr_accessor :type_klass
+        attr_reader :symbols
 
         def delegate_to(klass)
-          self.type_klass = klass
+          @symbols = klass::SET.symbols
+          @type_klass = klass
         end
 
         def [](type)
-          type_klass[type]
-        end
-
-        def symbols
-          type_klass::SET.symbols
+          @type_klass[type]
         end
       end
 

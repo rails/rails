@@ -506,6 +506,7 @@ module ActiveSupport
           ordered = names.index_with do |name|
             reads.fetch(name) { writes[name] = yield(name) }
           end
+          writes.compact! if options[:skip_nil]
 
           payload[:hits] = reads.keys
           payload[:super_operation] = :fetch_multi

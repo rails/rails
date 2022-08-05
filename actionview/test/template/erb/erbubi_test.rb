@@ -16,6 +16,6 @@ class ErubiTest < ActiveSupport::TestCase
     baseline = ActionView::Template::Handlers::ERB::Erubi.new(template)
     erubi = ActionView::Template::Handlers::ERB::Erubi.new(template, bufvar: "boofer")
 
-    assert_equal baseline.src.gsub("#{baseline.bufvar}.", "boofer."), erubi.src
+    assert_equal baseline.src.gsub(baseline.bufvar, "boofer"), erubi.src
   end
 end
