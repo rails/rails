@@ -1785,7 +1785,11 @@ NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in `
 
 #### Testing Enqueued Emails
 
-You can use the `assert_enqueued_email_with` assertion to confirm that the email has been enqueued with all of the expected arguments and/or parameters. To enqueue the email, simply use the `deliver_later` method instead of `deliver_now`.  In the next example, we will assert that the email has been enqueued with the correct arguments:
+You can use the `assert_enqueued_email_with` assertion to confirm that the email has been enqueued with all of the expected mailer method arguments and/or parameterized mailer parameters. This allows you to match any email that have been enqueued with the `deliver_later` method.
+
+As with the basic test case, we create the email and store the returned object in the `email` variable. The following examples include variations of passing arguments and/or parameters.
+
+This example will assert that the email has been enqueued with the correct arguments:
 
 ```ruby
 require "test_helper"
@@ -1803,9 +1807,7 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-As with the basic test case, we create the email and store the returned object in the `email` variable. We then use the `assert_enqueued_email_with` block with the `args` argument to test the enqueued email arguments.
-
-You can test named arguments using a hash within the `args` argument:
+This example will assert that a mailer has been enqueued with the correct mailer method named arguments by passing a hash of the arguments as `args`:
 
 ```ruby
 require "test_helper"
@@ -1824,7 +1826,7 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-You can test `params` and `args` in the same assertion:
+This example will assert that a parameterized mailer has been enqueued with the correct parameters and arguments. The mailer parameters are passed as `params` and the mailer method arguments as `args`:
 
 ```ruby
 require "test_helper"
@@ -1843,9 +1845,7 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-NOTE: You can adapt the above test to test `params` and named arguments in the same assertion.
-
-You can test parametrized mailers as well:
+This example shows an alternative way to test that a parameterized mailer has been enqueued with the correct parameters:
 
 ```ruby
 require "test_helper"
@@ -1853,29 +1853,12 @@ require "test_helper"
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Create the email and store it for further assertions
-    email = UserMailer.with(to: "friend@example.com")
+    email = UserMailer.with(to: "friend@example.com").create_invite
 
     # Test that the email got enqueued with the correct mailer parameters
     assert_enqueued_email_with UserMailer.with(to: "friend@example.com"), :create_invite do
-      email.create_invite.deliver_later
+      email.deliver_later
     end
-  end
-end
-```
-
-You can, of course, use `assert_enqueued_email_with` without a block:
-
-```ruby
-require "test_helper"
-
-class UserMailerTest < ActionMailer::TestCase
-  test "invite" do
-    # Create the email and store it for further assertions
-    email = UserMailer.with(to: "friend@example.com")
-
-    # Test that the email got enqueued with the correct mailer parameters
-    email.create_invite.deliver_later
-    assert_enqueued_email_with UserMailer.with(to: "friend@example.com"), :create_invite
   end
 end
 ```
