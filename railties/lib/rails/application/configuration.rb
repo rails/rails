@@ -87,6 +87,20 @@ module Rails
       # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
       # for the default values associated with a particular version.
       def load_defaults(target_version)
+        # To introduce a change in behavior, follow these steps:
+        # 1. Add an accessor on the target object (e.g. the ActiveJob class for global Active Job config).
+        # 2. Set a default value there preserving existing behavior for existing applications.
+        # 3. Implement the behavior change based on the config value.
+        # 4. In the section below corresponding to the next release of Rails, set the new value.
+        # 5. Add a commented out section in the `new_framework_defaults` template, setting the new value.
+        # 6. Update the guide in `configuration.md`.
+
+        # To remove configurable deprecated behavior, follow these steps:
+        # 1. Update or remove the entry in the guides.
+        # 2. Remove the references below.
+        # 3. Remove the legacy code paths and config check.
+        # 4. Remove the config accessor.
+
         case target_version.to_s
         when "5.0"
           if respond_to?(:action_controller)
@@ -164,9 +178,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-            if respond_to?(:legacy_connection_handling)
-              active_record.legacy_connection_handling = false
-            end
           end
 
           if respond_to?(:active_job)
@@ -265,6 +276,12 @@ module Rails
             self.log_file_size = (100 * 1024 * 1024)
           end
 
+          if respond_to?(:active_record)
+            active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
+            active_record.allow_deprecated_singular_associations_name = false
+            active_record.sqlite3_adapter_strict_strings_by_default = true
+          end
+
           if respond_to?(:action_dispatch)
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
@@ -273,6 +290,10 @@ module Rails
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
+          end
+
+          if respond_to?(:active_job)
+            active_job.use_big_decimal_serializer = true
           end
 
           if respond_to?(:active_support)
@@ -387,8 +408,14 @@ module Rails
         config = if yaml&.exist?
           loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
           if (shared = loaded_yaml.delete("shared"))
-            loaded_yaml.each do |_k, values|
-              values.reverse_merge!(shared)
+            loaded_yaml.each do |env, config|
+              if config.is_a?(Hash) && config.values.all?(Hash)
+                config.map do |name, sub_config|
+                  sub_config.reverse_merge!(shared)
+                end
+              else
+                config.reverse_merge!(shared)
+              end
             end
           end
           Hash.new(shared).merge(loaded_yaml)
@@ -416,7 +443,7 @@ module Rails
 
       # Specifies what class to use to store the session. Possible values
       # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
-      # store, or +:disabled+. +:disabled+ tells Rails not to deal with
+      # store, or +:disabled+. +:disabled+ tells \Rails not to deal with
       # sessions.
       #
       # Additional options will be set as +session_options+:
@@ -431,25 +458,14 @@ module Rails
       #   config.session_store :my_custom_store
       def session_store(new_session_store = nil, **options)
         if new_session_store
-          if new_session_store == :active_record_store
-            begin
-              ActionDispatch::Session::ActiveRecordStore
-            rescue NameError
-              raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
-                "Please add `activerecord-session_store` to your Gemfile to use it."
-            end
-          end
-
           @session_store = new_session_store
           @session_options = options || {}
         else
           case @session_store
           when :disabled
             nil
-          when :active_record_store
-            ActionDispatch::Session::ActiveRecordStore
           when Symbol
-            ActionDispatch::Session.const_get(@session_store.to_s.camelize)
+            ActionDispatch::Session.resolve_store(@session_store)
           else
             @session_store
           end

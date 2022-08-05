@@ -20,7 +20,6 @@ FileUtils.chdir APP_ROOT do
   # Install JavaScript dependencies
   system("yarn check --check-files") || system!("yarn install")
 <% end -%>
-
 <% unless options.skip_active_record? -%>
 
   # puts "\n== Copying sample files =="

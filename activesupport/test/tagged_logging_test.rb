@@ -238,7 +238,7 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     assert_equal "[OMG] Broadcasting...\n", broadcast_output.string
   end
 
-  test "broadcasting when passing a block works and  keeps formatter untouched" do
+  test "broadcasting when passing a block works and keeps formatter untouched" do
     broadcast_output = StringIO.new
     broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
     my_formatter = Class.new do
@@ -283,5 +283,19 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
 
     assert_equal "[OMG] Broadcasting...\n", @output.string
     assert_equal "Broadcasting...\n", broadcast_output.string
+  end
+
+  test "keeps formatter singleton class methods" do
+    plain_output = StringIO.new
+    plain_logger = Logger.new(plain_output)
+    plain_logger.formatter = Logger::Formatter.new
+    plain_logger.formatter.extend(Module.new {
+      def crozz_method
+      end
+    })
+
+    tagged_logger = ActiveSupport::TaggedLogging.new(plain_logger)
+    assert_respond_to tagged_logger.formatter, :tagged
+    assert_respond_to tagged_logger.formatter, :crozz_method
   end
 end

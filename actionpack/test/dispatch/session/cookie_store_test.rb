@@ -13,6 +13,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   Generator = ActiveSupport::KeyGenerator.new(SessionSecret, iterations: 1000)
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
 
+  SameSite = proc { :lax }
+
   Encryptor = ActiveSupport::MessageEncryptor.new(
     Generator.generate_key(SessionSalt, 32), cipher: "aes-256-gcm", serializer: Marshal
   )
@@ -379,8 +381,29 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "default same_site derives SameSite from env" do
+    with_test_route_set do
+      get "/set_session_value"
+      assert_match %r/SameSite=Lax/, headers["Set-Cookie"]
+    end
+  end
+
+  test "explicit same_site sets SameSite" do
+    with_test_route_set(same_site: :strict) do
+      get "/set_session_value"
+      assert_match %r/SameSite=Strict/, headers["Set-Cookie"]
+    end
+  end
+
+  test "explicit nil same_site omits SameSite" do
+    with_test_route_set(same_site: nil) do
+      get "/set_session_value"
+      assert_no_match %r/SameSite=/, headers["Set-Cookie"]
+    end
+  end
+
   private
-    # Overwrite get to send SessionSecret in env hash
+    # Overwrite `get` to set env hash
     def get(path, **options)
       options[:headers] ||= {}
       options[:headers].tap do |config|
@@ -390,6 +413,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
         config["action_dispatch.key_generator"] ||= Generator
         config["action_dispatch.cookies_rotations"] ||= Rotations
+
+        config["action_dispatch.cookies_same_site_protection"] ||= SameSite
       end
 
       super

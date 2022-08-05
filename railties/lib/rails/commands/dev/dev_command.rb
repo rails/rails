@@ -7,7 +7,7 @@ module Rails
     class DevCommand < Base # :nodoc:
       no_commands do
         def help
-          say "rails dev:cache # Toggle development mode caching on/off."
+          say "#{executable(:cache)} # Toggle development mode caching on/off."
         end
       end
 

@@ -37,24 +37,24 @@ module Rails
 
       Rails::TestUnit::Runner::TEST_FOLDERS.each do |name|
         define_method(name) do |*|
-          self.args.prepend("test/#{name}")
+          args.prepend("test/#{name}")
           perform
         end
       end
 
       desc "test:all", "Runs all tests, including system tests", hide: true
-      def all
-        self.args = ["test/**/*_test.rb"]
+      def all(*)
+        args.prepend("test/**/*_test.rb")
         perform
       end
 
-      def system
-        self.args = ["test/system"]
+      def system(*)
+        args.prepend("test/system")
         perform
       end
 
-      def generators
-        self.args = ["test/lib/generators"]
+      def generators(*)
+        args.prepend("test/lib/generators")
         perform
       end
     end

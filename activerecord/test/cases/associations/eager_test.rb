@@ -877,7 +877,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :taggingz).find(6)
     }
-    assert_match "Did you mean?  tagging\n", error.message
+    if error.respond_to?(:detailed_message)
+      assert_match "Did you mean?  tagging", error.detailed_message
+    else
+      assert_match "Did you mean?  tagging\n", error.message
+    end
   end
 
   def test_eager_has_many_through_with_order

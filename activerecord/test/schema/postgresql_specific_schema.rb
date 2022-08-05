@@ -128,6 +128,13 @@ _SQL
     t.string :subject
   end
 
+  create_table :test_exclusion_constraints, force: true do |t|
+    t.date :start_date
+    t.date :end_date
+
+    t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "test_exclusion_constraints_date_overlap"
+  end
+
   if supports_partitioned_indexes?
     create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
       t.string :city_id, null: false

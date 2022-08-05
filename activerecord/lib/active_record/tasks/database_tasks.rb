@@ -192,27 +192,25 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(db_config)
 
           begin
-            # Skipped when no database
-            migrate
-
-            if ActiveRecord.dump_schema_after_migration
-              dump_schema(db_config, ActiveRecord.schema_format)
-            end
+            database_initialized = ActiveRecord::SchemaMigration.table_exists?
           rescue ActiveRecord::NoDatabaseError
             create(db_config)
+            retry
+          end
 
+          unless database_initialized
             if File.exist?(schema_dump_path(db_config))
               load_schema(
                 db_config,
                 ActiveRecord.schema_format,
                 nil
               )
-            else
-              migrate
             end
-
             seed = true
           end
+
+          migrate
+          dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
         end
 
         ActiveRecord::Base.establish_connection
@@ -254,10 +252,10 @@ module ActiveRecord
       end
 
       def migrate(version = nil)
-        check_target_version
-
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
+
+        check_target_version
 
         Base.connection.migration_context.migrate(target_version) do |migration|
           if version.blank?

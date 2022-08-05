@@ -6,12 +6,15 @@ module ActiveRecord
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
         def select_all(*, **) # :nodoc:
-          result = if ExplainRegistry.collect? && prepared_statements
-            unprepared_statement { super }
-          else
-            super
+          result = nil
+          with_raw_connection do |conn|
+            result = if ExplainRegistry.collect? && prepared_statements
+              unprepared_statement { super }
+            else
+              super
+            end
+            conn.abandon_results!
           end
-          @raw_connection.abandon_results!
           result
         end
 
@@ -39,14 +42,6 @@ module ActiveRecord
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
-        # Executes the SQL statement in the context of this connection.
-        def execute(sql, name = nil, async: false)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          raw_execute(sql, name, async: async)
-        end
-
         def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
             execute_and_free(sql, name, async: async) do |result|
@@ -69,8 +64,8 @@ module ActiveRecord
 
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
           if without_prepared_statement?(binds)
-            @lock.synchronize do
-              execute_and_free(sql, name) { @raw_connection.affected_rows }
+            with_raw_connection do |conn|
+              execute_and_free(sql, name) { conn.affected_rows }
             end
           else
             exec_stmt_and_free(sql, name, binds) { |stmt| stmt.affected_rows }
@@ -88,19 +83,27 @@ module ActiveRecord
         end
 
         private
-          def raw_execute(sql, name, async: false)
-            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-            # made since we established the connection
-            @raw_connection.query_options[:database_timezone] = default_timezone
+          def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
+            mark_transaction_written_if_write(sql)
 
-            super
+            log(sql, name, async: async) do
+              with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+                # make sure we carry over any changes to ActiveRecord.default_timezone that have been
+                # made since we established the connection
+                conn.query_options[:database_timezone] = default_timezone
+
+                conn.query(sql)
+              end
+            end
           end
 
           def execute_batch(statements, name = nil)
             statements = statements.map { |sql| transform_query(sql) }
             combine_multi_statements(statements).each do |statement|
-              raw_execute(statement, name)
-              @raw_connection.abandon_results!
+              with_raw_connection do |conn|
+                raw_execute(statement, name)
+                conn.abandon_results!
+              end
             end
           end
 
@@ -109,7 +112,7 @@ module ActiveRecord
           end
 
           def last_inserted_id(result)
-            @raw_connection.last_id
+            @raw_connection&.last_id
           end
 
           def multi_statements_enabled?
@@ -123,16 +126,16 @@ module ActiveRecord
           end
 
           def with_multi_statements
-            multi_statements_was = multi_statements_enabled?
-
-            unless multi_statements_was
-              @raw_connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+            if multi_statements_enabled?
+              return yield
             end
 
-            yield
-          ensure
-            unless multi_statements_was
-              @raw_connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+            with_raw_connection do |conn|
+              conn.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+
+              yield
+            ensure
+              conn.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 
@@ -167,39 +170,40 @@ module ActiveRecord
             sql = transform_query(sql)
             check_if_write_query(sql)
 
-            materialize_transactions
             mark_transaction_written_if_write(sql)
-
-            # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-            # made since we established the connection
-            @raw_connection.query_options[:database_timezone] = default_timezone
 
             type_casted_binds = type_casted_binds(binds)
 
             log(sql, name, binds, type_casted_binds, async: async) do
-              if cache_stmt
-                stmt = @statements[sql] ||= @raw_connection.prepare(sql)
-              else
-                stmt = @raw_connection.prepare(sql)
-              end
+              with_raw_connection do |conn|
+                # make sure we carry over any changes to ActiveRecord.default_timezone that have been
+                # made since we established the connection
+                conn.query_options[:database_timezone] = default_timezone
 
-              begin
-                result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                  stmt.execute(*type_casted_binds)
-                end
-              rescue Mysql2::Error => e
                 if cache_stmt
-                  @statements.delete(sql)
+                  stmt = @statements[sql] ||= conn.prepare(sql)
                 else
-                  stmt.close
+                  stmt = conn.prepare(sql)
                 end
-                raise e
-              end
 
-              ret = yield stmt, result
-              result.free if result
-              stmt.close unless cache_stmt
-              ret
+                begin
+                  result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                    stmt.execute(*type_casted_binds)
+                  end
+                rescue Mysql2::Error => e
+                  if cache_stmt
+                    @statements.delete(sql)
+                  else
+                    stmt.close
+                  end
+                  raise e
+                end
+
+                ret = yield stmt, result
+                result.free if result
+                stmt.close unless cache_stmt
+                ret
+              end
             end
           end
       end

@@ -687,35 +687,54 @@ module ApplicationTests
         end
       end
 
-      test "db:prepare setup the database" do
+      test "db:prepare loads schema, runs pending migrations, and updates schema" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           output = rails("db:prepare")
           assert_match(/CreateBooks: migrated/, output)
+          assert_match(/create_table "books"/, File.read("db/schema.rb"))
 
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
 
           rails "generate", "model", "recipe", "title:string"
           output = rails("db:prepare")
-          assert_match(/CreateBooks: migrated/, output)
+          assert_no_match(/CreateBooks: migrated/, output) # loaded from schema
           assert_match(/CreateRecipes: migrated/, output)
+
+          schema = File.read("db/schema.rb")
+          assert_match(/create_table "books"/, schema)
+          assert_match(/create_table "recipes"/, schema)
+
+          tables = rails("runner", "p ActiveRecord::Base.connection.tables.sort").strip
+          assert_equal('["ar_internal_metadata", "books", "recipes", "schema_migrations"]', tables)
         end
       end
 
-      test "db:prepare does not touch schema when dumping is disabled" do
+      test "db:prepare loads schema when database exists but is empty" do
+        rails "generate", "model", "book", "title:string"
+        rails("db:prepare", "db:drop", "db:create")
+
+        output = rails("db:prepare")
+        assert_no_match(/CreateBooks: migrated/, output)
+
+        tables = rails("runner", "p ActiveRecord::Base.connection.tables.sort").strip
+        assert_equal('["ar_internal_metadata", "books", "schema_migrations"]', tables)
+      end
+
+      test "db:prepare does not dump schema when dumping is disabled" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "db:create", "db:migrate"
 
-          app_file "db/schema.rb", "Not touched"
+          app_file "db/schema.rb", "# Not touched"
           app_file "config/initializers/disable_dumping_schema.rb", <<-RUBY
             Rails.application.config.active_record.dump_schema_after_migration = false
           RUBY
 
           rails "db:prepare"
 
-          assert_equal("Not touched", File.read("db/schema.rb").strip)
+          assert_equal("# Not touched", File.read("db/schema.rb").strip)
         end
       end
 

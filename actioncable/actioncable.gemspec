@@ -37,5 +37,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency "nio4r",            "~> 2.0"
   s.add_dependency "websocket-driver", ">= 0.6.1"
-  s.add_dependency "zeitwerk",         "~> 2.5"
+  s.add_dependency "zeitwerk",         "~> 2.6"
 end

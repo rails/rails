@@ -31,8 +31,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_no_automatic_reconnection_after_timeout
     assert_predicate @connection, :active?
-    @connection.update("set @@wait_timeout=1")
-    sleep 2
+    cause_server_side_disconnect
     assert_not_predicate @connection, :active?
   ensure
     # Repair all fixture connections so other tests won't break.
@@ -41,35 +40,28 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
     assert_predicate @connection, :active?
-    @connection.update("set @@wait_timeout=1")
-    sleep 2
+    cause_server_side_disconnect
     @connection.reconnect!
     assert_predicate @connection, :active?
   end
 
   def test_successful_reconnection_after_timeout_with_verify
     assert_predicate @connection, :active?
-    @connection.update("set @@wait_timeout=1")
-    sleep 2
+    cause_server_side_disconnect
     @connection.verify!
     assert_predicate @connection, :active?
   end
 
-  def test_execute_after_disconnect
+  def test_execute_after_disconnect_reconnects
     @connection.disconnect!
 
-    error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
-      @connection.execute("SELECT 1")
-    end
-    assert_kind_of Mysql2::Error, error.cause
+    assert_equal 3, @connection.select_value("SELECT 1+2")
   end
 
-  def test_quote_after_disconnect
+  def test_quote_after_disconnect_reconnects
     @connection.disconnect!
 
-    assert_raise(ActiveRecord::ConnectionNotEstablished) do
-      @connection.quote("string")
-    end
+    assert_equal "'string'", @connection.quote("string")
   end
 
   def test_active_after_disconnect
@@ -221,6 +213,11 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   private
+    def cause_server_side_disconnect
+      @connection.update("set @@wait_timeout=1")
+      sleep 2
+    end
+
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
     end

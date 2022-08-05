@@ -139,26 +139,10 @@ module ActiveRecord
     end
 
     def test_reconnection_after_actual_disconnection_with_verify
-      original_connection_pid = @connection.query("select pg_backend_pid()")
-
-      # Double check we are connected to begin with
       assert_predicate @connection, :active?
-
-      secondary_connection = ActiveRecord::Base.connection_pool.checkout
-      secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
-      ActiveRecord::Base.connection_pool.checkin(secondary_connection)
-
+      cause_server_side_disconnect
       @connection.verify!
-
       assert_predicate @connection, :active?
-
-      # If we get no exception here, then either we re-connected successfully, or
-      # we never actually got disconnected.
-      new_connection_pid = @connection.query("select pg_backend_pid()")
-
-      assert_not_equal original_connection_pid, new_connection_pid,
-        "umm -- looks like you didn't break the connection, because we're still " \
-        "successfully querying with the same connection pid."
     ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
@@ -235,6 +219,14 @@ module ActiveRecord
     end
 
     private
+      def cause_server_side_disconnect
+        unless @connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
+          @connection.execute("begin")
+        end
+        @connection.execute("set idle_in_transaction_session_timeout = '10ms'")
+        sleep 0.05
+      end
+
       def with_warning_suppression
         log_level = @connection.client_min_messages
         @connection.client_min_messages = "error"

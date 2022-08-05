@@ -1,3 +1,53 @@
+*   Add `skip_nil:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+
+    *Daniel Alfaro*
+
+*   Add `quarter` method to date/time
+
+    *Matt Swanson*
+
+*   Fix `NoMethodError` on custom `ActiveSupport::Deprecation` behavior.
+
+    `ActiveSupport::Deprecation.behavior=` was supposed to accept any object
+    that responds to `call`, but in fact its internal implementation assumed that
+    this object could respond to `arity`, so it was restricted to only `Proc` objects.
+
+    This change removes this `arity` restriction of custom behaviors.
+
+    *Ryo Nakamura*
+
+*   Support `:url_safe` option for `MessageEncryptor`.
+
+    The `MessageEncryptor` constructor now accepts a `:url_safe` option, similar
+    to the `MessageVerifier` constructor.  When enabled, this option ensures
+    that messages use a URL-safe encoding.
+
+    *Jonathan Hefner*
+
+*   Add `url_safe` option to `ActiveSupport::MessageVerifier` initializer
+
+    `ActiveSupport::MessageVerifier.new` now takes optional `url_safe` argument.
+    It can generate URL-safe strings by passing `url_safe: true`.
+
+    ```ruby
+    verifier = ActiveSupport::MessageVerifier.new(url_safe: true)
+    message = verifier.generate(data) # => URL-safe string
+    ```
+
+    This option is `false` by default to be backwards compatible.
+
+    *Shouichi Kamiya*
+
+*   Enable connection pooling by default for `MemCacheStore` and `RedisCacheStore`.
+
+    If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
+
+    ```ruby
+    config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+    ```
+
+    *fatkodima*
+
 *   Add `force:` support to `ActiveSupport::Cache::Store#fetch_multi`.
 
     *fatkodima*
@@ -84,6 +134,8 @@
 
 *   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
 
+    *John Hawthorn*
+
 *   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
 
     Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
@@ -99,6 +151,8 @@
     *Stephen Sugden*
 
 *   Improve `File.atomic_write` error handling
+
+    *Daniel Pepper*
 
 *   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
 

@@ -441,13 +441,21 @@ module ActiveRecord
 
           # Switch everything to writing
           ActiveRecord::Base.connected_to(role: :writing) do
+            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
             assert_not_predicate ApplicationRecord.connection, :preventing_writes?
 
             ApplicationRecord.connected_to(role: :reading) do
               assert_predicate ApplicationRecord.connection, :preventing_writes?
             end
+
+            # reading is fine bc it's looking up by AppRec but writing is not fine
+            # bc its looking up by ARB in the stack
+            ApplicationRecord.connected_to(role: :writing, prevent_writes: true) do
+              assert_predicate ApplicationRecord.connection, :preventing_writes?
+            end
           end
         ensure
+          ApplicationRecord.remove_connection
           ActiveRecord.application_record_class = nil
           Object.send(:remove_const, :ApplicationRecord)
           ActiveRecord::Base.establish_connection :arunit

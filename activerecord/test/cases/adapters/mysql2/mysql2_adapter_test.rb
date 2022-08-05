@@ -8,12 +8,11 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def setup
     @conn = ActiveRecord::Base.connection
-    @connection_handler = ActiveRecord::Base.connection_handler
   end
 
   def test_connection_error
     assert_raises ActiveRecord::ConnectionNotEstablished do
-      ActiveRecord::Base.mysql2_connection(socket: File::NULL)
+      ActiveRecord::Base.mysql2_connection(socket: File::NULL, prepared_statements: false).connect!
     end
   end
 

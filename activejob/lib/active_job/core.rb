@@ -113,7 +113,7 @@ module ActiveJob
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
         "timezone"   => timezone,
-        "enqueued_at" => Time.now.utc.iso8601
+        "enqueued_at" => Time.now.utc.iso8601(9)
       }
     end
 

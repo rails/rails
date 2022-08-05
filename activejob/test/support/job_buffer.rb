@@ -19,3 +19,9 @@ module JobBuffer
     end
   end
 end
+
+class ActiveSupport::TestCase
+  teardown do
+    JobBuffer.clear
+  end
+end

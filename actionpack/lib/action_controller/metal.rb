@@ -142,9 +142,25 @@ module ActionController
       self.class.controller_name
     end
 
-    attr_internal :response, :request
+    ##
+    # :attr_reader: request
+    #
+    # The ActionDispatch::Request instance for the current request.
+    attr_internal :request
+
+    ##
+    # :attr_reader: response
+    #
+    # The ActionDispatch::Response instance for the current response.
+    attr_internal :response
+
     delegate :session, to: "@_request"
-    delegate :headers, :status=, :location=, :content_type=,
+
+    ##
+    # Delegates to ActionDispatch::Response#headers.
+    delegate :headers, to: "@_response"
+
+    delegate :status=, :location=, :content_type=,
              :status, :location, :content_type, :media_type, to: "@_response"
 
     def initialize

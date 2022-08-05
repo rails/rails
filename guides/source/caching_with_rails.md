@@ -395,26 +395,21 @@ There are some common options that can be used by all cache implementations. The
 
 #### Connection Pool Options
 
-By default the `MemCacheStore` and `RedisCacheStore` use a single connection
-per process. This means that if you're using Puma, or another threaded server,
-you can have multiple threads waiting for the connection to become available.
-To increase the number of available connections you can enable connection
-pooling.
+By default the `MemCacheStore` and `RedisCacheStore` are configured to use
+connection pooling. This means that if you're using Puma, or another threaded server,
+you can have multiple threads performing queries to the cache store at the same time.
 
-First, add the `connection_pool` gem to your Gemfile:
+If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
 
 ```ruby
-gem 'connection_pool'
+config.cache_store = :mem_cache_store, "cache.example.com", pool: false
 ```
 
-Next, set `:pool` option to `true` when configuring the cache store:
+You can also override default pool settings by providing individual options to the `:pool` option:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool: true
+config.cache_store = :mem_cache_store, "cache.example.com", pool: { size: 32, timeout: 1 }
 ```
-
-You can also override default pool settings by providing individual options
-instead of `true` to this option.
 
 * `:size` - This option sets the number of connections per process (defaults to 5).
 
@@ -491,7 +486,7 @@ If neither are specified, it will assume memcached is running on localhost on th
 config.cache_store = :mem_cache_store # Will fallback to $MEMCACHE_SERVERS, then 127.0.0.1:11211
 ```
 
-See the [`Dalli::Client` documentation](https://www.rubydoc.info/github/mperham/dalli/Dalli%2FClient:initialize) for supported address types.
+See the [`Dalli::Client` documentation](https://www.rubydoc.info/gems/dalli/Dalli/Client#initialize-instance_method) for supported address types.
 
 The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
 

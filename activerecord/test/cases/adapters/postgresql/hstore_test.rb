@@ -41,7 +41,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
   def test_disable_enable_hstore
     assert @connection.extension_enabled?("hstore")
-    @connection.disable_extension "hstore"
+    @connection.disable_extension "hstore", force: :cascade
     assert_not @connection.extension_enabled?("hstore")
     @connection.enable_extension "hstore"
     assert @connection.extension_enabled?("hstore")

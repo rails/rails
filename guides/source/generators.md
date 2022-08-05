@@ -338,7 +338,9 @@ config.generators do |g|
 end
 ```
 
-If you generate another resource, you can see that we get exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating `edit.html.erb`, `index.html.erb` and so on inside `lib/templates/erb/scaffold`.
+Now, if you generate another resource, you will see a similar result!
+
+Another common use of custom templates is overriding the [default scaffold view templates](https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates). You can override any of these by creating the appropriate file (e.g. `index.html.erb`, `show.html.erb`, etc) in `lib/templates/erb/scaffold`.
 
 Scaffold templates in Rails frequently use ERB tags; these tags need to be
 escaped so that the generated output is valid ERB code.
@@ -448,7 +450,7 @@ Whilst the final section of this guide doesn't cover how to generate the most aw
 Adding Command Line Arguments
 -----------------------------
 
-Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
+Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_options-instance_method):
 
 ```ruby
 class_option :scope, type: :string, default: 'read_products'
@@ -471,7 +473,7 @@ Generator methods
 
 The following are methods available for both generators and templates for Rails.
 
-NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](https://rdoc.info/github/erikhuda/thor/master/Thor/Actions.html)
+NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](https://www.rubydoc.info/gems/thor/Thor/Actions)
 
 ### `gem`
 

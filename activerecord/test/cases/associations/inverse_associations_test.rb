@@ -390,7 +390,11 @@ class InverseHasOneTests < ActiveRecord::TestCase
       Human.first.confused_face
     }
 
-    assert_match "Did you mean?", error.message
+    if error.respond_to?(:detailed_message)
+      assert_match "Did you mean?", error.detailed_message
+    else
+      assert_match "Did you mean?", error.message
+    end
     assert_equal "confused_human", error.corrections.first
   end
 end
@@ -851,7 +855,11 @@ class InverseBelongsToTests < ActiveRecord::TestCase
       Face.first.confused_human
     }
 
-    assert_match "Did you mean?", error.message
+    if error.respond_to?(:detailed_message)
+      assert_match "Did you mean?", error.detailed_message
+    else
+      assert_match "Did you mean?", error.message
+    end
     assert_equal "confused_face", error.corrections.first
   end
 

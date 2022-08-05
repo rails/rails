@@ -22,6 +22,10 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  setup do
+    @middlewares = [ActionDispatch::ServerTiming]
+  end
+
   test "server timing header is included in the response" do
     with_test_route_set do
       get "/"
@@ -44,6 +48,26 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "does not overwrite existing header values" do
+    @middlewares << Class.new do
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        status, headers, body = @app.call(env)
+        headers["Server-Timing"] = [headers["Server-Timing"], %(entry;desc="description")].compact.join(", ")
+        [ status, headers, body ]
+      end
+    end
+
+    with_test_route_set do
+      get "/"
+      assert_match(/entry;desc="description"/, @response.headers["Server-Timing"])
+      assert_match(/start_processing.action_controller;dur=\w+/, @response.headers["Server-Timing"])
+    end
+  end
+
   test "ensures it doesn't leak subscriptions when the app crashes" do
     with_test_route_set do
       post "/"
@@ -61,7 +85,7 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
         end
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::ServerTiming
+          @middlewares.each { |m| middleware.use m }
         end
 
         yield

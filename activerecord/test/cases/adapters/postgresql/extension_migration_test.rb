@@ -61,4 +61,30 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::Migrator.new(:up, migrations, ActiveRecord::Base.connection.schema_migration).migrate
     assert_not @connection.extension_enabled?("hstore"), "extension hstore should not be enabled"
   end
+
+  def test_disable_extension_raises_when_dependent_objects_exist
+    @connection.enable_extension("hstore")
+    @connection.create_table(:hstores) do |t|
+      t.hstore :settings
+    end
+
+    error = assert_raises(StandardError) do
+      @connection.disable_extension(:hstore)
+    end
+    assert_match(/cannot drop extension hstore because other objects depend on it/i, error.message)
+  ensure
+    @connection.drop_table(:hstores, if_exists: true)
+  end
+
+  def test_disable_extension_drops_extension_when_cascading
+    @connection.enable_extension("hstore")
+    @connection.create_table(:hstores) do |t|
+      t.hstore :settings
+    end
+
+    @connection.disable_extension(:hstore, force: :cascade)
+    assert_not @connection.extension_enabled?("hstore"), "extension hstore should not be enabled"
+  ensure
+    @connection.drop_table(:hstores, if_exists: true)
+  end
 end

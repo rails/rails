@@ -251,7 +251,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#index
       --[ Route 9 ]--------------
-      Prefix            | 
+      Prefix            |#{" "}
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#create
@@ -296,7 +296,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       URI               | /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/proxy#show
       --[ Route 18 ]-------------
-      Prefix            | 
+      Prefix            |#{" "}
       Verb              | GET
       URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs/redirect#show
@@ -311,7 +311,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       URI               | /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/proxy#show
       --[ Route 21 ]-------------
-      Prefix            | 
+      Prefix            |#{" "}
       Verb              | GET
       URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations/redirect#show
@@ -332,6 +332,17 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       Controller#Action | active_storage/direct_uploads#create
     MESSAGE
     # rubocop:enable Layout/TrailingWhitespace
+  end
+
+  test "rails routes with unused option" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+      end
+    RUBY
+
+    output = run_routes_command([ "--unused" ])
+
+    assert_equal(output, "No unused routes found.\n")
   end
 
   private

@@ -1,3 +1,32 @@
+*   Touch all corresponding model records after ActiveStorage::Blob is analyzed
+
+    This fixes a race condition where a record can be requested and have a cache entry built, before
+    the initial `analyze_later` completes, which will not be invalidated until something else
+    updates the record. This also invalidates cache entries when a blob is re-analyzed, which
+    is helpful if a bug is fixed in an analyzer or a new analyzer is added.
+
+    *Nate Matykiewicz*
+
+*   Add ability to use pre-defined variants when calling `preview` or
+    `representation` on an attachment.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one_attached :file do |attachable|
+        attachable.variant :thumb, resize_to_limit: [100, 100]
+      end
+    end
+
+    <%= image_tag user.file.representation(:thumb) %>
+    ```
+
+    *Richard Böhme*
+
+*   Method `attach` always returns the attachments except when the record
+    is persisted, unchanged, and saving it fails, in which case it returns `nil`.
+
+    *Santiago Bartesaghi*
+
 *   Fixes multiple `attach` calls within transaction not uploading files correctly.
 
     In the following example, the code failed to upload all but the last file to the configured service.

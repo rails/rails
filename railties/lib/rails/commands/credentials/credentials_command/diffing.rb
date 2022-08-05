@@ -13,7 +13,7 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
       gitattributes.write(GITATTRIBUTES_ENTRY, mode: "a")
 
       say "Enrolled project in credentials file diffing!"
-      say "Rails ensures the rails_credentials diff driver is set when running `credentials:edit`. See `credentials:help` for more."
+      say "Rails ensures the rails_credentials diff driver is set when running `#{executable(:edit)}`. See `#{executable(:help)}` for more."
     end
   end
 
@@ -42,7 +42,7 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
     end
 
     def configure_diffing_driver
-      system "git config diff.rails_credentials.textconv 'bin/rails credentials:diff'"
+      system "git config diff.rails_credentials.textconv '#{executable(:diff)}'"
     end
 
     def gitattributes

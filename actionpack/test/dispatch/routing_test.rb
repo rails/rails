@@ -4907,7 +4907,11 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   test "exceptions have suggestions for fix" do
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-    assert_match "Did you mean?", error.message
+    if error.respond_to?(:detailed_message)
+      assert_match "Did you mean?", error.detailed_message
+    else
+      assert_match "Did you mean?", error.message
+    end
   end
 
   # FIXME: we should fix all locations that raise this exception to provide

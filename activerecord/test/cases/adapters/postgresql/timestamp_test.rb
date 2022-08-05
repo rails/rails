@@ -18,7 +18,7 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
     PostgresqlTimestampWithZone.delete_all
   end
 
-  def test_timestamp_with_zone_values_with_rails_time_zone_support
+  def test_timestamp_with_zone_values_with_rails_time_zone_support_and_no_time_zone_set
     with_timezone_config default: :utc, aware_attributes: true do
       @connection.reconnect!
 
@@ -39,6 +39,78 @@ class PostgresqlTimestampTest < ActiveRecord::PostgreSQLTestCase
       timestamp = PostgresqlTimestampWithZone.find(1)
       assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
       assert_instance_of Time, timestamp.time
+    end
+  ensure
+    @connection.reconnect!
+  end
+end
+
+class PostgresqlTimestampWithAwareTypesTest < ActiveRecord::PostgreSQLTestCase
+  class PostgresqlTimestampWithZone < ActiveRecord::Base; end
+
+  self.use_transactional_tests = false
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
+  end
+
+  teardown do
+    PostgresqlTimestampWithZone.delete_all
+  end
+
+  def test_timestamp_with_zone_values_with_rails_time_zone_support_and_time_zone_set
+    with_timezone_config default: :utc, aware_attributes: true, zone: "Pacific Time (US & Canada)", aware_types: [:timestamptz, :datetime, :time] do
+      @connection.reconnect!
+
+      timestamp = PostgresqlTimestampWithZone.find(1)
+      assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
+      assert_instance_of ActiveSupport::TimeWithZone, timestamp.time
+    end
+  ensure
+    @connection.reconnect!
+  end
+end
+
+class PostgresqlTimestampWithTimeZoneTest < ActiveRecord::PostgreSQLTestCase
+  class PostgresqlTimestampWithZone < ActiveRecord::Base; end
+
+  self.use_transactional_tests = false
+
+  setup do
+    with_postgresql_datetime_type(:timestamptz) do
+      @connection = ActiveRecord::Base.connection
+      @connection.execute("INSERT INTO postgresql_timestamp_with_zones (id, time) VALUES (1, '2010-01-01 10:00:00-1')")
+    end
+  end
+
+  teardown do
+    PostgresqlTimestampWithZone.delete_all
+  end
+
+  def test_timestamp_with_zone_values_with_rails_time_zone_support_and_timestamptz_and_no_time_zone_set
+    with_postgresql_datetime_type(:timestamptz) do
+      with_timezone_config default: :utc, aware_attributes: true, aware_types: [:timestamptz, :datetime, :time] do
+        @connection.reconnect!
+
+        timestamp = PostgresqlTimestampWithZone.find(1)
+        assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
+        assert_instance_of Time, timestamp.time
+      end
+    end
+  ensure
+    @connection.reconnect!
+  end
+
+  def test_timestamp_with_zone_values_with_rails_time_zone_support_and_timestamptz_and_time_zone_set
+    with_postgresql_datetime_type(:timestamptz) do
+      with_timezone_config default: :utc, aware_attributes: true, zone: "Pacific Time (US & Canada)", aware_types: [:timestamptz, :datetime, :time] do
+        @connection.reconnect!
+
+        timestamp = PostgresqlTimestampWithZone.find(1)
+        assert_equal Time.utc(2010, 1, 1, 11, 0, 0), timestamp.time
+        assert_instance_of ActiveSupport::TimeWithZone, timestamp.time
+      end
     end
   ensure
     @connection.reconnect!

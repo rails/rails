@@ -261,14 +261,12 @@ def up
   end
 end
 
-# There's no built in support for dropping enums, but you can do it manually.
-# You should first drop any table that depends on them.
+# The above migration is reversible (using #change), but you can
+# also define a #down method:
 def down
   drop_table :articles
 
-  execute <<-SQL
-    DROP TYPE article_status;
-  SQL
+  drop_enum :article_status
 end
 ```
 
@@ -325,8 +323,7 @@ SELECT n.nspname AS enum_schema,
 * [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html)
 * [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
-NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
-extension to use uuid.
+NOTE: If you're using PostgreSQL earlier than version 13.0 you may need to enable special extensions to use UUIDs. Enable the `pgcrypto` extension (PostgreSQL >= 9.4) or `uuid-ossp` extension (for even earlier releases).
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb

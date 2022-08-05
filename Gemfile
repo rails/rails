@@ -6,7 +6,11 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-gem "minitest", ">= 5.15.0"
+if RUBY_VERSION < "3"
+  gem "minitest", ">= 5.15.0", "< 5.16"
+else
+  gem "minitest", ">= 5.15.0"
+end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
@@ -47,8 +51,8 @@ group :doc do
   gem "sdoc", ">= 2.4.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
-  gem "kindlerb", "~> 1.2.0"
   gem "rouge"
+  gem "rubyzip", "~> 2.0"
 end
 
 # Active Support

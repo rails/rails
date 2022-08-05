@@ -92,9 +92,11 @@ module ActiveRecord
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
-    ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
+    ChangeColumnDefinition = Struct.new(:column, :name, :ddl) # :nodoc:
 
-    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
+    ChangeColumnDefaultDefinition = Struct.new(:column, :default, :ddl) # :nodoc:
+
+    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists, :ddl) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
@@ -333,6 +335,7 @@ module ActiveRecord
       include ColumnMethods
 
       attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints
+      attr_accessor :ddl
 
       def initialize(
         conn,
@@ -356,6 +359,23 @@ module ActiveRecord
         @as = as
         @name = name
         @comment = comment
+      end
+
+      def set_primary_key(table_name, id, primary_key, **options)
+        if id && !as
+          pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
+
+          if id.is_a?(Hash)
+            options.merge!(id.except(:type))
+            id = id.fetch(:type, :primary_key)
+          end
+
+          if pk.is_a?(Array)
+            primary_keys(pk)
+          else
+            primary_key(pk, id, **options)
+          end
+        end
       end
 
       def primary_keys(name = nil) # :nodoc:
@@ -562,6 +582,7 @@ module ActiveRecord
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
+      attr_accessor :ddl
 
       def initialize(td)
         @td   = td
@@ -866,6 +887,17 @@ module ActiveRecord
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
       def remove_check_constraint(*args, **options)
         @base.remove_check_constraint(name, *args, **options)
+      end
+
+      # Checks if a check_constraint exists on a table.
+      #
+      #  unless t.check_constraint_exists?(name: "price_check")
+      #    t.check_constraint("price > 0", name: "price_check")
+      #  end
+      #
+      # See {connection.check_constraint_exists?}[rdoc-ref:SchemaStatements#check_constraint_exists?]
+      def check_constraint_exists?(*args, **options)
+        @base.check_constraint_exists?(name, *args, **options)
       end
 
       private

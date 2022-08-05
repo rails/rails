@@ -14,9 +14,9 @@ module ActiveRecord
       end
 
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-        :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?,
+        :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        to: :@conn, private: true
+        :supports_exclusion_constraints?, to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
@@ -26,6 +26,7 @@ module ActiveRecord
           sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
           sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
+          o.ddl = sql
         end
 
         def visit_ColumnDefinition(o)
@@ -51,7 +52,7 @@ module ActiveRecord
             statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
           end
 
-          if supports_foreign_keys?
+          if use_foreign_keys?
             statements.concat(o.foreign_keys.map { |fk| accept fk })
           end
 
@@ -59,10 +60,14 @@ module ActiveRecord
             statements.concat(o.check_constraints.map { |chk| accept chk })
           end
 
+          if supports_exclusion_constraints?
+            statements.concat(o.exclusion_constraints.map { |exc| accept exc })
+          end
+
           create_sql << "(#{statements.join(', ')})" if statements.present?
           add_table_options!(create_sql, o)
           create_sql << " AS #{to_sql(o.as)}" if o.as
-          create_sql
+          o.ddl = create_sql
         end
 
         def visit_PrimaryKeyDefinition(o)
@@ -102,7 +107,8 @@ module ActiveRecord
           sql << "(#{quoted_columns(index)})"
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
-          sql.join(" ")
+          sql = sql.join(" ")
+          o.ddl = sql
         end
 
         def visit_CheckConstraintDefinition(o)

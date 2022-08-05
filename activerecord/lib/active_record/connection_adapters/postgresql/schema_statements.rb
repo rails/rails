@@ -78,7 +78,7 @@ module ActiveRecord
             WHERE i.relkind IN ('i', 'I')
               AND i.relname = #{index[:name]}
               AND t.relname = #{table[:name]}
-              AND n.nspname = #{index[:schema]}
+              AND n.nspname = #{table[:schema]}
           SQL
         end
 
@@ -225,7 +225,7 @@ module ActiveRecord
         # This should be not be called manually but set in database.yml.
         def schema_search_path=(schema_csv)
           if schema_csv
-            execute("SET search_path TO #{schema_csv}", "SCHEMA")
+            internal_execute("SET search_path TO #{schema_csv}")
             @schema_search_path = schema_csv
           end
         end
@@ -242,7 +242,7 @@ module ActiveRecord
 
         # Set the client message level.
         def client_min_messages=(level)
-          execute("SET client_min_messages TO '#{level}'", "SCHEMA")
+          internal_execute("SET client_min_messages TO '#{level}'")
         end
 
         # Returns the sequence name for a table's primary key or some other specified key.
@@ -377,7 +377,8 @@ module ActiveRecord
         #
         # Example:
         #   rename_table('octopuses', 'octopi')
-        def rename_table(table_name, new_name)
+        def rename_table(table_name, new_name, **options)
+          validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
           clear_cache!
           schema_cache.clear_data_source_cache!(table_name.to_s)
           schema_cache.clear_data_source_cache!(new_name.to_s)
@@ -408,12 +409,39 @@ module ActiveRecord
           procs.each(&:call)
         end
 
+        # Builds a ChangeColumnDefinition object.
+        #
+        # This definition object contains information about the column change that would occur
+        # if the same arguments were passed to #change_column. See #change_column for information about
+        # passing a +table_name+, +column_name+, +type+ and other options that can be passed.
+        def build_change_column_definition(table_name, column_name, type, **options) # :nodoc:
+          td = create_table_definition(table_name)
+          cd = td.new_column_definition(column_name, type, **options)
+          change_column_def = ChangeColumnDefinition.new(cd, column_name)
+          schema_creation.accept(change_column_def)
+
+          change_column_def
+        end
+
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
           execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
         end
 
+        def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
+          column = column_for(table_name, column_name)
+          return unless column
+
+          default = extract_new_default_value(default_or_changes)
+          change_column_default_definition = ChangeColumnDefaultDefinition.new(column, default)
+          schema_creation.accept(change_column_default_definition)
+
+          change_column_default_definition
+        end
+
         def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
+          validate_change_column_null_argument!(null)
+
           clear_cache!
           unless null || default.nil?
             column = column_for(table_name, column_name)
@@ -444,13 +472,20 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, **options) # :nodoc:
+          create_index = build_create_index_definition(table_name, column_name, **options)
+          result = execute(create_index.ddl)
+
+          index = create_index.index
+          execute "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}" if index.comment
+          result
+        end
+
+        def build_create_index_definition(table_name, column_name, **options) # :nodoc:
           index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
           create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
-          result = execute schema_creation.accept(create_index)
-
-          execute "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}" if index.comment
-          result
+          schema_creation.accept(create_index)
+          create_index
         end
 
         def remove_index(table_name, column_name = nil, **options) # :nodoc:
@@ -479,12 +514,18 @@ module ActiveRecord
         def rename_index(table_name, old_name, new_name)
           validate_index_length!(table_name, new_name)
 
-          execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
+          schema, = extract_schema_qualified_name(table_name)
+          execute "ALTER INDEX #{quote_table_name(schema) + '.' if schema}#{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
+        end
+
+        def index_name(table_name, options) # :nodoc:
+          _schema, table_name = extract_schema_qualified_name(table_name.to_s)
+          super
         end
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
-          fk_info = exec_query(<<~SQL, "SCHEMA")
+          fk_info = exec_query(<<~SQL, "SCHEMA", allow_retry: true, uses_transaction: false)
             SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
@@ -526,7 +567,7 @@ module ActiveRecord
         def check_constraints(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
-          check_info = exec_query(<<-SQL, "SCHEMA")
+          check_info = exec_query(<<-SQL, "SCHEMA", allow_retry: true, uses_transaction: false)
             SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
@@ -545,6 +586,78 @@ module ActiveRecord
 
             CheckConstraintDefinition.new(table_name, expression, options)
           end
+        end
+
+        # Returns an array of exclusion constraints for the given table.
+        # The exclusion constraints are represented as ExclusionConstraintDefinition objects.
+        def exclusion_constraints(table_name)
+          scope = quoted_scope(table_name)
+
+          exclusion_info = exec_query(<<-SQL, "SCHEMA")
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef
+            FROM pg_constraint c
+            JOIN pg_class t ON c.conrelid = t.oid
+            JOIN pg_namespace n ON n.oid = c.connamespace
+            WHERE c.contype = 'x'
+              AND t.relname = #{scope[:name]}
+              AND n.nspname = #{scope[:schema]}
+          SQL
+
+          exclusion_info.map do |row|
+            method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
+            method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
+            predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+
+            options = {
+              name: row["conname"],
+              using: method_and_elements_parts["using"].to_sym,
+              where: predicate
+            }
+
+            ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
+          end
+        end
+
+        # Adds a new exclusion constraint to the table. +expression+ is a String
+        # representation of a list of exclusion elements and operators.
+        #
+        #   add_exclusion_constraint :products, "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+        #
+        # generates:
+        #
+        #   ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
+        #
+        # The +options+ hash can include the following keys:
+        # [<tt>:name</tt>]
+        #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
+        def add_exclusion_constraint(table_name, expression, **options)
+          options = exclusion_constraint_options(table_name, expression, options)
+          at = create_alter_table(table_name)
+          at.add_exclusion_constraint(expression, options)
+
+          execute schema_creation.accept(at)
+        end
+
+        def exclusion_constraint_options(table_name, expression, options) # :nodoc:
+          options = options.dup
+          options[:name] ||= exclusion_constraint_name(table_name, expression: expression, **options)
+          options
+        end
+
+        # Removes the given exclusion constraint from the table.
+        #
+        #   remove_exclusion_constraint :products, name: "price_check"
+        #
+        # The +expression+ parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's +change+ method so it can be reverted.
+        # In that case, +expression+ will be used by #add_exclusion_constraint.
+        def remove_exclusion_constraint(table_name, expression = nil, **options)
+          excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
+
+          at = create_alter_table(table_name)
+          at.drop_exclusion_constraint(excl_name_to_delete)
+
+          execute schema_creation.accept(at)
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
@@ -650,6 +763,11 @@ module ActiveRecord
           validate_constraint table_name, chk_name_to_validate
         end
 
+        def foreign_key_column_for(table_name) # :nodoc:
+          _schema, table_name = extract_schema_qualified_name(table_name)
+          super
+        end
+
         private
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)
@@ -731,32 +849,21 @@ module ActiveRecord
             deferrable && (deferred ? :deferred : true)
           end
 
+          def reference_name_for_table(table_name)
+            _schema, table_name = extract_schema_qualified_name(table_name.to_s)
+            table_name.singularize
+          end
+
           def add_column_for_alter(table_name, column_name, type, **options)
             return super unless options.key?(:comment)
             [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
           end
 
           def change_column_for_alter(table_name, column_name, type, **options)
-            td = create_table_definition(table_name)
-            cd = td.new_column_definition(column_name, type, **options)
-            sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]
+            change_col_def = build_change_column_definition(table_name, column_name, type, **options)
+            sqls = [change_col_def.ddl]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
-          end
-
-          def change_column_default_for_alter(table_name, column_name, default_or_changes)
-            column = column_for(table_name, column_name)
-            return unless column
-
-            default = extract_new_default_value(default_or_changes)
-            alter_column_query = "ALTER COLUMN #{quote_column_name(column_name)} %s"
-            if default.nil?
-              # <tt>DEFAULT NULL</tt> results in the same behavior as <tt>DROP DEFAULT</tt>. However, PostgreSQL will
-              # cast the default to the columns type, which leaves us with a default like "default NULL::character varying".
-              alter_column_query % "DROP DEFAULT"
-            else
-              alter_column_query % "SET DEFAULT #{quote_default_expression(default, column)}"
-            end
           end
 
           def change_column_null_for_alter(table_name, column_name, null, default = nil)
@@ -777,6 +884,26 @@ module ActiveRecord
           def add_options_for_index_columns(quoted_columns, **options)
             quoted_columns = add_index_opclass(quoted_columns, **options)
             super
+          end
+
+          def exclusion_constraint_name(table_name, **options)
+            options.fetch(:name) do
+              expression = options.fetch(:expression)
+              identifier = "#{table_name}_#{expression}_excl"
+              hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
+              "excl_rails_#{hashed_identifier}"
+            end
+          end
+
+          def exclusion_constraint_for(table_name, **options)
+            excl_name = exclusion_constraint_name(table_name, **options)
+            exclusion_constraints(table_name).detect { |excl| excl.name == excl_name }
+          end
+
+          def exclusion_constraint_for!(table_name, expression: nil, **options)
+            exclusion_constraint_for(table_name, expression: expression, **options) ||
+              raise(ArgumentError, "Table '#{table_name}' has no exclusion constraint for #{expression || options}")
           end
 
           def data_source_sql(name = nil, type: nil)

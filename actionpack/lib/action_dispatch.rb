@@ -94,6 +94,19 @@ module ActionDispatch
     autoload :CookieStore,         "action_dispatch/middleware/session/cookie_store"
     autoload :MemCacheStore,       "action_dispatch/middleware/session/mem_cache_store"
     autoload :CacheStore,          "action_dispatch/middleware/session/cache_store"
+
+    def self.resolve_store(session_store) # :nodoc:
+      self.const_get(session_store.to_s.camelize)
+    rescue NameError
+      raise <<~ERROR
+        Unable to resolve session store #{session_store.inspect}.
+
+        #{session_store.inspect} resolves to ActionDispatch::Session::#{session_store.to_s.camelize},
+        but that class is undefined.
+
+        Is #{session_store.inspect} spelled correctly, and are any necessary gems installed?
+      ERROR
+    end
   end
 
   mattr_accessor :test_app

@@ -67,8 +67,8 @@ module ActiveSupport
     end
 
     # Run the supplied block as a work unit, reloading code as needed
-    def self.wrap
-      executor.wrap do
+    def self.wrap(**kwargs)
+      executor.wrap(**kwargs) do
         super
       end
     end
