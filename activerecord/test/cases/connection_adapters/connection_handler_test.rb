@@ -6,8 +6,6 @@ require "models/person"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
-      self.use_transactional_tests = false
-
       fixtures :people
 
       def setup
@@ -69,6 +67,23 @@ module ActiveRecord
           ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
 
           assert_raises(ArgumentError) { setup_shared_connection_pool }
+        ensure
+          ActiveRecord::Base.connection_handler = connection_handler
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
+        def test_fixtures_dont_raise_if_theres_no_writing_pool_config
+          connection_handler = ActiveRecord::Base.connection_handler
+          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+
+          assert_nothing_raised do
+            ActiveRecord::Base.connects_to(database: { reading: :arunit, writing: :arunit })
+          end
+
+          rw_conn = ActiveRecord::Base.connection_handler.retrieve_connection("ActiveRecord::Base", role: :writing)
+          ro_conn = ActiveRecord::Base.connection_handler.retrieve_connection("ActiveRecord::Base", role: :reading)
+
+          assert_equal rw_conn, ro_conn
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
           ActiveRecord::Base.establish_connection :arunit
