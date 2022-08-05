@@ -9,8 +9,8 @@ module ActionDispatch
 
       attr_reader :routes, :custom_routes, :anchored_routes
 
-      def initialize
-        @routes             = []
+      def initialize(routes = [])
+        @routes             = routes
         @ast                = nil
         @anchored_routes    = []
         @custom_routes      = []

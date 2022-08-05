@@ -8,6 +8,15 @@ module Rails
       class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
       class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
+      class_option :unused, type: :boolean, aliases: "-u", desc: "Print unused routes."
+
+      def invoke_command(*)
+        if options.key?("unused")
+          Rails::Command.invoke "unused_routes", ARGV
+        else
+          super
+        end
+      end
 
       def perform(*)
         require_application_and_environment!
