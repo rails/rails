@@ -18,9 +18,11 @@ module ActiveRecord
     # * change_column_null
     # * change_column_comment (must supply a +:from+ and +:to+ option)
     # * change_table_comment (must supply a +:from+ and +:to+ option)
+    # * create_enum
     # * create_join_table
     # * create_table
     # * disable_extension
+    # * drop_enum (must supply a list of values)
     # * drop_join_table
     # * drop_table (must supply a block)
     # * enable_extension
