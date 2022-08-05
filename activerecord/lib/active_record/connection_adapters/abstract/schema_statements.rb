@@ -299,7 +299,7 @@ module ActiveRecord
           schema_cache.clear_data_source_cache!(table_name.to_s)
         end
 
-        result = execute(td.ddl)
+        result = execute schema_creation.accept(td)
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
@@ -329,7 +329,6 @@ module ActiveRecord
 
         yield table_definition if block_given?
 
-        schema_creation.accept(table_definition)
         table_definition
       end
 
@@ -620,7 +619,7 @@ module ActiveRecord
         add_column_def = build_add_column_definition(table_name, column_name, type, **options)
         return unless add_column_def
 
-        execute(add_column_def.ddl)
+        execute schema_creation.accept(add_column_def)
       end
 
       def add_columns(table_name, *column_names, type:, **options) # :nodoc:
@@ -645,7 +644,6 @@ module ActiveRecord
 
         alter_table = create_alter_table(table_name)
         alter_table.add_column(column_name, type, **options)
-        schema_creation.accept(alter_table)
         alter_table
       end
 
@@ -875,7 +873,7 @@ module ActiveRecord
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, **options)
         create_index = build_create_index_definition(table_name, column_name, **options)
-        execute(create_index.ddl)
+        execute schema_creation.accept(create_index)
       end
 
       # Builds a CreateIndexDefinition object.
@@ -885,10 +883,7 @@ module ActiveRecord
       # passing a +table_name+, +column_name+, and other additional options that can be passed.
       def build_create_index_definition(table_name, column_name, **options) # :nodoc:
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
-
-        create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
-        schema_creation.accept(create_index)
-        create_index
+        CreateIndexDefinition.new(index, algorithm, if_not_exists)
       end
 
       # Removes the given index from the table.
@@ -1715,7 +1710,7 @@ module ActiveRecord
 
         def change_column_default_for_alter(table_name, column_name, default_or_changes)
           cd = build_change_column_default_definition(table_name, column_name, default_or_changes)
-          cd.ddl
+          schema_creation.accept(cd)
         end
 
         def rename_column_sql(table_name, column_name, new_column_name)
