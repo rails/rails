@@ -43,7 +43,9 @@ module ActiveRecord
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
         @handler.establish_connection(:common)
-        @handler.establish_connection(:primary)
+        assert_deprecated do
+          @handler.establish_connection(:primary)
+        end
         @handler.establish_connection(:readonly)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("readonly")
@@ -108,7 +110,9 @@ module ActiveRecord
           config = { "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" } }
           ActiveRecord::Base.configurations = config
 
-          @handler.establish_connection(:primary)
+          assert_deprecated do
+            @handler.establish_connection(:primary)
+          end
 
           assert_not_deprecated do
             @handler.retrieve_connection("primary")

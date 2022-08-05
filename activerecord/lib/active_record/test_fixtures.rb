@@ -134,7 +134,7 @@ module ActiveRecord
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
           spec_name = payload[:spec_name] if payload.key?(:spec_name)
           shard = payload[:shard] if payload.key?(:shard)
-          setup_shared_connection_pool if ActiveRecord.legacy_connection_handling
+          setup_shared_connection_pool if ActiveRecord::Base.legacy_connection_handling
 
           if spec_name
             begin
@@ -144,7 +144,7 @@ module ActiveRecord
             end
 
             if connection
-              setup_shared_connection_pool unless ActiveRecord.legacy_connection_handling
+              setup_shared_connection_pool unless ActiveRecord::Base.legacy_connection_handling
 
               if !@fixture_connections.include?(connection)
                 connection.begin_transaction joinable: false, _lazy: false
