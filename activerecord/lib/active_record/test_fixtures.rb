@@ -169,8 +169,8 @@ module ActiveRecord
     end
 
     private
-      # Shares the writing connection pool with connections on
-      # other handlers.
+      # Shares the writing connection pool with all other connections
+      # for the given connection name.
       #
       # In an application with a primary and replica the test fixtures
       # need to share a connection pool so that the reading connection
@@ -179,11 +179,13 @@ module ActiveRecord
         handler = ActiveRecord::Base.connection_handler
 
         handler.connection_pool_names.each do |name|
-          pool_manager = handler.send(:connection_name_to_pool_manager)[name]
+          pool_manager = handler.send(:get_pool_manager, name)
           pool_manager.shard_names.each do |shard_name|
             writing_pool_config = pool_manager.get_pool_config(ActiveRecord.writing_role, shard_name)
             @saved_pool_configs[name][shard_name] ||= {}
+
             pool_manager.role_names.each do |role|
+              next unless writing_pool_config
               next unless pool_config = pool_manager.get_pool_config(role, shard_name)
               next if pool_config == writing_pool_config
 

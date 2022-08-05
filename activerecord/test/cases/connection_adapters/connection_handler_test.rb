@@ -62,14 +62,20 @@ module ActiveRecord
       end
 
       unless in_memory_db?
-        def test_not_setting_writing_role_while_using_another_named_role_raises
+        def test_fixtures_dont_raise_if_theres_no_writing_pool_config
+          old_config = ActiveRecord::Base.configurations
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+          config = { "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" } }
+          ActiveRecord::Base.configurations = config
 
-          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+          # In a real app this would have a writing role as well, but the only way to
+          # test the fix when reading is set first is to leave it off.
+          ActiveRecord::Base.connects_to(database: { reading: :primary })
 
-          assert_raises(ArgumentError) { setup_shared_connection_pool }
+          assert_nothing_raised { setup_shared_connection_pool }
         ensure
+          ActiveRecord::Base.configurations = old_config
           ActiveRecord::Base.connection_handler = connection_handler
           ActiveRecord::Base.establish_connection :arunit
         end
