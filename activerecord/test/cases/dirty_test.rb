@@ -971,6 +971,16 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  test "attribute_changed? properly type casts enum values" do
+    parrot = LiveParrot.create!(name: "Scipio", breed: :african)
+
+    parrot.breed = :australian
+
+    assert parrot.breed_changed?(from: "african", to: "australian")
+    assert parrot.breed_changed?(from: :african, to: :australian)
+    assert parrot.breed_changed?(from: 0, to: 1)
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old_inserts = klass.partial_inserts?
