@@ -1,3 +1,7 @@
+*   Added `on_or_before?` and `on_or_after?` methods to date/time core extensions
+
+    *Martin Echtner*
+
 *   Add `quarter` method to date/time
 
     *Matt Swanson*
