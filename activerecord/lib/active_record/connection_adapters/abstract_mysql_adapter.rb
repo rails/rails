@@ -362,13 +362,26 @@ module ActiveRecord
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
-        validate_change_column_null_argument!(null)
+        change_column_null_def = build_change_column_null_definition(table_name, column_name, null, default)
 
         unless null || default.nil?
-          execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+          quoted_tbl = quote_table_name(table_name)
+          quoted_col = quote_column_name(column_name)
+          execute("UPDATE #{quoted_tbl} SET #{quoted_col}=#{quote(default)} WHERE #{quoted_col} IS NULL")
         end
 
-        change_column table_name, column_name, nil, null: null
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_null_def.ddl}"
+      end
+
+      # Builds a ChangeColumnDefinition object.
+      #
+      # This definition object contains information about the column change that would occur
+      # if the same arguments were passed to #change_column_null. See #change_column_null for
+      # information about passing a +table_name+, +column_name+, +null+ and an optional default
+      # that can be passed.
+      def build_change_column_null_definition(table_name, column_name, null, default = nil) # :nodoc:
+        validate_change_column_null_argument!(null)
+        build_change_column_definition(table_name, column_name, nil, null: null)
       end
 
       def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:

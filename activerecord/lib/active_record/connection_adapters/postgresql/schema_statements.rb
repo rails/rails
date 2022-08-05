@@ -440,14 +440,34 @@ module ActiveRecord
         end
 
         def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
-          validate_change_column_null_argument!(null)
+          change_column_null_def = build_change_column_null_definition(table_name, column_name, null, default)
 
           clear_cache!
+
           unless null || default.nil?
-            column = column_for(table_name, column_name)
-            execute "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(default, column)} WHERE #{quote_column_name(column_name)} IS NULL" if column
+            quoted_tbl = quote_table_name(table_name)
+            quoted_col = quote_column_name(column_name)
+            quoted_default = quote_default_expression(default, change_column_null_def.column)
+            execute "UPDATE #{quoted_tbl} SET #{quoted_col}=#{quoted_default} WHERE #{quoted_col} IS NULL"
           end
-          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_null_def.ddl}"
+        end
+
+        # Builds a ChangeColumnNullDefinition object.
+        #
+        # This definition object contains information about the column change that would occur
+        # if the same arguments were passed to #change_column_null. See #change_column_null for
+        # information about passing a +table_name+, +column_name+, +null+ and an optional default
+        # that can be passed.
+        def build_change_column_null_definition(table_name, column_name, null, default = nil) # :nodoc:
+          validate_change_column_null_argument!(null)
+
+          column = column_for(table_name, column_name)
+          change_column_null_definition = ChangeColumnNullDefinition.new(column, null)
+          schema_creation.accept(change_column_null_definition)
+
+          change_column_null_definition
         end
 
         # Adds comment for given table column or drops it if +comment+ is a +nil+

@@ -97,6 +97,11 @@ module ActiveRecord
             o.ddl = sql
           end
 
+          def visit_ChangeColumnNullDefinition(o)
+            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} #{o.null ? "DROP" : "SET"} NOT NULL"
+            o.ddl = sql
+          end
+
           def add_column_options!(sql, options)
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""

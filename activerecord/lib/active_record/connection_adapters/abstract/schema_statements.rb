@@ -718,7 +718,7 @@ module ActiveRecord
       #
       # This definition object contains information about the column change that would occur
       # if the same arguments were passed to #change_column_default. See #change_column_default for
-      # information about passing a +table_name+, +column_name+, +type+ and other options that can be passed.
+      # information about passing a +table_name+, +column_name+, and +default+.
       def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
         raise NotImplementedError, "build_change_column_default_definition is not implemented"
       end
@@ -741,6 +741,10 @@ module ActiveRecord
       # Please note the fourth argument does not set a column's default.
       def change_column_null(table_name, column_name, null, default = nil)
         raise NotImplementedError, "change_column_null is not implemented"
+      end
+
+      def build_change_column_null_definition(table_name, column_name, null, default = nil) # :nodoc:
+        raise NotImplementedError, "build_change_column_null_definition is not implemented"
       end
 
       # Renames a column.

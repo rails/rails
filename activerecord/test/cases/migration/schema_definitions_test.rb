@@ -11,6 +11,10 @@ module ActiveRecord
         @connection = ActiveRecord::Base.connection
       end
 
+      def teardown
+        connection.drop_table(:test) if connection.table_exists?(:test)
+      end
+
       def test_build_create_table_definition_with_block
         td = connection.build_create_table_definition :test do |t|
           t.column :foo, :string
@@ -66,8 +70,6 @@ module ActiveRecord
 
         assert_match "CREATE INDEX", create_index.ddl
         assert_equal "index_test_on_foo", create_index.index.name
-      ensure
-        connection.drop_table(:test) if connection.table_exists?(:test)
       end
 
       if current_adapter?(:Mysql2Adapter)
@@ -79,8 +81,6 @@ module ActiveRecord
 
           create_index = connection.build_create_index_definition(:test, :foo, if_not_exists: true)
           assert_nil create_index
-        ensure
-          connection.drop_table(:test) if connection.table_exists?(:test)
         end
       end
 
@@ -97,8 +97,6 @@ module ActiveRecord
           assert_equal "foo", change_col.name.to_s
           assert change_col.type
           assert change_col.sql_type
-        ensure
-          connection.drop_table(:test) if connection.table_exists?(:test)
         end
 
         def test_build_change_column_default_definition
@@ -114,8 +112,27 @@ module ActiveRecord
           assert_equal "foo", change_col.name.to_s
           assert change_col.type
           assert change_col.sql_type
-        ensure
-          connection.drop_table(:test) if connection.table_exists?(:test)
+        end
+
+        def test_build_change_column_null_definition
+          connection.create_table(:test) do |t|
+            t.column :foo, :string
+          end
+
+          change_null_cd = connection.build_change_column_null_definition(:test, :foo, false)
+          assert_match "NOT NULL", change_null_cd.ddl
+
+          change_col = change_null_cd.column
+
+          if current_adapter?(:Mysql2Adapter)
+            assert_not change_col.options[:null]
+          elsif current_adapter?(:PostgreSQLAdapter)
+            assert_not change_null_cd.null
+          end
+
+          assert_equal "foo", change_col.name.to_s
+          assert change_col.type
+          assert change_col.sql_type
         end
       end
     end

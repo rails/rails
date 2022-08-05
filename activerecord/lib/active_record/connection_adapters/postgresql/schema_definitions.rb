@@ -294,6 +294,8 @@ module ActiveRecord
           @exclusion_constraint_drops << constraint_name
         end
       end
+
+      ChangeColumnNullDefinition = Struct.new(:column, :null, :ddl) # :nodoc:
     end
   end
 end

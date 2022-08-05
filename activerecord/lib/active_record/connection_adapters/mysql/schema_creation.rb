@@ -34,6 +34,11 @@ module ActiveRecord
             o.ddl = sql
           end
 
+          def visit_ChangeColumnNullDefinition(o)
+            sql = +"CHANGE #{quote_column_name(o.column.name)} #{accept(o.column)}"
+            o.ddl = sql
+          end
+
           def visit_CreateIndexDefinition(o)
             sql = visit_IndexDefinition(o.index, true)
             sql << " #{o.algorithm}" if o.algorithm
