@@ -1836,7 +1836,7 @@ class UserMailerTest < ActionMailer::TestCase
     # Create the email and store it for further assertions
     email = UserMailer.with(all: "good").create_invite("me@example.com", "friend@example.com")
 
-    # Test that the email got enqueued with the correct params and arguments
+    # Test that the email got enqueued with the correct mailer parameters and arguments
     assert_enqueued_email_with UserMailer, :create_invite, params: { all: "good" },
                                                            args: ["me@example.com", "friend@example.com"] do
       email.deliver_later
