@@ -3,7 +3,7 @@
     Example:
 
     ```
-    > bin/rails rails --unused
+    > bin/rails routes --unused
 
     Found 2 unused routes:
 
