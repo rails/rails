@@ -48,7 +48,7 @@ module ActiveRecord
         :change_column_comment, :change_table_comment,
         :add_check_constraint, :remove_check_constraint,
         :add_exclusion_constraint, :remove_exclusion_constraint,
-        :create_enum, :drop_enum
+        :create_enum, :drop_enum,
       ]
       include JoinTable
 
@@ -284,6 +284,12 @@ module ActiveRecord
 
         def invert_remove_exclusion_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_exclusion_constraint is only reversible if given an expression." if args.size < 2
+          super
+        end
+
+        def invert_drop_enum(args)
+          _enum, values = args.dup.tap(&:extract_options!)
+          raise ActiveRecord::IrreversibleMigration, "drop_enum is only reversible if given a list of enum values." unless values
           super
         end
 
