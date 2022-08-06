@@ -62,13 +62,14 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
-- [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `false`
+- [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
-- [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `false`
+- [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
+- [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
-- [`config.log_file_size`](#config-log-file-size): `100.megabytes`
+- [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
 
 #### Default Values for Target Version 7.0
 
@@ -90,6 +91,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.disable_to_s_conversion`](#config-active-support-disable-to-s-conversion): `true`
 - [`config.active_support.executor_around_test_case`](#config-active-support-executor-around-test-case): `true`
 - [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_support.isolation_level`](#config-active-support-isolation-level): `:thread`
 - [`config.active_support.key_generator_hash_digest_class`](#config-active-support-key-generator-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_support.remove_deprecated_time_with_zone_name`](#config-active-support-remove-deprecated-time-with-zone-name): `true`
 - [`config.active_support.use_rfc4122_namespaced_uuids`](#config-active-support-use-rfc4122-namespaced-uuids): `true`
@@ -98,7 +100,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
 - [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
-- [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status) = `308`
+- [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status): `308`
 - [`config.action_mailbox.queues.incineration`](#config-action-mailbox-queues-incineration): `nil`
 - [`config.action_mailbox.queues.routing`](#config-action-mailbox-queues-routing): `nil`
 - [`config.action_mailer.deliver_later_queue_name`](#config-action-mailer-deliver-later-queue-name): `nil`
