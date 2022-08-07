@@ -452,15 +452,19 @@ module ActiveRecord
           SELECT
             type.typname AS name,
             type.OID AS oid,
+            n.nspname AS schema,
             string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
           FROM pg_enum AS enum
-          JOIN pg_type AS type
-            ON (type.oid = enum.enumtypid)
-          GROUP BY type.OID, type.typname;
+          JOIN pg_type AS type ON (type.oid = enum.enumtypid)
+          JOIN pg_namespace n ON type.typnamespace = n.oid
+          GROUP BY type.OID, n.nspname, type.typname;
         SQL
 
         exec_query(query, "SCHEMA", allow_retry: true, uses_transaction: false).cast_values.each_with_object({}) do |row, memo|
-          memo[row.first] = row.last
+          name, schema = row[0], row[2]
+          schema = nil if schema == current_schema
+          full_name = [schema, name].compact.join(".")
+          memo[full_name] = row.last
         end.to_a
       end
 
