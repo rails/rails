@@ -273,7 +273,7 @@ module Rails
           self.add_autoload_paths_to_load_path = false
 
           if Rails.env.development? || Rails.env.test?
-            self.log_file_size = (100 * 1024 * 1024)
+            self.log_file_size = 100 * 1024 * 1024
           end
 
           if respond_to?(:active_record)
