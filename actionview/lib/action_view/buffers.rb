@@ -50,7 +50,7 @@ module ActionView
       end
       self
     end
-    alias :concat, :<<
+    alias :concat :<<
     alias :append= :<<
 
     def safe_concat(value)
