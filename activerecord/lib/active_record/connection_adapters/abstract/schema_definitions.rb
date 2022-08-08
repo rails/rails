@@ -92,11 +92,11 @@ module ActiveRecord
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
-    ChangeColumnDefinition = Struct.new(:column, :name, :ddl) # :nodoc:
+    ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
 
-    ChangeColumnDefaultDefinition = Struct.new(:column, :default, :ddl) # :nodoc:
+    ChangeColumnDefaultDefinition = Struct.new(:column, :default) # :nodoc:
 
-    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists, :ddl) # :nodoc:
+    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
@@ -335,7 +335,6 @@ module ActiveRecord
       include ColumnMethods
 
       attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints
-      attr_accessor :ddl
 
       def initialize(
         conn,
@@ -582,7 +581,6 @@ module ActiveRecord
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
-      attr_accessor :ddl
 
       def initialize(td)
         @td   = td

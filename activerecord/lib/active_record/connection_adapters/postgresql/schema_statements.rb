@@ -417,10 +417,7 @@ module ActiveRecord
         def build_change_column_definition(table_name, column_name, type, **options) # :nodoc:
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column_name, type, **options)
-          change_column_def = ChangeColumnDefinition.new(cd, column_name)
-          schema_creation.accept(change_column_def)
-
-          change_column_def
+          ChangeColumnDefinition.new(cd, column_name)
         end
 
         # Changes the default value of a table column.
@@ -433,10 +430,7 @@ module ActiveRecord
           return unless column
 
           default = extract_new_default_value(default_or_changes)
-          change_column_default_definition = ChangeColumnDefaultDefinition.new(column, default)
-          schema_creation.accept(change_column_default_definition)
-
-          change_column_default_definition
+          ChangeColumnDefaultDefinition.new(column, default)
         end
 
         def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
@@ -473,7 +467,7 @@ module ActiveRecord
 
         def add_index(table_name, column_name, **options) # :nodoc:
           create_index = build_create_index_definition(table_name, column_name, **options)
-          result = execute(create_index.ddl)
+          result = execute schema_creation.accept(create_index)
 
           index = create_index.index
           execute "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}" if index.comment
@@ -482,10 +476,7 @@ module ActiveRecord
 
         def build_create_index_definition(table_name, column_name, **options) # :nodoc:
           index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
-
-          create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
-          schema_creation.accept(create_index)
-          create_index
+          CreateIndexDefinition.new(index, algorithm, if_not_exists)
         end
 
         def remove_index(table_name, column_name = nil, **options) # :nodoc:
@@ -861,7 +852,7 @@ module ActiveRecord
 
           def change_column_for_alter(table_name, column_name, type, **options)
             change_col_def = build_change_column_definition(table_name, column_name, type, **options)
-            sqls = [change_col_def.ddl]
+            sqls = [schema_creation.accept(change_col_def)]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
           end
