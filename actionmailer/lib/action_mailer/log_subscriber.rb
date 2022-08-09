@@ -19,6 +19,7 @@ module ActionMailer
 
       debug { event.payload[:mail] }
     end
+    subscribe_log_level :deliver, :debug
 
     # An email was generated.
     def process(event)
@@ -28,6 +29,7 @@ module ActionMailer
         "#{mailer}##{action}: processed outbound mail in #{event.duration.round(1)}ms"
       end
     end
+    subscribe_log_level :process, :debug
 
     # Use the logger configured for ActionMailer::Base.
     def logger

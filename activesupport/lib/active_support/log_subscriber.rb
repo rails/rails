@@ -78,12 +78,19 @@ module ActiveSupport
     WHITE   = "\e[37m"
 
     mattr_accessor :colorize_logging, default: true
+    class_attribute :log_levels, instance_accessor: false, default: {} # :nodoc:
 
     class << self
       def logger
         @logger ||= if defined?(Rails) && Rails.respond_to?(:logger)
           Rails.logger
         end
+      end
+
+      def attach_to(...) # :nodoc:
+        result = super
+        set_event_levels
+        result
       end
 
       attr_writer :logger
@@ -101,10 +108,34 @@ module ActiveSupport
         def fetch_public_methods(subscriber, inherit_all)
           subscriber.public_methods(inherit_all) - LogSubscriber.public_instance_methods(true)
         end
+
+        def set_event_levels
+          if subscriber
+            subscriber.event_levels = log_levels.transform_keys { |k| "#{k}.#{namespace}" }
+          end
+        end
+
+        %w(info debug warn error fatal unknown).each do |level|
+          class_eval <<-METHOD, __FILE__, __LINE__ + 1
+            private def subscribe_log_level(method, level)
+              self.log_levels = log_levels.merge(method => ::Logger.const_get(level.upcase))
+              set_event_levels
+            end
+          METHOD
+        end
+    end
+
+    def initialize
+      super
+      @event_levels = {}
     end
 
     def logger
       LogSubscriber.logger
+    end
+
+    def silenced?(event)
+      logger.nil? || logger.level > @event_levels.fetch(event, Float::INFINITY)
     end
 
     def call(event)
@@ -118,6 +149,8 @@ module ActiveSupport
     rescue => e
       log_exception(event.name, e)
     end
+
+    attr_writer :event_levels # :nodoc:
 
   private
     %w(info debug warn error fatal unknown).each do |level|
