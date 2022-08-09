@@ -1,3 +1,10 @@
+*   PostgreSQL adapter method `enable_extension` now allows parameter to be `[schema_name.]<extension_name>`
+    if the extension must be installed on another schema.
+
+    Example: `enable_extension('heroku_ext.hstore')`
+
+    *Leonardo Luarte*
+
 *   Add `drop_enum` migration command for PostgreSQL
 
     This does the inverse of `create_enum`. Before dropping an enum, ensure you have
