@@ -1765,14 +1765,9 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-In the test we create the email and store the returned object in the `email`
-variable. We then ensure that it was sent (the first assert), then, in the
-second batch of assertions, we ensure that the email does indeed contain what we
-expect. The helper `read_fixture` is used to read in the content from this file.
+In the test we create the email and store the returned object in the `email` variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect. The helper `read_fixture` is used to read in the content from this file.
 
-NOTE: `email.body.to_s` is present when there's only one (HTML or text) part present.
-If the mailer provides both, you can test your fixture against specific parts
-with `email.text_part.body.to_s` or `email.html_part.body.to_s`.
+NOTE: `email.body.to_s` is present when there's only one (HTML or text) part present. If the mailer provides both, you can test your fixture against specific parts with `email.text_part.body.to_s` or `email.html_part.body.to_s`.
 
 Here's the content of the `invite` fixture:
 
@@ -1784,17 +1779,89 @@ You have been invited.
 Cheers!
 ```
 
-This is the right time to understand a little more about writing tests for your
-mailers. The line `ActionMailer::Base.delivery_method = :test` in
-`config/environments/test.rb` sets the delivery method to test mode so that
-email will not actually be delivered (useful to avoid spamming your users while
-testing) but instead it will be appended to an array
-(`ActionMailer::Base.deliveries`).
+This is the right time to understand a little more about writing tests for your mailers. The line `ActionMailer::Base.delivery_method = :test` in `config/environments/test.rb` sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (`ActionMailer::Base.deliveries`).
 
-NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
-`ActionMailer::TestCase` and `ActionDispatch::IntegrationTest` tests.
-If you want to have a clean slate outside these test cases, you can reset it
-manually with: `ActionMailer::Base.deliveries.clear`
+NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in `ActionMailer::TestCase` and `ActionDispatch::IntegrationTest` tests. If you want to have a clean slate outside these test cases, you can reset it manually with: `ActionMailer::Base.deliveries.clear`
+
+#### Testing Enqueued Emails
+
+You can use the `assert_enqueued_email_with` assertion to confirm that the email has been enqueued with all of the expected mailer method arguments and/or parameterized mailer parameters. This allows you to match any email that have been enqueued with the `deliver_later` method.
+
+As with the basic test case, we create the email and store the returned object in the `email` variable. The following examples include variations of passing arguments and/or parameters.
+
+This example will assert that the email has been enqueued with the correct arguments:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite("me@example.com", "friend@example.com")
+
+    # Test that the email got enqueued with the correct arguments
+    assert_enqueued_email_with UserMailer, :create_invite, args: ["me@example.com", "friend@example.com"] do
+      email.deliver_later
+    end
+  end
+end
+```
+
+This example will assert that a mailer has been enqueued with the correct mailer method named arguments by passing a hash of the arguments as `args`:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite(from: "me@example.com", to: "friend@example.com")
+
+    # Test that the email got enqueued with the correct named arguments
+    assert_enqueued_email_with UserMailer, :create_invite, args: [{ from: "me@example.com",
+                                                                    to: "friend@example.com" }] do
+      email.deliver_later
+    end
+  end
+end
+```
+
+This example will assert that a parameterized mailer has been enqueued with the correct parameters and arguments. The mailer parameters are passed as `params` and the mailer method arguments as `args`:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.with(all: "good").create_invite("me@example.com", "friend@example.com")
+
+    # Test that the email got enqueued with the correct mailer parameters and arguments
+    assert_enqueued_email_with UserMailer, :create_invite, params: { all: "good" },
+                                                           args: ["me@example.com", "friend@example.com"] do
+      email.deliver_later
+    end
+  end
+end
+```
+
+This example shows an alternative way to test that a parameterized mailer has been enqueued with the correct parameters:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.with(to: "friend@example.com").create_invite
+
+    # Test that the email got enqueued with the correct mailer parameters
+    assert_enqueued_email_with UserMailer.with(to: "friend@example.com"), :create_invite do
+      email.deliver_later
+    end
+  end
+end
+```
 
 ### Functional and System Testing
 
@@ -1831,7 +1898,7 @@ class UsersTest < ActionDispatch::SystemTestCase
 end
 ```
 
-NOTE: The `assert_emails` method is not tied to a particular deliver method and will work with emails delivered with either the `deliver_now` or `deliver_later` method. If we explicitly want to assert that the email has been enqueued we can use the `assert_enqueued_emails` method. More information can be found in the  [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
+NOTE: The `assert_emails` method is not tied to a particular deliver method and will work with emails delivered with either the `deliver_now` or `deliver_later` method. If we explicitly want to assert that the email has been enqueued we can use the `assert_enqueued_email_with` ([examples above](#testing_enqueued_emails)) or `assert_enqueued_emails` methods. More information can be found in the  [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
 
 Testing Jobs
 ------------
