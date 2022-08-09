@@ -398,7 +398,7 @@ module ActiveRecord
           options[:comment] = column.comment
         end
 
-        unless options.key?(:collation)
+        unless options.key?(:collation) || type == :binary
           options[:collation] = column.collation
         end
 
