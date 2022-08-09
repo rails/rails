@@ -287,6 +287,14 @@ If you don't want to use `SQLite3Adapter` in a strict mode, you can disable this
 config.active_record.sqlite3_adapter_strict_strings_by_default = false
 ```
 
+### Support multiple preview paths for `ActionMailer::Preview`
+
+Option `config.action_mailer.preview_path` is deprecated in favor of `config.action_mailer.preview_paths`. Appending paths to this configuration option will cause those paths to be used in the search for mailer previews.
+
+```ruby
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 

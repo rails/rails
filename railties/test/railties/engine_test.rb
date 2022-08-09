@@ -302,6 +302,30 @@ module RailtiesTest
       assert_equal "Hi bukkits\n", response[2].body
     end
 
+    test "adds its mailer previews to mailer preview paths" do
+      @plugin.write "app/mailers/bukkit_mailer.rb", <<-RUBY
+        class BukkitMailer < ActionMailer::Base
+          def foo
+          end
+        end
+      RUBY
+
+      @plugin.write "test/mailers/previews/bukkit_mailer_preview.rb", <<-RUBY
+        class BukkitMailerPreview < ActionMailer::Preview
+          def foo
+          end
+        end
+      RUBY
+
+      @plugin.write "app/views/bukkit_mailer/foo.html.erb", "Bukkit"
+
+      boot_rails
+
+      get "/rails/mailers"
+      assert_match '<h3><a href="/rails/mailers/bukkit_mailer">Bukkit Mailer</a></h3>', last_response.body
+      assert_match '<li><a href="/rails/mailers/bukkit_mailer/foo">foo</a></li>', last_response.body
+    end
+
     test "adds helpers to controller views" do
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
