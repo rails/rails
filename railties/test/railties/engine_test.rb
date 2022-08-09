@@ -1511,7 +1511,11 @@ en:
       app_file "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ApplicationController
           def index
-            render plain: bukkits.bukkit_path
+            text = <<~TEXT
+              bukkits.bukkit_path: \#{bukkits.bukkit_path}
+              Bukkits::Engine.routes.url_helpers.bukkit_path: \#{Bukkits::Engine.routes.url_helpers.bukkit_path}
+            TEXT
+            render plain: text
           end
         end
       RUBY
@@ -1532,18 +1536,32 @@ en:
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base
           def index
-            render plain: main_app.bar_path
+            text = <<~TEXT
+              main_app.bar_path: \#{main_app.bar_path}
+              Rails.application.routes.url_helpers.bar_path: \#{Rails.application.routes.url_helpers.bar_path}
+            TEXT
+            render plain: text
           end
         end
       RUBY
 
       boot_rails
 
+      expected = <<~TEXT
+        main_app.bar_path: /foo/bar
+        Rails.application.routes.url_helpers.bar_path: /foo/bar
+      TEXT
       get("/bukkits/bukkit", {}, { "SCRIPT_NAME" => "/foo" })
-      assert_equal "/foo/bar", last_response.body
+      assert_equal expected,
+                   last_response.body
 
+      expected = <<~TEXT
+        bukkits.bukkit_path: /foo/bukkits/bukkit
+        Bukkits::Engine.routes.url_helpers.bukkit_path: /foo/bukkits/bukkit
+      TEXT
       get("/bar", {}, { "SCRIPT_NAME" => "/foo" })
-      assert_equal "/foo/bukkits/bukkit", last_response.body
+      assert_equal expected,
+                   last_response.body
     end
 
     test "isolated engine can be mounted under multiple static locations" do
