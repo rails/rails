@@ -48,6 +48,16 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
     assert_equal "utf8mb4_general_ci", column.collation
   end
 
+  test "change column ensures binary column type are set to nil" do
+    @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
+    @connection.change_column :charset_collations, :description, :binary
+
+    column = @connection.columns(:charset_collations).find { |c| c.name == "description" }
+
+    assert_equal :binary, column.type
+    assert_nil column.collation
+  end
+
   test "change column preserves collation" do
     @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
     @connection.change_column :charset_collations, :description, :text
