@@ -289,7 +289,8 @@ module ActiveRecord
         db_configs_with_versions
       end
 
-      def migrate_status(connection = ActiveRecord::Base.connection)
+      def migrate_status
+        connection = ActiveRecord::TemporaryConnection.current_connection
         unless connection.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."
         end
@@ -419,10 +420,12 @@ module ActiveRecord
         load_schema(db_config, format, file)
       end
 
-      def dump_schema(db_config, format = ActiveRecord.schema_format, connection = ActiveRecord::Base.connection) # :nodoc:
+      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
         return unless filename
+
+        connection = ActiveRecord::TemporaryConnection.current_connection
 
         FileUtils.mkdir_p(db_dir)
         case format
