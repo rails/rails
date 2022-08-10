@@ -277,6 +277,19 @@ module ActiveRecord
         assert_nil TestModel.new.first_name
       end
 
+      def test_change_column_default_to_null_with_not_null
+        add_column "test_models", "first_name", :string, null: false
+        add_column "test_models", "age", :integer, null: false
+
+        connection.change_column_default "test_models", "first_name", nil
+
+        assert_nil TestModel.new.first_name
+
+        connection.change_column_default "test_models", "age", nil
+
+        assert_nil TestModel.new.age
+      end
+
       def test_change_column_default_with_from_and_to
         add_column "test_models", "first_name", :string
         connection.change_column_default "test_models", "first_name", from: nil, to: "Tester"

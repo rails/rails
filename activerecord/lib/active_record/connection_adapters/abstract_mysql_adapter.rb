@@ -398,8 +398,8 @@ module ActiveRecord
           options[:comment] = column.comment
         end
 
-        unless options.key?(:collation) || type == :binary
-          options[:collation] = column.collation
+        unless options.key?(:collation)
+          options[:collation] = column.collation if text_type?(type)
         end
 
         unless options.key?(:auto_increment)
@@ -683,6 +683,10 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        def text_type?(type)
+          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        end
+
         def extended_type_map_key
           if @default_timezone
             { default_timezone: @default_timezone, emulate_booleans: emulate_booleans }
