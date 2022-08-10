@@ -128,7 +128,7 @@ module ActionView
 
       def find_partial(path, keys)
         unbound_template =
-          begin
+          partial_cache.compute_if_absent(path) do
             prefixes = path.include?(?/) ? nil : @prefixes
             path, prefixes = normalize_name(path, prefixes)
             @view_paths.find_all_unbound(path, prefixes, true, @details, details_key).first ||
