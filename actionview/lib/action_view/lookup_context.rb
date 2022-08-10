@@ -121,6 +121,12 @@ module ActionView
     module ViewPaths
       attr_reader :view_paths, :html_fallback_for_js
 
+      def find_partial(path, keys)
+        prefixes = path.include?(?/) ? nil : @prefixes
+        path, prefixes = normalize_name(path, prefixes)
+        @view_paths.find(path, prefixes, true, @details, details_key, keys)
+      end
+
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
