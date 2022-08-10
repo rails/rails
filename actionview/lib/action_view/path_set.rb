@@ -41,12 +41,18 @@ module ActionView # :nodoc:
         raise(MissingTemplate.new(self, path, prefixes, partial, details, details_key, locals))
     end
 
-    def find_all(path, prefixes, partial, details, details_key, locals)
+    def find_all_unbound(path, prefixes, partial, details, details_key)
       search_combinations(prefixes) do |resolver, prefix|
-        templates = resolver.find_all(path, prefix, partial, details, details_key, locals)
+        templates = resolver.find_all_unbound(path, prefix, partial, details, details_key)
         return templates unless templates.empty?
       end
       []
+    end
+
+    def find_all(path, prefixes, partial, details, details_key, locals)
+      find_all_unbound(path, prefixes, partial, details, details_key).map do |unbound_template|
+        unbound_template.bind_locals(locals)
+      end
     end
 
     def exists?(path, prefixes, partial, details, details_key, locals)
