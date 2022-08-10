@@ -127,10 +127,14 @@ module ActionView
       attr_reader :view_paths, :html_fallback_for_js
 
       def find_partial(path, keys)
-        prefixes = path.include?(?/) ? nil : @prefixes
-        path, prefixes = normalize_name(path, prefixes)
-        @view_paths.find_all(path, prefixes, true, @details, details_key, keys).first ||
-          raise(MissingTemplate.new(@view_paths, path, prefixes, true, @details))
+        unbound_template =
+          begin
+            prefixes = path.include?(?/) ? nil : @prefixes
+            path, prefixes = normalize_name(path, prefixes)
+            @view_paths.find_all_unbound(path, prefixes, true, @details, details_key).first ||
+              raise(MissingTemplate.new(@view_paths, path, prefixes, true, @details))
+          end
+        unbound_template.bind_locals(keys)
       end
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
