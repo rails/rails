@@ -203,11 +203,13 @@ module ActionView
         end
       end
 
+      EMPTY_PREFIXES = [""].freeze
+
       # Fix when prefix is specified as part of the template name
       def normalize_name(name, prefixes)
         name = name.to_s
         idx = name.rindex("/")
-        return name, prefixes.presence || [""] unless idx
+        return name, prefixes.presence || EMPTY_PREFIXES unless idx
 
         path_prefix = name[0, idx]
         path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
