@@ -255,7 +255,7 @@ db_namespace = namespace :db do
     task status: :load_config do
       ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
         ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
-          ActiveRecord::Tasks::DatabaseTasks.migrate_status(connection)
+          ActiveRecord::Tasks::DatabaseTasks.migrate_status
         end
       end
     end
@@ -267,7 +267,7 @@ db_namespace = namespace :db do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
 
           ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
-            ActiveRecord::Tasks::DatabaseTasks.migrate_status(connection)
+            ActiveRecord::Tasks::DatabaseTasks.migrate_status
           end
         end
       end
@@ -460,7 +460,7 @@ db_namespace = namespace :db do
         if db_config.schema_dump
           ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
             schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format, connection)
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
           end
         end
       end
@@ -482,7 +482,7 @@ db_namespace = namespace :db do
           if db_config.schema_dump
             ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
               schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format, connection)
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
               db_namespace["schema:dump:#{name}"].reenable
             end
           end

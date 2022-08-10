@@ -8,10 +8,20 @@ module ActiveRecord
       nil
     end
 
-    def self.find_connection_pool
-      if pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(name, role: :writing, shard: :default)
-        pool
+    def self.current_connection
+      if pool = find_connection_pool
+        pool.connection
+      else
+        ActiveRecord::Base.connection
       end
+    end
+
+    def self.current_pool
+      find_connection_pool || ActiveRecord::Base.connection_pool
+    end
+
+    def self.find_connection_pool
+      ActiveRecord::Base.connection_handler.retrieve_connection_pool(name, role: :writing, shard: :default)
     end
 
     def self.find_connection

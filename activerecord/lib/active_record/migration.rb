@@ -862,7 +862,7 @@ module ActiveRecord
       end
 
       time = nil
-      get_connection_pool.with_connection do |conn|
+      ActiveRecord::TemporaryConnection.current_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
         end
@@ -872,10 +872,6 @@ module ActiveRecord
       when :up   then announce "migrated (%.4fs)" % time.real; write
       when :down then announce "reverted (%.4fs)" % time.real; write
       end
-    end
-
-    def get_connection_pool
-      ActiveRecord::TemporaryConnection.find_connection_pool || ActiveRecord::Base.connection_pool
     end
 
     def exec_migration(conn, direction)
