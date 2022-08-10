@@ -2258,14 +2258,21 @@ an `around_perform`. The default value is `true`.
 
 #### `config.active_job.use_big_decimal_serializer`
 
-Enable the use of BigDecimalSerializer instead of legacy BigDecimal argument
-serialization, which may result in the argument being lossfully converted to
-a String when using certain queue adapters.
-This setting is disabled by default to allow race condition free deployment
-of applications with multiple replicas, in which an old replica would not
-support BigDecimalSerializer..
-In such environments, it should be safe to enable this setting following
-successful deployment of Rails 7.1 which introduces BigDecimalSerializer.
+Enables the new `BigDecimal` argument serializer, which guarantees
+roundtripping. Without this serializer, some queue adapters may serialize
+`BigDecimal` arguments as simple (non-roundtrippable) strings.
+
+WARNING: When deploying an application with multiple replicas, old (pre-Rails
+7.1) replicas will not be able to deserialize `BigDecimal` arguments from this
+serializer. Therefore, this setting should only be enabled after all replicas
+have been successfully upgraded to Rails 7.1.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
 
 ### Configuring Action Cable
 
