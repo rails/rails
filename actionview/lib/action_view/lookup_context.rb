@@ -108,9 +108,14 @@ module ActionView
         @cache = old_value
       end
 
+      def partial_cache
+        @partial_cache ||= Concurrent::Map.new
+      end
+
     private
       def _set_detail(key, value) # :doc:
         @details = @details.dup if @digest_cache || @details_key
+        @partial_cache = nil
         @digest_cache = nil
         @details_key = nil
         @details[key] = value
@@ -124,7 +129,8 @@ module ActionView
       def find_partial(path, keys)
         prefixes = path.include?(?/) ? nil : @prefixes
         path, prefixes = normalize_name(path, prefixes)
-        @view_paths.find(path, prefixes, true, @details, details_key, keys)
+        @view_paths.find_all(path, prefixes, true, @details, details_key, keys).first ||
+          raise(MissingTemplate.new(@view_paths, path, prefixes, true, @details))
       end
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})

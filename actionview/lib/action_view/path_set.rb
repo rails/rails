@@ -38,7 +38,7 @@ module ActionView # :nodoc:
 
     def find(path, prefixes, partial, details, details_key, locals)
       find_all(path, prefixes, partial, details, details_key, locals).first ||
-        raise(MissingTemplate.new(self, path, prefixes, partial, details, details_key, locals))
+        raise(MissingTemplate.new(self, path, prefixes, partial, details))
     end
 
     def find_all_unbound(path, prefixes, partial, details, details_key)

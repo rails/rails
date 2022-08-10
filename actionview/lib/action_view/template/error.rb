@@ -29,7 +29,7 @@ module ActionView
   class MissingTemplate < ActionViewError # :nodoc:
     attr_reader :path, :paths, :prefixes, :partial
 
-    def initialize(paths, path, prefixes, partial, details, *)
+    def initialize(paths, path, prefixes, partial, details)
       if partial && path.present?
         path = path.sub(%r{([^/]+)$}, "_\\1")
       end
