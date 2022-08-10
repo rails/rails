@@ -13,7 +13,7 @@ module ActionView
   # view paths, used in the resolver cache lookup. Since this key is generated
   # only once during the request, it speeds up all cache accesses.
   class LookupContext # :nodoc:
-    attr_accessor :prefixes
+    attr_reader :prefixes
 
     singleton_class.attr_accessor :registered_details
     self.registered_details = []
@@ -239,7 +239,7 @@ module ActionView
       @details_key = nil
       @digest_cache = nil
       @cache = true
-      @prefixes = prefixes
+      @prefixes = prefixes.freeze
 
       @details = initialize_details({}, details)
       @view_paths = build_view_paths(view_paths)
