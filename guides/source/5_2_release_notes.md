@@ -792,7 +792,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `ActiveSupport::TimeZone::MAPPING`.
     ([Pull Request](https://github.com/rails/rails/pull/31176))
 
-*   Changed default behaviour of `ActiveSupport::SecurityUtils.secure_compare`,
+*   Changed default behavior of `ActiveSupport::SecurityUtils.secure_compare`,
     to make it not leak length information even for variable length string.
     Renamed old `ActiveSupport::SecurityUtils.secure_compare` to
     `fixed_length_secure_compare`, and started raising `ArgumentError` in

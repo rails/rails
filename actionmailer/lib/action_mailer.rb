@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2021 David Heinemeier Hansson
+# Copyright (c) 2004-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -58,6 +58,10 @@ module ActionMailer
 
     require "mail"
     Mail.eager_autoload!
+
+    Base.descendants.each do |mailer|
+      mailer.eager_load! unless mailer.abstract?
+    end
   end
 end
 

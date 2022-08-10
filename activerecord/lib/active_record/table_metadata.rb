@@ -23,7 +23,16 @@ module ActiveRecord
     end
 
     def associated_with?(table_name)
-      klass&._reflect_on_association(table_name) || klass&._reflect_on_association(table_name.singularize)
+      if reflection = klass&._reflect_on_association(table_name)
+        reflection
+      elsif ActiveRecord.allow_deprecated_singular_associations_name && reflection = klass&._reflect_on_association(table_name.singularize)
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          Referring to a singular association (e.g. `#{reflection.name}`) by its plural name (e.g. `#{reflection.plural_name}`) is deprecated.
+
+          To convert this deprecation warning to an error and enable more performant behavior, set config.active_record.allow_deprecated_singular_associations_name = false.
+        MSG
+        reflection
+      end
     end
 
     def associated_table(table_name)

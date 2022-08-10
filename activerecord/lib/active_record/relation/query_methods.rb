@@ -10,10 +10,10 @@ module ActiveRecord
   module QueryMethods
     include ActiveModel::ForbiddenAttributesProtection
 
-    # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
-    # In this case, #where must be chained with #not to return a new relation.
+    # WhereChain objects act as placeholder for queries in which +where+ does not have any parameter.
+    # In this case, +where+ can be chained to return a new relation.
     class WhereChain
-      def initialize(scope)
+      def initialize(scope) # :nodoc:
         @scope = scope
       end
 
@@ -40,6 +40,13 @@ module ActiveRecord
       #
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+      #
+      # If there is a non-nil condition on a nullable column in the hash condition, the records that have
+      # nil values on the nullable column won't be returned.
+      #    User.create!(nullable_country: nil)
+      #    User.where.not(nullable_country: "UK")
+      #    # SELECT * FROM users WHERE NOT (nullable_country = 'UK')
+      #    # => []
       def not(opts, *rest)
         where_clause = @scope.send(:build_where_clause, opts, rest)
 
@@ -68,7 +75,7 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.joins!(association)
           self.not(reflection.table_name => { reflection.association_primary_key => nil })
         end
@@ -96,13 +103,22 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
       def missing(*associations)
         associations.each do |association|
-          reflection = @scope.klass._reflect_on_association(association)
+          reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
         end
 
         @scope
       end
+
+      private
+        def scope_association_reflection(association)
+          reflection = @scope.klass._reflect_on_association(association)
+          unless reflection
+            raise ArgumentError.new("An association named `:#{association}` does not exist on the model `#{@scope.name}`.")
+          end
+          reflection
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -153,7 +169,7 @@ module ActiveRecord
     #
     #   users = User.includes(:address, friends: [:address, :followers])
     #
-    # === conditions
+    # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
@@ -172,6 +188,11 @@ module ActiveRecord
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
+    #
+    # Conditions affect both sides of an association.  For example, the above
+    # code will return only users that have a post named "example", <em>and will
+    # only include posts named "example"</em>, even when a matching user has
+    # other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
@@ -303,6 +324,66 @@ module ActiveRecord
       self
     end
 
+    # Add a Common Table Expression (CTE) that you can then reference within another SELECT statement.
+    #
+    # Note: CTE's are only supported in MySQL for versions 8.0 and above. You will not be able to
+    # use CTE's with MySQL 5.7.
+    #
+    #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0))
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags AS (
+    #   #   SELECT * FROM posts WHERE (tags_count > 0)
+    #   # )
+    #   # SELECT * FROM posts
+    #
+    # Once you define Common Table Expression you can use custom `FROM` value or `JOIN` to reference it.
+    #
+    #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0)).from("posts_with_tags AS posts")
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags AS (
+    #   #  SELECT * FROM posts WHERE (tags_count > 0)
+    #   # )
+    #   # SELECT * FROM posts_with_tags AS posts
+    #
+    #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0)).joins("JOIN posts_with_tags ON posts_with_tags.id = posts.id")
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags AS (
+    #   #   SELECT * FROM posts WHERE (tags_count > 0)
+    #   # )
+    #   # SELECT * FROM posts JOIN posts_with_tags ON posts_with_tags.id = posts.id
+    #
+    # It is recommended to pass a query as `ActiveRecord::Relation`. If that is not possible
+    # and you have verified it is safe for the database, you can pass it as SQL literal
+    # using `Arel`.
+    #
+    #   Post.with(popular_posts: Arel.sql("... complex sql to calculate posts popularity ..."))
+    #
+    # Great caution should be taken to avoid SQL injection vulnerabilities. This method should not
+    # be used with unsafe values that include unsanitized input.
+    #
+    # To add multiple CTEs just pass multiple key-value pairs
+    #
+    #   Post.with(
+    #     posts_with_comments: Post.where("comments_count > ?", 0),
+    #     posts_with_tags: Post.where("tags_count > ?", 0)
+    #   )
+    #
+    # or chain multiple `.with` calls
+    #
+    #   Post
+    #     .with(posts_with_comments: Post.where("comments_count > ?", 0))
+    #     .with(posts_with_tags: Post.where("tags_count > ?", 0))
+    def with(*args)
+      check_if_method_has_arguments!(__callee__, args)
+      spawn.with!(*args)
+    end
+
+    # Like #with, but modifies relation in place.
+    def with!(*args) # :nodoc:
+      self.with_values += args
+      self
+    end
+
     # Allows you to change a previously set select statement.
     #
     #   Post.select(:title, :body)
@@ -424,22 +505,23 @@ module ActiveRecord
     # adapter this will either use a CASE statement or a built-in function.
     #
     #   User.in_order_of(:id, [1, 5, 3])
-    #   # SELECT "users".* FROM "users" ORDER BY FIELD("users"."id", 1, 5, 3)
+    #   # SELECT "users".* FROM "users"
+    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
+    #   #   WHERE "users"."id" IN (1, 5, 3)
     #
     def in_order_of(column, values)
       klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
+      return spawn.none! if values.empty?
 
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      if values.empty?
-        spawn.order!(column)
-      else
-        values = values.map { |value| type_caster.type_cast_for_database(column, value) }
+      values = values.map { |value| type_caster.type_cast_for_database(column, value) }
+      arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
 
-        arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
-        spawn.order!(connection.field_ordered_value(arel_column, values), column)
-      end
+      spawn
+        .order!(connection.field_ordered_value(arel_column, values))
+        .where!(arel_column.in(values))
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -700,12 +782,26 @@ module ActiveRecord
     # === no argument
     #
     # If no argument is passed, #where returns a new instance of WhereChain, that
-    # can be chained with #not to return a new relation that negates the where clause.
+    # can be chained with WhereChain#not, WhereChain#missing, or WhereChain#associated.
+    #
+    # Chaining with WhereChain#not:
     #
     #    User.where.not(name: "Jon")
     #    # SELECT * FROM users WHERE name != 'Jon'
     #
-    # See WhereChain for more details on #not.
+    # Chaining with WhereChain#associated:
+    #
+    #    Post.where.associated(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NOT NULL
+    #
+    # Chaining with WhereChain#missing:
+    #
+    #    Post.where.missing(:author)
+    #    # SELECT "posts".* FROM "posts"
+    #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #    # WHERE "authors"."id" IS NULL
     #
     # === blank condition
     #
@@ -1292,7 +1388,16 @@ module ActiveRecord
       end
       alias :build_having_clause :build_where_clause
 
+      def async!
+        @async = true
+        self
+      end
+
     private
+      def async
+        spawn.async!
+      end
+
       def lookup_table_klass_from_join_dependencies(table_name)
         each_join_dependencies do |join|
           return join.base_klass if table_name == join.table_name
@@ -1334,6 +1439,7 @@ module ActiveRecord
         arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
         build_order(arel)
+        build_with(arel)
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
@@ -1469,6 +1575,32 @@ module ActiveRecord
         end
       end
 
+      def build_with(arel)
+        return if with_values.empty?
+
+        with_statements = with_values.map do |with_value|
+          raise ArgumentError, "Unsupported argument type: #{with_value} #{with_value.class}" unless with_value.is_a?(Hash)
+
+          build_with_value_from_hash(with_value)
+        end
+
+        arel.with(with_statements)
+      end
+
+      def build_with_value_from_hash(hash)
+        hash.map do |name, value|
+          expression =
+            case value
+            when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
+            when ActiveRecord::Relation then value.arel
+            when Arel::SelectManager then value
+            else
+              raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
+            end
+          Arel::Nodes::TableAlias.new(expression, name)
+        end
+      end
+
       def arel_columns(columns)
         columns.flat_map do |field|
           case field
@@ -1587,7 +1719,7 @@ module ActiveRecord
           when Hash
             arg.map { |field, dir|
               case field
-              when Arel::Nodes::SqlLiteral
+              when Arel::Nodes::SqlLiteral, Arel::Nodes::Node, Arel::Attribute
                 field.public_send(dir.downcase)
               else
                 order_column(field.to_s).public_send(dir.downcase)
@@ -1611,7 +1743,9 @@ module ActiveRecord
           when String, Symbol
             arg
           when Hash
-            arg.keys
+            arg.keys.map do |key|
+              key if key.is_a?(String) || key.is_a?(Symbol)
+            end
           end
         end
         references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!

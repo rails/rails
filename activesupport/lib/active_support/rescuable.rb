@@ -30,20 +30,20 @@ module ActiveSupport
       # any.
       #
       #   class ApplicationController < ActionController::Base
-      #     rescue_from User::NotAuthorized, with: :deny_access # self defined exception
-      #     rescue_from ActiveRecord::RecordInvalid, with: :show_errors
+      #     rescue_from User::NotAuthorized, with: :deny_access
+      #     rescue_from ActiveRecord::RecordInvalid, with: :show_record_errors
       #
-      #     rescue_from 'MyAppError::Base' do |exception|
-      #       render xml: exception, status: 500
+      #     rescue_from "MyApp::BaseError" do |exception|
+      #       redirect_to root_url, alert: exception.message
       #     end
       #
       #     private
       #       def deny_access
-      #         ...
+      #         head :forbidden
       #       end
       #
-      #       def show_errors(exception)
-      #         exception.record.new_record? ? ...
+      #       def show_record_errors(exception)
+      #         redirect_back_or_to root_url, alert: exception.record.errors.full_messages.to_sentence
       #       end
       #   end
       #
@@ -74,12 +74,12 @@ module ActiveSupport
       # Matches an exception to a handler based on the exception class.
       #
       # If no handler matches the exception, check for a handler matching the
-      # (optional) exception.cause. If no handler matches the exception or its
+      # (optional) +exception.cause+. If no handler matches the exception or its
       # cause, this returns +nil+, so you can deal with unhandled exceptions.
       # Be sure to re-raise unhandled exceptions if this is what you expect.
       #
       #     begin
-      #       …
+      #       # ...
       #     rescue => exception
       #       rescue_with_handler(exception) || raise
       #     end
@@ -160,7 +160,7 @@ module ActiveSupport
     end
 
     # Delegates to the class method, but uses the instance as the subject for
-    # rescue_from handlers (method calls, instance_exec blocks).
+    # rescue_from handlers (method calls, +instance_exec+ blocks).
     def rescue_with_handler(exception)
       self.class.rescue_with_handler exception, object: self
     end

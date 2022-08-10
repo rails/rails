@@ -17,22 +17,35 @@ module ActiveSupport
           assert_equal times, times_called, error
         end
 
-        def assert_called_with(object, method_name, args, returns: nil, &block)
+        def assert_called_with(object, method_name, args, returns: false, **kwargs, &block)
           mock = Minitest::Mock.new
-
-          if !args.empty? && args.all?(Array)
-            args.each { |argv| mock.expect(:call, returns, argv) }
-          else
-            mock.expect(:call, returns, args)
-          end
+          expect_called_with(mock, args, returns: returns, **kwargs)
 
           object.stub(method_name, mock, &block)
 
-          mock.verify
+          assert_mock(mock)
         end
 
         def assert_not_called(object, method_name, message = nil, &block)
           assert_called(object, method_name, message, times: 0, &block)
+        end
+
+        #--
+        # This method is a temporary wrapper for mock.expect as part of
+        # the Minitest 5.16 / Ruby 3.0 kwargs transition. It can go away
+        # when we drop support for Ruby 2.7.
+        if Minitest::Mock.instance_method(:expect).parameters.map(&:first).include?(:keyrest)
+          def expect_called_with(mock, args, returns: false, **kwargs)
+            mock.expect(:call, returns, args, **kwargs)
+          end
+        else
+          def expect_called_with(mock, args, returns: false, **kwargs)
+            if !kwargs.empty?
+              mock.expect(:call, returns, [*args, kwargs])
+            else
+              mock.expect(:call, returns, args)
+            end
+          end
         end
 
         def assert_called_on_instance_of(klass, method_name, message = nil, times: 1, returns: nil)

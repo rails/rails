@@ -72,35 +72,43 @@ module ActiveSupport
             local_cache_key)
         end
 
-        def clear(**options) # :nodoc:
+        def clear(options = nil) # :nodoc:
           return super unless cache = local_cache
           cache.clear(options)
           super
         end
 
-        def cleanup(**options) # :nodoc:
+        def cleanup(options = nil) # :nodoc:
           return super unless cache = local_cache
-          cache.clear
+          cache.clear(options)
           super
         end
 
         def delete_matched(matcher, options = nil) # :nodoc:
           return super unless cache = local_cache
-          cache.clear
+          cache.clear(options)
           super
         end
 
-        def increment(name, amount = 1, **options) # :nodoc:
+        def increment(name, amount = 1, options = nil) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, raw: true, **options)
+          if options
+            write_cache_value(name, value, raw: true, **options)
+          else
+            write_cache_value(name, value, raw: true)
+          end
           value
         end
 
-        def decrement(name, amount = 1, **options) # :nodoc:
+        def decrement(name, amount = 1, options = nil) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, raw: true, **options)
+          if options
+            write_cache_value(name, value, raw: true, **options)
+          else
+            write_cache_value(name, value, raw: true)
+          end
           value
         end
 
@@ -123,6 +131,9 @@ module ActiveSupport
             return super unless local_cache
 
             local_entries = local_cache.read_multi_entries(keys)
+            local_entries.transform_values! do |payload|
+              deserialize_entry(payload)&.value
+            end
             missed_keys = keys - local_entries.keys
 
             if missed_keys.any?

@@ -180,7 +180,7 @@ module ActiveRecord
       end
 
       # Deletes the +records+ and removes them from this association calling
-      # +before_remove+ , +after_remove+ , +before_destroy+ and +after_destroy+ callbacks.
+      # +before_remove+, +after_remove+, +before_destroy+ and +after_destroy+ callbacks.
       #
       # Note that this method removes records from the database ignoring the
       # +:dependent+ option.
@@ -320,7 +320,6 @@ module ActiveRecord
         #   * Otherwise, attributes should have the value found in the database
         def merge_target_lists(persisted, memory)
           return persisted if memory.empty?
-          return memory    if persisted.empty?
 
           persisted.map! do |record|
             if mem_record = memory.delete(record)

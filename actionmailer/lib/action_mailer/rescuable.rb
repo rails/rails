@@ -20,7 +20,7 @@ module ActionMailer # :nodoc:
     end
 
     private
-      def process(*)
+      def process(...)
         handle_exceptions do
           super
         end

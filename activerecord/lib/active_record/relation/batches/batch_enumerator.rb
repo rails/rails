@@ -5,11 +5,13 @@ module ActiveRecord
     class BatchEnumerator
       include Enumerable
 
-      def initialize(of: 1000, start: nil, finish: nil, relation:) # :nodoc:
+      def initialize(of: 1000, start: nil, finish: nil, relation:, order: :asc, use_ranges: nil) # :nodoc:
         @of       = of
         @relation = relation
         @start = start
         @finish = finish
+        @order = order
+        @use_ranges = use_ranges
       end
 
       # The primary key value from which the BatchEnumerator starts, inclusive of the value.
@@ -50,7 +52,7 @@ module ActiveRecord
       def each_record(&block)
         return to_enum(:each_record) unless block_given?
 
-        @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true).each do |relation|
+        @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true, order: @order).each do |relation|
           relation.records.each(&block)
         end
       end
@@ -90,7 +92,7 @@ module ActiveRecord
       #     relation.update_all(awesome: true)
       #   end
       def each(&block)
-        enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false)
+        enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false, order: @order, use_ranges: @use_ranges)
         return enum.each(&block) if block_given?
         enum
       end

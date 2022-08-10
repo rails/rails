@@ -106,8 +106,8 @@ class AttributeMethodsTest < ActiveModel::TestCase
   end
 
   test "unrelated classes should not share attribute method matchers" do
-    assert_not_equal ModelWithAttributes.public_send(:attribute_method_matchers),
-                     ModelWithAttributes2.public_send(:attribute_method_matchers)
+    assert_not_equal ModelWithAttributes.public_send(:attribute_method_patterns),
+                     ModelWithAttributes2.public_send(:attribute_method_patterns)
   end
 
   test "#define_attribute_method generates attribute method" do
@@ -286,6 +286,37 @@ class AttributeMethodsTest < ActiveModel::TestCase
     match = m.foo_test
 
     assert_equal "foo",            match.attr_name
-    assert_equal "attribute_test", match.target
+    assert_equal "attribute_test", match.proxy_target
+  end
+
+  module NameClash
+    class Model1
+      include ActiveModel::AttributeMethods
+      attribute_method_suffix "_changed?"
+      define_attribute_methods :x
+      attr_accessor :x
+
+      private
+        def attribute_changed?(name)
+          :model_1
+        end
+    end
+
+    class Model2
+      include ActiveModel::AttributeMethods
+      attribute_method_suffix "?"
+      define_attribute_methods :x_changed
+      attr_accessor :x_changed
+
+      private
+        def attribute?(name)
+          :model_2
+        end
+    end
+  end
+
+  test "name clashes are handled" do
+    assert_equal :model_1, NameClash::Model1.new.x_changed?
+    assert_equal :model_2, NameClash::Model2.new.x_changed?
   end
 end

@@ -12,10 +12,11 @@ module ActiveRecord
       # attributes. Returns the record if authentication succeeds; otherwise,
       # returns +nil+.
       #
-      # Regardless of whether a record is found or authentication succeeds,
-      # +authenticate_by+ will take the same amount of time. This prevents
-      # timing-based enumeration attacks, wherein an attacker can determine if a
-      # passworded record exists even without knowing the password.
+      # Regardless of whether a record is found, +authenticate_by+ will
+      # cryptographically digest the given password attributes. This behavior
+      # helps mitigate timing-based enumeration attacks, wherein an attacker can
+      # determine if a passworded record exists even without knowing the
+      # password.
       #
       # Raises an ArgumentError if the set of attributes doesn't contain at
       # least one password and one non-password attribute.
@@ -32,6 +33,9 @@ module ActiveRecord
       #   User.authenticate_by(email: "jdoe@example.com", password: "wrong")       # => nil (in 373.9ms)
       #   User.authenticate_by(email: "wrong@example.com", password: "abc123")     # => nil (in 373.6ms)
       #
+      #   User.authenticate_by(email: "jdoe@example.com", password: nil) # => nil (no queries executed)
+      #   User.authenticate_by(email: "jdoe@example.com", password: "")  # => nil (no queries executed)
+      #
       #   User.authenticate_by(email: "jdoe@example.com") # => ArgumentError
       #   User.authenticate_by(password: "abc123")        # => ArgumentError
       def authenticate_by(attributes)
@@ -41,6 +45,8 @@ module ActiveRecord
 
         raise ArgumentError, "One or more password arguments are required" if passwords.empty?
         raise ArgumentError, "One or more finder arguments are required" if identifiers.empty?
+
+        return if passwords.any? { |name, value| value.nil? || value.empty? }
 
         if record = find_by(identifiers)
           record if passwords.count { |name, value| record.public_send(:"authenticate_#{name}", value) } == passwords.size

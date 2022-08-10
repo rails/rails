@@ -83,6 +83,10 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
+  def test_probe_stat_in_when_no_dir
+    assert_nil File.probe_stat_in("/dir/does/not/exist")
+  end
+
   private
     def file_name
       "atomic-#{Process.pid}.file"

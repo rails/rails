@@ -1078,9 +1078,7 @@ main Rails application.
 
 Engine models and controllers can be reopened by the parent application to extend or decorate them.
 
-Overrides may be organized in a dedicated directory `app/overrides` that is preloaded in a `to_prepare` callback.
-
-In `zeitwerk` mode you'd do this:
+Overrides may be organized in a dedicated directory `app/overrides`, ignored by the autoloader, and preloaded in a `to_prepare` callback:
 
 ```ruby
 # config/application.rb
@@ -1090,26 +1088,10 @@ module MyApp
 
     overrides = "#{Rails.root}/app/overrides"
     Rails.autoloaders.main.ignore(overrides)
+
     config.to_prepare do
       Dir.glob("#{overrides}/**/*_override.rb").each do |override|
         load override
-      end
-    end
-  end
-end
-```
-
-and in `classic` mode this:
-
-```ruby
-# config/application.rb
-module MyApp
-  class Application < Rails::Application
-    # ...
-
-    config.to_prepare do
-      Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").each do |override|
-        require_dependency override
       end
     end
   end
@@ -1124,11 +1106,7 @@ For example, in order to override the engine model
 # Blorgh/app/models/blorgh/article.rb
 module Blorgh
   class Article < ApplicationRecord
-    has_many :comments
-
-    def summary
-      "#{title}"
-    end
+    # ...
   end
 end
 ```
@@ -1138,13 +1116,7 @@ you just create a file that _reopens_ that class:
 ```ruby
 # MyApp/app/overrides/models/blorgh/article_override.rb
 Blorgh::Article.class_eval do
-  def time_since_created
-    Time.current - created_at
-  end
-
-  def summary
-    "#{title} - #{truncate(text)}"
-  end
+  # ...
 end
 ```
 
@@ -1191,9 +1163,9 @@ end
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern
 
-  # 'included do' causes the included code to be evaluated in the
-  # context where it is included (article.rb), rather than being
-  # executed in the module's context (blorgh/concerns/models/article).
+  # `included do` causes the block to be evaluated in the context
+  # in which the module is included (i.e. Blorgh::Article),
+  # rather than in the module itself.
   included do
     attr_accessor :author_name
     belongs_to :author, class_name: "User"
@@ -1536,7 +1508,7 @@ Configuration hooks do not hook into any particular framework, but instead they 
 | ---------------------- | ---------------------------------------------------------------------------------- |
 | `before_configuration` | First configurable block to run. Called before any initializers are run.           |
 | `before_initialize`    | Second configurable block to run. Called before frameworks initialize.             |
-| `before_eager_load`    | Third configurable block to run. Does not run if `config.eager_load` set to false. |
+| `before_eager_load`    | Third configurable block to run. Does not run if [`config.eager_load`][] set to false. |
 | `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                |
 
 Configuration hooks can be called in the Engine class.
@@ -1550,3 +1522,5 @@ module Blorgh
   end
 end
 ```
+
+[`config.eager_load`]: configuring.html#config-eager-load

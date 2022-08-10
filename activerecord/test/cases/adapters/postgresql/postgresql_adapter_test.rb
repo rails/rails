@@ -13,12 +13,11 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
-        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_connection_error
         assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.postgresql_connection(host: File::NULL)
+          ActiveRecord::Base.postgresql_connection(host: File::NULL).connect!
         end
       end
 
@@ -38,8 +37,12 @@ module ActiveRecord
             {}
           end
 
+          def escape(query)
+            PG::Connection.escape(query)
+          end
+
           def reset
-            raise PG::ConnectionBad
+            raise PG::ConnectionBad, "I'll be rescued by the reconnect method"
           end
 
           def close
@@ -53,8 +56,13 @@ module ActiveRecord
           { host: File::NULL }
         )
 
-        assert_raises ActiveRecord::ConnectionNotEstablished do
-          @conn.reconnect!
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, "actual bad connection error") }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+            @conn.reconnect!
+          end
+
+          assert_equal("actual bad connection error", error.message)
         end
       end
 
@@ -313,6 +321,20 @@ module ActiveRecord
         end
       end
 
+      def test_invalid_index
+        with_example_table do
+          @connection.exec_query("INSERT INTO ex (number) VALUES (1), (1)")
+          error = assert_raises(ActiveRecord::RecordNotUnique) do
+            @connection.add_index(:ex, :number, unique: true, algorithm: :concurrently, name: :invalid_index)
+          end
+          assert_match(/could not create unique index/, error.message)
+
+          assert @connection.index_exists?(:ex, :number, name: :invalid_index)
+          assert_not @connection.index_exists?(:ex, :number, name: :invalid_index, valid: true)
+          assert @connection.index_exists?(:ex, :number, name: :invalid_index, valid: false)
+        end
+      end
+
       def test_columns_for_distinct_zero_orders
         assert_equal "posts.id",
           @connection.columns_for_distinct("posts.id", [])
@@ -374,12 +396,12 @@ module ActiveRecord
       end
 
       def test_reload_type_map_for_newly_defined_types
-        @connection.execute "CREATE TYPE feeling AS ENUM ('good', 'bad')"
+        @connection.create_enum "feeling", ["good", "bad"]
         result = @connection.select_all "SELECT 'good'::feeling"
         assert_instance_of(PostgreSQLAdapter::OID::Enum,
                            result.column_types["feeling"])
       ensure
-        @connection.execute "DROP TYPE IF EXISTS feeling"
+        @connection.drop_enum "feeling", if_exists: true
         reset_connection
       end
 

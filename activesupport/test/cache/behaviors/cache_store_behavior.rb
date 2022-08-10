@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/numeric/time"
+
 # Tests the base functionality that should be identical across all cache stores.
 module CacheStoreBehavior
   def test_should_read_and_write_strings
@@ -129,9 +131,9 @@ module CacheStoreBehavior
   end
 
   def test_read_multi_with_empty_keys_and_a_logger_and_no_namespace
-    @cache.options[:namespace] = nil
-    @cache.logger = ActiveSupport::Logger.new(nil)
-    assert_equal({}, @cache.read_multi)
+    cache = lookup_store(namespace: nil)
+    cache.logger = ActiveSupport::Logger.new(nil)
+    assert_equal({}, cache.read_multi)
   end
 
   def test_fetch_multi
@@ -190,6 +192,28 @@ module CacheStoreBehavior
     assert_raises(ArgumentError) do
       @cache.fetch_multi(SecureRandom.alphanumeric)
     end
+  end
+
+  def test_fetch_multi_with_forced_cache_miss
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write(key, "bar")
+
+    values = @cache.fetch_multi(key, other_key, force: true) { |value| value * 2 }
+
+    assert_equal({ key => (key * 2), other_key => (other_key * 2) }, values)
+    assert_equal(key * 2, @cache.read(key))
+    assert_equal(other_key * 2, @cache.read(other_key))
+  end
+
+  def test_fetch_multi_with_skip_nil
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+
+    values = @cache.fetch_multi(key, other_key, skip_nil: true) { |k| k == key ? k : nil }
+
+    assert_equal({ key => key, other_key => nil }, values)
+    assert_equal(false, @cache.exist?(other_key))
   end
 
   # Use strings that are guaranteed to compress well, so we can easily tell if
@@ -406,7 +430,7 @@ module CacheStoreBehavior
   end
 
   def test_keys_are_case_sensitive
-    key = SecureRandom.alphanumeric
+    key = "case_sensitive_key"
     @cache.write(key, "bar")
     assert_nil @cache.read(key.upcase)
   end
@@ -534,6 +558,14 @@ module CacheStoreBehavior
     end
   end
 
+  def test_expires_in_and_expires_at
+    key = SecureRandom.uuid
+    error = assert_raises(ArgumentError) do
+      @cache.write(key, "bar", expire_in: 60, expires_at: 1.minute.from_now)
+    end
+    assert_equal "Either :expires_in or :expires_at can be supplied, but not both", error.message
+  end
+
   def test_race_condition_protection_skipped_if_not_defined
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")
@@ -590,6 +622,22 @@ module CacheStoreBehavior
         "baz"
       end
       assert_equal "baz", result
+    end
+  end
+
+  def test_fetch_multi_race_condition_protection
+    time = Time.now
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write(key, "foo", expires_in: 60)
+    @cache.write(other_key, "bar", expires_in: 100)
+    Time.stub(:now, time + 71) do
+      result = @cache.fetch_multi(key, other_key, race_condition_ttl: 10) do
+        assert_nil @cache.read(key)
+        assert_equal "bar", @cache.read(other_key)
+        "baz"
+      end
+      assert_equal({ key => "baz", other_key => "bar" }, result)
     end
   end
 

@@ -598,9 +598,9 @@ module ActionView
       #
       # Options:
       # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the indexes from
-      # `I18n.translate("date.day_names")` as the values. By default, Sunday is always 0.
+      #   <tt>I18n.translate("date.day_names")</tt> as the values. By default, Sunday is always 0.
       # * <tt>:day_format</tt> - The I18n key of the array to use for the weekday options.
-      # Defaults to :day_names, set to :abbr_day_names for abbreviations.
+      #   Defaults to +:day_names+, set to +:abbr_day_names+ for abbreviations.
       # * <tt>:beginning_of_week</tt> - Defaults to Date.beginning_of_week.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in

@@ -136,7 +136,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 4, @c.size
   end
 
-  def test_raise_behaviour
+  def test_raise_behavior
     ActiveSupport::Deprecation.behavior = :raise
 
     message   = "Revise this deprecated stuff now!"
@@ -208,6 +208,21 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     assert_equal ":invalid is not a valid deprecation behavior.", e.message
+  end
+
+  def test_custom_behavior
+    custom_behavior_class = Class.new do
+      def call(message, callstack, horizon, gem_name)
+        $stderr.puts message
+      end
+    end
+    ActiveSupport::Deprecation.behavior = custom_behavior_class.new
+
+    content = capture(:stderr) do
+      ActiveSupport::Deprecation.warn("foo")
+    end
+
+    assert_match(/foo/, content)
   end
 
   def test_deprecated_instance_variable_proxy
@@ -508,8 +523,10 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_no_disallowed_behavior_with_no_disallowed_messages
     resetting_disallowed_deprecation_config do
       ActiveSupport::Deprecation.disallowed_behavior = :raise
-      @dtc.none
-      @dtc.partially
+      assert_nothing_raised do
+        @dtc.none
+        @dtc.partially
+      end
     end
   end
 
@@ -518,7 +535,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.disallowed_behavior = :raise
       ActiveSupport::Deprecation.disallowed_warnings = ["foo=nil"]
 
-      @dtc.none
+      assert_nothing_raised { @dtc.none }
     end
   end
 

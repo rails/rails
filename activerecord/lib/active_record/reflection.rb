@@ -297,6 +297,12 @@ module ActiveRecord
         options[:strict_loading]
       end
 
+      def strict_loading_violation_message(owner)
+        message = +"`#{owner}` is marked for strict_loading."
+        message << " The #{polymorphic? ? "polymorphic association" : "#{klass} association"}"
+        message << " named `:#{name}` cannot be lazily loaded."
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self

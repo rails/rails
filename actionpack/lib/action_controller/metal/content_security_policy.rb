@@ -2,7 +2,6 @@
 
 module ActionController # :nodoc:
   module ContentSecurityPolicy
-    # TODO: Documentation
     extend ActiveSupport::Concern
 
     include AbstractController::Helpers
@@ -14,11 +13,34 @@ module ActionController # :nodoc:
     end
 
     module ClassMethods
+      # Overrides parts of the globally configured Content-Security-Policy
+      # header:
+      #
+      #   class PostsController < ApplicationController
+      #     content_security_policy do |policy|
+      #       policy.base_uri "https://www.example.com"
+      #     end
+      #   end
+      #
+      # Options can be passed similar to +before_action+. For example, pass
+      # <tt>only: :index</tt> to override the header on the index action only:
+      #
+      #   class PostsController < ApplicationController
+      #     content_security_policy(only: :index) do |policy|
+      #       policy.default_src :self, :https
+      #     end
+      #   end
+      #
+      # Pass +false+ to remove the Content-Security-Policy header:
+      #
+      #   class PostsController < ApplicationController
+      #     content_security_policy false, only: :index
+      #   end
       def content_security_policy(enabled = true, **options, &block)
         before_action(options) do
           if block_given?
             policy = current_content_security_policy
-            yield policy
+            instance_exec(policy, &block)
             request.content_security_policy = policy
           end
 
@@ -28,6 +50,18 @@ module ActionController # :nodoc:
         end
       end
 
+      # Overrides the globally configured Content-Security-Policy-Report-Only
+      # header:
+      #
+      #   class PostsController < ApplicationController
+      #     content_security_policy_report_only only: :index
+      #   end
+      #
+      # Pass +false+ to remove the Content-Security-Policy-Report-Only header:
+      #
+      #   class PostsController < ApplicationController
+      #     content_security_policy_report_only false, only: :index
+      #   end
       def content_security_policy_report_only(report_only = true, **options)
         before_action(options) do
           request.content_security_policy_report_only = report_only

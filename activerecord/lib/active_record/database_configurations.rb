@@ -38,7 +38,7 @@ module ActiveRecord
     #   the returned list. Most of the time we're only iterating over the write
     #   connection (i.e. migrations don't need to run for the write and read connection).
     #   Defaults to +false+.
-    # * <tt>include_hidden:</tte Determines whether to include replicas and configurations
+    # * <tt>include_hidden:</tt> Determines whether to include replicas and configurations
     #   hidden by +database_tasks: false+ in the returned list. Most of the time we're only
     #   iterating over the primary connections (i.e. migrations don't need to run for the
     #   write and read connection). Defaults to +false+.

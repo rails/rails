@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
+require "active_model/validations/resolve_value"
+
 module ActiveModel
   module Validations
     class FormatValidator < EachValidator # :nodoc:
+      include ResolveValue
+
       def validate_each(record, attribute, value)
         if options[:with]
-          regexp = option_call(record, :with)
+          regexp = resolve_value(record, options[:with])
           record_error(record, attribute, :with, value) unless regexp.match?(value.to_s)
         elsif options[:without]
-          regexp = option_call(record, :without)
+          regexp = resolve_value(record, options[:without])
           record_error(record, attribute, :without, value) if regexp.match?(value.to_s)
         end
       end
@@ -23,11 +27,6 @@ module ActiveModel
       end
 
       private
-        def option_call(record, name)
-          option = options[name]
-          option.respond_to?(:call) ? option.call(record) : option
-        end
-
         def record_error(record, attribute, name, value)
           record.errors.add(attribute, :invalid, **options.except(name).merge!(value: value))
         end
@@ -104,7 +103,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
-      # See <tt>ActiveModel::Validations#validates</tt> for more information
+      # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_format_of(*attr_names)
         validates_with FormatValidator, _merge_attributes(attr_names)
       end

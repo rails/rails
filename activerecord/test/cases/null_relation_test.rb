@@ -5,8 +5,11 @@ require "models/developer"
 require "models/comment"
 require "models/post"
 require "models/topic"
+require "support/async_helper"
 
 class NullRelationTest < ActiveRecord::TestCase
+  include AsyncHelper
+
   fixtures :posts, :comments
 
   def test_none
@@ -72,6 +75,13 @@ class NullRelationTest < ActiveRecord::TestCase
         assert_equal Hash.new, Comment.none.group(:post_id).public_send(method, :id)
       end
     end
+
+    define_method "test_null_relation_#{method}_async" do
+      assert_no_queries do
+        assert_async_equal 0, Comment.none.public_send("async_#{method}", :id)
+        assert_async_equal Hash.new, Comment.none.group(:post_id).public_send("async_#{method}", :id)
+      end
+    end
   end
 
   [:average, :minimum, :maximum].each do |method|
@@ -79,6 +89,13 @@ class NullRelationTest < ActiveRecord::TestCase
       assert_no_queries do
         assert_nil Comment.none.public_send(method, :id)
         assert_equal Hash.new, Comment.none.group(:post_id).public_send(method, :id)
+      end
+    end
+
+    define_method "test_null_relation_#{method}_async" do
+      assert_no_queries do
+        assert_async_equal nil, Comment.none.public_send("async_#{method}", :id)
+        assert_async_equal Hash.new, Comment.none.group(:post_id).public_send("async_#{method}", :id)
       end
     end
   end

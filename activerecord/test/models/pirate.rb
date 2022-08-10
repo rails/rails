@@ -44,6 +44,9 @@ class Pirate < ActiveRecord::Base
 
   has_one :foo_bulb, -> { where name: "foo" }, foreign_key: :car_id, class_name: "Bulb"
 
+  has_many :mateys, foreign_key: :pirate_id
+  has_one :attacker_matey, foreign_key: :target_id, class_name: "Matey"
+
   accepts_nested_attributes_for :parrots, :birds, allow_destroy: true, reject_if: proc(&:empty?)
   accepts_nested_attributes_for :ship, allow_destroy: true, reject_if: proc(&:empty?)
   accepts_nested_attributes_for :update_only_ship, update_only: true

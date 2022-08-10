@@ -318,6 +318,28 @@ You can also specify a second partial to be rendered between instances of the ma
 
 Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
 
+#### Strict Locals
+
+By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
+
+```erb
+<%# locals: (message:) -%>
+<%= message %>
+```
+
+Default values can also be provided:
+
+```erb
+<%# locals: (message: "Hello, world!") -%>
+<%= message %>
+```
+
+Or `locals` can be disabled entirely:
+
+```erb
+<%# locals: () %>
+```
+
 ### Layouts
 
 Layouts can be used to render a common view template around the results of Rails controller actions. Typically, a Rails application will have a couple of layouts that pages will be rendered within. For example, a site might have one layout for a logged in user and another for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. You would expect each layout to have a different look and feel. You can read about layouts in more detail in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
@@ -423,7 +445,7 @@ For example, suppose you have an `ArticlesController` with a show action. By def
 
 You can use the same technique to localize the rescue files in your public directory. For example, setting `I18n.locale = :de` and creating `public/500.de.html` and `public/404.de.html` would allow you to have localized rescue pages.
 
-Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to `app/controllers/application.rb`:
+Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to `app/controllers/application_controller.rb`:
 
 ```ruby
 before_action :set_expert_locale

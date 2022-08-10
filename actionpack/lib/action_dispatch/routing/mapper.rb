@@ -390,10 +390,10 @@ module ActionDispatch
         #
         # If you want to expose your action to both GET and POST, use:
         #
-        #   # sets :controller, :action and :id in params
+        #   # sets :controller, :action, and :id in params
         #   match ':controller/:action/:id', via: [:get, :post]
         #
-        # Note that +:controller+, +:action+ and +:id+ are interpreted as URL
+        # Note that +:controller+, +:action+, and +:id+ are interpreted as URL
         # query parameters and thus available through +params+ in an action.
         #
         # If you want to expose your action to GET, use +get+ in the router:
@@ -609,7 +609,7 @@ module ActionDispatch
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
-          match(path, options.merge(to: app, anchor: false, format: false))
+          match(path, { to: app, anchor: false, format: false }.merge(options))
 
           define_generate_prefix(app, target_as) if rails_app
           self
@@ -652,7 +652,7 @@ module ActionDispatch
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
-              prefix_options[:relative_url_root] = ""
+              prefix_options[:script_name] = "" if options[:original_script_name]
 
               if options[:_recall]
                 prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
@@ -906,7 +906,7 @@ module ActionDispatch
         #
         # === Options
         #
-        # The +:path+, +:as+, +:module+, +:shallow_path+ and +:shallow_prefix+
+        # The +:path+, +:as+, +:module+, +:shallow_path+, and +:shallow_prefix+
         # options all default to the name of the namespace.
         #
         # For options, see <tt>Base#match</tt>. For +:shallow_path+ option, see
@@ -1082,7 +1082,7 @@ module ActionDispatch
 
       # Resource routing allows you to quickly declare all of the common routes
       # for a given resourceful controller. Instead of declaring separate routes
-      # for your +index+, +show+, +new+, +edit+, +create+, +update+ and +destroy+
+      # for your +index+, +show+, +new+, +edit+, +create+, +update+, and +destroy+
       # actions, a resourceful route declares them in a single line of code:
       #
       #  resources :photos

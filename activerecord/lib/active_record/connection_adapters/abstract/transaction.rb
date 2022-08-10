@@ -80,11 +80,14 @@ module ActiveRecord
       def open?; false; end
       def joinable?; false; end
       def add_record(record, _ = true); end
+      def restartable?; false; end
+      def dirty?; false; end
+      def dirty!; end
     end
 
     class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
-      attr_accessor :written
+      attr_accessor :written, :written_indirectly
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -95,6 +98,15 @@ module ActiveRecord
         @joinable = joinable
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
+        @dirty = false
+      end
+
+      def dirty!
+        @dirty = true
+      end
+
+      def dirty?
+        @dirty
       end
 
       def add_record(record, ensure_finalize = true)
@@ -115,6 +127,12 @@ module ActiveRecord
         @records
       end
 
+      # Can this transaction's current state be recreated by
+      # rollback+begin ?
+      def restartable?
+        joinable? && !dirty?
+      end
+
       def materialize!
         @materialized = true
       end
@@ -123,14 +141,21 @@ module ActiveRecord
         @materialized
       end
 
+      def restore!
+        if materialized?
+          @materialized = false
+          materialize!
+        end
+      end
+
       def rollback_records
         return unless records
+
         ite = records.uniq(&:__id__)
-        already_run_callbacks = {}
+        instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
+
         while record = ite.shift
-          trigger_callbacks = record.trigger_transactional_callbacks?
-          should_run_callbacks = !already_run_callbacks[record] && trigger_callbacks
-          already_run_callbacks[record] ||= trigger_callbacks
+          should_run_callbacks = record.__id__ == instances_to_run_callbacks_on[record].__id__
           record.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: should_run_callbacks)
         end
       ensure
@@ -145,15 +170,18 @@ module ActiveRecord
 
       def commit_records
         return unless records
+
         ite = records.uniq(&:__id__)
-        already_run_callbacks = {}
-        while record = ite.shift
-          if @run_commit_callbacks
-            trigger_callbacks = record.trigger_transactional_callbacks?
-            should_run_callbacks = !already_run_callbacks[record] && trigger_callbacks
-            already_run_callbacks[record] ||= trigger_callbacks
+
+        if @run_commit_callbacks
+          instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
+
+          while record = ite.shift
+            should_run_callbacks = record.__id__ == instances_to_run_callbacks_on[record].__id__
             record.committed!(should_run_callbacks: should_run_callbacks)
-          else
+          end
+        else
+          while record = ite.shift
             # if not running callbacks, only adds the record to the parent transaction
             connection.add_transaction_record(record)
           end
@@ -166,6 +194,60 @@ module ActiveRecord
       def joinable?; @joinable; end
       def closed?; false; end
       def open?; !closed?; end
+
+      private
+        def prepare_instances_to_run_callbacks_on(records)
+          records.each_with_object({}) do |record, candidates|
+            next unless record.trigger_transactional_callbacks?
+
+            earlier_saved_candidate = candidates[record]
+
+            next if earlier_saved_candidate && record.class.run_commit_callbacks_on_first_saved_instances_in_transaction
+
+            # If the candidate instance destroyed itself in the database, then
+            # instances which were added to the transaction afterwards, and which
+            # think they updated themselves, are wrong. They should not replace
+            # our candidate as an instance to run callbacks on
+            next if earlier_saved_candidate&.destroyed? && !record.destroyed?
+
+            # If the candidate instance was created inside of this transaction,
+            # then instances which were subsequently loaded from the database
+            # and updated need that state transferred to them so that
+            # the after_create_commit callbacks are run
+            record._new_record_before_last_commit = true if earlier_saved_candidate&._new_record_before_last_commit
+
+            # The last instance to save itself is likeliest to have internal
+            # state that matches what's committed to the database
+            candidates[record] = record
+          end
+        end
+    end
+
+    class RestartParentTransaction < Transaction
+      def initialize(connection, parent_transaction, **options)
+        super(connection, **options)
+
+        @parent = parent_transaction
+
+        if isolation_level
+          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+        end
+
+        @parent.state.add_child(@state)
+      end
+
+      delegate :materialize!, :materialized?, :restart, to: :@parent
+
+      def rollback
+        @state.rollback!
+        @parent.restart
+      end
+
+      def commit
+        @state.commit!
+      end
+
+      def full_rollback?; false; end
     end
 
     class SavepointTransaction < Transaction
@@ -186,8 +268,14 @@ module ActiveRecord
         super
       end
 
-      def rollback
+      def restart
         connection.rollback_to_savepoint(savepoint_name) if materialized?
+      end
+
+      def rollback
+        unless @state.invalidated?
+          connection.rollback_to_savepoint(savepoint_name) if materialized?
+        end
         @state.rollback!
       end
 
@@ -208,6 +296,17 @@ module ActiveRecord
         end
 
         super
+      end
+
+      def restart
+        return unless materialized?
+
+        if connection.supports_restart_db_transaction?
+          connection.restart_db_transaction
+        else
+          connection.rollback_db_transaction
+          materialize!
+        end
       end
 
       def rollback
@@ -241,21 +340,31 @@ module ActiveRecord
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
               )
+            elsif current_transaction.restartable?
+              RestartParentTransaction.new(
+                @connection,
+                current_transaction,
+                isolation: isolation,
+                joinable: joinable,
+                run_commit_callbacks: run_commit_callbacks
+              )
             else
               SavepointTransaction.new(
                 @connection,
                 "active_record_#{@stack.size}",
-                @stack.last,
+                current_transaction,
                 isolation: isolation,
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
               )
             end
 
-          if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && _lazy
-            @has_unmaterialized_transactions = true
-          else
-            transaction.materialize!
+          unless transaction.materialized?
+            if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && _lazy
+              @has_unmaterialized_transactions = true
+            else
+              transaction.materialize!
+            end
           end
           @stack.push(transaction)
           transaction
@@ -275,18 +384,35 @@ module ActiveRecord
         @lazy_transactions_enabled
       end
 
+      def dirty_current_transaction
+        current_transaction.dirty!
+      end
+
+      def restore_transactions
+        return false unless restorable?
+
+        @stack.each(&:restore!)
+
+        true
+      end
+
+      def restorable?
+        @stack.none?(&:dirty?)
+      end
+
       def materialize_transactions
         return if @materializing_transactions
-        return unless @has_unmaterialized_transactions
 
-        @connection.lock.synchronize do
-          begin
-            @materializing_transactions = true
-            @stack.each { |t| t.materialize! unless t.materialized? }
-          ensure
-            @materializing_transactions = false
+        if @has_unmaterialized_transactions
+          @connection.lock.synchronize do
+            begin
+              @materializing_transactions = true
+              @stack.each { |t| t.materialize! unless t.materialized? }
+            ensure
+              @materializing_transactions = false
+            end
+            @has_unmaterialized_transactions = false
           end
-          @has_unmaterialized_transactions = false
         end
       end
 
@@ -300,6 +426,12 @@ module ActiveRecord
             @stack.pop
           end
 
+          dirty_current_transaction if transaction.dirty?
+
+          if current_transaction.open?
+            current_transaction.written_indirectly ||= transaction.written || transaction.written_indirectly
+          end
+
           transaction.commit
           transaction.commit_records
         end
@@ -307,8 +439,12 @@ module ActiveRecord
 
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
-          transaction ||= @stack.pop
-          transaction.rollback unless transaction.state.invalidated?
+          transaction ||= @stack.last
+          begin
+            transaction.rollback
+          ensure
+            @stack.pop if @stack.last == transaction
+          end
           transaction.rollback_records
         end
       end
@@ -321,7 +457,10 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
-            transaction.state.invalidate! if error.is_a? ActiveRecord::TransactionRollbackError
+            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
+                @connection.savepoint_errors_invalidate_transactions?
+              transaction.state.invalidate!
+            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end
@@ -333,19 +472,40 @@ module ActiveRecord
               # @connection still holds an open or invalid transaction, so we must not
               # put it back in the pool for reuse.
               @connection.throw_away! unless transaction.state.rolledback?
-            elsif Thread.current.status == "aborting" || (!completed && transaction.written)
-              # The transaction is still open but the block returned earlier.
-              #
-              # The block could return early because of a timeout or because the thread is aborting,
-              # so we are rolling back to make sure the timeout didn't caused the transaction to be
-              # committed incompletely.
-              rollback_transaction
             else
-              begin
-                commit_transaction
-              rescue Exception
-                rollback_transaction(transaction) unless transaction.state.completed?
-                raise
+              if Thread.current.status == "aborting"
+                rollback_transaction
+              elsif !completed && transaction.written
+                # This was deprecated in 6.1, and has now changed to a rollback
+                rollback_transaction
+              elsif !completed && !transaction.written_indirectly
+                # This was a silent commit in 6.1, but now becomes a rollback; we skipped
+                # the warning because (having not been written) the change generally won't
+                # have any effect
+                rollback_transaction
+              else
+                if !completed && transaction.written_indirectly
+                  # This is the case that was missed in the 6.1 deprecation, so we have to
+                  # do it now
+                  ActiveSupport::Deprecation.warn(<<~EOW)
+                    Using `return`, `break` or `throw` to exit a transaction block is
+                    deprecated without replacement. If the `throw` came from
+                    `Timeout.timeout(duration)`, pass an exception class as a second
+                    argument so it doesn't use `throw` to abort its block. This results
+                    in the transaction being committed, but in the next release of Rails
+                    it will rollback.
+                  EOW
+                end
+
+                begin
+                  commit_transaction
+                rescue ActiveRecord::ConnectionFailed
+                  transaction.state.invalidate! unless transaction.state.completed?
+                  raise
+                rescue Exception
+                  rollback_transaction(transaction) unless transaction.state.completed?
+                  raise
+                end
               end
             end
           end

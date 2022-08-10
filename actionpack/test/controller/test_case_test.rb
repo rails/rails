@@ -1003,8 +1003,10 @@ XML
     assert_equal "1", response.body
   end
 
-  def test_can_read_instance_variables_before_or_after_request
-    assert_nil @controller.instance_variable_get(:@counter)
+  def test_can_read_instance_variables_before_and_after_request
+    silence_warnings do
+      assert_nil @controller.instance_variable_get(:@counter)
+    end
 
     get :increment_count
     assert_equal "1", response.body

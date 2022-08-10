@@ -9,17 +9,20 @@ module ActiveRecord
     # * add_column
     # * add_foreign_key
     # * add_check_constraint
+    # * add_exclusion_constraint
     # * add_index
     # * add_reference
     # * add_timestamps
     # * change_column
-    # * change_column_default (must supply a :from and :to option)
+    # * change_column_default (must supply a +:from+ and +:to+ option)
     # * change_column_null
-    # * change_column_comment (must supply a :from and :to option)
-    # * change_table_comment (must supply a :from and :to option)
+    # * change_column_comment (must supply a +:from+ and +:to+ option)
+    # * change_table_comment (must supply a +:from+ and +:to+ option)
+    # * create_enum
     # * create_join_table
     # * create_table
     # * disable_extension
+    # * drop_enum (must supply a list of values)
     # * drop_join_table
     # * drop_table (must supply a block)
     # * enable_extension
@@ -27,6 +30,7 @@ module ActiveRecord
     # * remove_columns (must specify at least one column name or more)
     # * remove_foreign_key (must supply a second table)
     # * remove_check_constraint
+    # * remove_exclusion_constraint
     # * remove_index
     # * remove_reference
     # * remove_timestamps
@@ -42,7 +46,9 @@ module ActiveRecord
         :change_column, :execute, :remove_columns, :change_column_null,
         :add_foreign_key, :remove_foreign_key,
         :change_column_comment, :change_table_comment,
-        :add_check_constraint, :remove_check_constraint
+        :add_check_constraint, :remove_check_constraint,
+        :add_exclusion_constraint, :remove_exclusion_constraint,
+        :create_enum, :drop_enum,
       ]
       include JoinTable
 
@@ -140,7 +146,9 @@ module ActiveRecord
               add_reference:     :remove_reference,
               add_foreign_key:   :remove_foreign_key,
               add_check_constraint: :remove_check_constraint,
-              enable_extension:  :disable_extension
+              add_exclusion_constraint: :remove_exclusion_constraint,
+              enable_extension:  :disable_extension,
+              create_enum:       :drop_enum
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -271,6 +279,17 @@ module ActiveRecord
 
         def invert_remove_check_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_check_constraint is only reversible if given an expression." if args.size < 2
+          super
+        end
+
+        def invert_remove_exclusion_constraint(args)
+          raise ActiveRecord::IrreversibleMigration, "remove_exclusion_constraint is only reversible if given an expression." if args.size < 2
+          super
+        end
+
+        def invert_drop_enum(args)
+          _enum, values = args.dup.tap(&:extract_options!)
+          raise ActiveRecord::IrreversibleMigration, "drop_enum is only reversible if given a list of enum values." unless values
           super
         end
 

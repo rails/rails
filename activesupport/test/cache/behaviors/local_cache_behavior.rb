@@ -40,6 +40,17 @@ module LocalCacheBehavior
     assert_nil @cache.read(key)
   end
 
+  def test_clear_with_nil_options
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      @cache.write(key, SecureRandom.alphanumeric)
+      @cache.clear(nil)
+      assert_nil @cache.read(key)
+    end
+
+    assert_nil @cache.read(key)
+  end
+
   def test_cleanup_clears_local_cache_but_not_remote_cache
     begin
       @cache.cleanup
@@ -284,6 +295,15 @@ module LocalCacheBehavior
     @cache.with_local_cache do
       assert @cache.write(key, false)
       assert_equal false, @cache.read(key)
+    end
+  end
+
+  def test_local_cache_should_deserialize_entries_on_multi_get
+    keys = Array.new(5) { SecureRandom.uuid }
+    values = keys.index_with(true)
+    @cache.with_local_cache do
+      assert @cache.write_multi(values)
+      assert_equal values, @cache.read_multi(*keys)
     end
   end
 end

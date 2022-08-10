@@ -36,91 +36,91 @@ class SessionTest < ActiveSupport::TestCase
   def test_get
     path = "/index"; params = "blah"; headers = { location: "blah" }
 
-    assert_called_with @session, :process, [:get, path, params: params, headers: headers] do
+    assert_called_with @session, :process, [:get, path], params: params, headers: headers do
       @session.get(path, params: params, headers: headers)
     end
   end
 
   def test_get_with_env_and_headers
     path = "/index"; params = "blah"; headers = { location: "blah" }; env = { "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
-    assert_called_with @session, :process, [:get, path, params: params, headers: headers, env: env] do
+    assert_called_with @session, :process, [:get, path], params: params, headers: headers, env: env do
       @session.get(path, params: params, headers: headers, env: env)
     end
   end
 
   def test_post
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:post, path, params: params, headers: headers] do
+    assert_called_with @session, :process, [:post, path], params: params, headers: headers do
       @session.post(path, params: params, headers: headers)
     end
   end
 
   def test_patch
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:patch, path, params: params, headers: headers] do
+    assert_called_with @session, :process, [:patch, path], params: params, headers: headers do
       @session.patch(path, params: params, headers: headers)
     end
   end
 
   def test_put
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:put, path, params: params, headers: headers] do
+    assert_called_with @session, :process, [:put, path], params: params, headers: headers do
       @session.put(path, params: params, headers: headers)
     end
   end
 
   def test_delete
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:delete, path, params: params, headers: headers] do
+    assert_called_with @session, :process, [:delete, path], params: params, headers: headers do
       @session.delete(path, params: params, headers: headers)
     end
   end
 
   def test_head
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:head, path, params: params, headers: headers] do
+    assert_called_with @session, :process, [:head, path], params: params, headers: headers do
       @session.head(path, params: params, headers: headers)
     end
   end
 
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:get, path, params: params, headers: headers, xhr: true] do
+    assert_called_with @session, :process, [:get, path], params: params, headers: headers, xhr: true do
       @session.get(path, params: params, headers: headers, xhr: true)
     end
   end
 
   def test_xml_http_request_post
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:post, path, params: params, headers: headers, xhr: true] do
+    assert_called_with @session, :process, [:post, path], params: params, headers: headers, xhr: true do
       @session.post(path, params: params, headers: headers, xhr: true)
     end
   end
 
   def test_xml_http_request_patch
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:patch, path, params: params, headers: headers, xhr: true] do
+    assert_called_with @session, :process, [:patch, path], params: params, headers: headers, xhr: true do
       @session.patch(path, params: params, headers: headers, xhr: true)
     end
   end
 
   def test_xml_http_request_put
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:put, path, params: params, headers: headers, xhr: true] do
+    assert_called_with @session, :process, [:put, path], params: params, headers: headers, xhr: true do
       @session.put(path, params: params, headers: headers, xhr: true)
     end
   end
 
   def test_xml_http_request_delete
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:delete, path, params: params, headers: headers, xhr: true] do
+    assert_called_with @session, :process, [:delete, path], params: params, headers: headers, xhr: true do
       @session.delete(path, params: params, headers: headers, xhr: true)
     end
   end
 
   def test_xml_http_request_head
     path = "/index"; params = "blah"; headers = { location: "blah" }
-    assert_called_with @session, :process, [:head, path, params: params, headers: headers, xhr: true] do
+    assert_called_with @session, :process, [:head, path], params: params, headers: headers, xhr: true do
       @session.head(path, params: params, headers: headers, xhr: true)
     end
   end
@@ -349,7 +349,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response 302
       assert_response :redirect
       assert_response :found
-      assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
+      assert_equal "", response.body
       assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
 
@@ -847,6 +847,30 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal "cjolly", request.filtered_parameters["username"]
     assert_equal "[FILTERED]", request.filtered_parameters["password"]
     assert_equal "[FILTERED]", request.filtered_env["rack.request.form_vars"]
+  end
+end
+
+class ControllerWithHeadersMethodIntegrationTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    def index
+      render plain: "ok"
+    end
+
+    def headers
+      {}.freeze
+    end
+  end
+
+  test "doesn't call controller's headers method" do
+    with_routing do |routes|
+      routes.draw do
+        get "/ok" => "controller_with_headers_method_integration_test/test#index"
+      end
+
+      get "/ok"
+
+      assert_response 200
+    end
   end
 end
 

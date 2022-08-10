@@ -232,4 +232,26 @@ module ResolverSharedTests
 
     assert_empty context.find_all("hello_world.html", "test", false, [], {})
   end
+
+  def test_finds_template_with_lowdash_format
+    with_file "test/hello_world.es_AR.text.erb", "Texto simple!"
+
+    es_ar = context.find_all("hello_world", "test", false, [], locale: [:es_AR])
+
+    assert_equal 1, es_ar.size
+
+    assert_equal "Texto simple!", es_ar[0].source
+  end
+
+  def test_finds_template_with_arbitrarily_formatted_locale
+    I18n.backend.store_translations(:en_customer1, { hello: "hello" })
+    with_file "test/hello_world.en_customer1.text.erb", "Good day, world."
+
+    templates = context.find_all("hello_world", "test", false, [], locale: [:en_customer1])
+
+    assert_equal 1, templates.size
+    assert_equal "Good day, world.", templates[0].source
+  ensure
+    I18n.reload!
+  end
 end

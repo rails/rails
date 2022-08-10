@@ -116,7 +116,7 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     future_result = @connection.select_all "SELECT * FROM posts", async: true
 
     if in_memory_db?
-      assert_kind_of ActiveRecord::Result, future_result
+      assert_kind_of ActiveRecord::FutureResult::Complete, future_result
     else
       assert_kind_of ActiveRecord::FutureResult, future_result
       wait_for_future_result(future_result)

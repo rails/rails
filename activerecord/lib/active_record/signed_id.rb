@@ -47,7 +47,7 @@ module ActiveRecord
         end
       end
 
-      # Works like +find_signed+, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
+      # Works like find_signed, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
       # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
       # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
       # the valid signed id can't find a record.
@@ -97,7 +97,7 @@ module ActiveRecord
 
     # Returns a signed id that's generated using a preconfigured +ActiveSupport::MessageVerifier+ instance.
     # This signed id is tamper proof, so it's safe to send in an email or otherwise share with the outside world.
-    # It can further more be set to expire (the default is not to expire), and scoped down with a specific purpose.
+    # It can furthermore be set to expire (the default is not to expire), and scoped down with a specific purpose.
     # If the expiration date has been exceeded before +find_signed+ is called, the id won't find the designated
     # record. If a purpose is set, this too must match.
     #

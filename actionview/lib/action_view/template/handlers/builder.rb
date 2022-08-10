@@ -7,10 +7,9 @@ module ActionView
 
       def call(template, source)
         require_engine
-        "xml = ::Builder::XmlMarkup.new(:indent => 2);" \
-          "self.output_buffer = xml.target!;" +
-          source +
-          ";xml.target!;"
+        "xml = ::Builder::XmlMarkup.new(indent: 2, target: output_buffer.raw);" \
+          "#{source};" \
+          "output_buffer.to_s"
       end
 
       private

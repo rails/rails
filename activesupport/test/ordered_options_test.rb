@@ -36,6 +36,16 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_string_dig
+    a = ActiveSupport::OrderedOptions.new
+
+    a[:test_key] = 56
+    assert_equal 56, a.test_key
+    assert_equal 56, a["test_key"]
+    assert_equal 56, a.dig(:test_key)
+    assert_equal 56, a.dig("test_key")
+  end
+
   def test_method_access
     a = ActiveSupport::OrderedOptions.new
 

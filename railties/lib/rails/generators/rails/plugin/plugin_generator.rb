@@ -68,10 +68,7 @@ module Rails
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet], abort_on_failure: false
-        if user_default_branch.strip.empty?
-          `git symbolic-ref HEAD refs/heads/main`
-        end
+        run git_init_command, capture: options[:quiet], abort_on_failure: false
       end
     end
 
@@ -191,11 +188,6 @@ module Rails
         append_file gemfile_in_app_path, entry
       end
     end
-
-    private
-      def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
-      end
   end
 
   module Generators
@@ -226,8 +218,14 @@ module Rails
       def initialize(*args)
         @dummy_path = nil
         super
+        imply_options
+
+        if !engine? || !with_dummy_app?
+          self.options = options.merge(skip_asset_pipeline: true).freeze
+        end
       end
 
+      public_task :report_implied_options
       public_task :set_default_accessors!
       public_task :create_root
 
@@ -309,6 +307,33 @@ module Rails
       end
 
     private
+      def gemfile_entries
+        [
+          rails_gemfile_entry,
+          simplify_gemfile_entries(
+            database_gemfile_entry,
+            asset_pipeline_gemfile_entry,
+          ),
+        ].flatten.compact
+      end
+
+      def rails_gemfile_entry
+        if options[:skip_gemspec]
+          super
+        elsif rails_prerelease?
+          super.dup.tap do |entry|
+            entry.comment = <<~COMMENT
+              Your gem is dependent on a prerelease version of Rails. Once you can lock this
+              dependency down to a specific version, move it to your gemspec.
+            COMMENT
+          end
+        end
+      end
+
+      def simplify_gemfile_entries(*gemfile_entries)
+        gemfile_entries.flatten.compact.map { |entry| GemfileEntry.floats(entry.name) }
+      end
+
       def create_dummy_app(path = nil)
         dummy_path(path) if path
 

@@ -128,7 +128,7 @@ module ActiveRecord
           end
         end
 
-        result = value.to_formatted_s(:db)
+        result = value.to_fs(:db)
         if value.respond_to?(:usec) && value.usec > 0
           result << "." << sprintf("%06d", value.usec)
         else
@@ -167,7 +167,7 @@ module ActiveRecord
         (
           (?:
             # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
           )
           (?:(?:\s+AS)?\s+\w+)?
         )
@@ -191,7 +191,7 @@ module ActiveRecord
         (
           (?:
             # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
           )
           (?:\s+ASC|\s+DESC)?
           (?:\s+NULLS\s+(?:FIRST|LAST))?

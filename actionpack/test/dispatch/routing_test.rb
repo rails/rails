@@ -3914,11 +3914,7 @@ private
   def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
-    assert_equal expected_redirect_body(url), @response.body
-  end
-
-  def expected_redirect_body(url)
-    %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+    assert_equal "", @response.body
   end
 end
 
@@ -4341,11 +4337,7 @@ private
   def verify_redirect(url, status = 301)
     assert_equal status, @response.status
     assert_equal url, @response.headers["Location"]
-    assert_equal expected_redirect_body(url), @response.body
-  end
-
-  def expected_redirect_body(url)
-    %(<html><body>You are being <a href="#{ERB::Util.h(url)}">redirected</a>.</body></html>)
+    assert_equal "", @response.body
   end
 end
 
@@ -4915,7 +4907,11 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   test "exceptions have suggestions for fix" do
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-    assert_match "Did you mean?", error.message
+    if error.respond_to?(:detailed_message)
+      assert_match "Did you mean?", error.detailed_message
+    else
+      assert_match "Did you mean?", error.message
+    end
   end
 
   # FIXME: we should fix all locations that raise this exception to provide

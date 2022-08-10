@@ -158,6 +158,12 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal "q1w2e3", ENV["PGPASSWORD"]
   end
 
+  def test_postgresql_include_variables
+    start(adapter: "postgresql", database: "db", variables: { search_path: "my_schema, default, \\my_schema", statement_timeout: 5000, lock_timeout: ":default" })
+    assert_not aborted
+    assert_equal "-c search_path=my_schema,\\ default,\\ \\\\my_schema -c statement_timeout=5000", ENV["PGOPTIONS"]
+  end
+
   def test_sqlite3
     start(adapter: "sqlite3", database: "db.sqlite3")
     assert_not aborted

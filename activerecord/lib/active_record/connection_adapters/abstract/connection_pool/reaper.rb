@@ -11,7 +11,7 @@ module ActiveRecord
       # the connection pool.
       #
       # Configure the frequency by setting +reaping_frequency+ in your database
-      # yaml file (default 60 seconds).
+      # YAML file (default 60 seconds).
       class Reaper
         attr_reader :pool, :frequency
 

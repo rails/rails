@@ -2,7 +2,6 @@
 
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
-require "action_cable/server/worker/active_record_connection_management"
 require "concurrent"
 
 module ActionCable

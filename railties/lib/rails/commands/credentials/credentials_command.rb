@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "pathname"
-require "shellwords"
 require "active_support"
 require "rails/command/helpers/editor"
 require "rails/command/environment_argument"
@@ -28,20 +27,13 @@ module Rails
       def edit
         extract_environment_option_from_argument(default_environment: nil)
         require_application!
+        load_generators
 
-        ensure_editor_available(command: "bin/rails credentials:edit") || (return)
-
-        ensure_encryption_key_has_been_added if credentials.key.nil?
+        ensure_encryption_key_has_been_added
         ensure_credentials_have_been_added
         ensure_diffing_driver_is_configured
 
-        catch_editing_exceptions do
-          change_credentials_in_system_editor
-        end
-
-        say "File encrypted and saved."
-      rescue ActiveSupport::MessageEncryptor::InvalidMessage
-        say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+        change_credentials_in_system_editor
       end
 
       def show
@@ -64,7 +56,6 @@ module Rails
 
           say credentials.read.presence || credentials.content_path.read
         else
-          require_application!
           disenroll_project_from_credentials_diffing if options[:disenroll]
           enroll_project_in_credentials_diffing if options[:enroll]
         end
@@ -74,33 +65,54 @@ module Rails
 
       private
         def credentials
-          Rails.application.encrypted(content_path, key_path: key_path)
+          @credentials ||= Rails.application.encrypted(content_path, key_path: key_path)
         end
 
         def ensure_encryption_key_has_been_added
+          return if credentials.key?
+
+          require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
+
+          encryption_key_file_generator = Rails::Generators::EncryptionKeyFileGenerator.new
           encryption_key_file_generator.add_key_file(key_path)
           encryption_key_file_generator.ignore_key_file(key_path)
         end
 
         def ensure_credentials_have_been_added
-          if options[:environment]
-            encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
-          else
-            credentials_generator.add_credentials_file_silently
-          end
+          require "rails/generators/rails/credentials/credentials_generator"
+
+          Rails::Generators::CredentialsGenerator.new(
+            [content_path, key_path],
+            skip_secret_key_base: %w[development test].include?(options[:environment]),
+            quiet: true
+          ).invoke_all
         end
 
         def change_credentials_in_system_editor
-          credentials.change do |tmp_path|
-            system("#{ENV["EDITOR"]} #{Shellwords.escape(tmp_path)}")
+          using_system_editor do
+            credentials.change { |tmp_path| system_editor(tmp_path) }
+            say "File encrypted and saved."
+            warn_if_credentials_are_invalid
           end
+        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          say error.message
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage
+          say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+        end
+
+        def warn_if_credentials_are_invalid
+          credentials.validate!
+        rescue ActiveSupport::EncryptedConfiguration::InvalidContentError => error
+          say "WARNING: #{error.message}", :red
+          say ""
+          say "Your application will not be able to load '#{content_path}' until the error has been fixed.", :red
         end
 
         def missing_credentials_message
-          if credentials.key.nil?
-            "Missing '#{key_path}' to decrypt credentials. See `bin/rails credentials:help`"
+          if !credentials.key?
+            "Missing '#{key_path}' to decrypt credentials. See `#{executable(:help)}`"
           else
-            "File '#{content_path}' does not exist. Use `bin/rails credentials:edit` to change that."
+            "File '#{content_path}' does not exist. Use `#{executable(:edit)}` to change that."
           end
         end
 
@@ -114,27 +126,6 @@ module Rails
 
         def extract_environment_from_path(path)
           available_environments.find { |env| path.include? env } if path.end_with?(".yml.enc")
-        end
-
-        def encryption_key_file_generator
-          require "rails/generators"
-          require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
-
-          Rails::Generators::EncryptionKeyFileGenerator.new
-        end
-
-        def encrypted_file_generator
-          require "rails/generators"
-          require "rails/generators/rails/encrypted_file/encrypted_file_generator"
-
-          Rails::Generators::EncryptedFileGenerator.new
-        end
-
-        def credentials_generator
-          require "rails/generators"
-          require "rails/generators/rails/credentials/credentials_generator"
-
-          Rails::Generators::CredentialsGenerator.new
         end
     end
   end

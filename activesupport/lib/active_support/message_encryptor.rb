@@ -13,7 +13,7 @@ module ActiveSupport
   # The cipher text and initialization vector are base64 encoded and returned
   # to you.
   #
-  # This can be used in situations similar to the <tt>MessageVerifier</tt>, but
+  # This can be used in situations similar to the MessageVerifier, but
   # where you don't want users to be able to determine the value of the payload.
   #
   #   len   = ActiveSupport::MessageEncryptor.key_len
@@ -22,6 +22,7 @@ module ActiveSupport
   #   crypt = ActiveSupport::MessageEncryptor.new(key)                            # => #<ActiveSupport::MessageEncryptor ...>
   #   encrypted_data = crypt.encrypt_and_sign('my secret data')                   # => "NlFBTTMwOUV5UlA1QlNEN2xkY2d6eThYWWh..."
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
+  #
   # The +decrypt_and_verify+ method will raise an
   # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
   # provided cannot be decrypted or verified.
@@ -87,6 +88,7 @@ module ActiveSupport
     prepend Messages::Rotator::Encryptor
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
+    cattr_accessor :default_message_encryptor_serializer, instance_accessor: false, default: :marshal
 
     class << self
       def default_cipher # :nodoc:
@@ -121,13 +123,16 @@ module ActiveSupport
     class InvalidMessage < StandardError; end
     OpenSSLCipherError = OpenSSL::Cipher::CipherError
 
+    AUTH_TAG_LENGTH = 16 # :nodoc:
+    SEPARATOR = "--" # :nodoc:
+
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
     # the cipher key size. For the default 'aes-256-gcm' cipher, this is 256
     # bits. If you are using a user-entered secret, you can generate a suitable
-    # key by using <tt>ActiveSupport::KeyGenerator</tt> or a similar key
+    # key by using ActiveSupport::KeyGenerator or a similar key
     # derivation function.
     #
-    # First additional parameter is used as the signature key for +MessageVerifier+.
+    # First additional parameter is used as the signature key for MessageVerifier.
     # This allows you to specify keys to encrypt and sign data.
     #
     #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
@@ -137,14 +142,25 @@ module ActiveSupport
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-gcm'.
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
-    # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
-    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil)
+    # * <tt>:serializer</tt> - Object serializer to use. Default is +JSON+.
+    # * <tt>:url_safe</tt> - Whether to encode messages using a URL-safe
+    #   encoding. Default is +false+ for backward compatibility.
+    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, url_safe: false)
       @secret = secret
       @sign_secret = sign_secret
       @cipher = cipher || self.class.default_cipher
+      @aead_mode = new_cipher.authenticated?
       @digest = digest || "SHA1" unless aead_mode?
+      @serializer = serializer ||
+        if @@default_message_encryptor_serializer.equal?(:marshal)
+          Marshal
+        elsif @@default_message_encryptor_serializer.equal?(:hybrid)
+          JsonWithMarshalFallback
+        elsif @@default_message_encryptor_serializer.equal?(:json)
+          JSON
+        end
+      @url_safe = url_safe
       @verifier = resolve_verifier
-      @serializer = serializer || Marshal
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
@@ -165,6 +181,22 @@ module ActiveSupport
     end
 
     private
+      def serialize(value)
+        @serializer.dump(value)
+      end
+
+      def deserialize(value)
+        @serializer.load(value)
+      end
+
+      def encode(data)
+        @url_safe ? ::Base64.urlsafe_encode64(data, padding: false) : ::Base64.strict_encode64(data)
+      end
+
+      def decode(data)
+        @url_safe ? ::Base64.urlsafe_decode64(data) : ::Base64.strict_decode64(data)
+      end
+
       def _encrypt(value, **metadata_options)
         cipher = new_cipher
         cipher.encrypt
@@ -174,22 +206,23 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), **metadata_options))
+        encrypted_data = cipher.update(Messages::Metadata.wrap(serialize(value), **metadata_options))
         encrypted_data << cipher.final
 
-        blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
-        blob = "#{blob}--#{::Base64.strict_encode64 cipher.auth_tag}" if aead_mode?
-        blob
+        parts = [encrypted_data, iv]
+        parts << cipher.auth_tag(AUTH_TAG_LENGTH) if aead_mode?
+
+        parts.map! { |part| encode(part) }.join(SEPARATOR)
       end
 
       def _decrypt(encrypted_message, purpose)
         cipher = new_cipher
-        encrypted_data, iv, auth_tag = encrypted_message.split("--").map { |v| ::Base64.strict_decode64(v) }
+        encrypted_data, iv, auth_tag = extract_parts(encrypted_message)
 
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
         # https://github.com/ruby/openssl/issues/63
-        raise InvalidMessage if aead_mode? && (auth_tag.nil? || auth_tag.bytes.length != 16)
+        raise InvalidMessage if aead_mode? && auth_tag.bytesize != AUTH_TAG_LENGTH
 
         cipher.decrypt
         cipher.key = @secret
@@ -203,26 +236,66 @@ module ActiveSupport
         decrypted_data << cipher.final
 
         message = Messages::Metadata.verify(decrypted_data, purpose)
-        @serializer.load(message) if message
-      rescue OpenSSLCipherError, TypeError, ArgumentError
+        deserialize(message) if message
+      rescue OpenSSLCipherError, TypeError, ArgumentError, ::JSON::ParserError
         raise InvalidMessage
+      end
+
+      def length_after_encode(length_before_encode)
+        if @url_safe
+          (4 * length_before_encode / 3.0).ceil # length without padding
+        else
+          4 * (length_before_encode / 3.0).ceil # length with padding
+        end
+      end
+
+      def length_of_encoded_iv
+        @length_of_encoded_iv ||= length_after_encode(new_cipher.iv_len)
+      end
+
+      def length_of_encoded_auth_tag
+        @length_of_encoded_auth_tag ||= length_after_encode(AUTH_TAG_LENGTH)
+      end
+
+      def extract_part(encrypted_message, rindex, length)
+        index = rindex - length
+
+        if encrypted_message[index - SEPARATOR.length, SEPARATOR.length] == SEPARATOR
+          encrypted_message[index, length]
+        else
+          raise InvalidMessage
+        end
+      end
+
+      def extract_parts(encrypted_message)
+        parts = []
+        rindex = encrypted_message.length
+
+        if aead_mode?
+          parts << extract_part(encrypted_message, rindex, length_of_encoded_auth_tag)
+          rindex -= SEPARATOR.length + length_of_encoded_auth_tag
+        end
+
+        parts << extract_part(encrypted_message, rindex, length_of_encoded_iv)
+        rindex -= SEPARATOR.length + length_of_encoded_iv
+
+        parts << encrypted_message[0, rindex]
+
+        parts.reverse!.map! { |part| decode(part) }
       end
 
       def new_cipher
         OpenSSL::Cipher.new(@cipher)
       end
 
-      attr_reader :verifier
-
-      def aead_mode?
-        @aead_mode ||= new_cipher.authenticated?
-      end
+      attr_reader :verifier, :aead_mode
+      alias :aead_mode? :aead_mode
 
       def resolve_verifier
         if aead_mode?
           NullVerifier
         else
-          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer)
+          MessageVerifier.new(@sign_secret || @secret, digest: @digest, serializer: NullSerializer, url_safe: @url_safe)
         end
       end
   end

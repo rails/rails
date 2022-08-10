@@ -16,34 +16,7 @@ require "sqlite3"
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     def sqlite3_connection(config)
-      config = config.symbolize_keys
-
-      # Require database.
-      unless config[:database]
-        raise ArgumentError, "No database file specified. Missing argument: database"
-      end
-
-      # Allow database path relative to Rails.root, but only if the database
-      # path is not the special path that tells sqlite to build a database only
-      # in memory.
-      if ":memory:" != config[:database] && !config[:database].to_s.start_with?("file:")
-        config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
-        dirname = File.dirname(config[:database])
-        Dir.mkdir(dirname) unless File.directory?(dirname)
-      end
-
-      db = SQLite3::Database.new(
-        config[:database].to_s,
-        config.merge(results_as_hash: true)
-      )
-
-      ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
-    rescue Errno::ENOENT => error
-      if error.message.include?("No such file or directory")
-        raise ActiveRecord::NoDatabaseError
-      else
-        raise
-      end
+      ConnectionAdapters::SQLite3Adapter.new(config)
     end
   end
 
@@ -57,9 +30,31 @@ module ActiveRecord
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
 
+      class << self
+        def new_client(config)
+          ::SQLite3::Database.new(config[:database].to_s, config)
+        rescue Errno::ENOENT => error
+          if error.message.include?("No such file or directory")
+            raise ActiveRecord::NoDatabaseError
+          else
+            raise
+          end
+        end
+      end
+
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
       include SQLite3::DatabaseStatements
+
+      ##
+      # :singleton-method:
+      # Configure the SQLite3Adapter to be used in a strict strings mode.
+      # This will disable double-quoted string literals, because otherwise typos can silently go unnoticed.
+      # For example, it is possible to create an index for a non existing column.
+      # If you wish to enable this mode you can add the following line to your application.rb file:
+      #
+      #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      class_attribute :strict_strings_by_default, default: false
 
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
@@ -77,26 +72,47 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
+        alias reset clear
+
         private
           def dealloc(stmt)
             stmt.close unless stmt.closed?
           end
       end
 
-      def initialize(connection, logger, connection_options, config)
-        @memory_database = config[:database] == ":memory:"
-        super(connection, logger, config)
-        configure_connection
+      def initialize(...)
+        super
+
+        @memory_database = false
+        case @config[:database].to_s
+        when ""
+          raise ArgumentError, "No database file specified. Missing argument: database"
+        when ":memory:"
+          @memory_database = true
+        when /\Afile:/
+        else
+          # Otherwise we have a path relative to Rails.root
+          @config[:database] = File.expand_path(@config[:database], Rails.root) if defined?(Rails.root)
+          dirname = File.dirname(@config[:database])
+          unless File.directory?(dirname)
+            begin
+              Dir.mkdir(dirname)
+            rescue Errno::ENOENT => error
+              if error.message.include?("No such file or directory")
+                raise ActiveRecord::NoDatabaseError
+              else
+                raise
+              end
+            end
+          end
+        end
+
+        @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
+        @connection_parameters = @config.merge(database: @config[:database].to_s, results_as_hash: true)
       end
 
-      def self.database_exists?(config)
-        config = config.symbolize_keys
-        if config[:database] == ":memory:"
-          true
-        else
-          database_file = defined?(Rails.root) ? File.expand_path(config[:database], Rails.root) : config[:database]
-          File.exist?(database_file)
-        end
+      def database_exists?
+        @config[:database] == ":memory:" || File.exist?(@config[:database].to_s)
       end
 
       def supports_ddl_transactions?
@@ -159,19 +175,18 @@ module ActiveRecord
       end
 
       def active?
-        !@connection.closed?
+        @raw_connection && !@raw_connection.closed?
       end
 
-      def reconnect!
-        super
-        connect if @connection.closed?
-      end
+      alias :reset! :reconnect!
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        @connection.close rescue nil
+
+        @raw_connection&.close rescue nil
+        @raw_connection = nil
       end
 
       def supports_index_sort_order?
@@ -184,7 +199,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, e.g. 'UTF-8'
       def encoding
-        @connection.encoding.to_s
+        any_raw_connection.encoding.to_s
       end
 
       def supports_explain?
@@ -234,7 +249,8 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, **options)
+        validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
@@ -277,6 +293,8 @@ module ActiveRecord
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
+        validate_change_column_null_argument!(null)
+
         unless null || default.nil?
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -341,7 +359,7 @@ module ActiveRecord
       end
 
       def get_database_version # :nodoc:
-        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
+        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)", "SCHEMA"))
       end
 
       def check_version # :nodoc:
@@ -474,8 +492,13 @@ module ActiveRecord
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
 
+              if column.has_default?
+                type = lookup_cast_type_from_column(column)
+                default = type.deserialize(column.default)
+              end
+
               @definition.column(column_name, column.type,
-                limit: column.limit, default: column.default,
+                limit: column.limit, default: default,
                 precision: column.precision, scale: column.scale,
                 null: column.null, collation: column.collation,
                 primary_key: column_name == from_primary_key
@@ -599,15 +622,19 @@ module ActiveRecord
         end
 
         def connect
-          @connection = ::SQLite3::Database.new(
-            @config[:database].to_s,
-            @config.merge(results_as_hash: true)
-          )
-          configure_connection
+          @raw_connection = self.class.new_client(@connection_parameters)
+        end
+
+        def reconnect
+          if active?
+            @raw_connection.rollback rescue nil
+          else
+            connect
+          end
         end
 
         def configure_connection
-          @connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
+          @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
 
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end

@@ -7,9 +7,11 @@ rescue LoadError => e
   raise e
 end
 
+require "connection_pool"
 require "delegate"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/numeric/time"
 
 module ActiveSupport
   module Cache
@@ -73,6 +75,7 @@ module ActiveSupport
       end
       prepend DupLocalCache
 
+      KEY_MAX_SIZE = 250
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
@@ -93,7 +96,6 @@ module ActiveSupport
         if pool_options.empty?
           Dalli::Client.new(addresses, options)
         else
-          ensure_connection_pool_added!
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
         end
       end
@@ -104,7 +106,7 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
       #
-      # If no addresses are provided, but ENV['MEMCACHE_SERVERS'] is defined, it will be used instead. Otherwise,
+      # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
       # MemCacheStore will connect to localhost:11211 (the default memcached port).
       def initialize(*addresses)
         addresses = addresses.flatten
@@ -128,28 +130,66 @@ module ActiveSupport
         end
       end
 
-      # Increment a cached value. This method uses the memcached incr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
-      # to zero.
+      ##
+      # :method: write
+      # :call-seq: write(name, value, options = nil)
+      #
+      # Behaves the same as ActiveSupport::Cache::Store#write, but supports
+      # additional options specific to memcached.
+      #
+      # ==== Additional Options
+      #
+      # * <tt>raw: true</tt> - Sends the value directly to the server as raw
+      #   bytes. The value must be a string or number. You can use memcached
+      #   direct operations like +increment+ and +decrement+ only on raw values.
+      #
+      # * <tt>unless_exist: true</tt> - Prevents overwriting an existing cache
+      #   entry.
+
+      # Increment a cached integer value using the memcached incr atomic operator.
+      # Returns the updated value.
+      #
+      # If the key is unset or has expired, it will be set to +amount+:
+      #
+      #   cache.increment("foo") # => 1
+      #   cache.increment("bar", 100) # => 100
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.increment("baz") # => 6
+      #
+      # Incrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
-            @data.with { |c| c.incr(normalize_key(name, options), amount, options[:expires_in]) }
+            @data.with { |c| c.incr(normalize_key(name, options), amount, options[:expires_in], amount) }
           end
         end
       end
 
-      # Decrement a cached value. This method uses the memcached decr atomic
-      # operator and can only be used on values written with the :raw option.
-      # Calling it on a value not stored with :raw will initialize that value
-      # to zero.
+      # Decrement a cached integer value using the memcached decr atomic operator.
+      # Returns the updated value.
+      #
+      # If the key is unset or has expired, it will be set to 0. Memcached
+      # does not support negative counters.
+      #
+      #   cache.decrement("foo") # => 0
+      #
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      #
+      #   cache.write("baz", 5, raw: true)
+      #   cache.decrement("baz") # => 4
+      #
+      # Decrementing a non-numeric value, or a value written without
+      # <tt>raw: true</tt>, will fail and return +nil+.
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
-            @data.with { |c| c.decr(normalize_key(name, options), amount, options[:expires_in]) }
+            @data.with { |c| c.decr(normalize_key(name, options), amount, options[:expires_in], 0) }
           end
         end
       end
@@ -254,7 +294,7 @@ module ActiveSupport
           raw_values.each do |key, value|
             entry = deserialize_entry(value, raw: options[:raw])
 
-            unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+            unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
               values[keys_to_names[key]] = entry.value
             end
           end
@@ -283,7 +323,13 @@ module ActiveSupport
           if key
             key = key.dup.force_encoding(Encoding::ASCII_8BIT)
             key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-            key = "#{key[0, 212]}:hash:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
+
+            if key.size > KEY_MAX_SIZE
+              key_separator = ":hash:"
+              key_hash = ActiveSupport::Digest.hexdigest(key)
+              key_trim_size = KEY_MAX_SIZE - key_separator.size - key_hash.size
+              key = "#{key[0, key_trim_size]}#{key_separator}#{key_hash}"
+            end
           end
           key
         end
@@ -299,8 +345,12 @@ module ActiveSupport
         def rescue_error_with(fallback)
           yield
         rescue Dalli::DalliError => error
-          ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
           logger.error("DalliError (#{error}): #{error.message}") if logger
+          ActiveSupport.error_reporter&.report(
+            error,
+            severity: :warning,
+            source: "mem_cache_store.active_support",
+          )
           fallback
         end
     end

@@ -58,6 +58,22 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           end
         end
 
+        if current_adapter?(:PostgreSQLAdapter)
+          def test_check_constraints_scoped_to_schemas
+            @connection.add_check_constraint :trades, "quantity > 0"
+
+            assert_no_changes -> { @connection.check_constraints("trades").size } do
+              @connection.create_schema "test_schema"
+              @connection.create_table "test_schema.trades" do |t|
+                t.integer :quantity
+              end
+              @connection.add_check_constraint "test_schema.trades", "quantity > 0"
+            end
+          ensure
+            @connection.drop_schema "test_schema"
+          end
+        end
+
         def test_add_check_constraint
           @connection.add_check_constraint :trades, "quantity > 0"
 
@@ -163,12 +179,51 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           else
             assert_equal "price > 0", constraint.expression
           end
+
+          @connection.remove_check_constraint :trades, name: :price_check # name as a symbol
+          assert_empty @connection.check_constraints("trades")
+        end
+
+        def test_removing_check_constraint_with_if_exists_option
+          @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+          @connection.remove_check_constraint :trades, name: "quantity_check"
+
+          error = assert_raises ArgumentError do
+            @connection.remove_check_constraint :trades, name: "quantity_check"
+          end
+
+          assert_equal "Table 'trades' has no check constraint for {:name=>\"quantity_check\"}", error.message
+
+          assert_nothing_raised do
+            @connection.remove_check_constraint :trades, name: "quantity_check", if_exists: true
+          end
         end
 
         def test_remove_non_existing_check_constraint
           assert_raises(ArgumentError) do
             @connection.remove_check_constraint :trades, name: "nonexistent"
           end
+        end
+
+        def test_add_constraint_from_change_table_with_options
+          @connection.change_table :trades do |t|
+            t.check_constraint "price > 0", name: "price_check"
+          end
+
+          constraint = @connection.check_constraints("trades").first
+          assert_equal "trades", constraint.table_name
+          assert_equal "price_check", constraint.name
+        end
+
+        def test_remove_constraint_from_change_table_with_options
+          @connection.add_check_constraint :trades, "price > 0", name: "price_check"
+
+          @connection.change_table :trades do |t|
+            t.remove_check_constraint "price > 0", name: "price_check"
+          end
+
+          assert_equal 0, @connection.check_constraints("trades").size
         end
       end
     end

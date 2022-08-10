@@ -39,6 +39,16 @@ module ActiveRecord
     end
   end
 
+  module DatabaseTasksHelper
+    def assert_called_for_configs(method_name, configs, &block)
+      mock = Minitest::Mock.new
+      configs.each { |config| mock.expect(:call, nil, config) }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(method_name, mock, &block)
+      assert_mock(mock)
+    end
+  end
+
   ADAPTERS_TASKS = {
     mysql2:     :mysql_tasks,
     postgresql: :postgresql_tasks,
@@ -368,6 +378,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = {
         "development" => { "database" => "dev-db" },
@@ -406,8 +418,7 @@ module ActiveRecord
 
     def test_creates_test_and_development_databases_when_env_was_not_specified
       with_stubbed_configurations_establish_connection do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :create,
           [
             [config_for("development", "primary")],
@@ -426,8 +437,7 @@ module ActiveRecord
       ENV["RAILS_ENV"] = "development"
 
       with_stubbed_configurations_establish_connection do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :create,
           [
             [config_for("development", "primary")],
@@ -449,8 +459,7 @@ module ActiveRecord
       ENV["SKIP_TEST_DATABASE"] = "true"
 
       with_stubbed_configurations_establish_connection do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :create,
           [
             [config_for("development", "primary")]
@@ -492,6 +501,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksCreateCurrentThreeTierTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
@@ -502,8 +513,7 @@ module ActiveRecord
 
     def test_creates_current_environment_database
       with_stubbed_configurations_establish_connection do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :create,
           [
             [config_for("test", "primary")],
@@ -519,8 +529,7 @@ module ActiveRecord
 
     def test_creates_current_environment_database_with_url
       with_stubbed_configurations_establish_connection do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :create,
           [
             [config_for("production", "primary")],
@@ -536,8 +545,7 @@ module ActiveRecord
 
     def test_creates_test_and_development_databases_when_env_was_not_specified
       with_stubbed_configurations_establish_connection do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :create,
           [
             [config_for("development", "primary")],
@@ -558,8 +566,7 @@ module ActiveRecord
       ENV["RAILS_ENV"] = "development"
 
       with_stubbed_configurations_establish_connection do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :create,
           [
             [config_for("development", "primary")],
@@ -705,6 +712,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = {
         "development" => { "database" => "dev-db" },
@@ -743,8 +752,7 @@ module ActiveRecord
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :drop,
           [
             [config_for("development", "primary")],
@@ -763,8 +771,7 @@ module ActiveRecord
       ENV["RAILS_ENV"] = "development"
 
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :drop,
           [
             [config_for("development", "primary")],
@@ -796,6 +803,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksDropCurrentThreeTierTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
@@ -806,8 +815,7 @@ module ActiveRecord
 
     def test_drops_current_environment_database
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :drop,
           [
             [config_for("test", "primary")],
@@ -823,8 +831,7 @@ module ActiveRecord
 
     def test_drops_current_environment_database_with_url
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :drop,
           [
             [config_for("production", "primary")],
@@ -840,8 +847,7 @@ module ActiveRecord
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :drop,
           [
             [config_for("development", "primary")],
@@ -862,8 +868,7 @@ module ActiveRecord
       ENV["RAILS_ENV"] = "development"
 
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :drop,
           [
             [config_for("development", "primary")],
@@ -1075,6 +1080,10 @@ module ActiveRecord
       e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
       assert_match(/Invalid format of target version/, e.message)
 
+      ENV["VERSION"] = "1__1"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
+
       ENV["VERSION"] = "1_name"
       e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
       assert_match(/Invalid format of target version/, e.message)
@@ -1232,6 +1241,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksTruncateAllWithMultipleDatabasesTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
@@ -1242,8 +1253,7 @@ module ActiveRecord
 
     def test_truncate_all_databases_for_environment
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :truncate_tables,
           [
             [config_for("test", "primary")],
@@ -1259,8 +1269,7 @@ module ActiveRecord
 
     def test_truncate_all_databases_with_url_for_environment
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :truncate_tables,
           [
             [config_for("production", "primary")],
@@ -1276,8 +1285,7 @@ module ActiveRecord
 
     def test_truncate_all_development_databases_when_env_is_not_specified
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :truncate_tables,
           [
             [config_for("development", "primary")],
@@ -1296,8 +1304,7 @@ module ActiveRecord
       ENV["RAILS_ENV"] = "development"
 
       with_stubbed_configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
+        assert_called_for_configs(
           :truncate_tables,
           [
             [config_for("development", "primary")],
@@ -1415,13 +1422,16 @@ module ActiveRecord
       version = ENV["VERSION"]
 
       ENV["VERSION"] = "0"
-      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+      assert_equal 0, ActiveRecord::Tasks::DatabaseTasks.target_version
 
       ENV["VERSION"] = "42"
-      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+      assert_equal 42, ActiveRecord::Tasks::DatabaseTasks.target_version
 
       ENV["VERSION"] = "042"
-      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+      assert_equal 42, ActiveRecord::Tasks::DatabaseTasks.target_version
+
+      ENV["VERSION"] = "2000_01_01_000042"
+      assert_equal 20000101000042, ActiveRecord::Tasks::DatabaseTasks.target_version
     ensure
       ENV["VERSION"] = version
     end
@@ -1436,7 +1446,7 @@ module ActiveRecord
       ENV["VERSION"] = version
     end
 
-    def test_check_target_version_does_not_raise_error_if_version_is_not_setted
+    def test_check_target_version_does_not_raise_error_if_version_is_not_set
       version = ENV.delete("VERSION")
       assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
     ensure
@@ -1487,6 +1497,9 @@ module ActiveRecord
       assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
 
       ENV["VERSION"] = "001"
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+
+      ENV["VERSION"] = "1_001"
       assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
 
       ENV["VERSION"] = "001_name.rb"

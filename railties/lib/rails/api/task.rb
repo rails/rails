@@ -162,9 +162,11 @@ module Rails
         end
       end
 
-      def setup_horo_variables
+      # These variables are used by the sdoc template
+      def setup_horo_variables # :nodoc:
         ENV["HORO_PROJECT_NAME"]    = "Ruby on Rails"
         ENV["HORO_PROJECT_VERSION"] = rails_version
+        ENV["HORO_BADGE_VERSION"]   = badge_version
       end
 
       def api_main
@@ -191,11 +193,19 @@ module Rails
       def rails_version
         "main@#{`git rev-parse HEAD`[0, 7]}"
       end
+
+      def badge_version
+        "edge"
+      end
     end
 
     class StableTask < RepoTask
       def rails_version
         File.read("RAILS_VERSION").strip
+      end
+
+      def badge_version
+        "v#{rails_version}"
       end
     end
   end

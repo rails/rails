@@ -62,7 +62,7 @@ module ActionView
       #
       #   <%= form_tag('/posts', remote: true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
-
+      #
       #   form_tag(false, method: :get)
       #   # => <form method="get">
       #
@@ -131,7 +131,7 @@ module ActionView
 
         # a little duplication to construct fewer strings
         case
-        when object_name.empty?
+        when object_name.blank?
           "#{method_name}#{names}#{multiple ? "[]" : ""}"
         when index
           "#{object_name}[#{index}][#{method_name}]#{names}#{multiple ? "[]" : ""}"
@@ -294,14 +294,14 @@ module ActionView
       #
       # ==== Examples
       #   hidden_field_tag 'tags_list'
-      #   # => <input type=\"hidden\" name=\"tags_list\" id=\"tags_list\" autocomplete=\"off\" />
+      #   # => <input type="hidden" name="tags_list" id="tags_list" autocomplete="off" />
       #
       #   hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
-      #   # => <input type=\"hidden\" name=\"token\" id=\"token\" value=\"VUBJKB23UIVI1UU1VOBVI@\" autocomplete=\"off\" />
+      #   # => <input type="hidden" name="token" id="token" value="VUBJKB23UIVI1UU1VOBVI@" autocomplete="off" />
       #
       #   hidden_field_tag 'collected_input', '', onchange: "alert('Input collected!')"
-      #   # => <input type=\"hidden\" name=\"collected_input\" id=\"collected_input\"
-      #        value=\"\" onchange=\"alert(&#39;Input collected!&#39;)\" autocomplete=\"off\" />
+      #   # => <input type="hidden" name="collected_input" id="collected_input"
+      #        value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
       def hidden_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :hidden, autocomplete: "off"))
       end
@@ -342,7 +342,7 @@ module ActionView
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
-        text_field_tag(name, nil, convert_direct_upload_option_to_url(name, options.merge(type: :file)))
+        text_field_tag(name, nil, convert_direct_upload_option_to_url(options.merge(type: :file)))
       end
 
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
@@ -657,9 +657,11 @@ module ActionView
       # Creates a text field of type "color".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   color_field_tag 'name'
       #   # => <input id="name" name="name" type="color" />
       #
@@ -678,9 +680,11 @@ module ActionView
       # Creates a text field of type "search".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   search_field_tag 'name'
       #   # => <input id="name" name="name" type="search" />
       #
@@ -699,9 +703,11 @@ module ActionView
       # Creates a text field of type "tel".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   telephone_field_tag 'name'
       #   # => <input id="name" name="name" type="tel" />
       #
@@ -721,9 +727,11 @@ module ActionView
       # Creates a text field of type "date".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   date_field_tag 'name'
       #   # => <input id="name" name="name" type="date" />
       #
@@ -741,23 +749,28 @@ module ActionView
 
       # Creates a text field of type "time".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * <tt>:include_seconds</tt> - Include seconds and ms in the output timestamp format (true by default).
-      # * Otherwise accepts the same options as text_field_tag.
       def time_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :time))
       end
 
       # Creates a text field of type "datetime-local".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as text_field_tag.
+      # * <tt>:include_seconds</tt> - Include seconds in the output timestamp format (true by default).
       def datetime_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: "datetime-local"))
       end
@@ -766,22 +779,26 @@ module ActionView
 
       # Creates a text field of type "month".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as text_field_tag.
       def month_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :month))
       end
 
       # Creates a text field of type "week".
       #
-      # === Options
+      # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as text_field_tag.
       def week_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :week))
       end
@@ -789,9 +806,11 @@ module ActionView
       # Creates a text field of type "url".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   url_field_tag 'name'
       #   # => <input id="name" name="name" type="url" />
       #
@@ -810,9 +829,11 @@ module ActionView
       # Creates a text field of type "email".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      #
+      # Supports the same options as #text_field_tag.
       #
       # ==== Examples
+      #
       #   email_field_tag 'name'
       #   # => <input id="name" name="name" type="email" />
       #
@@ -831,15 +852,18 @@ module ActionView
       # Creates a number field.
       #
       # ==== Options
+      #
+      # Supports the same options as #text_field_tag. Additionally, supports:
+      #
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:in</tt> - A range specifying the <tt>:min</tt> and
       #   <tt>:max</tt> values.
       # * <tt>:within</tt> - Same as <tt>:in</tt>.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * Otherwise accepts the same options as text_field_tag.
       #
       # ==== Examples
+      #
       #   number_field_tag 'quantity'
       #   # => <input id="quantity" name="quantity" type="number" />
       #
@@ -881,12 +905,13 @@ module ActionView
       # Creates a range form element.
       #
       # ==== Options
-      # * Accepts the same options as number_field_tag.
+      #
+      # Supports the same options as #number_field_tag.
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
       end
 
-      # Creates the hidden UTF8 enforcer tag. Override this method in a helper
+      # Creates the hidden UTF-8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
         # Use raw HTML to ensure the value is written as an HTML entity; it
@@ -984,23 +1009,9 @@ module ActionView
           tag_options.delete("data-disable-with")
         end
 
-        def convert_direct_upload_option_to_url(name, options)
+        def convert_direct_upload_option_to_url(options)
           if options.delete(:direct_upload) && respond_to?(:rails_direct_uploads_url)
             options["data-direct-upload-url"] = rails_direct_uploads_url
-
-            if options[:object] && options[:object].class.respond_to?(:reflect_on_attachment)
-              attachment_reflection = options[:object].class.reflect_on_attachment(name)
-
-              class_with_attachment = "#{options[:object].class.name.underscore}##{name}"
-              options["data-direct-upload-attachment-name"] = class_with_attachment
-
-              service_name = attachment_reflection.options[:service_name] || ActiveStorage::Blob.service.name
-              options["data-direct-upload-token"] = ActiveStorage::DirectUploadToken.generate_direct_upload_token(
-                class_with_attachment,
-                service_name,
-                session
-              )
-            end
           end
           options
         end

@@ -78,6 +78,223 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
+### Autoloaded paths are no longer in load path
+
+Starting from Rails 7.1, all paths managed by the autoloader will no longer be added to `$LOAD_PATH`.
+This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
+
+Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
+size of the `bootsnap` cache for the others.
+
+### `ActiveStorage::BaseController` no longer includes the streaming concern
+
+Application controllers that inherit from `ActiveStorage::BaseController` and use streaming to implement custom file serving logic must now explicitly include the `ActiveStorage::Streaming` module.
+
+### New `ActiveSupport::MessageEncryptor` default serializer
+
+As of Rails 7.1, the default serializer in use by the `MessageEncryptor` is `JSON`.
+This offers a more secure alternative to the current default serializer.
+
+The `MessageEncryptor` offers the ability to migrate the default serializer from `Marshal` to `JSON`.
+
+If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_encryptor_serializer = :marshal`.
+
+In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
+
+```ruby
+config.active_support.default_message_encryptor_serializer
+config.active_support.fallback_to_marshal_deserialization
+config.active_support.use_marshal_serialization
+```
+
+`default_message_encryptor_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
+
+In order to migrate an older deployment to `:json`, first ensure that the `default_message_encryptor_serializer` is set to `:marshal`.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_encryptor_serializer = :marshal
+```
+
+Once this is deployed on all Rails processes, set `default_message_encryptor_serializer` to `:hybrid` to begin using the
+`ActiveSupport::JsonWithMarshalFallback` class as the serializer. The defaults for this class are to use `Marshal`
+as the serializer and to allow the deserialisation of both `Marshal` and `JSON` serialized payloads.
+
+```ruby
+config.load_defaults 7.0
+config.active_support.default_message_encryptor_serializer = :hybrid
+```
+
+Once this is deployed on all Rails processes, set the following configuration options in order to stop the
+`ActiveSupport::JsonWithMarshalFallback` class from using `Marshal` to serialize new payloads.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_encryptor_serializer = :hybrid
+config.active_support.use_marshal_serialization = false
+```
+
+Allow this configuration to run on all processes for a considerable amount of time.
+`ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
+is used:
+
+```
+JsonWithMarshalFallback: Marshal load fallback occurred.
+```
+
+Once those message stop appearing in your logs and you're confident that all `MessageEncryptor`
+payloads in transit are `JSON` serialized, the following configuration options will disable the
+Marshal fallback in `ActiveSupport::JsonWithMarshalFallback`.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_encryptor_serializer = :hybrid
+config.active_support.use_marshal_serialization = false
+config.active_support.fallback_to_marshal_deserialization = false
+```
+
+If all goes well, you should now be safe to migrate the Message Encryptor from
+`ActiveSupport::JsonWithMarshalFallback` to `ActiveSupport::JSON`.
+To do so, simply swap the `:hybrid` serializer for the `:json` serializer.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_encryptor_serializer = :json
+```
+
+Alternatively, you could load defaults for 7.1
+
+```ruby
+# config/application.rb
+config.load_defaults 7.1
+```
+
+### New `ActiveSupport::MessageVerifier` default serializer
+
+As of Rails 7.1, the default serializer in use by the `MessageVerifier` is `JSON`.
+This offers a more secure alternative to the current default serializer.
+
+The `MessageVerifier` offers the ability to migrate the default serializer from `Marshal` to `JSON`.
+
+If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_verifier_serializer = :marshal`.
+
+In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
+
+```ruby
+config.active_support.default_verifier_serializer
+config.active_support.fallback_to_marshal_deserialization
+config.active_support.use_marshal_serialization
+```
+
+`default_message_verifier_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
+
+In order to migrate an older deployment to `:json`, first ensure that the `default_message_verifier_serializer` is set to `:marshal`.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :marshal
+```
+
+Once this is deployed on all Rails processes, set `default_message_verifier_serializer` to `:hybrid` to begin using the
+`ActiveSupport::JsonWithMarshalFallback` class as the serializer. The defaults for this class are to use `Marshal`
+as the serializer and to allow the deserialisation of both `Marshal` and `JSON` serialized payloads.
+
+```ruby
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :hybrid
+```
+
+Once this is deployed on all Rails processes, set the following configuration options in order to stop the
+`ActiveSupport::JsonWithMarshalFallback` class from using `Marshal` to serialize new payloads.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :hybrid
+config.active_support.use_marshal_serialization = false
+```
+
+Allow this configuration to run on all processes for a considerable amount of time.
+`ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
+is used:
+
+```
+JsonWithMarshalFallback: Marshal load fallback occurred.
+```
+
+Once those message stop appearing in your logs and you're confident that all `MessageVerifier`
+payloads in transit are `JSON` serialized, the following configuration options will disable the
+Marshal fallback in `ActiveSupport::JsonWithMarshalFallback`.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :hybrid
+config.active_support.use_marshal_serialization = false
+config.active_support.fallback_to_marshal_deserialization = false
+```
+
+If all goes well, you should now be safe to migrate the Message Verifier from
+`ActiveSupport::JsonWithMarshalFallback` to `ActiveSupport::JSON`.
+To do so, simply swap the `:hybrid` serializer for the `:json` serializer.
+
+```ruby
+# config/application.rb
+config.load_defaults 7.0
+config.active_support.default_message_verifier_serializer = :json
+```
+
+Alternatively, you could load defaults for 7.1
+
+```ruby
+# config/application.rb
+config.load_defaults 7.1
+```
+
+### `MemCacheStore` and `RedisCacheStore` now use connection pooling by default
+
+The `connection_pool` gem has been added as a dependency of the `activesupport` gem,
+and the `MemCacheStore` and `RedisCacheStore` now use connection pooling by default.
+
+If you don't want to use connection pooling, set `:pool` option to `false` when
+configuring your cache store:
+
+```ruby
+config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+```
+
+See the [caching with Rails](https://guides.rubyonrails.org/v7.1/caching_with_rails.html#connection-pool-options) guide for more information.
+
+### `SQLite3Adapter` now configured to be used in a strict strings mode
+
+The use of a strict strings mode disables double-quoted string literals.
+
+SQLite has some quirks around double-quoted string literals.
+It first tries to consider double-quoted strings as identifier names, but if they don't exist
+it then considers them as string literals. Because of this, typos can silently go unnoticed.
+For example, it is possible to create an index for a non existing column.
+See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+
+If you don't want to use `SQLite3Adapter` in a strict mode, you can disable this behavior:
+
+```ruby
+# config/application.rb
+config.active_record.sqlite3_adapter_strict_strings_by_default = false
+```
+
+### Support multiple preview paths for `ActionMailer::Preview`
+
+Option `config.action_mailer.preview_path` is deprecated in favor of `config.action_mailer.preview_paths`. Appending paths to this configuration option will cause those paths to be used in the search for mailer previews.
+
+```ruby
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
@@ -106,7 +323,9 @@ If your application uses Spring, it needs to be upgraded to at least version 3.0
 undefined method `mechanism=' for ActiveSupport::Dependencies:Module
 ```
 
-Also, make sure `config.cache_classes` is set to `false` in `config/environments/test.rb`.
+Also, make sure [`config.cache_classes`][] is set to `false` in `config/environments/test.rb`.
+
+[`config.cache_classes`]: configuring.html#config-cache-classes
 
 ### Sprockets is now an optional dependency
 
@@ -119,7 +338,7 @@ gem "sprockets-rails"
 
 ### Applications need to run in `zeitwerk` mode
 
-Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/classic_to_zeitwerk_howto.html) guide for details.
+Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/v7.0/classic_to_zeitwerk_howto.html) guide for details.
 
 ### The setter `config.autoloader=` has been deleted
 
@@ -142,7 +361,7 @@ A few of highlights:
 
 * If you want to trace the activity of the autoloader, `ActiveSupport::Dependencies.verbose=` is no longer available, just throw `Rails.autoloaders.log!` in `config/application.rb`.
 
-Auxiliary internal classes or modules are also gone, like like `ActiveSupport::Dependencies::Reference`, `ActiveSupport::Dependencies::Blamable`, and others.
+Auxiliary internal classes or modules are also gone, like `ActiveSupport::Dependencies::Reference`, `ActiveSupport::Dependencies::Blamable`, and others.
 
 ### Autoloading during initialization
 
@@ -161,13 +380,15 @@ If you still get this warning in the logs, please check the section about autolo
 
 ### Ability to configure `config.autoload_once_paths`
 
-`config.autoload_once_paths` can be set in the body of the application class defined in `config/application.rb` or in the configuration for environments in `config/environments/*`.
+[`config.autoload_once_paths`][] can be set in the body of the application class defined in `config/application.rb` or in the configuration for environments in `config/environments/*`.
 
 Similarly, engines can configure that collection in the class body of the engine class or in the configuration for environments.
 
 After that, the collection is frozen, and you can autoload from those paths. In particular, you can autoload from there during initialization. They are managed by the `Rails.autoloaders.once` autoloader, which does not reload, only autoloads/eager loads.
 
 If you configured this setting after the environments configuration has been processed and are getting `FrozenError`, please just move the code.
+
+[`config.autoload_once_paths`]: configuring.html#config-autoload-once-paths
 
 ### `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
 
@@ -200,20 +421,28 @@ encrypted cookies.
 In order to be able to read messages using the old digest class it is necessary
 to register a rotator.
 
-The following is an example for rotator for the encrypted cookies.
+The following is an example for rotator for the encrypted and the signed cookies.
 
 ```ruby
-Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
-  salt = Rails.application.config.action_dispatch.authenticated_encrypted_cookie_salt
-  secret_key_base = Rails.application.secrets.secret_key_base
+# config/initializers/cookie_rotator.rb
+Rails.application.config.after_initialize do
+  Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
+    authenticated_encrypted_cookie_salt = Rails.application.config.action_dispatch.authenticated_encrypted_cookie_salt
+    signed_cookie_salt = Rails.application.config.action_dispatch.signed_cookie_salt
 
-  key_generator = ActiveSupport::KeyGenerator.new(
-    secret_key_base, iterations: 1000, hash_digest_class: OpenSSL::Digest::SHA1
-  )
-  key_len = ActiveSupport::MessageEncryptor.key_len
-  secret = key_generator.generate_key(salt, key_len)
+    secret_key_base = Rails.application.secret_key_base
 
-  cookies.rotate :encrypted, secret
+    key_generator = ActiveSupport::KeyGenerator.new(
+      secret_key_base, iterations: 1000, hash_digest_class: OpenSSL::Digest::SHA1
+    )
+    key_len = ActiveSupport::MessageEncryptor.key_len
+
+    old_encrypted_secret = key_generator.generate_key(authenticated_encrypted_cookie_salt, key_len)
+    old_signed_secret = key_generator.generate_key(signed_cookie_salt)
+
+    cookies.rotate :encrypted, old_encrypted_secret
+    cookies.rotate :signed, old_signed_secret
+  end
 end
 ```
 
@@ -380,6 +609,35 @@ You can invalidate the cache either by touching the product, or changing the cac
 <% end %>
 ```
 
+### Rails version is now included in the Active Record schema dump
+
+Rails 7.0 changed some default values for some column types. To avoid that application upgrading from 6.1 to 7.0
+load the current schema using the new 7.0 defaults, Rails now includes the version of the framework in the schema dump.
+
+Before loading the schema for the first time in Rails 7.0, make sure to run `rails app:update` to ensure that the
+version of the schema is included in the schema dump.
+
+The schema file will look like this:
+
+```ruby
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[6.1].define(version: 2022_01_28_123512) do
+```
+
+NOTE: The first time you dump the schema with Rails 7.0, you will see many changes to that file, including
+some column information. Make sure to review the new schema file content and commit it to your repository.
+
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
@@ -428,10 +686,10 @@ end
 get('my_action.csv')
 ```
 
-Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
-Current behaviour correctly returns a `application/json` response's Content-Type.
+Previous behavior was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
+Current behavior correctly returns a `application/json` response's Content-Type.
 
-If your application relies on the previous incorrect behaviour, you are encouraged to specify
+If your application relies on the previous incorrect behavior, you are encouraged to specify
 which formats your action accepts, i.e.
 
 ```ruby
@@ -491,7 +749,7 @@ The default HTTP status code used in `ActionDispatch::SSL` when redirecting non-
 
 ### Active Storage now requires Image Processing
 
-When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko-m/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
+When processing variants in Active Storage, it's now required to have the [image_processing gem](https://github.com/janko/image_processing) bundled instead of directly using `mini_magick`. Image Processing is configured by default to use `mini_magick` behind the scenes, so the easiest way to upgrade is by replacing the `mini_magick` gem for the `image_processing` gem and making sure to remove the explicit usage of `combine_options` since it's no longer needed.
 
 For readability, you may wish to change raw `resize` calls to `image_processing` macros. For example, instead of:
 
@@ -508,6 +766,15 @@ video.preview(resize_to_fit: [100, 100])
 video.preview(resize_to_limit: [100, 100])
 video.preview(resize_to_fill: [100, 100])
 ```
+
+### New `ActiveModel::Error` class
+
+Errors are now instances of a new `ActiveModel::Error` class, with changes to
+the API. Some of these changes may throw errors depending on how you manipulate
+errors, while others will print deprecation warnings to be fixed for Rails 7.0.
+
+More information about this change and details about the API changes can be
+found [in this PR](https://github.com/rails/rails/pull/32313).
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
@@ -531,9 +798,12 @@ $ bin/rails webpacker:install
 ### Force SSL
 
 The `force_ssl` method on controllers has been deprecated and will be removed in
-Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
+Rails 6.1. You are encouraged to enable [`config.force_ssl`][] to enforce HTTPS
 connections throughout your application. If you need to exempt certain endpoints
-from redirection, you can use `config.ssl_options` to configure that behavior.
+from redirection, you can use [`config.ssl_options`][] to configure that behavior.
+
+[`config.force_ssl`]: configuring.html#config-force-ssl
+[`config.ssl_options`]: configuring.html#config-ssl-options
 
 ### Purpose and expiry metadata is now embedded inside signed and encrypted cookies for increased security
 
@@ -619,6 +889,23 @@ resp = ActionDispatch::Response.new(200, "Content-Type" => "text/csv; header=pre
 resp.content_type #=> "text/csv; header=present; charset=utf-16"
 resp.media_type   #=> "text/csv"
 ```
+
+### New `config.hosts` setting
+
+Rails now has a new `config.hosts` setting for security purposes. This setting
+defaults to `localhost` in development. If you use other domains in development
+you need to allow them like this:
+
+```ruby
+# config/environments/development.rb
+
+config.hosts << 'dev.myapp.com'
+config.hosts << /[a-z0-9-]+\.myapp\.com/ # Optionally, regexp is allowed as well
+```
+
+For other environments `config.hosts` is empty by default, which means Rails
+won't validate the host at all. You can optionally add them if you want to
+validate it in production.
 
 ### Autoloading
 
@@ -819,17 +1106,13 @@ In addition to that, Bootsnap needs to disable the iseq cache due to a bug in th
 
 #### `config.add_autoload_paths_to_load_path`
 
-The new configuration point
-
-```ruby
-config.add_autoload_paths_to_load_path
-```
-
-is `true` by default for backwards compatibility, but allows you to opt-out from adding the autoload paths to `$LOAD_PATH`.
+The new configuration point [`config.add_autoload_paths_to_load_path`][] is `true` by default for backwards compatibility, but allows you to opt-out from adding the autoload paths to `$LOAD_PATH`.
 
 This makes sense in most applications, since you never should require a file in `app/models`, for example, and Zeitwerk only uses absolute file names internally.
 
 By opting-out you optimize `$LOAD_PATH` lookups (less directories to check), and save Bootsnap work and memory consumption, since it does not need to build an index for these directories.
+
+[`config.add_autoload_paths_to_load_path`]: configuring.html#config-add-autoload-paths-to-load-path
 
 #### Thread-safety
 
@@ -916,7 +1199,9 @@ user.highlights.first.filename # => "funky.jpg"
 user.highlights.second.filename # => "town.jpg"
 ```
 
-Existing applications can opt in to this new behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
+Existing applications can opt in to this new behavior by setting [`config.active_storage.replace_on_assign_to_many`][] to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
+
+[`config.active_storage.replace_on_assign_to_many`]: configuring.html#config-active-storage-replace-on-assign-to-many
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -926,8 +1211,14 @@ For more information on changes made to Rails 5.2 please see the [release notes]
 ### Bootsnap
 
 Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
-The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
-otherwise change the `boot.rb` to not use bootsnap.
+The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile:
+
+```ruby
+# Reduces boot times through caching; required in config/boot.rb
+gem 'bootsnap', require: false
+```
+
+Otherwise change the `boot.rb` to not use bootsnap.
 
 ### Expiry in signed or encrypted cookie is now embedded in the cookies values
 
@@ -1299,12 +1590,14 @@ config.action_mailer.deliver_later_queue_name = :new_queue_name
 
 #### Support Fragment Caching in Action Mailer Views
 
-Set `config.action_mailer.perform_caching` in your config to determine whether your Action Mailer views
+Set [`config.action_mailer.perform_caching`][] in your config to determine whether your Action Mailer views
 should support caching.
 
 ```ruby
 config.action_mailer.perform_caching = true
 ```
+
+[`config.action_mailer.perform_caching`]: configuring.html#config-action-mailer-perform-caching
 
 #### Configure the Output of `db:structure:dump`
 
@@ -2276,7 +2569,7 @@ or `link_to_unless`).
 
     Please note that if your application is dependent on loading certain pages in a `<frame>` or `<iframe>`, then you may need to explicitly set `X-Frame-Options` to `ALLOW-FROM ...` or `ALLOWALL`.
 
-* In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure `config.assets.precompile`.
+* In Rails 4.0, precompiling assets no longer automatically copies non-JS/CSS assets from `vendor/assets` and `lib/assets`. Rails application and engine developers should put these assets in `app/assets` or configure [`config.assets.precompile`][].
 
 * In Rails 4.0, `ActionController::UnknownFormat` is raised when the action doesn't handle the request format. By default, the exception is handled by responding with 406 Not Acceptable, but you can override that now. In Rails 3, 406 Not Acceptable was always returned. No overrides.
 
@@ -2293,13 +2586,15 @@ or `link_to_unless`).
 * Rails 4.0 deprecated `ActionController::Response` in favor of `ActionDispatch::Response`.
 * Rails 4.0 deprecated `ActionController::Routing` in favor of `ActionDispatch::Routing`.
 
+[`config.assets.precompile`]: configuring.html#config-assets-precompile
+
 ### Active Support
 
 Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
 
 #### Cache
 
-The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/v4.0/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 
@@ -2312,11 +2607,13 @@ The order in which helpers from more than one directory are loaded has changed i
 ### sprockets-rails
 
 * `assets:precompile:primary` and `assets:precompile:all` have been removed. Use `assets:precompile` instead.
-* The `config.assets.compress` option should be changed to `config.assets.js_compressor` like so for instance:
+* The `config.assets.compress` option should be changed to [`config.assets.js_compressor`][] like so for instance:
 
     ```ruby
     config.assets.js_compressor = :uglifier
     ```
+
+[`config.assets.js_compressor`]: configuring.html#config-assets-js-compressor
 
 ### sass-rails
 

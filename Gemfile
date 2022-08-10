@@ -6,7 +6,11 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-gem "minitest", ">= 5.15.0"
+if RUBY_VERSION < "3"
+  gem "minitest", ">= 5.15.0", "< 5.16"
+else
+  gem "minitest", ">= 5.15.0"
+end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
@@ -36,7 +40,7 @@ gem "terser", ">= 1.1.4", require: false
 gem "json", ">= 2.0.0"
 
 group :rubocop do
-  gem "rubocop", ">= 0.90", require: false
+  gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -44,11 +48,11 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.2.0"
+  gem "sdoc", ">= 2.4.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
-  gem "kindlerb", "~> 1.2.0"
   gem "rouge"
+  gem "rubyzip", "~> 2.0"
 end
 
 # Active Support
@@ -69,7 +73,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "jhawthorn/queue_classic", branch: "fix-connection-pg-14", require: false, platforms: :ruby
+  gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
@@ -139,8 +143,8 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "sqlite3", "~> 1.4"
 
   group :db do
-    gem "pg", "~> 1.1"
-    gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
+    gem "pg", "~> 1.3"
+    gem "mysql2", "~> 0.5"
   end
 end
 
@@ -176,14 +180,3 @@ end
 
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
-
-if RUBY_VERSION >= "3.1"
-  # net-smtp, net-imap and net-pop were removed from default gems in Ruby 3.1, but is used by the `mail` gem.
-  # So we need to add them as dependencies until `mail` is fixed: https://github.com/mikel/mail/pull/1439
-  gem "net-smtp", require: false
-  gem "net-imap", require: false
-  gem "net-pop", require: false
-
-  # digest gem, which is one of the default gems has bumped to 3.1.0.pre for ruby 3.1.0dev.
-  gem "digest", "~> 3.1.0.pre", require: false
-end

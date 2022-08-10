@@ -12,7 +12,6 @@ require "active_support/core_ext/object/blank"
 
 require "rails/application"
 require "rails/version"
-require "rails/autoloaders"
 
 require "active_support/railtie"
 require "action_dispatch/railtie"
@@ -115,7 +114,7 @@ module Rails
     end
 
     def autoloaders
-      Autoloaders
+      application.autoloaders
     end
   end
 end

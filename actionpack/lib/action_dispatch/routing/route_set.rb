@@ -196,7 +196,9 @@ module ActionDispatch
             def call(t, method_name, args, inner_options, url_strategy)
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
-                options[:path] = optimized_helper(args)
+                path = optimized_helper(args)
+                path << "/" if options[:trailing_slash] && !path.end_with?("/")
+                options[:path] = path
 
                 original_script_name = options.delete(:original_script_name)
                 script_name = t._routes.find_script_name(options)
@@ -777,18 +779,14 @@ module ActionDispatch
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
-                          :original_script_name, :relative_url_root]
+                          :original_script_name]
 
       def optimize_routes_generation?
         default_url_options.empty?
       end
 
       def find_script_name(options)
-        options.delete(:script_name) || find_relative_url_root(options) || ""
-      end
-
-      def find_relative_url_root(options)
-        options.delete(:relative_url_root) || relative_url_root
+        options.delete(:script_name) || relative_url_root || ""
       end
 
       def path_for(options, route_name = nil, reserved = RESERVED_OPTIONS)

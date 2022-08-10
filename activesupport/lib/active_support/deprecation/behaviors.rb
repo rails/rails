@@ -3,7 +3,7 @@
 require "active_support/notifications"
 
 module ActiveSupport
-  # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
+  # Raised when ActiveSupport::Deprecation::Behavior#behavior is set with <tt>:raise</tt>.
   # You would set <tt>:raise</tt>, as a behavior to raise errors and proactively report exceptions from deprecations.
   class DeprecationException < StandardError
   end
@@ -114,10 +114,10 @@ module ActiveSupport
             raise ArgumentError, "#{behavior.inspect} is not a valid deprecation behavior."
           end
 
-          if behavior.arity == 4 || behavior.arity == -1
-            behavior
-          else
+          if behavior.respond_to?(:arity) && behavior.arity == 2
             -> message, callstack, _, _ { behavior.call(message, callstack) }
+          else
+            behavior
           end
         end
     end

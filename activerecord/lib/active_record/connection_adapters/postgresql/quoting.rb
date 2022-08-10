@@ -6,14 +6,14 @@ module ActiveRecord
       module Quoting
         # Escapes binary strings for bytea input to the database.
         def escape_bytea(value)
-          @connection.escape_bytea(value) if value
+          valid_raw_connection.escape_bytea(value) if value
         end
 
         # Unescapes bytea output from a database to the binary string it represents.
         # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
         # on escaped binary output from database drive.
         def unescape_bytea(value)
-          @connection.unescape_bytea(value) if value
+          valid_raw_connection.unescape_bytea(value) if value
         end
 
         def quote(value) # :nodoc:
@@ -43,7 +43,7 @@ module ActiveRecord
 
         # Quotes strings for use in SQL input.
         def quote_string(s) # :nodoc:
-          PG::Connection.escape(s)
+          valid_raw_connection.escape(s)
         end
 
         # Checks the following cases:
@@ -134,7 +134,7 @@ module ActiveRecord
           (
             (?:
               # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
             )
             (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
           )
@@ -147,8 +147,9 @@ module ActiveRecord
           (
             (?:
               # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)?) | \w+\((?:|\g<2>)\)(?:::\w+)?
+              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
             )
+            (?:\s+COLLATE\s+"\w+")?
             (?:\s+ASC|\s+DESC)?
             (?:\s+NULLS\s+(?:FIRST|LAST))?
           )

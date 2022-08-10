@@ -6,7 +6,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment, :valid
 
       def initialize(
         table, name,
@@ -18,7 +18,8 @@ module ActiveRecord
         where: nil,
         type: nil,
         using: nil,
-        comment: nil
+        comment: nil,
+        valid: true
       )
         @table = table
         @name = name
@@ -31,6 +32,11 @@ module ActiveRecord
         @type = type
         @using = using
         @comment = comment
+        @valid = valid
+      end
+
+      def valid?
+        @valid
       end
 
       def column_options
@@ -39,6 +45,13 @@ module ActiveRecord
           order: orders,
           opclass: opclasses,
         }
+      end
+
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+        (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
+          (name.nil? || self.name == name.to_s) &&
+          (unique.nil? || self.unique == unique) &&
+          (valid.nil? || self.valid == valid)
       end
 
       private
@@ -80,6 +93,8 @@ module ActiveRecord
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
     ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
+
+    ChangeColumnDefaultDefinition = Struct.new(:column, :default) # :nodoc:
 
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
@@ -171,6 +186,20 @@ module ActiveRecord
         end
       end
 
+      def add(table_name, connection)
+        columns.each do |name, type, options|
+          connection.add_column(table_name, name, type, **options)
+        end
+
+        if index
+          connection.add_index(table_name, column_names, **index_options(table_name))
+        end
+
+        if foreign_key
+          connection.add_foreign_key(table_name, foreign_table_name, **foreign_key_options)
+        end
+      end
+
       def add_to(table)
         columns.each do |name, type, options|
           table.column(name, type, **options)
@@ -192,8 +221,12 @@ module ActiveRecord
           value.is_a?(Hash) ? value : {}
         end
 
+        def conditional_options
+          options.slice(:if_exists, :if_not_exists)
+        end
+
         def polymorphic_options
-          as_options(polymorphic).merge(options.slice(:null, :first, :after))
+          as_options(polymorphic).merge(conditional_options).merge(options.slice(:null, :first, :after))
         end
 
         def polymorphic_index_name(table_name)
@@ -201,13 +234,17 @@ module ActiveRecord
         end
 
         def index_options(table_name)
-          index_options = as_options(index)
+          index_options = as_options(index).merge(conditional_options)
+
+          # legacy reference index names are used on versions 6.0 and earlier
+          return index_options if options[:_uses_legacy_reference_index_name]
+
           index_options[:name] ||= polymorphic_index_name(table_name) if polymorphic
           index_options
         end
 
         def foreign_key_options
-          as_options(foreign_key).merge(column: column_name)
+          as_options(foreign_key).merge(column: column_name, **conditional_options)
         end
 
         def columns
@@ -321,6 +358,23 @@ module ActiveRecord
         @as = as
         @name = name
         @comment = comment
+      end
+
+      def set_primary_key(table_name, id, primary_key, **options)
+        if id && !as
+          pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
+
+          if id.is_a?(Hash)
+            options.merge!(id.except(:type))
+            id = id.fetch(:type, :primary_key)
+          end
+
+          if pk.is_a?(Array)
+            primary_keys(pk)
+          else
+            primary_key(pk, id, **options)
+          end
+        end
       end
 
       def primary_keys(name = nil) # :nodoc:
@@ -820,8 +874,8 @@ module ActiveRecord
       #  t.check_constraint("price > 0", name: "price_check")
       #
       # See {connection.add_check_constraint}[rdoc-ref:SchemaStatements#add_check_constraint]
-      def check_constraint(*args)
-        @base.add_check_constraint(name, *args)
+      def check_constraint(*args, **options)
+        @base.add_check_constraint(name, *args, **options)
       end
 
       # Removes the given check constraint from the table.
@@ -829,8 +883,19 @@ module ActiveRecord
       #  t.remove_check_constraint(name: "price_check")
       #
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
-      def remove_check_constraint(*args)
-        @base.remove_check_constraint(name, *args)
+      def remove_check_constraint(*args, **options)
+        @base.remove_check_constraint(name, *args, **options)
+      end
+
+      # Checks if a check_constraint exists on a table.
+      #
+      #  unless t.check_constraint_exists?(name: "price_check")
+      #    t.check_constraint("price > 0", name: "price_check")
+      #  end
+      #
+      # See {connection.check_constraint_exists?}[rdoc-ref:SchemaStatements#check_constraint_exists?]
+      def check_constraint_exists?(*args, **options)
+        @base.check_constraint_exists?(name, *args, **options)
       end
 
       private

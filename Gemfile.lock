@@ -1,18 +1,4 @@
 GIT
-  remote: https://github.com/brianmario/mysql2.git
-  revision: 25c42c712118b046eb9df7a0f50ffde1a04ee6d1
-  specs:
-    mysql2 (0.5.3)
-
-GIT
-  remote: https://github.com/jhawthorn/queue_classic.git
-  revision: dbfee9bda71020b8f11ae8d9b85932462b7fbee0
-  branch: fix-connection-pg-14
-  specs:
-    queue_classic (4.0.0.pre.alpha1)
-      pg (>= 0.17, < 2.0)
-
-GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -29,6 +15,7 @@ PATH
       activesupport (= 7.1.0.alpha)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
+      zeitwerk (~> 2.6)
     actionmailbox (7.1.0.alpha)
       actionpack (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)
@@ -36,12 +23,18 @@ PATH
       activestorage (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       mail (>= 2.7.1)
+      net-imap
+      net-pop
+      net-smtp
     actionmailer (7.1.0.alpha)
       actionpack (= 7.1.0.alpha)
       actionview (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       mail (~> 2.5, >= 2.5.4)
+      net-imap
+      net-pop
+      net-smtp
       rails-dom-testing (~> 2.0)
     actionpack (7.1.0.alpha)
       actionview (= 7.1.0.alpha)
@@ -60,7 +53,7 @@ PATH
     actionview (7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       builder (~> 3.1)
-      erubi (~> 1.4)
+      erubi (~> 1.11)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
     activejob (7.1.0.alpha)
@@ -80,6 +73,7 @@ PATH
       mini_mime (>= 1.1.0)
     activesupport (7.1.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
+      connection_pool (>= 2.2.5)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
@@ -103,7 +97,7 @@ PATH
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
-      zeitwerk (~> 2.5)
+      zeitwerk (~> 2.6)
 
 GEM
   remote: https://rubygems.org/
@@ -113,21 +107,21 @@ GEM
     amq-protocol (2.3.2)
     ast (2.4.2)
     aws-eventstream (1.2.0)
-    aws-partitions (1.541.0)
-    aws-sdk-core (3.124.0)
+    aws-partitions (1.544.0)
+    aws-sdk-core (3.125.1)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.525.0)
       aws-sigv4 (~> 1.1)
       jmespath (~> 1.0)
-    aws-sdk-kms (1.52.0)
-      aws-sdk-core (~> 3, >= 3.122.0)
+    aws-sdk-kms (1.53.0)
+      aws-sdk-core (~> 3, >= 3.125.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-s3 (1.109.0)
-      aws-sdk-core (~> 3, >= 3.122.0)
+    aws-sdk-s3 (1.111.0)
+      aws-sdk-core (~> 3, >= 3.125.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.4)
-    aws-sdk-sns (1.49.0)
-      aws-sdk-core (~> 3, >= 3.122.0)
+    aws-sdk-sns (1.50.0)
+      aws-sdk-core (~> 3, >= 3.125.0)
       aws-sigv4 (~> 1.1)
     aws-sigv4 (1.4.0)
       aws-eventstream (~> 1, >= 1.0.2)
@@ -139,14 +133,14 @@ GEM
       faraday_middleware (~> 1.0, >= 1.0.0.rc1)
       net-http-persistent (~> 4.0)
       nokogiri (~> 1, >= 1.10.8)
-    backburner (1.5.0)
+    backburner (1.6.0)
       beaneater (~> 1.0)
       concurrent-ruby (~> 1.0, >= 1.0.1)
       dante (> 0.1.5)
     bcrypt (3.1.16)
     beaneater (1.1.1)
     benchmark-ips (2.9.2)
-    blade (0.7.2)
+    blade (0.7.3)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (>= 2.0.1)
       coffee-script
@@ -185,21 +179,22 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    cssbundling-rails (1.0.0)
+    cssbundling-rails (1.1.0)
       railties (>= 6.0.0)
-    curses (1.4.2)
+    curses (1.4.4)
     daemons (1.4.1)
-    dalli (3.1.3)
+    dalli (3.2.0)
     dante (0.2.0)
-    debug (1.3.4)
+    debug (1.4.0)
       irb (>= 1.3.6)
       reline (>= 0.2.7)
     declarative (0.0.20)
-    delayed_job (4.1.9)
-      activesupport (>= 3.0, < 6.2)
-    delayed_job_active_record (4.1.6)
-      activerecord (>= 3.0, < 6.2)
+    delayed_job (4.1.10)
+      activesupport (>= 3.0, < 8.0)
+    delayed_job_active_record (4.1.7)
+      activerecord (>= 3.0, < 8.0)
       delayed_job (>= 3.0, < 5)
+    digest (3.1.0)
     digest-crc (0.6.4)
       rake (>= 12.0.0, < 14.0.0)
     em-http-request (1.1.7)
@@ -210,7 +205,7 @@ GEM
       http_parser.rb (>= 0.6.0)
     em-socksify (0.3.2)
       eventmachine (>= 1.0.0.beta.4)
-    erubi (1.10.0)
+    erubi (1.11.0)
     et-orbi (1.2.6)
       tzinfo
     event_emitter (0.2.6)
@@ -300,17 +295,14 @@ GEM
     importmap-rails (1.0.1)
       actionpack (>= 6.0.0)
       railties (>= 6.0.0)
-    io-console (0.5.9)
-    irb (1.3.7)
-      reline (>= 0.2.7)
+    io-console (0.5.11)
+    irb (1.4.1)
+      reline (>= 0.3.0)
     jmespath (1.4.0)
-    jsbundling-rails (1.0.0)
+    jsbundling-rails (1.0.2)
       railties (>= 6.0.0)
     json (2.6.1)
     jwt (2.3.0)
-    kindlerb (1.2.0)
-      mustache
-      nokogiri
     libxml-ruby (3.2.1)
     listen (3.7.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
@@ -326,8 +318,8 @@ GEM
     method_source (1.0.0)
     mini_magick (4.11.0)
     mini_mime (1.1.2)
-    mini_portile2 (2.6.1)
-    minitest (5.15.0)
+    mini_portile2 (2.8.0)
+    minitest (5.16.1)
     minitest-bisect (1.5.1)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
@@ -341,25 +333,39 @@ GEM
     msgpack (1.4.2)
     multi_json (1.15.0)
     multipart-post (2.1.1)
-    mustache (1.1.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
+    mysql2 (0.5.4)
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
+    net-imap (0.2.2)
+      digest
+      net-protocol
+      strscan
+    net-pop (0.1.1)
+      digest
+      net-protocol
+      timeout
+    net-protocol (0.1.3)
+      timeout
+    net-smtp (0.3.1)
+      digest
+      net-protocol
+      timeout
     nio4r (2.5.8)
-    nokogiri (1.12.5)
-      mini_portile2 (~> 2.6.1)
+    nokogiri (1.13.3)
+      mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    nokogiri (1.12.5-x86_64-darwin)
+    nokogiri (1.13.3-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.12.5-x86_64-linux)
+    nokogiri (1.13.3-x86_64-linux)
       racc (~> 1.4)
     os (1.1.4)
     parallel (1.21.0)
-    parser (3.0.3.2)
+    parser (3.1.1.0)
       ast (~> 2.4.1)
     path_expander (1.1.0)
-    pg (1.2.3)
+    pg (1.3.0)
     propshaft (0.4.4)
       actionpack (>= 7.0.0.alpha2)
       activesupport (>= 7.0.0.alpha2)
@@ -369,7 +375,9 @@ GEM
     public_suffix (4.0.6)
     puma (5.5.2)
       nio4r (~> 2.0)
-    que (0.14.3)
+    que (1.3.1)
+    queue_classic (4.0.0)
+      pg (>= 1.1, < 2.0)
     raabro (1.4.0)
     racc (1.6.0)
     rack (2.2.3)
@@ -384,19 +392,19 @@ GEM
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.4.2)
       loofah (~> 2.3)
-    rainbow (3.0.0)
+    rainbow (3.1.1)
     rake (13.0.6)
     rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
-    rbtree (0.4.4)
+    rbtree (0.4.5)
     rdoc (6.3.3)
     redcarpet (3.2.3)
     redis (4.5.1)
     redis-namespace (1.8.1)
       redis (>= 3.0.4)
-    regexp_parser (2.2.0)
-    reline (0.2.7)
+    regexp_parser (2.2.1)
+    reline (0.3.1)
       io-console (~> 0.5)
     representable (3.1.1)
       declarative (< 0.1.0)
@@ -416,25 +424,25 @@ GEM
     retriable (3.1.2)
     rexml (3.2.5)
     rouge (3.27.0)
-    rubocop (1.23.0)
+    rubocop (1.25.1)
       parallel (~> 1.10)
-      parser (>= 3.0.0.0)
+      parser (>= 3.1.0.0)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml
-      rubocop-ast (>= 1.12.0, < 2.0)
+      rubocop-ast (>= 1.15.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.15.0)
-      parser (>= 3.0.1.1)
+    rubocop-ast (1.16.0)
+      parser (>= 3.1.1.0)
     rubocop-minitest (0.17.0)
       rubocop (>= 0.90, < 2.0)
     rubocop-packaging (0.5.1)
       rubocop (>= 0.89, < 2.0)
-    rubocop-performance (1.12.0)
+    rubocop-performance (1.13.1)
       rubocop (>= 1.7.0, < 2.0)
       rubocop-ast (>= 0.4.0)
-    rubocop-rails (2.12.4)
+    rubocop-rails (2.13.0)
       activesupport (>= 4.2.0)
       rack (>= 1.1)
       rubocop (>= 1.7.0, < 2.0)
@@ -445,13 +453,13 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.6.0)
       fugit (~> 1.1, >= 1.1.6)
-    sdoc (2.2.0)
+    sdoc (2.4.0)
       rdoc (>= 5.0)
     selenium-webdriver (4.1.0)
       childprocess (>= 0.5, < 5.0)
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2)
-    sequel (5.51.0)
+    sequel (5.52.0)
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
     set (1.0.2)
@@ -487,13 +495,18 @@ GEM
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
-    sqlite3 (1.4.2)
+    sqlite3 (1.4.4)
     stackprof (0.2.17)
-    stimulus-rails (1.0.0)
+    stimulus-rails (1.0.2)
       railties (>= 6.0.0)
+    strscan (3.0.4)
     sucker_punch (3.0.1)
       concurrent-ruby (~> 1.0)
-    tailwindcss-rails (1.0.0)
+    tailwindcss-rails (2.0.3)
+      railties (>= 6.0.0)
+    tailwindcss-rails (2.0.3-x86_64-darwin)
+      railties (>= 6.0.0)
+    tailwindcss-rails (2.0.3-x86_64-linux)
       railties (>= 6.0.0)
     terser (1.1.8)
       execjs (>= 0.3.0, < 3)
@@ -501,8 +514,9 @@ GEM
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    thor (1.1.0)
+    thor (1.2.1)
     tilt (2.0.10)
+    timeout (0.3.0)
     trailblazer-option (0.1.2)
     turbo-rails (1.0.0)
       actionpack (>= 6.0.0)
@@ -533,12 +547,11 @@ GEM
     websocket-extensions (0.1.5)
     xpath (3.2.0)
       nokogiri (~> 1.8)
-    zeitwerk (2.5.1)
+    zeitwerk (2.6.0)
 
 PLATFORMS
   ruby
-  x86_64-darwin-19
-  x86_64-darwin-20
+  x86_64-darwin
   x86_64-linux
 
 DEPENDENCIES
@@ -566,21 +579,20 @@ DEPENDENCIES
   importmap-rails
   jsbundling-rails
   json (>= 2.0.0)
-  kindlerb (~> 1.2.0)
   libxml-ruby
   listen (~> 3.3)
   minitest (>= 5.15.0)
   minitest-bisect
   minitest-ci
   minitest-retry
-  mysql2 (~> 0.5)!
+  mysql2 (~> 0.5)
   nokogiri (>= 1.8.1, != 1.11.0)
-  pg (~> 1.1)
+  pg (~> 1.3)
   propshaft (>= 0.1.7)
   psych (~> 3.0)
   puma
   que
-  queue_classic!
+  queue_classic (>= 4.0.0)
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
@@ -592,12 +604,13 @@ DEPENDENCIES
   resque-scheduler
   rexml
   rouge
-  rubocop (>= 0.90)
+  rubocop (>= 1.25.1)
   rubocop-minitest
   rubocop-packaging
   rubocop-performance
   rubocop-rails
-  sdoc (>= 2.2.0)
+  rubyzip (~> 2.0)
+  sdoc (>= 2.4.0)
   selenium-webdriver (>= 4.0.0)
   sequel
   sidekiq
@@ -620,4 +633,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.2.32
+   2.3.17

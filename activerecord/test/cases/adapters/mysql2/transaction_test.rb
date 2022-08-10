@@ -36,6 +36,7 @@ module ActiveRecord
     end
 
     test "raises Deadlocked when a deadlock is encountered" do
+      connection = Sample.connection
       assert_raises(ActiveRecord::Deadlocked) do
         barrier = Concurrent::CyclicBarrier.new(2)
 
@@ -60,6 +61,7 @@ module ActiveRecord
           thread.join
         end
       end
+      assert_predicate connection, :active?
     end
 
     test "raises LockWaitTimeout when lock wait timeout exceeded" do

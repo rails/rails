@@ -15,3 +15,9 @@ Que::Job.class_eval do
     run(*args)
   end
 end
+
+Que::ActiveJob::WrapperExtensions.class_eval do
+  def run(args)
+    super(args.deep_stringify_keys)
+  end
+end

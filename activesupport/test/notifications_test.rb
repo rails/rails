@@ -140,6 +140,66 @@ module Notifications
     end
   end
 
+  class BuildHandleTest < TestCase
+    def test_interleaved_event
+      event_name = "foo"
+      actual_times = []
+
+      ActiveSupport::Notifications.subscribe(event_name) do |name, started, finished, unique_id, data|
+        actual_times << [started, finished]
+      end
+
+      times = (1..4).map { |s| Time.new(2020, 1, 1) + s }
+
+      instrumenter = ActiveSupport::Notifications.instrumenter
+      travel_to times[0]
+      handle1 = instrumenter.build_handle(event_name, {})
+      handle2 = instrumenter.build_handle(event_name, {})
+
+      handle1.start
+      travel_to times[1]
+      handle2.start
+      travel_to times[2]
+      handle1.finish
+      travel_to times[3]
+      handle2.finish
+
+      assert_equal [
+        # from when start1 was returned, to when its state passed to finish
+        [times[0], times[2]],
+        # from when start2 was returned, to when its state passed to finish
+        [times[1], times[3]],
+      ], actual_times
+    end
+
+    def test_subscribed_interleaved_with_event
+      instrumenter = ActiveSupport::Notifications.instrumenter
+
+      name    = "foo"
+      events1 = []
+      events2 = []
+
+      callback1 = lambda { |event| events1 << event }
+      callback2 = lambda { |event| events2 << event }
+
+      ActiveSupport::Notifications.subscribed(callback1, name) do
+        handle = instrumenter.build_handle(name, {})
+        handle.start
+
+        ActiveSupport::Notifications.subscribed(callback2, name) do
+          handle.finish
+        end
+      end
+
+      assert_equal 1, events1.size
+      assert_empty events2
+
+      assert_equal name, events1[0].name
+      assert events1[0].time
+      assert events1[0].end
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"
@@ -185,8 +245,10 @@ module Notifications
 
       ActiveSupport::Notifications.subscribe("foo", TestSubscriber.new)
 
-      ActiveSupport::Notifications.instrument("foo") do
-        ActiveSupport::Notifications.subscribe("foo") { }
+      assert_nothing_raised do
+        ActiveSupport::Notifications.instrument("foo") do
+          ActiveSupport::Notifications.subscribe("foo") { }
+        end
       end
     ensure
       ActiveSupport::Notifications.notifier = old_notifier
@@ -226,6 +288,13 @@ module Notifications
       ActiveSupport::Notifications.instrument(event_name)
 
       assert_equal [Float, Float], [class_of_started, class_of_finished]
+    end
+  end
+
+  class InspectTest < TestCase
+    def test_inspect_output_is_small
+      expected = "#<ActiveSupport::Notifications::Fanout (2 patterns)>"
+      assert_equal expected, @notifier.inspect
     end
   end
 
@@ -451,21 +520,6 @@ module Notifications
     def test_events_consumes_information_given_as_payload
       event = event(:foo, Process.clock_gettime(Process::CLOCK_MONOTONIC), Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1, random_id, payload: :bar)
       assert_equal Hash[payload: :bar], event.payload
-    end
-
-    def test_event_is_parent_based_on_children
-      time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-      parent    = event(:foo, Process.clock_gettime(Process::CLOCK_MONOTONIC), Process.clock_gettime(Process::CLOCK_MONOTONIC) + 100, random_id, {})
-      child     = event(:foo, time, time + 10, random_id, {})
-      not_child = event(:foo, time, time + 100, random_id, {})
-
-      parent.children << child
-
-      assert parent.parent_of?(child)
-      assert_not child.parent_of?(parent)
-      assert_not parent.parent_of?(not_child)
-      assert_not not_child.parent_of?(parent)
     end
 
     def test_subscribe_raises_error_on_non_supported_arguments

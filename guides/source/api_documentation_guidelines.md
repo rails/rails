@@ -60,11 +60,11 @@ end
 
 Communicate to the reader the current way of doing things, both explicitly and implicitly. Use the idioms recommended in edge. Reorder sections to emphasize favored approaches if needed, etc. The documentation should be a model for best practices and canonical, modern Rails usage.
 
-Documentation has to be concise but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
+Documentation has to be brief but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
 
-The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be phenomenal.
+The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper names.
 
-Spell names correctly: Arel, minitest, RSpec, HTML, MySQL, JavaScript, ERB. When in doubt, please have a look at some authoritative source like their official documentation.
+Spell names correctly: Arel, minitest, RSpec, HTML, MySQL, JavaScript, ERB, Hotwire. When in doubt, please have a look at some authoritative source like their official documentation.
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
@@ -77,7 +77,7 @@ If you need to use `return` statements in your callbacks, it is recommended that
 use this style:
 
 ```markdown
-If `return` is needed it is recommended to explicitly define a method.
+If `return` is needed, it is recommended to explicitly define a method.
 ```
 
 That said, when using pronouns in reference to a hypothetical person, such as "a
@@ -114,7 +114,7 @@ Short docs do not need an explicit "Examples" label to introduce snippets; they 
 # Converts a collection of elements into a formatted string by
 # calling +to_s+ on all elements and joining them.
 #
-#   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
+#   Blog.all.to_fs # => "First PostSecond PostThird Post"
 ```
 
 On the other hand, big chunks of structured documentation may have a separate "Examples" section:
@@ -283,7 +283,7 @@ In lists of options, parameters, etc. use a hyphen between the item and its desc
 # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
 ```
 
-The description starts in upper case and ends with a full stop-it's standard English.
+The description starts in upper case and ends with a full stop—it's standard English.
 
 Dynamically Generated Methods
 -----------------------------

@@ -4,10 +4,6 @@ require "active_support/ruby_features"
 
 class Class
   if ActiveSupport::RubyFeatures::CLASS_SUBCLASSES
-    def descendants
-      subclasses.concat(subclasses.flat_map(&:descendants))
-    end
-  else
     # Returns an array with all classes that are < than its receiver.
     #
     #   class C; end
@@ -21,6 +17,10 @@ class Class
     #
     #   class D < C; end
     #   C.descendants # => [B, A, D]
+    def descendants
+      subclasses.concat(subclasses.flat_map(&:descendants))
+    end
+  else
     def descendants
       ObjectSpace.each_object(singleton_class).reject do |k|
         k.singleton_class? || k == self

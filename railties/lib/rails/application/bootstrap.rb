@@ -28,14 +28,18 @@ module Rails
               * production - set it to true
 
           INFO
-          config.eager_load = config.cache_classes
+          config.eager_load = !config.reloading_enabled?
         end
       end
 
       # Initialize the logger early in the stack in case we need to log some deprecation.
       initializer :initialize_logger, group: :all do
         Rails.logger ||= config.logger || begin
-          logger = ActiveSupport::Logger.new(config.default_log_file)
+          logger = if config.log_file_size
+            ActiveSupport::Logger.new(config.default_log_file, 1, config.log_file_size)
+          else
+            ActiveSupport::Logger.new(config.default_log_file)
+          end
           logger.formatter = config.log_formatter
           logger = ActiveSupport::TaggedLogging.new(logger)
           logger
@@ -59,6 +63,9 @@ module Rails
 
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, group: :all do
+        cache_format_version = config.active_support.delete(:cache_format_version)
+        ActiveSupport.cache_format_version = cache_format_version if cache_format_version
+
         unless Rails.cache
           Rails.cache = ActiveSupport::Cache.lookup_store(*config.cache_store)
 

@@ -432,6 +432,26 @@ module ActiveRecord
           @recorder.inverse_of :remove_check_constraint, [:dogs]
         end
       end
+
+      def test_invert_create_enum
+        drop = @recorder.inverse_of :create_enum, [:color, ["blue", "green"]]
+        assert_equal [:drop_enum, [:color, ["blue", "green"]], nil], drop
+      end
+
+      def test_invert_drop_enum
+        create = @recorder.inverse_of :drop_enum, [:color, ["blue", "green"]]
+        assert_equal [:create_enum, [:color, ["blue", "green"]], nil], create
+      end
+
+      def test_invert_drop_enum_without_values
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_enum, [:color]
+        end
+
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_enum, [:color, if_exists: true]
+        end
+      end
     end
   end
 end

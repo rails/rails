@@ -8,17 +8,8 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "rails", "~> 6.1.0"
+  gem "rails", "~> 7.0.0"
   gem "sqlite3"
-  if RUBY_VERSION >= "3.1"
-    # net-smtp, net-imap and net-pop were removed from default gems in Ruby 3.1, but is used by the `mail` gem.
-    # So we need to add them as dependencies until `mail` is fixed: https://github.com/mikel/mail/pull/1439
-    gem "net-smtp", require: false
-
-    # digest gem, which is one of the default gems has bumped to 3.1.0.pre for ruby 3.1.0dev.
-    # Also `net-smtp` v0.2.2 adds dependency to digest gem which attempts to install digest 3.0.0.
-    gem "digest", "~> 3.1.0.pre", require: false
-  end
 end
 
 require "active_record/railtie"

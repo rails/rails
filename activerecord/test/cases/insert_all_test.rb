@@ -63,9 +63,9 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_all_should_handle_empty_arrays
-    assert_raise ArgumentError do
-      Book.insert_all! []
-    end
+    assert_empty Book.insert_all([])
+    assert_empty Book.insert_all!([])
+    assert_empty Book.upsert_all([])
   end
 
   def test_insert_all_raises_on_duplicate_records
@@ -263,6 +263,25 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_with_aliased_attributes
+    if supports_insert_returning?
+      assert_difference "Book.count" do
+        result = Book.insert_all [{ title: "Remote", author_id: 1 }], returning: :title
+        assert_includes result.columns, "title"
+      end
+    end
+
+    if supports_insert_on_duplicate_update?
+      Book.upsert_all [{ id: 101, title: "Perelandra", author_id: 7, isbn: "1974522598" }]
+      Book.upsert_all [{ id: 101, title: "Perelandra 2", author_id: 6, isbn: "111111" }], update_only: %i[ title isbn ]
+
+      book = Book.find(101)
+      assert_equal "Perelandra 2", book.title, "Should have updated the title"
+      assert_equal "111111", book.isbn, "Should have updated the isbn"
+      assert_equal 7, book.author_id, "Should not have updated the author_id"
+    end
+  end
+
   def test_upsert_logs_message_including_model_name
     skip unless supports_insert_on_duplicate_update?
 
@@ -343,6 +362,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_only_updates_the_column_provided_via_update_only
+    skip unless supports_insert_on_duplicate_update?
+
     Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7, isbn: "1974522598" }]
     Book.upsert_all [{ id: 101, name: "Perelandra 2", author_id: 7, isbn: "111111" }], update_only: :name
 
@@ -352,6 +373,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_only_updates_the_list_of_columns_provided_via_update_only
+    skip unless supports_insert_on_duplicate_update?
+
     Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7, isbn: "1974522598" }]
     Book.upsert_all [{ id: 101, name: "Perelandra 2", author_id: 6, isbn: "111111" }], update_only: %i[ name isbn ]
 
@@ -395,9 +418,14 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
 
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
-    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
 
-    assert_not_predicate Book.find(101).updated_at.usec, :zero?, "updated_at should have sub-second precision"
+    # A single upsert can occur exactly at the seconds boundary (when usec is naturally zero), so try multiple times.
+    has_subsecond_precision = (1..100).any? do |i|
+      Book.upsert_all [{ id: 101, name: "Out of the Silent Planet (Edition #{i})" }]
+      Book.find(101).updated_at.usec > 0
+    end
+
+    assert has_subsecond_precision, "updated_at should have sub-second precision"
   end
 
   def test_upsert_all_uses_given_updated_at_over_implicit_updated_at
@@ -421,6 +449,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_true
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, true) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
 
@@ -433,6 +463,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_true_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, true) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: false
 
@@ -445,6 +477,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_does_not_implicitly_set_timestamps_on_create_when_model_record_timestamps_is_false
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, false) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
 
@@ -457,6 +491,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_implicitly_sets_timestamps_on_create_when_model_record_timestamps_is_false_but_overridden
+    skip unless supports_insert_on_duplicate_update?
+
     with_record_timestamps(Ship, false) do
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: true
 
@@ -469,11 +505,15 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_respects_created_at_precision_when_touched_implicitly
-    skip unless supports_datetime_with_precision?
+    skip unless supports_insert_on_duplicate_update? && supports_datetime_with_precision?
 
-    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+    # A single upsert can occur exactly at the seconds boundary (when usec is naturally zero), so try multiple times.
+    has_subsecond_precision = (1..100).any? do |i|
+      Book.upsert_all [{ id: 101 + i, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+      Book.find(101 + i).created_at.usec > 0
+    end
 
-    assert_not_predicate Book.find(101).created_at.usec, :zero?, "created_at should have sub-second precision"
+    assert has_subsecond_precision, "created_at should have sub-second precision"
   end
 
   def test_upsert_all_implicitly_sets_timestamps_on_update_when_model_record_timestamps_is_true

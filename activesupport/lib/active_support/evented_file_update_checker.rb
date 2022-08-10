@@ -8,16 +8,14 @@ require "active_support/fork_tracker"
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.
-  # The evented file updater does not hit disk when checking for updates
-  # instead it uses platform specific file system events to trigger a change
+  # The evented file updater does not hit disk when checking for updates.
+  # Instead, it uses platform-specific file system events to trigger a change
   # in state.
   #
   # The file checker takes an array of files to watch or a hash specifying directories
   # and file extensions to watch. It also takes a block that is called when
   # EventedFileUpdateChecker#execute is run or when EventedFileUpdateChecker#execute_if_updated
   # is run and there have been changes to the file system.
-  #
-  # Note: Forking will cause the first call to `updated?` to return `true`.
   #
   # Example:
   #

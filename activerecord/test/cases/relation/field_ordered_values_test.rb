@@ -9,21 +9,15 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
 
   def test_in_order_of
     order = [3, 4, 1]
-    posts = Post.in_order_of(:id, order).limit(3)
+    posts = Post.in_order_of(:id, order)
 
     assert_equal(order, posts.map(&:id))
   end
 
-  def test_unspecified_order
-    order = [3, 4, 1]
-    post_ids = Post.in_order_of(:id, order).map(&:id)
-    expected_order = order + (post_ids - order).sort
-    assert_equal(expected_order, post_ids)
-  end
-
   def test_in_order_of_empty
     posts = Post.in_order_of(:id, [])
-    assert_equal(posts.map(&:id).sort, posts.map(&:id))
+
+    assert_empty(posts)
   end
 
   def test_in_order_of_with_enums_values
@@ -52,14 +46,26 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
 
   def test_in_order_of_expression
     order = [3, 4, 1]
-    posts = Post.in_order_of(Arel.sql("id * 2"), order.map { |id| id * 2 }).limit(3)
+    posts = Post.in_order_of(Arel.sql("id * 2"), order.map { |id| id * 2 })
 
     assert_equal(order, posts.map(&:id))
   end
 
+  def test_in_order_of_with_string_column
+    Book.destroy_all
+    Book.create!(format: "paperback")
+    Book.create!(format: "ebook")
+    Book.create!(format: "hardcover")
+
+    order = %w[hardcover paperback ebook]
+    books = Book.in_order_of(:format, order)
+
+    assert_equal(order, books.map(&:format))
+  end
+
   def test_in_order_of_after_regular_order
     order = [3, 4, 1]
-    posts = Post.where(type: "Post").order(:type).in_order_of(:id, order).limit(3)
+    posts = Post.where(type: "Post").order(:type).in_order_of(:id, order)
 
     assert_equal(order, posts.map(&:id))
   end

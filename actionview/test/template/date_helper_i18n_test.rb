@@ -49,7 +49,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
   end
 
   def test_time_ago_in_words_passes_locale
-    assert_called_with(I18n, :t, [:less_than_x_minutes, scope: :'datetime.distance_in_words', count: 1, locale: "ru"]) do
+    assert_called_with(I18n, :t, [:less_than_x_minutes], scope: :'datetime.distance_in_words', count: 1, locale: "ru") do
       time_ago_in_words(15.seconds.ago, locale: "ru")
     end
   end
@@ -84,7 +84,7 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
     options = { locale: "en", scope: :'datetime.distance_in_words' }.merge!(expected_options)
     options[:count] = count if count
 
-    assert_called_with(I18n, :t, [key, options]) do
+    assert_called_with(I18n, :t, [key], **options) do
       distance_of_time_in_words(@from, to, passed_options.merge(locale: "en"))
     end
   end
@@ -103,16 +103,30 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   end
 
   def test_select_month_translates_monthnames
-    assert_called_with(I18n, :translate, [:'date.month_names', locale: "en"], returns: Date::MONTHNAMES) do
+    assert_called_with(I18n, :translate, [:'date.month_names'], returns: Date::MONTHNAMES, locale: "en") do
       select_month(8, locale: "en")
     end
   end
 
   def test_select_month_given_use_short_month_option_translates_abbr_monthnames
-    assert_called_with(I18n, :translate, [:'date.abbr_month_names', locale: "en"], returns: Date::ABBR_MONTHNAMES) do
+    assert_called_with(I18n, :translate, [:'date.abbr_month_names'], returns: Date::ABBR_MONTHNAMES, locale: "en") do
       select_month(8, locale: "en", use_short_month: true)
     end
   end
+
+  def test_select_month_with_frozen_month_names
+    month_names = Date::MONTHNAMES.dup.drop(1)
+    mock = Minitest::Mock.new
+    expect_called_with(mock, [:'date.month_names'], locale: "en", returns: month_names.freeze)
+
+    I18n.stub(:translate, mock) do
+      select_month(8, locale: "en")
+    end
+
+    assert_mock(mock)
+  end
+
+  # date_or_time_select
 
   def test_date_or_time_select_translates_prompts
     prompt_defaults = { year: "Year", month: "Month", day: "Day", hour: "Hour", minute: "Minute", second: "Seconds" }
@@ -137,8 +151,6 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
     assert_equal defaults.count, @prompt_called
   end
 
-  # date_or_time_select
-
   def test_date_or_time_select_given_an_order_options_does_not_translate_order
     assert_not_called(I18n, :translate) do
       datetime_select("post", "updated_at", order: [:year, :month, :day], locale: "en", use_month_names: Date::MONTHNAMES)
@@ -146,13 +158,19 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   end
 
   def test_date_or_time_select_given_no_order_options_translates_order
-    assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", { locale: "en" }] ], returns: %w(year month day)) do
+    mock = Minitest::Mock.new
+    expect_called_with(mock, [:'date.order'], locale: "en", default: [], returns: ["year", "month", "day"])
+    expect_called_with(mock, [:'date.month_names'], locale: "en", returns: [])
+
+    I18n.stub(:translate, mock) do
       datetime_select("post", "updated_at", locale: "en")
     end
+
+    assert_mock(mock)
   end
 
   def test_date_or_time_select_given_invalid_order
-    assert_called_with(I18n, :translate, [:'date.order', locale: "en", default: []], returns: %w(invalid month day)) do
+    assert_called_with(I18n, :translate, [:'date.order'], returns: %w(invalid month day), locale: "en", default: []) do
       assert_raise StandardError do
         datetime_select("post", "updated_at", locale: "en")
       end
@@ -160,8 +178,14 @@ class DateHelperSelectTagsI18nTests < ActiveSupport::TestCase
   end
 
   def test_date_or_time_select_given_symbol_keys
-    assert_called_with(I18n, :translate, [ [:'date.order', locale: "en", default: []], [:"date.month_names", { locale: "en" }] ], returns: [:year, :month, :day]) do
+    mock = Minitest::Mock.new
+    expect_called_with(mock, [:'date.order'], locale: "en", default: [], returns: [:year, :month, :day])
+    expect_called_with(mock, [:'date.month_names'], locale: "en", returns: [])
+
+    I18n.stub(:translate, mock) do
       datetime_select("post", "updated_at", locale: "en")
     end
+
+    assert_mock(mock)
   end
 end

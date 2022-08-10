@@ -133,7 +133,7 @@ module ActiveStorage
           end
         end
       rescue Errno::ENOENT
-        logger.info "Skipping video analysis because FFmpeg isn't installed"
+        logger.info "Skipping video analysis because ffprobe isn't installed"
         {}
       end
 

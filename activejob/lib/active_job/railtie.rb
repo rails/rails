@@ -25,6 +25,15 @@ module ActiveJob
       options = app.config.active_job
       options.queue_adapter ||= :async
 
+      config.after_initialize do
+        options.each do |k, v|
+          k = "#{k}="
+          if ActiveJob.respond_to?(k)
+            ActiveJob.send(k, v)
+          end
+        end
+      end
+
       ActiveSupport.on_load(:active_job) do
         # Configs used in other initializers
         options = options.except(
@@ -32,18 +41,18 @@ module ActiveJob
           :custom_serializers
         )
 
-        options.each do  |k, v|
+        options.each do |k, v|
           k = "#{k}="
-          send(k, v) if respond_to? k
+          if ActiveJob.respond_to?(k)
+            ActiveJob.send(k, v)
+          elsif respond_to? k
+            send(k, v)
+          end
         end
       end
 
       ActiveSupport.on_load(:action_dispatch_integration_test) do
         include ActiveJob::TestHelper
-      end
-
-      ActiveSupport.on_load(:active_record) do
-        self.destroy_association_async_job = ActiveRecord::DestroyAssociationAsyncJob
       end
     end
 

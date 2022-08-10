@@ -130,7 +130,7 @@ see the API Documentation for [`ActiveJob::QueueAdapters`][].
 
 ### Setting the Backend
 
-You can easily set your queuing backend:
+You can easily set your queuing backend with [`config.active_job.queue_adapter`]:
 
 ```ruby
 # config/application.rb
@@ -155,6 +155,8 @@ end
 # Now your job will use `resque` as its backend queue adapter, overriding what
 # was configured in `config.active_job.queue_adapter`.
 ```
+
+[`config.active_job.queue_adapter`]: configuring.html#config-active-job-queue-adapter
 
 ### Starting the Backend
 
@@ -188,7 +190,7 @@ end
 ```
 
 You can prefix the queue name for all your jobs using
-`config.active_job.queue_name_prefix` in `application.rb`:
+[`config.active_job.queue_name_prefix`][] in `application.rb`:
 
 ```ruby
 # config/application.rb
@@ -225,7 +227,7 @@ end
 ```
 
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
-`config.active_job.queue_name_delimiter` in `application.rb`:
+[`config.active_job.queue_name_delimiter`][] in `application.rb`:
 
 ```ruby
 # config/application.rb
@@ -284,6 +286,8 @@ ProcessVideoJob.perform_later(Video.last)
 NOTE: Make sure your queuing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
 
+[`config.active_job.queue_name_delimiter`]: configuring.html#config-active-job-queue-name-delimiter
+[`config.active_job.queue_name_prefix`]: configuring.html#config-active-job-queue-name-prefix
 [`queue_as`]: https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as
 
 Callbacks

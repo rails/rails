@@ -14,9 +14,9 @@ module ActiveRecord
       end
 
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-        :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?,
+        :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        to: :@conn, private: true
+        :supports_exclusion_constraints?, to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
@@ -51,12 +51,16 @@ module ActiveRecord
             statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
           end
 
-          if supports_foreign_keys?
+          if use_foreign_keys?
             statements.concat(o.foreign_keys.map { |fk| accept fk })
           end
 
           if supports_check_constraints?
             statements.concat(o.check_constraints.map { |chk| accept chk })
+          end
+
+          if supports_exclusion_constraints?
+            statements.concat(o.exclusion_constraints.map { |exc| accept exc })
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?

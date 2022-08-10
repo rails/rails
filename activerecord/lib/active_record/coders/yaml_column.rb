@@ -47,11 +47,19 @@ module ActiveRecord
 
         if YAML.respond_to?(:unsafe_load)
           def yaml_load(payload)
-            YAML.unsafe_load(payload)
+            if ActiveRecord.use_yaml_unsafe_load
+              YAML.unsafe_load(payload)
+            else
+              YAML.safe_load(payload, permitted_classes: ActiveRecord.yaml_column_permitted_classes, aliases: true)
+            end
           end
         else
           def yaml_load(payload)
-            YAML.load(payload)
+            if ActiveRecord.use_yaml_unsafe_load
+              YAML.load(payload)
+            else
+              YAML.safe_load(payload, permitted_classes: ActiveRecord.yaml_column_permitted_classes, aliases: true)
+            end
           end
         end
     end

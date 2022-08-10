@@ -80,6 +80,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "record touched after analyze" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+
+    assert_changes -> { user.reload.updated_at } do
+      user.avatar.blob.analyze
+    end
+  end
+
   test "build_after_unfurling generates a 28-character base36 key" do
     assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
   end
@@ -210,15 +225,18 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = create_blob(filename: "original.txt")
 
     arguments = [
-      blob.key,
+      blob.key
+    ]
+
+    kwargs = {
       expires_in: ActiveStorage.service_urls_expire_in,
       disposition: :attachment,
       content_type: blob.content_type,
       filename: blob.filename,
       thumb_size: "300x300",
       thumb_mode: "crop"
-    ]
-    assert_called_with(blob.service, :url, arguments) do
+    }
+    assert_called_with(blob.service, :url, arguments, **kwargs) do
       blob.url(thumb_size: "300x300", thumb_mode: "crop")
     end
   end
@@ -279,9 +297,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "updating the content_type updates service metadata" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
-    expected_arguments = [blob.key, content_type: "image/jpeg", custom_metadata: {}]
-
-    assert_called_with(blob.service, :update_metadata, expected_arguments) do
+    assert_called_with(blob.service, :update_metadata, [blob.key], content_type: "image/jpeg", custom_metadata: {}) do
       blob.update!(content_type: "image/jpeg")
     end
   end
@@ -290,16 +306,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
     expected_arguments = [
-      blob.key,
-      {
-        content_type: "application/octet-stream",
-        disposition: :attachment,
-        filename: blob.filename,
-        custom_metadata: { "test" => true }
-      }
+      blob.key
     ]
 
-    assert_called_with(blob.service, :update_metadata, expected_arguments) do
+    expected_kwargs = {
+      content_type: "application/octet-stream",
+      disposition: :attachment,
+      filename: blob.filename,
+      custom_metadata: { "test" => true }
+    }
+
+    assert_called_with(blob.service, :update_metadata, expected_arguments, **expected_kwargs) do
       blob.update!(metadata: { custom: { "test" => true } })
     end
   end
@@ -339,6 +356,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not_deprecated do
       create_blob(filename: "funky.jpg", content_type: "image/jpeg")
     end
+
+    assert_not_deprecated do
+      create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
+    end
   end
 
   test "warning if blob is created with invalid mime type can be disabled" do
@@ -351,6 +372,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_not_deprecated do
       create_blob(filename: "funky.jpg", content_type: "image/jpeg")
+    end
+
+    assert_not_deprecated do
+      create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     end
 
   ensure

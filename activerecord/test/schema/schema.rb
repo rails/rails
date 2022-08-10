@@ -38,6 +38,21 @@ ActiveRecord::Schema.define do
     t.references :account
   end
 
+  create_table :admin_user_jsons, force: true do |t|
+    t.string :name
+    t.string :settings, null: true, limit: 1024
+    t.string :parent, null: true, limit: 1024
+    t.string :spouse, null: true, limit: 1024
+    t.string :configs, null: true, limit: 1024
+    # MySQL does not allow default values for blobs. Fake it out with a
+    # big varchar below.
+    t.string :preferences, null: true, default: "", limit: 1024
+    t.string :json_data, null: true, limit: 1024
+    t.string :json_data_empty, null: true, default: "", limit: 1024
+    t.text :params
+    t.references :account
+  end
+
   create_table :aircraft, force: true do |t|
     t.string :name
     t.integer :wheels_count, default: 0, null: false
@@ -56,6 +71,10 @@ ActiveRecord::Schema.define do
   create_table :articles_tags, force: true do |t|
     t.references :article
     t.references :tag
+  end
+
+  create_table :attachments, force: true do |t|
+    t.references :record, polymorphic: true, null: false
   end
 
   create_table :audit_logs, force: true do |t|
@@ -137,7 +156,7 @@ ActiveRecord::Schema.define do
   create_table :encrypted_books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
-    t.column :name, :string
+    t.column :name, :string, default: "<untitled>"
     t.column :original_name, :string
 
     t.datetime :created_at
@@ -1107,6 +1126,13 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
   end
 
+  create_table :translations, force: true do |t|
+    t.string :locale, null: false
+    t.string :key, null: false
+    t.string :value, null: false
+    t.references :attachment
+  end
+
   create_table :tuning_pegs, force: true do |t|
     t.integer :guitar_id
     t.float :pitch
@@ -1280,6 +1306,7 @@ ActiveRecord::Schema.define do
     t.string :auth_token
     t.string :password_digest
     t.string :recovery_password_digest
+    t.timestamps null: true
   end
 
   create_table :test_with_keyword_column_name, force: true do |t|

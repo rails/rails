@@ -20,14 +20,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
 
   def setup
-    @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
+    @old_matchers = ActiveRecord::Base.send(:attribute_method_patterns).dup
     @target = Class.new(ActiveRecord::Base)
     @target.table_name = "topics"
   end
 
   teardown do
-    ActiveRecord::Base.send(:attribute_method_matchers).clear
-    ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
+    ActiveRecord::Base.send(:attribute_method_patterns).clear
+    ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
   end
 
   test "attribute_for_inspect with a string" do
@@ -41,14 +41,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_formatted_s(:inspect)}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_fs(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do
     t = topics(:first)
-    t.content = [Object.new]
-
-    assert_match %r(\[#<Object:0x[0-9a-f]+>\]), t.attribute_for_inspect(:content)
+    t.content = ["some_value"]
+    assert_match %r(\["some_value"\]), t.attribute_for_inspect(:content)
   end
 
   test "attribute_for_inspect with a long array" do
@@ -218,7 +217,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "read attributes_for_database" do
     topic = Topic.new
-    topic.content = { one: 1, two: 2 }
+    topic.content = { "one" => 1, "two" => 2 }
 
     db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
     before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
@@ -291,16 +290,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "hashes are not mangled" do
-    new_topic = { title: "New Topic", content: { key: "First value" } }
-    new_topic_values = { title: "AnotherTopic", content: { key: "Second value" } }
+    new_topic = { "title" => "New Topic", "content" => { "key" => "First value" } }
+    new_topic_values = { "title" => "AnotherTopic", "content" => { "key" => "Second value" } }
 
     topic = Topic.new(new_topic)
-    assert_equal new_topic[:title], topic.title
-    assert_equal new_topic[:content], topic.content
+    assert_equal new_topic["title"], topic.title
+    assert_equal new_topic["content"], topic.content
 
     topic.attributes = new_topic_values
-    assert_equal new_topic_values[:title], topic.title
-    assert_equal new_topic_values[:content], topic.content
+    assert_equal new_topic_values["title"], topic.title
+    assert_equal new_topic_values["content"], topic.content
   end
 
   test "create through factory" do
@@ -624,7 +623,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "should unserialize attributes for frozen records" do
-    myobj = { value1: :value2 }
+    myobj = { "value1" => "value2" }
     topic = Topic.create(content: myobj)
     topic.freeze
     assert_equal myobj, topic.content

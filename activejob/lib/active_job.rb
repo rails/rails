@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2014-2021 David Heinemeier Hansson
+# Copyright (c) 2014-2022 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -33,9 +33,20 @@ module ActiveJob
 
   autoload :Base
   autoload :QueueAdapters
-  autoload :Serializers
-  autoload :ConfiguredJob
+
+  eager_autoload do
+    autoload :Serializers
+    autoload :ConfiguredJob
+  end
+
   autoload :TestCase
   autoload :TestHelper
-  autoload :QueryTags
+
+  ##
+  # :singleton-method:
+  # If false, Rails will preserve the legacy serialization of BigDecimal job arguments as Strings.
+  # If true, Rails will use the new BigDecimalSerializer to (de)serialize BigDecimal losslessly.
+  # Legacy serialization will be removed in Rails 7.2, along with this config.
+  singleton_class.attr_accessor :use_big_decimal_serializer
+  self.use_big_decimal_serializer = false
 end

@@ -326,7 +326,7 @@ module ActiveRecord
   #   details.
   # * <tt>change_table(name, options)</tt>: Allows to make column alterations to
   #   the table called +name+. It makes the table object available to a block that
-  #   can then add/remove columns, indexes or foreign keys to it.
+  #   can then add/remove columns, indexes, or foreign keys to it.
   # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames
   #   a column but keeps the type and content.
   # * <tt>rename_index(table_name, old_name, new_name)</tt>: Renames an index.
@@ -548,6 +548,8 @@ module ActiveRecord
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
     autoload :JoinTable, "active_record/migration/join_table"
+    autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
+    autoload :DefaultStrategy, "active_record/migration/default_strategy"
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
@@ -575,8 +577,15 @@ module ActiveRecord
 
     MigrationFilenameRegexp = /\A([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/ # :nodoc:
 
+    def self.valid_version_format?(version_string) # :nodoc:
+      [
+        MigrationFilenameRegexp,
+        /\A\d(_?\d)*\z/ # integer with optional underscores
+      ].any? { |pattern| pattern.match?(version_string) }
+    end
+
     # This class is used to verify that all migrations have been run before
-    # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
+    # loading a web page if <tt>config.active_record.migration_error</tt> is set to +:page_load+.
     class CheckPending
       def initialize(app, file_watcher: ActiveSupport::FileUpdateChecker)
         @app = app
@@ -685,6 +694,10 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
+    end
+
+    def execution_strategy
+      @execution_strategy ||= ActiveRecord.migration_strategy.new(self)
     end
 
     self.verbose = true
@@ -810,8 +823,9 @@ module ActiveRecord
 
     # Runs the given migration classes.
     # Last argument can specify options:
-    # - :direction (default is :up)
-    # - :revert (default is false)
+    #
+    # - +:direction+ - Default is +:up+.
+    # - +:revert+ - Default is +false+.
     def run(*migration_classes)
       opts = migration_classes.extract_options!
       dir = opts[:direction] || :up
@@ -873,6 +887,7 @@ module ActiveRecord
       end
     ensure
       @connection = nil
+      @execution_strategy = nil
     end
 
     def write(text = "")
@@ -927,8 +942,8 @@ module ActiveRecord
             end
           end
         end
-        return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
+        return super unless execution_strategy.respond_to?(method)
+        execution_strategy.send(method, *arguments, &block)
       end
     end
     ruby2_keywords(:method_missing)
@@ -1317,10 +1332,9 @@ module ActiveRecord
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        result = execute_migration_in_transaction(migration)
 
         record_environment
-        result
+        execute_migration_in_transaction(migration)
       end
 
       # Used for running multiple migrations up to or down to a certain value.
@@ -1329,9 +1343,8 @@ module ActiveRecord
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        result = runnable.each(&method(:execute_migration_in_transaction))
         record_environment
-        result
+        runnable.each(&method(:execute_migration_in_transaction))
       end
 
       # Stores the current environment in the database.

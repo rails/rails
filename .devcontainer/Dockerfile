@@ -21,8 +21,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 
 
 ARG IMAGEMAGICK_VERSION="7.1.0-5"
-RUN wget -qO /tmp/im.tar.xz https://imagemagick.org/download/releases/ImageMagick-$IMAGEMAGICK_VERSION.tar.xz \
-    && wget -qO /tmp/im.sig https://imagemagick.org/download/releases/ImageMagick-$IMAGEMAGICK_VERSION.tar.xz.asc \
+RUN wget -qO /tmp/im.tar.xz https://imagemagick.org/archive/releases/ImageMagick-$IMAGEMAGICK_VERSION.tar.xz \
+    && wget -qO /tmp/im.sig https://imagemagick.org/archive/releases/ImageMagick-$IMAGEMAGICK_VERSION.tar.xz.asc \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv 89AB63D48277377A \
     && gpg --batch --verify /tmp/im.sig /tmp/im.tar.xz \
     && tar xJf /tmp/im.tar.xz -C /tmp \

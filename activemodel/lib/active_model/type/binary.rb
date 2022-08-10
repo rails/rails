@@ -2,7 +2,11 @@
 
 module ActiveModel
   module Type
-    class Binary < Value # :nodoc:
+    # Attribute type for representation of binary data. This type is registered
+    # under the +:binary+ key.
+    #
+    # Non-string values are coerced to strings using their +to_s+ method.
+    class Binary < Value
       def type
         :binary
       end

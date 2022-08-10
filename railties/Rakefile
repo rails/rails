@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "shellwords"
 require "rake/testtask"
 
 task default: :test

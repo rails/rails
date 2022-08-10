@@ -53,6 +53,7 @@ module ApplicationTests
       assert_path @paths["config/environments"], "config/environments/development.rb"
       assert_path @paths["config/routes.rb"],    "config/routes.rb"
       assert_path @paths["config/routes"],       "config/routes"
+      assert_path @paths["test/mailers/previews"], "test/mailers/previews"
 
       assert_equal root("app", "controllers"), @paths["app/controllers"].expanded.first
     end
@@ -69,12 +70,12 @@ module ApplicationTests
     end
 
     test "load path includes each of the paths in config.paths as long as the directories exist" do
-      assert_in_load_path "app", "controllers"
-      assert_in_load_path "app", "models"
-      assert_in_load_path "app", "helpers"
       assert_in_load_path "lib"
       assert_in_load_path "vendor"
 
+      assert_not_in_load_path "app", "controllers"
+      assert_not_in_load_path "app", "models"
+      assert_not_in_load_path "app", "helpers"
       assert_not_in_load_path "app", "views"
       assert_not_in_load_path "config"
       assert_not_in_load_path "config", "locales"

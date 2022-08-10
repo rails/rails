@@ -7,11 +7,11 @@ module ActiveRecord
     # shard to switch to and allows for applications to write custom strategies
     # for swapping if needed.
     #
-    # The ShardSelector takes a set of options (currently only `lock` is supported)
-    # that can be used by the middleware to alter behavior. `lock` is
+    # The ShardSelector takes a set of options (currently only +lock+ is supported)
+    # that can be used by the middleware to alter behavior. +lock+ is
     # true by default and will prohibit the request from switching shards once
-    # inside the block. If `lock` is false, then shard swapping will be allowed.
-    # For tenant based sharding, `lock` should always be true to prevent application
+    # inside the block. If +lock+ is false, then shard swapping will be allowed.
+    # For tenant based sharding, +lock+ should always be true to prevent application
     # code from mistakenly switching between tenants.
     #
     # Options can be set in the config:

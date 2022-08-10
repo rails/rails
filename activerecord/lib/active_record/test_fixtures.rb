@@ -24,6 +24,7 @@ module ActiveRecord
       class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures, default: false
       class_attribute :lock_threads, default: true
+      class_attribute :fixture_sets, default: {}
     end
 
     module ClassMethods
@@ -55,37 +56,20 @@ module ActiveRecord
 
       def setup_fixture_accessors(fixture_set_names = nil)
         fixture_set_names = Array(fixture_set_names || fixture_table_names)
-        methods = Module.new do
+        unless fixture_set_names.empty?
+          self.fixture_sets = fixture_sets.dup
           fixture_set_names.each do |fs_name|
-            fs_name = fs_name.to_s
-            accessor_name = fs_name.tr("/", "_").to_sym
-
-            define_method(accessor_name) do |*fixture_names|
-              force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
-              return_single_record = fixture_names.size == 1
-              fixture_names = @loaded_fixtures[fs_name].fixtures.keys if fixture_names.empty?
-
-              @fixture_cache[fs_name] ||= {}
-
-              instances = fixture_names.map do |f_name|
-                f_name = f_name.to_s if f_name.is_a?(Symbol)
-                @fixture_cache[fs_name].delete(f_name) if force_reload
-
-                if @loaded_fixtures[fs_name][f_name]
-                  @fixture_cache[fs_name][f_name] ||= @loaded_fixtures[fs_name][f_name].find
-                else
-                  raise StandardError, "No fixture named '#{f_name}' found for fixture set '#{fs_name}'"
-                end
-              end
-
-              return_single_record ? instances.first : instances
-            end
-            private accessor_name
+            key = fs_name.match?(%r{/}) ? -fs_name.to_s.tr("/", "_") : fs_name
+            key = -key.to_s if key.is_a?(Symbol)
+            fs_name = -fs_name.to_s if fs_name.is_a?(Symbol)
+            fixture_sets[key] = fs_name
           end
         end
-        include methods
       end
 
+      # Prevents automatically wrapping each specified test in a transaction,
+      # to allow application logic transactions to be tested in a top-level
+      # (non-nested) context.
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.concat methods.map(&:to_s)
@@ -111,7 +95,6 @@ module ActiveRecord
       @fixture_connections = []
       @@already_loaded_fixtures ||= {}
       @connection_subscriber = nil
-      @legacy_saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
       @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
 
       # Load fixtures once and begin transaction.
@@ -132,21 +115,24 @@ module ActiveRecord
 
         # When connections are established in the future, begin a transaction too
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
-          spec_name = payload[:spec_name] if payload.key?(:spec_name)
+          connection_name = payload[:connection_name] if payload.key?(:connection_name)
           shard = payload[:shard] if payload.key?(:shard)
-          setup_shared_connection_pool
 
-          if spec_name
+          if connection_name
             begin
-              connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name, shard: shard)
+              connection = ActiveRecord::Base.connection_handler.retrieve_connection(connection_name, shard: shard)
             rescue ConnectionNotEstablished
               connection = nil
             end
 
-            if connection && !@fixture_connections.include?(connection)
-              connection.begin_transaction joinable: false, _lazy: false
-              connection.pool.lock_thread = true if lock_threads
-              @fixture_connections << connection
+            if connection
+              setup_shared_connection_pool
+
+              if !@fixture_connections.include?(connection)
+                connection.begin_transaction joinable: false, _lazy: false
+                connection.pool.lock_thread = true if lock_threads
+                @fixture_connections << connection
+              end
             end
           end
         end
@@ -193,74 +179,38 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        if ActiveRecord.legacy_connection_handling
-          writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord.writing_role]
+        handler = ActiveRecord::Base.connection_handler
 
-          ActiveRecord::Base.connection_handlers.values.each do |handler|
-            if handler != writing_handler
-              handler.connection_pool_names.each do |name|
-                writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
-                return unless writing_pool_manager
+        handler.connection_pool_names.each do |name|
+          pool_manager = handler.send(:connection_name_to_pool_manager)[name]
+          pool_manager.shard_names.each do |shard_name|
+            writing_pool_config = pool_manager.get_pool_config(ActiveRecord.writing_role, shard_name)
+            @saved_pool_configs[name][shard_name] ||= {}
+            pool_manager.role_names.each do |role|
+              next unless pool_config = pool_manager.get_pool_config(role, shard_name)
+              next if pool_config == writing_pool_config
 
-                pool_manager = handler.send(:owner_to_pool_manager)[name]
-                @legacy_saved_pool_configs[handler][name] ||= {}
-                pool_manager.shard_names.each do |shard_name|
-                  writing_pool_config = writing_pool_manager.get_pool_config(nil, shard_name)
-                  pool_config = pool_manager.get_pool_config(nil, shard_name)
-                  next if pool_config == writing_pool_config
-
-                  @legacy_saved_pool_configs[handler][name][shard_name] = pool_config
-                  pool_manager.set_pool_config(nil, shard_name, writing_pool_config)
-                end
-              end
-            end
-          end
-        else
-          handler = ActiveRecord::Base.connection_handler
-
-          handler.connection_pool_names.each do |name|
-            pool_manager = handler.send(:owner_to_pool_manager)[name]
-            pool_manager.shard_names.each do |shard_name|
-              writing_pool_config = pool_manager.get_pool_config(ActiveRecord.writing_role, shard_name)
-              @saved_pool_configs[name][shard_name] ||= {}
-              pool_manager.role_names.each do |role|
-                next unless pool_config = pool_manager.get_pool_config(role, shard_name)
-                next if pool_config == writing_pool_config
-
-                @saved_pool_configs[name][shard_name][role] = pool_config
-                pool_manager.set_pool_config(role, shard_name, writing_pool_config)
-              end
+              @saved_pool_configs[name][shard_name][role] = pool_config
+              pool_manager.set_pool_config(role, shard_name, writing_pool_config)
             end
           end
         end
       end
 
       def teardown_shared_connection_pool
-        if ActiveRecord.legacy_connection_handling
-          @legacy_saved_pool_configs.each_pair do |handler, names|
-            names.each_pair do |name, shards|
-              shards.each_pair do |shard_name, pool_config|
-                pool_manager = handler.send(:owner_to_pool_manager)[name]
-                pool_manager.set_pool_config(nil, shard_name, pool_config)
-              end
-            end
-          end
-        else
-          handler = ActiveRecord::Base.connection_handler
+        handler = ActiveRecord::Base.connection_handler
 
-          @saved_pool_configs.each_pair do |name, shards|
-            pool_manager = handler.send(:owner_to_pool_manager)[name]
-            shards.each_pair do |shard_name, roles|
-              roles.each_pair do |role, pool_config|
-                next unless pool_manager.get_pool_config(role, shard_name)
+        @saved_pool_configs.each_pair do |name, shards|
+          pool_manager = handler.send(:connection_name_to_pool_manager)[name]
+          shards.each_pair do |shard_name, roles|
+            roles.each_pair do |role, pool_config|
+              next unless pool_manager.get_pool_config(role, shard_name)
 
-                pool_manager.set_pool_config(role, shard_name, pool_config)
-              end
+              pool_manager.set_pool_config(role, shard_name, pool_config)
             end
           end
         end
 
-        @legacy_saved_pool_configs.clear
         @saved_pool_configs.clear
       end
 
@@ -282,6 +232,43 @@ module ActiveRecord
 
       def load_instances?
         use_instantiated_fixtures != :no_instances
+      end
+
+      def method_missing(name, *args, **kwargs, &block)
+        if fs_name = fixture_sets[name.to_s]
+          access_fixture(fs_name, *args, **kwargs, &block)
+        else
+          super
+        end
+      end
+
+      def respond_to_missing?(name, include_private = false)
+        if include_private && fixture_sets.key?(name.to_s)
+          true
+        else
+          super
+        end
+      end
+
+      def access_fixture(fs_name, *fixture_names)
+        force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
+        return_single_record = fixture_names.size == 1
+
+        fixture_names = @loaded_fixtures[fs_name].fixtures.keys if fixture_names.empty?
+        @fixture_cache[fs_name] ||= {}
+
+        instances = fixture_names.map do |f_name|
+          f_name = f_name.to_s if f_name.is_a?(Symbol)
+          @fixture_cache[fs_name].delete(f_name) if force_reload
+
+          if @loaded_fixtures[fs_name][f_name]
+            @fixture_cache[fs_name][f_name] ||= @loaded_fixtures[fs_name][f_name].find
+          else
+            raise StandardError, "No fixture named '#{f_name}' found for fixture set '#{fs_name}'"
+          end
+        end
+
+        return_single_record ? instances.first : instances
       end
   end
 end

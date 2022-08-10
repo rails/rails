@@ -8,7 +8,9 @@ module ActiveRecord
       module Quoting # :nodoc:
         def quote_bound_value(value)
           case value
-          when Numeric
+          when Rational
+            quote(value.to_f.to_s)
+          when Numeric, ActiveSupport::Duration
             quote(value.to_s)
           when BigDecimal
             quote(value.to_s("F"))
@@ -82,7 +84,7 @@ module ActiveRecord
           (
             (?:
               # `table_name`.`column_name` | function(one or no argument)
-              ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`)) | \w+\((?:|\g<2>)\)
+              ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`) | \w+\((?:|\g<2>)\))
             )
             (?:(?:\s+AS)?\s+(?:\w+|`\w+`))?
           )
@@ -95,8 +97,9 @@ module ActiveRecord
           (
             (?:
               # `table_name`.`column_name` | function(one or no argument)
-              ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`)) | \w+\((?:|\g<2>)\)
+              ((?:\w+\.|`\w+`\.)?(?:\w+|`\w+`) | \w+\((?:|\g<2>)\))
             )
+            (?:\s+COLLATE\s+(?:\w+|"\w+"))?
             (?:\s+ASC|\s+DESC)?
           )
           (?:\s*,\s*\g<1>)*

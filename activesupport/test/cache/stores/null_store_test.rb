@@ -10,11 +10,15 @@ class NullStoreTest < ActiveSupport::TestCase
   end
 
   def test_clear
+    @cache.write("name", "value")
     @cache.clear
+    assert_nil @cache.read("name")
   end
 
   def test_cleanup
+    @cache.write("name", "value")
     @cache.cleanup
+    assert_nil @cache.read("name")
   end
 
   def test_write
@@ -44,6 +48,7 @@ class NullStoreTest < ActiveSupport::TestCase
   def test_delete_matched
     @cache.write("name", "value")
     @cache.delete_matched(/name/)
+    assert_nil @cache.read("name")
   end
 
   def test_local_store_strategy
@@ -55,5 +60,15 @@ class NullStoreTest < ActiveSupport::TestCase
       @cache.write("name", "value")
     end
     assert_nil @cache.read("name")
+  end
+
+  def test_local_store_repeated_reads
+    @cache.with_local_cache do
+      @cache.read("foo")
+      assert_nil @cache.read("foo")
+
+      @cache.read_multi("foo", "bar")
+      assert_equal({ "foo" => nil, "bar" => nil }, @cache.read_multi("foo", "bar"))
+    end
   end
 end

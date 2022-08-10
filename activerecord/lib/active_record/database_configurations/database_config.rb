@@ -8,8 +8,6 @@ module ActiveRecord
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :name
 
-      attr_accessor :owner_name
-
       def initialize(env_name, name)
         @env_name = env_name
         @name = name

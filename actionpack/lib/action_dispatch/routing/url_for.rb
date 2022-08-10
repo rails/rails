@@ -70,7 +70,7 @@ module ActionDispatch
     #   resources :users
     #
     # This generates, among other things, the method <tt>users_path</tt>. By default,
-    # this method is accessible from your controllers, views and mailers. If you need
+    # this method is accessible from your controllers, views, and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
     # you can do that by including Rails.application.routes.url_helpers in your class:
     #
@@ -115,7 +115,7 @@ module ActionDispatch
         default_url_options
       end
 
-      # Generate a URL based on the options provided, default_url_options and the
+      # Generate a URL based on the options provided, default_url_options, and the
       # routes defined in routes.rb. The following options are supported:
       #
       # * <tt>:only_path</tt> - If true, the relative URL is returned. Defaults to +false+.
@@ -154,7 +154,7 @@ module ActionDispatch
       #    # => '/myapp/tasks/testing'
       #
       # Missing routes keys may be filled in from the current request's parameters
-      # (e.g. +:controller+, +:action+, +:id+ and any other parameters that are
+      # (e.g. +:controller+, +:action+, +:id+, and any other parameters that are
       # placed in the path). Given that the current action has been reached
       # through <tt>GET /users/1</tt>:
       #
