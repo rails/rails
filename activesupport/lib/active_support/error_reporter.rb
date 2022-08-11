@@ -31,6 +31,11 @@ module ActiveSupport
   # +severity+ can be one of +:error+, +:warning+, or +:info+. Handled errors default to the +:warning+
   # severity, and unhandled ones to +:error+.
   #
+  # A +source+ can also be specified, describing where the error originates from. Error subscribers can
+  # use this to ignore certain errors. For instance, ActiveSupport may report internal errors
+  # such as cache failures with a source like "redis_cache_store.active_support".
+  # The default +source+ is "application".
+  #
   # Both +handle+ and +record+ pass through the return value from the block. In the case of +handle+
   # rescuing an error, a fallback can be provided. The fallback must be a callable whose result will
   # be returned when the block raises and is handled:
@@ -62,6 +67,13 @@ module ActiveSupport
       fallback.call if fallback
     end
 
+    # Report any unhandled exception, but do not swallow it.
+    #
+    #   Rails.error.record do
+    #     # Will report the TypeError to all subscribers and then raise it.
+    #     1 + '1'
+    #   end
+    #
     def record(error_class = StandardError, severity: :error, context: {}, source: DEFAULT_SOURCE)
       yield
     rescue error_class => error
@@ -71,7 +83,7 @@ module ActiveSupport
 
     # Register a new error subscriber. The subscriber must respond to
     #
-    #   report(Exception, handled: Boolean, context: Hash)
+    #   report(Exception, handled: Boolean, severity: (:error OR :warning OR :info), context: Hash, source: String)
     #
     # The +report+ method +should+ never raise an error.
     def subscribe(subscriber)
@@ -82,10 +94,10 @@ module ActiveSupport
     end
 
     # Prevent a subscriber from being notified of errors for the
-    # duration of the block.
+    # duration of the block. You may pass in the subscriber itself, or its class.
     #
-    # It can be used by error reporting service integration when they wish
-    # to handle the error higher in the stack.
+    # This can be helpful for error reporting service integrations, when they wish
+    # to handle any errors higher in the stack.
     def disable(subscriber)
       disabled_subscribers = (ActiveSupport::IsolatedExecutionState[self] ||= [])
       disabled_subscribers << subscriber
@@ -100,6 +112,7 @@ module ActiveSupport
     #
     #   Rails.error.set_context(section: "checkout", user_id: @user.id)
     #
+    # Any context passed to +handle+, +record+, or +report+ will be merged with the context set here.
     # See +ActiveSupport::ExecutionContext.set+
     def set_context(...)
       ActiveSupport::ExecutionContext.set(...)
