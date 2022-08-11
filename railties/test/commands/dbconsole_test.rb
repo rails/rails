@@ -115,7 +115,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_mysql_full
     start(adapter: "mysql2", database: "db", host: "localhost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
     assert_not aborted
-    assert_equal [%w[mysql mysql5], "--host=localhost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
+    assert_equal [%w[mysql mysql5], "--host=localhost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "--password=qwerty", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_include_password
@@ -137,7 +137,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal "user", ENV["PGUSER"]
     assert_equal "host", ENV["PGHOST"]
     assert_equal "5432", ENV["PGPORT"]
-    assert_not_equal "q1w2e3", ENV["PGPASSWORD"]
+    assert_equal "q1w2e3", ENV["PGPASSWORD"]
   end
 
   def test_postgresql_with_ssl
@@ -198,7 +198,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_oracle
     start(adapter: "oracle", database: "db", username: "user", password: "secret")
     assert_not aborted
-    assert_equal ["sqlplus", "user@db"], dbconsole.find_cmd_and_exec_args
+    assert_equal ["sqlplus", "user/secret@db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_oracle_include_password
