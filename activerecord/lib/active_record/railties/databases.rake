@@ -206,14 +206,15 @@ db_namespace = namespace :db do
 
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
 
-          ActiveRecord::Base.establish_connection(db_config)
-          ActiveRecord::Tasks::DatabaseTasks.check_target_version
-          ActiveRecord::Base.connection.migration_context.run(
-            :up,
-            ActiveRecord::Tasks::DatabaseTasks.target_version
-          )
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            ActiveRecord::Tasks::DatabaseTasks.check_target_version
+            connection.migration_context.run(
+              :up,
+              ActiveRecord::Tasks::DatabaseTasks.target_version
+            )
 
-          db_namespace["_dump"].invoke
+            db_namespace["_dump"].invoke
+          end
         end
       end
     end
@@ -498,8 +499,6 @@ db_namespace = namespace :db do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
           schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
           ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
-        ensure
-          ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
       end
     end

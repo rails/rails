@@ -335,9 +335,9 @@ module ActiveRecord
         database_adapter_for(db_config, *arguments).collation
       end
 
-      def purge(configuration)
+      def purge(configuration, connection_class: ActiveRecord::Base)
         db_config = resolve_configuration(configuration)
-        database_adapter_for(db_config).purge
+        database_adapter_for(db_config, connection_class: connection_class).purge
       end
 
       def purge_all
@@ -369,19 +369,19 @@ module ActiveRecord
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
-        ActiveRecord::Base.establish_connection(db_config)
-        connection = ActiveRecord::Base.connection
 
-        case format
-        when :ruby
-          load(file)
-        when :sql
-          structure_load(db_config, file)
-        else
-          raise ArgumentError, "unknown format #{format.inspect}"
+        ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+          case format
+          when :ruby
+            load(file)
+          when :sql
+            structure_load(db_config, file)
+          else
+            raise ArgumentError, "unknown format #{format.inspect}"
+          end
+
+          connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
         end
-
-        connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
       ensure
         Migration.verbose = verbose_was
       end
@@ -530,12 +530,12 @@ module ActiveRecord
         # Create a new instance for the specified db configuration object
         # For classes that have been converted to use db_config objects, pass a
         # `DatabaseConfig`, otherwise pass a `Hash`
-        def database_adapter_for(db_config, *arguments)
+        def database_adapter_for(db_config, *arguments, **kwargs)
           klass = class_for_adapter(db_config.adapter)
           converted = klass.respond_to?(:using_database_configurations?) && klass.using_database_configurations?
 
           config = converted ? db_config : db_config.configuration_hash
-          klass.new(config, *arguments)
+          klass.new(config, *arguments, **kwargs)
         end
 
         def class_for_adapter(adapter)
