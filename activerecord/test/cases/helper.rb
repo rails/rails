@@ -3,6 +3,7 @@
 require "config"
 
 require "stringio"
+require 'minitest/excludes'
 
 require "active_record"
 require "cases/test_case"

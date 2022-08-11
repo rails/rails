@@ -182,3 +182,5 @@ gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
 
 gem "pry", "~> 0.14.1"
+
+gem "minitest-excludes", "~> 2.0"

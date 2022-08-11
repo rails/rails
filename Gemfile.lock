@@ -326,6 +326,8 @@ GEM
       path_expander (~> 1.1)
     minitest-ci (3.4.0)
       minitest (>= 5.0.6)
+    minitest-excludes (2.0.1)
+      minitest (~> 5.0)
     minitest-retry (0.2.2)
       minitest (>= 5.0)
     minitest-server (1.0.6)
@@ -588,6 +590,7 @@ DEPENDENCIES
   minitest (>= 5.15.0)
   minitest-bisect
   minitest-ci
+  minitest-excludes (~> 2.0)
   minitest-retry
   mysql2 (~> 0.5)
   nokogiri (>= 1.8.1, != 1.11.0)
