@@ -167,7 +167,7 @@ module Rails
     class DbconsoleCommand < Base # :nodoc:
       include EnvironmentArgument
 
-      class_option :include_password, aliases: "-p", type: :boolean,
+      class_option :include_password, aliases: "-p", type: :boolean, default: true,
         desc: "Automatically provide the password from database.yml"
 
       class_option :mode, enum: %w( html list line column ), type: :string,
