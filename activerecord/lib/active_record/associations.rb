@@ -1768,6 +1768,7 @@ module ActiveRecord
         # [:default]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
         #   be initialized with a particular record before validation.
+        #   Please note that callable won't be executed if the record exists.
         # [:strict_loading]
         #   Enforces strict loading every time the associated record is loaded through this association.
         # [:ensuring_owner_was]

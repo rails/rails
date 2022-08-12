@@ -266,6 +266,10 @@ Style/ColonMethodCall:
 Style/TrivialAccessors:
   Enabled: true
 
+# Prefer a = b || c over a = b ? b : c
+Style/RedundantCondition:
+  Enabled: true
+
 Performance/BindCall:
   Enabled: true
 

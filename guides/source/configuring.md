@@ -1901,12 +1901,12 @@ Registers interceptors which will be called before mail is previewed.
 config.action_mailer.preview_interceptors = ["MyPreviewMailInterceptor"]
 ```
 
-#### `config.action_mailer.preview_path`
+#### `config.action_mailer.preview_paths`
 
-Specifies the location of mailer previews.
+Specifies the locations of mailer previews. Appending paths to this configuration option will cause those paths to be used in the search for mailer previews.
 
 ```ruby
-config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
 #### `config.action_mailer.show_previews`
@@ -2258,14 +2258,21 @@ an `around_perform`. The default value is `true`.
 
 #### `config.active_job.use_big_decimal_serializer`
 
-Enable the use of BigDecimalSerializer instead of legacy BigDecimal argument
-serialization, which may result in the argument being lossfully converted to
-a String when using certain queue adapters.
-This setting is disabled by default to allow race condition free deployment
-of applications with multiple replicas, in which an old replica would not
-support BigDecimalSerializer..
-In such environments, it should be safe to enable this setting following
-successful deployment of Rails 7.1 which introduces BigDecimalSerializer.
+Enables the new `BigDecimal` argument serializer, which guarantees
+roundtripping. Without this serializer, some queue adapters may serialize
+`BigDecimal` arguments as simple (non-roundtrippable) strings.
+
+WARNING: When deploying an application with multiple replicas, old (pre-Rails
+7.1) replicas will not be able to deserialize `BigDecimal` arguments from this
+serializer. Therefore, this setting should only be enabled after all replicas
+have been successfully upgraded to Rails 7.1.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
 
 ### Configuring Action Cable
 
@@ -3038,6 +3045,8 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `add_locales`: Adds the files in `config/locales` (from the application, railties, and engines) to `I18n.load_path`, making available the translations in these files.
 
 * `add_view_paths`: Adds the directory `app/views` from the application, railties, and engines to the lookup path for view files for the application.
+
+* `add_mailer_preview_paths`: Adds the directory `test/mailers/previews` from the application, railties, and engines to the lookup path for mailer preview files for the application.
 
 * `load_environment_config`: Loads the `config/environments` file for the current environment.
 

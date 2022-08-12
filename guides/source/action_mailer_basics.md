@@ -556,12 +556,12 @@ visually see the new style instantly. A list of previews are also available
 in <http://localhost:3000/rails/mailers>.
 
 By default, these preview classes live in `test/mailers/previews`.
-This can be configured using the `preview_path` option. For example, if you
-want to change it to `lib/mailer_previews`, you can configure it in
+This can be configured using the `preview_paths` option. For example, if you
+want to add `lib/mailer_previews` to it, you can configure it in
 `config/application.rb`:
 
 ```ruby
-config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
 ### Generating URLs in Action Mailer Views

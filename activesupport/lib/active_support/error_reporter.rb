@@ -3,7 +3,7 @@
 module ActiveSupport
   # +ActiveSupport::ErrorReporter+ is a common interface for error reporting services.
   #
-  # To rescue and report any unhandled error, you can use the +handle+ method:
+  # To rescue and report any unhandled error, you can use the #handle method:
   #
   #   Rails.error.handle do
   #     do_something!
@@ -11,33 +11,16 @@ module ActiveSupport
   #
   # If an error is raised, it will be reported and swallowed.
   #
-  # Alternatively if you want to report the error but not swallow it, you can use +record+
+  # Alternatively, if you want to report the error but not swallow it, you can use #record:
   #
   #   Rails.error.record do
   #     do_something!
   #   end
   #
-  # Both methods can be restricted to only handle a specific exception class
+  # Both methods can be restricted to handle only a specific error class:
   #
   #   maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
   #
-  # You can also pass some extra context information that may be used by the error subscribers:
-  #
-  #   Rails.error.handle(context: { section: "admin" }) do
-  #     # ...
-  #   end
-  #
-  # Additionally a +severity+ can be passed along to communicate how important the error report is.
-  # +severity+ can be one of +:error+, +:warning+, or +:info+. Handled errors default to the +:warning+
-  # severity, and unhandled ones to +:error+.
-  #
-  # Both +handle+ and +record+ pass through the return value from the block. In the case of +handle+
-  # rescuing an error, a fallback can be provided. The fallback must be a callable whose result will
-  # be returned when the block raises and is handled:
-  #
-  #   user = Rails.error.handle(fallback: -> { User.anonymous }) do
-  #     User.find_by(params)
-  #   end
   class ErrorReporter
     SEVERITIES = %i(error warning info)
     DEFAULT_SOURCE = "application"
@@ -49,12 +32,43 @@ module ActiveSupport
       @logger = logger
     end
 
-    # Report any unhandled exception, and swallow it.
+    # Evaluates the given block, reporting and swallowing any unhandled error.
+    # If no error is raised, returns the return value of the block. Otherwise,
+    # returns the result of +fallback.call+, or +nil+ if +fallback+ is not
+    # specified.
     #
+    #   # Will report a TypeError to all subscribers and return nil.
     #   Rails.error.handle do
     #     1 + '1'
     #   end
     #
+    # Can be restricted to handle only a specific error class:
+    #
+    #   maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
+    #
+    # ==== Options
+    #
+    # * +:severity+ - This value is passed along to subscribers to indicate how
+    #   important the error report is. Can be +:error+, +:warning+, or +:info+.
+    #   Defaults to +:warning+.
+    #
+    # * +:context+ - Extra information that is passed along to subscribers. For
+    #   example:
+    #
+    #     Rails.error.handle(context: { section: "admin" }) do
+    #       # ...
+    #     end
+    #
+    # * +:fallback+ - A callable that provides +handle+'s return value when an
+    #   unhandled error is raised. For example:
+    #
+    #     user = Rails.error.handle(fallback: -> { User.anonymous }) do
+    #       User.find_by(params)
+    #     end
+    #
+    # * +:source+ - This value is passed along to subscribers to indicate the
+    #   source of the error. Subscribers can use this value to ignore certain
+    #   errors. Defaults to <tt>"application"</tt>.
     def handle(error_class = StandardError, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
       yield
     rescue error_class => error
@@ -62,6 +76,34 @@ module ActiveSupport
       fallback.call if fallback
     end
 
+    # Evaluates the given block, reporting and re-raising any unhandled error.
+    # If no error is raised, returns the return value of the block.
+    #
+    #   # Will report a TypeError to all subscribers and re-raise it.
+    #   Rails.error.record do
+    #     1 + '1'
+    #   end
+    #
+    # Can be restricted to handle only a specific error class:
+    #
+    #   tags = Rails.error.record(Redis::BaseError) { redis.get("tags") }
+    #
+    # ==== Options
+    #
+    # * +:severity+ - This value is passed along to subscribers to indicate how
+    #   important the error report is. Can be +:error+, +:warning+, or +:info+.
+    #   Defaults to +:error+.
+    #
+    # * +:context+ - Extra information that is passed along to subscribers. For
+    #   example:
+    #
+    #     Rails.error.record(context: { section: "admin" }) do
+    #       # ...
+    #     end
+    #
+    # * +:source+ - This value is passed along to subscribers to indicate the
+    #   source of the error. Subscribers can use this value to ignore certain
+    #   errors. Defaults to <tt>"application"</tt>.
     def record(error_class = StandardError, severity: :error, context: {}, source: DEFAULT_SOURCE)
       yield
     rescue error_class => error
@@ -71,9 +113,9 @@ module ActiveSupport
 
     # Register a new error subscriber. The subscriber must respond to
     #
-    #   report(Exception, handled: Boolean, context: Hash)
+    #   report(Exception, handled: Boolean, severity: (:error OR :warning OR :info), context: Hash, source: String)
     #
-    # The +report+ method +should+ never raise an error.
+    # The +report+ method <b>should never</b> raise an error.
     def subscribe(subscriber)
       unless subscriber.respond_to?(:report)
         raise ArgumentError, "Error subscribers must respond to #report"
@@ -82,10 +124,10 @@ module ActiveSupport
     end
 
     # Prevent a subscriber from being notified of errors for the
-    # duration of the block.
+    # duration of the block. You may pass in the subscriber itself, or its class.
     #
-    # It can be used by error reporting service integration when they wish
-    # to handle the error higher in the stack.
+    # This can be helpful for error reporting service integrations, when they wish
+    # to handle any errors higher in the stack.
     def disable(subscriber)
       disabled_subscribers = (ActiveSupport::IsolatedExecutionState[self] ||= [])
       disabled_subscribers << subscriber
@@ -96,18 +138,21 @@ module ActiveSupport
       end
     end
 
-    # Update the execution context that is accessible to error subscribers
+    # Update the execution context that is accessible to error subscribers. Any
+    # context passed to #handle, #record, or #report will be merged with the
+    # context set here.
     #
     #   Rails.error.set_context(section: "checkout", user_id: @user.id)
     #
-    # See +ActiveSupport::ExecutionContext.set+
     def set_context(...)
       ActiveSupport::ExecutionContext.set(...)
     end
 
-    # When the block based +handle+ and +record+ methods are not suitable, you can directly use +report+
+    # Report an error directly to subscribers. You can use this method when the
+    # block-based #handle and #record methods are not suitable.
     #
     #   Rails.error.report(error)
+    #
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
