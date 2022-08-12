@@ -25,11 +25,11 @@ module ActiveRecord
           end
 
           def visit_ChangeColumnDefaultDefinition(o)
-            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} SET DEFAULT "
-            if o.default.nil?
-              sql << "NULL"
+            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} "
+            if o.default.nil? && !o.column.null
+              sql << "DROP DEFAULT"
             else
-              sql << quote_default_expression(o.default, o.column)
+              sql << "SET DEFAULT #{quote_default_expression(o.default, o.column)}"
             end
           end
 
