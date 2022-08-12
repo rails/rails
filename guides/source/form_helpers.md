@@ -584,22 +584,37 @@ For each of these helpers, you may specify a date or time object instead of a nu
 Choices from a Collection of Arbitrary Objects
 ----------------------------------------------
 
-Often, we want to generate a set of choices in a form from a collection of objects. For example, when we want the user to choose from cities in our database, and we have a `City` model like:
+Sometimes, we want to generate a set of choices from a collection of arbitrary objects. For example, if we have a `City` model and corresponding `belongs_to :city` association:
 
 ```ruby
-City.order(:name).to_a
-# => [
-#      #<City id: 3, name: "Berlin">,
-#      #<City id: 1, name: "Chicago">,
-#      #<City id: 2, name: "Madrid">
-#    ]
+class City < ApplicationRecord
+end
+
+class Person < ApplicationRecord
+  belongs_to :city
+end
 ```
 
-Rails provides helpers that generate choices from a collection without having to explicitly iterate over it. These helpers determine the value and text label of each choice by calling specified methods on each object in the collection.
+```ruby
+City.order(:name).map { |city| [city.name, city.id] }
+# => [["Berlin", 3], ["Chicago", 1], ["Madrid", 2]]
+```
+
+Then we can allow the user to choose a city from the database with the following form:
+
+```erb
+<%= form_with model: @person do |form| %>
+  <%= form.select :city_id, City.order(:name).map { |city| [city.name, city.id] } %>
+<% end %>
+```
+
+NOTE: When rendering a field for a `belongs_to` association, you must specify the name of the foreign key (`city_id` in the above example), rather than the name of the association itself.
+
+However, Rails provides helpers that generate choices from a collection without having to explicitly iterate over it. These helpers determine the value and text label of each choice by calling specified methods on each object in the collection.
 
 ### The `collection_select` Helper
 
-To generate a select box for our cities, we can use [`collection_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_select):
+To generate a select box, we can use [`collection_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_select):
 
 ```erb
 <%= form.collection_select :city_id, City.order(:name), :id, :name %>
@@ -608,7 +623,7 @@ To generate a select box for our cities, we can use [`collection_select`](https:
 Output:
 
 ```html
-<select name="city_id" id="city_id">
+<select name="person[city_id]" id="person_city_id">
   <option value="3">Berlin</option>
   <option value="1">Chicago</option>
   <option value="2">Madrid</option>
@@ -619,7 +634,7 @@ NOTE: With `collection_select` we specify the value method first (`:id` in the e
 
 ### The `collection_radio_buttons` Helper
 
-To generate a set of radio buttons for our cities, we can use [`collection_radio_buttons`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_radio_buttons):
+To generate a set of radio buttons, we can use [`collection_radio_buttons`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_radio_buttons):
 
 ```erb
 <%= form.collection_radio_buttons :city_id, City.order(:name), :id, :name %>
@@ -628,31 +643,38 @@ To generate a set of radio buttons for our cities, we can use [`collection_radio
 Output:
 
 ```html
-<input type="radio" name="city_id" value="3" id="city_id_3">
-<label for="city_id_3">Berlin</label>
-<input type="radio" name="city_id" value="1" id="city_id_1">
-<label for="city_id_1">Chicago</label>
-<input type="radio" name="city_id" value="2" id="city_id_2">
-<label for="city_id_2">Madrid</label>
+<input type="radio" name="person[city_id]" value="3" id="person_city_id_3">
+<label for="person_city_id_3">Berlin</label>
+
+<input type="radio" name="person[city_id]" value="1" id="person_city_id_1">
+<label for="person_city_id_1">Chicago</label>
+
+<input type="radio" name="person[city_id]" value="2" id="person_city_id_2">
+<label for="person_city_id_2">Madrid</label>
 ```
 
 ### The `collection_check_boxes` Helper
 
-To generate a set of check boxes for our cities (which allows users to choose more than one), we can use [`collection_check_boxes`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_check_boxes):
+To generate a set of check boxes — for example, to support a `has_and_belongs_to_many` association — we can use [`collection_check_boxes`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_check_boxes):
 
 ```erb
-<%= form.collection_check_boxes :city_id, City.order(:name), :id, :name %>
+<%= form.collection_check_boxes :interest_ids, Interest.order(:name), :id, :name %>
 ```
 
 Output:
 
 ```html
-<input type="checkbox" name="city_id[]" value="3" id="city_id_3">
-<label for="city_id_3">Berlin</label>
-<input type="checkbox" name="city_id[]" value="1" id="city_id_1">
-<label for="city_id_1">Chicago</label>
-<input type="checkbox" name="city_id[]" value="2" id="city_id_2">
-<label for="city_id_2">Madrid</label>
+<input type="checkbox" name="person[interest_id][]" value="3" id="person_interest_id_3">
+<label for="person_interest_id_3">Engineering</label>
+
+<input type="checkbox" name="person[interest_id][]" value="4" id="person_interest_id_4">
+<label for="person_interest_id_4">Math</label>
+
+<input type="checkbox" name="person[interest_id][]" value="1" id="person_interest_id_1">
+<label for="person_interest_id_1">Science</label>
+
+<input type="checkbox" name="person[interest_id][]" value="2" id="person_interest_id_2">
+<label for="person_interest_id_2">Technology</label>
 ```
 
 Uploading Files
