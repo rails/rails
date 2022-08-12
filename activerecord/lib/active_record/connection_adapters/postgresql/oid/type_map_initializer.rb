@@ -20,17 +20,19 @@ module ActiveRecord
             nodes = records.reject { |row| @store.key? row["oid"].to_i }
             mapped = nodes.extract! { |row| @store.key? row["typname"] }
             ranges = nodes.extract! { |row| row["typtype"] == "r" }
+            multiranges = nodes.extract! { |row| row["typtype"] == "m" }
             enums = nodes.extract! { |row| row["typtype"] == "e" }
             domains = nodes.extract! { |row| row["typtype"] == "d" }
             arrays = nodes.extract! { |row| row["typinput"] == "array_in" }
             composites = nodes.extract! { |row| row["typelem"].to_i != 0 }
 
-            mapped.each     { |row| register_mapped_type(row)    }
-            enums.each      { |row| register_enum_type(row)      }
-            domains.each    { |row| register_domain_type(row)    }
-            arrays.each     { |row| register_array_type(row)     }
-            ranges.each     { |row| register_range_type(row)     }
-            composites.each { |row| register_composite_type(row) }
+            mapped.each       { |row| register_mapped_type(row)       }
+            enums.each        { |row| register_enum_type(row)         }
+            domains.each      { |row| register_domain_type(row)       }
+            arrays.each       { |row| register_array_type(row)        }
+            ranges.each       { |row| register_range_type(row)        }
+            multiranges.each  { |row| register_multirange_type(row)   }
+            composites.each   { |row| register_composite_type(row)    }
           end
 
           def query_conditions_for_known_type_names
@@ -75,6 +77,12 @@ module ActiveRecord
             def register_range_type(row)
               register_with_subtype(row["oid"], row["rngsubtype"].to_i) do |subtype|
                 OID::Range.new(subtype, row["typname"].to_sym)
+              end
+            end
+
+            def register_multirange_type(row)
+              register_with_subtype(row["oid"], row["rngsubtype"].to_i) do |subtype|
+                OID::MultiRange.new(subtype, row["typname"].to_sym)
               end
             end
 
