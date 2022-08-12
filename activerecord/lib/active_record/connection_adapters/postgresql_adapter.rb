@@ -771,7 +771,7 @@ module ActiveRecord
           query = <<~SQL
             SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
             FROM pg_type as t
-            LEFT JOIN pg_range as r ON oid = rngtypid
+            LEFT JOIN pg_range as r ON oid = rngtypid OR OR oid = rngmultitypid
           SQL
           if oids
             yield query + "WHERE t.oid IN (%s)" % oids.join(", ")
