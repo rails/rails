@@ -32,7 +32,12 @@ module ApplicationTests
 
     test "allow running plugin new generator inside Rails app directory" do
       rails "plugin", "new", "vendor/plugins/bukkits"
-      assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
+      assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/bukkits.gemspec"))
+    end
+
+    test "allow generating plugin inside Rails app directory" do
+      output = rails "generate", "plugin", "components/bukkits", "--full"
+      assert_no_match(/Invalid application name/, output)
     end
 
     test "generators default values" do

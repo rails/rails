@@ -3,6 +3,7 @@
 require "active_support/core_ext/hash/except"
 require "rails/generators/rails/app/app_generator"
 require "date"
+require "pathname"
 
 module Rails
   # The plugin builder allows you to override elements of the plugin
@@ -51,7 +52,7 @@ module Rails
     end
 
     def gemfile
-      template "Gemfile"
+      template "Gemfile" unless inside_application?
     end
 
     def license
@@ -67,7 +68,7 @@ module Rails
     end
 
     def version_control
-      if !options[:skip_git] && !options[:pretend]
+      if !inside_application? && !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
       end
     end
@@ -365,7 +366,7 @@ module Rails
       end
 
       def with_dummy_app?
-        options[:skip_test].blank? || options[:dummy_path] != "test/dummy"
+        !inside_application? && (options[:skip_test].blank? || options[:dummy_path] != "test/dummy")
       end
 
       def api?
@@ -462,6 +463,15 @@ module Rails
 
       def inside_application?
         rails_app_path && destination_root.start_with?(rails_app_path.to_s)
+      end
+
+      def test_app_path
+        relative_app_path || dummy_path
+      end
+
+      def relative_app_path
+        return unless inside_application?
+        Pathname.new(".").relative_path_from(relative_path).to_s
       end
 
       def relative_path

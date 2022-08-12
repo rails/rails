@@ -3,12 +3,13 @@
 
 ENGINE_ROOT = File.expand_path("..", __dir__)
 ENGINE_PATH = File.expand_path("../lib/<%= namespaced_name -%>/engine", __dir__)
-<% if with_dummy_app? -%>
-APP_PATH = File.expand_path("../<%= dummy_path -%>/config/application", __dir__)
+<% if with_dummy_app? || inside_application? -%>
+APP_PATH = File.expand_path("../<%= test_app_path -%>/config/application", __dir__)
 <% end -%>
 
 # Set up gems listed in the Gemfile.
-ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
+<%- gemfile_path = File.join("..", *relative_app_path, "Gemfile") %>
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("<%= gemfile_path %>", __dir__)
 require "bundler/setup" if File.exist?(ENV["BUNDLE_GEMFILE"])
 
 <% if include_all_railties? -%>

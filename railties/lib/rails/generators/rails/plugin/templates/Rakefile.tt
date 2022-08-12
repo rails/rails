@@ -1,7 +1,7 @@
 require "bundler/setup"
-<% if engine? && !options[:skip_active_record] && with_dummy_app? -%>
+<% if engine? && !options[:skip_active_record] && (with_dummy_app? || inside_application?) -%>
 
-APP_RAKEFILE = File.expand_path("<%= dummy_path -%>/Rakefile", __dir__)
+APP_RAKEFILE = File.expand_path("<%= test_app_path -%>/Rakefile", __dir__)
 load "rails/tasks/engine.rake"
 <% end -%>
 <% if engine? -%>
