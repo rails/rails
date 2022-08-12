@@ -1355,14 +1355,8 @@ module ActiveRecord
       #   add_timestamps(:suppliers, null: true)
       #
       def add_timestamps(table_name, **options)
-        options[:null] = false if options[:null].nil?
-
-        if !options.key?(:precision) && supports_datetime_with_precision?
-          options[:precision] = 6
-        end
-
-        add_column table_name, :created_at, :datetime, **options
-        add_column table_name, :updated_at, :datetime, **options
+        fragments = add_timestamps_for_alter(table_name, **options)
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{fragments.join(', ')}"
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.

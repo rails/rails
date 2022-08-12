@@ -1,3 +1,17 @@
+*   Optimize `add_timestamps` to use a single SQL statement.
+
+    ```ruby
+    add_timestamps :my_table
+    ```
+
+    Now results in the following SQL:
+
+    ```sql
+    ALTER TABLE "my_table" ADD COLUMN "created_at" datetime(6) NOT NULL, ADD COLUMN "updated_at" datetime(6) NOT NULL
+    ```
+
+    *Iliana Hadzhiatanasova*
+
 *   Add `drop_enum` migration command for PostgreSQL
 
     This does the inverse of `create_enum`. Before dropping an enum, ensure you have
