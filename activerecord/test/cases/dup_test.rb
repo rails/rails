@@ -100,6 +100,15 @@ module ActiveRecord
       assert_equal "meow", duped.author_name
     end
 
+    def test_dup_default_attributes_are_unchanged
+      klass = Class.new(Topic) do
+        attribute :numbers, default: -> { [Object.new.object_id] }
+      end
+
+      assert_not_predicate klass.new, :numbers_changed?
+      assert_not_predicate klass.new.dup, :numbers_changed?
+    end
+
     def test_dup_timestamps_are_cleared
       topic = Topic.first
       assert_not_nil topic.updated_at

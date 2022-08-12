@@ -8,8 +8,9 @@ class AttributesDirtyTest < ActiveModel::TestCase
     include ActiveModel::Attributes
     include ActiveModel::Dirty
     attribute :name, :string
-    attribute :color, :string
+    attribute :color, :string, default: "unknown"
     attribute :size, :integer
+    attribute :thing, default: -> { Object.new }
 
     def save
       changes_applied
@@ -18,6 +19,10 @@ class AttributesDirtyTest < ActiveModel::TestCase
 
   setup do
     @model = DirtyModel.new
+  end
+
+  test "dup will not result in changes" do
+    assert_not_predicate @model.dup, :changed?
   end
 
   test "setting attribute will result in change" do

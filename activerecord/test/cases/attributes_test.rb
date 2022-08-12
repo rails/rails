@@ -348,6 +348,16 @@ module ActiveRecord
       assert_equal "foo", klass.new(no_type: "foo").no_type
     end
 
+    test "attributes have independent default values" do
+      klass = Class.new(OverloadedType) do
+        attribute :sounds, default: -> { [] }
+      end
+      klass.new.dup.save!
+      klass.last.sounds << "meow"
+
+      assert_not_same klass.new.sounds, klass.new.sounds
+    end
+
     test "attributes do not require a connection is established" do
       assert_not_called(ActiveRecord::Base, :connection) do
         Class.new(OverloadedType) do

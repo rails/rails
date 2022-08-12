@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_model/attribute/user_provided_default"
 
 module ActiveModel
   class AttributeTest < ActiveModel::TestCase
@@ -49,7 +50,15 @@ module ActiveModel
       attribute.value
     end
 
-    test "read_before_typecast returns the given value" do
+    test "value_before_type_cast memoizes falsy values from user provided default proc" do
+      calls = 0
+      default = Attribute::UserProvidedDefault.new(:foo, -> { calls += 1; nil }, Type::Value.new, nil)
+      2.times { default.value_before_type_cast }
+
+      assert_equal 1, calls
+    end
+
+    test "value_before_type_cast returns the given value" do
       attribute = Attribute.from_database(nil, "raw value", @type)
 
       raw_value = attribute.value_before_type_cast
@@ -202,6 +211,19 @@ module ActiveModel
       unchanged = attribute.with_value_from_user(1)
 
       assert_not_predicate unchanged, :changed?
+    end
+
+    test "an attribute is not changed if it's assigned before a user provided default is called" do
+      status = "not called"
+      default = Attribute::UserProvidedDefault.new(:foo, -> { status = "called" }, Type::Value.new, nil)
+      from_user = default.with_value_from_user("before calling default")
+
+      assert_not_predicate from_user, :changed?
+      assert_equal status, "not called"
+
+      assert_equal default.value, "called"
+      assert_predicate default.with_value_from_user("after calling default"), :changed?
+      assert_equal status, "called"
     end
 
     test "an attribute cannot be mutated if it has not been read,
