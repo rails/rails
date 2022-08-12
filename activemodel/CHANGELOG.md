@@ -1,3 +1,15 @@
+*   Fix memoization causing shared state of attributes with default procs
+
+    When a model has an attribute with a default proc and no specified type,
+    `dup`ing and checking for changes no longer causes the value of the default
+    proc to be memoized in the original attribute definition, creating shared
+    state between instances of the model.
+
+    Falsy values are now also memoized like other values were when
+    `value_before_type_cast` is called on an attribute with a proc default.
+
+    *Milo Winningham*
+
 *   `has_secure_password` now supports password challenges via a
     `password_challenge` accessor and validation.
 

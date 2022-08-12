@@ -24,6 +24,15 @@ module ActiveModel
         end
       end
 
+      def with_value_from_user(value)
+        type.assert_valid_value(value)
+        if defined?(@memoized_value_before_type_cast) || !user_provided_value.is_a?(Proc)
+          self.class.from_user(name, value, type, original_attribute || self)
+        else
+          self.class.from_user(name, value, type, original_attribute)
+        end
+      end
+
       def with_type(type)
         self.class.new(name, user_provided_value, type, original_attribute)
       end
