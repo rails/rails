@@ -38,6 +38,25 @@ class Rails::Command::BaseTest < ActiveSupport::TestCase
     assert_equal "FOO custom_bin", Rails::Command::CustomBinCommand.executable
   end
 
+  test "#current_subcommand reflects current subcommand" do
+    class Rails::Command::LastSubcommandCommand < Rails::Command::Base
+      singleton_class.attr_accessor :last_subcommand
+
+      def set_last_subcommand
+        self.class.last_subcommand = current_subcommand
+      end
+
+      alias :foo :set_last_subcommand
+      alias :bar :set_last_subcommand
+    end
+
+    Rails::Command.invoke("last_subcommand:foo")
+    assert_equal "foo", Rails::Command::LastSubcommandCommand.last_subcommand
+
+    Rails::Command.invoke("last_subcommand:bar")
+    assert_equal "bar", Rails::Command::LastSubcommandCommand.last_subcommand
+  end
+
   test "ARGV is populated" do
     class Rails::Command::ArgvCommand < Rails::Command::Base
       def check_populated(*args)

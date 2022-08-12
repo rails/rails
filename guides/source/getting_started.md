@@ -96,7 +96,7 @@ $ ruby --version
 ruby 2.7.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. It is preferred to use latest Ruby version.
+Rails requires Ruby version 2.7.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -343,7 +343,7 @@ You may have noticed that `ArticlesController` inherits from `ApplicationControl
 require "application_controller" # DON'T DO THIS.
 ```
 
-Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](https://guides.rubyonrails.org/autoloading_and_reloading_constants.html).
+Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](autoloading_and_reloading_constants.html).
 
 You only need `require` calls for two use cases:
 

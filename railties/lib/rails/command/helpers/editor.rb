@@ -8,17 +8,15 @@ module Rails
     module Helpers
       module Editor
         private
-          def ensure_editor_available(command:)
+          def display_hint_if_system_editor_not_specified
             if ENV["EDITOR"].to_s.empty?
               say "No $EDITOR to open file in. Assign one like this:"
               say ""
-              say %(EDITOR="mate --wait" #{command})
+              say %(EDITOR="mate --wait" #{executable(current_subcommand)})
               say ""
-              say "For editors that fork and exit immediately, it's important to pass a wait flag,"
-              say "otherwise the credentials will be saved immediately with no chance to edit."
+              say "For editors that fork and exit immediately, it's important to pass a wait flag;"
+              say "otherwise, the file will be saved immediately with no chance to edit."
 
-              false
-            else
               true
             end
           end
@@ -27,12 +25,10 @@ module Rails
             system(*Shellwords.split(ENV["EDITOR"]), file_path.to_s)
           end
 
-          def catch_editing_exceptions
-            yield
+          def using_system_editor
+            display_hint_if_system_editor_not_specified || yield
           rescue Interrupt
             say "Aborted changing file: nothing saved."
-          rescue ActiveSupport::EncryptedFile::MissingKeyError => error
-            say error.message
           end
       end
     end

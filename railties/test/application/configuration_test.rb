@@ -632,6 +632,23 @@ module ApplicationTests
       assert last_response.ok?
     end
 
+    test "EtagWithFlash module doesn't break for API apps" do
+      make_basic_app do |application|
+        application.config.api_only = true
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          stale?(weak_etag: "something")
+          render plain: "else"
+        end
+      end
+
+      get "/"
+
+      assert last_response.ok?
+    end
+
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"

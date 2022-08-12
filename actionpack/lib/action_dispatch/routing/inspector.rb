@@ -237,6 +237,27 @@ module ActionDispatch
             "--[ Route #{index} ]".ljust(@width, "-")
           end
       end
+
+      class Unused < Sheet
+        def header(routes)
+          @buffer << <<~MSG
+            Found #{routes.count} unused #{"route".pluralize(routes.count)}:
+          MSG
+
+          super
+        end
+
+        def no_routes(routes, filter)
+          @buffer <<
+            if filter.none?
+              "No unused routes found."
+            elsif filter.key?(:controller)
+              "No unused routes found for this controller."
+            elsif filter.key?(:grep)
+              "No unused routes found for this grep pattern."
+            end
+        end
+      end
     end
 
     class HtmlTableFormatter

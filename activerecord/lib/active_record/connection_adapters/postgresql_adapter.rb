@@ -452,20 +452,24 @@ module ActiveRecord
           SELECT
             type.typname AS name,
             type.OID AS oid,
+            n.nspname AS schema,
             string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
           FROM pg_enum AS enum
-          JOIN pg_type AS type
-            ON (type.oid = enum.enumtypid)
-          GROUP BY type.OID, type.typname;
+          JOIN pg_type AS type ON (type.oid = enum.enumtypid)
+          JOIN pg_namespace n ON type.typnamespace = n.oid
+          GROUP BY type.OID, n.nspname, type.typname;
         SQL
 
         exec_query(query, "SCHEMA", allow_retry: true, uses_transaction: false).cast_values.each_with_object({}) do |row, memo|
-          memo[row.first] = row.last
+          name, schema = row[0], row[2]
+          schema = nil if schema == current_schema
+          full_name = [schema, name].compact.join(".")
+          memo[full_name] = row.last
         end.to_a
       end
 
       # Given a name and an array of values, creates an enum type.
-      def create_enum(name, values)
+      def create_enum(name, values, **options)
         sql_values = values.map { |s| quote(s) }.join(", ")
         scope = quoted_scope(name)
         query = <<~SQL
@@ -487,10 +491,15 @@ module ActiveRecord
       end
 
       # Drops an enum type.
-      # If the `if_exists: true` option is provided, the enum is only dropped if it exists.
-      # Otherwise, if the enum doesn't exist, an error is raised.
-      def drop_enum(name, *args)
-        options = args.extract_options!
+      #
+      # If the <tt>if_exists: true</tt> option is provided, the enum is dropped
+      # only if it exists. Otherwise, if the enum doesn't exist, an error is
+      # raised.
+      #
+      # The +values+ parameter will be ignored if present. It can be helpful
+      # to provide this in a migration's +change+ method so it can be reverted.
+      # In that case, +values+ will be used by #create_enum.
+      def drop_enum(name, values = nil, **options)
         query = <<~SQL
           DROP TYPE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(name)};
         SQL

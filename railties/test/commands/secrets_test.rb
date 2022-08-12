@@ -12,7 +12,7 @@ class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
   teardown :teardown_app
 
   test "edit without editor gives hint" do
-    assert_match "No $EDITOR to open decrypted secrets in", run_edit_command(editor: "")
+    assert_match "No $EDITOR to open file in", run_edit_command(editor: "")
   end
 
   test "encrypted secrets are deprecated when using credentials" do

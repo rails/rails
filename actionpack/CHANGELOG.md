@@ -1,5 +1,8 @@
-*   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
+*   Log redirects from routes the same way as redirects from controllers.
 
+    *Dennis Paagman*
+
+*   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
     Previously, if another middleware down the chain set `Server-Timing` header,
     it would overwritten by `ActionDispatch::ServerTiming`.
 

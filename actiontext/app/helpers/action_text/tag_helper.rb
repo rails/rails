@@ -62,7 +62,7 @@ module ActionView::Helpers
     # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
     # * <tt>:value</tt> - Adds a default value to the HTML input tag.
     # * <tt>[:data][:direct_upload_url]</tt> - Defaults to +rails_direct_uploads_url+.
-    # * <tt>[:data][:blob_url_template]</tt> - Defaults to +rails_service_blob_url(":signed_id", ":filename")+.
+    # * <tt>[:data][:blob_url_template]</tt> - Defaults to <tt>rails_service_blob_url(":signed_id", ":filename")</tt>.
     #
     # ==== Example
     #   form_with(model: @message) do |form|

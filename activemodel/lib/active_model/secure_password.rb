@@ -88,9 +88,7 @@ module ActiveModel
       #     has_secure_password
       #
       #     def errors
-      #       errors = super
-      #       errors.delete(:password, :blank) if is_guest
-      #       errors
+      #       super.tap { |errors| errors.delete(:password, :blank) if is_guest }
       #     end
       #   end
       #

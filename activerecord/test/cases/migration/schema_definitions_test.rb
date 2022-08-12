@@ -18,13 +18,9 @@ module ActiveRecord
 
         id_column = td.columns.find { |col| col.name == "id" }
         assert_predicate id_column, :present?
-        assert id_column.type
-        assert id_column.sql_type
 
         foo_column = td.columns.find { |col| col.name == "foo" }
         assert_predicate foo_column, :present?
-        assert foo_column.type
-        assert foo_column.sql_type
       end
 
       def test_build_create_table_definition_without_block
@@ -32,8 +28,6 @@ module ActiveRecord
 
         id_column = td.columns.find { |col| col.name == "id" }
         assert_predicate id_column, :present?
-        assert id_column.type
-        assert id_column.sql_type
       end
 
       def test_build_create_join_table_definition_with_block
@@ -64,7 +58,6 @@ module ActiveRecord
         end
         create_index = connection.build_create_index_definition(:test, :foo)
 
-        assert_match "CREATE INDEX", create_index.ddl
         assert_equal "index_test_on_foo", create_index.index.name
       ensure
         connection.drop_table(:test) if connection.table_exists?(:test)
@@ -91,12 +84,8 @@ module ActiveRecord
           end
 
           change_cd = connection.build_change_column_definition(:test, :foo, :integer)
-          assert change_cd.ddl
-
           change_col = change_cd.column
           assert_equal "foo", change_col.name.to_s
-          assert change_col.type
-          assert change_col.sql_type
         ensure
           connection.drop_table(:test) if connection.table_exists?(:test)
         end
@@ -107,13 +96,10 @@ module ActiveRecord
           end
 
           change_default_cd = connection.build_change_column_default_definition(:test, :foo, "new")
-          assert_match "SET DEFAULT 'new'", change_default_cd.ddl
           assert_equal "new", change_default_cd.default
 
           change_col = change_default_cd.column
           assert_equal "foo", change_col.name.to_s
-          assert change_col.type
-          assert change_col.sql_type
         ensure
           connection.drop_table(:test) if connection.table_exists?(:test)
         end

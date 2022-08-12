@@ -7,7 +7,7 @@ Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rak
 
 module RailsGuides
   class Markdown
-    class Renderer < Redcarpet::Render::HTML
+    class Renderer < Redcarpet::Render::HTML  # :nodoc:
       cattr_accessor :edge, :version
 
       def block_code(code, language)

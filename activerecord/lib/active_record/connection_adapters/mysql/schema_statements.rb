@@ -125,6 +125,10 @@ module ActiveRecord
           256 # https://dev.mysql.com/doc/refman/en/identifiers.html
         end
 
+        def schema_creation # :nodoc:
+          MySQL::SchemaCreation.new(self)
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
@@ -148,10 +152,6 @@ module ActiveRecord
             end
 
             @default_row_format
-          end
-
-          def schema_creation
-            MySQL::SchemaCreation.new(self)
           end
 
           def create_table_definition(name, **options)

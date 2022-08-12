@@ -29,6 +29,12 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  class DropEnumMigration < SilentMigration
+    def change
+      drop_enum :color, ["blue", "green"], if_exists: true
+    end
+  end
+
   self.use_transactional_tests = false
 
   setup do
@@ -54,7 +60,7 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
                "index index_settings_data_foo should not exist"
   end
 
-  def test_revert_create_enum
+  def test_migrate_revert_create_enum
     CreateEnumMigration.new.migrate(:up)
 
     assert @connection.column_exists?(:enums, :best_color, sql_type: "color", default: "blue", null: false)
@@ -64,5 +70,15 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
 
     assert_not @connection.table_exists?(:enums)
     assert_equal [], @connection.enum_types
+  end
+
+  def test_migrate_revert_drop_enum
+    assert_equal [], @connection.enum_types
+
+    assert_nothing_raised { DropEnumMigration.new.migrate(:up) }
+    assert_equal [], @connection.enum_types
+
+    DropEnumMigration.new.migrate(:down)
+    assert_equal [["color", "blue,green"]], @connection.enum_types
   end
 end

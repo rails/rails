@@ -381,7 +381,7 @@ about code. In unit testing, we take a little part of code, say a method of a mo
 and test its inputs and outputs. Unit tests are your friend. The sooner you make
 peace with the fact that your quality of life will drastically increase when you unit
 test your code, the better. Seriously. Please visit
-[the testing guide](https://guides.rubyonrails.org/testing.html) for an in-depth
+[the testing guide](testing.html) for an in-depth
 look at unit testing.
 
 Let's see the interface Rails created for us.
