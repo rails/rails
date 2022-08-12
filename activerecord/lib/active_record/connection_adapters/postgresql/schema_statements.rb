@@ -759,11 +759,11 @@ module ActiveRecord
           super
         end
 
-        private
-          def schema_creation
-            PostgreSQL::SchemaCreation.new(self)
-          end
+        def schema_creation  # :nodoc:
+          PostgreSQL::SchemaCreation.new(self)
+        end
 
+        private
           def create_table_definition(name, **options)
             PostgreSQL::TableDefinition.new(self, name, **options)
           end

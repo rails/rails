@@ -1442,6 +1442,12 @@ module ActiveRecord
         supports_foreign_keys? && foreign_keys_enabled?
       end
 
+      # Returns an instance of SchemaCreation, which can be used to visit a schema definition
+      # object and return DDL.
+      def schema_creation # :nodoc:
+        SchemaCreation.new(self)
+      end
+
       private
         def check_constraint_exists?(table_name, **options)
           check_constraint_for(table_name, **options).present?
@@ -1534,10 +1540,6 @@ module ActiveRecord
               rename_index table_name, generated_index_name, index_name(table_name, column: index.columns)
             end
           end
-        end
-
-        def schema_creation
-          SchemaCreation.new(self)
         end
 
         def create_table_definition(name, **options)
