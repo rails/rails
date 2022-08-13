@@ -871,8 +871,21 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
+          results = execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
             each_hash(result)
+          end
+
+
+          results.tap do |column_infos|
+            column_infos.each do |column_info|
+              if column_info[:Type].include?("binary") && column_info[:Default]
+                if !mariadb? && get_database_version > "8.0.2" && column_info[:Default]&.start_with?("0x")
+                  column_info[:Default] = [ column_info[:Default][2...]].pack("H*")
+                else
+                  column_info[:Default] = column_info[:Default]
+                end
+              end
+            end
           end
         end
 
