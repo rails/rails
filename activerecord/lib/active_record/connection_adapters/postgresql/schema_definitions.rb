@@ -78,6 +78,10 @@ module ActiveRecord
         # :call-seq: daterange(*names, **options)
 
         ##
+        # :method: datemultirange
+        # :call-seq: datemultirange(*names, **options)
+
+        ##
         # :method: hstore
         # :call-seq: hstore(*names, **options)
 
@@ -94,8 +98,16 @@ module ActiveRecord
         # :call-seq: int4range(*names, **options)
 
         ##
+        # :method: int4multirange
+        # :call-seq: int4multirange(*names, **options)
+
+        ##
         # :method: int8range
         # :call-seq: int8range(*names, **options)
+
+        ##
+        # :method: int8multirange
+        # :call-seq: int8multirange(*names, **options)
 
         ##
         # :method: jsonb
@@ -116,6 +128,10 @@ module ActiveRecord
         ##
         # :method: numrange
         # :call-seq: numrange(*names, **options)
+
+        ##
+        # :method: nummultirange
+        # :call-seq: nummultirange(*names, **options)
 
         ##
         # :method: oid
@@ -158,8 +174,16 @@ module ActiveRecord
         # :call-seq: tsrange(*names, **options)
 
         ##
+        # :method: tsmultirange
+        # :call-seq: tsmultirange(*names, **options)
+
+        ##
         # :method: tstzrange
         # :call-seq: tstzrange(*names, **options)
+
+        ##
+        # :method: tstzmultirange
+        # :call-seq: tstzmultirange(*names, **options)
 
         ##
         # :method: tsvector
@@ -185,7 +209,9 @@ module ActiveRecord
           define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
             :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
             :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
-            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum
+            :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum,
+            :datemultirange, :tsmultirange, :tstzmultirange, :nummultirange, :int4multirange,
+            :int8multirange 
         end
       end
 
