@@ -297,7 +297,7 @@ module ActiveRecord
               end
             end
 
-            query_value("SELECT setval(#{quote(quoted_sequence)}, #{max_pk ? max_pk : minvalue}, #{max_pk ? true : false})", "SCHEMA")
+            query_value("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
           end
         end
 
@@ -759,11 +759,11 @@ module ActiveRecord
           super
         end
 
-        private
-          def schema_creation
-            PostgreSQL::SchemaCreation.new(self)
-          end
+        def schema_creation  # :nodoc:
+          PostgreSQL::SchemaCreation.new(self)
+        end
 
+        private
           def create_table_definition(name, **options)
             PostgreSQL::TableDefinition.new(self, name, **options)
           end

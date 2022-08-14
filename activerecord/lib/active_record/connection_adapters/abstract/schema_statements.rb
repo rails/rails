@@ -1355,14 +1355,8 @@ module ActiveRecord
       #   add_timestamps(:suppliers, null: true)
       #
       def add_timestamps(table_name, **options)
-        options[:null] = false if options[:null].nil?
-
-        if !options.key?(:precision) && supports_datetime_with_precision?
-          options[:precision] = 6
-        end
-
-        add_column table_name, :created_at, :datetime, **options
-        add_column table_name, :updated_at, :datetime, **options
+        fragments = add_timestamps_for_alter(table_name, **options)
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{fragments.join(', ')}"
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.
@@ -1446,6 +1440,12 @@ module ActiveRecord
 
       def use_foreign_keys?
         supports_foreign_keys? && foreign_keys_enabled?
+      end
+
+      # Returns an instance of SchemaCreation, which can be used to visit a schema definition
+      # object and return DDL.
+      def schema_creation # :nodoc:
+        SchemaCreation.new(self)
       end
 
       private
@@ -1540,10 +1540,6 @@ module ActiveRecord
               rename_index table_name, generated_index_name, index_name(table_name, column: index.columns)
             end
           end
-        end
-
-        def schema_creation
-          SchemaCreation.new(self)
         end
 
         def create_table_definition(name, **options)
