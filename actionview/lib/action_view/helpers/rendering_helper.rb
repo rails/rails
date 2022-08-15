@@ -37,6 +37,8 @@ module ActionView
               view_renderer.render(self, options)
             end
           end
+        when String
+          view_renderer.render_simple_partial(self, options, locals, &block)
         else
           if options.respond_to?(:render_in)
             options.render_in(self, &block)

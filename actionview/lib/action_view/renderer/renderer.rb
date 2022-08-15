@@ -53,6 +53,15 @@ module ActionView
       render_partial_to_object(context, options, &block).body
     end
 
+    def render_simple_partial(context, partial, locals, &block) # :nodoc:
+      if block_given?
+        render_partial(context, partial: partial, locals: locals, &block)
+      else
+        renderer = SimplePartialRenderer.new(@lookup_context)
+        renderer.render(context, partial, locals).body
+      end
+    end
+
     def cache_hits # :nodoc:
       @cache_hits ||= {}
     end
@@ -75,6 +84,10 @@ module ActionView
             # Object + Partial
             renderer = ObjectRenderer.new(@lookup_context, options)
             renderer.render_object_with_partial(options[:object], partial, context, block)
+          elsif (locals = options[:locals]) && options.size == 2 && !block_given?
+            # Partial (simple case)
+            renderer = SimplePartialRenderer.new(@lookup_context)
+            renderer.render(context, partial, locals)
           else
             # Partial
             renderer = PartialRenderer.new(@lookup_context, options)

@@ -224,7 +224,11 @@ module ActionView
       super(lookup_context)
       @options = options
       @locals  = @options[:locals] || {}
-      @details = extract_details(@options)
+      if options.size == 2 && @options[:locals] && @options[:partial]
+        @details = NO_DETAILS
+      else
+        @details = extract_details(@options)
+      end
     end
 
     def render(partial, context, block)
