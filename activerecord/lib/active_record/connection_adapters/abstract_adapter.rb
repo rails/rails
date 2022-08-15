@@ -795,15 +795,6 @@ module ActiveRecord
         migration_context.current_version
       end
 
-      def field_ordered_value(column, values) # :nodoc:
-        node = Arel::Nodes::Case.new(column)
-        values.each.with_index(1) do |value, order|
-          node.when(value).then(order)
-        end
-
-        Arel::Nodes::Ascending.new(node.else(values.length + 1))
-      end
-
       class << self
         def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
           mapping.register_type(key) do |*args|
