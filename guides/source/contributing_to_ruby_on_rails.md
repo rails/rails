@@ -522,6 +522,100 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
 Your name can be added directly after the last word if there are no code
 examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
 
+### Breaking Changes
+
+Anytime a change could break existing applications it's considered a breaking
+change. To ease upgrading Rails applications, breaking changes require a
+deprecation cycle.
+
+#### Removing Behavior
+
+If your breaking change removes existing behavior, you'll first need to add a
+deprecation warning while keeping the existing behavior.
+
+As an example, let's say you want to remove a public method on
+ActiveRecord::Base. If the main branch points to the unreleased 7.0 version,
+Rails 7.0 will need to show a deprecation warning. This makes sure anyone
+upgrading to any Rails 7.0 version will see the deprecation warning.
+In Rails 7.1 the method can be deleted.
+
+You could add the following deprecation warning:
+
+```ruby
+def deprecated_method
+  ActiveSupport::Deprecation.warn(<<-MSG.squish)
+    `ActiveRecord::Base.deprecated_method` is deprecated and will be removed in Rails 7.1.
+  MSG
+  # Existing behavior
+end
+```
+
+#### Changing Behavior
+
+If your breaking change changes existing behavior, you'll need to add a
+framework default. Framework defaults ease Rails upgrades by allowing apps
+to switch to the new defaults one by one.
+
+To implement a new framework default, first create a configuration by adding an
+accessor on the target framework. Set the default value to the existing
+behavior to make sure nothing breaks during an upgrade.
+
+```ruby
+module ActiveJob
+  mattr_accessor :existing_behavior, default: true
+end
+```
+
+The new configuration allows you to conditionally implement the new behavior:
+
+```ruby
+def changed_method
+  if ActiveJob.existing_behavior
+    # Existing behavior
+  else 
+    # New behavior
+  end
+end
+```
+
+To set the new framework default, set the new value in
+`Rails::Application::Configuration#load_defaults`:
+
+```ruby
+def load_defaults(target_version)
+  case target_version.to_s
+  when "7.1"
+    ...
+    if respond_to?(:active_job)
+      active_job.existing_behavior = false
+    end
+    ...
+  end
+end
+```
+
+To ease the upgrade it's required to add the new default to the
+`new_framework_defaults` template. Add a commented out section, setting the new
+value:
+
+```ruby
+# new_framework_defaults_7_1.rb.tt
+
+# Rails.application.config.active_job.existing_behavior = false
+```
+
+As a last step add the new configuration to configuration guide in
+`configuration.md`:
+
+```markdown
+#### `config.active_job.existing_behavior
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
+
+
 ### Ignoring Files Created by Your Editor / IDE
 
 Some editors and IDEs will create hidden files or folders inside the `rails` folder. Instead of manually excluding those from each commit or adding them to Rails' `.gitignore`, you should add them to your own [global gitignore file](https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files#configuring-ignored-files-for-all-repositories-on-your-computer).
