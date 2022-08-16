@@ -614,7 +614,7 @@ would fail to match `www.product.com`.
 A special case is supported that allows you to permit the domain and all sub-domains:
 
 ```ruby
-# Allow requests the domain itself `product.com` and from subdomains like `www.product.com` and `beta1.product.com`.
+# Allow requests from the domain itself `product.com` and subdomains like `www.product.com` and `beta1.product.com`.
 Rails.application.config.hosts << ".product.com"
 ```
 
