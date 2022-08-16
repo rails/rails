@@ -4107,6 +4107,17 @@ module ApplicationTests
       ActiveRecord::Base.configurations = original_configurations
     end
 
+    test "raises an error if legacy_connection_handling is set" do
+      build_app(initializers: true)
+      add_to_env_config "production", "config.active_record.legacy_connection_handling = true"
+
+      error = assert_raise(ArgumentError) do
+        app "production"
+      end
+
+      assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
