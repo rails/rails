@@ -1,3 +1,7 @@
+*   Rescue `EOFError` exception from `rack` on a multipart request.
+
+    *Nikita Vasilevsky*
+
 *   Rescue `JSON::ParserError` in Cookies json deserializer to discards marshal dumps:
 
     Without this change, if `action_dispatch.cookies_serializer` is set to `:json` and
