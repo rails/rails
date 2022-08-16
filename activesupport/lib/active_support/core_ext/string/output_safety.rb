@@ -134,13 +134,15 @@ class ERB
       name = name.to_s
       return "" if name.blank?
 
-      starting_char = name[0].gsub(TAG_NAME_START_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
+      starting_char = name[0]
+      starting_char.gsub!(TAG_NAME_START_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
 
       return starting_char if name.size == 1
 
-      following_chars = name[1..-1].gsub(TAG_NAME_FOLLOWING_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
+      following_chars = name[1..-1]
+      following_chars.gsub!(TAG_NAME_FOLLOWING_REGEXP, TAG_NAME_REPLACEMENT_CHAR)
 
-      starting_char + following_chars
+      starting_char << following_chars
     end
     module_function :xml_name_escape
   end
