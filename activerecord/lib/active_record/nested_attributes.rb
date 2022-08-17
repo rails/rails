@@ -281,7 +281,7 @@ module ActiveRecord
     #   member.avatar_attributes = {icon: 'sad'}
     #   member.avatar.width # => 200
     #
-    # === Forms
+    # === Creating forms with nested attributes
     #
     # Use ActionView::Helpers::FormHelper#fields_for to create form elements
     # for updating or destroying nested attributes.
