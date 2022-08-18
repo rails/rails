@@ -32,7 +32,7 @@ module ActiveRecord
           end
 
           def cast_value(value)
-            return nil if value.blank?
+            return nil if value.empty?
             return value unless value.is_a?(::String)
 
             ranges = scan_ranges(value)
