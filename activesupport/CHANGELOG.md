@@ -1,3 +1,7 @@
+*   Log a warning if `ActiveSupport::Cache` is given an expiration in the past.
+
+    *Trevor Turk*
+
 *   Add `skip_nil:` support to `ActiveSupport::Cache::Store#fetch_multi`.
 
     *Daniel Alfaro*
