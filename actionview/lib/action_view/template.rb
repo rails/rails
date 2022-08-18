@@ -167,10 +167,10 @@ module ActionView
       instrument_render_template do
         compile!(view)
         if buffer
-          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals.present?, &block)
+          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals.present?, &block).to_s
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block).to_s
         end
       end
     rescue => e
@@ -314,7 +314,7 @@ module ActionView
         code = @handler.call(self, source)
 
         method_arguments =
-          if @strict_locals.present?
+          if @strict_locals
             "output_buffer, #{@strict_locals}"
           else
             "local_assigns, output_buffer"
@@ -356,7 +356,7 @@ module ActionView
           raise SyntaxErrorInTemplate.new(self, original_source)
         end
 
-        return unless @strict_locals.present?
+        return unless @strict_locals
 
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
@@ -387,7 +387,7 @@ module ActionView
       end
 
       def locals_code
-        return "" if @strict_locals.present?
+        return "" if @strict_locals
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
