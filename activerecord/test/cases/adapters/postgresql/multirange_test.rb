@@ -155,6 +155,13 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     ], @new_range.tstz_multirange
   end
 
+  def test_update_tstzmultirange
+    assert_equal_round_trip(@multi_range, :tstz_multirange,
+                            [Time.parse("2022-07-01 14:30:00 CDT")...Time.parse("2022-07-02 14:30:00 CET")])
+    assert_empty_round_trip(@multi_range, :tstz_multirange,
+                            [Time.parse("2022-07-01 14:30:00 +0100")...Time.parse("2022-07-01 13:30:00 +0000")])
+  end
+
   def test_create_tsmultirange
     tz = ::ActiveRecord.default_timezone
 
@@ -173,28 +180,53 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     )
   end
 
+  def test_update_tsmultirange
+    tz = ::ActiveRecord.default_timezone
+    assert_equal_round_trip(@multi_range, :ts_multirange,
+                            [Time.public_send(tz, 2022, 7, 1, 14, 30, 0)...Time.public_send(tz, 2022, 7, 2, 14, 30, 0)])
+    assert_empty_round_trip(@multi_range, :ts_multirange,
+                            [Time.public_send(tz, 2022, 7, 1, 14, 30, 0)...Time.public_send(tz, 2022, 7, 1, 14, 30, 0)])
+  end
+
   def test_create_nummultirange
     assert_equal_round_trip(
       @new_range,
       :num_multirange,
-      [
-        BigDecimal("-5.3")...BigDecimal("1"),
-        BigDecimal("2.1")...BigDecimal("3.3")
-      ]
+      [BigDecimal("-5.3")...BigDecimal("1"), BigDecimal("2.1")...BigDecimal("3.3")]
     )
     assert_empty_round_trip(@new_range, :num_multirange, [BigDecimal('1.0')...BigDecimal('1.0')])
   end
+
+  def test_update_nummultirange
+    assert_equal_round_trip(
+      @multi_range,
+      :num_multirange,
+      [BigDecimal("-5.3")...BigDecimal("1")]
+    )
+    assert_empty_round_trip(@multi_range, :num_multirange, [BigDecimal('1.0')...BigDecimal('1.0')])
+  end
+
 
   def test_create_int4multirange
     assert_equal_round_trip(@new_range, :int4_multirange, [-1...1, 5...7])
     assert_empty_round_trip(@new_range, :int4_multirange, [3...3])
   end
+
+  def test_update_int4multirange
+    assert_equal_round_trip(@multi_range, :int4_multirange, [12...15])
+    assert_empty_round_trip(@multi_range, :int4_multirange, [3...3])
+  end
    
   def test_create_int8multirange
     assert_equal_round_trip(@new_range, :int8_multirange, [-60000...60000, 70000...10000000])
-    assert_empty_round_trip(@new_range, :int4_multirange, [10000...10000])
+    assert_empty_round_trip(@new_range, :int8_multirange, [10000...10000])
   end
 
+  def test_update_int8multirange
+    assert_equal_round_trip(@multi_range, :int8_multirange, [-60000...60000])
+    assert_empty_round_trip(@multi_range, :int8_multirange, [10000...10000])
+  end
+  
   private
     def assert_equal_round_trip(range, attribute, value)
       round_trip(range, attribute, value)
