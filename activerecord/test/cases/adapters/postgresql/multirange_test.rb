@@ -188,6 +188,20 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
                             [Time.public_send(tz, 2022, 7, 1, 14, 30, 0)...Time.public_send(tz, 2022, 7, 1, 14, 30, 0)])
   end
 
+  def test_create_tstzmultirange_preserve_usec
+    tstzmultirange = [Time.parse("2022-07-01 14:30:00.122233 +0100")...Time.parse("2022-07-02 14:30:00.775423 CDT")]
+    round_trip(@new_range, :tstz_multirange, tstzmultirange)
+    assert_equal @new_range.tstz_multirange, tstzmultirange
+    assert_equal @new_range.tstz_multirange, [Time.parse("2022-07-01 13:30:00.122233 UTC")...Time.parse("2022-07-02 19:30:00.775423 UTC")]
+  end
+
+  def test_update_tstzmultirange_preserve_usec
+    assert_equal_round_trip(@multi_range, :tstz_multirange,
+                            [Time.parse("2022-01-01 14:30:00.245124 CDT")...Time.parse("2022-02-02 14:30:00.451274 CET")])
+    assert_empty_round_trip(@multi_range, :tstz_multirange,
+                          [Time.parse("2022-01-01 14:30:00.245124 +0100")...Time.parse("2022-01-01 13:30:00.245124 +0000")])
+  end
+
   def test_create_nummultirange
     assert_equal_round_trip(
       @new_range,
@@ -206,6 +220,19 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_empty_round_trip(@multi_range, :num_multirange, [BigDecimal('1.0')...BigDecimal('1.0')])
   end
 
+  def test_create_tsmultirange_preserve_usec
+    tz = ::ActiveRecord.default_timezone
+    assert_equal_round_trip(@multi_range, :ts_multirange,
+                            [Time.public_send(tz, 2010, 1, 1, 14, 30, 0, 125435)...Time.public_send(tz, 2011, 2, 2, 14, 30, 0, 225435)])
+  end
+
+  def test_update_tsmultirange_preserve_usec
+    tz = ::ActiveRecord.default_timezone
+    assert_equal_round_trip(@multi_range, :ts_multirange,
+                            [Time.public_send(tz, 2022, 7, 1, 14, 30, 0, 142432)...Time.public_send(tz, 2022, 7, 2, 14, 30, 0, 224242)])
+    assert_empty_round_trip(@multi_range, :ts_multirange,
+                            [Time.public_send(tz, 2022, 7, 1, 14, 30, 0, 142432)...Time.public_send(tz, 2022, 7, 1, 14, 30, 0, 142432)])
+  end
 
   def test_create_int4multirange
     assert_equal_round_trip(@new_range, :int4_multirange, [-1...1, 5...7])
