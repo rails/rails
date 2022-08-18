@@ -37,8 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install codespell
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install codespell==2.1.0
       - name: Check spelling with codespell
         run: codespell --ignore-words=codespell.txt || exit 1
   misspell:
