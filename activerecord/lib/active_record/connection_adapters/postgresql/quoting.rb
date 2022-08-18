@@ -32,6 +32,8 @@ module ActiveRecord
             else
               "'#{value}'"
             end
+          when OID::MultiRange::Data
+            quote(encode_multirange(value))
           when OID::Array::Data
             quote(encode_array(value))
           when Range
@@ -110,6 +112,8 @@ module ActiveRecord
             value.to_s
           when OID::Array::Data
             encode_array(value)
+          when OID::MultiRange::Data
+            encode_multirange(value)
           when Range
             encode_range(value)
           else
@@ -173,6 +177,12 @@ module ActiveRecord
               result.force_encoding(encoding)
             end
             result
+          end
+
+          def encode_multirange(range_data)
+            collection = range_data.ranges.map { |r| encode_range(r) }.join(',')
+
+            "{#{collection}}"
           end
 
           def encode_range(range)

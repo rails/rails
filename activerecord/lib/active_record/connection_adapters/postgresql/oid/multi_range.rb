@@ -5,11 +5,30 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class MultiRange < Type::Value # :nodoc:
+          Data = Struct.new(:ranges)
+
           attr_reader :subtype, :type
 
           def initialize(subtype, type = :multirange)
             @subtype = subtype
             @type = type
+          end
+
+          def deserialize(value)
+            case value
+            when ::String
+              cast_value(value)
+            when Data
+              type_cast_ranges(value.ranges, :deserialize)
+            end
+          end
+
+          def serialize(value)
+            if value.is_a?(::Array)
+              Data.new(type_cast_ranges(value, :serialize))
+            else
+              super
+            end
           end
 
           def cast_value(value)
@@ -28,6 +47,16 @@ module ActiveRecord
           end
 
           private
+            def type_cast_ranges(ranges, method)
+              ranges.map do |range|
+                ::Range.new(
+                  @subtype.public_send(method, range.begin),
+                  @subtype.public_send(method, range.end),
+                  range.exclude_end?
+                )
+              end
+            end
+
             def scan_ranges(value)
               value.scan(/\{*(\[|\()(.*?)?\,(.*?)?(\]|\))/)
             end

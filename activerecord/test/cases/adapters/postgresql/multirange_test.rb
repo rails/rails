@@ -142,7 +142,27 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.date_multirange
   end
 
+  def test_create_tstzmultirange
+    tstzmultiranges = [
+      Time.parse('2022-01-20 10:00:00 +0100')...Time.parse('2022-01-23 11:00:00 CDT'),
+      Time.parse('2022-03-03 05:00 +0200')..Time.parse('2022-03-10 10:00:00 -0300')
+    ]
+    round_trip(@new_range, :tstz_multirange, tstzmultiranges)
+    assert_equal tstzmultiranges, @new_range.tstz_multirange
+    assert_equal [
+      Time.parse('2022-01-20 9:00:00 UTC')...Time.parse('2022-01-23 16:00:00 UTC'),
+      Time.parse('2022-03-03 03:00 UTC')..Time.parse('2022-03-10 13:00:00 UTC')
+    ], @new_range.tstz_multirange
+  end
+
   private
+
+    def round_trip(range, attribute, value)
+      range.public_send "#{attribute}=", value
+      assert range.save
+      assert range.reload
+    end
+
     def insert_multirange(values)
       @connection.execute <<~SQL
         INSERT INTO postgresql_multiranges (
