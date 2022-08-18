@@ -572,7 +572,7 @@ The new configuration allows you to conditionally implement the new behavior:
 def changed_method
   if ActiveJob.existing_behavior
     # Existing behavior
-  else 
+  else
     # New behavior
   end
 end
@@ -614,7 +614,7 @@ As a last step add the new configuration to configuration guide in
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 7.1                   | `false`              |
-
+```
 
 ### Ignoring Files Created by Your Editor / IDE
 
