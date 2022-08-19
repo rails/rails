@@ -1,12 +1,17 @@
 module ActiveRecord
   module TemporaryConnection # :nodoc:
     def self.for_config(db_config)
-      pool = ActiveRecord::Base.connection_handler.establish_connection(db_config, owner_name: self, role: :writing, shard: :default)
+      pool = establish_connection(db_config)
       yield pool.connection
     ensure
       ActiveRecord::Base.connection_handler.instance_variable_get(:@connection_name_to_pool_manager).delete(self.name)
       nil
     end
+
+    def self.establish_connection(db_config)
+      ActiveRecord::Base.connection_handler.establish_connection(db_config, owner_name: self, role: :writing, shard: :default)
+    end
+
 
     def self.current_connection
       if pool = find_connection_pool

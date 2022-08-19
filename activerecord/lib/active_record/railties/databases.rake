@@ -208,10 +208,7 @@ db_namespace = namespace :db do
 
           ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
             ActiveRecord::Tasks::DatabaseTasks.check_target_version
-            connection.migration_context.run(
-              :up,
-              ActiveRecord::Tasks::DatabaseTasks.target_version
-            )
+            connection.migration_context.run(:up, ActiveRecord::Tasks::DatabaseTasks.target_version)
 
             db_namespace["_dump"].invoke
           end
@@ -495,10 +492,12 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the #{name} database"
         task name => "db:test:purge:#{name}" do
-          original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+
+          ActiveRecord::TemporaryConnection.for_config(db_config) do
+            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+          end
         end
       end
     end
@@ -588,11 +587,15 @@ db_namespace = namespace :db do
       # desc "Empty the #{name} test database"
       namespace :purge do
         task name => %w(load_config check_protected_environments) do
-          original_db_config = ActiveRecord::Base.connection_db_config
+          p "this purge?"
+          # for tomorrow:
+          #   this one is the problem, not retruning the connection. removing purge from the load task
+          #   "fixes" it. what's using ar base then?
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
-          ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
-        ensure
-          ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
+
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config, connection_class: ActiveRecord::TemporaryConnection)
+          end
         end
       end
 
