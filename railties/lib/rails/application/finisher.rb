@@ -87,21 +87,21 @@ module Rails
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 
-      class MutexHook
-        def initialize(mutex = Mutex.new)
-          @mutex = mutex
+      class MonitorHook # :nodoc:
+        def initialize(monitor = Monitor.new)
+          @monitor = monitor
         end
 
         def run
-          @mutex.lock
+          @monitor.enter
         end
 
         def complete(_state)
-          @mutex.unlock
+          @monitor.exit
         end
       end
 
-      module InterlockHook
+      module InterlockHook # :nodoc:
         def self.run
           ActiveSupport::Dependencies.interlock.start_running
         end
@@ -116,7 +116,7 @@ module Rails
           # User has explicitly opted out of concurrent request
           # handling: presumably their code is not threadsafe
 
-          app.executor.register_hook(MutexHook.new, outer: true)
+          app.executor.register_hook(MonitorHook.new, outer: true)
 
         elsif config.allow_concurrency == :unsafe
           # Do nothing, even if we know this is dangerous. This is the
