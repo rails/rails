@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "redis", ">= 3", "< 5"
+gem "redis", ">= 4", "< 6"
 require "redis"
 
 require "active_support/core_ext/hash/except"
@@ -76,7 +76,7 @@ module ActionCable
 
           def listen(conn)
             conn.without_reconnect do
-              original_client = conn.respond_to?(:_client) ? conn._client : conn.client
+              original_client = conn._client
 
               conn.subscribe("_action_cable_internal") do |on|
                 on.subscribe do |chan, count|
