@@ -17,12 +17,6 @@ class RedisAdapterTest < ActionCable::TestCase
   end
 end
 
-class RedisAdapterTest::Hiredis < RedisAdapterTest
-  def cable_config
-    super.merge(driver: "hiredis")
-  end
-end
-
 class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest
   def cable_config
     alt_cable_config = super.dup

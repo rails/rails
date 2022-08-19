@@ -5,14 +5,8 @@ begin
   require "redis"
   require "redis/distributed"
 rescue LoadError
-  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \"~> 4.0\"`"
+  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \">= 4.0.1\"`"
   raise
-end
-
-# Prefer the hiredis driver but don't require it.
-begin
-  require "redis/connection/hiredis"
-rescue LoadError
 end
 
 require "connection_pool"

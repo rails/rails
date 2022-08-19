@@ -517,16 +517,6 @@ To get started, add the redis gem to your Gemfile:
 gem 'redis'
 ```
 
-You can enable support for the faster [hiredis](https://github.com/redis/hiredis)
-connection library by additionally adding its ruby wrapper to your Gemfile:
-
-```ruby
-gem 'hiredis'
-```
-
-Redis cache store will automatically require and use hiredis if available. No further
-configuration is needed.
-
 Finally, add the configuration in the relevant `config/environments/*.rb` file:
 
 ```ruby
