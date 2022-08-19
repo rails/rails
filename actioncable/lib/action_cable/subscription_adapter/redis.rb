@@ -67,7 +67,7 @@ module ActionCable
             @subscribe_callbacks = Hash.new { |h, k| h[k] = [] }
             @subscription_lock = Mutex.new
 
-            @raw_client = nil
+            @subscribed_client = nil
 
             @when_connected = []
 
@@ -76,13 +76,13 @@ module ActionCable
 
           def listen(conn)
             conn.without_reconnect do
-              original_client = conn._client
+              original_client = extract_subscribed_client(conn)
 
               conn.subscribe("_action_cable_internal") do |on|
                 on.subscribe do |chan, count|
                   @subscription_lock.synchronize do
                     if count == 1
-                      @raw_client = original_client
+                      @subscribed_client = original_client
 
                       until @when_connected.empty?
                         @when_connected.shift.call
@@ -104,7 +104,7 @@ module ActionCable
                 on.unsubscribe do |chan, count|
                   if count == 0
                     @subscription_lock.synchronize do
-                      @raw_client = nil
+                      @subscribed_client = nil
                     end
                   end
                 end
@@ -117,8 +117,8 @@ module ActionCable
               return if @thread.nil?
 
               when_connected do
-                send_command("unsubscribe")
-                @raw_client = nil
+                @subscribed_client.unsubscribe
+                @subscribed_client = nil
               end
             end
 
@@ -129,13 +129,13 @@ module ActionCable
             @subscription_lock.synchronize do
               ensure_listener_running
               @subscribe_callbacks[channel] << on_success
-              when_connected { send_command("subscribe", channel) }
+              when_connected { @subscribed_client.subscribe(channel) }
             end
           end
 
           def remove_channel(channel)
             @subscription_lock.synchronize do
-              when_connected { send_command("unsubscribe", channel) }
+              when_connected { @subscribed_client.unsubscribe(channel) }
             end
           end
 
@@ -154,23 +154,43 @@ module ActionCable
             end
 
             def when_connected(&block)
-              if @raw_client
+              if @subscribed_client
                 block.call
               else
                 @when_connected << block
               end
             end
 
-            def send_command(*command)
-              @raw_client.write(command)
-
-              very_raw_connection =
-                @raw_client.connection.instance_variable_defined?(:@connection) &&
-                @raw_client.connection.instance_variable_get(:@connection)
-
-              if very_raw_connection && very_raw_connection.respond_to?(:flush)
-                very_raw_connection.flush
+            class SubscribedClient
+              def initialize(raw_client)
+                @raw_client = raw_client
               end
+
+              def subscribe(*channel)
+                send_command("subscribe", *channel)
+              end
+
+              def unsubscribe(*channel)
+                send_command("unsubscribe", *channel)
+              end
+
+              private
+                def send_command(*command)
+                  @raw_client.write(command)
+
+                  very_raw_connection =
+                    @raw_client.connection.instance_variable_defined?(:@connection) &&
+                    @raw_client.connection.instance_variable_get(:@connection)
+
+                  if very_raw_connection && very_raw_connection.respond_to?(:flush)
+                    very_raw_connection.flush
+                  end
+                  nil
+                end
+            end
+
+            def extract_subscribed_client(conn)
+              SubscribedClient.new(conn._client)
             end
         end
     end
