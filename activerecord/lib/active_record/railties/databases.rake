@@ -9,9 +9,10 @@ databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 db_namespace = namespace :db do
   desc "Set the environment value for the database"
   task "environment:set" => :load_config do
-    raise ActiveRecord::EnvironmentStorageError unless ActiveRecord::InternalMetadata.enabled?
-    ActiveRecord::InternalMetadata.create_table
-    ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
+    connection = ActiveRecord::Base.connection
+    raise ActiveRecord::EnvironmentStorageError unless connection.internal_metadata.enabled?
+
+    connection.internal_metadata.create_table_and_set_flags(connection.migration_context.current_environment)
   end
 
   task check_protected_environments: :load_config do

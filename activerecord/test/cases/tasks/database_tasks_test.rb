@@ -60,7 +60,7 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
-      InternalMetadata[:environment] = current_env
+      ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
 
       assert_called_on_instance_of(
         ActiveRecord::MigrationContext,
@@ -86,7 +86,7 @@ module ActiveRecord
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
 
-      InternalMetadata[:environment] = current_env
+      ActiveRecord::Base.connection.internal_metadata[:environment] = current_env
 
       assert_called_on_instance_of(
         ActiveRecord::MigrationContext,
@@ -108,7 +108,7 @@ module ActiveRecord
     end
 
     def test_raises_an_error_if_no_migrations_have_been_made
-      ActiveRecord::InternalMetadata.stub(:table_exists?, false) do
+      ActiveRecord::Base.connection.internal_metadata.stub(:table_exists?, false) do
         assert_called_on_instance_of(
           ActiveRecord::MigrationContext,
           :current_version,

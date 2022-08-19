@@ -17,6 +17,7 @@ module ActiveRecord
         super
         @connection = ActiveRecord::Base.connection
         @schema_migration = @connection.schema_migration
+        @internal_metadata = @connection.internal_metadata
         @verbose_was = ActiveRecord::Migration.verbose
         ActiveRecord::Migration.verbose = false
 
@@ -29,7 +30,7 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
-        ActiveRecord::SchemaMigration.delete_all rescue nil
+        @schema_migration.delete_all rescue nil
       end
 
       def test_migration_doesnt_remove_named_index
@@ -43,7 +44,7 @@ module ActiveRecord
         }.new
 
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
-        assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate }
+        assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate }
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
       end
 
@@ -58,7 +59,7 @@ module ActiveRecord
         }.new
 
         assert connection.index_exists?(:testings, :bar)
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         assert_not connection.index_exists?(:testings, :bar)
       end
 
@@ -72,7 +73,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert_not connection.index_exists?(:more_testings, :foo_id)
         assert_not connection.index_exists?(:more_testings, :bar_id)
@@ -89,7 +90,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :created_at, null: true)
         assert connection.column_exists?(:more_testings, :updated_at, null: true)
@@ -106,7 +107,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: true)
         assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -122,7 +123,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
           assert connection.column_exists?(:testings, :created_at, null: true)
           assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -136,7 +137,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: true)
         assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -151,7 +152,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:more_testings, :updated_at, null: false, **precision_implicit_default)
@@ -168,7 +169,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -184,7 +185,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
           assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
           assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -198,7 +199,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -235,7 +236,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert connection.column_exists?(:testings, :foo, comment: "comment")
         end
 
@@ -248,7 +249,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
           assert_equal "comment", connection.table_comment("testings")
         end
@@ -266,7 +267,7 @@ module ActiveRecord
           }.new
 
           Testing.create!
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert_equal ["foobar"], Testing.all.map(&:foo)
         ensure
           ActiveRecord::Base.clear_cache!
@@ -282,7 +283,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -306,7 +307,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -330,7 +331,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -354,7 +355,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -378,7 +379,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -402,7 +403,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -426,7 +427,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -440,7 +441,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
       end
@@ -452,7 +453,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
       end
@@ -466,7 +467,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert_not connection.column_exists?(:testings, :foo)
       end
@@ -478,7 +479,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :widget_id)
       end
@@ -492,7 +493,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
 
@@ -522,7 +523,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration, @internal_metadata).migrate
 
         column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
 
@@ -548,7 +549,7 @@ module ActiveRecord
         if current_adapter?(:Mysql2Adapter)
           # MySQL does not allow to create table names longer than limit
           error = assert_raises(StandardError) do
-            ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           end
           if connection.mariadb?
             assert_match(/Incorrect table name '#{long_table_name}'/i, error.message)
@@ -556,7 +557,7 @@ module ActiveRecord
             assert_match(/Identifier name '#{long_table_name}' is too long/i, error.message)
           end
         else
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert connection.table_exists?(long_table_name)
         end
       ensure
@@ -578,7 +579,7 @@ module ActiveRecord
         if current_adapter?(:Mysql2Adapter)
           # MySQL does not allow to create table names longer than limit
           error = assert_raises(StandardError) do
-            ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           end
           if connection.mariadb?
             assert_match(/Incorrect table name '#{long_table_name}'/i, error.message)
@@ -586,7 +587,7 @@ module ActiveRecord
             assert_match(/Identifier name '#{long_table_name}' is too long/i, error.message)
           end
         else
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert connection.table_exists?(long_table_name)
           assert_not connection.table_exists?(:more_testings)
           assert connection.table_exists?(long_table_name)
@@ -604,7 +605,7 @@ module ActiveRecord
           end
         end
         e = assert_raise(StandardError) do
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
         assert_includes e.message, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}"
       end
@@ -617,7 +618,7 @@ module ActiveRecord
           end
         end
         assert_nothing_raised do
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
         assert_difference("TestModel.count" => 1) do
           TestModel.create!(name: nil)
@@ -632,7 +633,7 @@ module ActiveRecord
           end
         end
         assert_nothing_raised do
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
         assert_raise(ActiveRecord::NotNullViolation) do
           TestModel.create!(name: nil)
@@ -650,7 +651,7 @@ module ActiveRecord
             end
           end
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert_not connection.extension_enabled?(:hstore)
         ensure
           disable_extension!(:hstore, connection)
@@ -675,6 +676,7 @@ module LegacyPolymorphicReferenceIndexTestCases
   def setup
     @connection = ActiveRecord::Base.connection
     @schema_migration = @connection.schema_migration
+    @internal_metadata = @connection.internal_metadata
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
@@ -683,7 +685,7 @@ module LegacyPolymorphicReferenceIndexTestCases
 
   def teardown
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::SchemaMigration.delete_all rescue nil
+    @schema_migration.delete_all rescue nil
     connection.drop_table :testings rescue nil
   end
 
@@ -697,7 +699,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:more_testings, [:widget_type, :widget_id], name: :index_more_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:more_testings, [:gizmo_type, :gizmo_id], name: :index_more_testings_on_gizmo_type_and_gizmo_id)
@@ -715,7 +717,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:testings, [:widget_type, :widget_id], name: :index_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:testings, [:gizmo_type, :gizmo_id], name: :index_testings_on_gizmo_type_and_gizmo_id)
@@ -731,7 +733,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:more_testings, [:widget_type, :widget_id], name: :index_more_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:more_testings, [:gizmo_type, :gizmo_id], name: :index_more_testings_on_gizmo_type_and_gizmo_id)
@@ -747,7 +749,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:testings, [:widget_type, :widget_id], name: :index_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:testings, [:gizmo_type, :gizmo_id], name: :index_testings_on_gizmo_type_and_gizmo_id)
