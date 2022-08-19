@@ -1257,6 +1257,18 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
+
+      # Checks to see if a check constraint exists on a table for a given check constraint definition.
+      #
+      #   check_constraint_exists?(:products, name: "price_check")
+      #
+      def check_constraint_exists?(table_name, **options)
+        if !options.key?(:name) && !options.key?(:expression)
+          raise ArgumentError, "At least one of :name or :expression must be supplied"
+        end
+        check_constraint_for(table_name, **options).present?
+      end
+
       def dump_schema_information # :nodoc:
         versions = schema_migration.all_versions
         insert_versions_sql(versions) if versions.any?
@@ -1449,10 +1461,6 @@ module ActiveRecord
       end
 
       private
-        def check_constraint_exists?(table_name, **options)
-          check_constraint_for(table_name, **options).present?
-        end
-
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
             raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"
@@ -1636,7 +1644,7 @@ module ActiveRecord
         def check_constraint_for(table_name, **options)
           return unless supports_check_constraints?
           chk_name = check_constraint_name(table_name, **options)
-          check_constraints(table_name).detect { |chk| chk.name == chk_name.to_s }
+          check_constraints(table_name).detect { |chk| chk.defined_for?(name: chk_name, **options) }
         end
 
         def check_constraint_for!(table_name, expression: nil, **options)

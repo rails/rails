@@ -163,6 +163,11 @@ module ActiveRecord
       def export_name_on_schema_dump?
         !ActiveRecord::SchemaDumper.chk_ignore_pattern.match?(name) if name
       end
+
+      def defined_for?(name:, expression: nil, **options)
+        self.name == name.to_s &&
+          options.all? { |k, v| self.options[k].to_s == v.to_s }
+      end
     end
 
     class ReferenceDefinition # :nodoc:
