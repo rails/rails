@@ -399,7 +399,10 @@ GEM
     rbtree (0.4.5)
     rdoc (6.3.3)
     redcarpet (3.2.3)
-    redis (4.7.1)
+    redis (5.0.0.beta4)
+      redis-client (~> 0.7)
+    redis-client (0.7.1)
+      connection_pool
     redis-namespace (1.8.1)
       redis (>= 3.0.4)
     regexp_parser (2.2.1)
@@ -596,7 +599,7 @@ DEPENDENCIES
   rails!
   rake (>= 11.1)
   redcarpet (~> 3.2.3)
-  redis (>= 4.0.1)
+  redis (= 5.0.0.beta4)
   redis-namespace
   resque
   resque-scheduler
