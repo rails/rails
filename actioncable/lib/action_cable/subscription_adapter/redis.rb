@@ -54,7 +54,7 @@ module ActionCable
         end
 
         def redis_connection
-          self.class.redis_connector.call(@server.config.cable.merge(id: identifier))
+          self.class.redis_connector.call(@server.config.cable.symbolize_keys.merge(id: identifier))
         end
 
         class Listener < SubscriberMap
@@ -161,36 +161,42 @@ module ActionCable
               end
             end
 
-            class SubscribedClient
-              def initialize(raw_client)
-                @raw_client = raw_client
-              end
-
-              def subscribe(*channel)
-                send_command("subscribe", *channel)
-              end
-
-              def unsubscribe(*channel)
-                send_command("unsubscribe", *channel)
-              end
-
-              private
-                def send_command(*command)
-                  @raw_client.write(command)
-
-                  very_raw_connection =
-                    @raw_client.connection.instance_variable_defined?(:@connection) &&
-                    @raw_client.connection.instance_variable_get(:@connection)
-
-                  if very_raw_connection && very_raw_connection.respond_to?(:flush)
-                    very_raw_connection.flush
-                  end
-                  nil
+            if ::Redis::VERSION < "5"
+              class SubscribedClient
+                def initialize(raw_client)
+                  @raw_client = raw_client
                 end
-            end
 
-            def extract_subscribed_client(conn)
-              SubscribedClient.new(conn._client)
+                def subscribe(*channel)
+                  send_command("subscribe", *channel)
+                end
+
+                def unsubscribe(*channel)
+                  send_command("unsubscribe", *channel)
+                end
+
+                private
+                  def send_command(*command)
+                    @raw_client.write(command)
+
+                    very_raw_connection =
+                      @raw_client.connection.instance_variable_defined?(:@connection) &&
+                      @raw_client.connection.instance_variable_get(:@connection)
+
+                    if very_raw_connection && very_raw_connection.respond_to?(:flush)
+                      very_raw_connection.flush
+                    end
+                    nil
+                  end
+              end
+
+              def extract_subscribed_client(conn)
+                SubscribedClient.new(conn._client)
+              end
+            else
+              def extract_subscribed_client(conn)
+                conn
+              end
             end
         end
     end

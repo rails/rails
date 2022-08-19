@@ -48,7 +48,7 @@ class RedisAdapterTest::ConnectorDefaultID < ActionCable::TestCase
   end
 
   test "sets connection id for connection" do
-    assert_called_with ::Redis, :new, [ expected_connection.stringify_keys ] do
+    assert_called_with ::Redis, :new, [ expected_connection.symbolize_keys ] do
       @adapter.send(:redis_connection)
     end
   end
