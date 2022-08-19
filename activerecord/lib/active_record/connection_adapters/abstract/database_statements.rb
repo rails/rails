@@ -202,58 +202,18 @@ module ActiveRecord
       # Runs the given block in a database transaction, and returns the result
       # of the block.
       #
+      # Options are:
+      # * <tt>:requires_new</tt> - Uses savepoints to emulate a real nested transaction. The default is +nil+
+      # * <tt>:isolation</tt> - See Isolation below. The default is +nil+.
+      # * <tt>:joinable</tt> - A non-joinable transaction creates a savepoint. The default is +nil+.
+      # * <tt>:join_existing</tt> - Will join existing transactions, so ActiveRecord::Rollback will rollback
+      #   the whole transaction see ActiveRecord::Transactions.  The default is +nil+ but in future versions of Rails the default will be +true+.
+      #
       # == Nested transactions support
       #
       # #transaction calls can be nested. By default, this makes all database
       # statements in the nested transaction block become part of the parent
-      # transaction. For example, the following behavior may be surprising:
-      #
-      #   ActiveRecord::Base.transaction do
-      #     Post.create(title: 'first')
-      #     ActiveRecord::Base.transaction do
-      #       Post.create(title: 'second')
-      #       raise ActiveRecord::Rollback
-      #     end
-      #   end
-      #
-      # This creates both "first" and "second" posts. Reason is the
-      # ActiveRecord::Rollback exception in the nested block does not issue a
-      # ROLLBACK. Since these exceptions are captured in transaction blocks,
-      # the parent block does not see it and the real transaction is committed.
-      #
-      # Most databases don't support true nested transactions. At the time of
-      # writing, the only database that supports true nested transactions that
-      # we're aware of, is MS-SQL.
-      #
-      # In order to get around this problem, #transaction will emulate the effect
-      # of nested transactions, by using savepoints:
-      # https://dev.mysql.com/doc/refman/en/savepoint.html.
-      #
-      # It is safe to call this method if a database transaction is already open,
-      # i.e. if #transaction is called within another #transaction block. In case
-      # of a nested call, #transaction will behave as follows:
-      #
-      # - The block will be run without doing anything. All database statements
-      #   that happen within the block are effectively appended to the already
-      #   open database transaction.
-      # - However, if +:requires_new+ is set, the block will be wrapped in a
-      #   database savepoint acting as a sub-transaction.
-      #
-      # In order to get a ROLLBACK for the nested transaction you may ask for a
-      # real sub-transaction by passing <tt>requires_new: true</tt>.
-      # If anything goes wrong, the database rolls back to the beginning of
-      # the sub-transaction without rolling back the parent transaction.
-      # If we add it to the previous example:
-      #
-      #   ActiveRecord::Base.transaction do
-      #     Post.create(title: 'first')
-      #     ActiveRecord::Base.transaction(requires_new: true) do
-      #       Post.create(title: 'second')
-      #       raise ActiveRecord::Rollback
-      #     end
-      #   end
-      #
-      # only post with title "first" is created.
+      # transaction.
       #
       # See ActiveRecord::Transactions to learn more.
       #
@@ -276,7 +236,7 @@ module ActiveRecord
       #     end  # RELEASE SAVEPOINT active_record_1  <--- BOOM! database error!
       #   end
       #
-      # == Transaction isolation
+      # == Isolation
       #
       # If your database supports setting the isolation level for a transaction, you can set
       # it like so:
@@ -306,17 +266,44 @@ module ActiveRecord
       #
       # The mysql2 and postgresql adapters support setting the transaction
       # isolation level.
-      def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
+      def transaction(requires_new: nil, isolation: nil, joinable: true, join_existing: nil, &block)
         if !requires_new && current_transaction.joinable?
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
+          did_join = true
           yield
         else
           transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
-      rescue ActiveRecord::Rollback
-        # rollbacks are silently swallowed
+      rescue ActiveRecord::Rollback => e
+        if did_join
+          if join_existing
+            raise e
+          else
+            # Deprecation Plan: always raise, ignore join_existing
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              An ActiveRecord::Rollback error was raised inside a transaction block that did not
+              create a separate transaction.  This interrupts the inner block but does not rollback
+              its changes.
+
+              In future rails versions ActiveRecord::Rollback will be re-rasied so the outer
+              transaction will be rolled back also.  To opt-into the new behavior use can use
+              `join_existing: true`.
+
+              If you wish to continue to rescue ActiveRecord::Rollback you will need to do
+              this manually, e.g.
+              ActiveRecord::Base.transaction do
+                ActiveRecord::Base.transaction(join_existing: true) do
+                  raise ActiveRecord::Rollback
+                end
+              rescue ActiveRecord::Rollback
+              end
+            MSG
+          end
+        else
+          # rollback is silently swallowed; within_new_transaction has already done the work
+        end
       end
 
       attr_reader :transaction_manager # :nodoc:

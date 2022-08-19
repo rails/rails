@@ -150,27 +150,44 @@ module ActiveRecord
     # are captured in transaction blocks, the parent block does not see it and the
     # real transaction is committed.
     #
-    # In order to get a ROLLBACK for the nested transaction you may ask for a real
-    # sub-transaction by passing <tt>requires_new: true</tt>. If anything goes wrong,
-    # the database rolls back to the beginning of the sub-transaction without rolling
-    # back the parent transaction. If we add it to the previous example:
+    # In newer versions of rails transactions will have <tt>join_existing: true</tt>
+    # as default which means ActiveRecord::Rollback exceptions are only rescued in
+    # the top transaction:
     #
     #   User.transaction do
     #     User.create(username: 'Kotori')
-    #     User.transaction(requires_new: true) do
+    #     User.transaction(join_existing: true) do
     #       User.create(username: 'Nemu')
     #       raise ActiveRecord::Rollback
     #     end
     #   end
     #
-    # only "Kotori" is created.
+    # would create neither "Kotori" or "Nemu".
+    #
+    # It is possible you wish to use real sub-transactions, e.g. when part of the
+    # transaction is allowed to fail but another part must succeed.  This can be
+    # achieved with <tt>requires_new: true</tt>. Assuming a uniqness constraint on username:
+    #
+    #   User.transaction do
+    #     User.create(username: 'Kotori')
+    #     User.transaction(requires_new: true) do
+    #       User.create(username: 'Kotori')
+    #     end
+    #   rescue ActiveRecord::RecordNotUnique
+    #     User.create(username: 'Nemu')
+    #   end
+    #
+    # will create "Kotori" and "Nemu".  The nested transaction is rolledback but the
+    # outer transaction can continue.
     #
     # Most databases don't support true nested transactions. At the time of
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints. See
-    # https://dev.mysql.com/doc/refman/en/savepoint.html
+    # https://dev.mysql.com/doc/refman/en/savepoint.html or
+    # https://www.postgresql.org/docs/current/sql-savepoint.html
     # for more information about savepoints.
+    # Note that savepoints do come with additional database overhead.
     #
     # === \Callbacks
     #
@@ -349,12 +366,15 @@ module ActiveRecord
       connection = self.class.connection
       ensure_finalize = !connection.transaction_open?
 
-      connection.transaction do
-        add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-        remember_transaction_record_state
+      begin
+        connection.transaction(join_existing: true) do
+          add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+          remember_transaction_record_state
 
-        status = yield
-        raise ActiveRecord::Rollback unless status
+          status = yield
+          raise ActiveRecord::Rollback unless status
+        end
+      rescue ActiveRecord::Rollback
       end
       status
     end

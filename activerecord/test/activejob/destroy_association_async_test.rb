@@ -225,7 +225,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     parent.save!
     assert_no_enqueued_jobs do
-      DestroyAsyncParent.transaction do
+      DestroyAsyncParent.transaction(join_existing: true) do
         parent.destroy
         raise ActiveRecord::Rollback
       end
@@ -322,7 +322,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     book = BookDestroyAsync.create!
     book.tags << [tag, tag2]
     book.save!
-    ActiveRecord::Base.transaction do
+    ActiveRecord::Base.transaction(join_existing: true) do
       book.destroy
       raise ActiveRecord::Rollback
     end

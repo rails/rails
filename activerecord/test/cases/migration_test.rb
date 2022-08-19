@@ -753,7 +753,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::InternalMetadata.drop_table
     assert_not_predicate ActiveRecord::InternalMetadata, :table_exists?
 
-    ActiveRecord::InternalMetadata.connection.transaction do
+    ActiveRecord::InternalMetadata.connection.transaction(join_existing: true) do
       ActiveRecord::InternalMetadata.create_table
       assert_predicate ActiveRecord::InternalMetadata, :table_exists?
 
@@ -762,7 +762,7 @@ class MigrationTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    ActiveRecord::InternalMetadata.connection.transaction do
+    ActiveRecord::InternalMetadata.connection.transaction(join_existing: true) do
       ActiveRecord::InternalMetadata.create_table
       assert_predicate ActiveRecord::InternalMetadata, :table_exists?
 
@@ -778,7 +778,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.drop_table
     assert_not_predicate ActiveRecord::SchemaMigration, :table_exists?
 
-    ActiveRecord::SchemaMigration.connection.transaction do
+    ActiveRecord::SchemaMigration.connection.transaction(join_existing: true) do
       ActiveRecord::SchemaMigration.create_table
       assert_predicate ActiveRecord::SchemaMigration, :table_exists?
 
@@ -787,7 +787,7 @@ class MigrationTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    ActiveRecord::SchemaMigration.connection.transaction do
+    ActiveRecord::SchemaMigration.connection.transaction(join_existing: true) do
       ActiveRecord::SchemaMigration.create_table
       assert_predicate ActiveRecord::SchemaMigration, :table_exists?
 

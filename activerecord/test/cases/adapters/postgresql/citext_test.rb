@@ -39,7 +39,7 @@ class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_change_table_supports_json
-    @connection.transaction do
+    @connection.transaction(join_existing: true) do
       @connection.change_table("citexts") do |t|
         t.citext "username"
       end
