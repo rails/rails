@@ -5,12 +5,6 @@ require "active_support/cache"
 require "active_support/cache/redis_cache_store"
 require_relative "../behaviors"
 
-driver_name = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
-driver = Object.const_get("Redis::Connection::#{driver_name.camelize}")
-
-Redis::Connection.drivers.clear
-Redis::Connection.drivers.append(driver)
-
 # Emulates a latency on Redis's back-end for the key latency to facilitate
 # connection pool testing.
 class SlowRedis < Redis
@@ -42,8 +36,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
-  DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
-
   class LookupTest < ActiveSupport::TestCase
     test "may be looked up as :redis_cache_store" do
       assert_kind_of ActiveSupport::Cache::RedisCacheStore,
@@ -56,7 +48,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0, driver: DRIVER
+        reconnect_attempts: 0
       ] do
         build
       end
@@ -66,7 +58,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0, driver: DRIVER
+        reconnect_attempts: 0
       ] do
         build url: []
       end
@@ -76,7 +68,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: REDIS_URL,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0, driver: DRIVER
+        reconnect_attempts: 0
       ] do
         build url: REDIS_URL
       end
@@ -86,7 +78,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: REDIS_URL,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0, driver: DRIVER
+        reconnect_attempts: 0
       ] do
         build url: [ REDIS_URL ]
       end
@@ -98,7 +90,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         read_timeout: 1,
         write_timeout: 1,
         reconnect_attempts: 0,
-        driver: DRIVER
       }
 
       mock = Minitest::Mock.new
@@ -128,7 +119,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs.merge(pool: false)).tap(&:redis)
+        ActiveSupport::Cache::RedisCacheStore.new(**kwargs.merge(pool: false)).tap(&:redis)
       end
   end
 
@@ -146,7 +137,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER, pool: false }.merge(options))
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
     end
 
     teardown do
@@ -452,7 +443,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     test "clear all cache key with Redis::Distributed" do
       cache = ActiveSupport::Cache::RedisCacheStore.new(
         url: REDIS_URLS,
-        timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
+        timeout: 0.1, namespace: @namespace, expires_in: 60)
       cache.write("foo", "bar")
       cache.write("fu", "baz")
       cache.clear

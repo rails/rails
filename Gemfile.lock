@@ -284,7 +284,6 @@ GEM
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
     hashdiff (1.0.1)
-    hiredis (0.6.3)
     http_parser.rb (0.8.0)
     httpclient (2.8.3)
     i18n (1.8.11)
@@ -400,7 +399,7 @@ GEM
     rbtree (0.4.5)
     rdoc (6.3.3)
     redcarpet (3.2.3)
-    redis (4.5.1)
+    redis (4.7.1)
     redis-namespace (1.8.1)
       redis (>= 3.0.4)
     regexp_parser (2.2.1)
@@ -574,7 +573,6 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.11)
-  hiredis
   image_processing (~> 1.2)
   importmap-rails
   jsbundling-rails
@@ -598,7 +596,7 @@ DEPENDENCIES
   rails!
   rake (>= 11.1)
   redcarpet (~> 3.2.3)
-  redis (~> 4.0)
+  redis (>= 4.0.1)
   redis-namespace
   resque
   resque-scheduler
