@@ -496,12 +496,12 @@ module ApplicationTests
 
           generate_models_for_animals
 
-          rails("db:migrate")
+          rails("db:migrate:primary")
 
-          rails "db:schema:dump"
+          rails "db:migrate:animals", "db:schema:dump:animals"
 
           assert_nothing_raised do
-            rails("db:schema:load:animals", "foo", "--trace")
+            rails("db:schema:load:animals", "foo")
           end
         end
       end
