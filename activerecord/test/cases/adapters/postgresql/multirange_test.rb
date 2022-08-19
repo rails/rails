@@ -253,6 +253,24 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal_round_trip(@multi_range, :int8_multirange, [-60000...60000])
     assert_empty_round_trip(@multi_range, :int8_multirange, [10000...10000])
   end
+
+  def test_create_datemultirange
+    assert_equal_round_trip(
+      @new_range,
+      :date_multirange,
+      [
+        Range.new(Date.new(2019, 1, 1), Date.new(2020, 1, 1), true),
+        Range.new(Date.new(2021, 1, 1), Date.new(2022, 1, 1), true)
+      ]
+    )
+  end
+
+  def test_update_datemultirange
+    assert_equal_round_trip(@multi_range, :date_multirange,
+                            [Date.new(2022, 2, 3)...Date.new(2022, 2, 10)])
+    assert_empty_round_trip(@multi_range, :date_multirange,
+                            [Date.new(2022, 2, 3)...Date.new(2022, 2, 3)])
+  end
   
   private
     def assert_equal_round_trip(range, attribute, value)
