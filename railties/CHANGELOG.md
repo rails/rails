@@ -1,3 +1,10 @@
+*   `config.allow_concurrency = false` now use a `Monitor` instead of a `Mutex`
+
+    This allows to enable `config.active_support.executor_around_test_case` even
+    when `config.allow_concurrency` is disabled.
+
+    *Jean Boussier*
+
 *   Skip Active Storage and Action Mailer if Active Job is skipped.
 
     *Étienne Barrié*
