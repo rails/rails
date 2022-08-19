@@ -83,6 +83,39 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
+if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+  class DefaultBinaryTest < ActiveRecord::TestCase
+    class DefaultBinary < ActiveRecord::Base; end
+
+    setup do
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table :default_binaries do |t|
+        t.binary :varbinary_col, null: false, limit: 64, default: "varbinary_default"
+        t.binary :varbinary_col_hex_looking, null: false, limit: 64, default: "0xDEADBEEF"
+      end
+      DefaultBinary.reset_column_information
+    end
+
+    def test_default_varbinary_string
+      assert_equal "varbinary_default", DefaultBinary.new.varbinary_col
+    end
+
+    if current_adapter?(:Mysql2Adapter) && !ActiveRecord::Base.connection.mariadb?
+      def test_default_binary_string
+        assert_equal "binary_default", DefaultBinary.new.binary_col
+      end
+    end
+
+    def test_default_varbinary_string_that_looks_like_hex
+      assert_equal "0xDEADBEEF", DefaultBinary.new.varbinary_col_hex_looking
+    end
+
+    teardown do
+      @connection.drop_table :default_binaries
+    end
+  end
+end
+
 if supports_text_column_with_default?
   class DefaultTextTest < ActiveRecord::TestCase
     class DefaultText < ActiveRecord::Base; end

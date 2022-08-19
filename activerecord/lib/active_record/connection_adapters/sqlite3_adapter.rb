@@ -430,6 +430,9 @@ module ActiveRecord
           # Numeric types
           when /\A-?\d+(\.\d*)?\z/
             $&
+          # Binary columns
+          when /x'(.*)'/
+            [ $1 ].pack("H*")
           else
             # Anything else is blank or some function
             # and we can't know the value of that, so return nil.
