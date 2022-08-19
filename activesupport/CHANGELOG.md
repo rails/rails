@@ -1,3 +1,7 @@
+*   Redis cache store is now compatible with redis-rb 5.0.
+
+    *Jean Boussier*
+
 *   Log a warning if `ActiveSupport::Cache` is given an expiration in the past.
 
     *Trevor Turk*
