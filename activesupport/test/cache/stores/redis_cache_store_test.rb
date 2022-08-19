@@ -323,13 +323,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   end
 
   class UnavailableRedisClient < Redis::Client
-    def ensure_connected
+    def ensure_connected(...)
       raise Redis::BaseConnectionError
     end
   end
 
   class MaxClientsReachedRedisClient < Redis::Client
-    def ensure_connected
+    def ensure_connected(...)
       raise Redis::CommandError
     end
   end
