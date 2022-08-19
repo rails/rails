@@ -46,7 +46,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class InitializationTest < ActiveSupport::TestCase
     test "omitted URL uses Redis client with default settings" do
       assert_called_with Redis, :new, [
-        url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0
       ] do
@@ -56,7 +55,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "no URLs uses Redis client with default settings" do
       assert_called_with Redis, :new, [
-        url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
         reconnect_attempts: 0
       ] do

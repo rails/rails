@@ -85,6 +85,8 @@ module ActiveSupport
             redis
           elsif urls.size > 1
             build_redis_distributed_client urls: urls, **redis_options
+          elsif urls.empty?
+            build_redis_client **redis_options
           else
             build_redis_client url: urls.first, **redis_options
           end
@@ -97,8 +99,8 @@ module ActiveSupport
             end
           end
 
-          def build_redis_client(url:, **redis_options)
-            ::Redis.new DEFAULT_REDIS_OPTIONS.merge(redis_options.merge(url: url))
+          def build_redis_client(**redis_options)
+            ::Redis.new DEFAULT_REDIS_OPTIONS.merge(redis_options)
           end
       end
 
