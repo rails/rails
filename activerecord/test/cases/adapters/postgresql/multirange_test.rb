@@ -271,6 +271,15 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_empty_round_trip(@multi_range, :date_multirange,
                             [Date.new(2022, 2, 3)...Date.new(2022, 2, 3)])
   end
+
+  def test_exclude_beginning_for_subtypes_without_succ_method_is_not_supported
+    assert_raises(ArgumentError) { PostgresqlMultiRange.create!(num_multirange: "{(0.1, 0.2]}") }
+    assert_raises(ArgumentError) { PostgresqlMultiRange.create!(int4_multirange: "{(1, 10]}") }
+    assert_raises(ArgumentError) { PostgresqlMultiRange.create!(int8_multirange: "{(10, 100]}") }
+    assert_raises(ArgumentError) { PostgresqlMultiRange.create!(date_multirange: "{(''2022-07-02'', ''2022-07-04'']}") }
+    assert_raises(ArgumentError) { PostgresqlMultiRange.create!(ts_multirange: "{(''2022-07-01 14:30'', ''2022-07-01 14:30'']}") }
+    assert_raises(ArgumentError) { PostgresqlMultiRange.create!(tstz_multirange: "{(''2022-07-01 14:30:00+05'', ''2022-07-01 14:30:00-03'']}") }
+  end
   
   private
     def assert_equal_round_trip(range, attribute, value)
