@@ -597,7 +597,7 @@ en:
     end
 
     test "engine is a rack app and can have its own middleware stack" do
-      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.action_dispatch.show_exceptions = :none")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
@@ -837,7 +837,7 @@ en:
         end
       RUBY
 
-      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.action_dispatch.show_exceptions = :none")
 
       boot_rails
 
@@ -917,7 +917,7 @@ en:
           <% end %>
       ERB
 
-      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.action_dispatch.show_exceptions = :none")
 
       boot_rails
 
@@ -956,7 +956,7 @@ en:
         end
       RUBY
 
-      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.action_dispatch.show_exceptions = :none")
 
       boot_rails
 
@@ -1245,7 +1245,7 @@ en:
         end
       RUBY
 
-      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.action_dispatch.show_exceptions = :none")
 
       boot_rails
 
@@ -1401,7 +1401,7 @@ en:
     end
 
     test "engine can be properly mounted at root" do
-      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.action_dispatch.show_exceptions = :none")
       add_to_config("config.public_file_server.enabled = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY

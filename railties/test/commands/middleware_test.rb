@@ -269,7 +269,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
-    add_to_config "config.action_dispatch.show_exceptions = false"
+    add_to_config "config.action_dispatch.show_exceptions = :none"
     boot!
     assert_includes middleware, "ActionDispatch::ShowExceptions"
     assert_includes middleware, "ActionDispatch::DebugExceptions"

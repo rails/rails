@@ -40,7 +40,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 
       invoke_interceptors(request, exception, wrapper)
-      raise exception unless request.show_exceptions?
+      raise exception unless wrapper.show?(request)
       render_exception(request, exception, wrapper)
     end
 

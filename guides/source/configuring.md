@@ -753,7 +753,7 @@ Notifies the logs that the request has begun. After request is complete, flushes
 
 #### `ActionDispatch::ShowExceptions`
 
-Rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `false`, exceptions will be raised regardless.
+Rescues any exception returned by the application and renders nice exception pages if the request is local or if `config.consider_all_requests_local` is set to `true`. If `config.action_dispatch.show_exceptions` is set to `:none`, exceptions will be raised regardless.
 
 #### `ActionDispatch::RequestId`
 

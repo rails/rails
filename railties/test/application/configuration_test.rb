@@ -168,7 +168,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
         config.consider_all_requests_local      = true
-        config.action_dispatch.show_exceptions  = true
+        config.action_dispatch.show_exceptions  = :all
       RUBY
 
       app_file "db/migrate/20140708012246_create_user.rb", <<-RUBY
@@ -1491,7 +1491,7 @@ module ApplicationTests
 
     test "config.action_dispatch.show_exceptions is sent in env" do
       make_basic_app do |application|
-        application.config.action_dispatch.show_exceptions = true
+        application.config.action_dispatch.show_exceptions = :all
       end
 
       class ::OmgController < ActionController::Base
@@ -1501,7 +1501,7 @@ module ApplicationTests
       end
 
       get "/"
-      assert_equal "true", last_response.body
+      assert_equal "all", last_response.body
     end
 
     test "config.action_controller.wrap_parameters is set in ActionController::Base" do
