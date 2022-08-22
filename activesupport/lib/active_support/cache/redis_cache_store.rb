@@ -5,14 +5,8 @@ begin
   require "redis"
   require "redis/distributed"
 rescue LoadError
-  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \"~> 4.0\"`"
+  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \">= 4.0.1\"`"
   raise
-end
-
-# Prefer the hiredis driver but don't require it.
-begin
-  require "redis/connection/hiredis"
-rescue LoadError
 end
 
 require "connection_pool"
@@ -90,9 +84,11 @@ module ActiveSupport
           elsif redis
             redis
           elsif urls.size > 1
-            build_redis_distributed_client urls: urls, **redis_options
+            build_redis_distributed_client(urls: urls, **redis_options)
+          elsif urls.empty?
+            build_redis_client(**redis_options)
           else
-            build_redis_client url: urls.first, **redis_options
+            build_redis_client(url: urls.first, **redis_options)
           end
         end
 
@@ -103,8 +99,8 @@ module ActiveSupport
             end
           end
 
-          def build_redis_client(url:, **redis_options)
-            ::Redis.new DEFAULT_REDIS_OPTIONS.merge(redis_options.merge(url: url))
+          def build_redis_client(**redis_options)
+            ::Redis.new(DEFAULT_REDIS_OPTIONS.merge(redis_options))
           end
       end
 

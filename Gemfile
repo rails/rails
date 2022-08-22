@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
-
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
-
 gemspec
 
 if RUBY_VERSION < "3"
@@ -85,8 +82,7 @@ end
 group :cable do
   gem "puma", require: false
 
-  gem "hiredis", require: false
-  gem "redis", "~> 4.0", require: false
+  gem "redis", ">= 4.0.1", require: false
 
   gem "redis-namespace"
 
