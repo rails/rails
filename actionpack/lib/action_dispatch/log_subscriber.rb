@@ -16,6 +16,7 @@ module ActionDispatch
         message
       end
     end
+    subscribe_log_level :redirect, :info
   end
 end
 
