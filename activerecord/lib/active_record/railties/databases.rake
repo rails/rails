@@ -587,10 +587,6 @@ db_namespace = namespace :db do
       # desc "Empty the #{name} test database"
       namespace :purge do
         task name => %w(load_config check_protected_environments) do
-          p "this purge?"
-          # for tomorrow:
-          #   this one is the problem, not retruning the connection. removing purge from the load task
-          #   "fixes" it. what's using ar base then?
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
 
           ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
