@@ -491,7 +491,7 @@ db_namespace = namespace :db do
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the #{name} database"
-        task name => [:load_config, :check_protected_environments, "db:test:purge:#{name}"] do
+        task name => "db:test:purge:#{name}" do
           original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
           schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
@@ -548,11 +548,6 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
-    # desc "Recreate the test database from the current schema"
-    task load: %w(db:test:purge) do
-      db_namespace["test:load_schema"].invoke
-    end
-
     # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
     task load_schema: %w(db:test:purge) do
       should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
@@ -577,18 +572,11 @@ db_namespace = namespace :db do
     # desc 'Load the test schema'
     task prepare: :load_config do
       unless ActiveRecord::Base.configurations.blank?
-        db_namespace["test:load"].invoke
+        db_namespace["test:load_schema"].invoke
       end
     end
 
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-      # desc "Recreate the #{name} test database"
-      namespace :load do
-        task name => "db:test:purge:#{name}" do
-          db_namespace["test:load_schema:#{name}"].invoke
-        end
-      end
-
       # desc "Recreate the #{name} test database from an existent schema.rb file"
       namespace :load_schema do
         task name => "db:test:purge:#{name}" do
@@ -618,7 +606,7 @@ db_namespace = namespace :db do
       # desc 'Load the #{name} database test schema'
       namespace :prepare do
         task name => :load_config do
-          db_namespace["test:load:#{name}"].invoke
+          db_namespace["test:load_schema:#{name}"].invoke
         end
       end
     end
