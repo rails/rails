@@ -115,13 +115,9 @@ module ActiveSupport
           end
         end
 
-        %w(info debug warn error fatal unknown).each do |level|
-          class_eval <<-METHOD, __FILE__, __LINE__ + 1
-            private def subscribe_log_level(method, level)
-              self.log_levels = log_levels.merge(method => ::Logger.const_get(level.upcase))
-              set_event_levels
-            end
-          METHOD
+        def subscribe_log_level(method, level)
+          self.log_levels = log_levels.merge(method => ::Logger.const_get(level.upcase))
+          set_event_levels
         end
     end
 
