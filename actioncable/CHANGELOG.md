@@ -1,3 +1,9 @@
+*   The Redis adapter is now compatible with redis-rb 5.0
+
+    Compatibility with redis-rb 3.x was dropped.
+
+    *Jean Boussier*
+
 *   The Action Cable server is now mounted with `anchor: true`.
 
     This means that routes that also start with `/cable` will no longer clash with Action Cable.
