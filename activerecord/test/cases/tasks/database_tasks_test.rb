@@ -1099,7 +1099,7 @@ module ActiveRecord
     end
 
     def test_migrate_clears_schema_cache_afterward
-      assert_called(ActiveRecord::Base, :clear_cache!) do
+      assert_called(ActiveRecord::TemporaryConnection.current_connection, :clear_cache!) do
         ActiveRecord::Tasks::DatabaseTasks.migrate
       end
     end
@@ -1112,7 +1112,7 @@ module ActiveRecord
       define_method("test_#{k}_purge") do
         with_stubbed_new do
           assert_called(eval("@#{v}"), :purge) do
-            ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => k
+            ActiveRecord::Tasks::DatabaseTasks.purge({ "adapter" => k })
           end
         end
       end
