@@ -7,7 +7,7 @@
       - nummultirange
       - int8multirange
       - int4multirange
-    
+
     # On migrations
     ```Ruby
       t.int4multirange :multirange_column
@@ -15,7 +15,7 @@
 
     Database queries are going to translate `Array` values received on those type columns into proper postgres multirange sequence.
 
-    # Example 
+    # Example
 
     ```Ruby
       [1...10, 20...50]
