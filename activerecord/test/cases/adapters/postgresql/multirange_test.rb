@@ -59,7 +59,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
 
     @new_range = PostgresqlMultiRange.new
     @multi_range = PostgresqlMultiRange.find(201)
-    @overlaping_ranges = PostgresqlMultiRange.find(202)
+    @overlapping_ranges = PostgresqlMultiRange.find(202)
     @infinity_ranges = PostgresqlMultiRange.find(203)
   end
 
@@ -79,13 +79,13 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
 
   def test_int4multirange_values
     assert_equal [1...11, 500...701, 800...::Float::INFINITY], @multi_range.int4_multirange
-    assert_equal [1...12, 500...::Float::INFINITY], @overlaping_ranges.int4_multirange
+    assert_equal [1...12, 500...::Float::INFINITY], @overlapping_ranges.int4_multirange
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.int4_multirange
   end
 
   def test_int8multirange_values
     assert_equal [10...100, 101...151, 200...::Float::INFINITY], @multi_range.int8_multirange
-    assert_equal [10...101, 102...::Float::INFINITY], @overlaping_ranges.int8_multirange
+    assert_equal [10...101, 102...::Float::INFINITY], @overlapping_ranges.int8_multirange
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.int8_multirange
   end
 
@@ -99,7 +99,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [
       Time.public_send(tz, 2022, 2, 2, 13, 30, 10)..Time.public_send(tz, 2022, 2, 4, 15, 30, 23),
       Time.public_send(tz, 2022, 3, 3, 7, 30)...::Float::INFINITY
-    ], @overlaping_ranges.ts_multirange
+    ], @overlapping_ranges.ts_multirange
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.tstz_multirange
   end
 
@@ -112,7 +112,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [
       Time.parse("2022-05-05 09:30:00 UTC")..Time.parse("2022-06-06 16:30:00 UTC"),
       Time.parse("2022-07-01 08:30:00 UTC")...::Float::INFINITY
-    ], @overlaping_ranges.tstz_multirange
+    ], @overlapping_ranges.tstz_multirange
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.tstz_multirange
   end
 
@@ -125,7 +125,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [
       BigDecimal("0.3")..BigDecimal("0.9"),
       BigDecimal("1.3")...::Float::INFINITY
-    ], @overlaping_ranges.num_multirange
+    ], @overlapping_ranges.num_multirange
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.num_multirange
   end
 
@@ -138,7 +138,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [
       Date.new(2022, 1, 2)...Date.new(2022, 1, 5),
       Date.new(2022, 7, 10)...::Float::INFINITY
-    ], @overlaping_ranges.date_multirange
+    ], @overlapping_ranges.date_multirange
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.date_multirange
   end
 

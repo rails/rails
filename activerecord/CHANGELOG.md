@@ -27,7 +27,7 @@
     {[1,10],[20,50]}
     ```
 
-    Overlaping values are computed by postgres during insertion:
+    Overlapping values are computed by postgres during insertion:
 
     ```Ruby
     [1...10,5...15]
