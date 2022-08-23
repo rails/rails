@@ -542,15 +542,10 @@ db_namespace = namespace :db do
   namespace :test do
     # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
     task load_schema: %w(db:test:purge) do
-      should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
       ActiveRecord::Schema.verbose = false
       ActiveRecord::Base.configurations.configs_for(env_name: "test").each do |db_config|
         schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
         ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
-      end
-    ensure
-      if should_reconnect
-        ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
       end
     end
 
@@ -572,15 +567,10 @@ db_namespace = namespace :db do
       # desc "Recreate the #{name} test database from an existent schema.rb file"
       namespace :load_schema do
         task name => "db:test:purge:#{name}" do
-          should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
           ActiveRecord::Schema.verbose = false
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
           schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
           ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
-        ensure
-          if should_reconnect
-            ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
-          end
         end
       end
 
