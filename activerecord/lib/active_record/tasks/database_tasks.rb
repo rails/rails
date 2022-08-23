@@ -61,6 +61,7 @@ module ActiveRecord
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
       def check_protected_environments!
+         # need to fix these still
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
           current = ActiveRecord::Base.connection.migration_context.current_environment
           stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
@@ -256,8 +257,9 @@ module ActiveRecord
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
         check_target_version
+        current_connection = ActiveRecord::TemporaryConnection.current_connection
 
-        Base.connection.migration_context.migrate(target_version) do |migration|
+        current_connection.migration_context.migrate(target_version) do |migration|
           if version.blank?
             scope.blank? || scope == migration.scope
           else
@@ -267,7 +269,7 @@ module ActiveRecord
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
 
-        ActiveRecord::Base.clear_cache!
+        current_connection.clear_cache!
       ensure
         Migration.verbose = verbose_was
       end
@@ -276,13 +278,14 @@ module ActiveRecord
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
         db_configs.each do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-          versions_to_run = ActiveRecord::Base.connection.migration_context.pending_migration_versions
-          target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            versions_to_run = connection.migration_context.pending_migration_versions
+            target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
 
-          versions_to_run.each do |version|
-            next if target_version && target_version != version
-            db_configs_with_versions[version] << db_config
+            versions_to_run.each do |version|
+              next if target_version && target_version != version
+              db_configs_with_versions[version] << db_config
+            end
           end
         end
 
