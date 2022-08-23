@@ -211,7 +211,7 @@ module ActiveRecord
             :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
             :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum,
             :datemultirange, :tsmultirange, :tstzmultirange, :nummultirange, :int4multirange,
-            :int8multirange 
+            :int8multirange
         end
       end
 

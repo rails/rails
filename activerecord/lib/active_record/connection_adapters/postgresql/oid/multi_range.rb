@@ -62,7 +62,7 @@ module ActiveRecord
             end
 
             def scan_ranges(value)
-              value.scan(/\{*(\[|\()(.*?)?\,(.*?)?(\]|\))/)
+              value.scan(/\{*(\[|\()(.*?)?,(.*?)?(\]|\))/)
             end
 
             # When formatting the bound values of range types, PostgreSQL quotes
@@ -85,13 +85,13 @@ module ActiveRecord
             end
 
             def parse_lower(value)
-              return infinity_value(value, negative: true) if value == "" || value == '-infinity'  
+              return infinity_value(value, negative: true) if value == "" || value == "-infinity"
 
               @subtype.deserialize(unquote(value))
             end
 
             def parse_upper(value)
-              return infinity_value(value) if value == "" || value == 'infinity'  
+              return infinity_value(value) if value == "" || value == "infinity"
 
               @subtype.deserialize(unquote(value))
             end
@@ -101,17 +101,17 @@ module ActiveRecord
               to = parse_upper(value[2])
 
               {
-                exclude_start: value[0] == '(',
+                exclude_start: value[0] == "(",
                 from: from,
                 to: to,
-                exclude_end: value[3] == ')',
+                exclude_end: value[3] == ")",
               }
             end
 
             def build_range(value)
-              extracted = extract_range_data(value) 
+              extracted = extract_range_data(value)
 
-              if !infinity?(extracted[:from]) && extracted[:exclude_start] 
+              if !infinity?(extracted[:from]) && extracted[:exclude_start]
                 raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
               end
 

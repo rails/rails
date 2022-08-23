@@ -118,13 +118,13 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
 
   def test_nummultirange_values
     assert_equal [
-      BigDecimal('-2.3')...BigDecimal('4.4'),
-      BigDecimal('5.1')...BigDecimal('6.3'),
-      BigDecimal('12.1')...::Float::INFINITY
+      BigDecimal("-2.3")...BigDecimal("4.4"),
+      BigDecimal("5.1")...BigDecimal("6.3"),
+      BigDecimal("12.1")...::Float::INFINITY
     ], @multi_range.num_multirange
     assert_equal [
-      BigDecimal('0.3')..BigDecimal('0.9'),
-      BigDecimal('1.3')...::Float::INFINITY
+      BigDecimal("0.3")..BigDecimal("0.9"),
+      BigDecimal("1.3")...::Float::INFINITY
     ], @overlaping_ranges.num_multirange
     assert_equal [-::Float::INFINITY...::Float::INFINITY], @infinity_ranges.num_multirange
   end
@@ -144,14 +144,14 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
 
   def test_create_tstzmultirange
     tstzmultiranges = [
-      Time.parse('2022-01-20 10:00:00 +0100')...Time.parse('2022-01-23 11:00:00 CDT'),
-      Time.parse('2022-03-03 05:00 +0200')..Time.parse('2022-03-10 10:00:00 -0300')
+      Time.parse("2022-01-20 10:00:00 +0100")...Time.parse("2022-01-23 11:00:00 CDT"),
+      Time.parse("2022-03-03 05:00 +0200")..Time.parse("2022-03-10 10:00:00 -0300")
     ]
     round_trip(@new_range, :tstz_multirange, tstzmultiranges)
     assert_equal tstzmultiranges, @new_range.tstz_multirange
     assert_equal [
-      Time.parse('2022-01-20 9:00:00 UTC')...Time.parse('2022-01-23 16:00:00 UTC'),
-      Time.parse('2022-03-03 03:00 UTC')..Time.parse('2022-03-10 13:00:00 UTC')
+      Time.parse("2022-01-20 9:00:00 UTC")...Time.parse("2022-01-23 16:00:00 UTC"),
+      Time.parse("2022-03-03 03:00 UTC")..Time.parse("2022-03-10 13:00:00 UTC")
     ], @new_range.tstz_multirange
   end
 
@@ -208,7 +208,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
       :num_multirange,
       [BigDecimal("-5.3")...BigDecimal("1"), BigDecimal("2.1")...BigDecimal("3.3")]
     )
-    assert_empty_round_trip(@new_range, :num_multirange, [BigDecimal('1.0')...BigDecimal('1.0')])
+    assert_empty_round_trip(@new_range, :num_multirange, [BigDecimal("1.0")...BigDecimal("1.0")])
   end
 
   def test_update_nummultirange
@@ -217,7 +217,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
       :num_multirange,
       [BigDecimal("-5.3")...BigDecimal("1")]
     )
-    assert_empty_round_trip(@multi_range, :num_multirange, [BigDecimal('1.0')...BigDecimal('1.0')])
+    assert_empty_round_trip(@multi_range, :num_multirange, [BigDecimal("1.0")...BigDecimal("1.0")])
   end
 
   def test_create_tsmultirange_preserve_usec
@@ -243,7 +243,7 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal_round_trip(@multi_range, :int4_multirange, [12...15])
     assert_empty_round_trip(@multi_range, :int4_multirange, [3...3])
   end
-   
+
   def test_create_int8multirange
     assert_equal_round_trip(@new_range, :int8_multirange, [-60000...60000, 70000...10000000])
     assert_empty_round_trip(@new_range, :int8_multirange, [10000...10000])

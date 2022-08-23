@@ -180,7 +180,7 @@ module ActiveRecord
           end
 
           def encode_multirange(range_data)
-            collection = range_data.ranges.map { |r| encode_range(r) }.join(',')
+            collection = range_data.ranges.map { |r| encode_range(r) }.join(",")
 
             "{#{collection}}"
           end
