@@ -409,11 +409,12 @@ module ActiveRecord
 
         #ActiveRecord::Base.establish_connection(db_config)
 
-        p here: schema_up_to_date?(db_config, format, file)
         if schema_up_to_date?(db_config, format, file)
           truncate_tables(db_config)
         else
-          purge(db_config, connection_class: ActiveRecord::TemporaryConnection)
+          ActiveRecord::TemporaryConnection.for_config(db_config) do
+            purge(db_config, connection_class: ActiveRecord::TemporaryConnection)
+          end
           load_schema(db_config, format, file)
         end
       rescue ActiveRecord::NoDatabaseError
