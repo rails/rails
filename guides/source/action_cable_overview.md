@@ -263,6 +263,8 @@ WebSocket is opened.
 
 ```js
 // Specify a different URL to connect to
+createConsumer('wss://example.com/cable')
+// Or when using websockets over HTTP
 createConsumer('https://ws.example.com/cable')
 
 // Use a function to dynamically generate the URL
@@ -270,7 +272,7 @@ createConsumer(getWebSocketURL)
 
 function getWebSocketURL() {
   const token = localStorage.get('auth-token')
-  return `https://ws.example.com/cable?token=${token}`
+  return `wss://example.com/cable?token=${token}`
 }
 ```
 
@@ -597,8 +599,7 @@ consumer.subscriptions.create("AppearanceChannel", {
 
 #### Client-Server Interaction
 
-1. **Client** connects to the **Server** via `App.cable =
-ActionCable.createConsumer("ws://cable.example.com")`. (`cable.js`). The
+1. **Client** connects to the **Server** via `createConsumer()`. (`consumer.js`). The
 **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via
