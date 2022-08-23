@@ -7,6 +7,7 @@ require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
+require "active_record/temporary_connection"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError # :nodoc:
@@ -138,7 +139,7 @@ module ActiveRecord
 
       if ActiveRecord.dump_schema_after_migration
         ActiveRecord::Tasks::DatabaseTasks.dump_schema(
-          ActiveRecord::Base.connection_db_config
+          ActiveRecord::TemporaryConnection.current_connection_db_config
         )
       end
     end
@@ -153,7 +154,7 @@ module ActiveRecord
         message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env)
         message += "\n\n"
 
-        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+        pending_migrations = ActiveRecord::TemporaryConnection.current_connection.migration_context.open.pending_migrations
 
         message += "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}\n\n"
 
@@ -619,7 +620,7 @@ module ActiveRecord
         end
 
         def connection
-          ActiveRecord::Base.connection
+          ActiveRecord::TemporaryConnection.current_connection
         end
     end
 
@@ -632,12 +633,12 @@ module ActiveRecord
       end
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
-      def check_pending!(connection = Base.connection)
+      def check_pending!(connection = TemporaryConnection.current_connection)
         raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
       end
 
       def load_schema_if_pending!
-        current_db_config = Base.connection_db_config
+        current_db_config = TemporaryConnection.current_connection_db_config
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
@@ -648,15 +649,15 @@ module ActiveRecord
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
-            Base.clear_all_connections!
+            Base.connection_handler.clear_all_connections!
             system("bin/rails db:test:prepare")
           end
         end
 
         # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_db_config)
-
-        check_pending!
+        ActiveRecord::TemporaryConnection.for_config(current_db_config) do |connection|
+          check_pending!(connection)
+        end
       end
 
       def maintain_test_schema! # :nodoc:
@@ -926,7 +927,7 @@ module ActiveRecord
     end
 
     def connection
-      @connection || ActiveRecord::TemporaryConnection.find_connection || ActiveRecord::Base.connection
+      @connection || ActiveRecord::TemporaryConnection.current_connection
     end
 
     def method_missing(method, *arguments, &block)
@@ -1234,7 +1235,7 @@ module ActiveRecord
     end
 
     def last_stored_environment # :nodoc:
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::TemporaryConnection.current_connection
       return nil unless connection.internal_metadata.enabled?
       return nil if current_version == 0
       raise NoEnvironmentInSchemaError unless connection.internal_metadata.table_exists?
@@ -1379,7 +1380,7 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        connection = ActiveRecord::Base.connection
+        connection = ActiveRecord::TemporaryConnection.current_connection
         connection.internal_metadata[:environment] = connection.migration_context.current_environment
       end
 
@@ -1450,23 +1451,18 @@ module ActiveRecord
       # Wrap the migration in a transaction only if supported by the adapter.
       def ddl_transaction(migration, &block)
         if use_transaction?(migration)
-          get_connection.transaction(&block)
+          ActiveRecord::TemporaryConnection.current_connection.transaction(&block)
         else
           yield
         end
       end
 
-      # Temporary holder until everything is converted to TempConn
-      def get_connection
-        ActiveRecord::TemporaryConnection.find_connection || ActiveRecord::Base.connection
-      end
-
       def use_transaction?(migration)
-        !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+        !migration.disable_ddl_transaction && ActiveRecord::TemporaryConnection.current_connection.supports_ddl_transactions?
       end
 
       def use_advisory_lock?
-        Base.connection.advisory_locks_enabled?
+        TemporaryConnection.current_connection.advisory_locks_enabled?
       end
 
       def with_advisory_lock
@@ -1487,8 +1483,9 @@ module ActiveRecord
       end
 
       def with_advisory_lock_connection(&block)
+        # note: I dont think we will need this anymore but lets do it later.
         pool = ActiveRecord::ConnectionAdapters::ConnectionHandler.new.establish_connection(
-          ActiveRecord::Base.connection_db_config
+          ActiveRecord::TemporaryConnection.current_connection_db_config
         )
 
         pool.with_connection(&block)
@@ -1498,7 +1495,7 @@ module ActiveRecord
 
       MIGRATOR_SALT = 2053462845
       def generate_migrator_advisory_lock_id
-        db_name_hash = Zlib.crc32(Base.connection.current_database)
+        db_name_hash = Zlib.crc32(TemporaryConnection.current_connection.current_database)
         MIGRATOR_SALT * db_name_hash
       end
   end

@@ -12,6 +12,9 @@ module ActiveRecord
       ActiveRecord::Base.connection_handler.establish_connection(db_config, owner_name: self, role: :writing, shard: :default)
     end
 
+    def self.current_connection_db_config
+      current_pool.db_config
+    end
 
     def self.current_connection
       if pool = find_connection_pool
@@ -22,7 +25,11 @@ module ActiveRecord
     end
 
     def self.current_pool
-      find_connection_pool || ActiveRecord::Base.connection_pool
+      if pool = find_connection_pool
+        pool
+      else
+        ActiveRecord::Base.connection_pool
+      end
     end
 
     def self.find_connection_pool

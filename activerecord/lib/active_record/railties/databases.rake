@@ -10,7 +10,7 @@ databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 db_namespace = namespace :db do
   desc "Set the environment value for the database"
   task "environment:set" => :load_config do
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::TemporaryConnection.current_connection
     raise ActiveRecord::EnvironmentStorageError unless connection.internal_metadata.enabled?
 
     connection.internal_metadata.create_table_and_set_flags(connection.migration_context.current_environment)
@@ -93,20 +93,18 @@ db_namespace = namespace :db do
     if db_configs.size == 1
       ActiveRecord::Tasks::DatabaseTasks.migrate
     else
-      original_db_config = ActiveRecord::Base.connection_db_config
       mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
 
       mapped_versions.sort.each do |version, db_configs|
         db_configs.each do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-          ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+          ActiveRecord::TemporaryConnection.for_config(db_config) do
+            ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+          end
         end
       end
     end
 
     db_namespace["_dump"].invoke
-  ensure
-    ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
   end
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
@@ -138,13 +136,12 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       desc "Migrate #{name} database for current environment"
       task name => :load_config do
-        original_db_config = ActiveRecord::Base.connection_db_config
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.migrate
+        ActiveRecord::TemporaryConnection.for_config(db_config) do
+          ActiveRecord::Tasks::DatabaseTasks.migrate
+        end
+
         db_namespace["_dump:#{name}"].invoke
-      ensure
-        ActiveRecord::Base.establish_connection(original_db_config)
       end
     end
 
