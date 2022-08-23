@@ -51,13 +51,23 @@ module Rails
               eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
             end
           rescue SyntaxError, NameError => e
-            error "Please specify a valid ruby command or the path of a script to run."
-            error "Run '#{executable} -h' for help."
-            error ""
-            error e
+            if looks_like_a_file_path?(code_or_file)
+              error "The file #{code_or_file} could not be found, please check and try again."
+              error "Run '#{self.class.executable} -h' for help."
+            else
+              error "Please specify a valid ruby command or the path of a script to run."
+              error "Run '#{self.class.executable} -h' for help."
+              error ""
+              error e
+            end
+
             exit 1
           end
         end
+      end
+
+      def looks_like_a_file_path?(code_or_file)
+        code_or_file.ends_with?(".rb")
       end
     end
   end
