@@ -1,3 +1,47 @@
+*   Add Postgres multirange support to ActiveRecord postgres adapter
+
+    new columns supported:
+      - datemultirange
+      - tsmultirange
+      - tstzmultirange
+      - nummultirange
+      - int8multirange
+      - int4multirange
+    
+    # On migrations
+    ```Ruby
+      t.int4multirange :multirange_column
+    ```
+
+    Database queries are going to translate `Array` values received on those type columns into proper postgres multirange sequence.
+
+    # Example 
+
+    ```Ruby
+      [1...10, 20...50]
+    ```
+
+    would be translated to:
+
+    ```sql
+    {[1,10],[20,50]}
+    ```
+
+    Overlaping values are computed by postgres during insertion:
+
+    ```Ruby
+    [1...10,5...15]
+
+    ```
+
+    would be computed as
+
+    ```sql
+    {[1,15]}
+    ```
+
+    *Gustavo W. Teixeira*
+
 *   Adapts virtual attributes on `ActiveRecord::Persistence#becomes`.
 
     When source and target classes have a different set of attributes adapts
