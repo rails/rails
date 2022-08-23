@@ -118,9 +118,9 @@ module ActiveRecord
         @seed_loader ||= Rails.application
       end
 
-      def create(configuration, *arguments)
+      def create(configuration, *arguments, connection_class: ActiveRecord::Base)
         db_config = resolve_configuration(configuration)
-        database_adapter_for(db_config, *arguments).create
+        database_adapter_for(db_config, *arguments, connection_class: connection_class).create
         $stdout.puts "Created database '#{db_config.database}'" if verbose?
       rescue DatabaseAlreadyExists
         $stderr.puts "Database '#{db_config.database}' already exists" if verbose?
@@ -239,10 +239,9 @@ module ActiveRecord
       end
 
       def truncate_tables(db_config)
-        ActiveRecord::Base.establish_connection(db_config)
-
-        connection = ActiveRecord::Base.connection
-        connection.truncate_tables(*connection.tables)
+        ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+          connection.truncate_tables(*connection.tables)
+        end
       end
       private :truncate_tables
 
@@ -349,7 +348,6 @@ module ActiveRecord
 
       def purge_current(environment = env)
         each_current_configuration(environment) { |db_config| purge(db_config) }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def structure_dump(configuration, *arguments)
@@ -396,13 +394,12 @@ module ActiveRecord
 
         return true unless file && File.exist?(file)
 
-        ActiveRecord::Base.establish_connection(db_config)
-        connection = ActiveRecord::Base.connection
+        ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+          return false unless connection.internal_metadata.enabled?
+          return false unless connection.internal_metadata.table_exists?
 
-        return false unless connection.internal_metadata.enabled?
-        return false unless connection.internal_metadata.table_exists?
-
-        connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+          connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+        end
       end
 
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
@@ -410,16 +407,17 @@ module ActiveRecord
 
         check_schema_file(file) if file
 
-        ActiveRecord::Base.establish_connection(db_config)
+        #ActiveRecord::Base.establish_connection(db_config)
 
+        p here: schema_up_to_date?(db_config, format, file)
         if schema_up_to_date?(db_config, format, file)
           truncate_tables(db_config)
         else
-          purge(db_config)
+          purge(db_config, connection_class: ActiveRecord::TemporaryConnection)
           load_schema(db_config, format, file)
         end
       rescue ActiveRecord::NoDatabaseError
-        create(db_config)
+        create(db_config, connection_class: ActiveRecord::TemporaryConnection)
         load_schema(db_config, format, file)
       end
 

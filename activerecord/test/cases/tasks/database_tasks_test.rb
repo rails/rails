@@ -1135,9 +1135,7 @@ module ActiveRecord
         :purge,
         [ActiveRecord::Base.configurations.configs_for(env_name: "production", name: "primary")]
       ) do
-        assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
-          ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
-        end
+        ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
       end
     ensure
       ActiveRecord::Base.configurations = old_configurations
