@@ -1,3 +1,7 @@
+*   Redis cache store is now compatible with redis-rb 5.0.
+
+    *Jean Boussier*
+
 *   Fix `NoMethodError` on custom `ActiveSupport::Deprecation` behavior.
 
     `ActiveSupport::Deprecation.behavior=` was supposed to accept any object
