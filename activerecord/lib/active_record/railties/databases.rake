@@ -188,7 +188,7 @@ db_namespace = namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
 
-      ActiveRecord::Base.connection.migration_context.run(
+      ActiveRecord::TemporaryConnection.current_connection.migration_context.run(
         :up,
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
@@ -221,7 +221,7 @@ db_namespace = namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
 
-      ActiveRecord::Base.connection.migration_context.run(
+      ActiveRecord::TemporaryConnection.current_connection.migration_context.run(
         :down,
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
@@ -292,7 +292,7 @@ db_namespace = namespace :db do
 
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
 
-    ActiveRecord::Base.connection.migration_context.rollback(step)
+    ActiveRecord::TemporaryConnection.current_connection.migration_context.rollback(step)
 
     db_namespace["_dump"].invoke
   end
@@ -300,7 +300,7 @@ db_namespace = namespace :db do
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task forward: :load_config do
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-    ActiveRecord::Base.connection.migration_context.forward(step)
+    ActiveRecord::TemporaryConnection.current_connection.migration_context.forward(step)
     db_namespace["_dump"].invoke
   end
 
@@ -330,7 +330,7 @@ db_namespace = namespace :db do
 
   desc "Retrieves the current schema version number"
   task version: :load_config do
-    puts "Current version: #{ActiveRecord::Base.connection.schema_version}"
+    puts "Current version: #{ActiveRecord::TemporaryConnection.current_connection.schema_version}"
   end
 
   # desc "Raises an error if there are pending migrations"
