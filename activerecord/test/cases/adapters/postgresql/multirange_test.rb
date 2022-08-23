@@ -280,7 +280,56 @@ class PostgresqlMultiRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_raises(ArgumentError) { PostgresqlMultiRange.create!(ts_multirange: "{(''2022-07-01 14:30'', ''2022-07-01 14:30'']}") }
     assert_raises(ArgumentError) { PostgresqlMultiRange.create!(tstz_multirange: "{(''2022-07-01 14:30:00+05'', ''2022-07-01 14:30:00-03'']}") }
   end
-  
+
+  def test_where_by_attribute_with_multirange
+    range = [1..100]
+    record = PostgresqlMultiRange.create!(int4_multirange: range)
+    assert_equal record, PostgresqlMultiRange.where(int4_multirange: range).take
+  end
+
+  def test_update_all_with_multiranges
+    PostgresqlMultiRange.create!
+
+    PostgresqlMultiRange.update_all(int8_multirange: [1..100, 50...500])
+
+    assert_equal [1...500], PostgresqlMultiRange.first.int8_multirange
+  end
+
+  def test_multiranges_correctly_escape_input
+    multirange = ["-1,2]'; DROP TABLE postgresql_multiranges; --".."a"]
+    PostgresqlMultiRange.update_all(int8_multirange: multirange)
+
+    assert_nothing_raised do
+      PostgresqlMultiRange.first
+    end
+  end
+
+  def test_infinity_values
+    PostgresqlMultiRange.create!(int4_multirange: [1..Float::INFINITY],
+                                 int8_multirange: [-Float::INFINITY..0],
+                                 num_multirange: [-Float::INFINITY..Float::INFINITY])
+
+    record = PostgresqlMultiRange.first
+
+    assert_equal([1...Float::INFINITY], record.int4_multirange)
+    assert_equal([-Float::INFINITY...1], record.int8_multirange)
+    assert_equal([-Float::INFINITY...Float::INFINITY], record.num_multirange)
+  end
+
+  def test_endless_multirange_values
+    record = PostgresqlMultiRange.create!(
+      int4_multirange: [1..],
+      int8_multirange: [10..],
+      num_multirange: [0.5..]
+    )
+
+    record = PostgresqlMultiRange.find(record.id)
+
+    assert_equal [1...Float::INFINITY], record.int4_multirange
+    assert_equal [10...Float::INFINITY], record.int8_multirange
+    assert_equal [0.5...Float::INFINITY], record.num_multirange
+  end
+
   private
     def assert_equal_round_trip(range, attribute, value)
       round_trip(range, attribute, value)

@@ -32,7 +32,7 @@ module ActiveRecord
           end
 
           def cast_value(value)
-            return nil if value.empty?
+            return nil if value.blank?
             return value unless value.is_a?(::String)
 
             ranges = scan_ranges(value)
@@ -44,6 +44,10 @@ module ActiveRecord
             other.is_a?(MultiRange) &&
               other.subtype == subtype &&
               other.type == type
+          end
+
+          def force_equality?(value)
+            value.is_a?(::Array)
           end
 
           private
