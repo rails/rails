@@ -1,3 +1,7 @@
+*   Improve `rails runner` output when given a file path that doesn't exist.
+
+    *Tekin Suleyman*
+
 *   `config.allow_concurrency = false` now use a `Monitor` instead of a `Mutex`
 
     This allows to enable `config.active_support.executor_around_test_case` even
