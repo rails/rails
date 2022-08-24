@@ -94,7 +94,7 @@ module Rails
       public :new
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders, :reloader, :executor, :autoloaders
 
