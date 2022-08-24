@@ -1125,7 +1125,7 @@ view called a *partial*. Let's create `app/views/articles/_form.html.erb` with
 the following contents:
 
 ```html+erb
-<%= form_with model: article do |form| %>
+<%= form_with model: @article do |form| %>
   <div>
     <%= form.label :title %><br>
     <%= form.text_field :title %>
