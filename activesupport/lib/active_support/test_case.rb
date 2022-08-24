@@ -151,7 +151,7 @@ module ActiveSupport
     ActiveSupport.run_load_hooks(:active_support_test_case, self)
 
     def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % object_id}>"
+      Object.instance_method(:to_s).bind_call(self)
     end
   end
 end
