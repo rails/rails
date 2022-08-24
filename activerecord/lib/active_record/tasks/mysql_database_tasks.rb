@@ -5,25 +5,32 @@ module ActiveRecord
     class MySQLDatabaseTasks # :nodoc:
       ER_DB_CREATE_EXISTS = 1007
 
-      delegate :connection, :establish_connection, to: ActiveRecord::Base
-
       def self.using_database_configurations?
         true
       end
 
-      def initialize(db_config)
+      def initialize(db_config, connection_class: ActiveRecord::Base)
         @db_config = db_config
         @configuration_hash = db_config.configuration_hash
+        @connection_class = connection_class
+      end
+
+      def establish_connection(config = db_config)
+        connection_class.establish_connection(config)
+      end
+
+      def connection
+        ActiveRecord::TemporaryConnection.current_connection
       end
 
       def create
         establish_connection(configuration_hash_without_database)
         connection.create_database(db_config.database, creation_options)
-        establish_connection(db_config)
+        establish_connection
       end
 
       def drop
-        establish_connection(db_config)
+        establish_connection
         connection.drop_database(db_config.database)
       end
 
@@ -69,7 +76,7 @@ module ActiveRecord
       end
 
       private
-        attr_reader :db_config, :configuration_hash
+        attr_reader :db_config, :configuration_hash, :connection_class
 
         def configuration_hash_without_database
           configuration_hash.merge(database: nil)

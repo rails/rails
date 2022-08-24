@@ -9,26 +9,32 @@ module ActiveRecord
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1"
       SQL_COMMENT_BEGIN = "--"
 
-      delegate :connection, :establish_connection, :clear_active_connections!,
-        to: ActiveRecord::Base
-
       def self.using_database_configurations?
         true
       end
 
-      def initialize(db_config)
+      def initialize(db_config, connection_class: ActiveRecord::Base)
         @db_config = db_config
         @configuration_hash = db_config.configuration_hash
+        @connection_class = connection_class
+      end
+
+      def establish_connection(config = db_config)
+        connection_class.establish_connection(config)
+      end
+
+      def connection
+        ActiveRecord::TemporaryConnection.current_connection
       end
 
       def create(master_established = false)
-        establish_master_connection unless master_established
+        establish_connection(master_connection_config) unless master_established
         connection.create_database(db_config.database, configuration_hash.merge(encoding: encoding))
         establish_connection(db_config)
       end
 
       def drop
-        establish_master_connection
+        establish_connection(master_connection_config)
         connection.drop_database(db_config.database)
       end
 
@@ -41,7 +47,7 @@ module ActiveRecord
       end
 
       def purge
-        clear_active_connections!
+        ActiveRecord::Base.connection_handler.clear_active_connections!
         drop
         create true
       end
@@ -88,17 +94,14 @@ module ActiveRecord
       end
 
       private
-        attr_reader :db_config, :configuration_hash
+        attr_reader :db_config, :configuration_hash, :connection_class
 
         def encoding
           configuration_hash[:encoding] || DEFAULT_ENCODING
         end
 
-        def establish_master_connection
-          establish_connection configuration_hash.merge(
-            database: "postgres",
-            schema_search_path: "public"
-          )
+        def master_connection_config
+          configuration_hash.merge(database: "postgres", schema_search_path: "public")
         end
 
         def psql_env
