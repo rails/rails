@@ -149,5 +149,9 @@ module ActiveSupport
     alias :assert_not_same :refute_same
 
     ActiveSupport.run_load_hooks(:active_support_test_case, self)
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % object_id}>"
+    end
   end
 end
