@@ -1,3 +1,7 @@
+*   Added `exclude?` method to `ActionController::Parameters`.
+
+    *Ian Neubert*
+
 *   Rescue `EOFError` exception from `rack` on a multipart request.
 
     *Nikita Vasilevsky*
