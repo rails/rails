@@ -252,14 +252,14 @@ module ActiveRecord
         end
       end
 
-      def migrate(version = nil)
+      def migrate(version = nil, connection: ActiveRecord::Base.connection)
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
         check_target_version
-        current_connection = ActiveRecord::TemporaryConnection.current_connection
 
-        current_connection.migration_context.migrate(target_version) do |migration|
+        connection.migration_context.migrate(target_version) do |migration|
+          p "Starting migration block"
           if version.blank?
             scope.blank? || scope == migration.scope
           else
@@ -268,8 +268,9 @@ module ActiveRecord
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
+        p "exit migration block"
 
-        current_connection.clear_cache!
+        connection.clear_cache!
       ensure
         Migration.verbose = verbose_was
       end

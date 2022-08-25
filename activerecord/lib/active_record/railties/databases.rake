@@ -97,8 +97,8 @@ db_namespace = namespace :db do
 
       mapped_versions.sort.each do |version, db_configs|
         db_configs.each do |db_config|
-          ActiveRecord::TemporaryConnection.for_config(db_config) do
-            ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+          ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+            ActiveRecord::Tasks::DatabaseTasks.migrate(version, connection: connection)
           end
         end
       end
@@ -137,9 +137,10 @@ db_namespace = namespace :db do
       desc "Migrate #{name} database for current environment"
       task name => :load_config do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::TemporaryConnection.for_config(db_config) do
-          ActiveRecord::Tasks::DatabaseTasks.migrate
+        ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
+          ActiveRecord::Tasks::DatabaseTasks.migrate(connection: connection)
         end
+          p "exiting block"
 
         db_namespace["_dump:#{name}"].invoke
       end
