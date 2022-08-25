@@ -84,6 +84,41 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
     MESSAGE
   end
 
+  test "rails routes with matching path" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        resources :photos
+        get '/cart', to: 'cart#show'
+        post '/cart', to: 'cart#create'
+        get '/basketballs', to: 'basketball#index'
+      end
+    RUBY
+
+    assert_equal <<~MESSAGE, run_routes_command([ "-g", "/cart" ])
+    Prefix Verb URI Pattern     Controller#Action
+      cart GET  /cart(.:format) cart#show
+           POST /cart(.:format) cart#create
+    MESSAGE
+
+    assert_equal <<~MESSAGE, run_routes_command([ "-g", "basketballs" ])
+           Prefix Verb URI Pattern            Controller#Action
+      basketballs GET  /basketballs(.:format) basketball#index
+    MESSAGE
+
+    assert_equal <<~MESSAGE, run_routes_command([ "-g", "/photos/7" ])
+    Prefix Verb   URI Pattern           Controller#Action
+     photo GET    /photos/:id(.:format) photos#show
+           PATCH  /photos/:id(.:format) photos#update
+           PUT    /photos/:id(.:format) photos#update
+           DELETE /photos/:id(.:format) photos#destroy
+    MESSAGE
+
+    assert_equal <<~MESSAGE, run_routes_command([ "-g", "/cats" ])
+    No routes were found for this grep pattern.
+    For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+    MESSAGE
+  end
+
   test "rails routes with controller search key" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
