@@ -19,7 +19,7 @@
     person = Person.find_by(email: "email@ourcompany.com")
     person.respond_to? :is_admin
     # => false
-    person.becomes(User).is_admin?
+    person.becomes(WebUser).is_admin?
     # => true
     ```
 
