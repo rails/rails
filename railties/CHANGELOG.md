@@ -1,3 +1,29 @@
+*   Extend `routes --grep` to also filter routes by matching against path.
+
+    Example:
+
+    ```
+    > bin/rails routes --grep /cats/1
+    Prefix Verb   URI Pattern         Controller#Action
+       cat GET    /cats/:id(.:format) cats#show
+           PATCH  /cats/:id(.:format) cats#update
+           PUT    /cats/:id(.:format) cats#update
+           DELETE /cats/:id(.:format) cats#destroy
+    ```
+
+    *Orhan Toy*
+
+*   Improve `rails runner` output when given a file path that doesn't exist.
+
+    *Tekin Suleyman*
+
+*   `config.allow_concurrency = false` now use a `Monitor` instead of a `Mutex`
+
+    This allows to enable `config.active_support.executor_around_test_case` even
+    when `config.allow_concurrency` is disabled.
+
+    *Jean Boussier*
+
 *   Add `routes --unused` option to detect extraneous routes.
 
     Example:

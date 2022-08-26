@@ -26,10 +26,10 @@ module ActiveRecord
         color(reflection.strict_loading_violation_message(owner), RED)
       end
     end
+    subscribe_log_level :strict_loading_violation, :debug
 
     def sql(event)
       self.class.runtime += event.duration
-      return unless logger.debug?
 
       payload = event.payload
 
@@ -70,6 +70,7 @@ module ActiveRecord
 
       debug "  #{name}  #{sql}#{binds}"
     end
+    subscribe_log_level :sql, :debug
 
     private
       def type_casted_binds(casted_binds)

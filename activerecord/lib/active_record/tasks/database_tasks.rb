@@ -369,6 +369,7 @@ module ActiveRecord
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(db_config)
+        connection = ActiveRecord::Base.connection
 
         case format
         when :ruby
@@ -378,9 +379,8 @@ module ActiveRecord
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
-        ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetadata[:environment] = db_config.env_name
-        ActiveRecord::InternalMetadata[:schema_sha1] = schema_sha1(file)
+
+        connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
       ensure
         Migration.verbose = verbose_was
       end
@@ -393,11 +393,12 @@ module ActiveRecord
         return true unless file && File.exist?(file)
 
         ActiveRecord::Base.establish_connection(db_config)
+        connection = ActiveRecord::Base.connection
 
-        return false unless ActiveRecord::InternalMetadata.enabled?
-        return false unless ActiveRecord::InternalMetadata.table_exists?
+        return false unless connection.internal_metadata.enabled?
+        return false unless connection.internal_metadata.table_exists?
 
-        ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
+        connection.internal_metadata[:schema_sha1] == schema_sha1(file)
       end
 
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:

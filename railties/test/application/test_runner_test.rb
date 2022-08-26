@@ -740,7 +740,7 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
-    def test_run_in_parallel_with_unmarshable_exception
+    def test_run_in_parallel_with_unmarshalable_exception
       exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file = app_file "test/fail_test.rb", <<-RUBY
@@ -762,7 +762,7 @@ module ApplicationTests
 
       output = run_test_command(file)
 
-      assert_match(/RuntimeError: (Wrapped undumpable exception|result not reported)/, output)
+      assert_match(/RuntimeError: (Wrapped undumpable exception|result not reported|Neutered Exception)/, output)
       assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
     end
 

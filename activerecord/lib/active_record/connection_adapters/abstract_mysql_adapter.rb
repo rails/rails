@@ -138,11 +138,6 @@ module ActiveRecord
         true
       end
 
-      def field_ordered_value(column, values) # :nodoc:
-        field = Arel::Nodes::NamedFunction.new("FIELD", [column, values.reverse.map { |value| Arel::Nodes.build_quoted(value) }])
-        Arel::Nodes::Descending.new(field)
-      end
-
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -398,8 +393,8 @@ module ActiveRecord
           options[:comment] = column.comment
         end
 
-        unless options.key?(:collation) || type == :binary
-          options[:collation] = column.collation
+        unless options.key?(:collation)
+          options[:collation] = column.collation if text_type?(type)
         end
 
         unless options.key?(:auto_increment)
@@ -683,6 +678,10 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        def text_type?(type)
+          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        end
+
         def extended_type_map_key
           if @default_timezone
             { default_timezone: @default_timezone, emulate_booleans: emulate_booleans }

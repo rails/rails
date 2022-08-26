@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cgi"
+require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/text_helper"
 require "active_support/core_ext/string/output_safety"
@@ -19,6 +20,7 @@ module ActionView
 
       include UrlHelper
       include TextHelper
+      include ContentExfiltrationPreventionHelper
 
       mattr_accessor :embed_authenticity_token_in_remote_forms
       self.embed_authenticity_token_in_remote_forms = nil
@@ -980,7 +982,8 @@ module ActionView
 
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
-          tag(:form, html_options, true) + extra_tags
+          html = tag(:form, html_options, true) + extra_tags
+          prevent_content_exfiltration(html)
         end
 
         def form_tag_with_body(html_options, content)

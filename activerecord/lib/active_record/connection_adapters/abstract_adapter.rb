@@ -189,7 +189,7 @@ module ActiveRecord
       end
 
       def migration_context # :nodoc:
-        MigrationContext.new(migrations_paths, schema_migration)
+        MigrationContext.new(migrations_paths, schema_migration, internal_metadata)
       end
 
       def schema_migration # :nodoc:
@@ -204,6 +204,24 @@ module ActiveRecord
                                 Class.new(ActiveRecord::SchemaMigration) do
                                   define_singleton_method(:name) { schema_migration_name }
                                   define_singleton_method(:to_s) { schema_migration_name }
+
+                                  self.connection_specification_name = connection_name
+                                end
+                              end
+      end
+
+      def internal_metadata # :nodoc:
+        @internal_metadata ||= begin
+                                conn = self
+                                connection_name = conn.pool.pool_config.connection_name
+
+                                return ActiveRecord::InternalMetadata if connection_name == "ActiveRecord::Base"
+
+                                internal_metadata_name = "#{connection_name}::InternalMetadata"
+
+                                Class.new(ActiveRecord::InternalMetadata) do
+                                  define_singleton_method(:name) { internal_metadata_name }
+                                  define_singleton_method(:to_s) { internal_metadata_name }
 
                                   self.connection_specification_name = connection_name
                                 end
@@ -793,15 +811,6 @@ module ActiveRecord
       # information is present / the database is empty.
       def schema_version
         migration_context.current_version
-      end
-
-      def field_ordered_value(column, values) # :nodoc:
-        node = Arel::Nodes::Case.new(column)
-        values.each.with_index(1) do |value, order|
-          node.when(value).then(order)
-        end
-
-        Arel::Nodes::Ascending.new(node.else(values.length + 1))
       end
 
       class << self

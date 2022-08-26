@@ -912,6 +912,20 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal({ option: "random_option" }, options)
   end
 
+  def test_content_exfiltration_prevention
+    with_prepend_content_exfiltration_prevention(true) do
+      actual = form_tag
+      expected = %(<!-- '"` --><!-- </textarea></xmp> --></option></form>#{whole_form})
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_form_with_content_exfiltration_prevention_is_html_safe
+    with_prepend_content_exfiltration_prevention(true) do
+      assert_equal true, form_tag.html_safe?
+    end
+  end
+
   def protect_against_forgery?
     false
   end
@@ -928,5 +942,14 @@ class FormTagHelperTest < ActionView::TestCase
       yield
     ensure
       ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
+    end
+
+    def with_prepend_content_exfiltration_prevention(value)
+      old_value = ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = value
+
+      yield
+    ensure
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = old_value
     end
 end

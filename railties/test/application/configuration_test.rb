@@ -3375,6 +3375,7 @@ module ApplicationTests
       output = rails("routes", "-g", "active_storage")
       assert_equal <<~MESSAGE, output
                                Prefix Verb URI Pattern                                                                        Controller#Action
+                                           /:controller(/:action(/:id))(.:format)                                             :controller#:action
                    rails_service_blob GET  /files/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
              rails_service_blob_proxy GET  /files/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
                                       GET  /files/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
@@ -4105,6 +4106,17 @@ module ApplicationTests
       assert_equal [:datetime, :time], ActiveRecord::Base.time_zone_aware_types
     ensure
       ActiveRecord::Base.configurations = original_configurations
+    end
+
+    test "raises an error if legacy_connection_handling is set" do
+      build_app(initializers: true)
+      add_to_env_config "production", "config.active_record.legacy_connection_handling = true"
+
+      error = assert_raise(ArgumentError) do
+        app "production"
+      end
+
+      assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
     end
 
     private

@@ -1,3 +1,7 @@
+*   Rescue `EOFError` exception from `rack` on a multipart request.
+
+    *Nikita Vasilevsky*
+
 *   Log redirects from routes the same way as redirects from controllers.
 
     *Dennis Paagman*

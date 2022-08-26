@@ -1749,6 +1749,10 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.0                   | `false`              |
 
+#### `config.action_view.prepend_content_exfiltration_prevention`
+
+Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:

@@ -23,6 +23,7 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :enqueue, :info
 
     def enqueue_at(event)
       job = event.payload[:job]
@@ -42,6 +43,7 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :enqueue_at, :info
 
     def perform_start(event)
       info do
@@ -49,6 +51,7 @@ module ActiveJob
         "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} enqueued at #{job.enqueued_at}" + args_info(job)
       end
     end
+    subscribe_log_level :perform_start, :info
 
     def perform(event)
       job = event.payload[:job]
@@ -67,6 +70,7 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :perform, :info
 
     def enqueue_retry(event)
       job = event.payload[:job]
@@ -81,6 +85,7 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :enqueue_retry, :info
 
     def retry_stopped(event)
       job = event.payload[:job]
@@ -90,6 +95,7 @@ module ActiveJob
         "Stopped retrying #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message}), which reoccurred on #{job.executions} attempts."
       end
     end
+    subscribe_log_level :enqueue_retry, :error
 
     def discard(event)
       job = event.payload[:job]
@@ -99,6 +105,7 @@ module ActiveJob
         "Discarded #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message})."
       end
     end
+    subscribe_log_level :discard, :error
 
     private
       def queue_name(event)

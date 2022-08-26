@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
-
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
-
 gemspec
 
 if RUBY_VERSION < "3"
@@ -85,8 +82,7 @@ end
 group :cable do
   gem "puma", require: false
 
-  gem "hiredis", require: false
-  gem "redis", "~> 4.0", require: false
+  gem "redis", ">= 4.0.1", require: false
 
   gem "redis-namespace"
 
@@ -180,3 +176,10 @@ end
 
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
+
+# The error_highlight gem only works on CRuby 3.1 or later.
+# Also, Rails depends on a new API available since error_highlight 0.4.0.
+# (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
+if RUBY_VERSION >= "3.1"
+  gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
+end

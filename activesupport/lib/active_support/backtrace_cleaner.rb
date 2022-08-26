@@ -106,7 +106,7 @@ module ActiveSupport
 
       def filter_backtrace(backtrace)
         @filters.each do |f|
-          backtrace = backtrace.map { |line| f.call(line) }
+          backtrace = backtrace.map { |line| f.call(line.to_s) }
         end
 
         backtrace
@@ -114,7 +114,7 @@ module ActiveSupport
 
       def silence(backtrace)
         @silencers.each do |s|
-          backtrace = backtrace.reject { |line| s.call(line) }
+          backtrace = backtrace.reject { |line| s.call(line.to_s) }
         end
 
         backtrace
@@ -123,7 +123,7 @@ module ActiveSupport
       def noise(backtrace)
         backtrace.select do |line|
           @silencers.any? do |s|
-            s.call(line)
+            s.call(line.to_s)
           end
         end
       end

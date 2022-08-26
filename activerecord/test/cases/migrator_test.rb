@@ -26,6 +26,7 @@ class MigratorTest < ActiveRecord::TestCase
     @schema_migration = ActiveRecord::Base.connection.schema_migration
     @schema_migration.create_table
     @schema_migration.delete_all rescue nil
+    @internal_metadata = ActiveRecord::Base.connection.internal_metadata
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.message_count = 0
     ActiveRecord::Migration.class_eval do
@@ -50,7 +51,7 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_with_duplicate_names
     e = assert_raises(ActiveRecord::DuplicateMigrationNameError) do
       list = [ActiveRecord::Migration.new("Chunky"), ActiveRecord::Migration.new("Chunky")]
-      ActiveRecord::Migrator.new(:up, list, @schema_migration)
+      ActiveRecord::Migrator.new(:up, list, @schema_migration, @internal_metadata)
     end
     assert_match(/Multiple migrations have the name Chunky/, e.message)
   end
@@ -58,34 +59,34 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_with_duplicate_versions
     assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
       list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 1)]
-      ActiveRecord::Migrator.new(:up, list, @schema_migration)
+      ActiveRecord::Migrator.new(:up, list, @schema_migration, @internal_metadata)
     end
   end
 
   def test_migrator_with_missing_version_numbers
     assert_raises(ActiveRecord::UnknownMigrationVersionError) do
       list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 2)]
-      ActiveRecord::Migrator.new(:up, list, @schema_migration, 3).run
+      ActiveRecord::Migrator.new(:up, list, @schema_migration, @internal_metadata, 3).run
     end
 
     assert_raises(ActiveRecord::UnknownMigrationVersionError) do
       list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 2)]
-      ActiveRecord::Migrator.new(:up, list, @schema_migration, -1).run
+      ActiveRecord::Migrator.new(:up, list, @schema_migration, @internal_metadata, -1).run
     end
 
     assert_raises(ActiveRecord::UnknownMigrationVersionError) do
       list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 2)]
-      ActiveRecord::Migrator.new(:up, list, @schema_migration, 0).run
+      ActiveRecord::Migrator.new(:up, list, @schema_migration, @internal_metadata, 0).run
     end
 
     assert_raises(ActiveRecord::UnknownMigrationVersionError) do
       list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 2)]
-      ActiveRecord::Migrator.new(:up, list, @schema_migration, 3).migrate
+      ActiveRecord::Migrator.new(:up, list, @schema_migration, @internal_metadata, 3).migrate
     end
 
     assert_raises(ActiveRecord::UnknownMigrationVersionError) do
       list = [ActiveRecord::Migration.new("Foo", 1), ActiveRecord::Migration.new("Bar", 2)]
-      ActiveRecord::Migrator.new(:up, list, @schema_migration, -1).migrate
+      ActiveRecord::Migrator.new(:up, list, @schema_migration, @internal_metadata, -1).migrate
     end
   end
 
@@ -146,7 +147,7 @@ class MigratorTest < ActiveRecord::TestCase
   def test_finds_pending_migrations
     @schema_migration.create!(version: "1")
     migration_list = [ActiveRecord::Migration.new("foo", 1), ActiveRecord::Migration.new("bar", 3)]
-    migrations = ActiveRecord::Migrator.new(:up, migration_list, @schema_migration).pending_migrations
+    migrations = ActiveRecord::Migrator.new(:up, migration_list, @schema_migration, @internal_metadata).pending_migrations
 
     assert_equal 1, migrations.size
     assert_equal migration_list.last, migrations.first
@@ -258,12 +259,12 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_interleaved_migrations
     pass_one = [Sensor.new("One", 1)]
 
-    ActiveRecord::Migrator.new(:up, pass_one, @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, pass_one, @schema_migration, @internal_metadata).migrate
     assert pass_one.first.went_up
     assert_not pass_one.first.went_down
 
     pass_two = [Sensor.new("One", 1), Sensor.new("Three", 3)]
-    ActiveRecord::Migrator.new(:up, pass_two, @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, pass_two, @schema_migration, @internal_metadata).migrate
     assert_not pass_two[0].went_up
     assert pass_two[1].went_up
     assert pass_two.all? { |x| !x.went_down }
@@ -272,7 +273,7 @@ class MigratorTest < ActiveRecord::TestCase
                   Sensor.new("Two", 2),
                   Sensor.new("Three", 3)]
 
-    ActiveRecord::Migrator.new(:down, pass_three, @schema_migration).migrate
+    ActiveRecord::Migrator.new(:down, pass_three, @schema_migration, @internal_metadata).migrate
     assert pass_three[0].went_down
     assert_not pass_three[1].went_down
     assert pass_three[2].went_down
@@ -280,7 +281,7 @@ class MigratorTest < ActiveRecord::TestCase
 
   def test_up_calls_up
     migrations = [Sensor.new(nil, 0), Sensor.new(nil, 1), Sensor.new(nil, 2)]
-    migrator = ActiveRecord::Migrator.new(:up, migrations, @schema_migration)
+    migrator = ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata)
     migrator.migrate
     assert migrations.all?(&:went_up)
     assert migrations.all? { |m| !m.went_down }
@@ -291,7 +292,7 @@ class MigratorTest < ActiveRecord::TestCase
     test_up_calls_up
 
     migrations = [Sensor.new(nil, 0), Sensor.new(nil, 1), Sensor.new(nil, 2)]
-    migrator = ActiveRecord::Migrator.new(:down, migrations, @schema_migration)
+    migrator = ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata)
     migrator.migrate
     assert migrations.all? { |m| !m.went_up }
     assert migrations.all?(&:went_down)
@@ -308,22 +309,22 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_one_up
     calls, migrations = sensors(3)
 
-    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 1).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 1).migrate
     assert_equal [[:up, 1]], calls
     calls.clear
 
-    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 2).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 2).migrate
     assert_equal [[:up, 2]], calls
   end
 
   def test_migrator_one_down
     calls, migrations = sensors(3)
 
-    ActiveRecord::Migrator.new(:up, migrations, @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata).migrate
     assert_equal [[:up, 1], [:up, 2], [:up, 3]], calls
     calls.clear
 
-    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, 1).migrate
+    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata, 1).migrate
 
     assert_equal [[:down, 3], [:down, 2]], calls
   end
@@ -331,17 +332,17 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_one_up_one_down
     calls, migrations = sensors(3)
 
-    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 1).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 1).migrate
     assert_equal [[:up, 1]], calls
     calls.clear
 
-    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, 0).migrate
+    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata, 0).migrate
     assert_equal [[:down, 1]], calls
   end
 
   def test_migrator_double_up
     calls, migrations = sensors(3)
-    migrator = ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 1)
+    migrator = ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 1)
     assert_equal(0, migrator.current_version)
 
     migrator.migrate
@@ -354,7 +355,7 @@ class MigratorTest < ActiveRecord::TestCase
 
   def test_migrator_double_down
     calls, migrations = sensors(3)
-    migrator = ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 1)
+    migrator = ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 1)
 
     assert_equal 0, migrator.current_version
 
@@ -362,7 +363,7 @@ class MigratorTest < ActiveRecord::TestCase
     assert_equal [[:up, 1]], calls
     calls.clear
 
-    migrator = ActiveRecord::Migrator.new(:down, migrations, @schema_migration, 1)
+    migrator = ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata, 1)
     migrator.run
     assert_equal [[:down, 1]], calls
     calls.clear
@@ -377,12 +378,12 @@ class MigratorTest < ActiveRecord::TestCase
     _, migrations = sensors(3)
 
     ActiveRecord::Migration.verbose = true
-    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 1).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 1).migrate
     assert_not_equal 0, ActiveRecord::Migration.message_count
 
     ActiveRecord::Migration.message_count = 0
 
-    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, 0).migrate
+    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata, 0).migrate
     assert_not_equal 0, ActiveRecord::Migration.message_count
   end
 
@@ -390,9 +391,9 @@ class MigratorTest < ActiveRecord::TestCase
     _, migrations = sensors(3)
 
     ActiveRecord::Migration.verbose = false
-    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 1).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 1).migrate
     assert_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, 0).migrate
+    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata, 0).migrate
     assert_equal 0, ActiveRecord::Migration.message_count
   end
 
@@ -400,17 +401,17 @@ class MigratorTest < ActiveRecord::TestCase
     calls, migrations = sensors(3)
 
     # migrate up to 1
-    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, 1).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata, 1).migrate
     assert_equal [[:up, 1]], calls
     calls.clear
 
     # migrate down to 0
-    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, 0).migrate
+    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata, 0).migrate
     assert_equal [[:down, 1]], calls
     calls.clear
 
     # migrate down to 0 again
-    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, 0).migrate
+    ActiveRecord::Migrator.new(:down, migrations, @schema_migration, @internal_metadata, 0).migrate
     assert_equal [], calls
   end
 
