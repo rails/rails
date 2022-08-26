@@ -193,6 +193,9 @@ module ActionView
       @source.to_s
     end
 
+    LEADING_ENCODING_REGEXP = /\A#{ENCODING_FLAG}/
+    private_constant :LEADING_ENCODING_REGEXP
+
     # This method is responsible for properly setting the encoding of the
     # source. Until this point, we assume that the source is BINARY data.
     # If no additional information is supplied, we assume the encoding is
@@ -211,7 +214,7 @@ module ActionView
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
       # default external encoding.
-      if source.sub!(/\A#{ENCODING_FLAG}/, "")
+      if source.sub!(LEADING_ENCODING_REGEXP, "")
         encoding = magic_encoding = $1
       else
         encoding = Encoding.default_external
