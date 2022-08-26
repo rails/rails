@@ -19,7 +19,7 @@ module ActiveRecord
         super
         @schema_migration = ActiveRecord::Base.connection.schema_migration
         @schema_migration.create_table
-        @schema_migration.delete_all
+        @schema_migration.delete_all_versions
         @internal_metadata = ActiveRecord::Base.connection.internal_metadata
       end
 

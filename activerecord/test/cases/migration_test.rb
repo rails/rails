@@ -53,8 +53,8 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
 
-    ActiveRecord::SchemaMigration.create_table
-    ActiveRecord::SchemaMigration.delete_all
+    @schema_migration.create_table
+    @schema_migration.delete_all_versions
 
     %w(things awesome_things prefix_things_suffix p_awesome_things_s).each do |table|
       Thing.connection.drop_table(table) rescue nil
@@ -79,6 +79,22 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_passing_a_schema_migration_class_to_migration_context_is_deprecated
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = assert_deprecated { ActiveRecord::MigrationContext.new(migrations_path, ActiveRecord::SchemaMigration) }
+    migrator.up
+
+    assert_equal 3, migrator.current_version
+    assert_equal false, migrator.needs_migration?
+
+    migrator.down
+    assert_equal 0, migrator.current_version
+    assert_equal true, migrator.needs_migration?
+
+    @schema_migration.create_version(3)
+    assert_equal true, migrator.needs_migration?
+  end
+
   def test_migration_context_with_default_schema_migration
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
@@ -91,7 +107,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 0, migrator.current_version
     assert_equal true, migrator.needs_migration?
 
-    ActiveRecord::SchemaMigration.create!(version: 3)
+    @schema_migration.create_version(3)
     assert_equal true, migrator.needs_migration?
   end
 
@@ -111,7 +127,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 0, migrator.current_version
     assert_equal true, migrator.needs_migration?
 
-    ActiveRecord::SchemaMigration.create!(version: 3)
+    @schema_migration.create_version(3)
     assert_equal true, migrator.needs_migration?
   end
 
@@ -635,21 +651,20 @@ class MigrationTest < ActiveRecord::TestCase
   def test_schema_migrations_table_name
     original_schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
 
-    assert_equal "schema_migrations", ActiveRecord::SchemaMigration.table_name
+    assert_equal "schema_migrations", @schema_migration.table_name
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
-    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::SchemaMigration.table_name
+    assert_equal "prefix_schema_migrations_suffix", @schema_migration.table_name
     ActiveRecord::Base.schema_migrations_table_name = "changed"
     Reminder.reset_table_name
-    assert_equal "prefix_changed_suffix", ActiveRecord::SchemaMigration.table_name
+    assert_equal "prefix_changed_suffix", @schema_migration.table_name
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
-    assert_equal "changed", ActiveRecord::SchemaMigration.table_name
+    assert_equal "changed", @schema_migration.table_name
   ensure
     ActiveRecord::Base.schema_migrations_table_name = original_schema_migrations_table_name
-    ActiveRecord::SchemaMigration.reset_table_name
     Reminder.reset_table_name
   end
 
@@ -774,28 +789,26 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_schema_migration_create_table_wont_be_affected_by_schema_cache
-    ActiveRecord::SchemaMigration.drop_table
-    assert_not_predicate ActiveRecord::SchemaMigration, :table_exists?
+    @schema_migration.drop_table
+    assert_not_predicate @schema_migration, :table_exists?
 
-    ActiveRecord::SchemaMigration.connection.transaction do
-      ActiveRecord::SchemaMigration.create_table
-      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+    @schema_migration.connection.transaction do
+      @schema_migration.create_table
+      assert_predicate @schema_migration, :table_exists?
 
-      schema_migration = ActiveRecord::SchemaMigration.create!(version: "foo")
-      assert_equal "foo", schema_migration[:version]
+      assert_equal "foo", @schema_migration.create_version("foo")
       raise ActiveRecord::Rollback
     end
 
-    ActiveRecord::SchemaMigration.connection.transaction do
-      ActiveRecord::SchemaMigration.create_table
-      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+    @schema_migration.connection.transaction do
+      @schema_migration.create_table
+      assert_predicate @schema_migration, :table_exists?
 
-      schema_migration = ActiveRecord::SchemaMigration.create!(version: "bar")
-      assert_equal "bar", schema_migration[:version]
+      assert_equal "bar", @schema_migration.create_version("bar")
       raise ActiveRecord::Rollback
     end
   ensure
-    ActiveRecord::SchemaMigration.create_table
+    @schema_migration.create_table
   end
 
   def test_proper_table_name_on_migration
