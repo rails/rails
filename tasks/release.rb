@@ -314,7 +314,7 @@ module Announcement
     end
 
     def rc?
-      @version =~ /rc/
+      @version.include?("rc")
     end
   end
 end

@@ -59,7 +59,7 @@ module ActiveRecord
         unless fixture_set_names.empty?
           self.fixture_sets = fixture_sets.dup
           fixture_set_names.each do |fs_name|
-            key = fs_name.match?(%r{/}) ? -fs_name.to_s.tr("/", "_") : fs_name
+            key = fs_name.to_s.include?("/") ? -fs_name.to_s.tr("/", "_") : fs_name
             key = -key.to_s if key.is_a?(Symbol)
             fs_name = -fs_name.to_s if fs_name.is_a?(Symbol)
             fixture_sets[key] = fs_name
