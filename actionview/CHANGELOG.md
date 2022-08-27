@@ -1,4 +1,4 @@
-* Set the value of the explicit `:value` option to `data-disable-with`
+*   Set the value of the explicit `:value` option to `data-disable-with`
 
     ```ruby
     = f.submit value: 'Submit'
