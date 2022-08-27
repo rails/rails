@@ -59,7 +59,7 @@ module ActiveRecord
   #   u.color = 'green'
   #   u.color_changed? # => true
   #   u.color_was # => 'black'
-  #   u.color_change # => ['black', 'red']
+  #   u.color_change # => ['black', 'green']
   #
   #   # Add additional accessors to an existing store through store_accessor
   #   class SuperUser < User
@@ -268,7 +268,7 @@ module ActiveRecord
         end
 
         def dump(obj)
-          @coder.dump self.class.as_indifferent_hash(obj)
+          @coder.dump as_regular_hash(obj)
         end
 
         def load(yaml)
@@ -285,6 +285,11 @@ module ActiveRecord
             ActiveSupport::HashWithIndifferentAccess.new
           end
         end
+
+        private
+          def as_regular_hash(obj)
+            obj.respond_to?(:to_hash) ? obj.to_hash : {}
+          end
       end
   end
 end

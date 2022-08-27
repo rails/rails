@@ -98,6 +98,21 @@ module ApplicationTests
       end
     end
 
+    def test_run_all_takes_options
+      create_test_file :system, "foo"
+      assert_match "FooTest", rails("test:all", "--verbose")
+    end
+
+    def test_run_system_takes_options
+      create_test_file :system, "foo"
+      assert_match "FooTest", rails("test:system", "--verbose")
+    end
+
+    def test_run_generators_takes_options
+      create_test_file "lib/generators", "foo"
+      assert_match "FooTest", rails("test:generators", "--verbose")
+    end
+
     def test_run_channels
       create_test_file :channels, "foo_channel"
       create_test_file :channels, "bar_channel"
@@ -296,6 +311,16 @@ module ApplicationTests
       end
     end
 
+    def test_run_relative_path_with_leading_dot_slash
+      create_test_file :models, "account"
+      create_test_file :models, "post"
+
+      run_test_command("./test/models/account_test.rb").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     def test_run_windows_style_path
       create_test_file :models, "account"
       create_test_file :controllers, "accounts_controller"
@@ -487,6 +512,72 @@ module ApplicationTests
       end
     end
 
+    def test_declarative_style_string_filter
+      app_file "test/models/post_test.rb", <<~RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          test "foo" do
+            puts "hello foo"
+            assert true
+          end
+
+          test "foo again" do
+            puts "hello again"
+            assert true
+          end
+
+          test "foo no more" do
+            assert false
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb -n 'foo'").tap do |output|
+        assert_match "hello foo", output
+        assert_match "1 runs, 1 assertions, 0 failures", output
+      end
+
+      run_test_command("test/models/post_test.rb -n 'foo again'").tap do |output|
+        assert_match "hello again", output
+        assert_match "1 runs, 1 assertions, 0 failures", output
+      end
+    end
+
+    def test_declarative_style_regexp_filter
+      app_file "test/models/post_test.rb", <<~RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          test "greets foo" do
+            puts "hello foo"
+            assert true
+          end
+
+          test "greets foo again" do
+            puts "hello again foo"
+            assert true
+          end
+
+          test "greets bar" do
+            puts "hello bar"
+            assert true
+          end
+
+          test "greets no one" do
+            assert false
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets bar/'").tap do |output|
+        assert_match "hello foo", output
+        assert_match "hello again foo", output
+        assert_match "hello bar", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
+      end
+    end
+
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
@@ -649,7 +740,7 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
-    def test_run_in_parallel_with_unmarshable_exception
+    def test_run_in_parallel_with_unmarshalable_exception
       exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file = app_file "test/fail_test.rb", <<-RUBY
@@ -671,7 +762,7 @@ module ApplicationTests
 
       output = run_test_command(file)
 
-      assert_match "RuntimeError: Wrapped undumpable exception for: FailTest::BadError", output
+      assert_match(/RuntimeError: (Wrapped undumpable exception|result not reported|Neutered Exception)/, output)
       assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
     end
 

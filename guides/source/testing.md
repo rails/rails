@@ -356,7 +356,7 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_nothing_raised { block }`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_nothing_raised) | Ensures that the given block doesn't raise any exceptions.|
 | [`assert_recognizes(expected_options, path, extras={}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes) | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates) | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
-| [`assert_response(type, message = nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response) | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](https://rubydoc.info/github/rack/rack/master/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/github/rack/rack/master/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
+| [`assert_response(type, message = nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response) | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](https://rubydoc.info/gems/rack/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/gems/rack/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
 | [`assert_redirected_to(options = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to) | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
 
 You'll see the usage of some of these assertions in the next chapter.
@@ -860,6 +860,55 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome
 end
 ```
+
+If you want to use a remote browser, e.g.
+[Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
+you have to add remote `url` through `options`.
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  options = ENV["SELENIUM_REMOTE_URL"].present? ? { url: ENV["SELENIUM_REMOTE_URL"] } : {}
+  driven_by :selenium, using: :headless_chrome, options: options
+end
+```
+
+In such a case, the gem `webdrivers` is no longer required. You could remove it
+completely or add `require:` option in `Gemfile`.
+
+```ruby
+# ...
+group :test do
+  gem "webdrivers", require: !ENV["SELENIUM_REMOTE_URL"] || ENV["SELENIUM_REMOTE_URL"].empty?
+end
+```
+
+Now you should get a connection to remote browser.
+
+```bash
+$ SELENIUM_REMOTE_URL=http://localhost:4444/wd/hub bin/rails test:system
+```
+
+If your application in test is running remote too, e.g. Docker container,
+Capybara needs more input about how to
+[call remote servers](https://github.com/teamcapybara/capybara#calling-remote-servers).
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  def setup
+    Capybara.server_host = "0.0.0.0" # bind to all interfaces
+    Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
+    super
+  end
+  # ...
+end
+```
+
+Now you should get a connection to remote browser and server, regardless if it
+is running in Docker container or CI.
 
 If your Capybara configuration requires more setup than provided by Rails, this
 additional configuration could be added into the `application_system_test_case.rb`
@@ -1510,7 +1559,7 @@ One good place to store them is `test/lib` or `test/test_helpers`.
 # test/test_helpers/multiple_assertions.rb
 module MultipleAssertions
   def assert_multiple_of_forty_two(number)
-    assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
+    assert (number % 42 == 0), "expected #{number} to be a multiple of 42"
   end
 end
 ```
@@ -1716,14 +1765,9 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-In the test we create the email and store the returned object in the `email`
-variable. We then ensure that it was sent (the first assert), then, in the
-second batch of assertions, we ensure that the email does indeed contain what we
-expect. The helper `read_fixture` is used to read in the content from this file.
+In the test we create the email and store the returned object in the `email` variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect. The helper `read_fixture` is used to read in the content from this file.
 
-NOTE: `email.body.to_s` is present when there's only one (HTML or text) part present.
-If the mailer provides both, you can test your fixture against specific parts
-with `email.text_part.body.to_s` or `email.html_part.body.to_s`.
+NOTE: `email.body.to_s` is present when there's only one (HTML or text) part present. If the mailer provides both, you can test your fixture against specific parts with `email.text_part.body.to_s` or `email.html_part.body.to_s`.
 
 Here's the content of the `invite` fixture:
 
@@ -1735,17 +1779,89 @@ You have been invited.
 Cheers!
 ```
 
-This is the right time to understand a little more about writing tests for your
-mailers. The line `ActionMailer::Base.delivery_method = :test` in
-`config/environments/test.rb` sets the delivery method to test mode so that
-email will not actually be delivered (useful to avoid spamming your users while
-testing) but instead it will be appended to an array
-(`ActionMailer::Base.deliveries`).
+This is the right time to understand a little more about writing tests for your mailers. The line `ActionMailer::Base.delivery_method = :test` in `config/environments/test.rb` sets the delivery method to test mode so that email will not actually be delivered (useful to avoid spamming your users while testing) but instead it will be appended to an array (`ActionMailer::Base.deliveries`).
 
-NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in
-`ActionMailer::TestCase` and `ActionDispatch::IntegrationTest` tests.
-If you want to have a clean slate outside these test cases, you can reset it
-manually with: `ActionMailer::Base.deliveries.clear`
+NOTE: The `ActionMailer::Base.deliveries` array is only reset automatically in `ActionMailer::TestCase` and `ActionDispatch::IntegrationTest` tests. If you want to have a clean slate outside these test cases, you can reset it manually with: `ActionMailer::Base.deliveries.clear`
+
+#### Testing Enqueued Emails
+
+You can use the `assert_enqueued_email_with` assertion to confirm that the email has been enqueued with all of the expected mailer method arguments and/or parameterized mailer parameters. This allows you to match any email that have been enqueued with the `deliver_later` method.
+
+As with the basic test case, we create the email and store the returned object in the `email` variable. The following examples include variations of passing arguments and/or parameters.
+
+This example will assert that the email has been enqueued with the correct arguments:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite("me@example.com", "friend@example.com")
+
+    # Test that the email got enqueued with the correct arguments
+    assert_enqueued_email_with UserMailer, :create_invite, args: ["me@example.com", "friend@example.com"] do
+      email.deliver_later
+    end
+  end
+end
+```
+
+This example will assert that a mailer has been enqueued with the correct mailer method named arguments by passing a hash of the arguments as `args`:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite(from: "me@example.com", to: "friend@example.com")
+
+    # Test that the email got enqueued with the correct named arguments
+    assert_enqueued_email_with UserMailer, :create_invite, args: [{ from: "me@example.com",
+                                                                    to: "friend@example.com" }] do
+      email.deliver_later
+    end
+  end
+end
+```
+
+This example will assert that a parameterized mailer has been enqueued with the correct parameters and arguments. The mailer parameters are passed as `params` and the mailer method arguments as `args`:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.with(all: "good").create_invite("me@example.com", "friend@example.com")
+
+    # Test that the email got enqueued with the correct mailer parameters and arguments
+    assert_enqueued_email_with UserMailer, :create_invite, params: { all: "good" },
+                                                           args: ["me@example.com", "friend@example.com"] do
+      email.deliver_later
+    end
+  end
+end
+```
+
+This example shows an alternative way to test that a parameterized mailer has been enqueued with the correct parameters:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.with(to: "friend@example.com").create_invite
+
+    # Test that the email got enqueued with the correct mailer parameters
+    assert_enqueued_email_with UserMailer.with(to: "friend@example.com"), :create_invite do
+      email.deliver_later
+    end
+  end
+end
+```
 
 ### Functional and System Testing
 
@@ -1782,7 +1898,7 @@ class UsersTest < ActionDispatch::SystemTestCase
 end
 ```
 
-NOTE: The `assert_emails` method is not tied to a particular deliver method and will work with emails delivered with either the `deliver_now` or `deliver_later` method. If we explicitly want to assert that the email has been enqueued we can use the `assert_enqueued_emails` method. More information can be found in the  [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
+NOTE: The `assert_emails` method is not tied to a particular deliver method and will work with emails delivered with either the `deliver_now` or `deliver_later` method. If we explicitly want to assert that the email has been enqueued we can use the `assert_enqueued_email_with` ([examples above](#testing-enqueued-emails)) or `assert_enqueued_emails` methods. More information can be found in the [documentation here](https://api.rubyonrails.org/classes/ActionMailer/TestHelper.html).
 
 Testing Jobs
 ------------
@@ -1950,7 +2066,7 @@ If you want to test the broadcasting made with `Channel.broadcast_to`, you shoul
 ```ruby
 # app/jobs/chat_relay_job.rb
 class ChatRelayJob < ApplicationJob
-  def perform_later(room, message)
+  def perform(room, message)
     ChatChannel.broadcast_to room, text: message
   end
 end

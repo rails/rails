@@ -39,6 +39,8 @@ class Person < ActiveRecord::Base
   has_many :essays, primary_key: "first_name", foreign_key: "writer_id"
 
   scope :males,   -> { where(gender: "M") }
+
+  attr_readonly :born_at
 end
 
 class PersonWithDependentDestroyJobs < ActiveRecord::Base

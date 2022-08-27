@@ -40,7 +40,7 @@ module ActionController # :nodoc:
         before_action(options) do
           if block_given?
             policy = current_content_security_policy
-            yield policy
+            instance_exec(policy, &block)
             request.content_security_policy = policy
           end
 

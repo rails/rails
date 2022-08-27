@@ -9,6 +9,7 @@ After reading this guide, you will know:
 
 * How to use PostgreSQL's datatypes.
 * How to use UUID primary keys.
+* How to use deferrable foreign keys.
 * How to implement full text search with PostgreSQL.
 * How to back your Active Record models with database views.
 
@@ -260,14 +261,12 @@ def up
   end
 end
 
-# There's no built in support for dropping enums, but you can do it manually.
-# You should first drop any table that depends on them.
+# The above migration is reversible (using #change), but you can
+# also define a #down method:
 def down
   drop_table :articles
 
-  execute <<-SQL
-    DROP TYPE article_status;
-  SQL
+  drop_enum :article_status
 end
 ```
 
@@ -324,8 +323,7 @@ SELECT n.nspname AS enum_schema,
 * [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html)
 * [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
-NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
-extension to use uuid.
+NOTE: If you're using PostgreSQL earlier than version 13.0 you may need to enable special extensions to use UUIDs. Enable the `pgcrypto` extension (PostgreSQL >= 9.4) or `uuid-ossp` extension (for even earlier releases).
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
@@ -527,6 +525,40 @@ user = User.create(name: 'John')
 User.last.name_upcased # => "JOHN"
 ```
 
+Deferrable Foreign Keys
+-----------------------
+
+* [foreign key table constraints](https://www.postgresql.org/docs/current/sql-set-constraints.html)
+
+By default, table constraints in PostgreSQL are checked immediately after each statement. It intentionally does not allow creating records where the referenced record is not yet in the referenced table. It is possible to run this integrity check later on when the transactions is committed by adding `DEFERRABLE` to the foreign key definition though. To defer all checks by default it can be set to `DEFERRABLE INITIALLY DEFERRED`. Rails exposes this PostgreSQL feature by adding the `:deferrable` key to the `foreign_key` options in the `add_reference` and `add_foreign_key` methods.
+
+One example of this is creating circular dependencies in a transaction even if you have created foreign keys:
+
+```ruby
+add_reference :person, :alias, foreign_key: { deferrable: :deferred }
+add_reference :alias, :person, foreign_key: { deferrable: :deferred }
+```
+
+If the reference was created with the `foreign_key: true` option, the following transaction would fail when executing the first `INSERT` statement. It does not fail when the `deferrable: :deferred` option is set though.
+
+```ruby
+ActiveRecord::Base.connection.transaction do
+  person = Person.create(id: SecureRandom.uuid, alias_id: SecureRandom.uuid, name: "John Doe")
+  Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
+end
+```
+
+The `:deferrable` option can also be set to `true` or `:immediate`, which has the same effect. Both options let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
+
+```ruby
+ActiveRecord::Base.transaction do
+  ActiveRecord::Base.connection.execute("SET CONSTRAINTS ALL DEFERRED")
+  person = Person.create(alias_id: SecureRandom.uuid, name: "John Doe")
+  Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
+end
+```
+
+By default `:deferrable` is `false` and the constraint is always checked immediately.
 
 Full Text Search
 ----------------
@@ -639,3 +671,16 @@ irb> Article.count
 
 NOTE: This application only cares about non-archived `Articles`. A view also
 allows for conditions so we can exclude the archived `Articles` directly.
+
+Structure dumps
+--------------
+
+If your `config.active_record.schema_format` is `:sql`, Rails will call `pg_dump` to generate a
+structure dump.
+
+You can use `ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags` to configure `pg_dump`.
+For example, to exclude comments from your structure dump, add this to an initializer:
+
+```ruby
+ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
+```

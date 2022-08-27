@@ -32,6 +32,7 @@ module ActiveSupport
           @_under_path = nil
           @_at_path = nil
           @_eager_autoload = false
+          @_eagerloaded_constants = nil
         end
       end
     end

@@ -438,7 +438,7 @@ module ActionView
           model       = nil
           object_name = record
         else
-          model       = convert_to_model(record)
+          model       = record
           object      = _object_for_form_builder(record)
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
@@ -763,7 +763,7 @@ module ActionView
             end
           end
 
-          model   = _object_for_form_builder(model)
+          model   = convert_to_model(_object_for_form_builder(model))
           scope ||= model_name_from_record_or_class(model).param_key
         end
 
@@ -1442,10 +1442,12 @@ module ActionView
       # formatted by trying to call +strftime+ with "%H:%M" on the object's value.
       # It is also possible to override this by passing the "value" option.
       #
-      # === Options
-      # * Accepts same options as time_field_tag
+      # ==== Options
       #
-      # === Example
+      # Supports the same options as FormTagHelper#time_field_tag.
+      #
+      # ==== Examples
+      #
       #   time_field("task", "started_at")
       #   # => <input id="task_started_at" name="task[started_at]" type="time" />
       #
@@ -1496,6 +1498,12 @@ module ActionView
       #   datetime_field("user", "born_on", min: "2014-05-20T00:00:00")
       #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" min="2014-05-20T00:00:00.000" />
       #
+      # By default, provided datetimes will be formatted including seconds. You can render just the date, hour,
+      # and minute by passing <tt>include_seconds: false</tt>.
+      #
+      #   @user.born_on = Time.current
+      #   datetime_field("user", "born_on", include_seconds: false)
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="2014-05-20T14:35" />
       def datetime_field(object_name, method, options = {})
         Tags::DatetimeLocalField.new(object_name, method, self, options).render
       end
@@ -1557,7 +1565,8 @@ module ActionView
       # Returns an input tag of type "number".
       #
       # ==== Options
-      # * Accepts same options as number_field_tag
+      #
+      # Supports the same options as FormTagHelper#number_field_tag.
       def number_field(object_name, method, options = {})
         Tags::NumberField.new(object_name, method, self, options).render
       end
@@ -1565,7 +1574,8 @@ module ActionView
       # Returns an input tag of type "range".
       #
       # ==== Options
-      # * Accepts same options as range_field_tag
+      #
+      # Supports the same options as FormTagHelper#range_field_tag.
       def range_field(object_name, method, options = {})
         Tags::RangeField.new(object_name, method, self, options).render
       end

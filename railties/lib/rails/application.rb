@@ -26,7 +26,7 @@ module Rails
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
-  # +cache_classes+, +consider_all_requests_local+, +filter_parameters+,
+  # +enable_reloading+, +consider_all_requests_local+, +filter_parameters+,
   # +logger+, and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
@@ -94,7 +94,7 @@ module Rails
       public :new
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders, :reloader, :executor, :autoloaders
 
@@ -493,6 +493,11 @@ module Rails
       ordered_railties.flatten - [self]
     end
 
+    def load_generators(app = self) # :nodoc:
+      app.ensure_generator_templates_added
+      super
+    end
+
     # Eager loads the application code.
     def eager_load!
       Rails.autoloaders.each(&:eager_load)
@@ -580,6 +585,11 @@ module Rails
       else
         raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
       end
+    end
+
+    def ensure_generator_templates_added
+      configured_paths = config.generators.templates
+      configured_paths.unshift(*(paths["lib/templates"].existent - configured_paths))
     end
 
     private

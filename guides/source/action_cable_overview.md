@@ -263,6 +263,8 @@ WebSocket is opened.
 
 ```js
 // Specify a different URL to connect to
+createConsumer('wss://example.com/cable')
+// Or when using websockets over HTTP
 createConsumer('https://ws.example.com/cable')
 
 // Use a function to dynamically generate the URL
@@ -270,7 +272,7 @@ createConsumer(getWebSocketURL)
 
 function getWebSocketURL() {
   const token = localStorage.get('auth-token')
-  return `https://ws.example.com/cable?token=${token}`
+  return `wss://example.com/cable?token=${token}`
 }
 ```
 
@@ -573,14 +575,14 @@ consumer.subscriptions.create("AppearanceChannel", {
   install() {
     window.addEventListener("focus", this.update)
     window.addEventListener("blur", this.update)
-    document.addEventListener("turbolinks:load", this.update)
+    document.addEventListener("turbo:load", this.update)
     document.addEventListener("visibilitychange", this.update)
   },
 
   uninstall() {
     window.removeEventListener("focus", this.update)
     window.removeEventListener("blur", this.update)
-    document.removeEventListener("turbolinks:load", this.update)
+    document.removeEventListener("turbo:load", this.update)
     document.removeEventListener("visibilitychange", this.update)
   },
 
@@ -597,8 +599,7 @@ consumer.subscriptions.create("AppearanceChannel", {
 
 #### Client-Server Interaction
 
-1. **Client** connects to the **Server** via `App.cable =
-ActionCable.createConsumer("ws://cable.example.com")`. (`cable.js`). The
+1. **Client** connects to the **Server** via `createConsumer()`. (`consumer.js`). The
 **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via
@@ -721,9 +722,9 @@ The async adapter is intended for development/testing and should not be used in 
 
 The Redis adapter requires users to provide a URL pointing to the Redis server.
 Additionally, a `channel_prefix` may be provided to avoid channel name collisions
-when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
+when using the same Redis server for multiple applications. See the [Redis Pub/Sub documentation](https://redis.io/docs/manual/pubsub/#database--scoping) for more details.
 
-The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be passed in `ssl_params` key in the configuration yaml file.
+The Redis adapter also supports SSL/TLS connections. The required SSL/TLS parameters can be passed in `ssl_params` key in the configuration YAML file.
 
 ```
 production:

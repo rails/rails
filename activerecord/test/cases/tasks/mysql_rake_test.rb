@@ -26,18 +26,17 @@ if current_adapter?(:Mysql2Adapter)
       def test_establishes_connection_without_database
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
+        mock = Minitest::Mock.new
+        mock.expect(:call, nil, [adapter: "mysql2", database: nil])
+        mock.expect(:call, nil, [db_config])
+
         ActiveRecord::Base.stub(:connection, @connection) do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [adapter: "mysql2", database: nil],
-              [db_config]
-            ]
-          ) do
+          ActiveRecord::Base.stub(:establish_connection, mock) do
             ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
+
+        assert_mock(mock)
       end
 
       def test_creates_database_with_no_default_options
@@ -64,23 +63,6 @@ if current_adapter?(:Mysql2Adapter)
             ["my-app-db", collation: "latin1_swedish_ci"]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("collation" => "latin1_swedish_ci")
-          end
-        end
-      end
-
-      def test_establishes_connection_to_database
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
-
-        ActiveRecord::Base.stub(:connection, @connection) do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [adapter: "mysql2", database: nil],
-              [db_config]
-            ]
-          ) do
-            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
       end
@@ -202,14 +184,14 @@ if current_adapter?(:Mysql2Adapter)
         }
       end
 
-      def test_establishes_connection_to_the_appropriate_database
+      def test_establishes_connection_without_database
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
-            [db_config]
+            [adapter: "mysql2", database: nil]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
@@ -336,14 +318,16 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_dump_with_ignore_tables
         filename = "awesome-file.sql"
-        ActiveRecord::SchemaDumper.stub(:ignore_tables, ["foo", "bar"]) do
-          assert_called_with(
-            Kernel,
-            :system,
-            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db"],
-            returns: true
-          ) do
-            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        ActiveRecord::Base.connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+          ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
+            assert_called_with(
+              Kernel,
+              :system,
+              ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.prefix_foo", "--ignore-table=test-db.ignored_foo", "test-db"],
+              returns: true
+            ) do
+              ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+            end
           end
         end
       end

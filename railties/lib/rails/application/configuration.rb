@@ -17,11 +17,11 @@ module Rails
                     :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
+                    :beginning_of_week, :filter_redirect, :x,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
-                    :rake_eager_load, :server_timing
+                    :rake_eager_load, :server_timing, :log_file_size
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -49,6 +49,7 @@ module Rails
         @time_zone                               = "UTC"
         @beginning_of_week                       = :monday
         @log_level                               = :debug
+        @log_file_size                           = nil
         @generators                              = app_generators
         @cache_store                             = [ :file_store, "#{root}/tmp/cache/" ]
         @railties_order                          = [:all]
@@ -83,9 +84,23 @@ module Rails
 
       # Loads default configuration values for a target version. This includes
       # defaults for versions prior to the target version. See the
-      # {configuration guide}[https://guides.rubyonrails.org/configuring.html]
+      # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
       # for the default values associated with a particular version.
       def load_defaults(target_version)
+        # To introduce a change in behavior, follow these steps:
+        # 1. Add an accessor on the target object (e.g. the ActiveJob class for global Active Job config).
+        # 2. Set a default value there preserving existing behavior for existing applications.
+        # 3. Implement the behavior change based on the config value.
+        # 4. In the section below corresponding to the next release of Rails, set the new value.
+        # 5. Add a commented out section in the `new_framework_defaults` template, setting the new value.
+        # 6. Update the guide in `configuration.md`.
+
+        # To remove configurable deprecated behavior, follow these steps:
+        # 1. Update or remove the entry in the guides.
+        # 2. Remove the references below.
+        # 3. Remove the legacy code paths and config check.
+        # 4. Remove the config accessor.
+
         case target_version.to_s
         when "5.0"
           if respond_to?(:action_controller)
@@ -163,7 +178,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
-            active_record.legacy_connection_handling = false
           end
 
           if respond_to?(:active_job)
@@ -249,7 +263,6 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_missing_callback_actions = false
             action_controller.raise_on_open_redirects = true
             action_controller.wrap_parameters_by_default = true
           end
@@ -257,6 +270,16 @@ module Rails
           load_defaults "7.0"
 
           self.add_autoload_paths_to_load_path = false
+
+          if Rails.env.development? || Rails.env.test?
+            self.log_file_size = 100 * 1024 * 1024
+          end
+
+          if respond_to?(:active_record)
+            active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
+            active_record.allow_deprecated_singular_associations_name = false
+            active_record.sqlite3_adapter_strict_strings_by_default = true
+          end
 
           if respond_to?(:action_dispatch)
             action_dispatch.default_headers = {
@@ -268,15 +291,51 @@ module Rails
             }
           end
 
+          if respond_to?(:active_job)
+            active_job.use_big_decimal_serializer = true
+          end
+
           if respond_to?(:active_support)
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.allow_deprecated_parameters_hash_equality = false
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
 
         @loaded_config_version = target_version
+      end
+
+      def reloading_enabled?
+        enable_reloading
+      end
+
+      def enable_reloading
+        !cache_classes
+      end
+
+      def enable_reloading=(value)
+        self.cache_classes = !value
+      end
+
+      ENABLE_DEPENDENCY_LOADING_WARNING = <<~MSG
+        This flag addressed a limitation of the `classic` autoloader and has no effect nowadays.
+        To fix this deprecation, please just delete the reference.
+      MSG
+      private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
+
+      def enable_dependency_loading
+        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        @enable_dependency_loading
+      end
+
+      def enable_dependency_loading=(value)
+        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        @enable_dependency_loading = value
       end
 
       def encoding=(value)
@@ -348,8 +407,14 @@ module Rails
         config = if yaml&.exist?
           loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
           if (shared = loaded_yaml.delete("shared"))
-            loaded_yaml.each do |_k, values|
-              values.reverse_merge!(shared)
+            loaded_yaml.each do |env, config|
+              if config.is_a?(Hash) && config.values.all?(Hash)
+                config.map do |name, sub_config|
+                  sub_config.reverse_merge!(shared)
+                end
+              else
+                config.reverse_merge!(shared)
+              end
             end
           end
           Hash.new(shared).merge(loaded_yaml)
@@ -376,8 +441,9 @@ module Rails
       end
 
       # Specifies what class to use to store the session. Possible values
-      # are +:cookie_store+, +:mem_cache_store+, a custom store, or
-      # +:disabled+. +:disabled+ tells Rails not to deal with sessions.
+      # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
+      # store, or +:disabled+. +:disabled+ tells \Rails not to deal with
+      # sessions.
       #
       # Additional options will be set as +session_options+:
       #
@@ -391,25 +457,14 @@ module Rails
       #   config.session_store :my_custom_store
       def session_store(new_session_store = nil, **options)
         if new_session_store
-          if new_session_store == :active_record_store
-            begin
-              ActionDispatch::Session::ActiveRecordStore
-            rescue NameError
-              raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
-                "Please add `activerecord-session_store` to your Gemfile to use it."
-            end
-          end
-
           @session_store = new_session_store
           @session_options = options || {}
         else
           case @session_store
           when :disabled
             nil
-          when :active_record_store
-            ActionDispatch::Session::ActiveRecordStore
           when Symbol
-            ActionDispatch::Session.const_get(@session_store.to_s.camelize)
+            ActionDispatch::Session.resolve_store(@session_store)
           else
             @session_store
           end

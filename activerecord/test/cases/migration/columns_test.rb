@@ -273,7 +273,21 @@ module ActiveRecord
       def test_change_column_default_to_null
         add_column "test_models", "first_name", :string
         connection.change_column_default "test_models", "first_name", nil
+
         assert_nil TestModel.new.first_name
+      end
+
+      def test_change_column_default_to_null_with_not_null
+        add_column "test_models", "first_name", :string, null: false
+        add_column "test_models", "age", :integer, null: false
+
+        connection.change_column_default "test_models", "first_name", nil
+
+        assert_nil TestModel.new.first_name
+
+        connection.change_column_default "test_models", "age", nil
+
+        assert_nil TestModel.new.age
       end
 
       def test_change_column_default_with_from_and_to
@@ -281,6 +295,32 @@ module ActiveRecord
         connection.change_column_default "test_models", "first_name", from: nil, to: "Tester"
 
         assert_equal "Tester", TestModel.new.first_name
+      end
+
+      def test_change_column_null_false
+        add_column "test_models", "first_name", :string
+        connection.change_column_null "test_models", "first_name", false
+
+        assert_raise(ActiveRecord::NotNullViolation) do
+          TestModel.create!(first_name: nil)
+        end
+      end
+
+      def test_change_column_null_true
+        add_column "test_models", "first_name", :string
+        connection.change_column_null "test_models", "first_name", true
+
+        assert_difference("TestModel.count" => 1) do
+          TestModel.create!(first_name: nil)
+        end
+      end
+
+      def test_change_column_null_with_non_boolean_arguments_raises
+        add_column "test_models", "first_name", :string
+        e = assert_raise(ArgumentError) do
+          connection.change_column_null "test_models", "first_name", from: true, to: false
+        end
+        assert_equal "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}", e.message
       end
 
       def test_remove_column_no_second_parameter_raises_exception
@@ -338,6 +378,23 @@ module ActiveRecord
 
         columns = connection.columns("my_table").map(&:name)
         assert_equal ["id"], columns
+      ensure
+        connection.drop_table :my_table, if_exists: true
+      end
+
+      def test_add_timestamps_single_statement
+        connection.create_table "my_table"
+
+        # SQLite3's ALTER TABLE statement has several limitations. To manage
+        # this, the adapter creates a temporary table, copies the data, drops
+        # the old table, creates the new table, then copies the data back.
+        expected_query_count = current_adapter?(:SQLite3Adapter) ? 12 : 1
+        assert_queries(expected_query_count) do
+          connection.add_timestamps("my_table")
+        end
+
+        columns = connection.columns("my_table").map(&:name)
+        assert_equal ["id", "created_at", "updated_at"], columns
       ensure
         connection.drop_table :my_table, if_exists: true
       end

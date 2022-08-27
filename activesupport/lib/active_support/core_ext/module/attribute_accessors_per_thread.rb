@@ -44,12 +44,29 @@ class Module
 
       # The following generated method concatenates `name` because we want it
       # to work with inheritance via polymorphism.
-      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
-        def self.#{sym}
-          @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
-          ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
-        end
-      EOS
+      if default.nil?
+        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+          def self.#{sym}
+            @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+            ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
+          end
+        EOS
+      else
+        singleton_class.define_method("#{sym}_default_value") { default }
+
+        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+          def self.#{sym}
+            @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+            value = ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
+
+            if value.nil? && !::ActiveSupport::IsolatedExecutionState.key?(@__thread_mattr_#{sym})
+              ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}] = #{sym}_default_value
+            else
+              value
+            end
+          end
+        EOS
+      end
 
       if instance_reader && instance_accessor
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -58,8 +75,6 @@ class Module
           end
         EOS
       end
-
-      ::ActiveSupport::IsolatedExecutionState["attr_#{name}_#{sym}"] = default unless default.nil?
     end
   end
   alias :thread_cattr_reader :thread_mattr_reader
@@ -82,7 +97,7 @@ class Module
   #   end
   #
   #   Current.new.user = "DHH" # => NoMethodError
-  def thread_mattr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil) # :nodoc:
+  def thread_mattr_writer(*syms, instance_writer: true, instance_accessor: true) # :nodoc:
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
@@ -102,8 +117,6 @@ class Module
           end
         EOS
       end
-
-      public_send("#{sym}=", default) unless default.nil?
     end
   end
   alias :thread_cattr_writer :thread_mattr_writer

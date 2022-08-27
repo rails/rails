@@ -494,8 +494,7 @@ module Rails
     def helpers
       @helpers ||= begin
         helpers = Module.new
-        all = ActionController::Base.all_helpers_from_path(helpers_paths)
-        ActionController::Base.modules_for_helpers(all).each do |mod|
+        AbstractController::Helpers.helper_modules_from_paths(helpers_paths).each do |mod|
           helpers.include(mod)
         end
         helpers
@@ -606,6 +605,13 @@ module Rails
       unless views.empty?
         ActiveSupport.on_load(:action_controller) { prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer) { prepend_view_path(views) }
+      end
+    end
+
+    initializer :add_mailer_preview_paths do
+      previews = paths["test/mailers/previews"].existent
+      unless previews.empty?
+        ActiveSupport.on_load(:action_mailer) { self.preview_paths |= previews }
       end
     end
 

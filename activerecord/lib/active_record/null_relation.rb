@@ -39,12 +39,13 @@ module ActiveRecord
     end
 
     def calculate(operation, _column_name)
-      case operation
-      when :count, :sum
-        group_values.any? ? Hash.new : 0
-      when :average, :minimum, :maximum
-        group_values.any? ? Hash.new : nil
+      result = case operation
+               when :count, :sum
+                 group_values.any? ? Hash.new : 0
+               when :average, :minimum, :maximum
+                 group_values.any? ? Hash.new : nil
       end
+      @async ? Promise::Complete.new(result) : result
     end
 
     def exists?(_conditions = :none)

@@ -334,6 +334,16 @@ class CookiesTest < ActionController::TestCase
 
       head :ok
     end
+
+    def set_same_site_strict
+      cookies["user_name"] = { value: "david", same_site: :strict }
+      head :ok
+    end
+
+    def set_same_site_nil
+      cookies["user_name"] = { value: "david", same_site: nil }
+      head :ok
+    end
   end
 
   tests TestController
@@ -362,7 +372,7 @@ class CookiesTest < ActionController::TestCase
     @request.host = "www.nextangle.com"
   end
 
-  def test_setting_cookie_with_no_protection
+  def test_setting_cookie_with_no_same_site_protection
     @request.env["action_dispatch.cookies_same_site_protection"] = proc { :none }
 
     get :authenticate
@@ -370,7 +380,7 @@ class CookiesTest < ActionController::TestCase
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
-  def test_setting_cookie_with_protection_proc_normal_user_agent
+  def test_setting_cookie_with_same_site_protection_proc_normal_user_agent
     @request.env["action_dispatch.cookies_same_site_protection"] = Proc.new do |request|
       :strict unless request.user_agent == "spooky browser"
     end
@@ -380,7 +390,7 @@ class CookiesTest < ActionController::TestCase
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
-  def test_setting_cookie_with_protection_proc_special_user_agent
+  def test_setting_cookie_with_same_site_protection_proc_special_user_agent
     @request.env["action_dispatch.cookies_same_site_protection"] = Proc.new do |request|
       :strict unless request.user_agent == "spooky browser"
     end
@@ -391,7 +401,7 @@ class CookiesTest < ActionController::TestCase
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
-  def test_setting_cookie_with_misspelled_protection_raises
+  def test_setting_cookie_with_misspelled_same_site_protection_raises
     @request.env["action_dispatch.cookies_same_site_protection"] = proc { :funky }
 
     error = assert_raise ArgumentError do
@@ -400,11 +410,35 @@ class CookiesTest < ActionController::TestCase
     assert_match "Invalid SameSite value: :funky", error.message
   end
 
-  def test_setting_cookie_with_strict
+  def test_setting_cookie_with_same_site_strict
     @request.env["action_dispatch.cookies_same_site_protection"] = proc { :strict }
 
     get :authenticate
     assert_cookie_header "user_name=david; path=/; SameSite=Strict"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_same_site_nil
+    @request.env["action_dispatch.cookies_same_site_protection"] = proc { nil }
+
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_specific_same_site_strict
+    @request.env["action_dispatch.cookies_same_site_protection"] = proc { :lax }
+
+    get :set_same_site_strict
+    assert_cookie_header "user_name=david; path=/; SameSite=Strict"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_specific_same_site_nil
+    @request.env["action_dispatch.cookies_same_site_protection"] = proc { :lax }
+
+    get :set_same_site_nil
+    assert_cookie_header "user_name=david; path=/"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 

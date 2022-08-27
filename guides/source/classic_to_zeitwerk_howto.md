@@ -344,6 +344,31 @@ config.to_prepare do
 end
 ```
 
+### `before_remove_const`
+
+Rails 3.1 added support for a callback called `before_remove_const` that was invoked if a class or module responded to this method and was about to be reloaded. This callback has remained otherwise undocumented and it is unlikely that your code uses it.
+
+However, in case it does, you can rewrite something like
+
+```ruby
+class Country < ActiveRecord::Base
+  def self.before_remove_const
+    expire_redis_cache
+  end
+end
+```
+
+as
+
+```ruby
+# config/initializers/country.rb
+if Rails.application.config.reloading_enabled?
+  Rails.autoloaders.main.on_unload("Country") do |klass, _abspath|
+    klass.expire_redis_cache
+  end
+end
+```
+
 ### Spring and the `test` Environment
 
 Spring reloads the application code if something changes. In the `test` environment you need to enable reloading for that to work:
@@ -353,10 +378,23 @@ Spring reloads the application code if something changes. In the `test` environm
 config.cache_classes = false
 ```
 
-Otherwise you'll get this error:
+or, since Rails 7.1:
+
+```ruby
+# config/environments/test.rb
+config.enable_reloading = true
+```
+
+Otherwise, you'll get:
 
 ```
 reloading is disabled because config.cache_classes is true
+```
+
+or
+
+```
+reloading is disabled because config.enable_reloading is false
 ```
 
 This has no performance penalty.

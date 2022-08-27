@@ -63,7 +63,12 @@ module ActiveModel
         end
 
         def fallback_string_to_time(string)
-          time_hash = ::Date._parse(string)
+          time_hash = begin
+            ::Date._parse(string)
+          rescue ArgumentError
+          end
+          return unless time_hash
+
           time_hash[:sec_fraction] = microseconds(time_hash)
 
           new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :offset))

@@ -12,7 +12,7 @@ module ActiveRecord
 
       def setup
         @handler = ConnectionHandler.new
-        @owner_name = "ActiveRecord::Base"
+        @connection_name = "ActiveRecord::Base"
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @rw_pool = @handler.establish_connection(db_config)
         @ro_pool = @handler.establish_connection(db_config, role: :reading)
@@ -325,15 +325,15 @@ module ActiveRecord
       end
 
       def test_retrieve_connection
-        assert @handler.retrieve_connection(@owner_name)
-        assert @handler.retrieve_connection(@owner_name, role: :reading)
+        assert @handler.retrieve_connection(@connection_name)
+        assert @handler.retrieve_connection(@connection_name, role: :reading)
       end
 
       def test_active_connections?
         assert_not_predicate @handler, :active_connections?
 
-        assert @handler.retrieve_connection(@owner_name)
-        assert @handler.retrieve_connection(@owner_name, role: :reading)
+        assert @handler.retrieve_connection(@connection_name)
+        assert @handler.retrieve_connection(@connection_name, role: :reading)
 
         assert_predicate @handler, :active_connections?
 
@@ -342,8 +342,8 @@ module ActiveRecord
       end
 
       def test_retrieve_connection_pool
-        assert_not_nil @handler.retrieve_connection_pool(@owner_name)
-        assert_not_nil @handler.retrieve_connection_pool(@owner_name, role: :reading)
+        assert_not_nil @handler.retrieve_connection_pool(@connection_name)
+        assert_not_nil @handler.retrieve_connection_pool(@connection_name, role: :reading)
       end
 
       def test_retrieve_connection_pool_with_invalid_id

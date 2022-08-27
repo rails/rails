@@ -8,6 +8,8 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
+    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*)\)/
+
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
@@ -118,10 +120,10 @@ module ActionView
     @frozen_string_literal = false
 
     attr_reader :identifier, :handler
-    attr_reader :variable, :format, :variant, :locals, :virtual_path
+    attr_reader :variable, :format, :variant, :virtual_path
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
-      @source            = source
+      @source            = source.dup
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
@@ -139,6 +141,16 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
+    # The locals this template has been or will be compiled for, or nil if this
+    # is a strict locals template.
+    def locals
+      if strict_locals?
+        nil
+      else
+        @locals
+      end
+    end
+
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
     def supports_streaming?
@@ -151,10 +163,15 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = ActionView::OutputBuffer.new, add_to_stack: true, &block)
+    def render(view, locals, buffer = nil, add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
-        view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, &block)
+        if buffer
+          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
+          nil
+        else
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block).to_s
+        end
       end
     rescue => e
       handle_render_error(view, e)
@@ -169,12 +186,15 @@ module ActionView
     end
 
     def inspect
-      "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
+      "#<#{self.class.name} #{short_identifier} locals=#{locals.inspect}>"
     end
 
     def source
       @source.to_s
     end
+
+    LEADING_ENCODING_REGEXP = /\A#{ENCODING_FLAG}/
+    private_constant :LEADING_ENCODING_REGEXP
 
     # This method is responsible for properly setting the encoding of the
     # source. Until this point, we assume that the source is BINARY data.
@@ -194,7 +214,7 @@ module ActionView
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
       # default external encoding.
-      if source.sub!(/\A#{ENCODING_FLAG}/, "")
+      if source.sub!(LEADING_ENCODING_REGEXP, "")
         encoding = magic_encoding = $1
       else
         encoding = Encoding.default_external
@@ -222,6 +242,25 @@ module ActionView
       end
     end
 
+    # This method is responsible for marking a template as having strict locals
+    # and extracting any arguments declared in the format
+    # locals: (message:, label: "My Message")
+    def strict_locals!
+      self.source.sub!(STRICT_LOCALS_REGEX, "")
+      @strict_locals = $1
+
+      return if @strict_locals.nil? # Magic comment not found
+
+      @strict_locals = "**nil" if @strict_locals.blank?
+    end
+
+    def strict_locals?
+      if defined?(@strict_locals)
+        @strict_locals
+      else
+        STRICT_LOCALS_REGEX === self.source
+      end
+    end
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
     # to ensure that references to the template object can be marshalled as well. This means forgoing
@@ -273,14 +312,22 @@ module ActionView
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
       def compile(mod)
+        strict_locals!
         source = encode!
         code = @handler.call(self, source)
+
+        method_arguments =
+          if @strict_locals
+            "output_buffer, #{@strict_locals}"
+          else
+            "local_assigns, output_buffer"
+          end
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
         original_source = source
         source = +<<-end_src
-          def #{method_name}(local_assigns, output_buffer)
+          def #{method_name}(#{method_arguments})
             @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
           end
         end_src
@@ -311,6 +358,26 @@ module ActionView
           # the result into the template, but missing an end parenthesis.
           raise SyntaxErrorInTemplate.new(self, original_source)
         end
+
+        return unless @strict_locals
+
+        # Check compiled method parameters to ensure that only kwargs
+        # were provided as strict locals, preventing `locals: (foo, *foo)` etc
+        # and allowing `locals: (foo:)`.
+
+        non_kwarg_parameters =
+          (mod.instance_method(method_name).parameters - [[:req, :output_buffer]]).
+            select { |parameter| ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0]) }
+
+        return unless non_kwarg_parameters.any?
+
+        mod.undef_method(method_name)
+
+        raise ArgumentError.new(
+          "#{non_kwarg_parameters.map { |_, name| "`#{name}`" }.to_sentence} set as non-keyword " \
+          "#{'argument'.pluralize(non_kwarg_parameters.length)} for #{short_identifier}. " \
+          "Locals can only be set as keyword arguments."
+        )
       end
 
       def handle_render_error(view, e)
@@ -323,6 +390,8 @@ module ActionView
       end
 
       def locals_code
+        return "" if @strict_locals
+
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS

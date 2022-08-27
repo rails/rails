@@ -77,6 +77,7 @@ module ActiveRecord
   autoload :TestDatabases
   autoload :TestFixtures, "active_record/fixtures"
   autoload :Timestamp
+  autoload :TokenFor
   autoload :TouchLater
   autoload :Transactions
   autoload :Translation
@@ -92,6 +93,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
     autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
+    autoload :Promise
     autoload :FutureResult
     autoload :LegacyYamlAdapter
     autoload :NullRelation
@@ -178,9 +180,6 @@ module ActiveRecord
   singleton_class.attr_accessor :schema_cache_ignored_tables
   self.schema_cache_ignored_tables = []
 
-  singleton_class.attr_accessor :legacy_connection_handling
-  self.legacy_connection_handling = true
-
   singleton_class.attr_reader :default_timezone
 
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
@@ -200,6 +199,14 @@ module ActiveRecord
 
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
+
+  def self.legacy_connection_handling=(_)
+    raise ArgumentError, <<~MSG.squish
+      The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1,
+      but is still defined in your configuration. Please remove this call as it no longer
+      has any effect."
+    MSG
+  end
 
   # Sets the async_query_executor for an application. By default the thread pool executor
   # set to +nil+ which will not run queries in the background. Applications must configure
@@ -305,6 +312,12 @@ module ActiveRecord
 
   ##
   # :singleton-method:
+  # Specify strategy to use for executing migrations.
+  singleton_class.attr_accessor :migration_strategy
+  self.migration_strategy = Migration::DefaultStrategy
+
+  ##
+  # :singleton-method:
   # Specify whether schema dump should happen at the end of the
   # bin/rails db:migrate command. This is true by default, which is useful for the
   # development environment. This should ideally be false in the production
@@ -338,8 +351,29 @@ module ActiveRecord
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
 
+  ##
+  # :singleton-method:
+  # If true, Rails will continue allowing plural association names in where clauses on singular associations
+  # This behavior will be removed in Rails 7.2.
+  singleton_class.attr_accessor :allow_deprecated_singular_associations_name
+  self.allow_deprecated_singular_associations_name = true
+
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
+
+  ##
+  # :singleton-method:
+  # Application configurable boolean that instructs the YAML Coder to use
+  # an unsafe load if set to true.
+  singleton_class.attr_accessor :use_yaml_unsafe_load
+  self.use_yaml_unsafe_load = false
+
+  ##
+  # :singleton-method:
+  # Application configurable array that provides additional permitted classes
+  # to Psych safe_load in the YAML Coder
+  singleton_class.attr_accessor :yaml_column_permitted_classes
+  self.yaml_column_permitted_classes = [Symbol]
 
   def self.eager_load!
     super

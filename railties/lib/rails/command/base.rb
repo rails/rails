@@ -3,6 +3,8 @@
 require "thor"
 require "erb"
 
+require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/string/inflections"
 
@@ -33,6 +35,8 @@ module Rails
       end
 
       include Actions
+
+      class_attribute :bin, instance_accessor: false, default: "bin/rails"
 
       class << self
         def exit_on_failure? # :nodoc:
@@ -91,8 +95,8 @@ module Rails
           namespaced_commands
         end
 
-        def executable
-          "rails #{command_name}"
+        def executable(subcommand = nil)
+          "#{bin} #{command_name}#{":" if subcommand}#{subcommand}"
         end
 
         # Use Rails' default banner.
@@ -161,7 +165,8 @@ module Rails
           end
 
           def namespaced_commands
-            commands.keys.map do |key|
+            commands.filter_map do |key, command|
+              next if command.hidden?
               if command_root_namespace.match?(/(\A|:)#{key}\z/)
                 command_root_namespace
               else
@@ -169,6 +174,18 @@ module Rails
               end
             end
           end
+      end
+
+      no_commands do
+        delegate :executable, to: :class
+        attr_reader :current_subcommand
+
+        def invoke_command(command, *) # :nodoc:
+          original_subcommand, @current_subcommand = @current_subcommand, command.name
+          super
+        ensure
+          @current_subcommand = original_subcommand
+        end
       end
 
       def help

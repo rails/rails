@@ -707,11 +707,14 @@ module ActiveRecord
     # Note: The new instance will share a link to the same attributes as the original class.
     # Therefore the STI column value will still be the same.
     # Any change to the attributes on either instance will affect both instances.
+    # This includes any attribute initialization done by the new instance.
+    #
     # If you want to change the STI column as well, use #becomes! instead.
     def becomes(klass)
       became = klass.allocate
 
       became.send(:initialize) do |becoming|
+        @attributes.reverse_merge!(becoming.instance_variable_get(:@attributes))
         becoming.instance_variable_set(:@attributes, @attributes)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
@@ -827,6 +830,7 @@ module ActiveRecord
     def update_columns(attributes)
       raise ActiveRecordError, "cannot update a new record" if new_record?
       raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
+      _raise_readonly_record_error if readonly?
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
@@ -1013,12 +1017,15 @@ module ActiveRecord
     #
     def touch(*names, time: nil)
       _raise_record_not_touched_error unless persisted?
+      _raise_readonly_record_error if readonly?
 
       attribute_names = timestamp_attributes_for_update_in_model
-      attribute_names |= names.map! do |name|
+      attribute_names = (attribute_names | names).map! do |name|
         name = name.to_s
-        self.class.attribute_aliases[name] || name
-      end unless names.empty?
+        name = self.class.attribute_aliases[name] || name
+        verify_readonly_attribute(name)
+        name
+      end
 
       unless attribute_names.empty?
         affected_rows = _touch_row(attribute_names, time)

@@ -1307,6 +1307,18 @@ class RelationTest < ActiveRecord::TestCase
     green_birds.each { |bird| assert_predicate bird, :persisted? }
   end
 
+  def test_create_with_block
+    sparrow = Bird.create do |bird|
+      bird.name = "sparrow"
+      bird.color = "grey"
+    end
+
+    assert_kind_of Bird, sparrow
+    assert_predicate sparrow, :persisted?
+    assert_equal "sparrow", sparrow.name
+    assert_equal "grey", sparrow.color
+  end
+
   def test_create_bang_with_array
     green_birds = Bird.where(color: "green").create!([{ name: "parrot" }, { name: "canary" }])
     assert_equal ["parrot", "canary"], green_birds.map(&:name)
@@ -1471,6 +1483,27 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_create_by(name: "bob")
   end
 
+  def test_find_or_create_by_race_condition
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    bob = Subscriber.create!(nick: "bob")
+    relation = Subscriber.all
+
+    results = [nil, bob]
+    find_by_mock = -> (*) do
+      assert_not_predicate results, :empty?
+      results.shift
+    end
+
+    relation.stub(:find_by, find_by_mock) do
+      relation.stub(:find_by!, find_by_mock) do # create_or_find_by always call find_by! on retry
+        assert_equal bob, relation.find_or_create_by(nick: "bob")
+      end
+    end
+
+    assert_predicate results, :empty?
+  end
+
   def test_find_or_create_by_with_create_with
     assert_nil Bird.find_by(name: "bob")
 
@@ -1479,6 +1512,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "green", bird.color
 
     assert_equal bird, Bird.create_with(color: "blue").find_or_create_by(name: "bob")
+  end
+
+  def test_find_or_create_by_with_block
+    assert_nil Bird.find_by(name: "bob")
+
+    bird = Bird.find_or_create_by(name: "bob") do |record|
+      record.color = "blue"
+    end
+    assert_predicate bird, :persisted?
+    assert_equal bird.name, "bob"
+    assert_equal bird.color, "blue"
+
+    assert_equal bird, Bird.find_or_create_by(name: "bob", color: "blue")
   end
 
   def test_find_or_create_by!
@@ -1490,6 +1536,20 @@ class RelationTest < ActiveRecord::TestCase
 
     subscriber = Subscriber.create!(nick: "bob")
 
+    assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
+    assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+  end
+
+  def test_create_or_find_by_with_block
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create_or_find_by(nick: "bob") do |record|
+      record.name = "the builder"
+    end
+
+    assert_equal "bob", subscriber.nick
+    assert_equal "the builder", subscriber.name
+    assert_predicate subscriber, :persisted?
     assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
   end
@@ -1560,6 +1620,20 @@ class RelationTest < ActiveRecord::TestCase
     bird.save!
 
     assert_equal bird, Bird.find_or_initialize_by(name: "bob")
+  end
+
+  def test_find_or_initialize_by_with_block
+    assert_nil Bird.find_by(name: "bob")
+
+    bird = Bird.find_or_initialize_by(name: "bob") do |record|
+      record.color = "blue"
+    end
+    assert_predicate bird, :new_record?
+    assert_equal bird.name, "bob"
+    assert_equal bird.color, "blue"
+    bird.save!
+
+    assert_equal bird, Bird.find_or_initialize_by(name: "bob", color: "blue")
   end
 
   def test_explicit_create_with
@@ -2318,7 +2392,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_empty authors
   end
 
-  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending]).each do |method|
+  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending, :with]).each do |method|
     test "#{method} with blank value" do
       authors = Author.public_send(method, [""])
       assert_empty authors.public_send(:"#{method}_values")

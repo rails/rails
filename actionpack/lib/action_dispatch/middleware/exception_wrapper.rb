@@ -124,13 +124,16 @@ module ActionDispatch
 
     def source_extracts
       backtrace.map do |trace|
-        file, line_number = extract_file_and_line_number(trace)
-
-        {
-          code: source_fragment(file, line_number),
-          line_number: line_number
-        }
+        extract_source(trace)
       end
+    end
+
+    def error_highlight_available?
+      # ErrorHighlight.spot with backtrace_location keyword is available since error_highlight 0.4.0
+      unless defined?(@@error_highlight_available)
+        @@error_highlight_available = defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
+      end
+      @@error_highlight_available
     end
 
     def trace_to_show
@@ -147,7 +150,17 @@ module ActionDispatch
 
     private
       def backtrace
-        Array(@exception.backtrace)
+        backtrace_locations = @exception.backtrace_locations
+        backtrace = @exception.backtrace
+
+        if backtrace_locations && backtrace_locations.size == backtrace.size
+          # Prefer #backtrace_locations as it looks consistent with #backtrace
+          Array(backtrace_locations)
+        else
+          # Conservatively fallback to #backtrace as they are inconsistent;
+          # probably #set_backtrace is used somewhere?
+          Array(backtrace)
+        end
       end
 
       def causes_for(exception)
@@ -168,19 +181,55 @@ module ActionDispatch
         end
       end
 
+      def extract_source(trace)
+        if error_highlight_available?
+          spot = ErrorHighlight.spot(@exception, backtrace_location: trace)
+          if spot
+            line = spot[:first_lineno]
+            code = extract_source_fragment_lines(spot[:script_lines], line)
+
+            if line == spot[:last_lineno]
+              code[line] = [
+                code[line][0, spot[:first_column]],
+                code[line][spot[:first_column]...spot[:last_column]],
+                code[line][spot[:last_column]..-1],
+              ]
+            end
+
+            return {
+              code: code,
+              line_number: line
+            }
+          end
+        end
+
+        file, line_number = extract_file_and_line_number(trace)
+
+        {
+          code: source_fragment(file, line_number),
+          line_number: line_number
+        }
+      end
+
+      def extract_source_fragment_lines(source_lines, line)
+        start = [line - 3, 0].max
+        lines = source_lines.drop(start).take(6)
+        Hash[*(start + 1..(lines.count + start)).zip(lines).flatten]
+      end
+
       def source_fragment(path, line)
         return unless Rails.respond_to?(:root) && Rails.root
         full_path = Rails.root.join(path)
         if File.exist?(full_path)
           File.open(full_path, "r") do |file|
-            start = [line - 3, 0].max
-            lines = file.each_line.drop(start).take(6)
-            Hash[*(start + 1..(lines.count + start)).zip(lines).flatten]
+            extract_source_fragment_lines(file.each_line, line)
           end
         end
       end
 
       def extract_file_and_line_number(trace)
+        return [trace.path, trace.lineno] if Thread::Backtrace::Location === trace
+
         # Split by the first colon followed by some digits, which works for both
         # Windows and Unix path styles.
         file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace

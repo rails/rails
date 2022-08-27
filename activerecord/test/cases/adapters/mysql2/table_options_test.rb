@@ -114,7 +114,8 @@ class Mysql2DefaultEngineOptionTest < ActiveRecord::Mysql2TestCase
       end
     end.new
 
-    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
+    connection = ActiveRecord::Base.connection
+    ActiveRecord::Migrator.new(:up, [migration], connection.schema_migration, connection.internal_metadata).migrate
 
     assert_match %r{ENGINE=InnoDB}, @log.string
 

@@ -16,6 +16,7 @@ module ActionController
       info "Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
       info "  Parameters: #{params.inspect}" unless params.empty?
     end
+    subscribe_log_level :start_processing, :info
 
     def process_action(event)
       info do
@@ -36,22 +37,27 @@ module ActionController
         message
       end
     end
+    subscribe_log_level :process_action, :info
 
     def halted_callback(event)
       info { "Filter chain halted as #{event.payload[:filter].inspect} rendered or redirected" }
     end
+    subscribe_log_level :halted_callback, :info
 
     def send_file(event)
       info { "Sent file #{event.payload[:path]} (#{event.duration.round(1)}ms)" }
     end
+    subscribe_log_level :send_file, :info
 
     def redirect_to(event)
       info { "Redirected to #{event.payload[:location]}" }
     end
+    subscribe_log_level :redirect_to, :info
 
     def send_data(event)
       info { "Sent data #{event.payload[:filename]} (#{event.duration.round(1)}ms)" }
     end
+    subscribe_log_level :send_data, :info
 
     def unpermitted_parameters(event)
       debug do
@@ -61,15 +67,18 @@ module ActionController
         color("Unpermitted parameter#{'s' if unpermitted_keys.size > 1}: #{display_unpermitted_keys}. Context: { #{context} }", RED)
       end
     end
+    subscribe_log_level :unpermitted_parameters, :debug
 
     %w(write_fragment read_fragment exist_fragment? expire_fragment).each do |method|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
+        # frozen_string_literal: true
         def #{method}(event)
-          return unless logger.info? && ActionController::Base.enable_fragment_cache_logging
+          return unless ActionController::Base.enable_fragment_cache_logging
           key         = ActiveSupport::Cache.expand_cache_key(event.payload[:key] || event.payload[:path])
           human_name  = #{method.to_s.humanize.inspect}
           info("\#{human_name} \#{key} (\#{event.duration.round(1)}ms)")
         end
+        subscribe_log_level :#{method}, :info
       METHOD
     end
 

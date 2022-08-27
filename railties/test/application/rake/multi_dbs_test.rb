@@ -753,6 +753,20 @@ module ApplicationTests
         db_migrate_and_schema_cache_dump
       end
 
+      test "db:prepare setup the database even if schema does not exist" do
+        Dir.chdir(app_path) do
+          use_postgresql(multi_db: true) # bug doesn't exist with sqlite3
+          output = rails("db:drop")
+          assert_match(/Dropped database/, output)
+
+          rails "generate", "model", "recipe", "title:string"
+          output = rails("db:prepare")
+          assert_match(/CreateRecipes: migrated/, output)
+        end
+      ensure
+        rails "db:drop" rescue nil
+      end
+
       # Note that schema cache loader depends on the connection and
       # does not work for all connections.
       test "schema_cache is loaded on primary db in multi-db app" do
@@ -845,6 +859,28 @@ module ApplicationTests
           output = rails("db:prepare")
 
           assert_match(/Created database/, output)
+          assert_equal 1, Dog.count
+        ensure
+          Dog.connection.disconnect!
+          rails "db:drop" rescue nil
+        end
+      end
+
+      test "db:prepare runs seeds once" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          use_postgresql(multi_db: true)
+
+          rails "db:drop"
+          generate_models_for_animals
+          rails "generate", "model", "recipe", "title:string"
+
+          app_file "db/seeds.rb", <<-RUBY
+            Dog.create!
+          RUBY
+
+          rails("db:prepare")
+
           assert_equal 1, Dog.count
         ensure
           Dog.connection.disconnect!
@@ -1024,6 +1060,27 @@ module ApplicationTests
         end
       end
 
+      test "db:test:prepare don't raise errors when schema_dump is false" do
+        app_file "config/database.yml", <<~EOS
+          development: &development
+            primary:
+              adapter: sqlite3
+              database: dev_db
+              schema_dump: false
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: false
+          test:
+            <<: *development
+        EOS
+
+        Dir.chdir(app_path) do
+          output = rails("db:test:prepare", "--trace")
+          assert_match(/Execute db:test:prepare/, output)
+        end
+      end
+
       test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
         app_file "config/database.yml", <<-YAML
           development:
@@ -1133,6 +1190,24 @@ module ApplicationTests
 
           rails "db:drop"
           assert_equal "true", animals_db_exists.call
+        end
+      end
+
+      test "destructive tasks are protected" do
+        add_to_config "config.active_record.protected_environments = ['development', 'test']"
+
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails "db:migrate"
+
+          destructive_tasks = ["db:drop:animals", "db:schema:load:animals", "db:test:purge:animals"]
+
+          destructive_tasks.each do |task|
+            error = assert_raises("#{task} did not raise ActiveRecord::ProtectedEnvironmentError") { rails task }
+            assert_match(/ActiveRecord::ProtectedEnvironmentError/, error.message)
+          end
         end
       end
     end

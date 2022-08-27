@@ -183,22 +183,22 @@ module ActionDispatch
           end
 
           def offsets
-            return @offsets if @offsets
+            @offsets ||= begin
+              offsets = [0]
 
-            @offsets = [0]
+              spec.find_all(&:symbol?).each do |node|
+                node = node.to_sym
 
-            spec.find_all(&:symbol?).each do |node|
-              node = node.to_sym
-
-              if @requirements.key?(node)
-                re = /#{Regexp.union(@requirements[node])}|/
-                @offsets.push((re.match("").length - 1) + @offsets.last)
-              else
-                @offsets << @offsets.last
+                if @requirements.key?(node)
+                  re = /#{Regexp.union(@requirements[node])}|/
+                  offsets.push((re.match("").length - 1) + offsets.last)
+                else
+                  offsets << offsets.last
+                end
               end
-            end
 
-            @offsets
+              offsets
+            end
           end
       end
     end

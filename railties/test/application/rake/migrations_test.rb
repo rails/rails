@@ -508,6 +508,35 @@ module ApplicationTests
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
         end
       end
+
+      test "migrations with execute run when connections are established from a loaded model" do
+        Dir.chdir(app_path) do
+          app_file "app/models/application_record.rb", <<-RUBY
+            class ApplicationRecord < ActiveRecord::Base
+              primary_abstract_class
+
+              establish_connection :primary
+            end
+          RUBY
+
+          rails "generate", "model", "user", "username:string", "password:string"
+
+          rails("db:migrate")
+
+          app_file "db/migrate/01_a_migration.bukkits.rb", <<-MIGRATION
+            class AMigration < ActiveRecord::Migration::Current
+              def change
+                User.first
+                execute("SELECT 1")
+              end
+            end
+          MIGRATION
+
+          output = rails("db:migrate")
+
+          assert_match(/execute\("SELECT 1"\)/, output)
+        end
+      end
     end
   end
 end

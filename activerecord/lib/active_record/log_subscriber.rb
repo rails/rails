@@ -22,16 +22,14 @@ module ActiveRecord
     def strict_loading_violation(event)
       debug do
         owner = event.payload[:owner]
-        association = event.payload[:reflection].klass
-        name = event.payload[:reflection].name
-
-        color("Strict loading violation: #{owner} is marked for strict loading. The #{association} association named :#{name} cannot be lazily loaded.", RED)
+        reflection = event.payload[:reflection]
+        color(reflection.strict_loading_violation_message(owner), RED)
       end
     end
+    subscribe_log_level :strict_loading_violation, :debug
 
     def sql(event)
       self.class.runtime += event.duration
-      return unless logger.debug?
 
       payload = event.payload
 
@@ -51,7 +49,14 @@ module ActiveRecord
 
         binds = []
         payload[:binds].each_with_index do |attr, i|
-          attribute_name = attr.respond_to?(:name) ? attr.name : attr[i].name
+          attribute_name = if attr.respond_to?(:name)
+            attr.name
+          elsif attr.respond_to?(:[]) && attr[i].respond_to?(:name)
+            attr[i].name
+          else
+            nil
+          end
+
           filtered_params = filter(attribute_name, casted_params[i])
 
           binds << render_bind(attr, filtered_params)
@@ -65,6 +70,7 @@ module ActiveRecord
 
       debug "  #{name}  #{sql}#{binds}"
     end
+    subscribe_log_level :sql, :debug
 
     private
       def type_casted_binds(casted_binds)

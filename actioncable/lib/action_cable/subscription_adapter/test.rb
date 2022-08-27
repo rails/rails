@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "async"
-
 module ActionCable
   module SubscriptionAdapter
     # == Test adapter for Action Cable

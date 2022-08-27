@@ -33,9 +33,12 @@ module ActionDispatch # :nodoc:
 
       def call(env)
         request = ActionDispatch::Request.new env
-        _, headers, _ = response = @app.call(env)
+        status, headers, _ = response = @app.call(env)
 
-        return response unless html_response?(headers)
+        # Returning CSP headers with a 304 Not Modified is harmful, since nonces in the new
+        # CSP headers might not match nonces in the cached HTML.
+        return response if status == 304
+
         return response if policy_present?(headers)
 
         if policy = request.content_security_policy
@@ -49,12 +52,6 @@ module ActionDispatch # :nodoc:
       end
 
       private
-        def html_response?(headers)
-          if content_type = headers[CONTENT_TYPE]
-            /html/.match?(content_type)
-          end
-        end
-
         def header_name(request)
           if request.content_security_policy_report_only
             POLICY_REPORT_ONLY

@@ -548,6 +548,8 @@ module ActiveRecord
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
     autoload :JoinTable, "active_record/migration/join_table"
+    autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
+    autoload :DefaultStrategy, "active_record/migration/default_strategy"
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
@@ -692,6 +694,10 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
+    end
+
+    def execution_strategy
+      @execution_strategy ||= ActiveRecord.migration_strategy.new(self)
     end
 
     self.verbose = true
@@ -881,6 +887,7 @@ module ActiveRecord
       end
     ensure
       @connection = nil
+      @execution_strategy = nil
     end
 
     def write(text = "")
@@ -935,8 +942,8 @@ module ActiveRecord
             end
           end
         end
-        return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
+        return super unless execution_strategy.respond_to?(method)
+        execution_strategy.send(method, *arguments, &block)
       end
     end
     ruby2_keywords(:method_missing)
@@ -1073,11 +1080,12 @@ module ActiveRecord
   # sufficient. Multiple database applications need a +SchemaMigration+
   # per primary database.
   class MigrationContext
-    attr_reader :migrations_paths, :schema_migration
+    attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
-    def initialize(migrations_paths, schema_migration = SchemaMigration)
+    def initialize(migrations_paths, schema_migration = SchemaMigration, internal_metadata = InternalMetadata)
       @migrations_paths = migrations_paths
       @schema_migration = schema_migration
+      @internal_metadata = internal_metadata
     end
 
     # Runs the migrations in the +migrations_path+.
@@ -1121,7 +1129,7 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:up, selected_migrations, schema_migration, target_version).migrate
+      Migrator.new(:up, selected_migrations, schema_migration, internal_metadata, target_version).migrate
     end
 
     def down(target_version = nil, &block) # :nodoc:
@@ -1131,15 +1139,15 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:down, selected_migrations, schema_migration, target_version).migrate
+      Migrator.new(:down, selected_migrations, schema_migration, internal_metadata, target_version).migrate
     end
 
     def run(direction, target_version) # :nodoc:
-      Migrator.new(direction, migrations, schema_migration, target_version).run
+      Migrator.new(direction, migrations, schema_migration, internal_metadata, target_version).run
     end
 
     def open # :nodoc:
-      Migrator.new(:up, migrations, schema_migration)
+      Migrator.new(:up, migrations, schema_migration, internal_metadata)
     end
 
     def get_all_versions # :nodoc:
@@ -1203,11 +1211,12 @@ module ActiveRecord
     end
 
     def last_stored_environment # :nodoc:
-      return nil unless ActiveRecord::InternalMetadata.enabled?
+      connection = ActiveRecord::Base.connection
+      return nil unless connection.internal_metadata.enabled?
       return nil if current_version == 0
-      raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
+      raise NoEnvironmentInSchemaError unless connection.internal_metadata.table_exists?
 
-      environment = ActiveRecord::InternalMetadata[:environment]
+      environment = connection.internal_metadata[:environment]
       raise NoEnvironmentInSchemaError unless environment
       environment
     end
@@ -1223,7 +1232,7 @@ module ActiveRecord
       end
 
       def move(direction, steps)
-        migrator = Migrator.new(direction, migrations, schema_migration)
+        migrator = Migrator.new(direction, migrations, schema_migration, internal_metadata)
 
         if current_version != 0 && !migrator.current_migration
           raise UnknownMigrationVersionError.new(current_version)
@@ -1248,23 +1257,24 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        MigrationContext.new(migrations_paths, SchemaMigration).current_version
+        MigrationContext.new(migrations_paths, SchemaMigration, InternalMetadata).current_version
       end
     end
 
     self.migrations_paths = ["db/migrate"]
 
-    def initialize(direction, migrations, schema_migration, target_version = nil)
+    def initialize(direction, migrations, schema_migration, internal_metadata, target_version = nil)
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
       @migrations        = migrations
       @schema_migration  = schema_migration
+      @internal_metadata = internal_metadata
 
       validate(@migrations)
 
       @schema_migration.create_table
-      ActiveRecord::InternalMetadata.create_table
+      @internal_metadata.create_table
     end
 
     def current_version
@@ -1325,10 +1335,9 @@ module ActiveRecord
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        result = execute_migration_in_transaction(migration)
 
         record_environment
-        result
+        execute_migration_in_transaction(migration)
       end
 
       # Used for running multiple migrations up to or down to a certain value.
@@ -1337,15 +1346,15 @@ module ActiveRecord
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        result = runnable.each(&method(:execute_migration_in_transaction))
         record_environment
-        result
+        runnable.each(&method(:execute_migration_in_transaction))
       end
 
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
+        connection = ActiveRecord::Base.connection
+        connection.internal_metadata[:environment] = connection.migration_context.current_environment
       end
 
       def ran?(migration)

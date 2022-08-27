@@ -1036,7 +1036,7 @@ Possible options for JavaScript compression are `:terser`, `:closure` and
 
 Take the `terser` gem, for example.
 This gem wraps [Terser](https://github.com/terser/terser) (written for
-NodeJS) in Ruby. It compresses your code by removing white space and comments,
+Node.js) in Ruby. It compresses your code by removing white space and comments,
 shortening local variable names, and performing other micro-optimizations such
 as changing `if` and `else` statements to ternary operators where possible.
 

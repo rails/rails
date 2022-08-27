@@ -25,6 +25,9 @@ class SecurePasswordTest < ActiveRecord::TestCase
   end
 
   test "authenticate_by takes the same amount of time regardless of whether record is found" do
+    # Warm-up (mostly to ensure the DB connection is established)
+    User.authenticate_by(token: @user.token, password: @user.password)
+
     # Benchmark.realtime returns fractional seconds.  Thus, summing over 1000
     # iterations is equivalent to averaging over 1000 iterations and then
     # multiplying by 1000 to convert to milliseconds.
@@ -41,6 +44,18 @@ class SecurePasswordTest < ActiveRecord::TestCase
     end
 
     assert_in_delta found_average_time_in_ms, not_found_average_time_in_ms, 0.5
+  end
+
+  test "authenticate_by short circuits when password is nil" do
+    assert_no_queries do
+      assert_nil User.authenticate_by(token: @user.token, password: nil)
+    end
+  end
+
+  test "authenticate_by short circuits when password is an empty string" do
+    assert_no_queries do
+      assert_nil User.authenticate_by(token: @user.token, password: "")
+    end
   end
 
   test "authenticate_by finds record using multiple attributes" do

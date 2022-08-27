@@ -61,7 +61,7 @@ module ActiveRecord
 
         # Given a attribute name, it returns the name of the source attribute when it's a preserved one.
         def source_attribute_from_preserved_attribute(attribute_name)
-          attribute_name.to_s.sub(ORIGINAL_ATTRIBUTE_PREFIX, "") if /^#{ORIGINAL_ATTRIBUTE_PREFIX}/.match?(attribute_name)
+          attribute_name.to_s.sub(ORIGINAL_ATTRIBUTE_PREFIX, "") if attribute_name.start_with?(ORIGINAL_ATTRIBUTE_PREFIX)
         end
 
         private
@@ -82,7 +82,7 @@ module ActiveRecord
           def encrypt_attribute(name, attribute_scheme)
             encrypted_attributes << name.to_sym
 
-            attribute name do |cast_type|
+            attribute name, default: -> { columns_hash[name.to_s]&.default } do |cast_type|
               ActiveRecord::Encryption::EncryptedAttributeType.new scheme: attribute_scheme, cast_type: cast_type
             end
 

@@ -78,7 +78,7 @@ module ActiveSupport
     alias_method :getutc, :utc
     alias_method :gmtime, :utc
 
-    # Returns the underlying TZInfo::TimezonePeriod.
+    # Returns the underlying <tt>TZInfo::TimezonePeriod</tt>.
     def period
       @period ||= time_zone.period_for_utc(@utc)
     end
@@ -337,9 +337,8 @@ module ActiveSupport
     alias_method :in, :+
 
     # Subtracts an interval of time and returns a new TimeWithZone object unless
-    # the other value +acts_like?+ time. Then it will return a Float of the difference
-    # between the two times that represents the difference between the current
-    # object's time and the +other+ time.
+    # the other value +acts_like?+ time. In which case, it will subtract the
+    # other time and return the difference in seconds as a Float.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
     #   now = Time.zone.now # => Mon, 03 Nov 2014 00:26:28.725182881 EST -05:00

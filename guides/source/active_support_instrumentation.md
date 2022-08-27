@@ -540,10 +540,11 @@ INFO. Cache stores may add their own keys
 
 #### perform.active_job
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:job`       | Job object                             |
+| Key           | Value                                         |
+| ------------- | --------------------------------------------- |
+| `:adapter`    | QueueAdapter object processing the job        |
+| `:job`        | Job object                                    |
+| `:db_runtime` | Amount spent executing database queries in ms |
 
 #### retry_stopped.active_job
 
@@ -685,6 +686,26 @@ INFO. The only ActiveStorage service that provides this hook so far is GCS.
 | Key          | Value                          |
 | ------------ | ------------------------------ |
 | `:analyzer`  | Name of analyzer e.g., ffprobe |
+
+### Action Mailbox
+
+#### process.action_mailbox
+
+| Key              | Value                                                             |
+| -----------------| ----------------------------------------------------------------- |
+| `:mailbox`       | Instance of the Mailbox class inheriting from ActionMailbox::Base |
+| `:inbound_email` | Hash with data about the inbound email being processed            |
+
+```ruby
+{
+  mailbox: #<RepliesMailbox:0x00007f9f7a8388>,
+  inbound_email: {
+    id: 1,
+    message_id: "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com",
+    status: "processing"
+  }
+}
+```
 
 ### Railties
 

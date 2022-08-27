@@ -20,13 +20,6 @@ module ActiveSupport
 
     CONTENT_KEY = "__content__"
 
-    NODE_TYPE_NAMES = %w{ATTRIBUTE_NODE CDATA_SECTION_NODE COMMENT_NODE DOCUMENT_FRAGMENT_NODE
-    DOCUMENT_NODE DOCUMENT_TYPE_NODE ELEMENT_NODE ENTITY_NODE ENTITY_REFERENCE_NODE NOTATION_NODE
-    PROCESSING_INSTRUCTION_NODE TEXT_NODE}
-
-    node_type_map = {}
-    NODE_TYPE_NAMES.each { |type| node_type_map[Node.send(type)] = type }
-
     # Parse an XML Document string or IO into a simple hash using Java's jdom.
     # data::
     #   XML Document string or IO to parse
@@ -80,7 +73,7 @@ module ActiveSupport
         if child_nodes.length > 0
           (0...child_nodes.length).each do |i|
             child = child_nodes.item(i)
-            merge_element!(hash, child, depth - 1) unless child.node_type == Node.TEXT_NODE
+            merge_element!(hash, child, depth - 1) unless child.node_type == Node::TEXT_NODE
           end
           merge_texts!(hash, element) unless empty_content?(element)
           hash
@@ -156,7 +149,7 @@ module ActiveSupport
         child_nodes = element.child_nodes
         (0...child_nodes.length).each do |i|
           item = child_nodes.item(i)
-          if item.node_type == Node.TEXT_NODE
+          if item.node_type == Node::TEXT_NODE
             texts << item.get_data
           end
         end
@@ -172,7 +165,7 @@ module ActiveSupport
         child_nodes = element.child_nodes
         (0...child_nodes.length).each do |i|
           item = child_nodes.item(i)
-          if item.node_type == Node.TEXT_NODE
+          if item.node_type == Node::TEXT_NODE
             text << item.get_data.strip
           end
         end

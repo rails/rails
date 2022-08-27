@@ -74,6 +74,8 @@ module ActionController
           #
           # See ActionController::HttpAuthentication::Basic for example usage.
           def http_basic_authenticate_with(name:, password:, realm: nil, **options)
+            raise ArgumentError, "Expected name: to be a String, got #{name.class}" unless name.is_a?(String)
+            raise ArgumentError, "Expected password: to be a String, got #{password.class}" unless password.is_a?(String)
             before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm }
           end
         end
@@ -82,8 +84,8 @@ module ActionController
           authenticate_or_request_with_http_basic(realm, message) do |given_name, given_password|
             # This comparison uses & so that it doesn't short circuit and
             # uses `secure_compare` so that length information isn't leaked.
-            ActiveSupport::SecurityUtils.secure_compare(given_name, name) &
-              ActiveSupport::SecurityUtils.secure_compare(given_password, password)
+            ActiveSupport::SecurityUtils.secure_compare(given_name.to_s, name) &
+              ActiveSupport::SecurityUtils.secure_compare(given_password.to_s, password)
           end
         end
 
@@ -107,7 +109,7 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request).downcase == "basic") && user_name_and_password(request).length == 2
+        request.authorization.present? && (auth_scheme(request).downcase == "basic")
       end
 
       def user_name_and_password(request)
@@ -500,11 +502,14 @@ module ActionController
         array_params.each { |param| (param[1] || +"").gsub! %r/^"|"$/, "" }
       end
 
+      WHITESPACED_AUTHN_PAIR_DELIMITERS = /\s*#{AUTHN_PAIR_DELIMITERS}\s*/
+      private_constant :WHITESPACED_AUTHN_PAIR_DELIMITERS
+
       # This method takes an authorization body and splits up the key-value
       # pairs by the standardized <tt>:</tt>, <tt>;</tt>, or <tt>\t</tt>
       # delimiters defined in +AUTHN_PAIR_DELIMITERS+.
       def raw_params(auth)
-        _raw_params = auth.sub(TOKEN_REGEX, "").split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
+        _raw_params = auth.sub(TOKEN_REGEX, "").split(WHITESPACED_AUTHN_PAIR_DELIMITERS)
 
         if !_raw_params.first&.start_with?(TOKEN_KEY)
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"

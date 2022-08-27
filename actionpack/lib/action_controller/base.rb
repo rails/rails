@@ -167,22 +167,6 @@ module ActionController
   class Base < Metal
     abstract!
 
-    # We document the request and response methods here because albeit they are
-    # implemented in ActionController::Metal, the type of the returned objects
-    # is unknown at that level.
-
-    ##
-    # :method: request
-    #
-    # Returns an ActionDispatch::Request instance that represents the
-    # current request.
-
-    ##
-    # :method: response
-    #
-    # Returns an ActionDispatch::Response that represents the current
-    # response.
-
     # Shortcut helper that returns all the modules included in
     # ActionController::Base except the ones passed as arguments:
     #

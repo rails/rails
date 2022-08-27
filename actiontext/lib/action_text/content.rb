@@ -104,7 +104,9 @@ module ActionText
     end
 
     def ==(other)
-      if other.is_a?(self.class)
+      if self.class == other.class
+        to_html == other.to_html
+      elsif other.is_a?(self.class)
         to_s == other.to_s
       end
     end

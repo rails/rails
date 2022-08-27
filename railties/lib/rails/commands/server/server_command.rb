@@ -96,6 +96,7 @@ module Rails
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rack::Handler registry.
       RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
+      RECOMMENDED_SERVER = "puma"
 
       DEFAULT_PORT = 3000
       DEFAULT_PIDFILE = "tmp/pids/server.pid"
@@ -227,7 +228,7 @@ module Rails
         end
 
         def restart_command
-          "bin/rails server #{@original_options.join(" ")} --restart"
+          "#{executable} #{@original_options.join(" ")} --restart"
         end
 
         def early_hints
@@ -245,7 +246,7 @@ module Rails
         end
 
         def self.banner(*)
-          "rails server -u [thin/puma/webrick] [options]"
+          "#{executable} -u [thin/puma/webrick] [options]"
         end
 
         def prepare_restart
@@ -253,19 +254,32 @@ module Rails
         end
 
         def rack_server_suggestion(server)
-          if server.in?(RACK_SERVERS)
+          if server.nil?
+            <<~MSG
+              Could not find a server gem. Maybe you need to add one to the Gemfile?
+
+                gem "#{RECOMMENDED_SERVER}"
+
+              Run `#{executable} --help` for more options.
+            MSG
+          elsif server.in?(RACK_SERVERS)
             <<~MSG
               Could not load server "#{server}". Maybe you need to the add it to the Gemfile?
 
                 gem "#{server}"
 
-              Run `bin/rails server --help` for more options.
+              Run `#{executable} --help` for more options.
             MSG
           else
             error = CorrectableError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
+            if error.respond_to?(:detailed_message)
+              formatted_message = error.detailed_message
+            else
+              formatted_message = error.message
+            end
             <<~MSG
-              #{error.message}
-              Run `bin/rails server --help` for more options.
+              #{formatted_message}
+              Run `#{executable} --help` for more options.
             MSG
           end
         end
@@ -274,7 +288,7 @@ module Rails
           say <<~MSG
             => Booting #{ActiveSupport::Inflector.demodulize(server)}
             => Rails #{Rails.version} application starting in #{Rails.env} #{url}
-            => Run `bin/rails server --help` for more startup options
+            => Run `#{executable} --help` for more startup options
           MSG
         end
     end

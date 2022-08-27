@@ -326,7 +326,7 @@ module ActiveRecord
         assert_not_predicate @pool, :active_connection?
       end
 
-      def test_checkout_behaviour
+      def test_checkout_behavior
         pool = ConnectionPool.new(@pool_config)
         main_connection = pool.connection
         assert_not_nil main_connection
@@ -508,8 +508,8 @@ module ActiveRecord
 
         @connection_test_model_class.establish_connection :arunit
 
-        assert_equal [:config, :shard, :spec_name], payloads[0].keys.sort
-        assert_equal @connection_test_model_class.name, payloads[0][:spec_name]
+        assert_equal [:config, :connection_name, :shard], payloads[0].keys.sort
+        assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
         assert_equal ActiveRecord::Base.default_shard, payloads[0][:shard]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
@@ -522,8 +522,8 @@ module ActiveRecord
         end
         @connection_test_model_class.connects_to shards: { shard_two: { writing: :arunit } }
 
-        assert_equal [:config, :shard, :spec_name], payloads[0].keys.sort
-        assert_equal @connection_test_model_class.name, payloads[0][:spec_name]
+        assert_equal [:config, :connection_name, :shard], payloads[0].keys.sort
+        assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
         assert_equal :shard_two, payloads[0][:shard]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription

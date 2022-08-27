@@ -4,8 +4,6 @@ require "test_helper"
 require_relative "common"
 require_relative "channel_prefix"
 
-require "action_cable/subscription_adapter/redis"
-
 class RedisAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
   include ChannelPrefixTest
@@ -16,12 +14,6 @@ class RedisAdapterTest < ActionCable::TestCase
         x[:url] = host
       end
     end
-  end
-end
-
-class RedisAdapterTest::Hiredis < RedisAdapterTest
-  def cable_config
-    super.merge(driver: "hiredis")
   end
 end
 
@@ -56,7 +48,7 @@ class RedisAdapterTest::ConnectorDefaultID < ActionCable::TestCase
   end
 
   test "sets connection id for connection" do
-    assert_called_with ::Redis, :new, [ expected_connection.stringify_keys ] do
+    assert_called_with ::Redis, :new, [ expected_connection.symbolize_keys ] do
       @adapter.send(:redis_connection)
     end
   end

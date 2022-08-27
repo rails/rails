@@ -78,6 +78,12 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.postgresql_time_zone_aware_types" do
+      ActiveSupport.on_load(:active_record_postgresqladapter) do
+        ActiveRecord::Base.time_zone_aware_types << :timestamptz
+      end
+    end
+
     initializer "active_record.logger" do
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
@@ -91,22 +97,6 @@ module ActiveRecord
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
           ActiveRecord::Migration::CheckPending,
           file_watcher: app.config.file_watcher
-      end
-    end
-
-    initializer "active_record.database_selector" do
-      if options = config.active_record.database_selector
-        resolver = config.active_record.database_resolver
-        operations = config.active_record.database_resolver_context
-        config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
-      end
-    end
-
-    initializer "active_record.shard_selector" do
-      if resolver = config.active_record.shard_resolver
-        options = config.active_record.shard_selector || {}
-
-        config.app_middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
       end
     end
 
@@ -145,7 +135,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
               db_config.name,
-              schema_cache_path: db_config&.schema_cache_path
+              schema_cache_path: db_config.schema_cache_path
             )
 
             cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
@@ -220,6 +210,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.sqlite3_adapter_strict_strings_by_default" do
+      config.after_initialize do
+        if config.active_record.sqlite3_adapter_strict_strings_by_default
+          ActiveSupport.on_load(:active_record_sqlite3adapter) do
+            self.strict_strings_by_default = true
+          end
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -246,6 +246,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :query_log_tags,
           :cache_query_log_tags,
           :sqlite3_production_warning,
+          :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
           :use_schema_cache_dump
         )
@@ -270,20 +271,22 @@ To keep using the current cache store, you can turn off cache versioning entirel
     # and then establishes the connection.
     initializer "active_record.initialize_database" do
       ActiveSupport.on_load(:active_record) do
-        if ActiveRecord.legacy_connection_handling
-          self.connection_handlers = { ActiveRecord.writing_role => ActiveRecord::Base.default_connection_handler }
-        end
         self.configurations = Rails.application.config.database_configuration
 
         establish_connection
       end
     end
 
-    # Expose database runtime to controller for logging.
+    # Expose database runtime for logging.
     initializer "active_record.log_runtime" do
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
+      end
+
+      require "active_record/railties/job_runtime"
+      ActiveSupport.on_load(:active_job) do
+        include ActiveRecord::Railties::JobRuntime
       end
     end
 
@@ -337,6 +340,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.generated_token_verifier" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          self.generated_token_verifier ||= app.message_verifier("active_record/token_for")
+        end
+      end
+    end
+
     initializer "active_record_encryption.configuration" do |app|
       ActiveRecord::Encryption.configure \
          primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
@@ -385,6 +396,20 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
           if app.config.active_record.cache_query_log_tags
             ActiveRecord::QueryLogs.cache_query_log_tags = true
+          end
+        end
+      end
+    end
+
+    initializer "active_record.unregister_current_scopes_on_unload" do |app|
+      config.after_initialize do
+        if app.config.reloading_enabled?
+          Rails.autoloaders.main.on_unload do |_cpath, value, _abspath|
+            # Conditions are written this way to be robust against custom
+            # implementations of value#is_a? or value#<.
+            if Class === value && ActiveRecord::Base > value
+              value.current_scope = nil
+            end
           end
         end
       end

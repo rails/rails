@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module ActiveSupport
-  # lazy_load_hooks allows Rails to lazily load a lot of components and thus
+  # LazyLoadHooks allows Rails to lazily load a lot of components and thus
   # making the app boot faster. Because of this feature now there is no need to
   # require <tt>ActiveRecord::Base</tt> at boot time purely to apply
   # configuration. Instead a hook is registered that applies configuration once
   # <tt>ActiveRecord::Base</tt> is loaded. Here <tt>ActiveRecord::Base</tt> is
   # used as example but this feature can be applied elsewhere too.
   #
-  # Here is an example where +on_load+ method is called to register a hook.
+  # Here is an example where on_load method is called to register a hook.
   #
   #   initializer 'active_record.initialize_timezone' do
   #     ActiveSupport.on_load(:active_record) do
@@ -18,10 +18,26 @@ module ActiveSupport
   #   end
   #
   # When the entirety of +ActiveRecord::Base+ has been
-  # evaluated then +run_load_hooks+ is invoked. The very last line of
+  # evaluated then run_load_hooks is invoked. The very last line of
   # +ActiveRecord::Base+ is:
   #
   #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
+  #
+  # run_load_hooks will then execute all the hooks that were registered
+  # with the on_load method. In the case of the above example, it will
+  # execute the block of code that is in the +initializer+.
+  #
+  # Registering a hook that has already run results in that hook executing
+  # immediately. This allows hooks to be nested for code that relies on
+  # multiple lazily loaded components:
+  #
+  #   initializer "action_text.renderer" do
+  #     ActiveSupport.on_load(:action_controller_base) do
+  #       ActiveSupport.on_load(:action_text_content) do
+  #         self.default_renderer = Class.new(ActionController::Base).renderer
+  #       end
+  #     end
+  #   end
   module LazyLoadHooks
     def self.extended(base) # :nodoc:
       base.class_eval do
@@ -32,7 +48,8 @@ module ActiveSupport
     end
 
     # Declares a block that will be executed when a Rails component is fully
-    # loaded.
+    # loaded. If the component has already loaded, the block is executed
+    # immediately.
     #
     # Options:
     #
@@ -46,6 +63,13 @@ module ActiveSupport
       @load_hooks[name] << [block, options]
     end
 
+    # Executes all blocks registered to +name+ via on_load, using +base+ as the
+    # evaluation context.
+    #
+    #  ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
+    #
+    # In the case of the above example, it will execute all hooks registered
+    # for +:active_record+ within the class +ActiveRecord::Base+.
     def run_load_hooks(name, base = Object)
       @loaded[name] << base
       @load_hooks[name].each do |hook, options|

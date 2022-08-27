@@ -25,6 +25,16 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
     @connection.drop_table(to) rescue nil
   end
 
+  def test_copy_table_with_column_with_default
+    test_copy_table("comments", "comments_with_default") do
+      @connection.add_column("comments_with_default", "options", "json", default: {})
+      test_copy_table("comments_with_default", "comments_with_default2") do
+        column = @connection.columns("comments_with_default2").find { |col| col.name == "options" }
+        assert_equal "{}", column.default
+      end
+    end
+  end
+
   def test_copy_table_renaming_column
     test_copy_table("customers", "customers2",
         rename: { "name" => "person_name" }) do |from, to, options|

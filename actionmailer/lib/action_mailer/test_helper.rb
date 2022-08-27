@@ -94,16 +94,41 @@ module ActionMailer
     end
 
     # Asserts that a specific email has been enqueued, optionally
-    # matching arguments.
+    # matching arguments and/or params.
     #
     #   def test_email
     #     ContactMailer.welcome.deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome
     #   end
     #
+    #   def test_email_with_parameters
+    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, args: { greeting: "Hello" }
+    #   end
+    #
     #   def test_email_with_arguments
     #     ContactMailer.welcome("Hello", "Goodbye").deliver_later
     #     assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
+    #   end
+    #
+    #   def test_email_with_named_arguments
+    #     ContactMailer.welcome(greeting: "Hello", farewell: "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, args: [{ greeting: "Hello", farewell: "Goodbye" }]
+    #   end
+    #
+    #   def test_email_with_parameters_and_arguments
+    #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: ["Cheers", "Goodbye"]
+    #   end
+    #
+    #   def test_email_with_parameters_and_named_arguments
+    #     ContactMailer.with(greeting: "Hello").welcome(farewell: "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: [{farewell: "Goodbye"}]
+    #   end
+    #
+    #   def test_email_with_parameterized_mailer
+    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
+    #     assert_enqueued_email_with ContactMailer.with(greeting: "Hello"), :welcome
     #   end
     #
     # If a block is passed, that block should cause the specified email
@@ -123,9 +148,15 @@ module ActionMailer
     #       ContactMailer.with(email: 'user@example.com').welcome.deliver_later
     #     end
     #   end
-    def assert_enqueued_email_with(mailer, method, args: nil, queue: ActionMailer::Base.deliver_later_queue_name || "default", &block)
+    def assert_enqueued_email_with(mailer, method, params: nil, args: nil, queue: ActionMailer::Base.deliver_later_queue_name || "default", &block)
+      if mailer.is_a? ActionMailer::Parameterized::Mailer
+        params = mailer.instance_variable_get(:@params)
+        mailer = mailer.instance_variable_get(:@mailer)
+      end
       args = if args.is_a?(Hash)
         [mailer.to_s, method.to_s, "deliver_now", params: args, args: []]
+      elsif params.present?
+        [mailer.to_s, method.to_s, "deliver_now", params: params, args: Array(args)]
       else
         [mailer.to_s, method.to_s, "deliver_now", args: Array(args)]
       end

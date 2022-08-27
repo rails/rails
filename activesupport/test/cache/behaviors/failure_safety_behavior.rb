@@ -91,6 +91,19 @@ module FailureSafetyBehavior
     end
   end
 
+  def test_delete_multi_failure_returns_zero
+    key = SecureRandom.uuid
+    other_key = SecureRandom.uuid
+    @cache.write_multi(
+      key => SecureRandom.alphanumeric,
+      other_key => SecureRandom.alphanumeric
+    )
+
+    emulating_unavailability do |cache|
+      assert_equal 0, cache.delete_multi([key, other_key])
+    end
+  end
+
   def test_exist_failure_returns_false
     key = SecureRandom.uuid
     @cache.write(key, SecureRandom.alphanumeric)

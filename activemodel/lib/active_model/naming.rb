@@ -211,7 +211,7 @@ module ActiveModel
     end
 
     private
-      MISSING_TRANSLATION = Object.new # :nodoc:
+      MISSING_TRANSLATION = -(2**60) # :nodoc:
 
       def _singularize(string)
         ActiveSupport::Inflector.underscore(string).tr("/", "_")

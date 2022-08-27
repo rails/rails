@@ -172,22 +172,22 @@ module ActionDispatch
         # in which case we assume you're a browser and send HTML.
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
-        def params_readable? # :doc:
+        def params_readable?
           parameters[:format]
         rescue *RESCUABLE_MIME_FORMAT_ERRORS
           false
         end
 
-        def valid_accept_header # :doc:
+        def valid_accept_header
           (xhr? && (accept.present? || content_mime_type)) ||
             (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
         end
 
-        def use_accept_header # :doc:
+        def use_accept_header
           !self.class.ignore_accept_header
         end
 
-        def format_from_path_extension # :doc:
+        def format_from_path_extension
           path = get_header("action_dispatch.original_path") || get_header("PATH_INFO")
           if match = path && path.match(/\.(\w+)\z/)
             Mime[match.captures.first]

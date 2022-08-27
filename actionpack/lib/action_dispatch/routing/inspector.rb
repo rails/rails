@@ -6,6 +6,12 @@ require "io/console/size"
 module ActionDispatch
   module Routing
     class RouteWrapper < SimpleDelegator # :nodoc:
+      def matches_filter?(filter, value)
+        return __getobj__.path.match(value) if filter == :exact_path_match
+
+        value.match?(public_send(filter))
+      end
+
       def endpoint
         case
         when app.dispatcher?
@@ -92,8 +98,18 @@ module ActionDispatch
           if filter[:controller]
             { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
-            { controller: /#{filter[:grep]}/, action: /#{filter[:grep]}/,
-              verb: /#{filter[:grep]}/, name: /#{filter[:grep]}/, path: /#{filter[:grep]}/ }
+            grep_pattern = Regexp.new(filter[:grep])
+            path = URI::DEFAULT_PARSER.escape(filter[:grep])
+            normalized_path = ("/" + path).squeeze("/")
+
+            {
+              controller: grep_pattern,
+              action: grep_pattern,
+              verb: grep_pattern,
+              name: grep_pattern,
+              path: grep_pattern,
+              exact_path_match: normalized_path,
+            }
           end
         end
 
@@ -101,7 +117,7 @@ module ActionDispatch
           if filter
             @routes.select do |route|
               route_wrapper = RouteWrapper.new(route)
-              filter.any? { |default, value| value.match?(route_wrapper.send(default)) }
+              filter.any? { |filter_type, value| route_wrapper.matches_filter?(filter_type, value) }
             end
           else
             @routes
@@ -236,6 +252,27 @@ module ActionDispatch
           def route_header(index:)
             "--[ Route #{index} ]".ljust(@width, "-")
           end
+      end
+
+      class Unused < Sheet
+        def header(routes)
+          @buffer << <<~MSG
+            Found #{routes.count} unused #{"route".pluralize(routes.count)}:
+          MSG
+
+          super
+        end
+
+        def no_routes(routes, filter)
+          @buffer <<
+            if filter.none?
+              "No unused routes found."
+            elsif filter.key?(:controller)
+              "No unused routes found for this controller."
+            elsif filter.key?(:grep)
+              "No unused routes found for this grep pattern."
+            end
+        end
       end
     end
 

@@ -2,7 +2,6 @@
 
 require "rails"
 require "action_cable"
-require "action_cable/helpers/action_cable_helper"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
@@ -10,8 +9,6 @@ module ActionCable
     config.action_cable = ActiveSupport::OrderedOptions.new
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
     config.action_cable.precompile_assets = true
-
-    config.eager_load_namespaces << ActionCable
 
     initializer "action_cable.helpers" do
       ActiveSupport.on_load(:action_view) do
@@ -54,7 +51,7 @@ module ActionCable
         config = app.config
         unless config.action_cable.mount_path.nil?
           app.routes.prepend do
-            mount ActionCable.server => config.action_cable.mount_path, internal: true
+            mount ActionCable.server => config.action_cable.mount_path, internal: true, anchor: true
           end
         end
       end
@@ -63,7 +60,7 @@ module ActionCable
     initializer "action_cable.set_work_hooks" do |app|
       ActiveSupport.on_load(:action_cable) do
         ActionCable::Server::Worker.set_callback :work, :around, prepend: true do |_, inner|
-          app.executor.wrap do
+          app.executor.wrap(source: "application.action_cable") do
             # If we took a while to get the lock, we may have been halted
             # in the meantime. As we haven't started doing any real work
             # yet, we should pretend that we never made it off the queue.
@@ -74,7 +71,7 @@ module ActionCable
         end
 
         wrap = lambda do |_, inner|
-          app.executor.wrap(&inner)
+          app.executor.wrap(source: "application.action_cable", &inner)
         end
         ActionCable::Channel::Base.set_callback :subscribe, :around, prepend: true, &wrap
         ActionCable::Channel::Base.set_callback :unsubscribe, :around, prepend: true, &wrap

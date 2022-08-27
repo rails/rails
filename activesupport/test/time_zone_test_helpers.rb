@@ -18,10 +18,16 @@ module TimeZoneTestHelpers
 
   def with_preserve_timezone(value)
     old_preserve_tz = ActiveSupport.to_time_preserves_timezone
-    ActiveSupport.to_time_preserves_timezone = value
+
+    ActiveSupport::Deprecation.silence do
+      ActiveSupport.to_time_preserves_timezone = value
+    end
+
     yield
   ensure
-    ActiveSupport.to_time_preserves_timezone = old_preserve_tz
+    ActiveSupport::Deprecation.silence do
+      ActiveSupport.to_time_preserves_timezone = old_preserve_tz
+    end
   end
 
   def with_tz_mappings(mappings)

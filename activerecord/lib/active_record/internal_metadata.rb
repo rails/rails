@@ -14,7 +14,7 @@ module ActiveRecord
 
     class << self
       def enabled?
-        ActiveRecord::Base.connection.use_metadata_table?
+        connection.use_metadata_table?
       end
 
       def primary_key
@@ -35,6 +35,12 @@ module ActiveRecord
         return unless enabled?
 
         where(key: key).pick(:value)
+      end
+
+      def create_table_and_set_flags(environment, schema_sha1 = nil)
+        create_table
+        self[:environment] = environment
+        self[:schema_sha1] = schema_sha1 if schema_sha1
       end
 
       # Creates an internal metadata table with columns +key+ and +value+

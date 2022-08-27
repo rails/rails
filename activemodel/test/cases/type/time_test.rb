@@ -10,6 +10,7 @@ module ActiveModel
         assert_nil type.cast(nil)
         assert_nil type.cast("")
         assert_nil type.cast("ABC")
+        assert_nil type.cast(" " * 129)
 
         time_string = ::Time.now.utc.strftime("%T")
         assert_equal time_string, type.cast(time_string).strftime("%T")
@@ -25,6 +26,7 @@ module ActiveModel
           assert_nil type.user_input_in_time_zone(nil)
           assert_nil type.user_input_in_time_zone("")
           assert_nil type.user_input_in_time_zone("ABC")
+          assert_nil type.user_input_in_time_zone(" " * 129)
 
           offset = ::Time.zone.formatted_offset
           time_string = "2015-02-09T19:45:54#{offset}"

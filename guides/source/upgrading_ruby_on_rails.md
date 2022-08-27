@@ -100,7 +100,8 @@ The `MessageEncryptor` offers the ability to migrate the default serializer from
 If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_encryptor_serializer = :marshal`.
 
 In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-```
+
+```ruby
 config.active_support.default_message_encryptor_serializer
 config.active_support.fallback_to_marshal_deserialization
 config.active_support.use_marshal_serialization
@@ -109,6 +110,7 @@ config.active_support.use_marshal_serialization
 `default_message_encryptor_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
 
 In order to migrate an older deployment to `:json`, first ensure that the `default_message_encryptor_serializer` is set to `:marshal`.
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.0
@@ -137,6 +139,7 @@ config.active_support.use_marshal_serialization = false
 Allow this configuration to run on all processes for a considerable amount of time.
 `ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
 is used:
+
 ```
 JsonWithMarshalFallback: Marshal load fallback occurred.
 ```
@@ -164,6 +167,7 @@ config.active_support.default_message_encryptor_serializer = :json
 ```
 
 Alternatively, you could load defaults for 7.1
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.1
@@ -179,7 +183,8 @@ The `MessageVerifier` offers the ability to migrate the default serializer from 
 If you would like to ignore this change in existing applications, set the following: `config.active_support.default_message_verifier_serializer = :marshal`.
 
 In order to roll out the new default when upgrading from `7.0` to `7.1`, there are three configuration variables to keep in mind.
-```
+
+```ruby
 config.active_support.default_verifier_serializer
 config.active_support.fallback_to_marshal_deserialization
 config.active_support.use_marshal_serialization
@@ -188,6 +193,7 @@ config.active_support.use_marshal_serialization
 `default_message_verifier_serializer` defaults to `:json` as of `7.1` but it offers both a `:hybrid` and `:marshal` option.
 
 In order to migrate an older deployment to `:json`, first ensure that the `default_message_verifier_serializer` is set to `:marshal`.
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.0
@@ -216,6 +222,7 @@ config.active_support.use_marshal_serialization = false
 Allow this configuration to run on all processes for a considerable amount of time.
 `ActiveSupport::JsonWithMarshalFallback` logs the following each time the `Marshal` fallback
 is used:
+
 ```
 JsonWithMarshalFallback: Marshal load fallback occurred.
 ```
@@ -243,9 +250,49 @@ config.active_support.default_message_verifier_serializer = :json
 ```
 
 Alternatively, you could load defaults for 7.1
+
 ```ruby
 # config/application.rb
 config.load_defaults 7.1
+```
+
+### `MemCacheStore` and `RedisCacheStore` now use connection pooling by default
+
+The `connection_pool` gem has been added as a dependency of the `activesupport` gem,
+and the `MemCacheStore` and `RedisCacheStore` now use connection pooling by default.
+
+If you don't want to use connection pooling, set `:pool` option to `false` when
+configuring your cache store:
+
+```ruby
+config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+```
+
+See the [caching with Rails](https://guides.rubyonrails.org/v7.1/caching_with_rails.html#connection-pool-options) guide for more information.
+
+### `SQLite3Adapter` now configured to be used in a strict strings mode
+
+The use of a strict strings mode disables double-quoted string literals.
+
+SQLite has some quirks around double-quoted string literals.
+It first tries to consider double-quoted strings as identifier names, but if they don't exist
+it then considers them as string literals. Because of this, typos can silently go unnoticed.
+For example, it is possible to create an index for a non existing column.
+See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+
+If you don't want to use `SQLite3Adapter` in a strict mode, you can disable this behavior:
+
+```ruby
+# config/application.rb
+config.active_record.sqlite3_adapter_strict_strings_by_default = false
+```
+
+### Support multiple preview paths for `ActionMailer::Preview`
+
+Option `config.action_mailer.preview_path` is deprecated in favor of `config.action_mailer.preview_paths`. Appending paths to this configuration option will cause those paths to be used in the search for mailer previews.
+
+```ruby
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
 Upgrading from Rails 6.1 to Rails 7.0
@@ -291,7 +338,7 @@ gem "sprockets-rails"
 
 ### Applications need to run in `zeitwerk` mode
 
-Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/classic_to_zeitwerk_howto.html) guide for details.
+Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/v7.0/classic_to_zeitwerk_howto.html) guide for details.
 
 ### The setter `config.autoloader=` has been deleted
 
@@ -374,20 +421,28 @@ encrypted cookies.
 In order to be able to read messages using the old digest class it is necessary
 to register a rotator.
 
-The following is an example for rotator for the encrypted cookies.
+The following is an example for rotator for the encrypted and the signed cookies.
 
 ```ruby
-Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
-  salt = Rails.application.config.action_dispatch.authenticated_encrypted_cookie_salt
-  secret_key_base = Rails.application.secrets.secret_key_base
+# config/initializers/cookie_rotator.rb
+Rails.application.config.after_initialize do
+  Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
+    authenticated_encrypted_cookie_salt = Rails.application.config.action_dispatch.authenticated_encrypted_cookie_salt
+    signed_cookie_salt = Rails.application.config.action_dispatch.signed_cookie_salt
 
-  key_generator = ActiveSupport::KeyGenerator.new(
-    secret_key_base, iterations: 1000, hash_digest_class: OpenSSL::Digest::SHA1
-  )
-  key_len = ActiveSupport::MessageEncryptor.key_len
-  secret = key_generator.generate_key(salt, key_len)
+    secret_key_base = Rails.application.secret_key_base
 
-  cookies.rotate :encrypted, secret
+    key_generator = ActiveSupport::KeyGenerator.new(
+      secret_key_base, iterations: 1000, hash_digest_class: OpenSSL::Digest::SHA1
+    )
+    key_len = ActiveSupport::MessageEncryptor.key_len
+
+    old_encrypted_secret = key_generator.generate_key(authenticated_encrypted_cookie_salt, key_len)
+    old_signed_secret = key_generator.generate_key(signed_cookie_salt)
+
+    cookies.rotate :encrypted, old_encrypted_secret
+    cookies.rotate :signed, old_signed_secret
+  end
 end
 ```
 
@@ -631,10 +686,10 @@ end
 get('my_action.csv')
 ```
 
-Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
-Current behaviour correctly returns a `application/json` response's Content-Type.
+Previous behavior was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
+Current behavior correctly returns a `application/json` response's Content-Type.
 
-If your application relies on the previous incorrect behaviour, you are encouraged to specify
+If your application relies on the previous incorrect behavior, you are encouraged to specify
 which formats your action accepts, i.e.
 
 ```ruby
@@ -711,6 +766,15 @@ video.preview(resize_to_fit: [100, 100])
 video.preview(resize_to_limit: [100, 100])
 video.preview(resize_to_fill: [100, 100])
 ```
+
+### New `ActiveModel::Error` class
+
+Errors are now instances of a new `ActiveModel::Error` class, with changes to
+the API. Some of these changes may throw errors depending on how you manipulate
+errors, while others will print deprecation warnings to be fixed for Rails 7.0.
+
+More information about this change and details about the API changes can be
+found [in this PR](https://github.com/rails/rails/pull/32313).
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
@@ -825,6 +889,23 @@ resp = ActionDispatch::Response.new(200, "Content-Type" => "text/csv; header=pre
 resp.content_type #=> "text/csv; header=present; charset=utf-16"
 resp.media_type   #=> "text/csv"
 ```
+
+### New `config.hosts` setting
+
+Rails now has a new `config.hosts` setting for security purposes. This setting
+defaults to `localhost` in development. If you use other domains in development
+you need to allow them like this:
+
+```ruby
+# config/environments/development.rb
+
+config.hosts << 'dev.myapp.com'
+config.hosts << /[a-z0-9-]+\.myapp\.com/ # Optionally, regexp is allowed as well
+```
+
+For other environments `config.hosts` is empty by default, which means Rails
+won't validate the host at all. You can optionally add them if you want to
+validate it in production.
 
 ### Autoloading
 
@@ -2513,7 +2594,7 @@ Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already
 
 #### Cache
 
-The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/v4.0/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 

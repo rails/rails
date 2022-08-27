@@ -78,6 +78,8 @@ module ActionDispatch
         @loaded   = false
         @exists   = nil # We haven't checked yet.
         @enabled  = enabled
+        @id_was = nil
+        @id_was_initialized = false
       end
 
       def id
@@ -241,6 +243,11 @@ module ActionDispatch
         to_hash.each(&block)
       end
 
+      def id_was
+        load_for_read!
+        @id_was
+      end
+
       private
         def load_for_read!
           load! if !loaded? && exists?
@@ -260,10 +267,13 @@ module ActionDispatch
 
         def load!
           if enabled?
+            @id_was_initialized = true unless exists?
             id, session = @by.load_session @req
             options[:id] = id
             @delegate.replace(session.stringify_keys)
+            @id_was = id unless @id_was_initialized
           end
+          @id_was_initialized = true
           @loaded = true
         end
     end

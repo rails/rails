@@ -1,0 +1,19 @@
+Description:
+    Generates a new job. Pass the job name, either CamelCased or
+    under_scored, with or without the job postfix.
+
+Examples:
+    `bin/rails generate job checkout`
+
+      Creates the the following files:
+
+        Job:   app/jobs/checkout_job.rb
+        Test:  test/jobs/checkout_job_test.rb
+
+    `bin/rails generate job send_sms --queue=sms`
+
+      Creates a job and test with a custom sms queue.
+
+    `bin/rails generate job process_payment --parent=payment_job`
+
+      Creates a job and test with a `PaymentJob` parent class.

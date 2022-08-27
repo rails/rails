@@ -48,10 +48,6 @@ module ActiveRecord
           super || default_scopes.any? || respond_to?(:default_scope)
         end
 
-        def before_remove_const # :nodoc:
-          self.current_scope = nil
-        end
-
         # Checks if the model has any default scopes. If all_queries
         # is set to true, the method will check if there are any
         # default_scopes for the model  where +all_queries+ is true.
@@ -83,7 +79,7 @@ module ActiveRecord
           # <tt>all_queries: true</tt>:
           #
           #   class Article < ActiveRecord::Base
-          #     default_scope { where(blog_id: 1) }, all_queries: true
+          #     default_scope -> { where(blog_id: 1) }, all_queries: true
           #   end
           #
           # Applying a default scope to all queries will ensure that records
@@ -150,11 +146,13 @@ module ActiveRecord
               end
             elsif default_scopes.any?
               evaluate_default_scope do
-                default_scopes.inject(relation) do |default_scope, scope_obj|
+                default_scopes.inject(relation) do |combined_scope, scope_obj|
                   if execute_scope?(all_queries, scope_obj)
                     scope = scope_obj.scope.respond_to?(:to_proc) ? scope_obj.scope : scope_obj.scope.method(:call)
 
-                    default_scope.instance_exec(&scope) || default_scope
+                    combined_scope.instance_exec(&scope) || combined_scope
+                  else
+                    combined_scope
                   end
                 end
               end

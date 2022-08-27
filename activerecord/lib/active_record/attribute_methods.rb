@@ -33,7 +33,8 @@ module ActiveRecord
           Base.instance_methods +
           Base.private_instance_methods -
           Base.superclass.instance_methods -
-          Base.superclass.private_instance_methods
+          Base.superclass.private_instance_methods +
+          %i[__id__ dup freeze hash object_id class clone]
         ).map { |m| -m.to_s }.to_set.freeze
       end
     end

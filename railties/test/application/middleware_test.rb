@@ -194,8 +194,8 @@ module ApplicationTests
       assert_includes middleware, "ActionDispatch::Executor"
     end
 
-    test "does not include lock if cache_classes is set and so is eager_load" do
-      add_to_config "config.cache_classes = true"
+    test "does not include lock if reload is disabled and eager_load enabled" do
+      add_to_config "config.enable_reloading = false"
       add_to_config "config.eager_load = true"
       boot!
       assert_not_includes middleware, "Rack::Lock"
@@ -248,8 +248,8 @@ module ApplicationTests
       assert_includes middleware, "ActionDispatch::DebugExceptions"
     end
 
-    test "removes ActionDispatch::Reloader if cache_classes is true" do
-      add_to_config "config.cache_classes = true"
+    test "removes ActionDispatch::Reloader if reload is disabled" do
+      add_to_config "config.enable_reloading = false"
       boot!
       assert_not_includes middleware, "ActionDispatch::Reloader"
     end
@@ -345,8 +345,43 @@ module ApplicationTests
       assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
     end
 
+    test "database selector middleware is installed from application.rb" do
+      add_to_config "config.active_record.database_selector = { delay: 10 }"
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::DatabaseSelector"
+    end
+
+    test "database selector middleware is installed from config/initializers" do
+      app_file "config/initializers/multi_db.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_record.database_selector = { delay: 15.seconds }
+          config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+          config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+        end
+      RUBY
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::DatabaseSelector"
+    end
+
     test "shard selector middleware is installed by config option" do
       add_to_config "config.active_record.shard_resolver = ->(*) { }"
+
+      boot!
+
+      assert_includes middleware, "ActiveRecord::Middleware::ShardSelector"
+    end
+
+    test "shard selector middleware is installed from config/initializers" do
+      app_file "config/initializers/multi_db.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_record.shard_selector = { lock: true }
+          config.active_record.shard_resolver = ->(request) { Tenant.find_by!(host: request.host).shard }
+        end
+      RUBY
 
       boot!
 

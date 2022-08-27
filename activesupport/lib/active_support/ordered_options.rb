@@ -40,6 +40,10 @@ module ActiveSupport
       super(key.to_sym)
     end
 
+    def dig(*keys)
+      super(*keys.flatten.map(&:to_sym))
+    end
+
     def method_missing(name, *args)
       name_string = +name.to_s
       if name_string.chomp!("=")

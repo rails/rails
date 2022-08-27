@@ -11,7 +11,6 @@ module ActiveRecord
     autoload :Column
     autoload :PoolConfig
     autoload :PoolManager
-    autoload :LegacyPoolManager
     autoload :SchemaCache
     autoload :Deduplicable
 
@@ -19,6 +18,7 @@ module ActiveRecord
       autoload :IndexDefinition
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
+      autoload :ChangeColumnDefaultDefinition
       autoload :ForeignKeyDefinition
       autoload :CheckConstraintDefinition
       autoload :TableDefinition

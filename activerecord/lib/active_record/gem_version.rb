@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # Returns the version of the currently loaded Active Record as a <tt>Gem::Version</tt>
+  # Returns the currently loaded version of Active Record as a <tt>Gem::Version</tt>.
   def self.gem_version
     Gem::Version.new VERSION::STRING
   end

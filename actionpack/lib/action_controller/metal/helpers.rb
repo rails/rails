@@ -80,7 +80,7 @@ module ActionController
       # Provides a proxy to access helper methods from outside the view.
       #
       # Note that the proxy is rendered under a different view context.
-      # This may cause incorrect behaviour with capture methods. Consider
+      # This may cause incorrect behavior with capture methods. Consider
       # using {helper}[rdoc-ref:AbstractController::Helpers::ClassMethods#helper]
       # instead when using +capture+.
       def helpers
@@ -102,19 +102,6 @@ module ActionController
       def modules_for_helpers(args)
         args += all_application_helpers if args.delete(:all)
         super(args)
-      end
-
-      # Returns a list of helper names in a given path.
-      #
-      #   ActionController::Base.all_helpers_from_path 'app/helpers'
-      #   # => ["application", "chart", "rubygems"]
-      def all_helpers_from_path(path)
-        helpers = Array(path).flat_map do |_path|
-          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file[_path.to_s.size + 1..-"_helper.rb".size - 1] }
-          names.sort!
-        end
-        helpers.uniq!
-        helpers
       end
 
       private

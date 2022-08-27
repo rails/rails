@@ -32,6 +32,8 @@ require "models/discount"
 require "models/line_item"
 require "models/shipping_line"
 require "models/essay"
+require "models/member"
+require "models/membership"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -125,7 +127,7 @@ class AssociationsTest < ActiveRecord::TestCase
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :posts, :categorizations, :categories, :developers, :projects, :developers_projects
+  fixtures :authors, :author_addresses, :posts, :categorizations, :categories, :developers, :projects, :developers_projects, :members
 
   def test_push_does_not_load_target
     david = authors(:david)
@@ -298,6 +300,41 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
     assert_equal 1, david.thinking_posts.size
     assert_equal 1, david.thinking_posts.to_a.size
+  end
+
+  def test_target_merging_ignores_persisted_in_memory_records_when_loaded_records_are_empty
+    member = members(:blarpy_winkup)
+    assert_empty member.favorite_memberships
+
+    membership = member.favorite_memberships.create!
+    membership.update!(favorite: false)
+
+    assert_empty member.favorite_memberships.to_a
+  end
+
+  def test_target_merging_recognizes_updated_in_memory_records
+    member = members(:blarpy_winkup)
+    membership = member.create_membership!(favorite: false)
+
+    assert_empty member.favorite_memberships
+
+    membership.update!(favorite: true)
+
+    assert_not_empty member.favorite_memberships.to_a
+  end
+
+  def test_size_differentiates_between_new_and_persisted_in_memory_records_when_loaded_records_are_empty
+    member = members(:blarpy_winkup)
+    assert_empty member.favorite_memberships
+
+    membership = member.favorite_memberships.create!
+    membership.update!(favorite: false)
+
+    # CollectionAssociation#size has different behavior when loaded vs. non-loaded
+    # the first call will mark the association as loaded and the second call will
+    # take a different code path, so it's important to keep both assertions
+    assert_equal 0, member.favorite_memberships.size
+    assert_equal 0, member.favorite_memberships.size
   end
 end
 
@@ -1015,7 +1052,7 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
 end
 
 class WithAnnotationsTest < ActiveRecord::TestCase
-  fixtures :pirates, :parrots
+  fixtures :pirates, :parrots, :parrots_pirates, :pirates, :treasures
 
   def test_belongs_to_with_annotation_includes_a_query_comment
     pirate = SpacePirate.where.not(parrot_id: nil).first

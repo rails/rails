@@ -8,6 +8,7 @@ require "abstract_controller/railties/routes_helpers"
 module ActionMailer
   class Railtie < Rails::Railtie # :nodoc:
     config.action_mailer = ActiveSupport::OrderedOptions.new
+    config.action_mailer.preview_paths = []
     config.eager_load_namespaces << ActionMailer
 
     initializer "action_mailer.logger" do
@@ -23,11 +24,7 @@ module ActionMailer
       options.stylesheets_dir ||= paths["public/stylesheets"].first
       options.show_previews = Rails.env.development? if options.show_previews.nil?
       options.cache_store ||= Rails.cache
-      options.smtp_settings ||= {}
-
-      if options.show_previews
-        options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
-      end
+      options.preview_paths |= ["#{Rails.root}/test/mailers/previews"]
 
       # make sure readers methods get compiled
       options.asset_host          ||= app.config.asset_host
@@ -41,14 +38,21 @@ module ActionMailer
         register_interceptors(options.delete(:interceptors))
         register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
+        self.preview_paths |= options[:preview_paths]
 
         if delivery_job = options.delete(:delivery_job)
           self.delivery_job = delivery_job.constantize
         end
 
-        if smtp_timeout = options.delete(:smtp_timeout)
-          options.smtp_settings[:open_timeout] ||= smtp_timeout
-          options.smtp_settings[:read_timeout] ||= smtp_timeout
+        if options.smtp_settings
+          self.smtp_settings = options.smtp_settings
+        end
+
+        smtp_timeout = options.delete(:smtp_timeout)
+
+        if self.smtp_settings && smtp_timeout
+          self.smtp_settings[:open_timeout] ||= smtp_timeout
+          self.smtp_settings[:read_timeout] ||= smtp_timeout
         end
 
         options.each { |k, v| send("#{k}=", v) }
@@ -60,12 +64,9 @@ module ActionMailer
       end
     end
 
-    initializer "action_mailer.set_autoload_paths" do |app|
+    initializer "action_mailer.set_autoload_paths", before: :set_autoload_paths do |app|
       options = app.config.action_mailer
-
-      if options.show_previews && options.preview_path
-        ActiveSupport::Dependencies.autoload_paths << options.preview_path
-      end
+      app.config.paths["test/mailers/previews"].concat(options.preview_paths)
     end
 
     initializer "action_mailer.compile_config_methods" do

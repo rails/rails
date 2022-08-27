@@ -40,6 +40,7 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
+          options[:_uses_legacy_table_name] = true
           if block_given?
             super { |t| yield compatible_table_definition(t) }
           else
@@ -53,6 +54,22 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def rename_table(table_name, new_name, **options)
+          options[:_uses_legacy_table_name] = true
+          super
+        end
+
+        def change_column_null(table_name, column_name, null, default = nil)
+          super(table_name, column_name, !!null, default)
+        end
+
+        def disable_extension(name, **options)
+          if connection.adapter_name == "PostgreSQL"
+            options[:force] = :cascade
+          end
+          super
         end
 
         private
@@ -136,27 +153,10 @@ module ActiveRecord
           end
         end
 
-        module SQLite3
-          module TableDefinition
-            def references(*args, **options)
-              args.each do |ref_name|
-                ReferenceDefinition.new(ref_name, type: :integer, **options).add_to(self)
-              end
-            end
-            alias :belongs_to :references
-
-            def column(name, type, index: nil, **options)
-              options[:precision] ||= nil
-              super
-            end
-          end
-        end
-
         module TableDefinition
           def references(*args, **options)
-            args.each do |ref_name|
-              ReferenceDefinition.new(ref_name, **options).add_to(self)
-            end
+            options[:_uses_legacy_reference_index_name] = true
+            super
           end
           alias :belongs_to :references
 
@@ -196,12 +196,11 @@ module ActiveRecord
 
         def add_reference(table_name, ref_name, **options)
           if connection.adapter_name == "SQLite"
-            reference_definition = ReferenceDefinition.new(ref_name, type: :integer, **options)
-          else
-            reference_definition = ReferenceDefinition.new(ref_name, **options)
+            options[:type] = :integer
           end
 
-          reference_definition.add_to(connection.update_table_definition(table_name, self))
+          options[:_uses_legacy_reference_index_name] = true
+          super
         end
         alias :add_belongs_to :add_reference
 
@@ -209,9 +208,8 @@ module ActiveRecord
           def compatible_table_definition(t)
             class << t
               prepend TableDefinition
-              prepend SQLite3::TableDefinition
             end
-            t
+            super
           end
       end
 
@@ -280,7 +278,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
 
           def command_recorder

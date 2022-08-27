@@ -11,6 +11,8 @@ class Book < ActiveRecord::Base
 
   has_one :essay
 
+  alias_attribute :title, :name
+
   enum status: [:proposed, :written, :published]
   enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
   enum nullable_status: [:single, :married]

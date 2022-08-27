@@ -195,9 +195,20 @@ module ActionDispatch
     # Returns the original value of the environment's REQUEST_METHOD,
     # even if it was overridden by middleware. See #request_method for
     # more information.
-    def method
-      @method ||= check_method(get_header("rack.methodoverride.original_method") || get_header("REQUEST_METHOD"))
+    #
+    # For debugging purposes, when called with arguments this method will
+    # fallback to Object#method
+    def method(*args)
+      if args.empty?
+        @method ||= check_method(
+          get_header("rack.methodoverride.original_method") ||
+          get_header("REQUEST_METHOD")
+        )
+      else
+        super
+      end
     end
+    ruby2_keywords(:method)
 
     # Returns a symbol form of the #method.
     def method_symbol
@@ -358,6 +369,7 @@ module ActionDispatch
 
     def reset_session
       session.destroy
+      reset_csrf_token
     end
 
     def session=(session) # :nodoc:
@@ -394,7 +406,7 @@ module ActionDispatch
         Request::Utils.check_param_encoding(pr)
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
-    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
+    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError, EOFError => e
       raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end
     alias :request_parameters :POST
@@ -427,6 +439,14 @@ module ActionDispatch
 
     def inspect # :nodoc:
       "#<#{self.class.name} #{method} #{original_url.dump} for #{remote_ip}>"
+    end
+
+    def reset_csrf_token
+      controller_instance.reset_csrf_token(self) if controller_instance.respond_to?(:reset_csrf_token)
+    end
+
+    def commit_csrf_token
+      controller_instance.commit_csrf_token(self) if controller_instance.respond_to?(:commit_csrf_token)
     end
 
     private

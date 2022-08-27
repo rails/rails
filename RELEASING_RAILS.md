@@ -17,18 +17,6 @@ Do not release with a Red CI. You can find the CI status here:
 https://buildkite.com/rails/rails
 ```
 
-### Is Sam Ruby happy? If not, make him happy.
-
-Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
-sure the code samples in his book
-([Agile Web Development with Rails](https://pragprog.com/titles/rails6))
-all work. These are valuable system tests
-for Rails. You can check the status of these tests here:
-
-[https://intertwingly.net/projects/dashboard.html](https://intertwingly.net/projects/dashboard.html)
-
-Do not release with Red AWDwR tests.
-
 ### Do we have any Git dependencies? If so, contact those authors.
 
 Having Git dependencies indicates that we depend on unreleased code.
@@ -36,49 +24,9 @@ Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
-### Contact the security team (either tenderlove or rafaelfranca)
+### Announce your plans to the rest of the team on Campfire
 
-Let them know of your plans to release. There may be security issues to be
-addressed, and that can impact your release date.
-
-### Notify implementors.
-
-Ruby implementors have high stakes in making sure Rails works. Be kind and
-give them a heads up that Rails will be released soonish.
-
-This is only required for major and minor releases, bugfix releases aren't a
-big enough deal, and are supposed to be backward compatible.
-
-Send a message just giving a heads up about the upcoming release to these
-lists:
-
-* team@jruby.org
-* community@rubini.us
-* [rubyonrails-core](https://discuss.rubyonrails.org/c/rubyonrails-core)
-
-Implementors will love you and help you.
-
-## 3 Days before release
-
-This is when you should release the release candidate. Here are your tasks
-for today:
-
-### Is the CI green? If not, make it green.
-
-### Is Sam Ruby happy? If not, make him happy.
-
-### Contact the security team. CVE emails must be sent on this day.
-
-### Create a release branch.
-
-From the stable branch, create a release branch. For example, if you're
-releasing Rails 3.0.10, do this:
-
-```
-[aaron@higgins rails (3-0-stable)]$ git checkout -b 3-0-10
-Switched to a new branch '3-0-10'
-[aaron@higgins rails (3-0-10)]$
-```
+Let them know of your plans to release.
 
 ### Update each CHANGELOG.
 
@@ -95,6 +43,8 @@ You can review the commits for the 3.0.10 release like this:
 If you're doing a stable branch release, you should also ensure that all of
 the CHANGELOG entries in the stable branch are also synced to the main
 branch.
+
+## Day of release
 
 ### Put the new version in the RAILS_VERSION file.
 
@@ -162,37 +112,7 @@ blog.
 
 ### Post the announcement to the Rails Twitter account.
 
-## Time between release candidate and actual release
-
-Check the rails-core mailing list and the GitHub issue list for regressions in
-the RC.
-
-If any regressions are found, fix the regressions and repeat the release
-candidate process. We will not release the final until 72 hours after the
-last release candidate has been pushed. This means that if users find
-regressions, the scheduled release date must be postponed.
-
-When you fix the regressions, do not create a new branch. Fix them on the
-stable branch, then cherry pick the commit to your release branch. No other
-commits should be added to the release branch besides regression fixing commits.
-
-## Day of release
-
-Many of these steps are the same as for the release candidate, so if you need
-more explanation on a particular step, see the RC steps.
-
-Today, do this stuff in this order:
-
-* Apply security patches to the release branch
-* Update CHANGELOG with security fixes
-* Update RAILS_VERSION to remove the rc
-* Build and test the gem
-* Release the gems
-* If releasing a new stable version:
-  - Trigger stable docs generation (see below)
-  - Update the version in the home page
-* Email security lists
-* Email general announcement lists
+## Security releases
 
 ### Emailing the Rails security announce list
 

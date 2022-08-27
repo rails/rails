@@ -109,9 +109,9 @@ class LoadingTest < ActiveSupport::TestCase
     assert ::Rails.application.config.loaded
   end
 
-  test "descendants loaded after framework initialization are cleaned on each request without cache classes" do
+  test "descendants loaded after framework initialization are cleaned on each request if reloading is enabled" do
     add_to_config <<-RUBY
-      config.cache_classes = false
+      config.enable_reloading = true
       config.reload_classes_only_on_change = false
     RUBY
 
@@ -152,7 +152,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "reload constants on development" do
     add_to_config <<-RUBY
-      config.cache_classes = false
+      config.enable_reloading = true
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
@@ -187,7 +187,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "does not reload constants on development if custom file watcher always returns false" do
     add_to_config <<-RUBY
-      config.cache_classes = false
+      config.enable_reloading = true
       config.file_watcher = Class.new do
         def initialize(*); end
         def updated?; false; end
@@ -228,7 +228,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "added files (like db/schema.rb) also trigger reloading" do
     add_to_config <<-RUBY
-      config.cache_classes = false
+      config.enable_reloading = true
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
@@ -260,7 +260,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "dependencies reloading is followed by routes reloading" do
     add_to_config <<-RUBY
-      config.cache_classes = false
+      config.enable_reloading = true
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
@@ -293,7 +293,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "routes are only loaded once on boot" do
     add_to_config <<-RUBY
-      config.cache_classes = false
+      config.enable_reloading = true
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
@@ -317,7 +317,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "columns migrations also trigger reloading" do
     add_to_config <<-RUBY
-      config.cache_classes = false
+      config.enable_reloading = true
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
