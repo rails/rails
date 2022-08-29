@@ -368,7 +368,11 @@ module DateAndTime
       end
 
       def copy_time_to(other)
-        other.change(hour: hour, min: min, sec: sec, nsec: try(:nsec))
+        if other.acts_like?(:time)
+          other.change(hour: hour, min: min, sec: sec, nsec: try(:nsec))
+        else
+          other
+        end
       end
   end
 end
