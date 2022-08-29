@@ -494,7 +494,7 @@ GEM
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
     sqlite3 (1.4.4)
-    stackprof (0.2.17)
+    stackprof (0.2.21)
     stimulus-rails (1.0.2)
       railties (>= 6.0.0)
     strscan (3.0.4)
