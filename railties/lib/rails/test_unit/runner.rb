@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "shellwords"
-require "method_source"
 require "rake/file_list"
 require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
+require "rails/test_unit/test_parser"
 
 module Rails
   module TestUnit
@@ -168,10 +168,7 @@ module Rails
 
       private
         def definition_for(method)
-          file, start_line = method.source_location
-          end_line = method.source.count("\n") + start_line - 1
-
-          return file, start_line..end_line
+          TestParser.definition_for(method)
         end
     end
   end
