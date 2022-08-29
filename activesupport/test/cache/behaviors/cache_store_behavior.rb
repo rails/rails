@@ -566,14 +566,6 @@ module CacheStoreBehavior
     assert_equal "Either :expires_in or :expires_at can be supplied, but not both", error.message
   end
 
-  def test_expires_at_logs_a_warning_if_in_the_past
-    buffer = StringIO.new
-    @cache.logger = ActiveSupport::Logger.new(buffer)
-    key = SecureRandom.uuid
-    @cache.write(key, "bar", expires_at: 1.minute.ago)
-    assert_match %r{Cache expiration is in the past}, buffer.string
-  end
-
   def test_race_condition_protection_skipped_if_not_defined
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")

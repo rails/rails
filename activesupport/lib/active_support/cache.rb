@@ -718,10 +718,6 @@ module ActiveSupport
             expires_at = call_options.delete(:expires_at)
             call_options[:expires_in] = (expires_at - Time.now) if expires_at
 
-            if call_options[:expires_in]&.negative?
-              ActiveSupport::Cache::Store.logger&.warn("Cache expiration is in the past")
-            end
-
             if options.empty?
               call_options
             else
