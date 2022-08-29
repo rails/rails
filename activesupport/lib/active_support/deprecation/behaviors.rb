@@ -19,7 +19,7 @@ module ActiveSupport
 
       stderr: ->(message, callstack, deprecation_horizon, gem_name) {
         $stderr.puts(message)
-        $stderr.puts callstack.join("\n  ") if debug
+        $stderr.puts callstack.join("\n  ") if ActiveSupport::Deprecation.debug
       },
 
       log: ->(message, callstack, deprecation_horizon, gem_name) {
@@ -31,7 +31,7 @@ module ActiveSupport
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message
-        logger.debug callstack.join("\n  ") if debug
+        logger.debug callstack.join("\n  ") if ActiveSupport::Deprecation.debug
       },
 
       notify: ->(message, callstack, deprecation_horizon, gem_name) {
@@ -59,17 +59,22 @@ module ActiveSupport
     # Setting behaviors only affects deprecations that happen after boot time.
     # For more information you can read the documentation of the +behavior=+ method.
     module Behavior
-      # Whether to print a backtrace along with the warning.
-      attr_accessor :debug
+      attr_writer :debug
 
-      # Returns the current behavior or if one isn't set, defaults to +:stderr+.
-      def behavior
-        @behavior ||= self == Deprecation.instance ? [DEFAULT_BEHAVIORS[:stderr]] : Deprecation.behavior
+      # Whether to print a backtrace along with the warning.
+      def debug
+        defined?(@debug) ? @debug : self.class.debug
       end
 
-      # Returns the current behavior for disallowed deprecations or if one isn't set, defaults to +:raise+.
+      # Returns the current behavior. Defaults to +ActiveSupport::Deprecation.behavior+.
+      def behavior
+        @behavior || self.class.behavior
+      end
+
+      # Returns the current behavior for disallowed deprecations. Defaults to
+      # +ActiveSupport::Deprecation.disallowed_behavior+.
       def disallowed_behavior
-        @disallowed_behavior ||= self == Deprecation.instance ? [DEFAULT_BEHAVIORS[:raise]] : Deprecation.disallowed_behavior
+        @disallowed_behavior || self.class.disallowed_behavior
       end
 
       # Sets the behavior to the specified value. Can be a single value, array,

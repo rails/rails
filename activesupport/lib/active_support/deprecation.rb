@@ -31,8 +31,21 @@ module ActiveSupport
     include Disallowed
     include MethodWrapper
 
+    def self.instance
+      @initialized_singleton_instance ||= super.tap do |instance|
+        instance.debug = false
+        instance.behavior = [:stderr]
+        instance.disallowed_behavior = [:raise]
+        instance.disallowed_warnings = []
+        instance.default_explicitly_allowed_warnings = [].freeze
+        instance.default_silenced = false
+      end
+    end
+
     # The version number in which the deprecated behavior will be removed, by default.
     attr_accessor :deprecation_horizon
+
+    attr_accessor :default_silenced, :default_explicitly_allowed_warnings # :nodoc:
 
     # It accepts two parameters on initialization. The first is a version of library
     # and the second is a library name.
@@ -41,11 +54,8 @@ module ActiveSupport
     def initialize(deprecation_horizon = "7.2", gem_name = "Rails")
       self.gem_name = gem_name
       self.deprecation_horizon = deprecation_horizon
-      # By default, warnings are not silenced and debugging is off.
-      self.silenced = false
-      self.debug = false
-      @silenced_thread = Concurrent::ThreadLocalVar.new(false)
-      @explicitly_allowed_warnings = Concurrent::ThreadLocalVar.new(nil)
+      @silenced = Concurrent::ThreadLocalVar.new { default_silenced }
+      @explicitly_allowed_warnings = Concurrent::ThreadLocalVar.new { default_explicitly_allowed_warnings }
     end
   end
 end
