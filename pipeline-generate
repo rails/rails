@@ -24,6 +24,7 @@ ARTIFACTS_PLUGIN = "artifacts#v1.2.0"
 REPO_ROOT = Pathname.new(ARGV.shift || File.expand_path("../..", __FILE__))
 
 REPO_ROOT.join("rails.gemspec").read =~ /required_ruby_version[^0-9]+([0-9]+\.[0-9]+)/
+RUBY_MINORS = %w(2.4 2.5 2.6 2.7 3.0 3.1).map { |v| Gem::Version.new(v) }
 MIN_RUBY = Gem::Version.new($1 || "2.0")
 
 RAILS_VERSION = Gem::Version.new(File.read(REPO_ROOT.join("RAILS_VERSION")))
@@ -54,22 +55,11 @@ MAX_RUBY =
     Gem::Version.new("2.7")
   end
 
-def available_tags_for_image(image)
-  uri = URI("https://hub.docker.com/v1/repositories/#{image}/tags")
-  json = Net::HTTP.get(uri)
-  JSON.parse(json).map { |x| x["name"] }
-end
 
 RUBIES = []
 SOFT_FAIL = []
 
-available_tags_for_image("ruby").
-  grep(/\A[0-9]+\.[0-9]+\z/).
-  map { |s| Gem::Version.new(s) }.
-  select { |v| v >= MIN_RUBY }.
-  sort.
-  each do |v|
-
+RUBY_MINORS.select { |v| v >= MIN_RUBY }.each do |v|
   image = "ruby:#{v}"
 
   if MAX_RUBY && v > MAX_RUBY && !(MAX_RUBY.approximate_recommendation === v)
