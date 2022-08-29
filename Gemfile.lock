@@ -591,7 +591,7 @@ DEPENDENCIES
   propshaft (>= 0.1.7)
   psych (~> 3.0)
   puma
-  que
+  que (< 2)
   queue_classic (>= 4.0.0)
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
