@@ -172,6 +172,7 @@ module ActiveSupport
     #
     class Store
       cattr_accessor :logger, instance_writer: true
+      cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
 
       attr_reader :silence, :options
       alias :silence? :silence
@@ -735,6 +736,17 @@ module ActiveSupport
 
             expires_at = call_options.delete(:expires_at)
             call_options[:expires_in] = (expires_at - Time.now) if expires_at
+
+            if call_options[:expires_in]&.negative?
+              expires_in = call_options.delete(:expires_in)
+              error = ArgumentError.new("Cache expiration time is invalid, cannot be negative: #{expires_in}")
+              if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+                raise error
+              else
+                ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
+                logger.error("#{error.class}: #{error.message}") if logger
+              end
+            end
 
             if options.empty?
               call_options
