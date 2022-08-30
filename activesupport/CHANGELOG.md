@@ -1,3 +1,16 @@
+*   `ActiveSupport::Cache:Store#fetch` now passes an options accessor to the block.
+
+    It makes possible to override cache options:
+
+        Rails.cache.fetch("3rd-party-token") do |name, options|
+          token = fetch_token_from_remote
+          # set cache's TTL to match token's TTL
+          options.expires_in = token.expires_in
+          token
+        end
+
+    *Andrii Gladkyi*, *Jean Boussier*
+
 *   `default` option of `thread_mattr_accessor` now applies through inheritance and
     also across new threads.
 

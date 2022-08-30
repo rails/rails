@@ -43,6 +43,34 @@ module CacheStoreBehavior
     assert_not cache_miss
   end
 
+  def test_fetch_with_dynamic_options
+    key = SecureRandom.uuid
+    expiry = 10.minutes.from_now
+    expected_options = @cache.options.dup
+    expected_options.delete(:expires_in)
+    expected_options.merge!(
+      expires_at: expiry,
+      version: "v42",
+    )
+
+    assert_called_with(@cache, :write, [key, "bar", expected_options]) do
+      @cache.fetch(key) do |key, options|
+        assert_equal @cache.options[:expires_in], options.expires_in
+        assert_nil options.expires_at
+        assert_nil options.version
+
+        options.expires_at = expiry
+        options.version = "v42"
+
+        assert_nil options.expires_in
+        assert_equal expiry, options.expires_at
+        assert_equal "v42", options.version
+
+        "bar"
+      end
+    end
+  end
+
   def test_fetch_with_forced_cache_miss
     key = SecureRandom.uuid
     @cache.write(key, "bar")
