@@ -94,7 +94,6 @@ PATH
     railties (7.1.0.alpha)
       actionpack (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
-      method_source
       rake (>= 12.2)
       thor (~> 1.0)
       zeitwerk (~> 2.6)
@@ -315,7 +314,6 @@ GEM
     marcel (1.0.2)
     matrix (0.4.2)
     memoist (0.16.2)
-    method_source (1.0.0)
     mini_magick (4.11.0)
     mini_mime (1.1.2)
     mini_portile2 (2.8.0)
