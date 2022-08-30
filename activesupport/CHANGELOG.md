@@ -1,3 +1,13 @@
+*   Add `raise_on_invalid_cache_expiration_time` config to `ActiveSupport::Cache::Store`
+
+    Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
+    `write` are given an invalid `expires_at` or `expires_in` time.
+
+    Options are `true`, and `false`. If `false`, the exception will be reported
+    as `handled` and logged instead. Defaults to `true` if `config.load_defaults >= 7.1`.
+
+     *Trevor Turk*
+
 *   `ActiveSupport::Cache:Store#fetch` now passes an options accessor to the block.
 
     It makes possible to override cache options:
