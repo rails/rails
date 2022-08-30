@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         repository: skipkayhil/rails-bin
-        ref: 44270430c14385fd7db002b47f0819af5d824352
+        ref: ba349066e1ce0c6e8d5b2c5e92dc71802237adbd
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: 3.1
