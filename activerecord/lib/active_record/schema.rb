@@ -59,8 +59,7 @@ module ActiveRecord
           connection.assume_migrated_upto_version(info[:version])
         end
 
-        ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetadata[:environment] = connection.migration_context.current_environment
+        connection.internal_metadata.create_table_and_set_flags(connection.migration_context.current_environment)
       end
     end
 

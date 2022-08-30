@@ -376,7 +376,7 @@ module ApplicationTests
       end
     end
 
-    def test_more_than_one_line_filter
+    def test_more_than_one_line_filter_macro_syntax
       app_file "test/models/post_test.rb", <<-RUBY
         require "test_helper"
 
@@ -392,6 +392,34 @@ module ApplicationTests
           end
 
           test "line filter does not run this" do
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb:4:9").tap do |output|
+        assert_match "PostTest:FirstFilter", output
+        assert_match "PostTest:SecondFilter", output
+        assert_match "2 runs, 2 assertions", output
+      end
+    end
+
+    def test_more_than_one_line_filter_test_method_syntax
+      app_file "test/models/post_test.rb", <<-RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          def test_first_filter
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          def test_second_filter
+            puts 'PostTest:SecondFilter'
+            assert true
+          end
+
+          def test_line_filter_does_not_run_this
             assert true
           end
         end
@@ -740,7 +768,7 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
-    def test_run_in_parallel_with_unmarshable_exception
+    def test_run_in_parallel_with_unmarshalable_exception
       exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file = app_file "test/fail_test.rb", <<-RUBY
@@ -762,7 +790,7 @@ module ApplicationTests
 
       output = run_test_command(file)
 
-      assert_match(/RuntimeError: (Wrapped undumpable exception|result not reported)/, output)
+      assert_match(/RuntimeError: (Wrapped undumpable exception|result not reported|Neutered Exception)/, output)
       assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
     end
 

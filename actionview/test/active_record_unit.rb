@@ -105,6 +105,32 @@ class ActiveRecordTestCase < ActionController::TestCase
   def run(*args)
     super if ActiveRecordTestConnector.connected
   end
+
+  def capture_sql
+    ActiveRecord::Base.connection.materialize_transactions
+    SQLCounter.clear_log
+    yield
+    SQLCounter.log.dup
+  end
+
+  class SQLCounter
+    class << self
+      attr_accessor :log, :log_all
+      def clear_log; self.log = []; self.log_all = []; end
+    end
+
+    clear_log
+
+    def call(name, start, finish, message_id, values)
+      return if values[:cached]
+
+      sql = values[:sql]
+      self.class.log_all << sql
+      self.class.log << sql unless ["SCHEMA", "TRANSACTION"].include? values[:name]
+    end
+  end
+
+  ActiveSupport::Notifications.subscribe("sql.active_record", SQLCounter.new)
 end
 
 ActiveRecordTestConnector.setup

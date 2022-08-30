@@ -1,3 +1,52 @@
+*   Adapts virtual attributes on `ActiveRecord::Persistence#becomes`.
+
+    When source and target classes have a different set of attributes adapts
+    attributes such that the extra attributes from target are added.
+
+    ```ruby
+    class Person < ApplicationRecord
+    end
+
+    class WebUser < Person
+      attribute :is_admin, :boolean
+      after_initialize :set_admin
+
+      def set_admin
+        write_attribute(:is_admin, email =~ /@ourcompany\.com$/)
+      end
+    end
+
+    person = Person.find_by(email: "email@ourcompany.com")
+    person.respond_to? :is_admin
+    # => false
+    person.becomes(WebUser).is_admin?
+    # => true
+    ```
+
+    *Jacopo Beschi*, *Sampson Crowley*
+
+*   Fix `ActiveRecord::QueryMethods#in_order_of` to include `nil`s, to match the
+    behavior of `Enumerable#in_order_of`.
+
+    For example, `Post.in_order_of(:title, [nil, "foo"])` will now include posts
+    with `nil` titles, the same as `Post.all.to_a.in_order_of(:title, [nil, "foo"])`.
+
+    *fatkodima*
+
+*   Optimize `add_timestamps` to use a single SQL statement.
+
+    ```ruby
+    add_timestamps :my_table
+    ```
+
+    Now results in the following SQL:
+
+    ```sql
+    ALTER TABLE "my_table" ADD COLUMN "created_at" datetime(6) NOT NULL, ADD COLUMN "updated_at" datetime(6) NOT NULL
+    ```
+
+    *Iliana Hadzhiatanasova*
+
 *   Add `drop_enum` migration command for PostgreSQL
 
     This does the inverse of `create_enum`. Before dropping an enum, ensure you have

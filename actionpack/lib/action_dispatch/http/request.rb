@@ -406,7 +406,7 @@ module ActionDispatch
         Request::Utils.check_param_encoding(pr)
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
-    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
+    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError, EOFError => e
       raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end
     alias :request_parameters :POST

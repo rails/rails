@@ -318,6 +318,19 @@ module ActiveRecord
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
+      def add_timestamps(table_name, **options)
+        options[:null] = false if options[:null].nil?
+
+        if !options.key?(:precision)
+          options[:precision] = 6
+        end
+
+        alter_table(table_name) do |definition|
+          definition.column :created_at, :datetime, **options
+          definition.column :updated_at, :datetime, **options
+        end
+      end
+
       def add_reference(table_name, ref_name, **options) # :nodoc:
         super(table_name, ref_name, type: :integer, **options)
       end
@@ -417,6 +430,9 @@ module ActiveRecord
           # Numeric types
           when /\A-?\d+(\.\d*)?\z/
             $&
+          # Binary columns
+          when /x'(.*)'/
+            [ $1 ].pack("H*")
           else
             # Anything else is blank or some function
             # and we can't know the value of that, so return nil.

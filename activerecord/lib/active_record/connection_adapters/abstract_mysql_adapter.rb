@@ -138,11 +138,6 @@ module ActiveRecord
         true
       end
 
-      def field_ordered_value(column, values) # :nodoc:
-        field = Arel::Nodes::NamedFunction.new("FIELD", [column, values.reverse.map { |value| Arel::Nodes.build_quoted(value) }])
-        Arel::Nodes::Descending.new(field)
-      end
-
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -355,10 +350,7 @@ module ActiveRecord
         return unless column
 
         default = extract_new_default_value(default_or_changes)
-        change_column_default_definition = ChangeColumnDefaultDefinition.new(column, default)
-        schema_creation.accept(change_column_default_definition)
-
-        change_column_default_definition
+        ChangeColumnDefaultDefinition.new(column, default)
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
@@ -402,7 +394,7 @@ module ActiveRecord
         end
 
         unless options.key?(:collation)
-          options[:collation] = column.collation
+          options[:collation] = column.collation if text_type?(type)
         end
 
         unless options.key?(:auto_increment)
@@ -411,10 +403,7 @@ module ActiveRecord
 
         td = create_table_definition(table_name)
         cd = td.new_column_definition(column.name, type, **options)
-        change_column_def = ChangeColumnDefinition.new(cd, column.name)
-        schema_creation.accept(change_column_def)
-
-        change_column_def
+        ChangeColumnDefinition.new(cd, column.name)
       end
 
       def rename_column(table_name, column_name, new_column_name) # :nodoc:
@@ -426,7 +415,7 @@ module ActiveRecord
         create_index = build_create_index_definition(table_name, column_name, **options)
         return unless create_index
 
-        execute(create_index.ddl)
+        execute schema_creation.accept(create_index)
       end
 
       def build_create_index_definition(table_name, column_name, **options) # :nodoc:
@@ -434,9 +423,7 @@ module ActiveRecord
 
         return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
 
-        create_index = CreateIndexDefinition.new(index, algorithm)
-        schema_creation.accept(create_index)
-        create_index
+        CreateIndexDefinition.new(index, algorithm)
       end
 
       def add_sql_comment!(sql, comment) # :nodoc:
@@ -691,6 +678,10 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        def text_type?(type)
+          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        end
+
         def extended_type_map_key
           if @default_timezone
             { default_timezone: @default_timezone, emulate_booleans: emulate_booleans }
@@ -782,7 +773,7 @@ module ActiveRecord
 
         def change_column_for_alter(table_name, column_name, type, **options)
           cd = build_change_column_definition(table_name, column_name, type, **options)
-          cd.ddl
+          schema_creation.accept(cd)
         end
 
         def rename_column_for_alter(table_name, column_name, new_column_name)

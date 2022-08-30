@@ -18,6 +18,14 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.raise_on_invalid_cache_expiration_time" do |app|
+      config.after_initialize do
+        if app.config.active_support.raise_on_invalid_cache_expiration_time
+          ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = true
+        end
+      end
+    end
+
     initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
       config.after_initialize do
         if app.config.active_support.remove_deprecated_time_with_zone_name

@@ -18,9 +18,11 @@ module ActiveRecord
     # * change_column_null
     # * change_column_comment (must supply a +:from+ and +:to+ option)
     # * change_table_comment (must supply a +:from+ and +:to+ option)
+    # * create_enum
     # * create_join_table
     # * create_table
     # * disable_extension
+    # * drop_enum (must supply a list of values)
     # * drop_join_table
     # * drop_table (must supply a block)
     # * enable_extension
@@ -46,7 +48,7 @@ module ActiveRecord
         :change_column_comment, :change_table_comment,
         :add_check_constraint, :remove_check_constraint,
         :add_exclusion_constraint, :remove_exclusion_constraint,
-        :create_enum, :drop_enum
+        :create_enum, :drop_enum,
       ]
       include JoinTable
 
@@ -241,6 +243,11 @@ module ActiveRecord
           [:change_column_null, args]
         end
 
+        def invert_add_foreign_key(args)
+          args.last.delete(:validate) if args.last.is_a?(Hash)
+          super
+        end
+
         def invert_remove_foreign_key(args)
           options = args.extract_options!
           from_table, to_table = args
@@ -275,6 +282,11 @@ module ActiveRecord
           [:change_table_comment, [table, from: options[:to], to: options[:from]]]
         end
 
+        def invert_add_check_constraint(args)
+          args.last.delete(:validate) if args.last.is_a?(Hash)
+          super
+        end
+
         def invert_remove_check_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_check_constraint is only reversible if given an expression." if args.size < 2
           super
@@ -282,6 +294,12 @@ module ActiveRecord
 
         def invert_remove_exclusion_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_exclusion_constraint is only reversible if given an expression." if args.size < 2
+          super
+        end
+
+        def invert_drop_enum(args)
+          _enum, values = args.dup.tap(&:extract_options!)
+          raise ActiveRecord::IrreversibleMigration, "drop_enum is only reversible if given a list of enum values." unless values
           super
         end
 

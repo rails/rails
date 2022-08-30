@@ -144,6 +144,14 @@ if ActiveRecord::Base.connection.supports_check_constraints?
             assert_predicate @connection.check_constraints("trades").first, :validated?
           end
 
+          def test_validated_check_constraint_exists
+            @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
+            assert_not @connection.check_constraint_exists?(:trades, name: "quantity_check", validate: true)
+
+            @connection.validate_check_constraint :trades, name: "quantity_check"
+            assert @connection.check_constraint_exists?(:trades, name: "quantity_check", validate: true)
+          end
+
           def test_validate_non_existing_check_constraint_raises
             assert_raises ArgumentError do
               @connection.validate_check_constraint :trades, name: "quantity_check"
@@ -160,6 +168,22 @@ if ActiveRecord::Base.connection.supports_check_constraints?
             cc = check_constraints.first
             assert_predicate cc, :validated?
           end
+        end
+
+        def test_check_constraint_exists
+          @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+
+          assert @connection.check_constraint_exists?(:trades, name: "quantity_check")
+          assert_not @connection.check_constraint_exists?(:non_trades, name: "quantity_check")
+          assert_not @connection.check_constraint_exists?(:trades, name: "other_check")
+        end
+
+        def test_check_constraint_exists_ensures_required_options
+          @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
+          error = assert_raises(ArgumentError) do
+            @connection.check_constraint_exists?(:trades, something: true)
+          end
+          assert_equal "At least one of :name or :expression must be supplied", error.message
         end
 
         def test_remove_check_constraint

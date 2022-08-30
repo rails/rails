@@ -632,6 +632,23 @@ module ApplicationTests
       assert last_response.ok?
     end
 
+    test "EtagWithFlash module doesn't break for API apps" do
+      make_basic_app do |application|
+        application.config.api_only = true
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          stale?(weak_etag: "something")
+          render plain: "else"
+        end
+      end
+
+      get "/"
+
+      assert last_response.ok?
+    end
+
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
@@ -3358,6 +3375,7 @@ module ApplicationTests
       output = rails("routes", "-g", "active_storage")
       assert_equal <<~MESSAGE, output
                                Prefix Verb URI Pattern                                                                        Controller#Action
+                                           /:controller(/:action(/:id))(.:format)                                             :controller#:action
                    rails_service_blob GET  /files/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
              rails_service_blob_proxy GET  /files/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
                                       GET  /files/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
@@ -4045,6 +4063,33 @@ module ApplicationTests
       assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
     end
 
+    test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal false, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "raise_on_invalid_cache_expiration_time is true with 7.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+      app "development"
+
+      assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "raise_on_invalid_cache_expiration_time can be set via new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.active_support.raise_on_invalid_cache_expiration_time = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
     test "adds a time zone aware type if using PostgreSQL" do
       original_configurations = ActiveRecord::Base.configurations
       ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
@@ -4088,6 +4133,17 @@ module ApplicationTests
       assert_equal [:datetime, :time], ActiveRecord::Base.time_zone_aware_types
     ensure
       ActiveRecord::Base.configurations = original_configurations
+    end
+
+    test "raises an error if legacy_connection_handling is set" do
+      build_app(initializers: true)
+      add_to_env_config "production", "config.active_record.legacy_connection_handling = true"
+
+      error = assert_raise(ArgumentError) do
+        app "production"
+      end
+
+      assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
     end
 
     private

@@ -263,7 +263,6 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_missing_callback_actions = false
             action_controller.raise_on_open_redirects = true
             action_controller.wrap_parameters_by_default = true
           end
@@ -273,7 +272,7 @@ module Rails
           self.add_autoload_paths_to_load_path = false
 
           if Rails.env.development? || Rails.env.test?
-            self.log_file_size = (100 * 1024 * 1024)
+            self.log_file_size = 100 * 1024 * 1024
           end
 
           if respond_to?(:active_record)
@@ -299,6 +298,7 @@ module Rails
           if respond_to?(:active_support)
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
+            active_support.raise_on_invalid_cache_expiration_time = true
           end
 
           if respond_to?(:action_controller)

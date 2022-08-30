@@ -180,6 +180,15 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "heavy", @john.json_data["weight"]
   end
 
+  test "serialize stored nested attributes" do
+    user = Admin::User.find_by_name("Jamis")
+    user.update(settings: { "color" => { "jenny" => "blue" }, homepage: "rails" })
+
+    assert_equal true, user.settings.instance_of?(ActiveSupport::HashWithIndifferentAccess)
+    assert_equal "blue", user.settings[:color][:jenny]
+    assert_equal "blue", user.color[:jenny]
+  end
+
   def test_convert_store_attributes_from_Hash_to_HashWithIndifferentAccess_saving_the_data_and_access_attributes_indifferently
     user = Admin::User.find_by_name("Jamis")
     assert_equal "symbol",  user.settings[:symbol]

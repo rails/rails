@@ -21,23 +21,22 @@ module ActiveRecord
 
           def visit_ChangeColumnDefinition(o)
             change_column_sql = +"CHANGE #{quote_column_name(o.name)} #{accept(o.column)}"
-            o.ddl = add_column_position!(change_column_sql, column_options(o.column))
+            add_column_position!(change_column_sql, column_options(o.column))
           end
 
           def visit_ChangeColumnDefaultDefinition(o)
-            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} SET DEFAULT "
-            if o.default.nil?
-              sql << "NULL"
+            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} "
+            if o.default.nil? && !o.column.null
+              sql << "DROP DEFAULT"
             else
-              sql << quote_default_expression(o.default, o.column)
+              sql << "SET DEFAULT #{quote_default_expression(o.default, o.column)}"
             end
-            o.ddl = sql
           end
 
           def visit_CreateIndexDefinition(o)
             sql = visit_IndexDefinition(o.index, true)
             sql << " #{o.algorithm}" if o.algorithm
-            o.ddl = sql
+            sql
           end
 
           def visit_IndexDefinition(o, create = false)
