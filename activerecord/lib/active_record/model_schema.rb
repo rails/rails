@@ -341,7 +341,7 @@ module ActiveRecord
       #     #   name       :string, limit: 255
       #     #   category   :string, limit: 255
       #
-      #     self.ignored_columns = [:category]
+      #     self.ignored_columns += [:category]
       #   end
       #
       # The schema still contains "category", but now the model omits it, so any meta-driven code or
