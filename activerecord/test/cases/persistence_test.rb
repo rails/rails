@@ -350,6 +350,23 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal %w{name}, client.changed
   end
 
+  def test_becomes_initializes_missing_attributes
+    company = Company.new(name: "GrowingCompany")
+
+    client = company.becomes(LargeClient)
+
+    assert_equal 50, client.extra_size
+  end
+
+  def test_becomes_keeps_extra_attributes
+    client = LargeClient.new(name: "ShrinkingCompany")
+
+    company = client.becomes(Company)
+
+    assert_equal 50, company.extra_size
+    assert_equal 50, client.extra_size
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])

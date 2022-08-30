@@ -53,6 +53,25 @@ module ActionDispatch
       end
     end
 
+    if defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
+      test "#source_extracts works with error_highlight" do
+        lineno = __LINE__
+        begin
+          1.time
+        rescue NameError => exc
+        end
+
+        wrapper = ExceptionWrapper.new(nil, exc)
+
+        code = {}
+        File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
+          code[lineno + i] = line
+        end
+        code[lineno + 2] = ["          1", ".time", "\n"]
+        assert_equal({ code: code, line_number: lineno + 2 }, wrapper.source_extracts.first)
+      end
+    end
+
     test "#application_trace returns traces only from the application" do
       exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
       wrapper = ExceptionWrapper.new(@cleaner, exception)

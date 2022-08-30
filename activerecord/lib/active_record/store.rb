@@ -288,14 +288,7 @@ module ActiveRecord
 
         private
           def as_regular_hash(obj)
-            case obj
-            when ActiveSupport::HashWithIndifferentAccess
-              obj.to_h
-            when Hash
-              obj
-            else
-              {}
-            end
+            obj.respond_to?(:to_hash) ? obj.to_hash : {}
           end
       end
   end

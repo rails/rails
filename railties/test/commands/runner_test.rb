@@ -32,6 +32,13 @@ class Rails::RunnerTest < ActiveSupport::TestCase
     OUTPUT
   end
 
+  def test_rails_runner_with_file_path_that_does_not_exist
+    command_output = run_runner_command("no-file-here.rb", allow_failure: true)
+
+    assert_match(/The file no-file-here.rb could not be found/, command_output)
+    assert_equal 1, $?.exitstatus
+  end
+
   def test_rails_runner_with_ruby_code
     assert_equal <<~OUTPUT, run_runner_command('puts "Hello world"')
       Hello world

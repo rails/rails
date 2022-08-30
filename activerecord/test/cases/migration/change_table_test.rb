@@ -311,6 +311,13 @@ module ActiveRecord
         end
       end
 
+      def test_check_constraint_exists
+        with_change_table do |t|
+          expect :check_constraint_exists?, nil, [:delete_me], name: "price_check"
+          assert_not t.check_constraint_exists?(name: "price_check")
+        end
+      end
+
       def test_remove_check_constraint_removes_check_constraint
         with_change_table do |t|
           expect :remove_check_constraint, nil, [:delete_me], name: "price_check"

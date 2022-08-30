@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "shellwords"
-require "method_source"
 require "rake/file_list"
 require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
+require "ripper"
 
 module Rails
   module TestUnit
@@ -169,9 +169,32 @@ module Rails
       private
         def definition_for(method)
           file, start_line = method.source_location
-          end_line = method.source.count("\n") + start_line - 1
+          end_line = MethodEndFinder.call(source: File.read(file), target: method.name)
 
           return file, start_line..end_line
+        end
+
+        # Finds the line number where the definition of method named +target+ ends.
+        module MethodEndFinder # :nodoc:
+          def self.call(source:, target:)
+            catch(:line_number_is) do
+              DefParser.new(source: source, target: target).parse
+              return nil
+            end
+          end
+
+          class DefParser < Ripper # :nodoc:
+            def initialize(source:, target:)
+              @target = String(target)
+              super(source)
+            end
+
+            def on_def(method_name, *)
+              if method_name == @target
+                throw(:line_number_is, lineno)
+              end
+            end
+          end
         end
     end
   end

@@ -312,5 +312,17 @@ Performance/DeleteSuffix:
 Performance/OpenStruct:
   Enabled: true
 
+Performance/InefficientHashSearch:
+  Enabled: true
+
+Performance/ConstantRegexp:
+  Enabled: true
+
+Performance/RedundantStringChars:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
 Minitest/UnreachableAssertion:
   Enabled: true

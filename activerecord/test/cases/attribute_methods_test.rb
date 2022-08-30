@@ -651,8 +651,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_predicate topic, :is_test?
   end
 
-  test "raises ActiveRecord::DangerousAttributeError when defining an AR method in a model" do
-    %w(save create_or_update).each do |method|
+  test "raises ActiveRecord::DangerousAttributeError when defining an AR method or dangerous Object method in a model" do
+    %w(save create_or_update hash dup).each do |method|
       klass = Class.new(ActiveRecord::Base)
       klass.class_eval "def #{method}() 'defined #{method}' end"
       assert_raise ActiveRecord::DangerousAttributeError do

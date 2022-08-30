@@ -121,6 +121,7 @@ module ActionDispatch
           trace_to_show: wrapper.trace_to_show,
           routes_inspector: routes_inspector(wrapper.exception),
           source_extracts: wrapper.source_extracts,
+          error_highlight_available: wrapper.error_highlight_available?,
           line_number: wrapper.line_number,
           file: wrapper.file
         )

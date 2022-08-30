@@ -11,6 +11,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
     @schema_migration = @connection.schema_migration
     @schema_migration.drop_table
+    @internal_metadata = @connection.internal_metadata
   end
 
   teardown do
@@ -69,7 +70,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     old_table_name_prefix = ActiveRecord::Base.table_name_prefix
     ActiveRecord::Base.table_name_prefix = "nep_"
     @schema_migration.reset_table_name
-    ActiveRecord::InternalMetadata.reset_table_name
+    @internal_metadata.reset_table_name
     ActiveRecord::Schema.define(version: 7) do
       create_table :fruits do |t|
         t.column :color, :string
@@ -82,7 +83,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.table_name_prefix = old_table_name_prefix
     @schema_migration.reset_table_name
-    ActiveRecord::InternalMetadata.reset_table_name
+    @internal_metadata.reset_table_name
   end
 
   def test_schema_raises_an_error_for_invalid_column_type
