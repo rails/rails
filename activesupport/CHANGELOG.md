@@ -1,7 +1,7 @@
 *   Added `on_or_before?` and `on_or_after?` methods to date/time core extensions
 
     *Martin Echtner*
-  
+
 *   Add `raise_on_invalid_cache_expiration_time` config to `ActiveSupport::Cache::Store`
 
     Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
