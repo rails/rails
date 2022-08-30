@@ -1010,11 +1010,11 @@ should be large enough to accommodate both the foreground threads (.e.g web serv
 
 #### `config.active_record.yaml_column_permitted_classes`
 
-Defaults to `[Symbol]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveStorage::Coders::YamlColumn`.
+Defaults to `[Symbol]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveRecord::Coders::YAMLColumn`.
 
 #### `config.active_record.use_yaml_unsafe_load`
 
-Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveStorage::Coders::YamlColumn`.
+Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveRecord::Coders::YAMLColumn`.
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
