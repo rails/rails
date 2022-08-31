@@ -288,18 +288,13 @@ user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
-This is most useful when updating several attributes at once. If, on the other
-hand, you'd like to update several records in bulk, you may find the
-`update_all` class method useful:
+This is most useful when updating several attributes at once. 
+
+If you'd like to update several records in bulk without callbacks or
+validations, you can update the database directly using `update_all`:
 
 ```ruby
-User.update_all "max_login_attempts = 3, must_change_password = 'true'"
-```
-
-This is the same as if you wrote:
-
-```ruby
-User.update(:all, max_login_attempts: 3, must_change_password: true)
+User.update_all max_login_attempts: 3, must_change_password: true
 ```
 
 ### Delete
