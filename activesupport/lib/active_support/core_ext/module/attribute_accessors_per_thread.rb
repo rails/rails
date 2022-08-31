@@ -52,6 +52,7 @@ class Module
           end
         EOS
       else
+        default = default.dup.freeze unless default.frozen?
         singleton_class.define_method("#{sym}_default_value") { default }
 
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -162,6 +163,10 @@ class Module
   #
   #   Current.new.user = "DHH"  # => NoMethodError
   #   Current.new.user          # => NoMethodError
+  #
+  # A default value may be specified using the +:default+ option. Because
+  # multiple threads can access the default value, non-frozen default values
+  # will be <tt>dup</tt>ed and frozen.
   def thread_mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil)
     thread_mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor, default: default)
     thread_mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor)
