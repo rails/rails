@@ -596,7 +596,7 @@ DEPENDENCIES
   rails!
   rake (>= 11.1)
   redcarpet (~> 3.2.3)
-  redis (>= 4.0.1)
+  redis (>= 4.0.1, < 5)
   redis-namespace
   resque
   resque-scheduler
