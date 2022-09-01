@@ -27,7 +27,7 @@ module ActiveRecord
 
         # make sure we have an active connection
         assert ActiveRecord::Base.connection
-        assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
+        assert ActiveRecord::Base.connection_handler.active_connections?(:all)
       end
 
       def test_app_delegation

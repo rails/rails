@@ -205,7 +205,7 @@ module ActiveRecord
         ActiveRecord::Base.connection.client_min_messages = "error"
         yield
       ensure
-        ActiveRecord::Base.clear_active_connections!
+        ActiveRecord::Base.clear_active_connections!(:all)
         ActiveRecord::Base.connection.client_min_messages = log_level
       end
   end

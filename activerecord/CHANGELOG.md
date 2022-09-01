@@ -1,3 +1,9 @@
+*   Fix connection handler methods to operate on all pools.
+
+    `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
+
+    *Eileen M. Uchitelle*
+
 *   Allow ActiveRecord::QueryMethods#select to receive hash values.
 
     Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.

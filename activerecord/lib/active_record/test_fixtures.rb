@@ -162,7 +162,7 @@ module ActiveRecord
         ActiveRecord::FixtureSet.reset_cache
       end
 
-      ActiveRecord::Base.clear_active_connections!
+      ActiveRecord::Base.clear_active_connections!(:all)
     end
 
     def enlist_fixture_connections
