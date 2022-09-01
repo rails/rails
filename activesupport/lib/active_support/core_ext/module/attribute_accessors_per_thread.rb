@@ -42,12 +42,12 @@ class Module
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
-      # The following generated method concatenates `name` because we want it
-      # to work with inheritance via polymorphism.
+      # The following generated method concatenates `object_id` because we want
+      # subclasses to maintain independent values.
       if default.nil?
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def self.#{sym}
-            @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+            @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
             ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
           end
         EOS
@@ -56,7 +56,7 @@ class Module
 
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def self.#{sym}
-            @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+            @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
             value = ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
 
             if value.nil? && !::ActiveSupport::IsolatedExecutionState.key?(@__thread_mattr_#{sym})
@@ -101,11 +101,11 @@ class Module
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
 
-      # The following generated method concatenates `name` because we want it
-      # to work with inheritance via polymorphism.
+      # The following generated method concatenates `object_id` because we want
+      # subclasses to maintain independent values.
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          @__thread_mattr_#{sym} ||= "attr_\#{name}_#{sym}"
+          @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
           ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}] = obj
         end
       EOS
