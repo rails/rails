@@ -119,11 +119,12 @@ module ActiveRecord
           return scope_type[model.name] if skip_inherited_scope
           klass = model
           base = model.base_class
-          while klass <= base
+          while klass != base
             value = scope_type[klass.name]
             return value if value
             klass = klass.superclass
           end
+          scope_type[klass.name]
         end
 
         # Sets the +value+ for a given +scope_type+ and +model+.
