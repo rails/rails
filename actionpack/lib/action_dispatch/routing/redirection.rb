@@ -19,10 +19,12 @@ module ActionDispatch
 
       def call(env)
         ActiveSupport::Notifications.instrument("redirect.action_dispatch") do |payload|
-          response = build_response(Request.new(env))
+          request = Request.new(env)
+          response = build_response(request)
 
           payload[:status] = @status
           payload[:location] = response.headers["Location"]
+          payload[:request] = request
 
           response.to_a
         end

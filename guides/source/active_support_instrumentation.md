@@ -271,10 +271,11 @@ INFO. Additional keys may be added by the caller.
 
 #### redirect.action_dispatch
 
-| Key         | Value               |
-| ----------- | ------------------- |
-| `:status`   | HTTP response code  |
-| `:location` | URL to redirect to  |
+| Key         | Value                         |
+| ----------- | ----------------------------- |
+| `:status`   | HTTP response code            |
+| `:location` | URL to redirect to            |
+| `:request`  | The `ActionDispatch::Request` |
 
 ### Action View
 
