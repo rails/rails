@@ -1,3 +1,10 @@
+*   `thread_mattr_accessor` will call `.dup.freeze` on non-frozen default values.
+
+    This provides a basic level of protection against different threads trying
+    to mutate a shared default object.
+
+    *Jonathan Hefner*
+
 *   Add `raise_on_invalid_cache_expiration_time` config to `ActiveSupport::Cache::Store`
 
     Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
