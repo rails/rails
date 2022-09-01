@@ -6,17 +6,13 @@ require "active_support/core_ext/module/attribute_accessors_per_thread"
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
   setup do
     @class = Class.new do
-      def self.name; "MyClass#{object_id}"; end
-
       thread_mattr_accessor :foo
       thread_mattr_accessor :bar,  instance_writer: false
       thread_mattr_reader   :shaq, instance_reader: false
       thread_mattr_accessor :camp, instance_accessor: false
     end
 
-    @subclass = Class.new(@class) do
-      def self.name; "Sub#{super}"; end
-    end
+    @subclass = Class.new(@class)
 
     @object = @class.new
   end
