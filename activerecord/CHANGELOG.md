@@ -1,3 +1,20 @@
+*   Allow ActiveRecord::QueryMethods#select to receive hash values.
+
+    Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.
+
+    With this change we can provide `hash` as argument, for example:
+
+    ```ruby
+    Post.joins(:comments).select(posts: [:id, :title, :created_at], comments: [:id, :body, :author_id])
+    #=> "SELECT \"posts\".\"id\", \"posts\".\"title\", \"posts\".\"created_at\", \"comments\".\"id\", \"comments\".\"body\", \"comments\".\"author_id\"
+    #   FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
+
+    Post.joins(:comments).select(posts: { id: :post_id, title: :post_title }, comments: { id: :comment_id, body: :comment_body })
+    #=> "SELECT posts.id as post_id, posts.title as post_title, comments.id as comment_id, comments.body as comment_body
+    #    FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
+    ```
+    *Oleksandr Holubenko*, *Josef Šimánek*, *Jean Boussier*
+
 *   Adapts virtual attributes on `ActiveRecord::Persistence#becomes`.
 
     When source and target classes have a different set of attributes adapts
