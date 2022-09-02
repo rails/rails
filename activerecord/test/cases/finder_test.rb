@@ -53,9 +53,6 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_custom_select_excluding_id
-    topic = Topic.select(:title).find(4)
-    assert_equal 4, topic.id
-
     # Returns ordered by ids array
     topics = Topic.select(:title).find([4, 2, 5])
     assert_equal [4, 2, 5], topics.map(&:id)
