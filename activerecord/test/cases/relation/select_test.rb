@@ -33,6 +33,12 @@ module ActiveRecord
       end
     end
 
+    def test_with_sql_function
+      expected = Post.joins(:comments).select("COUNT(comments.id)" => :comment_count).take
+
+      assert_not_nil(expected.comment_count)
+    end
+
     def test_select_with_hash_with_not_exists_field
       assert_raises(ActiveRecord::StatementInvalid) do
         Post.select(posts: { boo: :post_title }).take

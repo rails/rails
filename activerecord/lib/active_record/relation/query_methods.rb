@@ -1864,7 +1864,11 @@ module ActiveRecord
             end
           when String, Symbol
             arel_column(key.to_s) do
-              predicate_builder.resolve_arel_attribute(klass.table_name, key.to_s)
+              if (/(\w+)\s*\(/).match?(key.to_s)
+                Arel.sql(key.to_s)
+              else
+                predicate_builder.resolve_arel_attribute(klass.table_name, key.to_s)
+              end
             end.as(columns_aliases.to_s)
           end
         end
