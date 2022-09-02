@@ -448,7 +448,6 @@ module ActiveRecord
         ids = ids.flatten.compact.uniq
 
         model_name = @klass.name
-        _select!(table[primary_key]) unless select_values.empty?
 
         case ids.size
         when 0
@@ -481,7 +480,9 @@ module ActiveRecord
       def find_some(ids)
         return find_some_ordered(ids) unless order_values.present?
 
-        result = where(primary_key => ids).to_a
+        relation = where(primary_key => ids)
+        relation = relation.select(table[primary_key]) unless select_values.empty?
+        result = relation.to_a
 
         expected_size =
           if limit_value && ids.size > limit_value
@@ -505,7 +506,9 @@ module ActiveRecord
       def find_some_ordered(ids)
         ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
-        result = except(:limit, :offset).where(primary_key => ids).records
+        relation = except(:limit, :offset).where(primary_key => ids)
+        relation = relation.select(table[primary_key]) unless select_values.empty?
+        result = relation.records
 
         if result.size == ids.size
           result.in_order_of(:id, ids.map { |id| @klass.type_for_attribute(primary_key).cast(id) })
