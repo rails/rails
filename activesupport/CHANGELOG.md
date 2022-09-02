@@ -1,3 +1,33 @@
+*   `thread_mattr_accessor` will call `.dup.freeze` on non-frozen default values.
+
+    This provides a basic level of protection against different threads trying
+    to mutate a shared default object.
+
+    *Jonathan Hefner*
+
+*   Add `raise_on_invalid_cache_expiration_time` config to `ActiveSupport::Cache::Store`
+
+    Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
+    `write` are given an invalid `expires_at` or `expires_in` time.
+
+    Options are `true`, and `false`. If `false`, the exception will be reported
+    as `handled` and logged instead. Defaults to `true` if `config.load_defaults >= 7.1`.
+
+     *Trevor Turk*
+
+*   `ActiveSupport::Cache:Store#fetch` now passes an options accessor to the block.
+
+    It makes possible to override cache options:
+
+        Rails.cache.fetch("3rd-party-token") do |name, options|
+          token = fetch_token_from_remote
+          # set cache's TTL to match token's TTL
+          options.expires_in = token.expires_in
+          token
+        end
+
+    *Andrii Gladkyi*, *Jean Boussier*
+
 *   `default` option of `thread_mattr_accessor` now applies through inheritance and
     also across new threads.
 
@@ -12,10 +42,6 @@
 *   Redis cache store is now compatible with redis-rb 5.0.
 
     *Jean Boussier*
-
-*   Log a warning if `ActiveSupport::Cache` is given an expiration in the past.
-
-    *Trevor Turk*
 
 *   Add `skip_nil:` support to `ActiveSupport::Cache::Store#fetch_multi`.
 

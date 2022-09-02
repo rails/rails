@@ -140,7 +140,7 @@ module ActiveRecord
 
       def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
-          (validate.nil? || validate == options.fetch(:validate, validate)) &&
+          (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
           options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
 
@@ -164,8 +164,9 @@ module ActiveRecord
         !ActiveRecord::SchemaDumper.chk_ignore_pattern.match?(name) if name
       end
 
-      def defined_for?(name:, expression: nil, **options)
+      def defined_for?(name:, expression: nil, validate: nil, **options)
         self.name == name.to_s &&
+          (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
           options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
     end

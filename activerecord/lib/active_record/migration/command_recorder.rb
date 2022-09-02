@@ -243,6 +243,11 @@ module ActiveRecord
           [:change_column_null, args]
         end
 
+        def invert_add_foreign_key(args)
+          args.last.delete(:validate) if args.last.is_a?(Hash)
+          super
+        end
+
         def invert_remove_foreign_key(args)
           options = args.extract_options!
           from_table, to_table = args
@@ -275,6 +280,11 @@ module ActiveRecord
           end
 
           [:change_table_comment, [table, from: options[:to], to: options[:from]]]
+        end
+
+        def invert_add_check_constraint(args)
+          args.last.delete(:validate) if args.last.is_a?(Hash)
+          super
         end
 
         def invert_remove_check_constraint(args)

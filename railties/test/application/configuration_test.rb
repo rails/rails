@@ -4063,6 +4063,33 @@ module ApplicationTests
       assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
     end
 
+    test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal false, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "raise_on_invalid_cache_expiration_time is true with 7.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+      app "development"
+
+      assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "raise_on_invalid_cache_expiration_time can be set via new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.active_support.raise_on_invalid_cache_expiration_time = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
     test "adds a time zone aware type if using PostgreSQL" do
       original_configurations = ActiveRecord::Base.configurations
       ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }

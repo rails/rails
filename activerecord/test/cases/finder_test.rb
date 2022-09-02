@@ -52,6 +52,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar", bar: "baz") }
   end
 
+  def test_find_with_custom_select_excluding_id
+    topic = Topic.select(:title).find(4)
+    assert_equal 4, topic.id
+
+    # Returns ordered by ids array
+    topics = Topic.select(:title).find([4, 2, 5])
+    assert_equal [4, 2, 5], topics.map(&:id)
+
+    # Custom order
+    topics = Topic.select(:title).order(:id).find([4, 2, 5])
+    assert_equal [2, 4, 5], topics.map(&:id)
+  end
+
   def test_find_with_proc_parameter_and_block
     exception = assert_raises(RuntimeError) do
       Topic.all.find(-> { raise "should happen" }) { |e| e.title == "non-existing-title" }

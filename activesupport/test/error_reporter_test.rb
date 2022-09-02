@@ -2,27 +2,17 @@
 
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
+require "active_support/error_reporter/test_helper"
 
 class ErrorReporterTest < ActiveSupport::TestCase
   # ExecutionContext is automatically reset in Rails app via executor hooks set in railtie
   # But not in Active Support's own test suite.
   include ActiveSupport::ExecutionContext::TestHelper
-
-  class ErrorSubscriber
-    attr_reader :events
-
-    def initialize
-      @events = []
-    end
-
-    def report(error, handled:, severity:, source:, context:)
-      @events << [error, handled, severity, source, context]
-    end
-  end
+  include ActiveSupport::ErrorReporter::TestHelper
 
   setup do
     @reporter = ActiveSupport::ErrorReporter.new
-    @subscriber = ErrorSubscriber.new
+    @subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
     @reporter.subscribe(@subscriber)
     @error = ArgumentError.new("Oops")
   end

@@ -269,6 +269,14 @@ INFO. Additional keys may be added by the caller.
 | ------------- | ---------------------- |
 | `:middleware` | Name of the middleware |
 
+#### redirect.action_dispatch
+
+| Key         | Value                         |
+| ----------- | ----------------------------- |
+| `:status`   | HTTP response code            |
+| `:location` | URL to redirect to            |
+| `:request`  | The `ActionDispatch::Request` |
+
 ### Action View
 
 #### render_template.action_view

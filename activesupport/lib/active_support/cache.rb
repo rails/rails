@@ -172,6 +172,7 @@ module ActiveSupport
     #
     class Store
       cattr_accessor :logger, instance_writer: true
+      cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
 
       attr_reader :silence, :options
       alias :silence? :silence
@@ -336,6 +337,24 @@ module ActiveSupport
       #     cache.fetch('foo') # => "new value 1"
       #     val_1 # => "new value 1"
       #     val_2 # => "original value"
+      #
+      # ==== Dynamic Options
+      #
+      # In some cases it may be necessary to to dynamically compute options based
+      # on the cached value. For this purpose, a ActiveSupport::Cache::WriteOptions
+      # instance is passed as a second argument to the block
+      #
+      #     cache.fetch("authentication-token:#{user.id}") do |key, options|
+      #       token = authenticate_to_service
+      #       options.expires_at = token.expires_at
+      #       token
+      #     end
+      #
+      # Only some options can be set dynamically:
+      #
+      #   - +:expires_in+
+      #   - +:expires_at+
+      #   - +:version+
       #
       def fetch(name, options = nil, &block)
         if block_given?
@@ -719,7 +738,14 @@ module ActiveSupport
             call_options[:expires_in] = (expires_at - Time.now) if expires_at
 
             if call_options[:expires_in]&.negative?
-              ActiveSupport::Cache::Store.logger&.warn("Cache expiration is in the past")
+              expires_in = call_options.delete(:expires_in)
+              error = ArgumentError.new("Cache expiration time is invalid, cannot be negative: #{expires_in}")
+              if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+                raise error
+              else
+                ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
+                logger.error("#{error.class}: #{error.message}") if logger
+              end
             end
 
             if options.empty?
@@ -843,12 +869,44 @@ module ActiveSupport
 
         def save_block_result_to_cache(name, options)
           result = instrument(:generate, name, options) do
-            yield(name)
+            yield(name, WriteOptions.new(options))
           end
 
           write(name, result, options) unless result.nil? && options[:skip_nil]
           result
         end
+    end
+
+    class WriteOptions
+      def initialize(options) # :nodoc:
+        @options = options
+      end
+
+      def version
+        @options[:version]
+      end
+
+      def version=(version)
+        @options[:version] = version
+      end
+
+      def expires_in
+        @options[:expires_in]
+      end
+
+      def expires_in=(expires_in)
+        @options.delete(:expires_at)
+        @options[:expires_in] = expires_in
+      end
+
+      def expires_at
+        @options[:expires_at]
+      end
+
+      def expires_at=(expires_at)
+        @options.delete(:expires_in)
+        @options[:expires_at] = expires_at
+      end
     end
 
     module NullCoder # :nodoc:
