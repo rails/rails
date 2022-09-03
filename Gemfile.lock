@@ -435,7 +435,7 @@ GEM
       unicode-display_width (>= 1.4.0, < 3.0)
     rubocop-ast (1.16.0)
       parser (>= 3.1.1.0)
-    rubocop-minitest (0.17.0)
+    rubocop-minitest (0.22.0)
       rubocop (>= 0.90, < 2.0)
     rubocop-packaging (0.5.1)
       rubocop (>= 0.89, < 2.0)
