@@ -1,0 +1,51 @@
+name: Update copyright year(s) in license file
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: FantasticFiasco/action-update-license-year@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commitTitle: "Bump license years to {{currentYear}} [ci skip]"
+          prTitle: "Bump license years to {{currentYear}}"
+          prBody: |
+            ### Summary
+
+            Bump license years to {{currentYear}}
+
+            ### Other Information
+
+            - None.
+          path: |
+            MIT-LICENSE
+            actioncable/MIT-LICENSE
+            actioncable/lib/action_cable.rb
+            actionmailbox/MIT-LICENSE
+            actionmailer/MIT-LICENSE
+            actionpack/MIT-LICENSE
+            actionpack/lib/action_dispatch.rb
+            actionpack/lib/action_pack.rb
+            actiontext/MIT-LICENSE
+            actionview/MIT-LICENSE
+            actionview/app/assets/javascripts/MIT-LICENSE
+            actionview/lib/action_view.rb
+            activejob/MIT-LICENSE
+            activejob/lib/active_job.rb
+            activemodel/MIT-LICENSE
+            activemodel/lib/active_model.rb
+            activerecord/MIT-LICENSE
+            activerecord/lib/active_record.rb
+            activestorage/MIT-LICENSE
+            activestorage/lib/active_storage.rb
+            activesupport/MIT-LICENSE
+            activesupport/lib/active_support.rb
+            railties/MIT-LICENSE
