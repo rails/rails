@@ -1,3 +1,16 @@
+*   Set the value of the explicit `:value` option to `data-disable-with`
+
+    ```ruby
+    = f.submit value: 'Submit'
+
+    # Before
+    # => <input type="submit" name="commit" value="Submit" data-disable-with="Create">
+    # After
+    # => <input type="submit" name="commit" value="Submit" data-disable-with="Submit">
+    ```
+
+    *Noriyo Akita*
+
 *   Allow templates to set strict `locals`.
 
     By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
