@@ -365,13 +365,6 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("  This is a paragraph\nthat includes some\nindented lines:\n  Like this sample\n  blockquote", word_wrap("  This is a paragraph that includes some\nindented lines:\n  Like this sample\n  blockquote", line_width: 25))
   end
 
-  def test_word_wrap_does_not_modify_the_options_hash
-    options = { line_width: 15 }
-    passed_options = options.dup
-    word_wrap("some text", **passed_options)
-    assert_equal options, passed_options
-  end
-
   def test_word_wrap_with_custom_break_sequence
     assert_equal("1234567890\r\n1234567890\r\n1234567890", word_wrap("1234567890 " * 3, line_width: 2, break_sequence: "\r\n"))
   end
