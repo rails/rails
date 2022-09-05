@@ -1,3 +1,9 @@
+*   Reset relations after `insert_all`/`upsert_all`.
+
+    Bulk insert/upsert methods will now call `reset` if used on a relation, matching the behavior of `update_all`.
+
+    *Milo Winningham*
+
 *   Use `_N` as a parallel tests databases suffixes
 
     Peviously, `-N` was used as a suffix. This can cause problems for RDBMSes
