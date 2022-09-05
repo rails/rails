@@ -147,6 +147,8 @@ mount Blorgh::Engine => "/blorgh"
 #### Critical Files
 
 At the root of this brand new engine's directory lives a `blorgh.gemspec` file.
+You should edit this file and provide correct informations in place of "TODO".
+
 When you include the engine into an application later on, you will do so with
 this line in the Rails application's `Gemfile`:
 
