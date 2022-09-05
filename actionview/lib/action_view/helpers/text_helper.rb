@@ -262,9 +262,17 @@ module ActionView
       #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
       #   # => Once\r\nupon\r\na\r\ntime
       def word_wrap(text, line_width: 80, break_sequence: "\n")
-        text.split("\n").collect! do |line|
-          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").chomp!(break_sequence) : line
-        end * break_sequence
+        # Match up to `line_width` characters, followed by one of
+        #   (1) non-newline whitespace plus an optional newline
+        #   (2) the end of the string, ignoring any trailing newlines
+        #   (3) a newline
+        #
+        # -OR-
+        #
+        # Match an empty line
+        pattern = /(.{1,#{line_width}})(?:[^\S\n]+\n?|\n*\Z|\n)|\n/
+
+        text.gsub(pattern, "\\1#{break_sequence}").chomp!(break_sequence)
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.
