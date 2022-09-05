@@ -353,24 +353,34 @@ class TextHelperTest < ActionView::TestCase
                  excerpt("This is a beautiful morning", "a", separator: nil)
   end
 
-  def test_word_wrap
-    assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", line_width: 15))
+  test "word_wrap" do
+    input = "123 1234 12 12 123 1 1 1 123"
+    assert_equal "123\n1234\n12\n12\n123\n1 1\n1\n123", word_wrap(input, line_width: 3)
+    assert_equal "123-+1234-+12-+12-+123-+1 1-+1-+123", word_wrap(input, line_width: 3, break_sequence: "-+")
   end
 
-  def test_word_wrap_with_extra_newlines
-    assert_equal("my very very\nvery long\nstring\n\nwith another\nline", word_wrap("my very very very long string\n\nwith another line", line_width: 15))
+  test "word_wrap with newlines" do
+    input = "1\n1 1 1\n1"
+    assert_equal "1\n1 1\n1\n1", word_wrap(input, line_width: 3)
+    assert_equal "1-+1 1-+1-+1", word_wrap(input, line_width: 3, break_sequence: "-+")
   end
 
-  def test_word_wrap_with_leading_spaces
-    assert_equal("  This is a paragraph\nthat includes some\nindented lines:\n  Like this sample\n  blockquote", word_wrap("  This is a paragraph that includes some\nindented lines:\n  Like this sample\n  blockquote", line_width: 25))
+  test "word_wrap with multiple consecutive newlines" do
+    input = "1\n\n\n1 1 1\n\n\n1"
+    assert_equal "1\n\n\n1 1\n1\n\n\n1", word_wrap(input, line_width: 3)
+    assert_equal "1-+-+-+1 1-+1-+-+-+1", word_wrap(input, line_width: 3, break_sequence: "-+")
   end
 
-  def test_word_wrap_with_custom_break_sequence
-    assert_equal("1234567890\r\n1234567890\r\n1234567890", word_wrap("1234567890 " * 3, line_width: 2, break_sequence: "\r\n"))
+  test "word_wrap with trailing newlines" do
+    input = "1\n1 1 1\n1\n\n\n"
+    assert_equal "1\n1 1\n1\n1", word_wrap(input, line_width: 3)
+    assert_equal "1-+1 1-+1-+1", word_wrap(input, line_width: 3, break_sequence: "-+")
   end
 
-  def test_word_wrap_with_non_strippable_break_sequence
-    assert_equal("11\n# 22\n# 33", word_wrap("11 22 33", line_width: 2, break_sequence: "\n# "))
+  test "word_wrap with leading spaces" do
+    input = "  1 1\n  1 1\n"
+    assert_equal "  1\n1\n  1\n1", word_wrap(input, line_width: 3)
+    assert_equal "  1-+1-+  1-+1", word_wrap(input, line_width: 3, break_sequence: "-+")
   end
 
   def test_pluralization
