@@ -82,7 +82,7 @@ end
 group :cable do
   gem "puma", require: false
 
-  gem "redis", ">= 4.0.1", "< 5", require: false
+  gem "redis", ">= 4.0.1", require: false
 
   gem "redis-namespace"
 
