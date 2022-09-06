@@ -42,6 +42,8 @@ module ActiveRecord
   # ActiveSupport::CurrentAttributes can be used to store application values. Tags with +nil+ values are
   # omitted from the query comment.
   #
+  # Escaping is performed on the string returned, however untrusted user input should not be used.
+  #
   # Example:
   #
   #     config.active_record.query_log_tags = [
@@ -127,7 +129,16 @@ module ActiveRecord
         end
 
         def escape_sql_comment(content)
-          content.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
+          # Sanitize a string to appear within a SQL comment
+          # For compatibility, this also surrounding "/*+", "/*", and "*/"
+          # charcacters, possibly with single surrounding space.
+          # Then follows that by replacing any internal "*/" or "/ *" with
+          # "* /" or "/ *"
+          comment = content.to_s.dup
+          comment.gsub!(%r{\A\s*/\*\+?\s?|\s?\*/\s*\Z}, "")
+          comment.gsub!("*/", "* /")
+          comment.gsub!("/*", "/ *")
+          comment
         end
 
         def tag_content

@@ -49,8 +49,9 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   def test_escaping_bad_comments
-    assert_equal "; DROP TABLE USERS;", ActiveRecord::QueryLogs.send(:escape_sql_comment, "*/; DROP TABLE USERS;/*")
-    assert_equal "; DROP TABLE USERS;", ActiveRecord::QueryLogs.send(:escape_sql_comment, "**//; DROP TABLE USERS;/*")
+    assert_equal "* /; DROP TABLE USERS;/ *", ActiveRecord::QueryLogs.send(:escape_sql_comment, "*/; DROP TABLE USERS;/*")
+    assert_equal "** //; DROP TABLE USERS;/ *", ActiveRecord::QueryLogs.send(:escape_sql_comment, "**//; DROP TABLE USERS;/*")
+    assert_equal "* * //; DROP TABLE USERS;// * *", ActiveRecord::QueryLogs.send(:escape_sql_comment, "* *//; DROP TABLE USERS;//* *")
   end
 
   def test_basic_commenting
