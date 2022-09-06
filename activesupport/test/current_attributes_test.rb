@@ -31,6 +31,17 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       Session.current = person&.id
     end
 
+    def set_world_and_account(world:, account:)
+      self.world = world
+      self.account = account
+    end
+
+    def get_world_and_account(hash)
+      hash[:world] = world
+      hash[:account] = account
+      hash
+    end
+
     def request
       "#{super} something"
     end
@@ -124,6 +135,18 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal "world/1", Current.world
     assert_equal "account/1", Current.account
+  end
+
+  test "using keyword arguments" do
+    Current.set_world_and_account(world: "world/1", account: "account/1")
+
+    assert_equal "world/1", Current.world
+    assert_equal "account/1", Current.account
+
+    hash = {}
+    assert_same hash, Current.get_world_and_account(hash)
+    assert_equal "world/1", hash[:world]
+    assert_equal "account/1", hash[:account]
   end
 
   setup { @testing_teardown = false }
