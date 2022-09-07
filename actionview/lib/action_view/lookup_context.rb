@@ -148,6 +148,16 @@ module ActionView
       end
       alias :any_templates? :any?
 
+      def append_view_paths(paths)
+        @view_paths = build_view_paths(@view_paths.to_a + paths)
+        @partial_cache = nil
+      end
+
+      def prepend_view_paths(paths)
+        @view_paths = build_view_paths(paths + @view_paths.to_a)
+        @partial_cache = nil
+      end
+
     private
       # Whenever setting view paths, makes a copy so that we can manipulate them in
       # instance objects as we wish.
