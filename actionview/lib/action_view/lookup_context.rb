@@ -140,27 +140,32 @@ module ActionView
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
-        @view_paths.find(name, prefixes, partial, details, details_key, keys)
+        unbound_template =
+          @view_paths.find_all_unbound(name, prefixes, partial, details, details_key).first ||
+          raise(MissingTemplate.new(@view_paths, name, prefixes, partial, details))
+        unbound_template.bind_locals(keys)
       end
       alias :find_template :find
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
-        @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
+        @view_paths.find_all_unbound(name, prefixes, partial, details, details_key).map do |unbound_template|
+          unbound_template.bind_locals(keys)
+        end
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
-        @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
+        !@view_paths.find_all_unbound(name, prefixes, partial, details, details_key).empty?
       end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for_any
-        @view_paths.exists?(name, prefixes, partial, details, details_key, [])
+        !@view_paths.find_all_unbound(name, prefixes, partial, details, details_key).empty?
       end
       alias :any_templates? :any?
 
