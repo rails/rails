@@ -61,6 +61,10 @@ module ActionView # :nodoc:
       def handler_for_extension(extension)
         registered_template_handler(extension) || @@default_template_handlers
       end
+
+      def extension_for_handler(handler)
+        @@template_handlers.key(handler)
+      end
     end
   end
 end

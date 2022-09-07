@@ -224,7 +224,11 @@ module ActionView
       super(lookup_context)
       @options = options
       @locals  = @options[:locals] || {}
-      @details = extract_details(@options)
+      if options.size == 2 && @options[:locals] && @options[:partial]
+        @details = NO_DETAILS
+      else
+        @details = extract_details(@options)
+      end
     end
 
     def render(partial, context, block)
@@ -259,8 +263,12 @@ module ActionView
       end
 
       def find_template(path, locals)
-        prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
-        @lookup_context.find_template(path, prefixes, true, locals, @details)
+        if @details.empty?
+          @lookup_context.find_partial(path, locals)
+        else
+          prefixes = path.include?(?/) ? nil : @lookup_context.prefixes
+          @lookup_context.find_template(path, prefixes, true, locals, @details)
+        end
       end
   end
 end

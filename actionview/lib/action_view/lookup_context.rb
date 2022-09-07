@@ -13,7 +13,7 @@ module ActionView
   # view paths, used in the resolver cache lookup. Since this key is generated
   # only once during the request, it speeds up all cache accesses.
   class LookupContext # :nodoc:
-    attr_accessor :prefixes
+    attr_reader :prefixes
 
     singleton_class.attr_accessor :registered_details
     self.registered_details = []
@@ -108,9 +108,14 @@ module ActionView
         @cache = old_value
       end
 
+      def partial_cache
+        @partial_cache ||= Concurrent::Map.new
+      end
+
     private
       def _set_detail(key, value) # :doc:
         @details = @details.dup if @digest_cache || @details_key
+        @partial_cache = nil
         @digest_cache = nil
         @details_key = nil
         @details[key] = value
@@ -121,38 +126,68 @@ module ActionView
     module ViewPaths
       attr_reader :view_paths, :html_fallback_for_js
 
+      def find_partial(path, keys)
+        unbound_template =
+          partial_cache.compute_if_absent(path) do
+            prefixes = path.include?(?/) ? nil : @prefixes
+            path, prefixes = normalize_name(path, prefixes)
+            @view_paths.find_all_unbound(path, prefixes, true, @details, details_key).first ||
+              raise(MissingTemplate.new(@view_paths, path, prefixes, true, @details))
+          end
+        unbound_template.bind_locals(keys)
+      end
+
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
-        @view_paths.find(name, prefixes, partial, details, details_key, keys)
+        unbound_template =
+          @view_paths.find_all_unbound(name, prefixes, partial, details, details_key).first ||
+          raise(MissingTemplate.new(@view_paths, name, prefixes, partial, details))
+        unbound_template.bind_locals(keys)
       end
       alias :find_template :find
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
-        @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
+        @view_paths.find_all_unbound(name, prefixes, partial, details, details_key).map do |unbound_template|
+          unbound_template.bind_locals(keys)
+        end
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
-        @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
+        !@view_paths.find_all_unbound(name, prefixes, partial, details, details_key).empty?
       end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for_any
-        @view_paths.exists?(name, prefixes, partial, details, details_key, [])
+        !@view_paths.find_all_unbound(name, prefixes, partial, details, details_key).empty?
       end
       alias :any_templates? :any?
+
+      def append_view_paths(paths)
+        @view_paths = build_view_paths(@view_paths.to_a + paths)
+        @partial_cache = nil
+      end
+
+      def prepend_view_paths(paths)
+        @view_paths = build_view_paths(paths + @view_paths.to_a)
+        @partial_cache = nil
+      end
 
     private
       # Whenever setting view paths, makes a copy so that we can manipulate them in
       # instance objects as we wish.
       def build_view_paths(paths)
-        ActionView::PathSet.new(Array(paths))
+        if ActionView::PathSet === paths
+          paths
+        else
+          ActionView::PathSet.new(Array(paths))
+        end
       end
 
       # Compute details hash and key according to user options (e.g. passed from #render).
@@ -189,11 +224,13 @@ module ActionView
         end
       end
 
+      EMPTY_PREFIXES = [""].freeze
+
       # Fix when prefix is specified as part of the template name
       def normalize_name(name, prefixes)
         name = name.to_s
         idx = name.rindex("/")
-        return name, prefixes.presence || [""] unless idx
+        return name, prefixes.presence || EMPTY_PREFIXES unless idx
 
         path_prefix = name[0, idx]
         path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
@@ -217,7 +254,7 @@ module ActionView
       @details_key = nil
       @digest_cache = nil
       @cache = true
-      @prefixes = prefixes
+      @prefixes = prefixes.freeze
 
       @details = initialize_details({}, details)
       @view_paths = build_view_paths(view_paths)

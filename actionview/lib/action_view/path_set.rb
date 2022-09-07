@@ -13,14 +13,14 @@ module ActionView # :nodoc:
 
     attr_reader :paths
 
-    delegate :[], :include?, :pop, :size, :each, to: :paths
+    delegate :[], :include?, :size, :each, to: :paths
 
     def initialize(paths = [])
-      @paths = typecast paths
+      @paths = typecast(paths).freeze
     end
 
     def initialize_copy(other)
-      @paths = other.paths.dup
+      @paths = other.paths.dup.freeze
       self
     end
 
@@ -28,37 +28,12 @@ module ActionView # :nodoc:
       paths.dup
     end
 
-    def compact
-      PathSet.new paths.compact
-    end
-
-    def +(array)
-      PathSet.new(paths + array)
-    end
-
-    %w(<< concat push insert unshift).each do |method|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{method}(*args)
-          paths.#{method}(*typecast(args))
-        end
-      METHOD
-    end
-
-    def find(path, prefixes, partial, details, details_key, locals)
-      find_all(path, prefixes, partial, details, details_key, locals).first ||
-        raise(MissingTemplate.new(self, path, prefixes, partial, details, details_key, locals))
-    end
-
-    def find_all(path, prefixes, partial, details, details_key, locals)
+    def find_all_unbound(path, prefixes, partial, details, details_key)
       search_combinations(prefixes) do |resolver, prefix|
-        templates = resolver.find_all(path, prefix, partial, details, details_key, locals)
+        templates = resolver.find_all_unbound(path, prefix, partial, details, details_key)
         return templates unless templates.empty?
       end
       []
-    end
-
-    def exists?(path, prefixes, partial, details, details_key, locals)
-      find_all(path, prefixes, partial, details, details_key, locals).any?
     end
 
     private
@@ -76,8 +51,10 @@ module ActionView # :nodoc:
           case path
           when Pathname, String
             FileSystemResolver.new path.to_s
-          else
+          when Resolver
             path
+          else
+            raise TypeError, "#{path.inspect} is not a valid path: must be a String, Pathname, or Resolver"
           end
         end
       end
