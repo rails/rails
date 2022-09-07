@@ -27,6 +27,12 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal ["http://example.com/1"], content.links
   end
 
+  test "extracts headings" do
+    html = "<h1>Hello world</h1><br><h1>Hello Rails</h1>"
+    content = content_from_html(html)
+    assert_equal ["Hello world", "Hello Rails"], content.headings
+  end
+
   test "extracts attachables" do
     attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)

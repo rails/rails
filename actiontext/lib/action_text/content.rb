@@ -30,6 +30,10 @@ module ActionText
       @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
     end
 
+    def headings
+      @headings ||= fragment.find_all("h1").map(&:text)
+    end
+
     def attachments
       @attachments ||= attachment_nodes.map do |node|
         attachment_for_node(node)
