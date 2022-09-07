@@ -142,33 +142,68 @@ module ActiveRecord
 
       # Returns true if there are any active connections among the connection
       # pools that the ConnectionHandler is managing.
-      def active_connections?(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).any?(&:active_connection?)
+      def active_connections?(role = nil)
+        if role.nil?
+          deprecation_for_pool_handling(__method__)
+          connection_pool_list(ActiveRecord::Base.current_role).any?(&:active_connection?)
+        elsif role == :all
+          all_connection_pools.any?(&:active_connection?)
+        else
+          connection_pool_list(role).any?(&:active_connection?)
+        end
       end
 
       # Returns any connections in use by the current thread back to the pool,
       # and also returns connections to the pool cached by threads that are no
       # longer alive.
-      def clear_active_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:release_connection)
+      def clear_active_connections!(role = nil)
+        if role.nil?
+          deprecation_for_pool_handling(__method__)
+          connection_pool_list(ActiveRecord::Base.current_role).each(&:release_connection)
+        elsif role == :all
+          all_connection_pools.each(&:release_connection)
+        else
+          connection_pool_list(role).each(&:release_connection)
+        end
       end
 
       # Clears the cache which maps classes.
       #
       # See ConnectionPool#clear_reloadable_connections! for details.
-      def clear_reloadable_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:clear_reloadable_connections!)
+      def clear_reloadable_connections!(role = nil)
+        if role.nil?
+          deprecation_for_pool_handling(__method__)
+          connection_pool_list(ActiveRecord::Base.current_role).each(&:clear_reloadable_connections!)
+        elsif role == :all
+          all_connection_pools.each(&:clear_reloadable_connections!)
+        else
+          connection_pool_list(role).each(&:clear_reloadable_connections!)
+        end
       end
 
-      def clear_all_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:disconnect!)
+      def clear_all_connections!(role = nil)
+        if role.nil?
+          deprecation_for_pool_handling(__method__)
+          connection_pool_list(ActiveRecord::Base.current_role).each(&:disconnect!)
+        elsif role == :all
+          all_connection_pools.each(&:disconnect!)
+        else
+          connection_pool_list(role).each(&:disconnect!)
+        end
       end
 
       # Disconnects all currently idle connections.
       #
       # See ConnectionPool#flush! for details.
-      def flush_idle_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:flush!)
+      def flush_idle_connections!(role = nil)
+        if role.nil?
+          deprecation_for_pool_handling(__method__)
+          connection_pool_list(ActiveRecord::Base.current_role).each(&:flush!)
+        elsif role == :all
+          all_connection_pools.each(&:flush!)
+        else
+          connection_pool_list(role).each(&:flush!)
+        end
       end
 
       # Locate the connection of the nearest super class. This can be an
@@ -225,6 +260,27 @@ module ActiveRecord
         # Get the existing pool manager or initialize and assign a new one.
         def set_pool_manager(connection_name)
           connection_name_to_pool_manager[connection_name] ||= PoolManager.new
+        end
+
+        def pool_managers
+          connection_name_to_pool_manager.values
+        end
+
+        def deprecation_for_pool_handling(method)
+          roles = []
+          pool_managers.each do |pool_manager|
+            roles << pool_manager.role_names
+          end
+
+          if roles.flatten.uniq.count > 1
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              `#{method}` currently only applies to connection pools in the current
+              role (`#{ActiveRecord::Base.current_role}`). In Rails 7.1, this method
+              will apply to all known pools, regardless of role. To affect only those
+              connections belonging to a specific role, pass the role name as an
+              argument. To switch to the new behavior, pass `:all` as the role name.
+            MSG
+          end
         end
 
         def disconnect_pool_from_pool_manager(pool_manager, role, shard)

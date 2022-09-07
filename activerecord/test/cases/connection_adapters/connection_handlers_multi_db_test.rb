@@ -330,15 +330,22 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert_not_predicate @handler, :active_connections?
+        assert_deprecated do
+          assert_not_predicate @handler, :active_connections?
+        end
 
         assert @handler.retrieve_connection(@connection_name)
         assert @handler.retrieve_connection(@connection_name, role: :reading)
 
-        assert_predicate @handler, :active_connections?
+        assert_deprecated do
+          assert_predicate @handler, :active_connections?
+        end
 
-        @handler.clear_active_connections!
-        assert_not_predicate @handler, :active_connections?
+        @handler.clear_active_connections!(:all)
+
+        assert_deprecated do
+          assert_not_predicate @handler, :active_connections?
+        end
       end
 
       def test_retrieve_connection_pool

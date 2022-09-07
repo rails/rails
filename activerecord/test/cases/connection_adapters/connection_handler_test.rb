@@ -15,6 +15,10 @@ module ActiveRecord
         @pool = @handler.establish_connection(db_config)
       end
 
+      def teardown
+        clean_up_connection_handler
+      end
+
       def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
         original_rails_env = ENV["RAILS_ENV"]
         original_rack_env  = ENV["RACK_ENV"]
@@ -64,7 +68,7 @@ module ActiveRecord
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
 
-          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+          ActiveRecord::Base.connects_to(shards: { default: { also_writing: :arunit }, one: { also_writing: :arunit } })
 
           assert_raises(ArgumentError) { setup_shared_connection_pool }
         ensure
@@ -92,9 +96,9 @@ module ActiveRecord
         def test_setting_writing_role_while_using_another_named_role_does_not_raise
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :all
+          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :also_writing
 
-          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+          ActiveRecord::Base.connects_to(shards: { default: { also_writing: :arunit }, one: { also_writing: :arunit } })
 
           assert_nothing_raised { setup_shared_connection_pool }
         ensure
@@ -232,7 +236,7 @@ module ActiveRecord
         assert_not_predicate @handler, :active_connections?
         assert @handler.retrieve_connection(@connection_name)
         assert_predicate @handler, :active_connections?
-        @handler.clear_active_connections!
+        @handler.clear_active_connections!(:all)
         assert_not_predicate @handler, :active_connections?
       end
 
