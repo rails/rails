@@ -6,9 +6,14 @@ module ActionView
       super(lookup_context)
     end
 
-    def render(view, path, locals)
+    def render_body(view, path, locals)
       template = @lookup_context.find_partial(path, locals.keys)
+      template_content(view, template, locals).to_s
+    end
 
+    private
+
+    def template_content(view, template, locals)
       ActiveSupport::Notifications.instrument(
         "render_partial.action_view", {
           identifier: template.identifier,
@@ -19,7 +24,7 @@ module ActionView
         end
 
         payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
-        build_rendered_template(content, template)
+        content
       end
     end
   end
