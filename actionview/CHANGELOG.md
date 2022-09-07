@@ -1,3 +1,35 @@
+*   Strip `break_sequence` at the end of `word_wrap`.
+
+    This fixes a bug where `word_wrap` didn't properly strip off break sequences that had printable characters.
+
+    For example, compare the outputs of this template:
+
+    ```erb
+    # <%= word_wrap("11 22\n33 44", line_width: 2, break_sequence: "\n# ") %>
+    ```
+
+    Before:
+
+    ```
+    # 11
+    # 22
+    #
+    # 33
+    # 44
+    #
+    ```
+
+    After:
+
+    ```
+    # 11
+    # 22
+    # 33
+    # 44
+    ```
+
+    *Max Chernyak*
+
 *   Allow templates to set strict `locals`.
 
     By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
