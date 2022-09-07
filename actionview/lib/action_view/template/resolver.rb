@@ -62,14 +62,17 @@ module ActionView
 
     # Normalizes the arguments and passes it on to find_templates.
     def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
-      _find_all_unbound(name, prefix, partial, details, key).map do |unbound_template|
-        unbound_template.bind_locals(locals)
-      end
+      _find_all(name, prefix, partial, details, key, locals)
     end
 
     # Normalizes the arguments and passes it on to find_templates.
     def find_all_unbound(name, prefix = nil, partial = false, details = {}, key = nil)
-      _find_all_unbound(name, prefix, partial, details, key)
+      # Find a template with placeholder locals
+      templates = find_all(name, prefix, partial, details, key, [])
+
+      templates.map do |template|
+        UnboundTemplate.new(template.source, template.identifier, details: template.details, virtual_path: template.virtual_path)
+      end
     end
 
     def all_template_paths # :nodoc:
@@ -92,8 +95,20 @@ module ActionView
     end
   end
 
+  class UnboundResolver < Resolver
+    def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
+      _find_all_unbound(name, prefix, partial, details, key).map do |unbound_template|
+        unbound_template.bind_locals(locals)
+      end
+    end
+
+    def find_all_unbound(name, prefix = nil, partial = false, details = {}, key = nil)
+      _find_all_unbound(name, prefix, partial, details, key)
+    end
+  end
+
   # A resolver that loads files from the filesystem.
-  class FileSystemResolver < Resolver
+  class FileSystemResolver < UnboundResolver
     attr_reader :path
 
     def initialize(path)
