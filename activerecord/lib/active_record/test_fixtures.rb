@@ -168,7 +168,7 @@ module ActiveRecord
     def enlist_fixture_connections
       setup_shared_connection_pool
 
-      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
+      ActiveRecord::Base.connection_handler.connection_pool_list(:writing).map(&:connection)
     end
 
     private

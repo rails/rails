@@ -319,9 +319,19 @@ module ActiveRecord
         end
       end
 
-      def test_connection_pools
-        assert_equal([@rw_pool], @handler.connection_pools(:writing))
-        assert_equal([@ro_pool], @handler.connection_pools(:reading))
+      def test_connection_pool_list
+        assert_equal([@rw_pool], @handler.connection_pool_list(:writing))
+        assert_equal([@ro_pool], @handler.connection_pool_list(:reading))
+
+        assert_deprecated do
+          @handler.connection_pool_list
+        end
+      end
+
+      def test_all_connection_pools
+        assert_deprecated do
+          assert_equal([@rw_pool, @ro_pool], @handler.all_connection_pools)
+        end
       end
 
       def test_retrieve_connection

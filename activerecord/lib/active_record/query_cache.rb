@@ -27,14 +27,14 @@ module ActiveRecord
 
     def self.run
       pools = []
-      pools.concat(ActiveRecord::Base.connection_handler.all_connection_pools.reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! })
+      pools.concat(ActiveRecord::Base.connection_handler.connection_pool_list(:all).reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! })
       pools
     end
 
     def self.complete(pools)
       pools.each { |pool| pool.disable_query_cache! }
 
-      ActiveRecord::Base.connection_handler.all_connection_pools.each do |pool|
+      ActiveRecord::Base.connection_handler.connection_pool_list(:all).each do |pool|
         pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
       end
     end

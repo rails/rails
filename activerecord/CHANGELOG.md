@@ -1,3 +1,9 @@
+*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+
+    Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
+
+    *Eileen M. Uchitelle*
+
 *   Fix connection handler methods to operate on all pools.
 
     `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.

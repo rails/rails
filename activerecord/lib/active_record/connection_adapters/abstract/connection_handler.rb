@@ -93,11 +93,25 @@ module ActiveRecord
       end
 
       def all_connection_pools
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The `all_connection_pools` method is deprecated in favor of `connection_pool_list`.
+          Call `connection_pool_list(:all)` to get the same behavior as `all_connection_pools`.
+        MSG
         connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
       end
 
-      def connection_pool_list(role = ActiveRecord::Base.current_role)
-        connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
+      # Returns the pools for a connection handler and  given role. If `:all` is passed,
+      # all pools belonging to the connection handler will be returned.
+      def connection_pool_list(role = nil)
+        if role.nil?
+          deprecation_for_pool_handling(__method__)
+          role = ActiveRecord::Base.current_role
+          connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
+        elsif role == :all
+          connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
+        else
+          connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
+        end
       end
       alias :connection_pools :connection_pool_list
 
@@ -145,12 +159,10 @@ module ActiveRecord
       def active_connections?(role = nil)
         if role.nil?
           deprecation_for_pool_handling(__method__)
-          connection_pool_list(ActiveRecord::Base.current_role).any?(&:active_connection?)
-        elsif role == :all
-          all_connection_pools.any?(&:active_connection?)
-        else
-          connection_pool_list(role).any?(&:active_connection?)
+          role = ActiveRecord::Base.current_role
         end
+
+        connection_pool_list(role).any?(&:active_connection?)
       end
 
       # Returns any connections in use by the current thread back to the pool,
@@ -159,12 +171,10 @@ module ActiveRecord
       def clear_active_connections!(role = nil)
         if role.nil?
           deprecation_for_pool_handling(__method__)
-          connection_pool_list(ActiveRecord::Base.current_role).each(&:release_connection)
-        elsif role == :all
-          all_connection_pools.each(&:release_connection)
-        else
-          connection_pool_list(role).each(&:release_connection)
+          role = ActiveRecord::Base.current_role
         end
+
+        connection_pool_list(role).each(&:release_connection)
       end
 
       # Clears the cache which maps classes.
@@ -173,23 +183,19 @@ module ActiveRecord
       def clear_reloadable_connections!(role = nil)
         if role.nil?
           deprecation_for_pool_handling(__method__)
-          connection_pool_list(ActiveRecord::Base.current_role).each(&:clear_reloadable_connections!)
-        elsif role == :all
-          all_connection_pools.each(&:clear_reloadable_connections!)
-        else
-          connection_pool_list(role).each(&:clear_reloadable_connections!)
+          role = ActiveRecord::Base.current_role
         end
+
+        connection_pool_list(role).each(&:clear_reloadable_connections!)
       end
 
       def clear_all_connections!(role = nil)
         if role.nil?
           deprecation_for_pool_handling(__method__)
-          connection_pool_list(ActiveRecord::Base.current_role).each(&:disconnect!)
-        elsif role == :all
-          all_connection_pools.each(&:disconnect!)
-        else
-          connection_pool_list(role).each(&:disconnect!)
+          role = ActiveRecord::Base.current_role
         end
+
+        connection_pool_list(role).each(&:disconnect!)
       end
 
       # Disconnects all currently idle connections.
@@ -198,12 +204,10 @@ module ActiveRecord
       def flush_idle_connections!(role = nil)
         if role.nil?
           deprecation_for_pool_handling(__method__)
-          connection_pool_list(ActiveRecord::Base.current_role).each(&:flush!)
-        elsif role == :all
-          all_connection_pools.each(&:flush!)
-        else
-          connection_pool_list(role).each(&:flush!)
+          role = ActiveRecord::Base.current_role
         end
+
+        connection_pool_list(role).each(&:flush!)
       end
 
       # Locate the connection of the nearest super class. This can be an
