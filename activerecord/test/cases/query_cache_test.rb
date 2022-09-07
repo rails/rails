@@ -81,7 +81,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
 
     mw = middleware { |env|
-      ActiveRecord::Base.connection_handler.all_connection_pools.each do |pool|
+      ActiveRecord::Base.connection_handler.connection_pool_list(:all).each do |pool|
         assert_predicate pool.connection, :query_cache_enabled
       end
     }
@@ -558,7 +558,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_is_enabled_on_all_connection_pools
     middleware {
-      ActiveRecord::Base.connection_handler.all_connection_pools.each do |pool|
+      ActiveRecord::Base.connection_handler.connection_pool_list(:all).each do |pool|
         assert pool.query_cache_enabled
         assert pool.connection.query_cache_enabled
       end
