@@ -141,7 +141,8 @@ class ViewLoadPathsTest < ActionController::TestCase
       end
 
       def find_all(*args)
-        @path_set.find_all(*args).collect do |template|
+        resolver = @path_set.first
+        resolver.find_all(*args).collect do |template|
           ::ActionView::Template.new(
             "Decorated body",
             template.identifier,
