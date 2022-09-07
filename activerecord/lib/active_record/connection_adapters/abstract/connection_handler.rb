@@ -115,6 +115,17 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
+      def each_connection_pool(role = nil, &block) # :nodoc:
+        role = nil if role == :all
+        return enum_for(__method__, role) unless block_given?
+
+        connection_name_to_pool_manager.each_value do |manager|
+          manager.each_pool_config(role) do |pool_config|
+            yield pool_config.pool
+          end
+        end
+      end
+
       def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
         owner_name = StringConnectionName.new(config.to_s) if config.is_a?(Symbol)
 
@@ -162,7 +173,7 @@ module ActiveRecord
           role = ActiveRecord::Base.current_role
         end
 
-        connection_pool_list(role).any?(&:active_connection?)
+        each_connection_pool(role).any?(&:active_connection?)
       end
 
       # Returns any connections in use by the current thread back to the pool,
@@ -174,7 +185,7 @@ module ActiveRecord
           role = ActiveRecord::Base.current_role
         end
 
-        connection_pool_list(role).each(&:release_connection)
+        each_connection_pool(role).each(&:release_connection)
       end
 
       # Clears the cache which maps classes.
@@ -186,7 +197,7 @@ module ActiveRecord
           role = ActiveRecord::Base.current_role
         end
 
-        connection_pool_list(role).each(&:clear_reloadable_connections!)
+        each_connection_pool(role).each(&:clear_reloadable_connections!)
       end
 
       def clear_all_connections!(role = nil)
@@ -195,7 +206,7 @@ module ActiveRecord
           role = ActiveRecord::Base.current_role
         end
 
-        connection_pool_list(role).each(&:disconnect!)
+        each_connection_pool(role).each(&:disconnect!)
       end
 
       # Disconnects all currently idle connections.
@@ -207,7 +218,7 @@ module ActiveRecord
           role = ActiveRecord::Base.current_role
         end
 
-        connection_pool_list(role).each(&:flush!)
+        each_connection_pool(role).each(&:flush!)
       end
 
       # Locate the connection of the nearest super class. This can be an
