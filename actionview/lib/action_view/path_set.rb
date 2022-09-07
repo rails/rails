@@ -76,8 +76,10 @@ module ActionView # :nodoc:
           case path
           when Pathname, String
             FileSystemResolver.new path.to_s
-          else
+          when Resolver
             path
+          else
+            raise TypeError, "#{path.inspect} is not a valid path: must be a String, Pathname, or Resolver"
           end
         end
       end
