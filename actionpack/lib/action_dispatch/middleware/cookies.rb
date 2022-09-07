@@ -677,7 +677,7 @@ module ActionDispatch
           deserialize(name) do |rotate|
             @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
           end
-        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature, JSON::ParserError
           nil
         end
 
