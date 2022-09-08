@@ -31,7 +31,9 @@ module ActionDispatch
 
       def ensure_subscribed
         @mutex.synchronize do
-          @subscriber ||= ActiveSupport::Notifications.subscribe(/.*/, self)
+          # Subscribe to all events, except those beginning with "!"
+          # Ideally we would be more selective of what is being measured
+          @subscriber ||= ActiveSupport::Notifications.subscribe(/\A[^!]/, self)
         end
       end
 
