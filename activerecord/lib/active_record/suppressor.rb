@@ -32,7 +32,7 @@ module ActiveRecord
 
     class << self
       def registry # :nodoc:
-        ActiveSupport::IsolatedExecutionState[:active_record_suppresor_registry] ||= {}
+        ActiveSupport::IsolatedExecutionState[:active_record_suppressor_registry] ||= {}
       end
     end
 
