@@ -108,11 +108,12 @@ module ActiveRecord
       end
 
       def test_bad_timeout
-        assert_raises(ActiveRecord::StatementInvalid, /TypeError/) do
+        exception = assert_raises(ActiveRecord::StatementInvalid) do
           Base.sqlite3_connection(database: ":memory:",
                                   adapter: "sqlite3",
                                   timeout: "usa").connect!
         end
+        assert_match("TypeError", exception.message)
       end
 
       # connection is OK with a nil timeout
@@ -625,9 +626,10 @@ module ActiveRecord
                                        readonly: true
         conn.connect!
 
-        assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
+        exception = assert_raises(ActiveRecord::StatementInvalid) do
           conn.execute("CREATE TABLE test(id integer)")
         end
+        assert_match("SQLite3::ReadOnlyException", exception.message)
       end
 
       def test_strict_strings_by_default
