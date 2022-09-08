@@ -96,7 +96,8 @@ module ActiveSupport
 
       # Changes current time to the given time by stubbing +Time.now+,
       # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
-      # The stubs are automatically removed at the end of the test.
+      # The stubs are automatically removed at the end of the test when a block
+      # is passed in.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 1, 4, 44)
