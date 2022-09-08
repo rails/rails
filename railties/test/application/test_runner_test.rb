@@ -376,7 +376,7 @@ module ApplicationTests
       end
     end
 
-    def test_more_than_one_line_filter_macro_syntax
+    def test_more_than_one_line_filter
       app_file "test/models/post_test.rb", <<-RUBY
         require "test_helper"
 
@@ -386,46 +386,18 @@ module ApplicationTests
             assert true
           end
 
+          test "line filter does not run this" do
+            assert true
+          end
+
           test "second filter" do
             puts 'PostTest:SecondFilter'
             assert true
           end
-
-          test "line filter does not run this" do
-            assert true
-          end
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb:4:9").tap do |output|
-        assert_match "PostTest:FirstFilter", output
-        assert_match "PostTest:SecondFilter", output
-        assert_match "2 runs, 2 assertions", output
-      end
-    end
-
-    def test_more_than_one_line_filter_test_method_syntax
-      app_file "test/models/post_test.rb", <<-RUBY
-        require "test_helper"
-
-        class PostTest < ActiveSupport::TestCase
-          def test_first_filter
-            puts 'PostTest:FirstFilter'
-            assert true
-          end
-
-          def test_second_filter
-            puts 'PostTest:SecondFilter'
-            assert true
-          end
-
-          def test_line_filter_does_not_run_this
-            assert true
-          end
-        end
-      RUBY
-
-      run_test_command("test/models/post_test.rb:4:9").tap do |output|
+      run_test_command("test/models/post_test.rb:4:13").tap do |output|
         assert_match "PostTest:FirstFilter", output
         assert_match "PostTest:SecondFilter", output
         assert_match "2 runs, 2 assertions", output
