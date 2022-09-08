@@ -386,18 +386,18 @@ module ApplicationTests
             assert true
           end
 
-          test "second filter" do
-            puts 'PostTest:SecondFilter'
+          test "line filter does not run this" do
             assert true
           end
 
-          test "line filter does not run this" do
+          test "second filter" do
+            puts 'PostTest:SecondFilter'
             assert true
           end
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb:4:9").tap do |output|
+      run_test_command("test/models/post_test.rb:4:13").tap do |output|
         assert_match "PostTest:FirstFilter", output
         assert_match "PostTest:SecondFilter", output
         assert_match "2 runs, 2 assertions", output
