@@ -34,7 +34,9 @@ module RailtiesTest
 
     def migrations
       migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
-      ActiveRecord::MigrationContext.new(migration_root, ActiveRecord::SchemaMigration::NullSchemaMigration.new).migrations
+      sm = ActiveRecord::SchemaMigration::NullSchemaMigration.new
+      im = ActiveRecord::InternalMetadata::NullInternalMetadata.new
+      ActiveRecord::MigrationContext.new(migration_root, sm, im).migrations
     end
 
     test "serving sprocket's assets" do

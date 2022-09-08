@@ -586,8 +586,8 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:setup"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
-        development_environment = lambda { rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
+        development_environment = lambda { rails("runner", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
         assert_equal "development", development_environment.call
@@ -607,7 +607,7 @@ module ApplicationTests
         app_file "db/schema.rb", ""
         rails "db:test:prepare"
 
-        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::Base.connection.internal_metadata[:environment]").strip }
 
         assert_equal "test", test_environment.call
 
