@@ -1,3 +1,9 @@
+*   Add `String#downcase_first` method.
+
+    This method is the corollary of `String#upcase_first`.
+
+    *Mark Schneider*
+
 *   `thread_mattr_accessor` will call `.dup.freeze` on non-frozen default values.
 
     This provides a basic level of protection against different threads trying
