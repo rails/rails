@@ -1,3 +1,7 @@
+*   Show BCC recipients when present in Action Mailer previews.
+
+    *Akshay Birajdar*
+
 *   Extend `routes --grep` to also filter routes by matching against path.
 
     Example:
