@@ -68,7 +68,7 @@ module ActiveSupport
       class_attribute :__callbacks, instance_writer: false, default: {}
     end
 
-    CALLBACK_FILTER_TYPES = [:before, :after, :around]
+    CALLBACK_FILTER_TYPES = [:before, :after, :around].freeze
 
     # Runs the callbacks for the given event.
     #
@@ -92,14 +92,15 @@ module ActiveSupport
     # callback can be as noisy as it likes -- but when control has passed
     # smoothly through and into the supplied block, we want as little evidence
     # as possible that we were here.
-    def run_callbacks(kind)
+    def run_callbacks(kind, type = nil)
       callbacks = __callbacks[kind.to_sym]
 
       if callbacks.empty?
         yield if block_given?
       else
         env = Filters::Environment.new(self, false, nil)
-        next_sequence = callbacks.compile
+
+        next_sequence = callbacks.compile(type)
 
         # Common case: no 'around' callbacks defined
         if next_sequence.final?
@@ -612,7 +613,8 @@ module ActiveSupport
             terminator: default_terminator
           }.merge!(config)
           @chain = []
-          @callbacks = nil
+          @all_callbacks = nil
+          @single_callbacks = {}
           @mutex = Mutex.new
         end
 
@@ -621,32 +623,45 @@ module ActiveSupport
         def empty?;       @chain.empty?; end
 
         def insert(index, o)
-          @callbacks = nil
+          @all_callbacks = nil
+          @single_callbacks.clear
           @chain.insert(index, o)
         end
 
         def delete(o)
-          @callbacks = nil
+          @all_callbacks = nil
+          @single_callbacks.clear
           @chain.delete(o)
         end
 
         def clear
-          @callbacks = nil
+          @all_callbacks = nil
+          @single_callbacks.clear
           @chain.clear
           self
         end
 
         def initialize_copy(other)
-          @callbacks = nil
+          @all_callbacks = nil
+          @single_callbacks = {}
           @chain     = other.chain.dup
           @mutex     = Mutex.new
         end
 
-        def compile
-          @callbacks || @mutex.synchronize do
-            final_sequence = CallbackSequence.new
-            @callbacks ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
-              callback.apply callback_sequence
+        def compile(type)
+          if type.nil?
+            @all_callbacks || @mutex.synchronize do
+              final_sequence = CallbackSequence.new
+              @all_callbacks ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
+                callback.apply(callback_sequence)
+              end
+            end
+          else
+            @single_callbacks[type] || @mutex.synchronize do
+              final_sequence = CallbackSequence.new
+              @single_callbacks[type] ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
+                type == callback.kind ? callback.apply(callback_sequence) : callback_sequence
+              end
             end
           end
         end
@@ -664,19 +679,22 @@ module ActiveSupport
 
         private
           def append_one(callback)
-            @callbacks = nil
+            @all_callbacks = nil
+            @single_callbacks.clear
             remove_duplicates(callback)
             @chain.push(callback)
           end
 
           def prepend_one(callback)
-            @callbacks = nil
+            @all_callbacks = nil
+            @single_callbacks.clear
             remove_duplicates(callback)
             @chain.unshift(callback)
           end
 
           def remove_duplicates(callback)
-            @callbacks = nil
+            @all_callbacks = nil
+            @single_callbacks.clear
             @chain.delete_if { |c| callback.duplicates?(c) }
           end
 
