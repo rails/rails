@@ -102,7 +102,11 @@ module ActiveRecord
       self
     end
 
-    def cast_values(type_overrides = {}) # :nodoc:
+    # Returns the array of deserialized result object(s).
+    #
+    #   result = ActiveRecord::Base.connection.exec_query("SELECT array_agg(id) FROM users;")
+    #   result.cast_values # => [[1, 2, 3]]
+    def cast_values(type_overrides = {})
       if columns.one?
         # Separated to avoid allocating an array per row
 
