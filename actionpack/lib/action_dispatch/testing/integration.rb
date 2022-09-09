@@ -58,7 +58,8 @@ module ActionDispatch
       # the same HTTP verb will be used when redirecting, otherwise a GET request
       # will be performed. Any arguments are passed to the
       # underlying request.
-      def follow_redirect!(**args)
+      # The HTTP_REFERER header will be set to the previous url
+      def follow_redirect!(headers: {}, **args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
 
         method =
@@ -68,7 +69,11 @@ module ActionDispatch
             :get
           end
 
-        public_send(method, response.location, **args)
+        if [ :HTTP_REFERER, "HTTP_REFERER" ].none? { |key| headers.key? key }
+          headers["HTTP_REFERER"] = request.url
+        end
+
+        public_send(method, response.location, headers: headers, **args)
         status
       end
     end
