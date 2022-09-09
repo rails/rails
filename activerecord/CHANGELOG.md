@@ -1,3 +1,12 @@
+*   Allow `QueryMethods#in_order_of` to order by a string column name.
+
+    ```ruby
+    Post.in_order_of("id", [4,2,3,1]).to_a
+    Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
+    ```
+
+    *Igor Kasyanchuk*
+
 *   Disable `prepared_statements` for mysql2 adapter
 
     A recent change [#44591](https://github.com/rails/rails/pull/44591) enabled `prepared_statements` by default for mysql2 adapter
