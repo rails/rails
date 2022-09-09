@@ -2368,7 +2368,7 @@ config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
 #### `config.active_storage.variable_content_types`
 
 Accepts an array of strings indicating the content types that Active Storage
-can transform through ImageMagick.
+can transform through the variant processor.
 By default, this is defined as:
 
 ```ruby
