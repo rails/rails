@@ -355,6 +355,10 @@ module ApplicationTests
       get "/rails/mailers/notifier/bar"
       assert_predicate last_response, :not_found?
       assert_match "Email &#39;bar&#39; not found in NotifierPreview", h(last_response.body)
+
+      get "/rails/mailers/download/notifier/bar"
+      assert_predicate last_response, :not_found?
+      assert_match "Email &#39;bar&#39; not found in NotifierPreview", h(last_response.body)
     end
 
     test "mailer preview NullMail" do
@@ -444,6 +448,13 @@ module ApplicationTests
       assert_match "Ruby on Rails &lt;core@rubyonrails.org&gt;", last_response.body
       assert_match "Andrew White &lt;andyw@pixeltrix.co.uk&gt;", last_response.body
       assert_match "David Heinemeier Hansson &lt;david@heinemeierhansson.com&gt;", last_response.body
+
+      get "/rails/mailers/download/notifier/foo"
+      email = Mail.read_from_string(last_response.body)
+      assert_equal "attachment; filename=\"foo.eml\"; filename*=UTF-8''foo.eml", last_response.headers["Content-Disposition"]
+      assert_equal 200, last_response.status
+      assert_equal ["andyw@pixeltrix.co.uk"], email.to
+      assert_equal ["david@heinemeierhansson.com"], email.cc
     end
 
     test "part menu selects correct option" do
@@ -663,6 +674,13 @@ module ApplicationTests
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
       assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/download/notifier/foo"
+      assert_equal 200, last_response.status
+      email = Mail.read_from_string(last_response.body)
+      assert_equal 2, email.parts.size
+      assert_equal "text/plain; charset=UTF-8", email.parts[0].content_type
+      assert_equal "image/png; filename=pixel.png", email.parts[1].content_type
     end
 
     test "multipart mailer preview with attachment" do
