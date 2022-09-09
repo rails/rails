@@ -1,3 +1,9 @@
+## Rails 6.1.7 (September 09, 2022) ##
+
+*   Symbol is allowed by default for YAML columns
+
+    *Étienne Barrié*
+
 *   Fix `ActiveRecord::Store` to serialize as a regular Hash
 
     Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
