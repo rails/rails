@@ -227,7 +227,7 @@ module ActiveModel
     def as_json(**options)
       return to_hash if options.nil?
 
-      if options.keys.include?(:full_messages)
+      if options.key?(:full_messages)
         ActiveSupport::Deprecation.warn(
           "using the full_messages boolean positional argument is deprecated" \
           "and will be unsupported in a future version of Rails." \
@@ -488,7 +488,7 @@ module ActiveModel
     # custom_messages alongside messages. For this reason, the
     # key `message` was added to the lookup chain.
     # Even though the lookup chain handles the previous behaviour,
-    # it's prefered to use the more specific version of the chain defining
+    # it's preferred to use the more specific version of the chain defining
     # explicit a message: key and value.
     #
     # Error messages are looked up in the following order:

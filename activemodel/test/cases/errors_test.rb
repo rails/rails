@@ -16,10 +16,11 @@ class ErrorsTest < ActiveModel::TestCase
     def validate!
       return unless name.nil?
 
-      errors.add(:name,
-                 :blank,
-                 message: "cannot be nil",
-                 custom_message: "Whoops! You need to provide a value"
+      errors.add(
+        :name,
+        :blank,
+        message: "cannot be nil",
+        custom_message: "Whoops! You need to provide a value"
       )
     end
 
