@@ -2,7 +2,7 @@
 
 # [Choice] Ruby version: 3, 3.0, 2, 2.7, 2.6
 ARG VARIANT="3.0"
-FROM mcr.microsoft.com/vscode/devcontainers/ruby:0-${VARIANT}
+FROM mcr.microsoft.com/devcontainers/ruby:0-${VARIANT}
 
 # [Choice] Node.js version: none, lts/*, 16, 14, 12, 10
 ARG NODE_VERSION="none"
