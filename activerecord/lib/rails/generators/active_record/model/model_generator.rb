@@ -11,7 +11,7 @@ module ActiveRecord
 
       class_option :migration, type: :boolean
       class_option :timestamps, type: :boolean
-      class_option :parent, type: :string, desc: "The parent class for the generated model"
+      class_option :parent, type: :string, default: "ApplicationRecord", desc: "The parent class for the generated model"
       class_option :indexes, type: :boolean, default: true, desc: "Add indexes for references and belongs_to columns"
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
       class_option :database, type: :string, aliases: %i(--db), desc: "The database for your model's migration. By default, the current environment's primary database is used."
@@ -24,7 +24,7 @@ module ActiveRecord
       end
 
       def create_model_file
-        generate_abstract_class if database && !parent
+        generate_abstract_class if database && !custom_parent?
         template "model.rb", File.join("app/models", class_path, "#{file_name}.rb")
       end
 
@@ -40,7 +40,7 @@ module ActiveRecord
         #   - options parent is present and database option is not present
         #   - migrations option is nil or false
         def skip_migration_creation?
-          parent && !database || !migration
+          custom_parent? && !database || !migration
         end
 
         def attributes_with_index
@@ -49,12 +49,12 @@ module ActiveRecord
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
-          if parent
+          if custom_parent?
             parent
           elsif database
             abstract_class_name
           else
-            "ApplicationRecord"
+            parent
           end
         end
 
@@ -75,6 +75,10 @@ module ActiveRecord
 
         def parent
           options[:parent]
+        end
+
+        def custom_parent?
+          parent != self.class.class_options[:parent].default
         end
 
         def migration

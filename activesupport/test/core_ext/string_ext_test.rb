@@ -90,6 +90,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_downcase_first
+    assert_equal "try again", "Try again".downcase_first
+  end
+
+  def test_downcase_first_with_one_char
+    assert_equal "t", "T".downcase_first
+  end
+
+  def test_downcase_first_with_empty_string
+    assert_equal "", "".downcase_first
+  end
+
   def test_upcase_first
     assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
   end
@@ -754,7 +766,7 @@ class StringConversionsTest < ActiveSupport::TestCase
   end
 end
 
-class StringBehaviourTest < ActiveSupport::TestCase
+class StringBehaviorTest < ActiveSupport::TestCase
   def test_acts_like_string
     assert_predicate "Bambi", :acts_like_string?
   end
@@ -1054,6 +1066,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     unsafe_char = ">"
     safe_char = "Á"
     safe_char_after_start = "3"
+    starting_with_dash = "-foo"
 
     assert_equal "_", ERB::Util.xml_name_escape(unsafe_char)
     assert_equal "_#{safe_char}", ERB::Util.xml_name_escape(unsafe_char + safe_char)
@@ -1074,6 +1087,8 @@ class OutputSafetyTest < ActiveSupport::TestCase
     common_dangerous_chars = "&<>\"' %*+,/;=^|"
     assert_equal "_" * common_dangerous_chars.size,
                  ERB::Util.xml_name_escape(common_dangerous_chars)
+
+    assert_equal "_foo", ERB::Util.xml_name_escape(starting_with_dash)
   end
 end
 

@@ -11,7 +11,7 @@ module Rails
         end
 
         def original_app_name
-          @original_app_name ||= defined_app_const_base? ? defined_app_name : File.basename(destination_root)
+          @original_app_name ||= defined_app_const_base? ? defined_app_name : (options[:name] || File.basename(destination_root))
         end
 
         def defined_app_name

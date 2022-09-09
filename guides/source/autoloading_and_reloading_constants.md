@@ -80,7 +80,7 @@ $ bin/rails runner 'p UsersHelper'
 UsersHelper
 ```
 
-Rails adds custom directories under `app` to the autoload paths automatically. For example, if your application has `app/presenters`, you don't need to configure anything in order to autoload presenters, it works out of the box.
+Rails adds custom directories under `app` to the autoload paths automatically. For example, if your application has `app/presenters`, you don't need to configure anything in order to autoload presenters; it works out of the box.
 
 The array of default autoload paths can be extended by pushing to `config.autoload_paths`, in `config/application.rb` or `config/environments/*.rb`. For example:
 
@@ -404,7 +404,7 @@ By default, Rails uses `String#camelize` to know which constant a given file or 
 
 It could be the case that some particular file or directory name does not get inflected as you want. For instance, `html_parser.rb` is expected to define `HtmlParser` by default. What if you prefer the class to be `HTMLParser`? There are a few ways to customize this.
 
-The easiest way is to define acronyms in `config/initializers/inflections.rb`:
+The easiest way is to define acronyms:
 
 ```ruby
 ActiveSupport::Inflector.inflections(:en) do |inflect|
@@ -416,7 +416,6 @@ end
 Doing so affects how Active Support inflects globally. That may be fine in some applications, but you can also customize how to camelize individual basenames independently from Active Support by passing a collection of overrides to the default inflectors:
 
 ```ruby
-# config/initializers/zeitwerk.rb
 Rails.autoloaders.each do |autoloader|
   autoloader.inflector.inflect(
     "html_parser" => "HTMLParser",
@@ -428,7 +427,6 @@ end
 That technique still depends on `String#camelize`, though, because that is what the default inflectors use as fallback. If you instead prefer not to depend on Active Support inflections at all and have absolute control over inflections, configure the inflectors to be instances of `Zeitwerk::Inflector`:
 
 ```ruby
-# config/initializers/zeitwerk.rb
 Rails.autoloaders.each do |autoloader|
   autoloader.inflector = Zeitwerk::Inflector.new
   autoloader.inflector.inflect(
@@ -441,6 +439,12 @@ end
 There is no global configuration that can affect said instances; they are deterministic.
 
 You can even define a custom inflector for full flexibility. Please check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
+
+### Where Should Inflection Customization Go?
+
+If an application does not use the `once` autoloader, the snippets above can go in `config/initializers`. For example, `config/initializers/inflections.rb` for the Active Support use case, or `config/initializers/zeitwerk.rb` for the other ones.
+
+Applications using the `once` autoloader have to move or load this configuration from the body of the application class in `config/application.rb`, because the `once` autoloader uses the inflector early in the boot process.
 
 Autoloading and Engines
 -----------------------

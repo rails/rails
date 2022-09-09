@@ -16,8 +16,8 @@ module ActiveModel
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
-      # This mechanism requires you to have a +XXX_digest+ attribute.
-      # Where +XXX+ is the attribute name of your desired password.
+      # This mechanism requires you to have a +XXX_digest+ attribute,
+      # where +XXX+ is the attribute name of your desired password.
       #
       # The following validations are added automatically:
       # * Password must be present on creation
@@ -45,7 +45,7 @@ module ActiveModel
       #
       # ==== Examples
       #
-      # Using Active Record, which automatically includes ActiveModel::SecurePassword:
+      # ===== Using Active Record (which automatically includes ActiveModel::SecurePassword)
       #
       #   # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
       #   class User < ActiveRecord::Base
@@ -77,6 +77,27 @@ module ActiveModel
       #
       #   user.authenticate("vr00m")                                     # => false, old password
       #   user.authenticate("nohack4u")                                  # => user
+      #
+      # ===== Conditionally requiring a password
+      #
+      #   class Account
+      #     include ActiveModel::SecurePassword
+      #
+      #     attr_accessor :is_guest, :password_digest
+      #
+      #     has_secure_password
+      #
+      #     def errors
+      #       super.tap { |errors| errors.delete(:password, :blank) if is_guest }
+      #     end
+      #   end
+      #
+      #   account = Account.new
+      #   account.valid? # => false, password required
+      #
+      #   account.is_guest = true
+      #   account.valid? # => true
+      #
       def has_secure_password(attribute = :password, validations: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)

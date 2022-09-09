@@ -139,7 +139,7 @@ module ActionController # :nodoc:
       #      end
       #
       #      def handle_unverified_request
-      #        # Custom behaviour for unverfied request
+      #        # Custom behavior for unverfied request
       #      end
       #    end
       #
@@ -221,7 +221,7 @@ module ActionController # :nodoc:
         end
 
         def is_storage_strategy?(object)
-          object.respond_to?(:fetch) && object.respond_to?(:store)
+          object.respond_to?(:fetch) && object.respond_to?(:store) && object.respond_to?(:reset)
         end
     end
 

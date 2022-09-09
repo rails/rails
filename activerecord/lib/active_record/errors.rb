@@ -7,9 +7,12 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
-  # Raised when trying to use a feature in Active Record which requires Active Job but the gem is not present.
-  class ActiveJobRequiredError < ActiveRecordError
-  end
+  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
+  # requires Active Job but the gem is not present. Now raises a NameError.
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
+  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
+    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead."
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
@@ -163,6 +166,15 @@ module ActiveRecord
     end
 
     attr_reader :sql, :binds
+
+    def set_query(sql, binds)
+      unless @sql
+        @sql = sql
+        @binds = binds
+      end
+
+      self
+    end
   end
 
   # Defunct wrapper class kept for compatibility.
@@ -189,8 +201,12 @@ module ActiveRecord
       foreign_key: nil,
       target_table: nil,
       primary_key: nil,
-      primary_key_column: nil
+      primary_key_column: nil,
+      query_parser: nil
     )
+      @original_message = message
+      @query_parser = query_parser
+
       if table
         type = primary_key_column.bigint? ? :bigint : primary_key_column.type
         msg = <<~EOM.squish
@@ -208,7 +224,23 @@ module ActiveRecord
       if message
         msg << "\nOriginal message: #{message}"
       end
+
       super(msg, sql: sql, binds: binds)
+    end
+
+    def set_query(sql, binds)
+      if @query_parser && !@sql
+        self.class.new(
+          message: @original_message,
+          sql: sql,
+          binds: binds,
+          **@query_parser.call(sql)
+        ).tap do |exception|
+          exception.set_backtrace backtrace
+        end
+      else
+        super
+      end
     end
   end
 
@@ -459,6 +491,11 @@ module ActiveRecord
 
   # AdapterTimeout will be raised when database clients times out while waiting from the server.
   class AdapterTimeout < QueryAborted
+  end
+
+  # ConnectionFailed will be raised when the network connection to the
+  # database fails while sending a query or waiting for its result.
+  class ConnectionFailed < QueryAborted
   end
 
   # UnknownAttributeReference is raised when an unknown and potentially unsafe

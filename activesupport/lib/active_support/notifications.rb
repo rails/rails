@@ -244,6 +244,12 @@ module ActiveSupport
         notifier.subscribe(pattern, callback, monotonic: false, &block)
       end
 
+      # Performs the same functionality as #subscribe, but the +start+ and
+      # +finish+ block arguments are in monotonic time instead of wall-clock
+      # time. Monotonic time will not jump forward or backward (due to NTP or
+      # Daylights Savings). Use +monotonic_subscribe+ when accuracy of time
+      # duration is important. For example, computing elapsed time between
+      # two events.
       def monotonic_subscribe(pattern = nil, callback = nil, &block)
         notifier.subscribe(pattern, callback, monotonic: true, &block)
       end

@@ -11,7 +11,7 @@
   <%= render "rescues/message_and_suggestions", exception: @exception %>
   <%= render "rescues/actions", exception: @exception, request: @request %>
 
-  <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx, error_index: 0 %>
+  <%= render "rescues/source", source_extracts: @source_extracts, error_highlight_available: @error_highlight_available, show_source_idx: @show_source_idx, error_index: 0 %>
   <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show, error_index: 0 %>
 
   <% if @exception.cause %>
@@ -26,7 +26,7 @@
     </div>
 
     <div id="<%= wrapper.exception.object_id %>" class="hidden">
-      <%= render "rescues/source", source_extracts: wrapper.source_extracts, show_source_idx: wrapper.source_to_show_id, error_index: index %>
+      <%= render "rescues/source", source_extracts: wrapper.source_extracts, error_highlight_available: wrapper.error_highlight_available?, show_source_idx: wrapper.source_to_show_id, error_index: index %>
       <%= render "rescues/trace", traces: wrapper.traces, trace_to_show: wrapper.trace_to_show, error_index: index %>
     </div>
   <% end %>

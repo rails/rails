@@ -47,6 +47,7 @@ module ActionCable
       include Identification
       include InternalChannel
       include Authorization
+      include Callbacks
       include ActiveSupport::Rescuable
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
@@ -86,9 +87,15 @@ module ActionCable
 
       def dispatch_websocket_message(websocket_message) # :nodoc:
         if websocket.alive?
-          subscriptions.execute_command decode(websocket_message)
+          handle_channel_command decode(websocket_message)
         else
           logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
+        end
+      end
+
+      def handle_channel_command(payload)
+        run_callbacks :command do
+          subscriptions.execute_command payload
         end
       end
 

@@ -23,22 +23,17 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_establishes_connection_to_postgresql_database
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
+        mock = Minitest::Mock.new
+        mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+        mock.expect(:call, nil, [db_config])
+
         ActiveRecord::Base.stub(:connection, @connection) do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [
-                adapter: "postgresql",
-                database: "postgres",
-                schema_search_path: "public"
-              ],
-              [db_config]
-            ]
-          ) do
+          ActiveRecord::Base.stub(:establish_connection, mock) do
             ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
+
+        assert_mock(mock)
       end
 
       def test_creates_database_with_default_encoding
@@ -89,22 +84,17 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_establishes_connection_to_new_database
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
+        mock = Minitest::Mock.new
+        mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+        mock.expect(:call, nil, [db_config])
+
         ActiveRecord::Base.stub(:connection, @connection) do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [
-                adapter: "postgresql",
-                database: "postgres",
-                schema_search_path: "public"
-              ],
-              [db_config]
-            ]
-          ) do
+          ActiveRecord::Base.stub(:establish_connection, mock) do
             ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
+
+        assert_mock(mock)
       end
 
       def test_db_create_with_error_prints_message
@@ -229,22 +219,17 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_establishes_connection_to_postgresql_database
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
+        mock = Minitest::Mock.new
+        mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+        mock.expect(:call, nil, [db_config])
+
         with_stubbed_connection do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [
-                adapter: "postgresql",
-                database: "postgres",
-                schema_search_path: "public"
-              ],
-              [db_config]
-            ]
-          ) do
+          ActiveRecord::Base.stub(:establish_connection, mock) do
             ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
         end
+
+        assert_mock(mock)
       end
 
       def test_drops_database
@@ -274,22 +259,17 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_establishes_connection
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
+        mock = Minitest::Mock.new
+        mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+        mock.expect(:call, nil, [db_config])
+
         with_stubbed_connection do
-          assert_called_with(
-            ActiveRecord::Base,
-            :establish_connection,
-            [
-              [
-                adapter: "postgresql",
-                database: "postgres",
-                schema_search_path: "public"
-              ],
-              [db_config]
-            ]
-          ) do
+          ActiveRecord::Base.stub(:establish_connection, mock) do
             ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
         end
+
+        assert_mock(mock)
       end
 
       private
@@ -428,18 +408,16 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump_with_ignore_tables
-        assert_called(
-          ActiveRecord::SchemaDumper,
-          :ignore_tables,
-          returns: ["foo", "bar"]
-        ) do
-          assert_called_with(
-            Kernel,
-            :system,
-            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "foo", "-T", "bar", "my-app-db"],
-            returns: true
-          ) do
-            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        ActiveRecord::Base.connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+          ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
+            assert_called_with(
+              Kernel,
+              :system,
+              [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "prefix_foo", "-T", "ignored_foo", "my-app-db"],
+              returns: true
+            ) do
+              ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+            end
           end
         end
       end

@@ -119,7 +119,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_match %r|\[Screenshot HTML\].+?tmp/screenshots/1_x\.html|, display_image_actual
   end
 
-  test "take_screenshot allows changing screeenshot display format via RAILS_SYSTEM_TESTING_SCREENSHOT env" do
+  test "take_screenshot allows changing screenshot display format via RAILS_SYSTEM_TESTING_SCREENSHOT env" do
     original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
     ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
 
@@ -138,7 +138,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
   end
 
-  test "take_screenshot allows changing screeenshot display format via screenshot: kwarg" do
+  test "take_screenshot allows changing screenshot display format via screenshot: kwarg" do
     display_image_actual = nil
 
     Rails.stub :root, Pathname.getwd do

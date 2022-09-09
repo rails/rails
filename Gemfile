@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
-
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
-
 gemspec
 
-gem "minitest", ">= 5.15.0"
+if RUBY_VERSION < "3"
+  gem "minitest", ">= 5.15.0", "< 5.16"
+else
+  gem "minitest", ">= 5.15.0"
+end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
@@ -44,11 +45,11 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.3.2"
+  gem "sdoc", ">= 2.4.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
-  gem "kindlerb", "~> 1.2.0"
   gem "rouge"
+  gem "rubyzip", "~> 2.0"
 end
 
 # Active Support
@@ -69,9 +70,9 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", ">= 4.0.0.pre.beta1", require: false, platforms: :ruby
+  gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
-  gem "que", require: false
+  gem "que", "< 2", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
@@ -81,8 +82,7 @@ end
 group :cable do
   gem "puma", require: false
 
-  gem "hiredis", require: false
-  gem "redis", "~> 4.0", require: false
+  gem "redis", ">= 4.0.1", require: false
 
   gem "redis-namespace"
 
@@ -140,7 +140,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", "~> 1.3"
-    gem "mysql2", "~> 0.5", github: "brianmario/mysql2"
+    gem "mysql2", "~> 0.5"
   end
 end
 
@@ -176,3 +176,10 @@ end
 
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
+
+# The error_highlight gem only works on CRuby 3.1 or later.
+# Also, Rails depends on a new API available since error_highlight 0.4.0.
+# (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
+if RUBY_VERSION >= "3.1"
+  gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
+end

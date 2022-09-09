@@ -11,7 +11,7 @@ module SchemaDumpingHelper
     ActiveRecord::SchemaDumper.ignore_tables = old_ignore_tables
   end
 
-  def dump_all_table_schema(ignore_tables)
+  def dump_all_table_schema(ignore_tables = [])
     old_ignore_tables, ActiveRecord::SchemaDumper.ignore_tables = ActiveRecord::SchemaDumper.ignore_tables, ignore_tables
     stream = StringIO.new
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)

@@ -628,15 +628,15 @@ module ActiveRecord
       #
       # Note: To trigger remove callbacks, you must use +destroy+ / +destroy_all+ methods. For example:
       #
-      #   * <tt>firm.clients.destroy(client)</tt>
-      #   * <tt>firm.clients.destroy(*clients)</tt>
-      #   * <tt>firm.clients.destroy_all</tt>
+      # * <tt>firm.clients.destroy(client)</tt>
+      # * <tt>firm.clients.destroy(*clients)</tt>
+      # * <tt>firm.clients.destroy_all</tt>
       #
       # +delete+ / +delete_all+ methods like the following do *not* trigger remove callbacks:
       #
-      #   * <tt>firm.clients.delete(client)</tt>
-      #   * <tt>firm.clients.delete(*clients)</tt>
-      #   * <tt>firm.clients.delete_all</tt>
+      # * <tt>firm.clients.delete(client)</tt>
+      # * <tt>firm.clients.delete(*clients)</tt>
+      # * <tt>firm.clients.delete_all</tt>
       #
       # == Association extensions
       #
@@ -1768,6 +1768,7 @@ module ActiveRecord
         # [:default]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
         #   be initialized with a particular record before validation.
+        #   Please note that callable won't be executed if the record exists.
         # [:strict_loading]
         #   Enforces strict loading every time the associated record is loaded through this association.
         # [:ensuring_owner_was]

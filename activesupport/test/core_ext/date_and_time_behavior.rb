@@ -92,6 +92,21 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2008, 6, 30, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2008, 5, 31, 0, 0, 0).end_of_quarter
   end
 
+  def test_quarter
+    assert_equal 1, date_time_init(2005, 1, 1, 0, 0, 0).quarter
+    assert_equal 1, date_time_init(2005, 2, 15, 12, 0, 0).quarter
+    assert_equal 1, date_time_init(2005, 3, 31, 23, 59, 59).quarter
+    assert_equal 2, date_time_init(2005, 4, 1, 0, 0, 0).quarter
+    assert_equal 2, date_time_init(2005, 5, 15, 12, 0, 0).quarter
+    assert_equal 2, date_time_init(2005, 6, 30, 23, 59, 59).quarter
+    assert_equal 3, date_time_init(2005, 7, 1, 0, 0, 0).quarter
+    assert_equal 3, date_time_init(2005, 8, 15, 12, 0, 0).quarter
+    assert_equal 3, date_time_init(2005, 9, 30, 23, 59, 59).quarter
+    assert_equal 4, date_time_init(2005, 10, 1, 0, 0, 0).quarter
+    assert_equal 4, date_time_init(2005, 11, 15, 12, 0, 0).quarter
+    assert_equal 4, date_time_init(2005, 12, 31, 23, 59, 59).quarter
+  end
+
   def test_beginning_of_year
     assert_equal date_time_init(2005, 1, 1, 0, 0, 0), date_time_init(2005, 2, 22, 10, 10, 10).beginning_of_year
   end

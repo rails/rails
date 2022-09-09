@@ -18,6 +18,7 @@ module ActiveJob
     autoload :TimeSerializer
     autoload :ModuleSerializer
     autoload :RangeSerializer
+    autoload :BigDecimalSerializer
 
     mattr_accessor :_additional_serializers
     self._additional_serializers = Set.new
@@ -63,6 +64,7 @@ module ActiveJob
       TimeWithZoneSerializer,
       TimeSerializer,
       ModuleSerializer,
-      RangeSerializer
+      RangeSerializer,
+      BigDecimalSerializer
   end
 end

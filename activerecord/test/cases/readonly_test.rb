@@ -48,6 +48,13 @@ class ReadOnlyTest < ActiveRecord::TestCase
     assert_equal "Developer is marked as readonly", e.message
   end
 
+  def test_cant_touch_readonly_column
+    person = Person.find(1)
+
+    e = assert_raise(ActiveRecord::ActiveRecordError) { person.touch(:born_at)  }
+    assert_equal "born_at is marked as readonly", e.message
+  end
+
   def test_cant_update_column_readonly_record
     dev = Developer.find(1)
     assert_not_predicate dev, :readonly?

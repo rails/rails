@@ -52,6 +52,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar", bar: "baz") }
   end
 
+  def test_find_with_custom_select_excluding_id
+    # Returns ordered by ids array
+    topics = Topic.select(:title).find([4, 2, 5])
+    assert_equal [4, 2, 5], topics.map(&:id)
+
+    # Custom order
+    topics = Topic.select(:title).order(:id).find([4, 2, 5])
+    assert_equal [2, 4, 5], topics.map(&:id)
+  end
+
   def test_find_with_proc_parameter_and_block
     exception = assert_raises(RuntimeError) do
       Topic.all.find(-> { raise "should happen" }) { |e| e.title == "non-existing-title" }
@@ -869,6 +879,17 @@ class FinderTest < ActiveRecord::TestCase
     Topic.delete_all
     assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.third_to_last!
+    end
+  end
+
+  def test_nth_to_last_with_order_uses_limit
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) do
+      Topic.second_to_last
+    end
+
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC LIMIT/i) do
+      Topic.order(:updated_at).second_to_last
     end
   end
 

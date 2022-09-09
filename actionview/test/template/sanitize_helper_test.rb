@@ -37,6 +37,12 @@ class SanitizeHelperTest < ActionView::TestCase
     assert_equal "test\r\n\r\ntest", strip_tags("test\r\n\r\ntest")
   end
 
+  def test_strip_tags_is_marked_safe
+    frag = "<div>&lt;<span>script</span>&gt;xss();&lt;<span>/script</span>&gt;</div>"
+    assert_equal("&lt;script&gt;xss();&lt;/script&gt;", strip_tags(frag)) # this string is safe for use as pcdata in html
+    assert_predicate(strip_tags(frag), :html_safe?)
+  end
+
   def test_sanitize_is_marked_safe
     assert_predicate sanitize("<html><script></script></html>"), :html_safe?
   end

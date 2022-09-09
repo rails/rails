@@ -51,7 +51,7 @@ class TransactionTest < ActiveRecord::TestCase
       assert_not connection.active?
       assert_not Topic.connection_pool.connections.include?(connection)
     ensure
-      ActiveRecord::Base.clear_all_connections!
+      ActiveRecord::Base.clear_all_connections!(:all)
     end
 
     def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
@@ -77,7 +77,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       assert_equal "The Fifth Topic of the day", topic.reload.title
     ensure
-      ActiveRecord::Base.clear_all_connections!
+      ActiveRecord::Base.clear_all_connections!(:all)
     end
   end
 
@@ -739,6 +739,8 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_releasing_named_savepoints
     Topic.transaction do
+      Topic.connection.materialize_transactions
+
       Topic.connection.create_savepoint("another")
       Topic.connection.release_savepoint("another")
 

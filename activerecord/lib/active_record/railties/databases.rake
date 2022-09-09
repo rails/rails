@@ -9,9 +9,10 @@ databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 db_namespace = namespace :db do
   desc "Set the environment value for the database"
   task "environment:set" => :load_config do
-    raise ActiveRecord::EnvironmentStorageError unless ActiveRecord::InternalMetadata.enabled?
-    ActiveRecord::InternalMetadata.create_table
-    ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
+    connection = ActiveRecord::Base.connection
+    raise ActiveRecord::EnvironmentStorageError unless connection.internal_metadata.enabled?
+
+    connection.internal_metadata.create_table_and_set_flags(connection.migration_context.current_environment)
   end
 
   task check_protected_environments: :load_config do
@@ -121,10 +122,7 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
       task name do
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-
-        if ActiveRecord.dump_schema_after_migration && db_config.schema_dump
-          ActiveRecord::Base.establish_connection(db_config)
+        if ActiveRecord.dump_schema_after_migration
           db_namespace["schema:dump:#{name}"].invoke
         end
 
@@ -201,6 +199,7 @@ db_namespace = namespace :db do
 
     namespace :up do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+        desc 'Runs the "up" on #{name} database for a given migration VERSION.'
         task name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
@@ -235,6 +234,7 @@ db_namespace = namespace :db do
 
     namespace :down do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+        desc 'Runs the "down" on #{name} database for a given migration VERSION.'
         task name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
@@ -475,9 +475,14 @@ db_namespace = namespace :db do
         desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) for #{name} database"
         task name => :load_config do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-          ActiveRecord::Base.establish_connection(db_config)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+
+          if db_config.schema_dump
+            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
+
+            ActiveRecord::Base.establish_connection(db_config)
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+          end
+
           db_namespace["schema:dump:#{name}"].reenable
         end
       end
@@ -486,7 +491,7 @@ db_namespace = namespace :db do
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Loads a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the #{name} database"
-        task name => [:load_config, :check_protected_environments] do
+        task name => "db:test:purge:#{name}" do
           original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
           schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
@@ -543,11 +548,6 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
-    # desc "Recreate the test database from the current schema"
-    task load: %w(db:test:purge) do
-      db_namespace["test:load_schema"].invoke
-    end
-
     # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
     task load_schema: %w(db:test:purge) do
       should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
@@ -572,18 +572,11 @@ db_namespace = namespace :db do
     # desc 'Load the test schema'
     task prepare: :load_config do
       unless ActiveRecord::Base.configurations.blank?
-        db_namespace["test:load"].invoke
+        db_namespace["test:load_schema"].invoke
       end
     end
 
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-      # desc "Recreate the #{name} test database"
-      namespace :load do
-        task name => "db:test:purge:#{name}" do
-          db_namespace["test:load_schema:#{name}"].invoke
-        end
-      end
-
       # desc "Recreate the #{name} test database from an existent schema.rb file"
       namespace :load_schema do
         task name => "db:test:purge:#{name}" do
@@ -602,15 +595,18 @@ db_namespace = namespace :db do
       # desc "Empty the #{name} test database"
       namespace :purge do
         task name => %w(load_config check_protected_environments) do
+          original_db_config = ActiveRecord::Base.connection_db_config
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
           ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+        ensure
+          ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
         end
       end
 
       # desc 'Load the #{name} database test schema'
       namespace :prepare do
         task name => :load_config do
-          db_namespace["test:load:#{name}"].invoke
+          db_namespace["test:load_schema:#{name}"].invoke
         end
       end
     end

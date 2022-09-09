@@ -167,7 +167,7 @@ module ActiveRecord
         (
           (?:
             # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
           )
           (?:(?:\s+AS)?\s+\w+)?
         )
@@ -191,7 +191,7 @@ module ActiveRecord
         (
           (?:
             # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
           )
           (?:\s+ASC|\s+DESC)?
           (?:\s+NULLS\s+(?:FIRST|LAST))?

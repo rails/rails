@@ -81,12 +81,9 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
 
     mw = middleware { |env|
-      rw_conn = ActiveRecord::Base.connection_handler.connection_pool_list(:writing).first.connection
-      assert_predicate rw_conn, :query_cache_enabled
-
-      ro_conn = ActiveRecord::Base.connection_handler.connection_pool_list(:reading).first.connection
-      assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
-      assert_predicate ro_conn, :query_cache_enabled
+      ActiveRecord::Base.connection_handler.connection_pool_list(:all).each do |pool|
+        assert_predicate pool.connection, :query_cache_enabled
+      end
     }
 
     mw.call({})
@@ -181,7 +178,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :dirty
 
         thread_1_connection = ActiveRecord::Base.connection
-        ActiveRecord::Base.clear_active_connections!
+        ActiveRecord::Base.clear_active_connections!(:all)
         assert_cache :off, thread_1_connection
 
         started = Concurrent::Event.new
@@ -203,7 +200,7 @@ class QueryCacheTest < ActiveRecord::TestCase
             started.set
             checked.wait
 
-            ActiveRecord::Base.clear_active_connections!
+            ActiveRecord::Base.clear_active_connections!(:all)
           }.call({})
         }
 
@@ -388,7 +385,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_does_not_allow_sql_key_mutation
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-      payload[:sql].downcase!
+      payload[:sql].downcase! if payload[:name] == "Task Load"
     end
 
     ActiveRecord::Base.cache do
@@ -439,15 +436,16 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_is_available_when_using_a_not_connected_connection
     skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").dup
-    db_config.owner_name = "test2"
-    ActiveRecord::Base.connection_handler.establish_connection(db_config)
+    db_config = ActiveRecord::Base.connection_db_config
+    original_connection = ActiveRecord::Base.remove_connection
+
+    ActiveRecord::Base.establish_connection(db_config)
     assert_not_predicate Task, :connected?
 
     Task.cache do
       assert_queries(1) { Task.find(1); Task.find(1) }
     ensure
-      ActiveRecord::Base.connection_handler.remove_connection_pool(db_config.owner_name)
+      ActiveRecord::Base.establish_connection(original_connection)
     end
   end
 
@@ -524,19 +522,19 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_does_not_establish_connection_if_unconnected
-    ActiveRecord::Base.clear_active_connections!
-    assert_not ActiveRecord::Base.connection_handler.active_connections? # Double check they are cleared
+    ActiveRecord::Base.clear_active_connections!(:all)
+    assert_not ActiveRecord::Base.connection_handler.active_connections?(:all) # Double check they are cleared
 
     middleware {
-      assert_not ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
+      assert_not ActiveRecord::Base.connection_handler.active_connections?(:all), "QueryCache forced ActiveRecord::Base to establish a connection in setup"
     }.call({})
 
-    assert_not ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
+    assert_not ActiveRecord::Base.connection_handler.active_connections?(:all), "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
   end
 
   def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
-    ActiveRecord::Base.clear_active_connections!
-    assert_not ActiveRecord::Base.connection_handler.active_connections? # Double check they are cleared
+    ActiveRecord::Base.clear_active_connections!(:all)
+    assert_not ActiveRecord::Base.connection_handler.active_connections?(:all) # Double check they are cleared
 
     middleware {
       assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
@@ -545,7 +543,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_caching_is_local_to_the_current_thread
-    ActiveRecord::Base.clear_active_connections!
+    ActiveRecord::Base.clear_active_connections!(:all)
 
     middleware {
       assert ActiveRecord::Base.connection_pool.query_cache_enabled
@@ -560,7 +558,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_query_cache_is_enabled_on_all_connection_pools
     middleware {
-      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+      ActiveRecord::Base.connection_handler.connection_pool_list(:all).each do |pool|
         assert pool.query_cache_enabled
         assert pool.connection.query_cache_enabled
       end
@@ -619,7 +617,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(ActiveRecord.writing_role, :default)
+      pool_config = ActiveRecord::Base.connection.pool.pool_config
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool, &block)

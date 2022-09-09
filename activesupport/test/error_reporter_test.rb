@@ -2,27 +2,17 @@
 
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
+require "active_support/error_reporter/test_helper"
 
 class ErrorReporterTest < ActiveSupport::TestCase
   # ExecutionContext is automatically reset in Rails app via executor hooks set in railtie
   # But not in Active Support's own test suite.
   include ActiveSupport::ExecutionContext::TestHelper
-
-  class ErrorSubscriber
-    attr_reader :events
-
-    def initialize
-      @events = []
-    end
-
-    def report(error, handled:, severity:, context:)
-      @events << [error, handled, severity, context]
-    end
-  end
+  include ActiveSupport::ErrorReporter::TestHelper
 
   setup do
     @reporter = ActiveSupport::ErrorReporter.new
-    @subscriber = ErrorSubscriber.new
+    @subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
     @reporter.subscribe(@subscriber)
     @error = ArgumentError.new("Oops")
   end
@@ -31,14 +21,20 @@ class ErrorReporterTest < ActiveSupport::TestCase
     @reporter.set_context(section: "admin")
     error = ArgumentError.new("Oops")
     @reporter.report(error, handled: true)
-    assert_equal [[error, true, :warning, { section: "admin" }]], @subscriber.events
+    assert_equal [[error, true, :warning, "application", { section: "admin" }]], @subscriber.events
   end
 
   test "passed context has priority over the execution context" do
     @reporter.set_context(section: "admin")
     error = ArgumentError.new("Oops")
     @reporter.report(error, handled: true, context: { section: "public" })
-    assert_equal [[error, true, :warning, { section: "public" }]], @subscriber.events
+    assert_equal [[error, true, :warning, "application", { section: "public" }]], @subscriber.events
+  end
+
+  test "passed source is forwarded" do
+    error = ArgumentError.new("Oops")
+    @reporter.report(error, handled: true, source: "my_gem")
+    assert_equal [[error, true, :warning, "my_gem", {}]], @subscriber.events
   end
 
   test "#disable allow to skip a subscriber" do
@@ -60,7 +56,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
     @reporter.handle do
       raise error
     end
-    assert_equal [[error, true, :warning, {}]], @subscriber.events
+    assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
   end
 
   test "#handle can be scoped to an exception class" do
@@ -117,7 +113,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
         raise error
       end
     end
-    assert_equal [[error, false, :error, {}]], @subscriber.events
+    assert_equal [[error, false, :error, "application", {}]], @subscriber.events
   end
 
   test "#record can be scoped to an exception class" do
@@ -164,7 +160,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
       @error = error
     end
 
-    def report(_error, handled:, severity:, context:)
+    def report(_error, handled:, severity:, context:, source:)
       raise @error
     end
   end

@@ -304,13 +304,15 @@ module ApplicationTests
             down_output = rails("db:migrate:down:#{namespace}", "VERSION=#{version}")
             up_output = rails("db:migrate:up:#{namespace}", "VERSION=#{version}")
           else
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               down_output = rails("db:migrate:down", "VERSION=#{version}")
             end
+            assert_match("You're using a multiple database application", exception.message)
 
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               up_output = rails("db:migrate:up", "VERSION=#{version}")
             end
+            assert_match("You're using a multiple database application", exception.message)
           end
 
           case namespace
@@ -333,9 +335,10 @@ module ApplicationTests
           if namespace
             rollback_output = rails("db:rollback:#{namespace}")
           else
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               rollback_output = rails("db:rollback")
             end
+            assert_match("You're using a multiple database application", exception.message)
           end
 
           case namespace
@@ -358,9 +361,10 @@ module ApplicationTests
           if namespace
             redo_output = rails("db:migrate:redo:#{namespace}")
           else
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               redo_output = rails("db:migrate:redo")
             end
+            assert_match("You're using a multiple database application", exception.message)
           end
 
           case namespace
@@ -751,6 +755,20 @@ module ApplicationTests
       test "db:schema:cache:dump works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_cache_dump
+      end
+
+      test "db:prepare setup the database even if schema does not exist" do
+        Dir.chdir(app_path) do
+          use_postgresql(multi_db: true) # bug doesn't exist with sqlite3
+          output = rails("db:drop")
+          assert_match(/Dropped database/, output)
+
+          rails "generate", "model", "recipe", "title:string"
+          output = rails("db:prepare")
+          assert_match(/CreateRecipes: migrated/, output)
+        end
+      ensure
+        rails "db:drop" rescue nil
       end
 
       # Note that schema cache loader depends on the connection and

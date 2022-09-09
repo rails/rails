@@ -19,7 +19,7 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-Web application frameworks are made to help developers build web applications. Some of them also help you with securing the web application. In fact one framework is not more secure than another: If you use it correctly, you will be able to build secure apps with many frameworks. Ruby on Rails has some clever helper methods, for example against SQL injection, so that this is hardly a problem.
+Web application frameworks are made to help developers build web applications. Some of them also help you with securing the web application. In fact one framework is not more secure than another: If you use it correctly, you will be able to build secure apps with many frameworks. Ruby on Rails has some clever helper methods, for example against SQL injection, so this is hardly a problem.
 
 In general there is no such thing as plug-n-play security. Security depends on the people using the framework, and sometimes on the development method. And it depends on all layers of a web application environment: The back-end storage, the web server, and the web application itself (and possibly other layers or applications).
 
@@ -665,7 +665,7 @@ Also, the second query renames some columns with the AS statement so that the we
 
 #### Countermeasures
 
-Ruby on Rails has a built-in filter for special SQL characters, which will escape `'` , `"` , NULL character, and line breaks. *Using `Model.find(id)` or `Model.find_by_some thing(something)` automatically applies this countermeasure*. But in SQL fragments, especially *in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually*.
+Ruby on Rails has a built-in filter for special SQL characters, which will escape `'` , `"` , NULL character, and line breaks. *Using `Model.find(id)` or `Model.find_by_something(something)` automatically applies this countermeasure*. But in SQL fragments, especially *in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually*.
 
 Instead of passing a string, you can use positional handlers to sanitize tainted strings like this:
 
@@ -690,8 +690,10 @@ Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity)
 ```
 
 Note the previous mentioned countermeasures are only available in model instances. You can
-try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences
+try [`sanitize_sql`][] elsewhere. _Make it a habit to think about the security consequences
 when using an external string in SQL_.
+
+[`sanitize_sql`]: https://api.rubyonrails.org/classes/ActiveRecord/Sanitization/ClassMethods.html#method-i-sanitize_sql
 
 ### Cross-Site Scripting (XSS)
 
@@ -969,6 +971,27 @@ Location: http://www.malicious.tld
 
 So _attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? They could redirect to a phishing site that looks the same as yours, but ask to login again (and sends the login credentials to the attacker). Or they could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the `redirect_to` method. _Make sure you do it yourself when you build other header fields with user input._
 
+#### DNS Rebinding and Host Header Attacks
+
+DNS rebinding is a method of manipulating resolution of domain names that is commonly used as a form of computer attack. DNS rebinding circumvents the same-origin policy by abusing the Domain Name System (DNS) instead. It rebinds a domain to a different IP address and than compromises the system by executing random code against your Rails app from the changed IP address.
+
+It is recommended to use the `ActionDispatch::HostAuthorization` middleware to guard against DNS rebinding and other Host header attacks. It is enabled by default in the development environment, you have to activate it in production and other environments by setting the list of allowed hosts. You can also configure exceptions and set your own response app.
+
+```ruby
+Rails.application.config.hosts << "product.com"
+
+Rails.application.config.host_authorization = {
+  # Exclude requests for the /healthcheck/ path from host checking
+  exclude: ->(request) { request.path =~ /healthcheck/ }
+  # Add custom Rack application for the response
+  response_app: -> env do
+    [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
+  end
+}
+```
+
+You can read more about it in the [`ActionDispatch::HostAuthorization` middleware documentation](/configuring.html#actiondispatch-hostauthorization)
+
 #### Response Splitting
 
 If Header Injection was possible, Response Splitting might be, too. In HTTP, the header block is followed by two CRLFs and the actual data (usually HTML). The idea of Response Splitting is to inject two CRLFs into a header field, followed by another response with malicious HTML. The response will be:
@@ -1039,7 +1062,49 @@ config.action_dispatch.perform_deep_munge = false
 HTTP Security Headers
 ---------------------
 
-Every HTTP response from your Rails application receives the following default security headers.
+To improve the security of your application, Rails can be configured to return
+HTTP security headers. Some headers are configured by default; others need to
+be explicitly configured.
+
+### Default Security Headers
+
+By default Rails is configured to return the following response headers. Your
+application returns these headers for every HTTP response.
+
+#### `X-Frame-Options`
+
+This header indicates if a browser can render the page in a `<frame>`,
+`<iframe>`, `<embed>` or `<object>` tag. This header is set to `SAMEORIGIN` by
+default to allow framing on the same domain only. Set it to `DENY` to deny
+framing at all, or remove this header completely if you want to allow framing on
+all domains.
+
+#### `X-XSS-Protection`
+
+A [deprecated legacy
+header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to
+`0` in Rails by default to disable problematic legacy XSS auditors.
+
+#### `X-Content-Type-Options`
+
+This header is set to `nosniff` in Rails by default. It stops the browser from
+guessing the MIME type of a file.
+
+#### `X-Permitted-Cross-Domain-Policies`
+
+This header is set to `none` in Rails by default. It disallows Adobe Flash and
+PDF clients from embedding your page on other domains.
+
+#### `Referrer-Policy`
+
+This header is set to `strict-origin-when-cross-origin` in Rails by default.
+For cross-origin requests, this only sends the origin in the Referer header. This
+prevents leaks of private data that may be accessible from other parts of the
+full URL, such as the path and query string.
+
+#### Configuring the Default Headers
+
+These headers are configured by default as follows:
 
 ```ruby
 config.action_dispatch.default_headers = {
@@ -1051,34 +1116,36 @@ config.action_dispatch.default_headers = {
 }
 ```
 
-You can configure default headers in `config/application.rb`.
+You can override these or add extra headers in `config/application.rb`:
 
 ```ruby
-config.action_dispatch.default_headers = {
-  'Header-Name' => 'Header-Value',
-  'X-Frame-Options' => 'DENY'
-}
+config.action_dispatch.default_headers['X-Frame-Options'] = 'DENY'
+config.action_dispatch.default_headers['Header-Name']     = 'Value'
 ```
 
-Or you can remove them.
+Or you can remove them:
 
 ```ruby
 config.action_dispatch.default_headers.clear
 ```
 
-Here is a list of common headers:
+### `Strict-Transport-Security` Header
 
-* **X-Frame-Options:** _`SAMEORIGIN` in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or remove this header completely if you want to allow framing on all websites.
-* **X-XSS-Protection:** _`0` in Rails by default_ - [deprecated legacy header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to '0' to disable problematic legacy XSS auditors.
-* **X-Content-Type-Options:** _`nosniff` in Rails by default_ - stops the browser from guessing the MIME type of a file.
-* **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](https://w3c.github.io/webappsec-csp/)
-* **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
-* **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
+The HTTP
+[`Strict-Transport-Security`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)
+(HTST) response header makes sure the browser automatically upgrades to HTTPS
+for current and future connections.
 
-### Content-Security-Policy Header
+The header is added to the response when enabling the `force_ssl` option:
+
+```ruby
+  config.force_ssl = true
+```
+
+### `Content-Security-Policy` Header
 
 To help protect against XSS and injection attacks, it is recommended to define a
-[Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+[`Content-Security-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
 response header for your application. Rails provides a DSL that allows you to
 configure the header.
 
@@ -1131,7 +1198,7 @@ end
 #### Reporting Violations
 
 Enable the
-[report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
+[`report-uri`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
 directive to report violations to the specified URI:
 
 ```ruby
@@ -1142,7 +1209,7 @@ end
 
 When migrating legacy content, you might want to report violations without
 enforcing the policy. Set the
-[Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+[`Content-Security-Policy-Report-Only`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
 response header to only report violations:
 
 ```ruby
@@ -1159,9 +1226,9 @@ end
 
 #### Adding a Nonce
 
-If you are considering 'unsafe-inline', consider using nonces instead. [Nonces
+If you are considering `'unsafe-inline'`, consider using nonces instead. [Nonces
 provide a substantial improvement](https://www.w3.org/TR/CSP3/#security-nonces)
-over 'unsafe-inline' when implementing a Content Security Policy on top
+over `'unsafe-inline'` when implementing a Content Security Policy on top
 of existing code.
 
 ```ruby
@@ -1187,6 +1254,14 @@ Rails.application.config.content_security_policy_nonce_generator = -> request { 
 This generation method is compatible with ETags, however its security depends on
 the session id being sufficiently random and not being exposed in insecure
 cookies.
+
+By default, nonces will be applied to `script-src` and `style-src` if a nonce
+generator is defined. `config.content_security_policy_nonce_directives` can be
+used to change which directives will use nonces:
+
+```ruby
+Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+```
 
 Once nonce generation is configured in an initializer, automatic nonce values
 can be added to script tags by passing `nonce: true` as part of `html_options`:
@@ -1216,17 +1291,17 @@ for allowing inline `<script>` tags.
 This is used by the Rails UJS helper to create dynamically
 loaded inline `<script>` elements.
 
-### Feature-Policy Header
+### `Feature-Policy` Header
 
-NOTE: The Feature-Policy header has been renamed to Permissions-Policy.
-The Permissions-Policy requires a different implementation and isn't
+NOTE: The `Feature-Policy` header has been renamed to `Permissions-Policy`.
+The `Permissions-Policy` requires a different implementation and isn't
 yet supported by all browsers. To avoid having to rename this
-middleware in the future we use the new name for the middleware but
+middleware in the future, we use the new name for the middleware but
 keep the old header name and implementation for now.
 
-To allow or block the use of browser features you can define a
-[Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
-response header for you application. Rails provides a DSL that allows you to
+To allow or block the use of browser features, you can define a
+[`Feature-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
+response header for your application. Rails provides a DSL that allows you to
 configure the header.
 
 Define the policy in the appropriate initializer:

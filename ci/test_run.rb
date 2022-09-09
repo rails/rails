@@ -35,7 +35,7 @@ class TestRun
   end
 
   def completed?
-    @qunit_testresult.text =~ /Tests completed/
+    @qunit_testresult.text.include?("Tests completed")
   end
 
   def result

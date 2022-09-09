@@ -13,6 +13,11 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
     Rails::Generators::ModelHelpers.skip_warn = false
   end
 
+  def test_help_with_usage_description
+    content = run_generator ["--help"]
+    assert_match(/Generates a new resource/, content)
+  end
+
   def test_help_with_inherited_options
     content = run_generator ["--help"]
     assert_match(/ActiveRecord options:/, content)

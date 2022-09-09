@@ -3,6 +3,7 @@
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
+require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/tag_helper"
 
 module ActionView
@@ -22,6 +23,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include TagHelper
+      include ContentExfiltrationPreventionHelper
 
       module ClassMethods
         def _url_for_modules
@@ -380,7 +382,8 @@ module ActionView
                                        autocomplete: "off")
           end
         end
-        content_tag("form", inner_tags, form_options)
+        html = content_tag("form", inner_tags, form_options)
+        prevent_content_exfiltration(html)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -595,7 +598,7 @@ module ActionView
         # We ignore any extra parameters in the request_uri if the
         # submitted URL doesn't have any either. This lets the function
         # work with things like ?order=asc
-        # the behaviour can be disabled with check_parameters: true
+        # the behavior can be disabled with check_parameters: true
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
 

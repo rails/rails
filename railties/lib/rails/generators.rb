@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
-
 require "thor/group"
 require "rails/command"
 
@@ -33,7 +30,7 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
-        javascripts: "-j",
+        javascripts: ["-j", "--js"],
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
@@ -266,8 +263,14 @@ module Rails
           options = sorted_groups.flat_map(&:last)
           error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
 
+          if error.respond_to?(:detailed_message)
+            formatted_message = error.detailed_message
+          else
+            formatted_message = error.message
+          end
+
           puts <<~MSG
-            #{error.message}
+            #{formatted_message}
             Run `bin/rails generate --help` for more options.
           MSG
         end

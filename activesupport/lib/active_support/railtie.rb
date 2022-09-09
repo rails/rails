@@ -11,8 +11,18 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.isolation_level" do |app|
-      if level = app.config.active_support.delete(:isolation_level)
-        ActiveSupport::IsolatedExecutionState.isolation_level = level
+      config.after_initialize do
+        if level = app.config.active_support.delete(:isolation_level)
+          ActiveSupport::IsolatedExecutionState.isolation_level = level
+        end
+      end
+    end
+
+    initializer "active_support.raise_on_invalid_cache_expiration_time" do |app|
+      config.after_initialize do
+        if app.config.active_support.raise_on_invalid_cache_expiration_time
+          ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = true
+        end
       end
     end
 
@@ -41,14 +51,12 @@ module ActiveSupport
     end
 
     initializer "active_support.reset_all_current_attributes_instances" do |app|
-      executor_around_test_case = app.config.active_support.executor_around_test_case
-
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
       app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
 
       ActiveSupport.on_load(:active_support_test_case) do
-        if executor_around_test_case
+        if app.config.active_support.executor_around_test_case
           require "active_support/executor/test_helper"
           include ActiveSupport::Executor::TestHelper
         else

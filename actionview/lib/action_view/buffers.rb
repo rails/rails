@@ -18,24 +18,91 @@ module ActionView
   #   sbuf << 5
   #   puts sbuf # => "hello\u0005"
   #
-  class OutputBuffer < ActiveSupport::SafeBuffer # :nodoc:
-    def initialize(*)
-      super
-      encode!
+  class OutputBuffer # :nodoc:
+    def initialize(buffer = "")
+      @raw_buffer = String.new(buffer)
+      @raw_buffer.encode!
+    end
+
+    delegate :length, :empty?, :blank?, :encoding, :encode!, :force_encoding, to: :@raw_buffer
+
+    def to_s
+      @raw_buffer.html_safe
+    end
+    alias_method :html_safe, :to_s
+
+    def to_str
+      @raw_buffer.dup
+    end
+
+    def html_safe?
+      true
     end
 
     def <<(value)
-      return self if value.nil?
-      super(value.to_s)
+      unless value.nil?
+        value = value.to_s
+        @raw_buffer << if value.html_safe?
+          value
+        else
+          CGI.escapeHTML(value)
+        end
+      end
+      self
     end
+    alias :concat :<<
     alias :append= :<<
+
+    def safe_concat(value)
+      @raw_buffer << value
+      self
+    end
+    alias :safe_append= :safe_concat
 
     def safe_expr_append=(val)
       return self if val.nil?
-      safe_concat val.to_s
+      @raw_buffer << val.to_s
+      self
     end
 
-    alias :safe_append= :safe_concat
+    def initialize_copy(other)
+      @raw_buffer = other.to_str
+    end
+
+    def capture
+      new_buffer = +""
+      old_buffer, @raw_buffer = @raw_buffer, new_buffer
+      yield
+      new_buffer.html_safe
+    ensure
+      @raw_buffer = old_buffer
+    end
+
+    def ==(other)
+      other.class == self.class && @raw_buffer == other.to_str
+    end
+
+    def raw
+      RawOutputBuffer.new(self)
+    end
+
+    attr_reader :raw_buffer
+  end
+
+  class RawOutputBuffer # :nodoc:
+    def initialize(buffer)
+      @buffer = buffer
+    end
+
+    def <<(value)
+      unless value.nil?
+        @buffer.raw_buffer << value.to_s
+      end
+    end
+
+    def raw
+      self
+    end
   end
 
   class StreamingBuffer # :nodoc:
@@ -56,11 +123,42 @@ module ActionView
     end
     alias :safe_append= :safe_concat
 
+    def capture
+      buffer = +""
+      old_block, @block = @block, ->(value) { buffer << value }
+      yield
+      buffer.html_safe
+    ensure
+      @block = old_block
+    end
+
     def html_safe?
       true
     end
 
     def html_safe
+      self
+    end
+
+    def raw
+      RawStreamingBuffer.new(self)
+    end
+
+    attr_reader :block
+  end
+
+  class RawStreamingBuffer # :nodoc:
+    def initialize(buffer)
+      @buffer = buffer
+    end
+
+    def <<(value)
+      unless value.nil?
+        @buffer.block.call(value.to_s)
+      end
+    end
+
+    def raw
       self
     end
   end

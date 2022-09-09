@@ -13,8 +13,7 @@ module ActiveRecord
     ##
     # :singleton-method:
     # A list of tables which should not be dumped to the schema.
-    # Acceptable values are strings as well as regexp if ActiveRecord.schema_format == :ruby.
-    # Only strings are accepted if ActiveRecord.schema_format == :sql.
+    # Acceptable values are strings and regexps.
     cattr_accessor :ignore_tables, default: []
 
     ##
@@ -28,6 +27,12 @@ module ActiveRecord
     # Specify a custom regular expression matching check constraints which name
     # should not be dumped to db/schema.rb.
     cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
+
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching exclusion constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :excl_ignore_pattern, default: /^excl_rails_[0-9a-f]{10}$/
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
@@ -111,7 +116,7 @@ module ActiveRecord
         end
 
         # dump foreign keys at the end to make sure all dependent tables exist.
-        if @connection.supports_foreign_keys?
+        if @connection.use_foreign_keys?
           sorted_tables.each do |tbl|
             foreign_keys(tbl, stream) unless ignored?(tbl)
           end
@@ -171,6 +176,7 @@ module ActiveRecord
 
           indexes_in_create(table, tbl)
           check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -201,6 +207,12 @@ module ActiveRecord
 
       def indexes_in_create(table, stream)
         if (indexes = @connection.indexes(table)).any?
+          if @connection.supports_exclusion_constraints? && (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+            exclusion_constraint_names = exclusion_constraints.collect(&:name)
+
+            indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
+          end
+
           index_statements = indexes.map do |index|
             "    t.index #{index_parts(index).join(', ')}"
           end

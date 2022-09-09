@@ -288,18 +288,13 @@ user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
-This is most useful when updating several attributes at once. If, on the other
-hand, you'd like to update several records in bulk, you may find the
-`update_all` class method useful:
+This is most useful when updating several attributes at once. 
+
+If you'd like to update several records in bulk without callbacks or
+validations, you can update the database directly using `update_all`:
 
 ```ruby
-User.update_all "max_login_attempts = 3, must_change_password = 'true'"
-```
-
-This is the same as if you wrote:
-
-```ruby
-User.update(:all, max_login_attempts: 3, must_change_password: true)
+User.update_all max_login_attempts: 3, must_change_password: true
 ```
 
 ### Delete
@@ -380,13 +375,11 @@ class CreatePublications < ActiveRecord::Migration[7.1]
       t.string :title
       t.text :description
       t.references :publication_type
-      t.integer :publisher_id
-      t.string :publisher_type
+      t.references :publisher, polymorphic: true
       t.boolean :single_issue
 
       t.timestamps
     end
-    add_index :publications, :publication_type_id
   end
 end
 ```

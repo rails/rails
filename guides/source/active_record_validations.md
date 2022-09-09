@@ -1078,8 +1078,7 @@ class MyValidator < ActiveModel::Validator
   end
 end
 
-class Person
-  include ActiveModel::Validations
+class Person < ApplicationRecord
   validates_with MyValidator
 end
 ```
@@ -1121,7 +1120,7 @@ class method, passing in the symbols for the validation methods' names.
 You can pass more than one symbol for each class method and the respective
 validations will be run in the same order as they were registered.
 
-The `valid?` method will verify that the errors collection is empty,
+The `valid?` method will verify that the `errors` collection is empty,
 so your custom validation methods should add errors to it when you
 wish validation to fail:
 
@@ -1275,7 +1274,7 @@ irb> error.full_message
 => "Name is too short (minimum is 3 characters)"
 ```
 
-The [`full_message`][] method generates a more user-friendly message, with the capitalized attribute name prepended.
+The [`full_message`][] method generates a more user-friendly message, with the capitalized attribute name prepended. (To customize the format that `full_message` uses, see the [I18n guide](i18n.html#active-model-methods).)
 
 [`full_message`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-full_message
 [`where`]: https://api.rubyonrails.org/classes/ActiveModel/Errors.html#method-i-where

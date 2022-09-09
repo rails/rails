@@ -114,7 +114,7 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     if 123.455.to_d(5) == BigDecimal("123.46")
       # BigDecimal's to_d behavior changed in BigDecimal 3.0.1, see https://github.com/ruby/bigdecimal/issues/70
       # TODO: replace this with a check against BigDecimal::VERSION, currently
-      # we just check the behaviour because both versions of BigDecimal report "3.0.0"
+      # we just check the behavior because both versions of BigDecimal report "3.0.0"
       assert_not_predicate subject, :valid?
     else
       assert_predicate subject, :valid?

@@ -136,7 +136,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # Now you can list a bunch of entries, call +Entry#title+, and polymorphism will provide you with the answer.
+  # Now you can list a bunch of entries, call <tt>Entry#title</tt>, and polymorphism will provide you with the answer.
   #
   # == Nested Attributes
   #

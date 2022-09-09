@@ -13,6 +13,61 @@ module ActiveRecord
       assert_equal expected, Post.select(nil).select(:title).to_sql
     end
 
+    def test_select_with_hash_argument
+      post = Post.select(:title, posts: { title: :post_title }).take
+      assert_not_nil post.title
+      assert_not_nil post.post_title
+      assert_equal post.title, post.post_title
+    end
+
+    def test_select_with_one_level_hash_argument
+      post = Post.select(:title, title: :post_title).take
+      assert_not_nil post.title
+      assert_not_nil post.post_title
+      assert_equal post.title, post.post_title
+    end
+
+    def test_select_with_not_exists_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(foo: :post_title).take
+      end
+    end
+
+    def test_select_with_hash_with_not_exists_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: { boo: :post_title }).take
+      end
+    end
+
+    def test_select_with_hash_array_value_with_not_exists_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: [:bar, :id]).take
+      end
+    end
+
+    def test_select_with_invalid_nested_field
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: { "UPPER(title)" => :post_title }).take
+      end
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.select(posts: ["UPPER(title)"]).take
+      end
+    end
+
+    def test_select_with_hash_argument_without_aliases
+      post = Post.select(posts: [:title, :id]).take
+      assert_not_nil post.title
+      assert_not_nil post.id
+    end
+
+    def test_select_with_hash_argument_with_few_tables
+      post = Post.joins(:comments).select(:title, posts: { title: :post_title }, comments: { body: :comment_body }).take
+
+      assert_equal post.title, post.post_title
+      assert_not_nil post.comment_body
+      assert_not_nil post.post_title
+    end
+
     def test_reselect
       expected = Post.select(:title).to_sql
       assert_equal expected, Post.select(:title, :body).reselect(:title).to_sql

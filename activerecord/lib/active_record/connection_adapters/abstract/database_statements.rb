@@ -187,7 +187,7 @@ module ActiveRecord
       end
 
       def truncate_tables(*table_names) # :nodoc:
-        table_names -= [schema_migration.table_name, InternalMetadata.table_name]
+        table_names -= [schema_migration.table_name, internal_metadata.table_name]
 
         return if table_names.empty?
 
@@ -389,6 +389,8 @@ module ActiveRecord
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction
         exec_rollback_db_transaction
+      rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed
+        # Connection's gone; that counts as a rollback
       end
 
       def exec_rollback_db_transaction() end # :nodoc:
@@ -478,6 +480,10 @@ module ActiveRecord
       end
 
       private
+        def internal_execute(sql, name = "SCHEMA")
+          execute(sql, name)
+        end
+
         def execute_batch(statements, name = nil)
           statements.each do |statement|
             execute(statement, name)

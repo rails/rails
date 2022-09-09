@@ -126,6 +126,27 @@ module ActiveRecord
     # +:immutable_string+. This setting does not affect the behavior of
     # <tt>attribute :foo, :string</tt>. Defaults to false.
 
+    ##
+    # :singleton-method: inheritance_column
+    # :call-seq: inheritance_column
+    #
+    # The name of the table column which stores the class name on single-table
+    # inheritance situations.
+    #
+    # The default inheritance column name is +type+, which means it's a
+    # reserved word inside Active Record. To be able to use single-table
+    # inheritance with another column name, or to use the column +type+ in
+    # your own model for something else, you can set +inheritance_column+:
+    #
+    #     self.inheritance_column = 'zoink'
+
+    ##
+    # :singleton-method: inheritance_column=
+    # :call-seq: inheritance_column=(column)
+    #
+    # Defines the name of the table column which will store the class name on single-table
+    # inheritance situations.
+
     included do
       class_attribute :primary_key_prefix_type, instance_writer: false
       class_attribute :table_name_prefix, instance_writer: false, default: ""
@@ -136,15 +157,6 @@ module ActiveRecord
       class_attribute :implicit_order_column, instance_accessor: false
       class_attribute :immutable_strings_by_default, instance_accessor: false
 
-      # Defines the name of the table column which will store the class name on single-table
-      # inheritance situations.
-      #
-      # The default inheritance column name is +type+, which means it's a
-      # reserved word inside Active Record. To be able to use single-table
-      # inheritance with another column name, or to use the column +type+ in
-      # your own model for something else, you can set +inheritance_column+:
-      #
-      #     self.inheritance_column = 'zoink'
       class_attribute :inheritance_column, instance_accessor: false, default: "type"
       singleton_class.class_eval do
         alias_method :_inheritance_column=, :inheritance_column=
@@ -168,8 +180,9 @@ module ActiveRecord
     #   artists, records => artists_records
     #   records, artists => artists_records
     #   music_artists, music_records => music_artists_records
+    #   music.artists, music.records => music.artists_records
     def self.derive_join_table_name(first_table, second_table) # :nodoc:
-      [first_table.to_s, second_table.to_s].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
+      [first_table.to_s, second_table.to_s].sort.join("\0").gsub(/^(.*[_.])(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
     end
 
     module ClassMethods
@@ -328,7 +341,7 @@ module ActiveRecord
       #     #   name       :string, limit: 255
       #     #   category   :string, limit: 255
       #
-      #     self.ignored_columns = [:category]
+      #     self.ignored_columns += [:category]
       #   end
       #
       # The schema still contains "category", but now the model omits it, so any meta-driven code or
@@ -578,6 +591,8 @@ module ActiveRecord
               user_provided_default: false
             )
           end
+
+          super
         end
 
         def reload_schema_from_cache

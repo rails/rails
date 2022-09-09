@@ -98,7 +98,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_incomplete_schema_loading
     topic = Topic.first
-    payload = { foo: 42 }
+    payload = { "foo" => 42 }
     topic.update!(content: payload)
 
     Topic.reset_column_information
@@ -1350,7 +1350,7 @@ class BasicsTest < ActiveRecord::TestCase
       rd.binmode
       wr.binmode
 
-      ActiveRecord::Base.connection_handler.clear_all_connections!
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
 
       fork do
         rd.close
@@ -1655,6 +1655,20 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
   ensure
     ActiveRecord::Base.protected_environments = previous_protected_environments
+  end
+
+  test "#present? and #blank? on ActiveRecord::Base classes" do
+    assert_not_empty Topic.all
+    assert_no_queries do
+      assert Topic.present?
+      assert_not Topic.blank?
+    end
+
+    Topic.delete_all
+    assert_no_queries do
+      assert Topic.present?
+      assert_not Topic.blank?
+    end
   end
 
   test "cannot call connects_to on non-abstract or non-ActiveRecord::Base classes" do

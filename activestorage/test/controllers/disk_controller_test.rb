@@ -32,6 +32,12 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_equal " worl", response.body
   end
 
+  test "showing blob with invalid range" do
+    blob = create_blob
+    get blob.url, headers: { "Range" => "bytes=1000-1000" }
+    assert_response :range_not_satisfiable
+  end
+
   test "showing blob that does not exist" do
     blob = create_blob
     blob.delete

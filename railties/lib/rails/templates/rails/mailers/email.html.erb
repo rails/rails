@@ -80,6 +80,11 @@
       <dd id="cc"><%= @email.header['cc'] %></dd>
     <% end %>
 
+    <% if @email.bcc %>
+      <dt>BCC:</dt>
+      <dd id="bcc"><%= @email.header['bcc'] %></dd>
+    <% end %>
+
     <dt>Date:</dt>
     <dd id="date"><%= Time.current.rfc2822 %></dd>
 

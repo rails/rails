@@ -17,9 +17,11 @@ module ActionView
       ParsedPath = Struct.new(:path, :details)
 
       def build_path_regex
-        handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
-        formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
-        locales = "[a-z]{2}(?:[-_][A-Z]{2})?"
+        handlers = Regexp.union(Template::Handlers.extensions.map(&:to_s))
+        formats = Regexp.union(Template::Types.symbols.map(&:to_s))
+        available_locales = I18n.available_locales.map(&:to_s)
+        regular_locales = [/[a-z]{2}(?:[-_][A-Z]{2})?/]
+        locales = Regexp.union(available_locales + regular_locales)
         variants = "[^.]*"
 
         %r{

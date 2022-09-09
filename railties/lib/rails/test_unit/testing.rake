@@ -29,7 +29,7 @@ namespace :test do
     success || exit(false)
   end
 
-  ["models", "helpers", "channels", "controllers", "mailers", "integration", "jobs", "mailboxes"].each do |name|
+  Rails::TestUnit::Runner::TEST_FOLDERS.each do |name|
     task name => "test:prepare" do
       Rails::TestUnit::Runner.rake_run(["test/#{name}"])
     end

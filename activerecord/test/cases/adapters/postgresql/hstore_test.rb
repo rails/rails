@@ -41,7 +41,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
   def test_disable_enable_hstore
     assert @connection.extension_enabled?("hstore")
-    @connection.disable_extension "hstore"
+    @connection.disable_extension "hstore", force: :cascade
     assert_not @connection.extension_enabled?("hstore")
     @connection.enable_extension "hstore"
     assert @connection.extension_enabled?("hstore")
@@ -293,6 +293,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   def test_backslash
     assert_cycle('a\\b' => 'b\\ar', '1"foo' => "2")
     assert_cycle('a\\"' => 'b\\ar', '1"foo' => "2")
+    assert_cycle("a\\" => "bar\\", '1"foo' => "2")
   end
 
   def test_comma

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
 require "concurrent/map"
@@ -19,11 +20,20 @@ module ActiveRecord
       # retrieved on both a class and instance level by calling +logger+.
       class_attribute :logger, instance_writer: false
 
-      ##
-      # :singleton-method:
-      #
-      # Specifies the job used to destroy associations in the background
-      class_attribute :destroy_association_async_job, instance_writer: false, instance_predicate: false, default: false
+      class_attribute :_destroy_association_async_job, instance_accessor: false, default: "ActiveRecord::DestroyAssociationAsyncJob"
+
+      # The job class used to destroy associations in the background.
+      def self.destroy_association_async_job
+        if _destroy_association_async_job.is_a?(String)
+          self._destroy_association_async_job = _destroy_association_async_job.constantize
+        end
+        _destroy_association_async_job
+      rescue NameError => error
+        raise NameError, "Unable to load destroy_association_async_job: #{error.message}"
+      end
+
+      singleton_class.alias_method :destroy_association_async_job=, :_destroy_association_async_job=
+      delegate :destroy_association_async_job, to: :class
 
       ##
       # :singleton-method:
@@ -80,6 +90,8 @@ module ActiveRecord
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false
 
       class_attribute :has_many_inversing, instance_accessor: false, default: false
+
+      class_attribute :run_commit_callbacks_on_first_saved_instances_in_transaction, instance_accessor: false, default: true
 
       class_attribute :default_connection_handler, instance_writer: false
 
@@ -213,7 +225,7 @@ module ActiveRecord
       def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
         case ActiveRecord.action_on_strict_loading_violation
         when :raise
-          message = "`#{owner}` is marked for strict_loading. The `#{reflection.klass}` association named `:#{reflection.name}` cannot be lazily loaded."
+          message = reflection.strict_loading_violation_message(owner)
           raise ActiveRecord::StrictLoadingViolationError.new(message)
         when :log
           name = "strict_loading_violation.active_record"

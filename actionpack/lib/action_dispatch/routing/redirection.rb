@@ -18,10 +18,19 @@ module ActionDispatch
       def redirect?; true; end
 
       def call(env)
-        serve Request.new env
+        ActiveSupport::Notifications.instrument("redirect.action_dispatch") do |payload|
+          request = Request.new(env)
+          response = build_response(request)
+
+          payload[:status] = @status
+          payload[:location] = response.headers["Location"]
+          payload[:request] = request
+
+          response.to_a
+        end
       end
 
-      def serve(req)
+      def build_response(req)
         uri = URI.parse(path(req.path_parameters, req))
 
         unless uri.host
@@ -46,7 +55,7 @@ module ActionDispatch
           "Content-Length" => body.length.to_s
         }
 
-        [ status, headers, [body] ]
+        ActionDispatch::Response.new(status, headers, body)
       end
 
       def path(params, request)
@@ -141,6 +150,11 @@ module ActionDispatch
       #
       # This will redirect the user, while ignoring certain parts of the request, including query string, etc.
       # <tt>/stories</tt>, <tt>/stories?foo=bar</tt>, etc all redirect to <tt>/posts</tt>.
+      #
+      # The redirect will use a <tt>301 Moved Permanently</tt> status code by
+      # default. This can be overridden with the +:status+ option:
+      #
+      #   get "/stories" => redirect("/posts", status: 307)
       #
       # You can also use interpolation in the supplied redirect argument:
       #

@@ -220,7 +220,7 @@ azure:
 Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
 
 ```ruby
-gem "azure-storage-blob", require: false
+gem "azure-storage-blob", "~> 2.0", require: false
 ```
 
 ### Google Cloud Storage Service
@@ -441,6 +441,20 @@ Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
 <%= image_tag user.avatar.variant(:thumb) %>
 ```
 
+You can use specific variants for previews as well:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :video do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+end
+```
+
+```erb
+<%= image_tag user.video.preview(:thumb) %>
+```
+
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
 [Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
@@ -606,7 +620,7 @@ rails_blob_path(user.avatar, disposition: "attachment")
 ```
 
 WARNING: To prevent XSS attacks, Active Storage forces the Content-Disposition header
-to "attachment" for some kind of files. To change this behaviour see the
+to "attachment" for some kind of files. To change this behavior see the
 available configuration options in [Configuring Rails Applications](configuring.html#configuring-active-storage).
 
 If you need to create a link from outside of controller/view context (Background
@@ -1275,7 +1289,7 @@ the purge job is executed immediately rather at an unknown time in the future.
 config.active_job.queue_adapter = :inline
 ```
 
-[parallel tests]: https://guides.rubyonrails.org/testing.html#parallel-testing
+[parallel tests]: testing.html#parallel-testing
 
 #### Integration tests
 
@@ -1304,7 +1318,7 @@ class ActionDispatch::IntegrationTest
 end
 ```
 
-[parallel tests]: https://guides.rubyonrails.org/testing.html#parallel-testing
+[parallel tests]: testing.html#parallel-testing
 
 ### Adding attachments to fixtures
 
@@ -1382,7 +1396,7 @@ Minitest.after_run do
 end
 ```
 
-[fixtures]: https://guides.rubyonrails.org/testing.html#the-low-down-on-fixtures
+[fixtures]: testing.html#the-low-down-on-fixtures
 [`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
 
 Implementing Support for Other Cloud Services

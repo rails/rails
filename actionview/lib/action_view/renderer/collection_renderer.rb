@@ -51,6 +51,10 @@ module ActionView
       def length
         @collection.respond_to?(:length) ? @collection.length : size
       end
+
+      def preload!
+        # no-op
+      end
     end
 
     class SameCollectionIterator < CollectionIterator # :nodoc:
@@ -84,8 +88,12 @@ module ActionView
 
       def each_with_info
         return super unless block_given?
-        @relation.preload_associations(@collection)
+        preload!
         super
+      end
+
+      def preload!
+        @relation.preload_associations(@collection)
       end
     end
 

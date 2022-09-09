@@ -125,6 +125,10 @@ module ActiveRecord
           256 # https://dev.mysql.com/doc/refman/en/identifiers.html
         end
 
+        def schema_creation # :nodoc:
+          MySQL::SchemaCreation.new(self)
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
@@ -150,16 +154,12 @@ module ActiveRecord
             @default_row_format
           end
 
-          def schema_creation
-            MySQL::SchemaCreation.new(self)
-          end
-
           def create_table_definition(name, **options)
             MySQL::TableDefinition.new(self, name, **options)
           end
 
           def default_type(table_name, field_name)
-            match = create_table_info(table_name).match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
+            match = create_table_info(table_name)&.match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
             default_pre = match[2] if match
 
             if default_pre == "'"
@@ -225,14 +225,15 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = +"SELECT table_name FROM (SELECT table_name, table_type FROM information_schema.tables "
-            sql << " WHERE table_schema = #{scope[:schema]}) _subquery"
-            if scope[:type] || scope[:name]
-              conditions = []
-              conditions << "_subquery.table_type = #{scope[:type]}" if scope[:type]
-              conditions << "_subquery.table_name = #{scope[:name]}" if scope[:name]
-              sql << " WHERE #{conditions.join(" AND ")}"
+            sql = +"SELECT table_name FROM information_schema.tables"
+            sql << " WHERE table_schema = #{scope[:schema]}"
+
+            if scope[:name]
+              sql << " AND table_name = #{scope[:name]}"
+              sql << " AND table_name IN (SELECT table_name FROM information_schema.tables WHERE table_schema = #{scope[:schema]})"
             end
+
+            sql << " AND table_type = #{scope[:type]}" if scope[:type]
             sql
           end
 

@@ -40,6 +40,7 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
+          options[:_uses_legacy_table_name] = true
           if block_given?
             super { |t| yield compatible_table_definition(t) }
           else
@@ -53,6 +54,22 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def rename_table(table_name, new_name, **options)
+          options[:_uses_legacy_table_name] = true
+          super
+        end
+
+        def change_column_null(table_name, column_name, null, default = nil)
+          super(table_name, column_name, !!null, default)
+        end
+
+        def disable_extension(name, **options)
+          if connection.adapter_name == "PostgreSQL"
+            options[:force] = :cascade
+          end
+          super
         end
 
         private

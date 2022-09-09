@@ -1,3 +1,148 @@
+*   Add `String#downcase_first` method.
+
+    This method is the corollary of `String#upcase_first`.
+
+    *Mark Schneider*
+
+*   `thread_mattr_accessor` will call `.dup.freeze` on non-frozen default values.
+
+    This provides a basic level of protection against different threads trying
+    to mutate a shared default object.
+
+    *Jonathan Hefner*
+
+*   Add `raise_on_invalid_cache_expiration_time` config to `ActiveSupport::Cache::Store`
+
+    Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
+    `write` are given an invalid `expires_at` or `expires_in` time.
+
+    Options are `true`, and `false`. If `false`, the exception will be reported
+    as `handled` and logged instead. Defaults to `true` if `config.load_defaults >= 7.1`.
+
+     *Trevor Turk*
+
+*   `ActiveSupport::Cache:Store#fetch` now passes an options accessor to the block.
+
+    It makes possible to override cache options:
+
+        Rails.cache.fetch("3rd-party-token") do |name, options|
+          token = fetch_token_from_remote
+          # set cache's TTL to match token's TTL
+          options.expires_in = token.expires_in
+          token
+        end
+
+    *Andrii Gladkyi*, *Jean Boussier*
+
+*   `default` option of `thread_mattr_accessor` now applies through inheritance and
+    also across new threads.
+
+    Previously, the `default` value provided was set only at the moment of defining
+    the attribute writer, which would cause the attribute to be uninitialized in
+    descendants and in other threads.
+
+    Fixes #43312.
+
+    *Thierry Deo*
+
+*   Redis cache store is now compatible with redis-rb 5.0.
+
+    *Jean Boussier*
+
+*   Add `skip_nil:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+
+    *Daniel Alfaro*
+
+*   Add `quarter` method to date/time
+
+    *Matt Swanson*
+
+*   Fix `NoMethodError` on custom `ActiveSupport::Deprecation` behavior.
+
+    `ActiveSupport::Deprecation.behavior=` was supposed to accept any object
+    that responds to `call`, but in fact its internal implementation assumed that
+    this object could respond to `arity`, so it was restricted to only `Proc` objects.
+
+    This change removes this `arity` restriction of custom behaviors.
+
+    *Ryo Nakamura*
+
+*   Support `:url_safe` option for `MessageEncryptor`.
+
+    The `MessageEncryptor` constructor now accepts a `:url_safe` option, similar
+    to the `MessageVerifier` constructor.  When enabled, this option ensures
+    that messages use a URL-safe encoding.
+
+    *Jonathan Hefner*
+
+*   Add `url_safe` option to `ActiveSupport::MessageVerifier` initializer
+
+    `ActiveSupport::MessageVerifier.new` now takes optional `url_safe` argument.
+    It can generate URL-safe strings by passing `url_safe: true`.
+
+    ```ruby
+    verifier = ActiveSupport::MessageVerifier.new(url_safe: true)
+    message = verifier.generate(data) # => URL-safe string
+    ```
+
+    This option is `false` by default to be backwards compatible.
+
+    *Shouichi Kamiya*
+
+*   Enable connection pooling by default for `MemCacheStore` and `RedisCacheStore`.
+
+    If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
+
+    ```ruby
+    config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+    ```
+
+    *fatkodima*
+
+*   Add `force:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+
+    *fatkodima*
+
+*   Deprecated `:pool_size` and `:pool_timeout` options for configuring connection pooling in cache stores.
+
+    Use `pool: true` to enable pooling with default settings:
+
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: true
+    ```
+
+    Or pass individual options via `:pool` option:
+
+    ```ruby
+    config.cache_store = :redis_cache_store, pool: { size: 10, timeout: 2 }
+    ```
+
+    *fatkodima*
+
+*   Allow #increment and #decrement methods of `ActiveSupport::Cache::Store`
+    subclasses to set new values.
+
+    Previously incrementing or decrementing an unset key would fail and return
+    nil. A default will now be assumed and the key will be created.
+
+    *Andrej Blagojević*, *Eugene Kenny*
+
+*   Add `skip_nil:` support to `RedisCacheStore`
+
+    *Joey Paris*
+
+*   `ActiveSupport::Cache::MemoryStore#write(name, val, unless_exist:true)` now
+    correctly writes expired keys.
+
+    *Alan Savage*
+
+*   `ActiveSupport::ErrorReporter` now accepts and forward a `source:` parameter.
+
+    This allow libraries to signal the origin of the errors, and reporters
+    to easily ignore some sources.
+
+    *Jean Boussier*
+
 *   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
 
     Add the method `ERB::Util.xml_name_escape` to escape dangerous characters
@@ -40,6 +185,8 @@
 
 *   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
 
+    *John Hawthorn*
+
 *   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
 
     Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
@@ -55,6 +202,8 @@
     *Stephen Sugden*
 
 *   Improve `File.atomic_write` error handling
+
+    *Daniel Pepper*
 
 *   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
 

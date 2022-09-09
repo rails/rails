@@ -493,6 +493,11 @@ module Rails
       ordered_railties.flatten - [self]
     end
 
+    def load_generators(app = self) # :nodoc:
+      app.ensure_generator_templates_added
+      super
+    end
+
     # Eager loads the application code.
     def eager_load!
       Rails.autoloaders.each(&:eager_load)
@@ -580,6 +585,11 @@ module Rails
       else
         raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
       end
+    end
+
+    def ensure_generator_templates_added
+      configured_paths = config.generators.templates
+      configured_paths.unshift(*(paths["lib/templates"].existent - configured_paths))
     end
 
     private
