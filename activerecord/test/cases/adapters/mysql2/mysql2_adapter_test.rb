@@ -71,6 +71,31 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_mysql2_default_prepared_statements
+    fake_connection = Class.new do
+      def query_options
+        {}
+      end
+
+      def query(*)
+      end
+
+      def close
+      end
+    end.new
+
+    adapter = ActiveSupport::Deprecation.silence do
+      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
+        fake_connection,
+        ActiveRecord::Base.logger,
+        nil,
+        { socket: File::NULL }
+      )
+    end
+
+    assert_equal false, adapter.prepared_statements
+  end
+
   def test_exec_query_nothing_raises_with_no_result_queries
     assert_nothing_raised do
       with_example_table do
