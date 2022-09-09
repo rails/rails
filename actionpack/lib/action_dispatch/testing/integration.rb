@@ -58,7 +58,8 @@ module ActionDispatch
       # the same HTTP verb will be used when redirecting, otherwise a GET request
       # will be performed. Any arguments are passed to the
       # underlying request.
-      # The HTTP_REFERER header will be set to the previous url
+      #
+      # The HTTP_REFERER header will be set to the previous url.
       def follow_redirect!(headers: {}, **args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
 

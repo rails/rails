@@ -1,3 +1,9 @@
+*   Add `HTTP_REFERER` when following redirects on integration tests
+
+    This makes `follow_redirect!` a closer simulation of what happens in a real browser
+
+    *Felipe Sateler*
+
 *   Added `exclude?` method to `ActionController::Parameters`.
 
     *Ian Neubert*
@@ -91,12 +97,6 @@
     *Tim Wade*
 
 *   Fix `authenticate_with_http_basic` to allow for missing password.
-*   Add `HTTP_REFERER` when following redirects on integration tests
-
-    This makes `follow_redirect!` a closer simulation of what happens in a real browser
-
-    *Felipe Sateler*
-
 
     Before Rails 7.0 it was possible to handle basic authentication with only a username.
 
