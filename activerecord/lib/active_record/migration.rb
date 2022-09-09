@@ -950,14 +950,13 @@ module ActiveRecord
 
     def copy(destination, sources, options = {})
       copied = []
-      schema_migration = options[:schema_migration] || ActiveRecord::SchemaMigration
 
       FileUtils.mkdir_p(destination) unless File.exist?(destination)
 
-      destination_migrations = ActiveRecord::MigrationContext.new(destination, schema_migration).migrations
+      destination_migrations = ActiveRecord::MigrationContext.new(destination, SchemaMigration::NullSchemaMigration.new).migrations
       last = destination_migrations.last
       sources.each do |scope, path|
-        source_migrations = ActiveRecord::MigrationContext.new(path, schema_migration).migrations
+        source_migrations = ActiveRecord::MigrationContext.new(path, SchemaMigration::NullSchemaMigration.new).migrations
 
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
@@ -1018,7 +1017,7 @@ module ActiveRecord
       if ActiveRecord.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
-        SchemaMigration.normalize_migration_number(number)
+        "%.3d" % number.to_i
       end
     end
 
@@ -1076,15 +1075,21 @@ module ActiveRecord
   #
   # A migration context requires the path to the migrations is set
   # in the +migrations_paths+ parameter. Optionally a +schema_migration+
-  # class can be provided. For most applications, +SchemaMigration+ is
-  # sufficient. Multiple database applications need a +SchemaMigration+
-  # per primary database.
+  # class can be provided. Multiple database applications will instantiate
+  # a +SchemaMigration+ object per database. From the Rake tasks, Rails will
+  # handle this for you.
   class MigrationContext
     attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
-    def initialize(migrations_paths, schema_migration = SchemaMigration, internal_metadata = InternalMetadata)
+    def initialize(migrations_paths, schema_migration = nil, internal_metadata = InternalMetadata)
+      if schema_migration == SchemaMigration
+        schema_migration = SchemaMigration.new(ActiveRecord::Base.connection)
+
+        ActiveSupport::Deprecation.warn("SchemaMigration no longer inherits from ActiveRecord::Base. Please instaniate a new SchemaMigration object with the desired connection, ie `ActiveRecord::SchemaMigration.new(ActiveRecord::Base.connection)`.")
+      end
+
       @migrations_paths = migrations_paths
-      @schema_migration = schema_migration
+      @schema_migration = schema_migration || SchemaMigration.new(ActiveRecord::Base.connection)
       @internal_metadata = internal_metadata
     end
 
@@ -1152,7 +1157,7 @@ module ActiveRecord
 
     def get_all_versions # :nodoc:
       if schema_migration.table_exists?
-        schema_migration.all_versions.map(&:to_i)
+        schema_migration.integer_versions
       else
         []
       end
@@ -1257,7 +1262,9 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        MigrationContext.new(migrations_paths, SchemaMigration, InternalMetadata).current_version
+        schema_migration = SchemaMigration.new(ActiveRecord::Base.connection)
+
+        MigrationContext.new(migrations_paths, schema_migration, InternalMetadata).current_version
       end
     end
 
@@ -1327,7 +1334,7 @@ module ActiveRecord
     end
 
     def load_migrated
-      @migrated_versions = Set.new(@schema_migration.all_versions.map(&:to_i))
+      @migrated_versions = Set.new(@schema_migration.integer_versions)
     end
 
     private
@@ -1406,10 +1413,10 @@ module ActiveRecord
       def record_version_state_after_migrating(version)
         if down?
           migrated.delete(version)
-          @schema_migration.delete_by(version: version.to_s)
+          @schema_migration.delete_version(version.to_s)
         else
           migrated << version
-          @schema_migration.create!(version: version.to_s)
+          @schema_migration.create_version(version.to_s)
         end
       end
 

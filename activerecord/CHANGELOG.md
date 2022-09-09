@@ -1,3 +1,27 @@
+*   Allow `QueryMethods#in_order_of` to order by a string column name.
+
+    ```ruby
+    Post.in_order_of("id", [4,2,3,1]).to_a
+    Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
+    ```
+
+    *Igor Kasyanchuk*
+
+*   Disable `prepared_statements` for mysql2 adapter
+
+    A recent change [#44591](https://github.com/rails/rails/pull/44591) enabled `prepared_statements` by default for mysql2 adapter
+    although this is only supposed to happen in Rails 7.2 as the deprecation warning indicates.
+
+    The default value of `prepared_statements` for mysql2 adapter is set back to `false`.
+
+    *Iliana Hadzhiatanasova*
+
+*   Move `ActiveRecord::SchemaMigration` to an independent object.
+
+    `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
 *   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
 
     Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.

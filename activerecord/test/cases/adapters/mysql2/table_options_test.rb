@@ -94,7 +94,7 @@ class Mysql2DefaultEngineOptionTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.logger       = @logger_was
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::Base.connection.drop_table "mysql_table_options", if_exists: true
-    ActiveRecord::SchemaMigration.delete_all rescue nil
+    ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
   end
 
   test "new migrations do not contain default ENGINE=InnoDB option" do
