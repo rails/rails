@@ -1,3 +1,10 @@
+## Rails 6.0.6 (September 09, 2022) ##
+
+*   Symbol is allowed by default for YAML columns
+
+    *Étienne Barrié*
+
+
 ## Rails 6.0.5.1 (July 12, 2022) ##
 
 *   Change ActiveRecord::Coders::YAMLColumn default to safe_load
