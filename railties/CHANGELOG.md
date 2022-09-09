@@ -1,3 +1,7 @@
+*   Delegate application record generator description to orm hooked generator.
+
+    *Gannon McGibbon*
+
 *   Show BCC recipients when present in Action Mailer previews.
 
     *Akshay Birajdar*
