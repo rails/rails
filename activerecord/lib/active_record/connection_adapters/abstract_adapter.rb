@@ -193,21 +193,7 @@ module ActiveRecord
       end
 
       def schema_migration # :nodoc:
-        @schema_migration ||= begin
-                                conn = self
-                                connection_name = conn.pool.pool_config.connection_name
-
-                                return ActiveRecord::SchemaMigration if connection_name == "ActiveRecord::Base"
-
-                                schema_migration_name = "#{connection_name}::SchemaMigration"
-
-                                Class.new(ActiveRecord::SchemaMigration) do
-                                  define_singleton_method(:name) { schema_migration_name }
-                                  define_singleton_method(:to_s) { schema_migration_name }
-
-                                  self.connection_specification_name = connection_name
-                                end
-                              end
+        SchemaMigration.new(self)
       end
 
       def internal_metadata # :nodoc:

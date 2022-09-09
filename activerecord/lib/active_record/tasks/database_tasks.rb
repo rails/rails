@@ -192,7 +192,7 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(db_config)
 
           begin
-            database_initialized = ActiveRecord::SchemaMigration.table_exists?
+            database_initialized = ActiveRecord::Base.connection.schema_migration.table_exists?
           rescue ActiveRecord::NoDatabaseError
             create(db_config)
             retry

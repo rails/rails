@@ -30,7 +30,7 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
-        @schema_migration.delete_all rescue nil
+        @schema_migration.delete_all_versions rescue nil
       end
 
       def test_migration_doesnt_remove_named_index
@@ -685,7 +685,7 @@ module LegacyPolymorphicReferenceIndexTestCases
 
   def teardown
     ActiveRecord::Migration.verbose = @verbose_was
-    @schema_migration.delete_all rescue nil
+    @schema_migration.delete_all_versions rescue nil
     connection.drop_table :testings rescue nil
   end
 
@@ -812,7 +812,7 @@ module LegacyPrimaryKeyTestCases
   def teardown
     @migration.migrate(:down) if @migration
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::SchemaMigration.delete_all rescue nil
+    ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
     LegacyPrimaryKey.reset_column_information
   end
 

@@ -1270,7 +1270,7 @@ module ActiveRecord
       end
 
       def dump_schema_information # :nodoc:
-        versions = schema_migration.all_versions
+        versions = schema_migration.versions
         insert_versions_sql(versions) if versions.any?
       end
 
