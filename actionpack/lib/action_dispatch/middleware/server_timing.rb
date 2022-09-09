@@ -6,30 +6,71 @@ module ActionDispatch
   class ServerTiming
     SERVER_TIMING_HEADER = "Server-Timing"
 
+    class Subscriber # :nodoc:
+      include Singleton
+      KEY = :action_dispatch_server_timing_events
+
+      def initialize
+        @mutex = Mutex.new
+      end
+
+      def call(event)
+        if events = ActiveSupport::IsolatedExecutionState[KEY]
+          events << event
+        end
+      end
+
+      def collect_events
+        events = []
+        ActiveSupport::IsolatedExecutionState[KEY] = events
+        yield
+        events
+      ensure
+        ActiveSupport::IsolatedExecutionState.delete(KEY)
+      end
+
+      def ensure_subscribed
+        @mutex.synchronize do
+          # Subscribe to all events, except those beginning with "!"
+          # Ideally we would be more selective of what is being measured
+          @subscriber ||= ActiveSupport::Notifications.subscribe(/\A[^!]/, self)
+        end
+      end
+
+      def unsubscribe
+        @mutex.synchronize do
+          ActiveSupport::Notifications.unsubscribe @subscriber
+          @subscriber = nil
+        end
+      end
+    end
+
+    def self.unsubscribe # :nodoc:
+      Subscriber.instance.unsubscribe
+    end
+
     def initialize(app)
       @app = app
+      @subscriber = Subscriber.instance
+      @subscriber.ensure_subscribed
     end
 
     def call(env)
-      events = []
-      subscriber = ActiveSupport::Notifications.subscribe(/.*/) do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
+      response = nil
+      events = @subscriber.collect_events do
+        response = @app.call(env)
       end
 
-      status, headers, body = begin
-        @app.call(env)
-      ensure
-        ActiveSupport::Notifications.unsubscribe(subscriber)
-      end
+      headers = response[1]
 
       header_info = events.group_by(&:name).map do |event_name, events_collection|
-        "#{event_name};dur=#{events_collection.sum(&:duration)}"
+        "%s;dur=%.2f" % [event_name, events_collection.sum(&:duration)]
       end
 
       header_info.prepend(headers[SERVER_TIMING_HEADER]) if headers[SERVER_TIMING_HEADER].present?
       headers[SERVER_TIMING_HEADER] = header_info.join(", ")
 
-      [ status, headers, body ]
+      response
     end
   end
 end
