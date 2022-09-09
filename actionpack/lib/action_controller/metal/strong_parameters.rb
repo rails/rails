@@ -167,6 +167,14 @@ module ActionController
     # Returns true if the parameters have no key/value pairs.
 
     ##
+    # :method: exclude?
+    #
+    # :call-seq:
+    #   exclude?(key)
+    #
+    # Returns true if the given key is not present in the parameters.
+
+    ##
     # :method: has_key?
     #
     # :call-seq:
@@ -214,7 +222,7 @@ module ActionController
     #
     # Returns the content of the parameters as a string.
 
-    delegate :keys, :key?, :has_key?, :member?, :empty?, :include?,
+    delegate :keys, :key?, :has_key?, :member?, :empty?, :exclude?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
