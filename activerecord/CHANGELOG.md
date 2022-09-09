@@ -1,3 +1,19 @@
+*   Deprecate quoting `ActiveSupport::Duration` as an integer
+
+    Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+    string template is deprecated. To avoid this warning, you should explicitly
+    convert the duration to a more specific database type. For example, if you
+    want to use a duration as an integer number of seconds:
+    ```
+    Record.where("duration = ?", 1.hour.to_i)
+    ```
+    If you want to use a duration as an ISO 8601 string:
+    ```
+    Record.where("duration = ?", 1.hour.iso8601)
+    ```
+
+    *Aram Greenman*
+
 *   Allow `QueryMethods#in_order_of` to order by a string column name.
 
     ```ruby
