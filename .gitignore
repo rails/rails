@@ -17,3 +17,6 @@ pkg/
 /tmp/
 /yarn-error.log
 /test-reports/
+
+# local plugin
+.history/
