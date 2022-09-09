@@ -1,3 +1,5 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
 *   The Redis adapter is now compatible with redis-rb 5.0
 
     Compatibility with redis-rb 3.x was dropped.

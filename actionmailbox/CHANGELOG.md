@@ -1,3 +1,8 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
+*   No changes.
+
+
 ## Rails 7.0.3.1 (July 12, 2022) ##
 
 *   No changes.

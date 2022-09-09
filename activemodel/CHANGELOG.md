@@ -1,3 +1,5 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
 *   Handle name clashes in attribute methods code generation cache.
 
     When two distinct attribute methods would generate similar names,

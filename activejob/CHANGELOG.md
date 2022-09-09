@@ -1,3 +1,5 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
 *   Update `ActiveJob::QueueAdapters::QueAdapter` to remove deprecation warning.
 
     Remove a deprecation warning introduced in que 1.2 to prepare for changes in

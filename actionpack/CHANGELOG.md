@@ -1,3 +1,5 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
 *   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
 
     Previously, if another middleware down the chain set `Server-Timing` header,

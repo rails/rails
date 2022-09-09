@@ -1,3 +1,5 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
 *   Redis cache store is now compatible with redis-rb 5.0.
 
     *Jean Boussier*

@@ -1,3 +1,5 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
 *   Guard against `ActionView::Helpers::FormTagHelper#field_name` calls with nil
     `object_name` arguments. For example:
 
