@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby <%= "\"#{RUBY_VERSION}\"" -%>
+ruby <%= "\"#{Gem.ruby_version}\"" -%>
 
 <% gemfile_entries.each do |gemfile_entry| %>
 <%= gemfile_entry %>
