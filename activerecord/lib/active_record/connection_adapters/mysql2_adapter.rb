@@ -141,6 +141,7 @@ module ActiveRecord
 
         def reconnect
           @raw_connection&.close
+          @raw_connection = nil
           connect
         end
 
