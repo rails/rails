@@ -1,3 +1,15 @@
+*   Add italic and underline support to `ActiveSupport::LogSubscriber#color`
+
+    Previously, only bold text was supported via a positional argument.
+    This allows for bold, italic, and underline options to be specified
+    for colored logs.
+
+    ```ruby
+    info color("Hello world!", :red, bold: true, underline: true)
+    ```
+
+    *Gannon McGibbon*
+
 *   Add `String#downcase_first` method.
 
     This method is the corollary of `String#upcase_first`.

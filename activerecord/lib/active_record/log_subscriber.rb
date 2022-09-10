@@ -66,7 +66,7 @@ module ActiveRecord
       end
 
       name = colorize_payload_name(name, payload[:name])
-      sql  = color(sql, sql_color(sql), true) if colorize_logging
+      sql  = color(sql, sql_color(sql), bold: true) if colorize_logging
 
       debug "  #{name}  #{sql}#{binds}"
     end
@@ -94,9 +94,9 @@ module ActiveRecord
 
       def colorize_payload_name(name, payload_name)
         if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
-          color(name, MAGENTA, true)
+          color(name, MAGENTA, bold: true)
         else
-          color(name, CYAN, true)
+          color(name, CYAN, bold: true)
         end
       end
 

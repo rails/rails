@@ -9,8 +9,8 @@ require "active_support/log_subscriber/test_helper"
 class LogSubscriberTest < ActiveRecord::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::Logger::Severity
-  REGEXP_CLEAR = Regexp.escape(ActiveRecord::LogSubscriber::CLEAR)
-  REGEXP_BOLD = Regexp.escape(ActiveRecord::LogSubscriber::BOLD)
+  REGEXP_CLEAR = Regexp.escape("\e[#{ActiveRecord::LogSubscriber::MODES[:clear]}m")
+  REGEXP_BOLD = Regexp.escape("\e[#{ActiveRecord::LogSubscriber::MODES[:bold]}m")
   REGEXP_MAGENTA = Regexp.escape(ActiveRecord::LogSubscriber::MAGENTA)
   REGEXP_CYAN = Regexp.escape(ActiveRecord::LogSubscriber::CYAN)
   SQL_COLORINGS = {
