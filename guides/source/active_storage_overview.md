@@ -891,11 +891,27 @@ specific:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
 ```
 
+The parameters available are defined by the [`image_processing`][] gem and depend on the
+variant processor that you are using, but both support the following parameters:
+
+| Parameter      | Example | Description |
+| ------------------- | ---------------- | ----- |
+| `resize_to_limit` | `resize_to_limit: [100, 100]` | Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions. |
+| `resize_to_fit` | `resize_to_fit: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will downsize the image if it's larger than the specified dimensions or upsize if it's smaller. |
+| `resize_to_fill` | `resize_to_fill: [100, 100]` | Resizes the image to fill the specified dimensions while retaining the original aspect ratio. If necessary, will crop the image in the larger dimension. |
+| `resize_and_pad` | `resize_and_pad: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. If necessary, will pad the remaining area with transparent color if source image has alpha channel, black otherwise. |
+| `crop` | `crop: [20, 50, 300, 300]` | Extracts an area from an image. The first two arguments are the left and top edges of area to extract, while the last two arguments are the width and height of the area to extract. |
+| `rotate` | `rotate: 90` | Rotates the image by the specified angle. |
+
+[`image_processing`][] has more options available (such as `saver` which allows image compression to be configured) in it's own documentation for the [Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and [MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md) processors.
+
+
 [`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
 [`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
 [`config.active_storage.web_image_content_types`]: configuring.html#config-active-storage-web-image-content-types
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
+[`image_processing`]: https://github.com/janko/image_processing
 
 ### Previewing Files
 
