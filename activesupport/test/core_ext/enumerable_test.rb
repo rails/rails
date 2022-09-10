@@ -5,7 +5,9 @@ require "active_support/core_ext/array"
 require "active_support/core_ext/enumerable"
 
 Payment = Struct.new(:price)
-ExpandedPayment = Struct.new(:dollars, :cents)
+ExpandedPayment = Struct.new(:dollars, :cents, :card_number) do
+  private :card_number
+end
 
 class SummablePayment < Payment
   def +(p) self.class.new(price + p.price) end
@@ -296,6 +298,29 @@ class EnumerableTests < ActiveSupport::TestCase
 
     assert_equal [], [].pluck(:price)
     assert_equal [], [].pluck(:dollars, :cents)
+  end
+
+  def test_find_by
+    expected = Payment.new(15)
+    payments = GenericEnumerable.new([ Payment.new(5), expected, Payment.new(10) ])
+    assert_equal expected, payments.find_by(price: expected.price)
+
+    expected = ExpandedPayment.new(10, 50, 42)
+    payments = GenericEnumerable.new([
+      ExpandedPayment.new(5, 99, 12),
+      ExpandedPayment.new(10, 0, 23),
+      expected,
+      ExpandedPayment.new(10, 50, 34)
+    ])
+    assert_equal expected, payments.find_by(dollars: expected.dollars, cents: expected.cents)
+
+    assert_nil [].find_by(price: 0)
+
+    err = assert_raises(NoMethodError) { payments.find_by(quantity: 42) }
+    assert_match(/undefined method `quantity' for/, err.message)
+
+    err = assert_raises(NoMethodError) { payments.find_by(card_number: 42) }
+    assert_match(/private method `card_number' called for/, err.message)
   end
 
   def test_pick

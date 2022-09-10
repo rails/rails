@@ -2255,6 +2255,23 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 [Enumerable#index_by]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-index_by
 
+### `find_by`
+
+The method [`find_by`][Enumerable#find_by] returns the first element which has all the specified attributes.
+
+It iterates the collection and returns the first element which has all the attributes from a given Hash.
+
+So instead of this `posts.find { |p| p.author_name == 'DHH' && p.category == 'Ruby on Rails' }` you can do this:
+
+```ruby
+posts.find_by(author_name: 'DHH', category: 'Ruby on Rails')
+# => #<Post author_name: 'DHH', category: 'Ruby On Rails'>
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+[Enumerable#find_by]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-find_by
+
 ### `index_with`
 
 The method [`index_with`][Enumerable#index_with] generates a hash with the elements of an enumerable as keys. The value

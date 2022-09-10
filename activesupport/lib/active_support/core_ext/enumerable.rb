@@ -110,6 +110,30 @@ module Enumerable
     end
   end
 
+  # Finds the first element matching the specified attributes.
+  #
+  #   people = [
+  #     Person.new(first_name: "Jane", last_name: "Doe", age: 23),
+  #     Person.new(first_name: "John", last_name: "Doe", age: 42),
+  #     Person.new(first_name: "John", last_name: "Doe", age: 32)
+  #   ]
+  #
+  #   people.find_by(first_name: 'John', last_name: 'Doe')
+  #   # => #<Person first_name: "John", last_name: "Doe", age: 42>
+  #
+  #   people.find_by(last_name: 'Doe')
+  #   # => #<Person first_name: "Jane", last_name: "Doe", age: 23>
+  #
+  #   people.find_by(age: 32)
+  #   # => #<Person first_name: "John", last_name: "Doe", age: 32>
+  def find_by(attrs)
+    find do |elem|
+      attrs.all? do |attr_name, value|
+        elem.public_send(attr_name) == value
+      end
+    end
+  end
+
   # Convert an enumerable to a hash, using the element as the key and the block
   # result as the value.
   #

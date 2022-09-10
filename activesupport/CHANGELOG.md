@@ -1,3 +1,9 @@
+*   Add `Enumerable#find_by`, per `ActiveRecord::FinderMethods#find_by`.
+
+    Finds the first element matching the specified attributes.
+
+    *Américo Duarte*
+
 *   Add italic and underline support to `ActiveSupport::LogSubscriber#color`
 
     Previously, only bold text was supported via a positional argument.
