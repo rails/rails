@@ -251,7 +251,7 @@ module ApplicationTests
         directory ||= suite
         create_fixture_test directory
         assert_match "3 users", run_test_command("test/#{suite}")
-        Dir.chdir(app_path) { FileUtils.rm_f "test/#{directory}" }
+        Dir.chdir(app_path) { FileUtils.rm_r "test/#{directory}" }
       end
     end
 
