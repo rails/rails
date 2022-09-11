@@ -92,7 +92,7 @@ module Rails
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
         class_option :edge,                type: :boolean, default: nil,
-                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository"
+                                           desc: "Set up the #{name} with a Gemfile pointing to the #{edge_branch} branch on the Rails repository"
 
         class_option :main,                type: :boolean, default: nil, aliases: "--master",
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
@@ -105,6 +105,10 @@ module Rails
 
         class_option :help,                type: :boolean, aliases: "-h", group: :rails,
                                            desc: "Show this help message and quit"
+      end
+
+      def self.edge_branch # :nodoc:
+        Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
       end
 
       def initialize(positional_argv, option_argv, *)
@@ -357,7 +361,6 @@ module Rails
         if options.dev?
           GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
         elsif options.edge?
-          edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
         elsif options.main?
           GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
@@ -564,6 +567,10 @@ module Rails
         else
           "git init && git symbolic-ref HEAD refs/heads/main"
         end
+      end
+
+      def edge_branch
+        self.class.edge_branch
       end
     end
   end
