@@ -501,6 +501,15 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/g is deprecated/) { @dtc.g(1) }
   end
 
+  test "warn with empty callstack" do
+    @deprecator.behavior = :silence
+
+    assert_nothing_raised do
+      @deprecator.warn("message", [])
+      Thread.new { @deprecator.warn("message") }.join
+    end
+  end
+
   def test_config_disallows_no_deprecations_by_default
     assert_equal @deprecator.disallowed_warnings, []
   end
@@ -803,7 +812,7 @@ class DeprecationTest < ActiveSupport::TestCase
       # barrier.wait
       @deprecator.allow "fubar" do
         th2 = Thread.new do
-          @deprecator.warn("using fubar is deprecated", ["call stack"])
+          @deprecator.warn("using fubar is deprecated")
         end
         th2.join
       end
