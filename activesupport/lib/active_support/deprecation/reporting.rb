@@ -125,6 +125,7 @@ module ActiveSupport
         end
 
         def extract_callstack(callstack)
+          return [] if callstack.empty?
           return _extract_callstack(callstack) if callstack.first.is_a? String
 
           offending_line = callstack.find { |frame|
