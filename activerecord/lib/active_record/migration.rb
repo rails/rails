@@ -1314,11 +1314,19 @@ module ActiveRecord
     alias :current :current_migration
 
     def run
+      if use_advisory_lock?
+        with_advisory_lock { run_without_lock }
+      else
         run_without_lock
+      end
     end
 
     def migrate
+      if use_advisory_lock?
+        with_advisory_lock { migrate_without_lock }
+      else
         migrate_without_lock
+      end
     end
 
     def runnable
