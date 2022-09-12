@@ -227,7 +227,13 @@ end
 
 class IPAddr # :nodoc:
   def as_json(options = nil)
-    to_s
+    if ipv4? && prefix == 32
+      to_s
+    elsif ipv6? && prefix == 128
+      to_s
+    else
+      format("%s/%s", to_s, prefix)
+    end
   end
 end
 
