@@ -36,11 +36,12 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     @path_b = MIGRATIONS_ROOT + "/to_copy"
 
     @schema_migration_a = @connection_a.schema_migration
-    @migrations_a = ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a).migrations
     @internal_metadata_a = @connection_a.internal_metadata
+    @migrations_a = ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a, @internal_metadata_a).migrations
+
     @schema_migration_b = @connection_b.schema_migration
-    @migrations_b = ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b).migrations
     @internal_metadata_b = @connection_b.internal_metadata
+    @migrations_b = ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b, @internal_metadata_b).migrations
 
     @migrations_a_list = [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]]
     @migrations_b_list = [[1, "PeopleHaveHobbies"], [2, "PeopleHaveDescriptions"]]
@@ -97,7 +98,7 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
       ["up",   "002", "We need reminders"],
       ["down", "003", "Innocent jointable"],
       ["up",   "010", "********** NO FILE **********"],
-    ], ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a).migrations_status
+    ], ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a, @internal_metadata_a).migrations_status
 
     @schema_migration_b.create_version(4)
 
@@ -105,7 +106,7 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
       ["down", "001", "People have hobbies"],
       ["down", "002", "People have descriptions"],
       ["up", "004", "********** NO FILE **********"]
-    ], ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b).migrations_status
+    ], ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b, @internal_metadata_b).migrations_status
   end
 
   def test_get_all_versions

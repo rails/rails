@@ -108,17 +108,22 @@ module ActiveRecord
     end
 
     def test_raises_an_error_if_no_migrations_have_been_made
-      ActiveRecord::Base.connection.internal_metadata.stub(:table_exists?, false) do
-        assert_called_on_instance_of(
-          ActiveRecord::MigrationContext,
-          :current_version,
-          returns: 1
-        ) do
-          assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
-            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
-          end
-        end
+      connection = ActiveRecord::Base.connection
+      internal_metadata = connection.internal_metadata
+      schema_migration = connection.schema_migration
+      schema_migration.create_table
+      schema_migration.create_version("1")
+
+      assert_predicate internal_metadata, :table_exists?
+      internal_metadata.drop_table
+      assert_not_predicate internal_metadata, :table_exists?
+
+      assert_raises(ActiveRecord::NoEnvironmentInSchemaError) do
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
       end
+    ensure
+      schema_migration.delete_version("1")
+      internal_metadata.create_table
     end
   end
 
@@ -1176,21 +1181,24 @@ module ActiveRecord
         @schema_migration = ActiveRecord::Base.connection.schema_migration
         @schema_migration.create_table
         @schema_migration.create_version(@schema_migration.table_name)
-        InternalMetadata.create_table
-        InternalMetadata.create!(key: InternalMetadata.table_name)
+
+        @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+        @internal_metadata.create_table
+        @internal_metadata[@internal_metadata.table_name] = nil
+
         @old_configurations = ActiveRecord::Base.configurations
       end
 
       def teardown
         @schema_migration.delete_all_versions
-        InternalMetadata.delete_all
+        @internal_metadata.delete_all_entries
         clean_up_connection_handler
         ActiveRecord::Base.configurations = @old_configurations
       end
 
       def test_truncate_tables
         assert_operator @schema_migration.count, :>, 0
-        assert_operator InternalMetadata.count, :>, 0
+        assert_operator @internal_metadata.count, :>, 0
         assert_operator Author.count, :>, 0
         assert_operator AuthorAddress.count, :>, 0
 
@@ -1205,7 +1213,7 @@ module ActiveRecord
         end
 
         assert_operator @schema_migration.count, :>, 0
-        assert_operator InternalMetadata.count, :>, 0
+        assert_operator @internal_metadata.count, :>, 0
         assert_equal 0, Author.count
         assert_equal 0, AuthorAddress.count
       end
@@ -1214,28 +1222,20 @@ module ActiveRecord
     class DatabaseTasksTruncateAllWithPrefixTest < DatabaseTasksTruncateAllTest
       setup do
         ActiveRecord::Base.table_name_prefix = "p_"
-
-        InternalMetadata.reset_table_name
       end
 
       teardown do
         ActiveRecord::Base.table_name_prefix = nil
-
-        InternalMetadata.reset_table_name
       end
     end
 
     class DatabaseTasksTruncateAllWithSuffixTest < DatabaseTasksTruncateAllTest
       setup do
         ActiveRecord::Base.table_name_suffix = "_s"
-
-        InternalMetadata.reset_table_name
       end
 
       teardown do
         ActiveRecord::Base.table_name_suffix = nil
-
-        InternalMetadata.reset_table_name
       end
     end
   end

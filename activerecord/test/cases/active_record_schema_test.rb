@@ -69,7 +69,6 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
   def test_schema_define_with_table_name_prefix
     old_table_name_prefix = ActiveRecord::Base.table_name_prefix
     ActiveRecord::Base.table_name_prefix = "nep_"
-    @internal_metadata.reset_table_name
     ActiveRecord::Schema.define(version: 7) do
       create_table :fruits do |t|
         t.column :color, :string
@@ -81,7 +80,6 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert_equal 7, @connection.migration_context.current_version
   ensure
     ActiveRecord::Base.table_name_prefix = old_table_name_prefix
-    @internal_metadata.reset_table_name
   end
 
   def test_schema_raises_an_error_for_invalid_column_type

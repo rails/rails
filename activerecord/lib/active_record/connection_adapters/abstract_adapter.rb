@@ -197,21 +197,7 @@ module ActiveRecord
       end
 
       def internal_metadata # :nodoc:
-        @internal_metadata ||= begin
-                                conn = self
-                                connection_name = conn.pool.pool_config.connection_name
-
-                                return ActiveRecord::InternalMetadata if connection_name == "ActiveRecord::Base"
-
-                                internal_metadata_name = "#{connection_name}::InternalMetadata"
-
-                                Class.new(ActiveRecord::InternalMetadata) do
-                                  define_singleton_method(:name) { internal_metadata_name }
-                                  define_singleton_method(:to_s) { internal_metadata_name }
-
-                                  self.connection_specification_name = connection_name
-                                end
-                              end
+        InternalMetadata.new(self)
       end
 
       def prepared_statements?

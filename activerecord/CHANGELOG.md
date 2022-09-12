@@ -1,3 +1,9 @@
+*   Move `ActiveRecord::InternalMetadata` to an independent object.
+
+    `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
 *   Deprecate quoting `ActiveSupport::Duration` as an integer
 
     Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
