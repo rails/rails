@@ -19,11 +19,11 @@ module ActiveSupport
         return if silenced
 
         callstack ||= caller_locations(2)
-        deprecation_message(callstack, message).tap do |m|
+        deprecation_message(callstack, message).tap do |full_message|
           if deprecation_disallowed?(message)
-            disallowed_behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
+            disallowed_behavior.each { |b| b.call(full_message, callstack, deprecation_horizon, gem_name) }
           else
-            behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
+            behavior.each { |b| b.call(full_message, callstack, deprecation_horizon, gem_name) }
           end
         end
       end
