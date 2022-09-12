@@ -3,7 +3,7 @@
 Error Reporting in Rails Applications
 ========================
 
-This guide introduces ways to manage exceptions occur in Ruby on Rails applications.
+This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
 
 After reading this guide, you will know:
 
