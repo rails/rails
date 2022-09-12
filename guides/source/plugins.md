@@ -52,7 +52,18 @@ $ rails plugin new --help
 Testing Your Newly Generated Plugin
 -----------------------------------
 
-You can navigate to the directory that contains the plugin, run the `bundle install` command
+You can navigate to the directory that contains the plugin, change the following lines in `yaffle.gemspec`
+
+```ruby
+  spec.summary     = "Summary of Yaffle."
+  spec.description = "Description of Yaffle."
+...
+  spec.homepage    = "http://example.com"
+  spec.metadata["source_code_uri"] = "http://example.com"
+  spec.metadata["changelog_uri"] = "http://example.com"
+```
+
+run the `bundle install` command
 and run the one generated test using the `bin/test` command.
 
 You should see:
@@ -108,6 +119,7 @@ In `lib/yaffle.rb`, add `require "yaffle/core_ext"`:
 ```ruby
 # yaffle/lib/yaffle.rb
 
+require "yaffle/version"
 require "yaffle/railtie"
 require "yaffle/core_ext"
 
@@ -161,6 +173,7 @@ end
 ```ruby
 # yaffle/lib/yaffle.rb
 
+require "yaffle/version"
 require "yaffle/railtie"
 require "yaffle/core_ext"
 require "yaffle/acts_as_yaffle"
