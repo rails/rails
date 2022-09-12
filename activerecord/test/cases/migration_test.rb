@@ -762,6 +762,31 @@ class MigrationTest < ActiveRecord::TestCase
     @internal_metadata.create_table
   end
 
+  def test_inserting_a_new_entry_into_internal_metadata
+    @internal_metadata[:version] = "foo"
+    assert_equal "foo", @internal_metadata[:version]
+  ensure
+    @internal_metadata.delete_all_entries
+  end
+
+  def test_updating_an_existing_entry_into_internal_metadata
+    @internal_metadata[:version] = "foo"
+    updated_at = @internal_metadata.send(:select_entry, :version)["updated_at"]
+    assert_equal "foo", @internal_metadata[:version]
+
+    # same version doesn't update timestamps
+    @internal_metadata[:version] = "foo"
+    assert_equal "foo", @internal_metadata[:version]
+    assert_equal updated_at, @internal_metadata.send(:select_entry, :version)["updated_at"]
+
+    # updated version updates timestamps
+    @internal_metadata[:version] = "not_foo"
+    assert_equal "not_foo", @internal_metadata[:version]
+    assert_not_equal updated_at, @internal_metadata.send(:select_entry, :version)["updated_at"]
+  ensure
+    @internal_metadata.delete_all_entries
+  end
+
   def test_internal_metadata_create_table_wont_be_affected_by_schema_cache
     @internal_metadata.drop_table
     assert_not_predicate @internal_metadata, :table_exists?
