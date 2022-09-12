@@ -185,6 +185,10 @@
       url: security.html
       description: This guide describes common security problems in web applications and how to avoid them with Rails.
     -
+      name: Error Reporting in Rails Applications
+      url: error_reporting.html
+      description: This guide introduces ways to manage exceptions that occur in Ruby on Rails applications.
+    -
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
       description: This guide describes how to debug Rails applications. It covers the different ways of achieving this and how to understand what is happening "behind the scenes" of your code.
