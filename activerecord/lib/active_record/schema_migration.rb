@@ -6,6 +6,9 @@ module ActiveRecord
   # number is inserted in to the schema migrations table so it doesn't need
   # to be executed the next time.
   class SchemaMigration # :nodoc:
+    class NullSchemaMigration
+    end
+
     attr_reader :connection, :arel_table
 
     def initialize(connection)
@@ -79,9 +82,6 @@ module ActiveRecord
 
     def table_exists?
       connection.data_source_exists?(table_name)
-    end
-
-    class NullSchemaMigration
     end
   end
 end
