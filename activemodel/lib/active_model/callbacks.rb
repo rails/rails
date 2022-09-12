@@ -74,7 +74,7 @@ module ActiveModel
     # <tt>:only</tt> option, where you can choose if you want all types (before,
     # around or after) or just some.
     #
-    #   define_model_callbacks :initializer, only: :after
+    #   define_model_callbacks :initialize, only: :after
     #
     # Note, the <tt>only: <type></tt> hash will apply to all callbacks defined
     # on that method call. To get around this you can call the define_model_callbacks
