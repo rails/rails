@@ -1092,8 +1092,6 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_no_method_error_has_proper_context
-    rubinius_skip "Error message inconsistency"
-
     e = assert_raises(NoMethodError) {
       @twz.this_method_does_not_exist
     }

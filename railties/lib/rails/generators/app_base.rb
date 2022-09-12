@@ -128,7 +128,6 @@ module Rails
           hotwire_gemfile_entry,
           css_gemfile_entry,
           jbuilder_gemfile_entry,
-          psych_gemfile_entry,
           cable_gemfile_entry,
         ].flatten.compact.select(&@gem_filter)
       end
@@ -432,14 +431,6 @@ module Rails
         else
           GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
-      end
-
-      def psych_gemfile_entry
-        return unless defined?(Rubinius)
-
-        comment = "Use Psych as the YAML engine, instead of Syck, so serialized " \
-                  "data can be read safely from different rubies"
-        GemfileEntry.new("psych", "~> 2.0", comment, platforms: :rbx)
       end
 
       def cable_gemfile_entry

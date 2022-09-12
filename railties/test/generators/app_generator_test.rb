@@ -647,7 +647,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_a_debugger
     run_generator
-    if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
+    if defined?(JRUBY_VERSION)
       assert_no_gem "debug"
     else
       assert_gem "debug"
@@ -1030,19 +1030,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     )
     folders_with_keep.each do |folder|
       assert_file("#{folder}/.keep")
-    end
-  end
-
-  def test_psych_gem
-    run_generator
-    gem_regex = /gem 'psych',\s+'~> 2\.0',\s+platforms: :rbx/
-
-    assert_file "Gemfile" do |content|
-      if defined?(Rubinius)
-        assert_match(gem_regex, content)
-      else
-        assert_no_match(gem_regex, content)
-      end
     end
   end
 
