@@ -96,7 +96,11 @@ module ActiveRecord
         entry = select_entry(key)
 
         if entry
-          update_entry(key, value)
+          if entry[value_key] != value
+            update_entry(key, value)
+          else
+            entry[value_key]
+          end
         else
           create_entry(key, value)
         end
