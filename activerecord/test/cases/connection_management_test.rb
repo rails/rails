@@ -47,14 +47,14 @@ module ActiveRecord
       def test_connections_are_cleared_after_body_close
         _, _, body = @management.call(@env)
         body.close
-        assert_not_predicate ActiveRecord::Base.connection_handler, :active_connections?
+        assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
       end
 
       def test_active_connections_are_not_cleared_on_body_close_during_transaction
         ActiveRecord::Base.transaction do
           _, _, body = @management.call(@env)
           body.close
-          assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
+          assert ActiveRecord::Base.connection_handler.active_connections?(:all)
         end
       end
 
@@ -62,7 +62,7 @@ module ActiveRecord
         app       = Class.new(App) { def call(env); raise NotImplementedError; end }.new
         explosive = middleware(app)
         assert_raises(NotImplementedError) { explosive.call(@env) }
-        assert_not_predicate ActiveRecord::Base.connection_handler, :active_connections?
+        assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
       end
 
       def test_connections_not_closed_if_exception_inside_transaction
@@ -70,7 +70,7 @@ module ActiveRecord
           app               = Class.new(App) { def call(env); raise RuntimeError; end }.new
           explosive         = middleware(app)
           assert_raises(RuntimeError) { explosive.call(@env) }
-          assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
+          assert ActiveRecord::Base.connection_handler.active_connections?(:all)
         end
       end
 
@@ -99,7 +99,7 @@ module ActiveRecord
       test "doesn't clear active connections when running in a test case" do
         executor.wrap do
           @management.call(@env)
-          assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
+          assert ActiveRecord::Base.connection_handler.active_connections?(:all)
         end
       end
 

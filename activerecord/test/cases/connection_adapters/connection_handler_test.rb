@@ -233,11 +233,11 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert_not_predicate @handler, :active_connections?
+        assert_not @handler.active_connections?(:all)
         assert @handler.retrieve_connection(@connection_name)
-        assert_predicate @handler, :active_connections?
+        assert @handler.active_connections?(:all)
         @handler.clear_active_connections!(:all)
-        assert_not_predicate @handler, :active_connections?
+        assert_not @handler.active_connections?(:all)
       end
 
       def test_retrieve_connection_pool
