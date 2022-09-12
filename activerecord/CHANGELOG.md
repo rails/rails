@@ -1,3 +1,11 @@
+*   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
+
+    Verifying the identity of database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for MySQL database task like creating a database and dumping the structure.
+
+    *Petrik de Heus*
+
 *   Move `ActiveRecord::InternalMetadata` to an independent object.
 
     `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
