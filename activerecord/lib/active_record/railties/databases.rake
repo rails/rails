@@ -140,7 +140,6 @@ db_namespace = namespace :db do
         ActiveRecord::TemporaryConnection.for_config(db_config) do |connection|
           ActiveRecord::Tasks::DatabaseTasks.migrate(connection: connection)
         end
-          p "exiting block"
 
         db_namespace["_dump:#{name}"].invoke
       end

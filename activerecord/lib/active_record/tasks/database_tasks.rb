@@ -259,7 +259,6 @@ module ActiveRecord
         check_target_version
 
         connection.migration_context.migrate(target_version) do |migration|
-          p "Starting migration block"
           if version.blank?
             scope.blank? || scope == migration.scope
           else
@@ -268,7 +267,6 @@ module ActiveRecord
         end.tap do |migrations_ran|
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
-        p "exit migration block"
 
         connection.clear_cache!
       ensure

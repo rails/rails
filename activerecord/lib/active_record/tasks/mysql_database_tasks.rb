@@ -10,7 +10,6 @@ module ActiveRecord
       end
 
       def initialize(db_config, connection_class: ActiveRecord::TemporaryConnection)
-        p [connection_class, db_config]
         @db_config = db_config
         @configuration_hash = db_config.configuration_hash
         @connection_class = connection_class
