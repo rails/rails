@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "logger"
+require "stringio"
 require "active_support/core_ext/enumerable"
 require "active_support/testing/stream"
 
@@ -163,6 +165,29 @@ class DeprecationTest < ActiveSupport::TestCase
 
     assert_match(/Instance error!/, content)
     assert_match(/instance call stack!/, content)
+  end
+
+  test ":log behavior" do
+    @deprecator.behavior = :log
+    output = StringIO.new
+
+    with_rails_logger(Logger.new(output)) do
+      @deprecator.behavior.first.call("fubar", ["call stack"], "horizon", "gem")
+    end
+
+    assert_match "fubar", output.string
+  end
+
+  test ":log behavior without Rails.logger" do
+    @deprecator.behavior = :log
+
+    _out, err = capture_io do
+      with_rails_logger(nil) do
+        @deprecator.behavior.first.call("fubar", ["call stack"], "horizon", "gem")
+      end
+    end
+
+    assert_match "fubar", err
   end
 
   test ":silence behavior" do
@@ -685,6 +710,26 @@ class DeprecationTest < ActiveSupport::TestCase
     def set_configuration(deprecator, configuration)
       configuration.each do |attribute, value|
         deprecator.public_send("#{attribute}=", value)
+      end
+    end
+
+    module ::Rails; end
+
+    def with_rails_logger(logger)
+      ::Rails.singleton_class.class_eval do
+        alias_method :__original_logger, :logger if method_defined?(:logger)
+        define_method(:logger) { logger }
+      end
+
+      yield logger
+    ensure
+      ::Rails.singleton_class.class_eval do
+        if method_defined?(:__original_logger)
+          alias_method :logger, :__original_logger
+          undef_method :__original_logger
+        else
+          undef_method :logger
+        end
       end
     end
 
