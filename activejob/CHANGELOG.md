@@ -1,3 +1,13 @@
+*   Remove QueAdapter from Active Job.
+
+    After maintaining Active Job QueAdapter by Rails and Que side
+    to support Ruby 3 keyword arguments and options provided as top level keywords,
+    it is quite difficult to maintain it this way.
+
+    Active Job Que adapter can be included in the future version of que gem itself.
+
+    *Yasuo Honda*
+
 *   Fix BigDecimal (de)serialization for adapters using JSON.
 
     Previously, BigDecimal was listed as not needing a serializer.  However,
