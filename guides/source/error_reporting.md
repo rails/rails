@@ -152,8 +152,8 @@ Libraries can easily register their subscribers in `Railtie`:
 ```rb
 module MySdk
   class Railtie < ::Rails::Railtie
-    config.after_initialize do |app|
-      app.executor.error_reporter.subscribe(MyErrorSubscriber.new)
+    initializer "error_subscribe.my_sdk" do
+      Rails.error.subscribe(MyErrorSubscriber.new)
     end
   end
 end
