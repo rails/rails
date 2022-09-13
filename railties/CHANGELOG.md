@@ -1,3 +1,9 @@
+*   Make `rails dbconsole` `include_password` the default behavior
+    This option will use credentials for database console connections, if they are provided.  This
+    behavior can be disabled via `rails dbconsole --no-include-password`.
+
+    *Winfield Peterson*
+
 *   Delegate application record generator description to orm hooked generator.
 
     *Gannon McGibbon*
