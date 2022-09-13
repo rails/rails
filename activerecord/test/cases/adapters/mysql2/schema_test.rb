@@ -33,13 +33,13 @@ module ActiveRecord
           t.float :float_25, limit: 25
         end
 
-        column_no_limit = @connection.columns(:mysql_doubles).find { |c| c.name == "float_no_limit" }
-        column_short = @connection.columns(:mysql_doubles).find { |c| c.name == "float_short" }
-        column_long = @connection.columns(:mysql_doubles).find { |c| c.name == "float_long" }
+        column_no_limit = @connection.columns(:mysql_doubles).find_by(name: "float_no_limit")
+        column_short = @connection.columns(:mysql_doubles).find_by(name: "float_short")
+        column_long = @connection.columns(:mysql_doubles).find_by(name: "float_long")
 
-        column_23 = @connection.columns(:mysql_doubles).find { |c| c.name == "float_23" }
-        column_24 = @connection.columns(:mysql_doubles).find { |c| c.name == "float_24" }
-        column_25 = @connection.columns(:mysql_doubles).find { |c| c.name == "float_25" }
+        column_23 = @connection.columns(:mysql_doubles).find_by(name: "float_23")
+        column_24 = @connection.columns(:mysql_doubles).find_by(name: "float_24")
+        column_25 = @connection.columns(:mysql_doubles).find_by(name: "float_25")
 
         # MySQL floats are precision 0..24, MySQL doubles are precision 25..53
         assert_equal 24, column_no_limit.limit

@@ -656,7 +656,7 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_not_overwrite_unsaved_updates_when_loading_association
     @pirate.reload
     @pirate.public_send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
-    assert_equal "Grace OMalley", @pirate.public_send(@association_name).load_target.find { |r| r.id == @child_1.id }.name
+    assert_equal "Grace OMalley", @pirate.public_send(@association_name).load_target.find_by(id: @child_1.id).name
   end
 
   def test_should_preserve_order_when_not_overwriting_unsaved_updates
@@ -677,7 +677,7 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_not_remove_scheduled_destroys_when_loading_association
     @pirate.reload
     @pirate.public_send(association_setter, [{ id: @child_1.id, _destroy: "1" }])
-    assert_predicate @pirate.public_send(@association_name).load_target.find { |r| r.id == @child_1.id }, :marked_for_destruction?
+    assert_predicate @pirate.public_send(@association_name).load_target.find_by(id: @child_1.id), :marked_for_destruction?
   end
 
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models

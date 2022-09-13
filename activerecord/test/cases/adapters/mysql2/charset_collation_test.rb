@@ -20,13 +20,13 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
   end
 
   test "string column with charset and collation" do
-    column = @connection.columns(:charset_collations).find { |c| c.name == "string_ascii_bin" }
+    column = @connection.columns(:charset_collations).find_by(name: "string_ascii_bin")
     assert_equal :string, column.type
     assert_equal "ascii_bin", column.collation
   end
 
   test "text column with charset and collation" do
-    column = @connection.columns(:charset_collations).find { |c| c.name == "text_ucs2_unicode_ci" }
+    column = @connection.columns(:charset_collations).find_by(name: "text_ucs2_unicode_ci")
     assert_equal :text, column.type
     assert_equal "ucs2_unicode_ci", column.collation
   end
@@ -34,7 +34,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
   test "add column with charset and collation" do
     @connection.add_column :charset_collations, :title, :string, charset: "utf8mb4", collation: "utf8mb4_bin"
 
-    column = @connection.columns(:charset_collations).find { |c| c.name == "title" }
+    column = @connection.columns(:charset_collations).find_by(name: "title")
     assert_equal :string, column.type
     assert_equal "utf8mb4_bin", column.collation
   end
@@ -43,7 +43,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
     @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
     @connection.change_column :charset_collations, :description, :text, charset: "utf8mb4", collation: "utf8mb4_general_ci"
 
-    column = @connection.columns(:charset_collations).find { |c| c.name == "description" }
+    column = @connection.columns(:charset_collations).find_by(name: "description")
     assert_equal :text, column.type
     assert_equal "utf8mb4_general_ci", column.collation
   end
@@ -52,7 +52,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
     @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
     @connection.change_column :charset_collations, :description, :binary
 
-    column = @connection.columns(:charset_collations).find { |c| c.name == "description" }
+    column = @connection.columns(:charset_collations).find_by(name: "description")
 
     assert_equal :binary, column.type
     assert_nil column.collation
@@ -62,7 +62,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
     @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
     @connection.change_column :charset_collations, :description, :int
 
-    column = @connection.columns(:charset_collations).find { |c| c.name == "description" }
+    column = @connection.columns(:charset_collations).find_by(name: "description")
 
     assert_equal :integer, column.type
     assert_nil column.collation
@@ -72,7 +72,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
     @connection.add_column :charset_collations, :description, :string, charset: "utf8mb4", collation: "utf8mb4_unicode_ci"
     @connection.change_column :charset_collations, :description, :text
 
-    column = @connection.columns(:charset_collations).find { |c| c.name == "description" }
+    column = @connection.columns(:charset_collations).find_by(name: "description")
     assert_equal :text, column.type
     assert_equal "utf8mb4_unicode_ci", column.collation
   end

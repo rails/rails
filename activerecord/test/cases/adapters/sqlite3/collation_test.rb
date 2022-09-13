@@ -23,18 +23,18 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
   end
 
   test "string column with collation" do
-    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "string_nocase" }
+    column = @connection.columns(:collation_table_sqlite3).find_by(name: "string_nocase")
     assert_equal :string, column.type
     assert_equal "NOCASE", column.collation
 
     # Verify collation of a column behind the decimal column as well.
-    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "string_after_decimal_nocase" }
+    column = @connection.columns(:collation_table_sqlite3).find_by(name: "string_after_decimal_nocase")
     assert_equal :string, column.type
     assert_equal "NOCASE", column.collation
   end
 
   test "text column with collation" do
-    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "text_rtrim" }
+    column = @connection.columns(:collation_table_sqlite3).find_by(name: "text_rtrim")
     assert_equal :text, column.type
     assert_equal "RTRIM", column.collation
   end
@@ -42,7 +42,7 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
   test "add column with collation" do
     @connection.add_column :collation_table_sqlite3, :title, :string, collation: "RTRIM"
 
-    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "title" }
+    column = @connection.columns(:collation_table_sqlite3).find_by(name: "title")
     assert_equal :string, column.type
     assert_equal "RTRIM", column.collation
   end
@@ -51,7 +51,7 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
     @connection.add_column :collation_table_sqlite3, :description, :string
     @connection.change_column :collation_table_sqlite3, :description, :text, collation: "RTRIM"
 
-    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "description" }
+    column = @connection.columns(:collation_table_sqlite3).find_by(name: "description")
     assert_equal :text, column.type
     assert_equal "RTRIM", column.collation
   end

@@ -295,7 +295,7 @@ module ActiveRecord
       def test_partial_index
         with_example_table do
           @connection.add_index "ex", %w{ id number }, name: "partial", where: "number > 100"
-          index = @connection.indexes("ex").find { |idx| idx.name == "partial" }
+          index = @connection.indexes("ex").find_by(name: "partial")
           assert_equal "(number > 100)", index.where
         end
       end
@@ -304,7 +304,7 @@ module ActiveRecord
         with_example_table do
           expr = "mod(id, 10), abs(number)"
           @connection.add_index "ex", expr, name: "expression"
-          index = @connection.indexes("ex").find { |idx| idx.name == "expression" }
+          index = @connection.indexes("ex").find_by(name: "expression")
           assert_equal expr, index.columns
           assert_equal true, @connection.index_exists?("ex", expr, name: "expression")
         end
@@ -313,11 +313,11 @@ module ActiveRecord
       def test_index_with_opclass
         with_example_table do
           @connection.add_index "ex", "data", opclass: "varchar_pattern_ops"
-          index = @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data" }
+          index = @connection.indexes("ex").find_by(name: "index_ex_on_data")
           assert_equal ["data"], index.columns
 
           @connection.remove_index "ex", "data"
-          assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data" }
+          assert_not @connection.indexes("ex").find_by(name: "index_ex_on_data")
         end
       end
 

@@ -495,7 +495,7 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
-        column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+        column = connection.columns(:more_testings).find_by(name: "testings_id")
 
         if current_adapter?(:SQLite3Adapter)
           assert_match(/integer/i, column.sql_type)
@@ -525,7 +525,7 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration, @internal_metadata).migrate
 
-        column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+        column = connection.columns(:more_testings).find_by(name: "testings_id")
 
         if current_adapter?(:SQLite3Adapter)
           assert_match(/integer/i, column.sql_type)

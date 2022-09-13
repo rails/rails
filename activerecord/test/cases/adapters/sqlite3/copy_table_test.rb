@@ -29,7 +29,7 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
     test_copy_table("comments", "comments_with_default") do
       @connection.add_column("comments_with_default", "options", "json", default: {})
       test_copy_table("comments_with_default", "comments_with_default2") do
-        column = @connection.columns("comments_with_default2").find { |col| col.name == "options" }
+        column = @connection.columns("comments_with_default2").find_by(name: "options")
         assert_equal "{}", column.default
       end
     end
@@ -67,8 +67,8 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
 
   def test_copy_table_with_id_col_that_is_not_primary_key
     test_copy_table("goofy_string_id", "goofy_string_id2") do
-      original_id = @connection.columns("goofy_string_id").detect { |col| col.name == "id" }
-      copied_id = @connection.columns("goofy_string_id2").detect { |col| col.name == "id" }
+      original_id = @connection.columns("goofy_string_id").find_by(name: "id")
+      copied_id = @connection.columns("goofy_string_id2").find_by(name: "id")
       assert_equal original_id.type, copied_id.type
       assert_equal original_id.sql_type, copied_id.sql_type
       assert_nil original_id.limit

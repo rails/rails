@@ -1092,7 +1092,7 @@ module ActiveRecord
           @type_map_for_results.add_coder(MoneyDecoder.new(oid: 790, name: "money"))
 
           # extract timestamp decoder for use in update_typemap_for_default_timezone
-          @timestamp_decoder = coders.find { |coder| coder.name == "timestamp" }
+          @timestamp_decoder = coders.find_by(name: "timestamp")
           update_typemap_for_default_timezone
         end
 

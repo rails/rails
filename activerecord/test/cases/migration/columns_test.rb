@@ -54,20 +54,20 @@ module ActiveRecord
       def test_rename_column_preserves_default_value_not_null
         add_column "test_models", "salary", :integer, default: 70000
 
-        default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
+        default_before = connection.columns("test_models").find_by(name: "salary").default
         assert_equal "70000", default_before
 
         rename_column "test_models", "salary", "annual_salary"
 
         assert_includes TestModel.column_names, "annual_salary"
-        default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
+        default_after = connection.columns("test_models").find_by(name: "annual_salary").default
         assert_equal "70000", default_after
       end
 
       if current_adapter?(:Mysql2Adapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
-          assert_predicate connection.columns("test_models").find { |c| c.name == "id_test" }, :auto_increment?
+          assert_predicate connection.columns("test_models").find_by(name: "id_test"), :auto_increment?
           TestModel.reset_column_information
         ensure
           rename_column "test_models", "id_test", "id"

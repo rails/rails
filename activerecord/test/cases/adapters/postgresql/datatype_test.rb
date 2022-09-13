@@ -75,14 +75,14 @@ class PostgresqlInternalDataTypeTest < ActiveRecord::PostgreSQLTestCase
 
   def test_name_column_type
     with_example_table @connection, "ex", "data name" do
-      column = @connection.columns("ex").find { |col| col.name == "data" }
+      column = @connection.columns("ex").find_by(name: "data")
       assert_equal :string, column.type
     end
   end
 
   def test_char_column_type
     with_example_table @connection, "ex", 'data "char"' do
-      column = @connection.columns("ex").find { |col| col.name == "data" }
+      column = @connection.columns("ex").find_by(name: "data")
       assert_equal :string, column.type
     end
   end

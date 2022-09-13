@@ -981,7 +981,7 @@ module ActiveRecord
 
           source = "#{magic_comments}#{inserted_comment}#{source}"
 
-          if duplicate = destination_migrations.detect { |m| m.name == migration.name }
+          if duplicate = destination_migrations.find_by(name: migration.name)
             if options[:on_skip] && duplicate.scope != scope.to_s
               options[:on_skip].call(scope, migration)
             end
@@ -1308,7 +1308,7 @@ module ActiveRecord
     end
 
     def current_migration
-      migrations.detect { |m| m.version == current_version }
+      migrations.find_by(version: current_version)
     end
     alias :current :current_migration
 
@@ -1359,7 +1359,7 @@ module ActiveRecord
     private
       # Used for running a specific migration.
       def run_without_lock
-        migration = migrations.detect { |m| m.version == @target_version }
+        migration = migrations.find_by(version: @target_version)
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
 
         record_environment
@@ -1410,7 +1410,7 @@ module ActiveRecord
       end
 
       def target
-        migrations.detect { |m| m.version == @target_version }
+        migrations.find_by(version: @target_version)
       end
 
       def finish

@@ -234,7 +234,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     relations << Post.eager_load(:last_comment).merge(Post.order("comments.id DESC")).merge(Post.all)
 
     relations.each do |posts|
-      post = posts.find { |p| p.id == 1 }
+      post = posts.find_by(id: 1)
       assert_equal Post.find(1).last_comment, post.last_comment
     end
   end

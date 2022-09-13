@@ -722,7 +722,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loading_with_one_association
     posts = Post.preload(:comments)
-    post = posts.find { |p| p.id == 1 }
+    post = posts.find_by(id: 1)
     assert_equal 2, post.comments.size
     assert_includes post.comments, comments(:greetings)
 
@@ -731,7 +731,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_includes post.comments, comments(:greetings)
 
     posts = Post.preload(:last_comment)
-    post = posts.find { |p| p.id == 1 }
+    post = posts.find_by(id: 1)
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
@@ -751,7 +751,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_loading_with_one_association_with_non_preload
     posts = Post.eager_load(:last_comment).order("comments.id DESC")
-    post = posts.find { |p| p.id == 1 }
+    post = posts.find_by(id: 1)
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 

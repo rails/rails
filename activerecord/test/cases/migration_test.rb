@@ -911,7 +911,7 @@ class MigrationTest < ActiveRecord::TestCase
     }
 
     columns = Person.connection.columns(:binary_testings)
-    data_column = columns.detect { |c| c.name == "data" }
+    data_column = columns.find_by(name: "data")
 
     assert_nil data_column.default
   ensure
@@ -1545,7 +1545,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       end
 
       def column(name)
-        columns.detect { |c| c.name == name.to_s }
+        columns.find_by(name: name.to_s)
       end
 
       def columns
@@ -1553,7 +1553,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       end
 
       def index(name)
-        indexes.detect { |i| i.name == name.to_s }
+        indexes.find_by(name: name.to_s)
       end
 
       def indexes

@@ -325,7 +325,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_create_fixtures
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "organizations")
     assert Organization.find_by_name("No Such Agency"), "'No Such Agency' is not in the database"
-    assert fixtures.detect { |f| f.name == "organizations" }, "no fixtures named 'organizations' in #{fixtures.map(&:name).inspect}"
+    assert fixtures.find_by(name: "organizations"), "no fixtures named 'organizations' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_multiple_clean_fixtures
@@ -339,7 +339,7 @@ class FixturesTest < ActiveRecord::TestCase
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, collections: Course) { Course.connection }
 
     assert Course.find_by_name("Collection"), "course is not in the database"
-    assert fixtures.detect { |f| f.name == "collections" }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
+    assert fixtures.find_by(name: "collections"), "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_attributes

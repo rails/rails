@@ -50,7 +50,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
               @connection.add_check_constraint(:trades,
                 "CASE WHEN price IS NOT NULL THEN true ELSE false END", name: "price_is_required")
 
-              constraint = @connection.check_constraints("trades").find { |c| c.name == "price_is_required" }
+              constraint = @connection.check_constraints("trades").find_by(name: "price_is_required")
               assert_includes constraint.expression, "WHEN price IS NOT NULL"
             ensure
               @connection.remove_check_constraint(:trades, name: "price_is_required")

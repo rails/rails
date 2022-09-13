@@ -50,7 +50,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             t.references :testing_parent, foreign_key: { primary_key: :other_id }
           end
 
-          fk = @connection.foreign_keys("testings").find { |k| k.to_table == "testing_parents" }
+          fk = @connection.foreign_keys("testings").find_by(to_table: "testing_parents")
           assert_equal "other_id", fk.primary_key
         end
 
@@ -116,7 +116,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             t.references :testing_parent, foreign_key: { primary_key: :other_id }
           end
 
-          fk = @connection.foreign_keys("testings").find { |k| k.to_table == "testing_parents" }
+          fk = @connection.foreign_keys("testings").find_by(to_table: "testing_parents")
           assert_equal "other_id", fk.primary_key
         end
 

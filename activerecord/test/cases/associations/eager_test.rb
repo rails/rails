@@ -66,7 +66,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_loading_with_one_association
     posts = Post.all.merge!(includes: :comments).to_a
-    post = posts.find { |p| p.id == 1 }
+    post = posts.find_by(id: 1)
     assert_equal 2, post.comments.size
     assert_includes post.comments, comments(:greetings)
 
@@ -75,13 +75,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_includes post.comments, comments(:greetings)
 
     posts = Post.all.merge!(includes: :last_comment).to_a
-    post = posts.find { |p| p.id == 1 }
+    post = posts.find_by(id: 1)
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
   def test_loading_with_one_association_with_non_preload
     posts = Post.all.merge!(includes: :last_comment, order: "comments.id DESC").to_a
-    post = posts.find { |p| p.id == 1 }
+    post = posts.find_by(id: 1)
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
@@ -1309,7 +1309,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_include_has_one_using_primary_key
     expected = accounts(:signals37)
-    firm = Firm.all.merge!(includes: :account_using_primary_key, order: "accounts.id").to_a.detect { |f| f.id == 1 }
+    firm = Firm.all.merge!(includes: :account_using_primary_key, order: "accounts.id").to_a.find_by(id: 1)
     assert_no_queries do
       assert_equal expected, firm.account_using_primary_key
     end

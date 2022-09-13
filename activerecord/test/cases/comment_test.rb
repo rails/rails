@@ -89,7 +89,7 @@ if ActiveRecord::Base.connection.supports_comments?
     def test_add_index_with_comment_later
       unless current_adapter?(:OracleAdapter)
         @connection.add_index :commenteds, :obvious, name: "idx_obvious", comment: "We need to see obvious comments"
-        index = @connection.indexes("commenteds").find { |idef| idef.name == "idx_obvious" }
+        index = @connection.indexes("commenteds").find_by(name: "idx_obvious")
         assert_equal "We need to see obvious comments", index.comment
       end
     end

@@ -63,11 +63,11 @@ module ActiveRecord
         end
 
         columns = connection.columns(:testings)
-        one = columns.detect { |c| c.name == "one" }
-        two = columns.detect { |c| c.name == "two" }
-        three = columns.detect { |c| c.name == "three" }
-        four = columns.detect { |c| c.name == "four" }
-        five = columns.detect { |c| c.name == "five" } unless mysql
+        one = columns.find_by(name: "one")
+        two = columns.find_by(name: "two")
+        three = columns.find_by(name: "three")
+        four = columns.find_by(name: "four")
+        five = columns.find_by(name: "five") unless mysql
 
         assert_equal "hello", one.default
         assert_equal true, connection.lookup_cast_type_from_column(two).deserialize(two.default)
@@ -82,7 +82,7 @@ module ActiveRecord
           connection.add_column :testings, :foo, :string, array: true
 
           columns = connection.columns(:testings)
-          array_column = columns.detect { |c| c.name == "foo" }
+          array_column = columns.find_by(name: "foo")
 
           assert_predicate array_column, :array?
         end
@@ -93,7 +93,7 @@ module ActiveRecord
           end
 
           columns = connection.columns(:testings)
-          array_column = columns.detect { |c| c.name == "foo" }
+          array_column = columns.find_by(name: "foo")
 
           assert_predicate array_column, :array?
         end
@@ -104,7 +104,7 @@ module ActiveRecord
           t.bigint :eight_int
         end
         columns = connection.columns(:testings)
-        eight   = columns.detect { |c| c.name == "eight_int"   }
+        eight   = columns.find_by(name: "eight_int")
 
         if current_adapter?(:OracleAdapter)
           assert_equal "NUMBER(19)", eight.sql_type
@@ -130,13 +130,13 @@ module ActiveRecord
         end
 
         columns = connection.columns(:testings)
-        foo = columns.detect { |c| c.name == "foo" }
+        foo = columns.find_by(name: "foo")
         assert_equal 255, foo.limit
 
-        default = columns.detect { |c| c.name == "default_int" }
-        one     = columns.detect { |c| c.name == "one_int"     }
-        four    = columns.detect { |c| c.name == "four_int"    }
-        eight   = columns.detect { |c| c.name == "eight_int"   }
+        default = columns.find_by(name: "default_int")
+        one     = columns.find_by(name: "one_int")
+        four    = columns.find_by(name: "four_int")
+        eight   = columns.find_by(name: "eight_int")
 
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "integer", default.sql_type
@@ -213,8 +213,8 @@ module ActiveRecord
         end
         created_columns = connection.columns(table_name)
 
-        created_at_column = created_columns.detect { |c| c.name == "created_at" }
-        updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
+        created_at_column = created_columns.find_by(name: "created_at")
+        updated_at_column = created_columns.find_by(name: "updated_at")
 
         assert_not created_at_column.null
         assert_not updated_at_column.null
@@ -226,8 +226,8 @@ module ActiveRecord
         end
         created_columns = connection.columns(table_name)
 
-        created_at_column = created_columns.detect { |c| c.name == "created_at" }
-        updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
+        created_at_column = created_columns.find_by(name: "created_at")
+        updated_at_column = created_columns.find_by(name: "updated_at")
 
         assert created_at_column.null
         assert updated_at_column.null
@@ -275,7 +275,7 @@ module ActiveRecord
           t.column :foo, :timestamp
         end
 
-        column = connection.columns(:testings).find { |c| c.name == "foo" }
+        column = connection.columns(:testings).find_by(name: "foo")
 
         assert_equal :datetime, column.type
 
@@ -295,7 +295,7 @@ module ActiveRecord
           t.column :foo, :datetime
         end
 
-        column = connection.columns(:testings).find { |c| c.name == "foo" }
+        column = connection.columns(:testings).find_by(name: "foo")
 
         assert_equal :datetime, column.type
 
@@ -316,7 +316,7 @@ module ActiveRecord
               t.column :foo, :datetime
             end
 
-            column = connection.columns(:testings).find { |c| c.name == "foo" }
+            column = connection.columns(:testings).find_by(name: "foo")
 
             assert_equal :datetime, column.type
             assert_equal "timestamp(6) with time zone", column.sql_type
@@ -331,7 +331,7 @@ module ActiveRecord
 
         connection.change_column :testings, :foo, :timestamp
 
-        column = connection.columns(:testings).find { |c| c.name == "foo" }
+        column = connection.columns(:testings).find_by(name: "foo")
 
         assert_equal :datetime, column.type
 
@@ -422,9 +422,9 @@ module ActiveRecord
           end
           notnull_migration.new.suppress_messages do
             notnull_migration.migrate(:up)
-            assert_equal false, connection.columns(:testings).find { |c| c.name == "foo" }.null
+            assert_equal false, connection.columns(:testings).find_by(name: "foo").null
             notnull_migration.migrate(:down)
-            assert connection.columns(:testings).find { |c| c.name == "foo" }.null
+            assert connection.columns(:testings).find_by(name: "foo").null
           end
         end
       end

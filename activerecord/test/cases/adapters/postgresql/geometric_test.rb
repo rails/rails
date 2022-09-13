@@ -366,7 +366,7 @@ class PostgreSQLGeometricTypesTest < ActiveRecord::PostgreSQLTestCase
     end
 
     def assert_type_correct(column_name, type)
-      column = connection.columns(table_name).find { |c| c.name == column_name.to_s }
+      column = connection.columns(table_name).find_by(name: column_name.to_s)
       assert_equal type, column.type
     end
 end

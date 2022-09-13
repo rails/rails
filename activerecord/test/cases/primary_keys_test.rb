@@ -436,7 +436,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
 
     test "primary key column type with serial/integer" do
       @connection.create_table(:widgets, id: @pk_type, force: true)
-      column = @connection.columns(:widgets).find { |c| c.name == "id" }
+      column = @connection.columns(:widgets).find_by(name: "id")
       assert_equal :integer, column.type
       assert_not_predicate column, :bigint?
     end
@@ -456,7 +456,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     if current_adapter?(:Mysql2Adapter)
       test "primary key column type with options" do
         @connection.create_table(:widgets, id: :primary_key, limit: 4, unsigned: true, force: true)
-        column = @connection.columns(:widgets).find { |c| c.name == "id" }
+        column = @connection.columns(:widgets).find_by(name: "id")
         assert_predicate column, :auto_increment?
         assert_equal :integer, column.type
         assert_not_predicate column, :bigint?
@@ -468,7 +468,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
 
       test "bigint primary key with unsigned" do
         @connection.create_table(:widgets, id: :bigint, unsigned: true, force: true)
-        column = @connection.columns(:widgets).find { |c| c.name == "id" }
+        column = @connection.columns(:widgets).find_by(name: "id")
         assert_predicate column, :auto_increment?
         assert_equal :integer, column.type
         assert_predicate column, :bigint?

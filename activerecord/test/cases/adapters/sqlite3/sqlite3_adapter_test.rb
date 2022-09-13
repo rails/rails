@@ -320,7 +320,7 @@ module ActiveRecord
 
       def test_columns_with_not_null
         with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
-          column = @conn.columns("ex").find { |x| x.name == "number" }
+          column = @conn.columns("ex").find_by(name: "number")
           assert_not column.null, "column should not be null"
         end
       end
@@ -328,7 +328,7 @@ module ActiveRecord
       def test_add_column_with_not_null
         with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
           assert_nothing_raised { @conn.add_column :ex, :name, :string, null: false }
-          column = @conn.columns("ex").find { |x| x.name == "name" }
+          column = @conn.columns("ex").find_by(name: "name")
           assert_not column.null, "column should not be null"
         end
       end
@@ -348,7 +348,7 @@ module ActiveRecord
       def test_index
         with_example_table do
           @conn.add_index "ex", "id", unique: true, name: "fun"
-          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          index = @conn.indexes("ex").find_by(name: "fun")
 
           assert_equal "ex", index.table
           assert index.unique, "index is unique"
@@ -369,7 +369,7 @@ module ActiveRecord
       def test_non_unique_index
         with_example_table do
           @conn.add_index "ex", "id", name: "fun"
-          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          index = @conn.indexes("ex").find_by(name: "fun")
           assert_not index.unique, "index is not unique"
         end
       end
@@ -377,7 +377,7 @@ module ActiveRecord
       def test_compound_index
         with_example_table do
           @conn.add_index "ex", %w{ id number }, name: "fun"
-          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          index = @conn.indexes("ex").find_by(name: "fun")
           assert_equal %w{ id number }.sort, index.columns.sort
         end
       end
@@ -386,7 +386,7 @@ module ActiveRecord
         def test_expression_index
           with_example_table do
             @conn.add_index "ex", "max(id, number)", name: "expression"
-            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            index = @conn.indexes("ex").find_by(name: "expression")
             assert_equal "max(id, number)", index.columns
           end
         end
@@ -394,7 +394,7 @@ module ActiveRecord
         def test_expression_index_with_trailing_comment
           with_example_table do
             @conn.execute "CREATE INDEX expression on ex (number % 10) /* comment */"
-            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            index = @conn.indexes("ex").find_by(name: "expression")
             assert_equal "number % 10", index.columns
           end
         end
@@ -402,7 +402,7 @@ module ActiveRecord
         def test_expression_index_with_where
           with_example_table do
             @conn.add_index "ex", "id % 10, max(id, number)", name: "expression", where: "id > 1000"
-            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            index = @conn.indexes("ex").find_by(name: "expression")
             assert_equal "id % 10, max(id, number)", index.columns
             assert_equal "id > 1000", index.where
           end
@@ -411,7 +411,7 @@ module ActiveRecord
         def test_complicated_expression
           with_example_table do
             @conn.execute "CREATE INDEX expression ON ex (id % 10, (CASE WHEN number > 0 THEN max(id, number) END))WHERE(id > 1000)"
-            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            index = @conn.indexes("ex").find_by(name: "expression")
             assert_equal "id % 10, (CASE WHEN number > 0 THEN max(id, number) END)", index.columns
             assert_equal "(id > 1000)", index.where
           end
@@ -420,7 +420,7 @@ module ActiveRecord
         def test_not_everything_an_expression
           with_example_table do
             @conn.add_index "ex", "id, max(id, number)", name: "expression"
-            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            index = @conn.indexes("ex").find_by(name: "expression")
             assert_equal "id, max(id, number)", index.columns
           end
         end
@@ -549,13 +549,13 @@ module ActiveRecord
 
         indexes = connection.indexes("barcodes")
 
-        partial_index = indexes.find { |idx| idx.name == "partial" }
+        partial_index = indexes.find_by(name: "partial")
         assert_equal "bool_attr", partial_index.where
 
-        unique_index = indexes.find { |idx| idx.name == "unique" }
+        unique_index = indexes.find_by(name: "unique")
         assert unique_index.unique
 
-        ordered_index = indexes.find { |idx| idx.name == "ordered" }
+        ordered_index = indexes.find_by(name: "ordered")
         assert_equal :desc, ordered_index.orders
       ensure
         Barcode.reset_column_information
