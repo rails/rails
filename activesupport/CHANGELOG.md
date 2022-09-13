@@ -1,3 +1,39 @@
+*   `ActiveSupport::Deprecation#disallowed_warnings` now affects the instance on
+    which it is configured.
+
+    This means that individual `ActiveSupport::Deprecation` instances can be
+    configured with their own disallowed warnings, and the global
+    `ActiveSupport::Deprecation.disallowed_warnings` now only affects the global
+    `ActiveSupport::Deprecation.warn`.
+
+    **Before**
+
+    ```ruby
+    ActiveSupport::Deprecation.disallowed_warnings = ["foo"]
+    deprecator = ActiveSupport::Deprecation.new("2.0", "MyCoolGem")
+    deprecator.disallowed_warnings = ["bar"]
+
+    ActiveSupport::Deprecation.warn("foo") # => raise ActiveSupport::DeprecationException
+    ActiveSupport::Deprecation.warn("bar") # => print "DEPRECATION WARNING: bar"
+    deprecator.warn("foo")                 # => raise ActiveSupport::DeprecationException
+    deprecator.warn("bar")                 # => print "DEPRECATION WARNING: bar"
+    ```
+
+    **After**
+
+    ```ruby
+    ActiveSupport::Deprecation.disallowed_warnings = ["foo"]
+    deprecator = ActiveSupport::Deprecation.new("2.0", "MyCoolGem")
+    deprecator.disallowed_warnings = ["bar"]
+
+    ActiveSupport::Deprecation.warn("foo") # => raise ActiveSupport::DeprecationException
+    ActiveSupport::Deprecation.warn("bar") # => print "DEPRECATION WARNING: bar"
+    deprecator.warn("foo")                 # => print "DEPRECATION WARNING: foo"
+    deprecator.warn("bar")                 # => raise ActiveSupport::DeprecationException
+    ```
+
+    *Jonathan Hefner*
+
 *   Add italic and underline support to `ActiveSupport::LogSubscriber#color`
 
     Previously, only bold text was supported via a positional argument.

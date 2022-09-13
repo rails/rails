@@ -26,12 +26,7 @@ class DeprecationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
 
   def setup
-    @original_configuration = get_configuration(ActiveSupport::Deprecation)
-    @deprecator = ActiveSupport::Deprecation
-  end
-
-  def teardown
-    set_configuration(ActiveSupport::Deprecation, @original_configuration)
+    @deprecator = ActiveSupport::Deprecation.new
   end
 
   test "assert_deprecated" do
@@ -693,24 +688,6 @@ class DeprecationTest < ActiveSupport::TestCase
         @messages ||= []
       end
       deprecator
-    end
-
-    def get_configuration(deprecator)
-      %i[
-        debug
-        silenced
-        behavior
-        disallowed_behavior
-        disallowed_warnings
-      ].index_with do |attribute|
-        deprecator.public_send(attribute)
-      end
-    end
-
-    def set_configuration(deprecator, configuration)
-      configuration.each do |attribute, value|
-        deprecator.public_send("#{attribute}=", value)
-      end
     end
 
     module ::Rails; end
