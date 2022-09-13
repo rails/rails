@@ -12,28 +12,14 @@ class Deprecatee
   def zero() 0 end
   def one(a) a end
   def multi(a, b, c) [a, b, c] end
-
-  module B
-    C = 1
-  end
-  A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
-
-  module New
-    class Descendant; end
-  end
-  Old = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::Old", "Deprecatee::New")
 end
 
-class DeprecateeWithAccessor
-  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-
-  module B
-    C = 1
+module Undeprecated
+  module Foo
+    BAR = "foo bar"
   end
-  deprecate_constant "A", "DeprecateeWithAccessor::B::C"
 
-  class NewException < StandardError; end
-  deprecate_constant "OldException", "DeprecateeWithAccessor::NewException"
+  class Error < StandardError; end
 end
 
 class DeprecationTest < ActiveSupport::TestCase
@@ -252,34 +238,53 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "DeprecatedConstantProxy" do
-    assert_not_deprecated { Deprecatee::B::C }
-    assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
-    assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
+    proxy = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("FUBAR", "Undeprecated::Foo::BAR", @deprecator)
+
+    assert_deprecated("FUBAR", @deprecator) do
+      assert_equal Undeprecated::Foo::BAR, proxy
+    end
+  end
+
+  test "DeprecatedConstantProxy does not warn on .class" do
+    proxy = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("FUBAR", "Undeprecated::Foo::BAR", @deprecator)
+
+    fubar_class = assert_not_deprecated(@deprecator) { proxy.class }
+    assert_equal Undeprecated::Foo::BAR.class, fubar_class
   end
 
   test "DeprecatedConstantProxy with child constant" do
-    assert_not_deprecated { Deprecatee::New::Descendant }
+    proxy = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Fuu", "Undeprecated::Foo", @deprecator)
 
-    assert_deprecated("Deprecatee::Old") do
-      assert_equal Deprecatee::Old::Descendant, Deprecatee::New::Descendant
+    assert_deprecated("Fuu", @deprecator) do
+      assert_equal Undeprecated::Foo::BAR, proxy::BAR
     end
 
-    assert_raises(NameError) do
-      assert_deprecated("Deprecatee::Old") { Deprecatee::Old::NON_EXISTENCE }
+    assert_deprecated("Fuu", @deprecator) do
+      assert_raises(NameError) { proxy::DOES_NOT_EXIST }
     end
   end
 
   test "deprecate_constant" do
-    assert_not_deprecated { DeprecateeWithAccessor::B::C }
-    assert_deprecated("DeprecateeWithAccessor::A") { assert_equal DeprecateeWithAccessor::B::C, DeprecateeWithAccessor::A }
+    legacy = Module.new { def self.name; "Legacy"; end }
+    legacy.include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+    legacy.deprecate_constant "FUBAR", "Undeprecated::Foo::BAR", deprecator: @deprecator
+
+    assert_deprecated("Legacy::FUBAR", @deprecator) do
+      assert_equal Undeprecated::Foo::BAR, legacy::FUBAR
+    end
   end
 
-  test "deprecate_constant with exception class" do
-    ActiveSupport::Deprecation.behavior = :silence
+  test "deprecate_constant when rescuing a deprecated error" do
+    legacy = Module.new { def self.name; "Legacy"; end }
+    legacy.include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+    legacy.deprecate_constant "Error", "Undeprecated::Error", deprecator: @deprecator
 
-    raise DeprecateeWithAccessor::NewException.new("Test")
-  rescue DeprecateeWithAccessor::OldException => e
-    assert_kind_of DeprecateeWithAccessor::NewException, e
+    assert_deprecated("Legacy::Error", @deprecator) do
+      assert_nothing_raised do
+        raise Undeprecated::Error
+      rescue legacy::Error
+      end
+    end
   end
 
   test "assert_deprecated raises when no deprecation warning" do
