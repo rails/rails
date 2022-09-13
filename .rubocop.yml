@@ -327,5 +327,8 @@ Performance/StringInclude:
 Minitest/AssertRaisesWithRegexpArgument:
   Enabled: true
 
+Minitest/AssertWithExpectedArgument:
+  Enabled: true
+
 Minitest/UnreachableAssertion:
   Enabled: true

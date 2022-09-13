@@ -1688,8 +1688,7 @@ en:
       RUBY
 
       Dir.chdir(@plugin.path) do
-        output = `bundle exec rake app:active_storage:install`
-        assert $?.success?, output
+        assert_command_succeeds("bundle exec rake app:active_storage:install")
 
         active_storage_migration = migrations.detect { |migration| migration.name == "CreateActiveStorageTables" }
         assert active_storage_migration
@@ -1703,8 +1702,7 @@ en:
       RUBY
 
       Dir.chdir(@plugin.path) do
-        output = `bundle exec rake app:active_storage:update`
-        assert $?.success?, output
+        assert_command_succeeds("bundle exec rake app:active_storage:update")
 
         assert migrations.detect { |migration| migration.name == "AddServiceNameToActiveStorageBlobs" }
         assert migrations.detect { |migration| migration.name == "CreateActiveStorageVariantRecords" }
@@ -1737,6 +1735,11 @@ en:
       RUBY
       environment = File.read("#{app_path}/config/application.rb")
       File.open("#{app_path}/config/application.rb", "w") { |f| f.puts frameworks + "\n" + environment }
+    end
+
+    def assert_command_succeeds(command)
+      output = `#{command}`
+      assert_predicate $?, :success?, "Command did not succeed: #{command}\n#{output}"
     end
   end
 end
