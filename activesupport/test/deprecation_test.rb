@@ -67,19 +67,19 @@ class DeprecationTest < ActiveSupport::TestCase
     set_configuration(ActiveSupport::Deprecation, @original_configuration)
   end
 
-  def test_inline_deprecation_warning
+  test "assert_deprecated" do
     assert_deprecated(/fubar/, @deprecator) do
       @deprecator.warn("using fubar is deprecated")
     end
   end
 
-  def test_undeprecated
+  test "assert_not_deprecated" do
     assert_not_deprecated(@deprecator) do
       1 + 1
     end
   end
 
-  def test_deprecate_method_on_class
+  test "Module::deprecate" do
     assert_deprecated(/none is deprecated/) do
       assert_equal 1, @dtc.none
     end
@@ -93,7 +93,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecate_method_doesnt_expand_positional_argument_hash
+  test "Module::deprecate does not expand Hash positional argument" do
     hash = { k: 1 }
 
     assert_deprecated(/one is deprecated/) do
@@ -105,17 +105,17 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecate_object
+  test "DeprecatedObjectProxy" do
     deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
     assert_deprecated(/:bomb:/) { deprecated_object.to_s }
   end
 
-  def test_nil_behavior_is_ignored
+  test "nil behavior is ignored" do
     @deprecator.behavior = nil
     assert_deprecated("fubar", @deprecator) { @deprecator.warn("fubar") }
   end
 
-  def test_several_behaviors
+  test "multiple behaviors" do
     @a, @b, @c = nil, nil, nil
 
     @deprecator.behavior = [
@@ -130,7 +130,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 4, @c.size
   end
 
-  def test_raise_behavior
+  test ":raise behavior" do
     @deprecator.behavior = :raise
 
     message   = "Revise this deprecated stuff now!"
@@ -143,7 +143,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal callstack.map(&:to_s), e.backtrace.map(&:to_s)
   end
 
-  def test_default_stderr_behavior
+  test ":stderr behavior" do
     @deprecator.behavior = :stderr
     behavior = @deprecator.behavior.first
 
@@ -154,7 +154,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/call stack!/, content)
   end
 
-  def test_default_stderr_behavior_with_warn_method
+  test ":stderr behavior with #warn" do
     @deprecator.behavior = :stderr
 
     content = capture(:stderr) {
@@ -165,7 +165,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/instance call stack!/, content)
   end
 
-  def test_default_silence_behavior
+  test ":silence behavior" do
     @deprecator.behavior = :silence
     behavior = @deprecator.behavior.first
 
@@ -175,7 +175,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_empty stderr_output
   end
 
-  def test_default_notify_behavior
+  test ":notify behavior" do
     @deprecator.behavior = :notify
     behavior = @deprecator.behavior.first
 
@@ -196,7 +196,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_default_invalid_behavior
+  test "invalid behavior" do
     e = assert_raises(ArgumentError) do
       @deprecator.behavior = :invalid
     end
@@ -204,7 +204,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal ":invalid is not a valid deprecation behavior.", e.message
   end
 
-  def test_custom_behavior
+  test "callable object behavior" do
     custom_behavior_class = Class.new do
       def call(message, callstack, horizon, gem_name)
         $stderr.puts message
@@ -219,24 +219,24 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/foo/, content)
   end
 
-  def test_deprecated_instance_variable_proxy
+  test "DeprecatedInstanceVariableProxy" do
     assert_not_deprecated { @dtc.request.size }
 
     assert_deprecated("@request.size") { assert_equal @dtc.request.size, @dtc.old_request.size }
     assert_deprecated("@request.to_s") { assert_equal @dtc.request.to_s, @dtc.old_request.to_s }
   end
 
-  def test_deprecated_instance_variable_proxy_shouldnt_warn_on_inspect
+  test "DeprecatedInstanceVariableProxy does not warn on inspect" do
     assert_not_deprecated { assert_equal @dtc.request.inspect, @dtc.old_request.inspect }
   end
 
-  def test_deprecated_constant_proxy
+  test "DeprecatedConstantProxy" do
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
   end
 
-  def test_deprecated_constant_descendant
+  test "DeprecatedConstantProxy with child constant" do
     assert_not_deprecated { Deprecatee::New::Descendant }
 
     assert_deprecated("Deprecatee::Old") do
@@ -248,12 +248,12 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_constant_accessor
+  test "deprecate_constant" do
     assert_not_deprecated { DeprecateeWithAccessor::B::C }
     assert_deprecated("DeprecateeWithAccessor::A") { assert_equal DeprecateeWithAccessor::B::C, DeprecateeWithAccessor::A }
   end
 
-  def test_deprecated_constant_accessor_exception
+  test "deprecate_constant with exception class" do
     ActiveSupport::Deprecation.behavior = :silence
 
     raise DeprecateeWithAccessor::NewException.new("Test")
@@ -261,25 +261,25 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_kind_of DeprecateeWithAccessor::NewException, e
   end
 
-  def test_assert_deprecated_raises_when_method_not_deprecated
+  test "assert_deprecated raises when no deprecation warning" do
     assert_raises(Minitest::Assertion) do
       assert_deprecated(/./, @deprecator) { 1 + 1 }
     end
   end
 
-  def test_assert_not_deprecated
+  test "assert_not_deprecated raises when some deprecation warning" do
     assert_raises(Minitest::Assertion) do
       assert_not_deprecated(@deprecator) { @deprecator.warn }
     end
   end
 
-  def test_assert_deprecation_without_match
+  test "assert_deprecated without match argument" do
     assert_deprecated do
       ActiveSupport::Deprecation.warn
     end
   end
 
-  def test_assert_deprecated_matches_any_warning
+  test "assert_deprecated matches any warning from block" do
     assert_deprecated("abc", @deprecator) do
       @deprecator.warn "abc"
       @deprecator.warn "def"
@@ -288,11 +288,11 @@ class DeprecationTest < ActiveSupport::TestCase
     flunk "assert_deprecated should match any warning in block, not just the last one"
   end
 
-  def test_assert_not_deprecated_returns_result_of_block
+  test "assert_not_deprecated returns result of block" do
     assert_equal 123, assert_not_deprecated(@deprecator) { 123 }
   end
 
-  def test_assert_deprecated_returns_result_of_block
+  test "assert_deprecated_returns result of block" do
     result = assert_deprecated("abc", @deprecator) do
       @deprecator.warn "abc"
       123
@@ -300,7 +300,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 123, result
   end
 
-  def test_silence
+  test "silence" do
     assert_not @deprecator.silenced
 
     @deprecator.silence do
@@ -315,7 +315,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated(@deprecator) { @deprecator.warn }
   end
 
-  def test_silence_threaded
+  test "silence only affects the current thread" do
     @deprecator.silence do
       assert_not_deprecated(@deprecator) { @deprecator.warn }
 
@@ -333,21 +333,21 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecation_without_explanation
+  test "Module::deprecate with method name only" do
     assert_deprecated { @dtc.a }
     assert_deprecated { @dtc.b }
     assert_deprecated { @dtc.f = :foo }
   end
 
-  def test_deprecation_with_alternate_method
+  test "Module::deprecate with alternative method" do
     assert_deprecated(/use e instead/) { @dtc.c }
   end
 
-  def test_deprecation_with_explicit_message
+  test "Module::deprecate with message" do
     assert_deprecated(/you now need to do something extra for this one/) { @dtc.d }
   end
 
-  def test_deprecation_in_other_object
+  test "delegating to ActiveSupport::Deprecation" do
     messages = []
 
     klass = Class.new do
@@ -361,7 +361,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_method_with_custom_method_warning
+  test "overriding deprecated_method_warning" do
     deprecator = deprecator_with_messages
 
     class << deprecator
@@ -381,7 +381,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert deprecator.messages.first.match("DEPRECATION WARNING: deprecator.deprecated_method_warning.method")
   end
 
-  def test_deprecate_with_custom_deprecator
+  test "Module::deprecate with custom deprecator" do
     custom_deprecator = Struct.new(:deprecation_warning).new
 
     assert_called_with(custom_deprecator, :deprecation_warning, [:method, nil]) do
@@ -395,7 +395,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_constant_with_deprecator_given
+  test "DeprecatedConstantProxy with explicit deprecator" do
     deprecator = deprecator_with_messages
     klass = Class.new
     klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator))
@@ -404,7 +404,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_constant_with_custom_message
+  test "DeprecatedConstantProxy with message" do
     deprecator = deprecator_with_messages
 
     klass = Class.new
@@ -414,7 +414,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match "foo", deprecator.messages.last
   end
 
-  def test_deprecated_instance_variable_with_instance_deprecator
+  test "DeprecatedInstanceVariableProxy with explicit deprecator" do
     deprecator = deprecator_with_messages
 
     klass = Class.new() do
@@ -429,11 +429,11 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_difference("deprecator.messages.size") { klass.new(deprecator).old_request.to_s }
   end
 
-  def test_default_deprecation_horizon_should_always_bigger_than_current_rails_version
+  test "default deprecation_horizon is greater than the current Rails version" do
     assert_operator ActiveSupport::Deprecation.new.deprecation_horizon, :>, ActiveSupport::VERSION::STRING
   end
 
-  def test_default_gem_name
+  test "default gem_name is Rails" do
     deprecator = ActiveSupport::Deprecation.new
 
     deprecator.send(:deprecated_method_warning, :deprecated_method, "You are calling deprecated method").tap do |message|
@@ -441,7 +441,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_custom_gem_name
+  test "custom gem_name" do
     deprecator = ActiveSupport::Deprecation.new("2.0", "Custom")
 
     deprecator.send(:deprecated_method_warning, :deprecated_method, "You are calling deprecated method").tap do |message|
@@ -449,7 +449,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecate_work_before_define_method
+  test "Module::deprecate can be called before the target method is defined" do
     assert_deprecated(/g is deprecated/) { @dtc.g(1) }
   end
 
@@ -462,17 +462,17 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_config_disallows_no_deprecations_by_default
+  test "disallowed_warnings is empty by default" do
     assert_equal @deprecator.disallowed_warnings, []
   end
 
-  def test_allows_configuration_of_disallowed_warnings
+  test "disallowed_warnings can be configured" do
     config_warnings = ["unsafe_method is going away"]
     @deprecator.disallowed_warnings = config_warnings
     assert_equal @deprecator.disallowed_warnings, config_warnings
   end
 
-  def test_no_disallowed_behavior_with_no_disallowed_messages
+  test "disallowed_behavior does not trigger when disallowed_warnings is empty" do
     @deprecator.disallowed_behavior = proc { flunk }
 
     assert_deprecated(/fubar/, @deprecator) do
@@ -480,7 +480,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_disallowed_behavior_does_not_apply_to_allowed_messages
+  test "disallowed_behavior does not trigger when disallowed_warnings does not match the warning" do
     @deprecator.disallowed_behavior = proc { flunk }
     @deprecator.disallowed_warnings = ["foo bar"]
 
@@ -489,7 +489,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_disallowed_behavior_when_disallowed_message_configured_with_substring
+  test "disallowed_warnings can match using a substring" do
     @deprecator.disallowed_warnings = ["fubar"]
 
     assert_disallowed(/fubar/, @deprecator) do
@@ -497,7 +497,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_disallowed_behavior_when_disallowed_message_configured_with_symbol_treated_as_substring
+  test "disallowed_warnings can match using a substring as a symbol" do
     @deprecator.disallowed_warnings = [:fubar]
 
     assert_disallowed(/fubar/, @deprecator) do
@@ -505,7 +505,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_disallowed_behavior_when_disallowed_message_configured_with_regular_expression
+  test "disallowed_warnings can match using a regexp" do
     @deprecator.disallowed_warnings = [/f[aeiou]+bar/]
 
     assert_disallowed(/fubar/, @deprecator) do
@@ -513,7 +513,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_disallowed_behavior_when_disallowed_message_configured_with_scalar_symbol_all
+  test "disallowed_warnings matches all warnings when set to :all" do
     @deprecator.disallowed_warnings = :all
 
     assert_disallowed(/fubar/, @deprecator) do
@@ -521,7 +521,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_different_behaviors_for_allowed_and_disallowed_messages
+  test "different behaviors for allowed and disallowed warnings" do
     @a, @b, @c, @d = nil, nil, nil, nil
 
     @deprecator.behavior = [
@@ -553,7 +553,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/./, @deprecator) { @deprecator.warn }
   end
 
-  def test_allow
+  test "allow" do
     @deprecator.disallowed_warnings = :all
 
     assert_disallowed(/./, @deprecator) { @deprecator.warn }
@@ -563,7 +563,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_allow_only_matching_warnings
+  test "allow only allows matching warnings using a substring" do
     @deprecator.disallowed_warnings = :all
 
     @deprecator.allow(["foo bar", "baz qux"]) do
@@ -573,7 +573,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_allow_with_symbol
+  test "allow only allows matching warnings using a substring as a symbol" do
     @deprecator.disallowed_warnings = :all
 
     @deprecator.allow([:"foo bar", :"baz qux"]) do
@@ -583,7 +583,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_allow_with_regexp
+  test "allow only allows matching warnings using a regexp" do
     @deprecator.disallowed_warnings = :all
 
     @deprecator.allow([/(foo|baz) (bar|qux)/]) do
@@ -593,7 +593,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_allow_only_has_effect_inside_provided_block
+  test "allow only affects its block" do
     @deprecator.disallowed_warnings = :all
 
     @deprecator.allow do
@@ -603,7 +603,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_disallowed(/./, @deprecator) { @deprecator.warn }
   end
 
-  def test_allow_only_has_effect_on_the_thread_on_which_it_was_called
+  test "allow only affects the current thread" do
     @deprecator.disallowed_warnings = :all
 
     @deprecator.allow do
@@ -623,7 +623,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_is_a_noop_based_on_if_kwarg_truthy_or_falsey
+  test "allow with :if option" do
     @deprecator.disallowed_warnings = :all
 
     @deprecator.allow("fubar", if: true) do
@@ -635,7 +635,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_is_a_noop_based_on_if_kwarg_using_proc
+  test "allow with :if option as a proc" do
     @deprecator.disallowed_warnings = :all
 
     @deprecator.allow("fubar", if: -> { true }) do
