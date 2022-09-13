@@ -30,33 +30,33 @@ db_namespace = namespace :db do
 
   namespace :create do
     task all: :load_config do
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      ActiveRecord::Tasks::DatabaseTasks.create_all(connection_class: ActiveRecord::TemporaryConnection)
     end
 
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       desc "Create #{name} database for current environment"
       task name => :load_config do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Tasks::DatabaseTasks.create(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.create(db_config, connection_class: ActiveRecord::TemporaryConnection)
       end
     end
   end
 
   desc "Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases, except when DATABASE_URL is present."
   task create: [:load_config] do
-    ActiveRecord::Tasks::DatabaseTasks.create_current
+    ActiveRecord::Tasks::DatabaseTasks.create_current(connection_class: ActiveRecord::TemporaryConnection)
   end
 
   namespace :drop do
     task all: [:load_config, :check_protected_environments] do
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      ActiveRecord::Tasks::DatabaseTasks.drop_all(connection_class: ActiveRecord::TemporaryConnection)
     end
 
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       desc "Drop #{name} database for current environment"
       task name => [:load_config, :check_protected_environments] do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Tasks::DatabaseTasks.drop(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.drop(db_config, connection_class: ActiveRecord::TemporaryConnection)
       end
     end
   end
@@ -67,7 +67,7 @@ db_namespace = namespace :db do
   end
 
   task "drop:_unsafe" => [:load_config] do
-    ActiveRecord::Tasks::DatabaseTasks.drop_current
+    ActiveRecord::Tasks::DatabaseTasks.drop_current(connection_class: ActiveRecord::TemporaryConnection)
   end
 
   namespace :purge do

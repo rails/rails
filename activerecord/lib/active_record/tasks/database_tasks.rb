@@ -118,9 +118,9 @@ module ActiveRecord
         @seed_loader ||= Rails.application
       end
 
-      def create(configuration, *arguments)
+      def create(configuration, *arguments, connection_class: ActiveRecord::Base)
         db_config = resolve_configuration(configuration)
-        database_adapter_for(db_config, *arguments).create
+        database_adapter_for(db_config, *arguments, connection_class: connection_class).create
         $stdout.puts "Created database '#{db_config.database}'" if verbose?
       rescue DatabaseAlreadyExists
         $stderr.puts "Database '#{db_config.database}' already exists" if verbose?
@@ -130,9 +130,9 @@ module ActiveRecord
         raise
       end
 
-      def create_all
+      def create_all(connection_class: ActiveRecord::Base)
         old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-        each_local_configuration { |db_config| create(db_config) }
+        each_local_configuration { |db_config| create(db_config, connection_class: connection_class) }
         if old_pool
           ActiveRecord::Base.connection_handler.establish_connection(old_pool.db_config)
         end
@@ -181,8 +181,8 @@ module ActiveRecord
         end
       end
 
-      def create_current(environment = env, name = nil)
-        each_current_configuration(environment, name) { |db_config| create(db_config) }
+      def create_current(environment = env, name = nil, connection_class: ActiveRecord::Base)
+        each_current_configuration(environment, name) { |db_config| create(db_config, connection_class: connection_class) }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
@@ -218,9 +218,9 @@ module ActiveRecord
         load_seed if seed
       end
 
-      def drop(configuration, *arguments)
+      def drop(configuration, *arguments, connection_class: ActiveRecord::Base)
         db_config = resolve_configuration(configuration)
-        database_adapter_for(db_config, *arguments).drop
+        database_adapter_for(db_config, *arguments, connection_class: connection_class).drop
         $stdout.puts "Dropped database '#{db_config.database}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{db_config.database}' does not exist"
@@ -230,12 +230,12 @@ module ActiveRecord
         raise
       end
 
-      def drop_all
-        each_local_configuration { |db_config| drop(db_config) }
+      def drop_all(connection_class: ActiveRecord::Base)
+        each_local_configuration { |db_config| drop(db_config, connection_class: connection_class) }
       end
 
-      def drop_current(environment = env)
-        each_current_configuration(environment) { |db_config| drop(db_config) }
+      def drop_current(environment = env, connection_class: ActiveRecord::Base)
+        each_current_configuration(environment) { |db_config| drop(db_config, connection_class: connection_class) }
       end
 
       def truncate_tables(db_config)

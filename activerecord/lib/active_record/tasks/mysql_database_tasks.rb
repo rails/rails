@@ -9,7 +9,7 @@ module ActiveRecord
         true
       end
 
-      def initialize(db_config, connection_class: ActiveRecord::TemporaryConnection)
+      def initialize(db_config, connection_class: ActiveRecord::Base)
         @db_config = db_config
         @configuration_hash = db_config.configuration_hash
         @connection_class = connection_class
