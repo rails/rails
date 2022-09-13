@@ -1108,8 +1108,8 @@ module ActiveRecord
       end
 
       @migrations_paths = migrations_paths
-      @schema_migration = schema_migration || SchemaMigration.new(ActiveRecord::Base.connection)
-      @internal_metadata = internal_metadata || InternalMetadata.new(ActiveRecord::Base.connection)
+      @schema_migration = schema_migration || SchemaMigration.new(ActiveRecord::TemporaryConnection.current_connection)
+      @internal_metadata = internal_metadata || InternalMetadata.new(ActiveRecord::TemporaryConnection.current_connection)
     end
 
     # Runs the migrations in the +migrations_path+.
@@ -1281,8 +1281,9 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        schema_migration = SchemaMigration.new(ActiveRecord::Base.connection)
-        internal_metadata = InternalMetadata.new(ActiveRecord::Base.connection)
+        conn = ActiveRecord::TemporaryConnection.current_connection
+        schema_migration = SchemaMigration.new(conn)
+        internal_metadata = InternalMetadata.new(conn)
 
         MigrationContext.new(migrations_paths, schema_migration, internal_metadata).current_version
       end
