@@ -429,45 +429,6 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_difference("deprecator.messages.size") { klass.new(deprecator).old_request.to_s }
   end
 
-  def test_deprecated_instance_variable_with_given_deprecator
-    deprecator = deprecator_with_messages
-
-    klass = Class.new do
-      define_method(:initialize) do
-        @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator)
-        @_request = :a_request
-      end
-      def request; @_request end
-      def old_request; @request end
-    end
-
-    assert_difference("deprecator.messages.size") { klass.new.old_request.to_s }
-  end
-
-  def test_delegate_deprecator_instance
-    klass = Class.new do
-      attr_reader :last_message
-      delegate :warn, :behavior=, to: ActiveSupport::Deprecation
-
-      def initialize
-        self.behavior = [Proc.new { |message| @last_message = message }]
-      end
-
-      def deprecated_method
-        warn(deprecated_method_warning(:deprecated_method, "You are calling deprecated method"))
-      end
-
-      private
-        def deprecated_method_warning(method_name, message = nil)
-          message || "#{method_name} is deprecated and will be removed from This Library"
-        end
-    end
-
-    object = klass.new
-    object.deprecated_method
-    assert_match(/You are calling deprecated method/, object.last_message)
-  end
-
   def test_default_deprecation_horizon_should_always_bigger_than_current_rails_version
     assert_operator ActiveSupport::Deprecation.new.deprecation_horizon, :>, ActiveSupport::VERSION::STRING
   end
