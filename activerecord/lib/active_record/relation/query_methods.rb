@@ -1785,7 +1785,7 @@ module ActiveRecord
           node.when(column.eq(value)).then(order)
         end
 
-        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+        Arel::Nodes::Ascending.new(node)
       end
 
       def resolve_arel_attributes(attrs)
