@@ -24,10 +24,9 @@ module ActiveSupport
 
       private
         def deprecation_disallowed?(message)
-          disallowed = ActiveSupport::Deprecation.disallowed_warnings
           return false if explicitly_allowed?(message)
-          return true if disallowed == :all
-          message && disallowed.any? do |rule|
+          return true if disallowed_warnings == :all
+          message && disallowed_warnings.any? do |rule|
             case rule
             when String, Symbol
               message.include?(rule.to_s)
