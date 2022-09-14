@@ -12,6 +12,7 @@ end
 
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
+require "active_support/testing/error_reporter_assertions"
 
 ENV["NO_RELOAD"] = "1"
 require "active_support"
@@ -37,6 +38,7 @@ class ActiveSupport::TestCase
   end
 
   include ActiveSupport::Testing::MethodCallAssertions
+  include ActiveSupport::Testing::ErrorReporterAssertions
 
   private
     # Skips the current run on JRuby using Minitest::Assertions#skip
