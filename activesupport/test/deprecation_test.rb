@@ -4,7 +4,6 @@ require_relative "abstract_unit"
 require "logger"
 require "stringio"
 require "active_support/core_ext/enumerable"
-require "active_support/testing/stream"
 
 class Deprecatee
   attr_accessor :fubar, :foo_bar
@@ -23,8 +22,6 @@ module Undeprecated
 end
 
 class DeprecationTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::Stream
-
   def setup
     @deprecator = ActiveSupport::Deprecation.new
   end
@@ -120,22 +117,23 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.behavior = :stderr
     behavior = @deprecator.behavior.first
 
-    content = capture(:stderr) {
+    _out, err = capture_io do
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
-    }
-    assert_match(/Some error!/, content)
-    assert_match(/call stack!/, content)
+    end
+
+    assert_match(/Some error!/, err)
+    assert_match(/call stack!/, err)
   end
 
   test ":stderr behavior with #warn" do
     @deprecator.behavior = :stderr
 
-    content = capture(:stderr) {
+    _out, err = capture_io do
       @deprecator.warn("Instance error!", ["instance call stack!"])
-    }
+    end
 
-    assert_match(/Instance error!/, content)
-    assert_match(/instance call stack!/, content)
+    assert_match(/Instance error!/, err)
+    assert_match(/instance call stack!/, err)
   end
 
   test ":log behavior" do
@@ -165,10 +163,12 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.behavior = :silence
     behavior = @deprecator.behavior.first
 
-    stderr_output = capture(:stderr) {
+    out, err = capture_io do
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
-    }
-    assert_empty stderr_output
+    end
+
+    assert_empty out
+    assert_empty err
   end
 
   test ":notify behavior" do
