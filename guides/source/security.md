@@ -614,10 +614,10 @@ SQL injection attacks aim at influencing database queries by manipulating web ap
 Project.where("name = '#{params[:name]}'")
 ```
 
-This could be in a search action and the user may enter a project's name that they want to find. If a malicious user enters `' OR 1 --`, the resulting SQL query will be:
+This could be in a search action and the user may enter a project's name that they want to find. If a malicious user enters `' OR 1) --`, the resulting SQL query will be:
 
 ```sql
-SELECT * FROM projects WHERE name = '' OR 1 --'
+SELECT * FROM projects WHERE (name = '' OR 1) --')
 ```
 
 The two dashes start a comment ignoring everything after it. So the query returns all records from the projects table including those blind to the user. This is because the condition is true for all records.
