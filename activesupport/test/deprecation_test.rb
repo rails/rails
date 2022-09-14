@@ -84,19 +84,11 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated("fubar", @deprecator) { @deprecator.warn("fubar") }
   end
 
-  test "multiple behaviors" do
-    @a, @b, @c = nil, nil, nil
-
-    @deprecator.behavior = [
-      lambda { |msg, callstack, horizon, gem| @a = msg },
-      lambda { |msg, callstack| @b = msg },
-      lambda { |*args| @c = args },
-    ]
-
-    @deprecator.warn("fubar")
-    assert_match "fubar", @a
-    assert_match "fubar", @b
-    assert_equal 4, @c.size
+  test "behavior callbacks" do
+    assert_callbacks_called_with(deprecator: @deprecator, message: /fubar/) do |callbacks|
+      @deprecator.behavior = callbacks
+      @deprecator.warn("fubar")
+    end
   end
 
   test ":raise behavior" do
@@ -542,27 +534,12 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "different behaviors for allowed and disallowed warnings" do
-    @a, @b, @c, @d = nil, nil, nil, nil
+    @deprecator.disallowed_warnings = :all
+    @deprecator.behavior = proc { flunk }
 
-    @deprecator.behavior = [
-      lambda { |msg, callstack, horizon, gem| @a = msg },
-      lambda { |msg, callstack| @b = msg },
-    ]
-
-    @deprecator.disallowed_behavior = [
-      lambda { |msg, callstack, horizon, gem| @c = msg },
-      lambda { |msg, callstack| @d = msg },
-    ]
-
-    @deprecator.disallowed_warnings = ["fubar"]
-
-    @deprecator.warn("using fubar is deprecated")
-    @deprecator.warn("using foo bar is deprecated")
-
-    assert_match(/foo bar/, @a)
-    assert_match(/foo bar/, @b)
-    assert_match(/fubar/, @d)
-    assert_match(/fubar/, @c)
+    assert_disallowed(/fubar/, @deprecator) do
+      @deprecator.warn("using fubar is deprecated")
+    end
   end
 
   test "disallowed_warnings with the default warning message" do
@@ -571,6 +548,14 @@ class DeprecationTest < ActiveSupport::TestCase
 
     @deprecator.disallowed_warnings = ["fubar"]
     assert_deprecated(/./, @deprecator) { @deprecator.warn }
+  end
+
+  test "disallowed_behavior callbacks" do
+    assert_callbacks_called_with(deprecator: @deprecator, message: /fubar/) do |callbacks|
+      @deprecator.disallowed_behavior = callbacks
+      @deprecator.disallowed_warnings = ["fubar"]
+      @deprecator.warn("fubar")
+    end
   end
 
   test "allow" do
@@ -730,5 +715,53 @@ class DeprecationTest < ActiveSupport::TestCase
         assert disallowed.any?(match), "No disallowed deprecations matched #{match}: #{disallowed.inspect}"
       end
       result
+    end
+
+    def assert_callbacks_called_with(matchers = {})
+      matchers[:message] ||= String
+      matchers[:callstack] ||= Array
+      matchers[:deprecator]&.tap do |deprecator|
+        matchers[:deprecation_horizon] ||= deprecator.deprecation_horizon
+        matchers[:gem_name] ||= deprecator.gem_name
+      end
+
+      bindings = []
+
+      callbacks = [
+        lambda { |message, callstack, deprecation_horizon, gem_name| bindings << binding },
+        proc   { |message, callstack, deprecation_horizon, gem_name| bindings << binding },
+        lambda { |message, callstack| bindings << binding },
+        proc   { |message, callstack| bindings << binding },
+        proc   { |message| bindings << binding },
+        proc   { bindings << binding },
+
+        lambda do |*args|
+          message, callstack, deprecation_horizon, gem_name = args
+          bindings << binding
+        end,
+
+        lambda do |message, *other|
+          callstack, deprecation_horizon, gem_name = other
+          bindings << binding
+        end,
+
+        lambda do |message, callstack, *details|
+          deprecation_horizon, gem_name = details
+          bindings << binding
+        end,
+      ]
+
+      yield callbacks
+
+      assert_equal callbacks.size, bindings.size
+
+      bindings.each do |bound|
+        matchers.each do |name, matcher|
+          if bound.local_variable_defined?(name)
+            assert_operator matcher, :===, bound.local_variable_get(name),
+              "Unexpected #{name} in callback defined at #{bound.source_location.join(":")}"
+          end
+        end
+      end
     end
 end
