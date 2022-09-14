@@ -4,6 +4,7 @@ require_relative "abstract_unit"
 require "logger"
 require "stringio"
 require "active_support/core_ext/enumerable"
+require "active_support/testing/stream"
 
 class Deprecatee
   attr_accessor :fubar, :foo_bar
@@ -22,6 +23,8 @@ module Undeprecated
 end
 
 class DeprecationTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Stream
+
   def setup
     @deprecator = ActiveSupport::Deprecation.new
   end
@@ -117,23 +120,23 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.behavior = :stderr
     behavior = @deprecator.behavior.first
 
-    _out, err = capture_io do
+    output = capture(:stderr) do
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     end
 
-    assert_match(/Some error!/, err)
-    assert_match(/call stack!/, err)
+    assert_match(/Some error!/, output)
+    assert_match(/call stack!/, output)
   end
 
   test ":stderr behavior with #warn" do
     @deprecator.behavior = :stderr
 
-    _out, err = capture_io do
+    output = capture(:stderr) do
       @deprecator.warn("Instance error!", ["instance call stack!"])
     end
 
-    assert_match(/Instance error!/, err)
-    assert_match(/instance call stack!/, err)
+    assert_match(/Instance error!/, output)
+    assert_match(/instance call stack!/, output)
   end
 
   test ":log behavior" do
@@ -150,25 +153,24 @@ class DeprecationTest < ActiveSupport::TestCase
   test ":log behavior without Rails.logger" do
     @deprecator.behavior = :log
 
-    _out, err = capture_io do
+    output = capture(:stderr) do
       with_rails_logger(nil) do
         @deprecator.behavior.first.call("fubar", ["call stack"], "horizon", "gem")
       end
     end
 
-    assert_match "fubar", err
+    assert_match "fubar", output
   end
 
   test ":silence behavior" do
     @deprecator.behavior = :silence
     behavior = @deprecator.behavior.first
 
-    out, err = capture_io do
+    output = capture(:stderr) do
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     end
 
-    assert_empty out
-    assert_empty err
+    assert_empty output
   end
 
   test ":notify behavior" do
