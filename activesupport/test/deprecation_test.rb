@@ -91,6 +91,18 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "behavior callbacks with callable objects" do
+    assert_callbacks_called_with(deprecator: @deprecator, message: /fubar/) do |callbacks|
+      callbacks.select!(&:lambda?)
+      assert_not_empty callbacks
+
+      @deprecator.behavior = callbacks.map do |callback|
+        Object.new.tap { |object| object.define_singleton_method(:call, &callback) }
+      end
+      @deprecator.warn("fubar")
+    end
+  end
+
   test ":raise behavior" do
     @deprecator.behavior = :raise
 
@@ -186,21 +198,6 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     assert_equal ":invalid is not a valid deprecation behavior.", e.message
-  end
-
-  test "callable object behavior" do
-    custom_behavior_class = Class.new do
-      def call(message, callstack, horizon, gem_name)
-        $stderr.puts message
-      end
-    end
-    @deprecator.behavior = custom_behavior_class.new
-
-    content = capture(:stderr) do
-      @deprecator.warn("foo")
-    end
-
-    assert_match(/foo/, content)
   end
 
   test "DeprecatedInstanceVariableProxy" do
