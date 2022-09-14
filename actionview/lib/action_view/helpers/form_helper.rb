@@ -496,7 +496,7 @@ module ActionView
       #     <%= form.text_field :title %>
       #   <% end %>
       #   # =>
-      #   <form method="post" data-remote="true">
+      #   <form method="post">
       #     <input type="text" name="title">
       #   </form>
       #
