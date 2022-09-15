@@ -78,6 +78,8 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
+For more information on changes made to Rails 7.0 please see the [release notes](7_0_release_notes.html).
+
 ### `ActionView::Helpers::UrlHelper#button_to` changed behavior
 
 Starting from Rails 7.0 `button_to` renders a `form` tag with `patch` HTTP verb if a persisted Active Record object is used to build button URL.
