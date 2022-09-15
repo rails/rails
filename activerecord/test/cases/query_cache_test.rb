@@ -676,10 +676,10 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_handles_mutated_binds
-    record = JsonObj.create(payload: { a: 1 })
+    JsonObj.create(payload: { a: 1 })
 
     search = HashWithFixedHash[a: 1]
-    the_record = JsonObj.where(payload: search).first # populate the cache
+    JsonObj.where(payload: search).first # populate the cache
 
     search.merge!(b: 2)
     assert_nil JsonObj.where(payload: search).first, "cache returned a false positive"
