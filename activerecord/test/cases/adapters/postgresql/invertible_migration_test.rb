@@ -60,6 +60,7 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table "enums", if_exists: true
     @connection.drop_table "bars", if_exists: true
     @connection.drop_table "foos", if_exists: true
+    @connection.drop_enum "color", if_exists: true
   end
 
   def test_migrate_revert_add_index_with_expression

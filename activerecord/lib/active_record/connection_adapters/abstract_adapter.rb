@@ -125,7 +125,7 @@ module ActiveRecord
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
-          @config.fetch(:prepared_statements, true)
+          @config.fetch(:prepared_statements) { default_prepared_statements }
         )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
@@ -193,39 +193,11 @@ module ActiveRecord
       end
 
       def schema_migration # :nodoc:
-        @schema_migration ||= begin
-                                conn = self
-                                connection_name = conn.pool.pool_config.connection_name
-
-                                return ActiveRecord::SchemaMigration if connection_name == "ActiveRecord::Base"
-
-                                schema_migration_name = "#{connection_name}::SchemaMigration"
-
-                                Class.new(ActiveRecord::SchemaMigration) do
-                                  define_singleton_method(:name) { schema_migration_name }
-                                  define_singleton_method(:to_s) { schema_migration_name }
-
-                                  self.connection_specification_name = connection_name
-                                end
-                              end
+        SchemaMigration.new(self)
       end
 
       def internal_metadata # :nodoc:
-        @internal_metadata ||= begin
-                                conn = self
-                                connection_name = conn.pool.pool_config.connection_name
-
-                                return ActiveRecord::InternalMetadata if connection_name == "ActiveRecord::Base"
-
-                                internal_metadata_name = "#{connection_name}::InternalMetadata"
-
-                                Class.new(ActiveRecord::InternalMetadata) do
-                                  define_singleton_method(:name) { internal_metadata_name }
-                                  define_singleton_method(:to_s) { internal_metadata_name }
-
-                                  self.connection_specification_name = connection_name
-                                end
-                              end
+        InternalMetadata.new(self)
       end
 
       def prepared_statements?
@@ -1138,6 +1110,10 @@ module ActiveRecord
         # Implementations may assume this method will only be called while
         # holding @lock (or from #initialize).
         def configure_connection
+        end
+
+        def default_prepared_statements
+          true
         end
     end
   end

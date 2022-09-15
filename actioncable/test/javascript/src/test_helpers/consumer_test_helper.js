@@ -17,6 +17,8 @@ export default function(name, options, callback) {
     ActionCable.adapters.WebSocket = MockWebSocket
     const server = new MockServer(options.url)
     const consumer = ActionCable.createConsumer(options.url)
+    const connection = consumer.connection
+    const monitor = connection.monitor
 
     server.on("connection", function() {
       const clients = server.clients()
@@ -43,7 +45,7 @@ export default function(name, options, callback) {
       doneAsync()
     }
 
-    const testData = {assert, consumer, server, done}
+    const testData = {assert, consumer, connection, monitor, server, done}
 
     if (options.connect === false) {
       callback(testData)

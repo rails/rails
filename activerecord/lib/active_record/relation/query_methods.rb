@@ -527,7 +527,7 @@ module ActiveRecord
       self.references_values |= references unless references.empty?
 
       values = values.map { |value| type_caster.type_cast_for_database(column, value) }
-      arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
+      arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
       where_clause =
         if values.include?(nil)
@@ -1785,7 +1785,7 @@ module ActiveRecord
           node.when(column.eq(value)).then(order)
         end
 
-        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+        Arel::Nodes::Ascending.new(node)
       end
 
       def resolve_arel_attributes(attrs)

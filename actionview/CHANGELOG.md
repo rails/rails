@@ -1,3 +1,24 @@
+*   Report `:locals` as part of the data returned by ActionView render instrumentation.
+
+    Before:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application"
+    }
+    ```
+
+    After:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application",
+    locals: {foo: "bar"}
+    }
+    ```
+
+    *Aaron Gough*
+
 *   Strip `break_sequence` at the end of `word_wrap`.
 
     This fixes a bug where `word_wrap` didn't properly strip off break sequences that had printable characters.

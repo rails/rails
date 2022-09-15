@@ -1,3 +1,11 @@
+*   Delegate application record generator description to orm hooked generator.
+
+    *Gannon McGibbon*
+
+*   Show BCC recipients when present in Action Mailer previews.
+
+    *Akshay Birajdar*
+
 *   Extend `routes --grep` to also filter routes by matching against path.
 
     Example:

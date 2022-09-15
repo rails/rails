@@ -23,6 +23,16 @@ module ActiveRecord
         end
       end
 
+      def each_pool_config(role = nil, &block)
+        if role
+          @role_to_shard_mapping[role].each_value(&block)
+        else
+          @role_to_shard_mapping.each_value do |shard_map|
+            shard_map.each_value(&block)
+          end
+        end
+      end
+
       def remove_role(role)
         @role_to_shard_mapping.delete(role)
       end

@@ -123,6 +123,18 @@ module ActiveSupport
       @subscribers << subscriber
     end
 
+    # Unregister an error subscriber. Accepts either a subscriber or a class.
+    #
+    #  subscriber = MyErrorSubscriber.new
+    #  Rails.error.subscribe(subscriber)
+    #
+    #  Rails.error.unsubscribe(subscriber)
+    #  # or
+    #  Rails.error.unsubscribe(MyErrorSubscriber)
+    def unsubscribe(subscriber)
+      @subscribers.delete_if { |s| subscriber === s }
+    end
+
     # Prevent a subscriber from being notified of errors for the
     # duration of the block. You may pass in the subscriber itself, or its class.
     #

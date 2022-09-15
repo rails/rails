@@ -3,9 +3,3 @@ load_paths:
 
 logical_paths:
   - rails-ujs.js
-
-build:
-  logical_paths:
-    - rails-ujs.js
-  path: lib/assets/compiled
-  clean: true

@@ -143,6 +143,31 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal 1, second_subscriber.events.size
   end
 
+  test "can unsubscribe" do
+    second_subscriber = ErrorSubscriber.new
+    @reporter.subscribe(second_subscriber)
+
+    error = ArgumentError.new("Oops")
+    @reporter.report(error, handled: true)
+
+    @reporter.unsubscribe(second_subscriber)
+
+    error = ArgumentError.new("Oops 2")
+    @reporter.report(error, handled: true)
+
+    assert_equal 2, @subscriber.events.size
+    assert_equal 1, second_subscriber.events.size
+
+    @reporter.subscribe(second_subscriber)
+    @reporter.unsubscribe(ErrorSubscriber)
+
+    error = ArgumentError.new("Oops 3")
+    @reporter.report(error, handled: true)
+
+    assert_equal 2, @subscriber.events.size
+    assert_equal 1, second_subscriber.events.size
+  end
+
   test "handled errors default to :warning severity" do
     @reporter.report(@error, handled: true)
     assert_equal :warning, @subscriber.events.dig(0, 2)

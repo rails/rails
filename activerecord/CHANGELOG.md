@@ -1,3 +1,52 @@
+*   Move `ActiveRecord::InternalMetadata` to an independent object.
+
+    `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate quoting `ActiveSupport::Duration` as an integer
+
+    Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+    string template is deprecated. To avoid this warning, you should explicitly
+    convert the duration to a more specific database type. For example, if you
+    want to use a duration as an integer number of seconds:
+    ```
+    Record.where("duration = ?", 1.hour.to_i)
+    ```
+    If you want to use a duration as an ISO 8601 string:
+    ```
+    Record.where("duration = ?", 1.hour.iso8601)
+    ```
+
+    *Aram Greenman*
+
+*   Allow `QueryMethods#in_order_of` to order by a string column name.
+
+    ```ruby
+    Post.in_order_of("id", [4,2,3,1]).to_a
+    Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
+    ```
+
+    *Igor Kasyanchuk*
+
+*   Move `ActiveRecord::SchemaMigration` to an independent object.
+
+    `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+
+    Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
+
+    *Eileen M. Uchitelle*
+
+*   Fix connection handler methods to operate on all pools.
+
+    `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
+
+    *Eileen M. Uchitelle*
+
 *   Allow ActiveRecord::QueryMethods#select to receive hash values.
 
     Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.

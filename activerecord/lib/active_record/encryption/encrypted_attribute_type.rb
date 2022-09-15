@@ -20,11 +20,12 @@ module ActiveRecord
       # * <tt>:scheme</tt> - A +Scheme+ with the encryption properties for this attribute.
       # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize
       #   (after decrypting). ActiveModel::Type::String by default.
-      def initialize(scheme:, cast_type: ActiveModel::Type::String.new, previous_type: false)
+      def initialize(scheme:, cast_type: ActiveModel::Type::String.new, previous_type: false, default: nil)
         super()
         @scheme = scheme
         @cast_type = cast_type
         @previous_type = previous_type
+        @default = default
       end
 
       def deserialize(value)
@@ -40,7 +41,7 @@ module ActiveRecord
       end
 
       def changed_in_place?(raw_old_value, new_value)
-        old_value = raw_old_value.nil? ? nil : deserialize_previous_value_to_determine_change(raw_old_value)
+        old_value = raw_old_value.nil? ? nil : deserialize(raw_old_value)
         old_value != new_value
       end
 
@@ -70,7 +71,15 @@ module ActiveRecord
 
         def decrypt(value)
           with_context do
-            encryptor.decrypt(value, **decryption_options) unless value.nil?
+            unless value.nil?
+              default = @default.call if @default
+
+              if default && default == value
+                value
+              else
+                encryptor.decrypt(value, **decryption_options)
+              end
+            end
           end
         rescue ActiveRecord::Encryption::Errors::Base => error
           if previous_types_without_clean_text.blank?
@@ -134,14 +143,6 @@ module ActiveRecord
 
         def clean_text_scheme
           @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
-        end
-
-        def deserialize_previous_value_to_determine_change(raw_old_value)
-          deserialize(raw_old_value)
-          # We tolerate unencrypted data when determining if a column changed
-          # to support default DB values in encrypted attributes
-        rescue ActiveRecord::Encryption::Errors::Decryption
-          nil
         end
     end
   end

@@ -23,6 +23,20 @@ module("ActionCable.Subscription", () => {
     server.broadcastTo(subscription, {message_type: "confirmation"})
   })
 
+  consumerTest("#connected callback (handling reconnects)", ({server, consumer, connection, monitor, assert, done}) => {
+    const subscription = consumer.subscriptions.create("chat", {
+      connected({reconnected}) {
+        assert.ok(true, reconnected)
+        done()
+      }
+    })
+
+    monitor.reconnectAttempts = 1
+    assert.ok(connection.reconnectAttempted())
+    server.broadcastTo(subscription, {message_type: "welcome"})
+    server.broadcastTo(subscription, {message_type: "confirmation"})
+  })
+
   consumerTest("#disconnected callback", ({server, consumer, assert, done}) => {
     const subscription = consumer.subscriptions.create("chat", {
       disconnected() {

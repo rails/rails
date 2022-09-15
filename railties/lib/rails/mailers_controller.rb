@@ -5,8 +5,8 @@ require "rails/application_controller"
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugView::RESCUES_TEMPLATE_PATH
 
-  around_action :set_locale, only: :preview
-  before_action :find_preview, only: :preview
+  around_action :set_locale, only: [:preview, :download]
+  before_action :find_preview, only: [:preview, :download]
   before_action :require_local!, unless: :show_previews?
 
   helper_method :part_query, :locale_query
@@ -16,6 +16,16 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
   def index
     @previews = ActionMailer::Preview.all
     @page_title = "Mailer Previews"
+  end
+
+  def download
+    @email_action = File.basename(params[:path])
+    if @preview.email_exists?(@email_action)
+      @email = @preview.call(@email_action, params)
+      send_data @email.to_s, filename: "#{@email_action}.eml"
+    else
+      raise AbstractController::ActionNotFound, "Email '#{@email_action}' not found in #{@preview.name}"
+    end
   end
 
   def preview

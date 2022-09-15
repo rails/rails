@@ -3,6 +3,7 @@
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/class/attribute"
 require "active_support/subscriber"
+require "active_support/deprecation/proxy_wrappers"
 
 module ActiveSupport
   # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
@@ -64,10 +65,18 @@ module ActiveSupport
   # (via <tt>action_dispatch.callback</tt> notification) in a Rails environment.
   class LogSubscriber < Subscriber
     # Embed in a String to clear all previous ANSI sequences.
-    CLEAR   = "\e[0m"
-    BOLD    = "\e[1m"
+    CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.")
+    BOLD  = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[1m", "BOLD is deprecated! Use MODES[:bold] instead.")
 
-    # Colors
+    # ANSI sequence modes
+    MODES = {
+      clear:     0,
+      bold:      1,
+      italic:    3,
+      underline: 4,
+    }
+
+    # ANSI sequence colors
     BLACK   = "\e[30m"
     RED     = "\e[31m"
     GREEN   = "\e[32m"
@@ -157,15 +166,29 @@ module ActiveSupport
       METHOD
     end
 
-    # Set color by using a symbol or one of the defined constants. If a third
-    # option is set to +true+, it also adds bold to the string. This is based
-    # on the Highline implementation and will automatically append CLEAR to the
-    # end of the returned String.
-    def color(text, color, bold = false) # :doc:
+    # Set color by using a symbol or one of the defined constants. Set modes
+    # by specifying bold, italic, or underline options. Inspired by Highline,
+    # this method will automatically clear formatting at the end of the returned String.
+    def color(text, color, mode_options = {}) # :doc:
       return text unless colorize_logging
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
-      bold  = bold ? BOLD : ""
-      "#{bold}#{color}#{text}#{CLEAR}"
+      mode = mode_from(mode_options)
+      clear = "\e[#{MODES[:clear]}m"
+      "#{mode}#{color}#{text}#{clear}"
+    end
+
+    def mode_from(options)
+      if options.is_a?(TrueClass) || options.is_a?(FalseClass)
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Bolding log text with a positional boolean is deprecated and will be removed
+          in Rails 7.2. Use an option hash instead (eg. `color(:red, "my text", bold: true)`).
+        MSG
+        options = { bold: options }
+      end
+
+      modes = MODES.values_at(*options.compact_blank.keys)
+
+      "\e[#{modes.join(";")}m" if modes.any?
     end
 
     def log_exception(name, e)
