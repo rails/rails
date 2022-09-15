@@ -1,3 +1,24 @@
+*   `ActiveSupport::Deprecation` behavior callbacks can now receive the
+    deprecator instance as an argument.  This makes it easier for such callbacks
+    to change their behavior based on the deprecator's state.  For example,
+    based on the deprecator's `debug` flag.
+
+    3-arity and splat-args callbacks such as the following will now be passed
+    the deprecator instance as their third argument:
+
+    * `->(message, callstack, deprecator) { ... }`
+    * `->(*args) { ... }`
+    * `->(message, *other_args) { ... }`
+
+    2-arity and 4-arity callbacks such as the following will continue to behave
+    the same as before:
+
+    * `->(message, callstack) { ... }`
+    * `->(message, callstack, deprecation_horizon, gem_name) { ... }`
+    * `->(message, callstack, *deprecation_details) { ... }`
+
+    *Jonathan Hefner*
+
 *   `ActiveSupport::Deprecation#disallowed_warnings` now affects the instance on
     which it is configured.
 

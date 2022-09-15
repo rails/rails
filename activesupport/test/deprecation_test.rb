@@ -110,7 +110,7 @@ class DeprecationTest < ActiveSupport::TestCase
     callstack = caller_locations
 
     e = assert_raise ActiveSupport::DeprecationException do
-      @deprecator.behavior.first.call(message, callstack, "horizon", "gem")
+      @deprecator.behavior.first.call(message, callstack, @deprecator)
     end
     assert_equal message, e.message
     assert_equal callstack.map(&:to_s), e.backtrace.map(&:to_s)
@@ -121,11 +121,24 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = @deprecator.behavior.first
 
     output = capture(:stderr) do
-      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
+      behavior.call("Some error!", ["call stack!"], @deprecator)
     end
 
-    assert_match(/Some error!/, output)
-    assert_match(/call stack!/, output)
+    assert_match "Some error!", output
+    assert_no_match "call stack!", output
+  end
+
+  test ":stderr behavior with debug" do
+    @deprecator.behavior = :stderr
+    behavior = @deprecator.behavior.first
+    @deprecator.debug = true
+
+    output = capture(:stderr) do
+      behavior.call("Some error!", ["call stack!"], @deprecator)
+    end
+
+    assert_match "Some error!", output
+    assert_match "call stack!", output
   end
 
   test ":stderr behavior with #warn" do
@@ -144,10 +157,24 @@ class DeprecationTest < ActiveSupport::TestCase
     output = StringIO.new
 
     with_rails_logger(Logger.new(output)) do
-      @deprecator.behavior.first.call("fubar", ["call stack"], "horizon", "gem")
+      @deprecator.behavior.first.call("fubar", ["call stack!"], @deprecator)
     end
 
     assert_match "fubar", output.string
+    assert_no_match "call stack!", output.string
+  end
+
+  test ":log behavior with debug" do
+    @deprecator.behavior = :log
+    @deprecator.debug = true
+    output = StringIO.new
+
+    with_rails_logger(Logger.new(output)) do
+      @deprecator.behavior.first.call("fubar", ["call stack!"], @deprecator)
+    end
+
+    assert_match "fubar", output.string
+    assert_match "call stack!", output.string
   end
 
   test ":log behavior without Rails.logger" do
@@ -155,7 +182,7 @@ class DeprecationTest < ActiveSupport::TestCase
 
     output = capture(:stderr) do
       with_rails_logger(nil) do
-        @deprecator.behavior.first.call("fubar", ["call stack"], "horizon", "gem")
+        @deprecator.behavior.first.call("fubar", ["call stack!"], @deprecator)
       end
     end
 
@@ -167,13 +194,14 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = @deprecator.behavior.first
 
     output = capture(:stderr) do
-      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
+      behavior.call("Some error!", ["call stack!"], @deprecator)
     end
 
     assert_empty output
   end
 
   test ":notify behavior" do
+    @deprecator = ActiveSupport::Deprecation.new("horizon", "MyGem::Custom")
     @deprecator.behavior = :notify
     behavior = @deprecator.behavior.first
 
@@ -183,7 +211,7 @@ class DeprecationTest < ActiveSupport::TestCase
         events << args.extract_options!
       }
 
-      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "MyGem::Custom")
+      behavior.call("Some error!", ["call stack!"], @deprecator)
       assert_equal 1, events.size
       assert_equal "Some error!", events.first[:message]
       assert_equal ["call stack!"], events.first[:callstack]
@@ -727,6 +755,8 @@ class DeprecationTest < ActiveSupport::TestCase
       bindings = []
 
       callbacks = [
+        lambda { |message, callstack, deprecator| bindings << binding },
+        proc   { |message, callstack, deprecator| bindings << binding },
         lambda { |message, callstack, deprecation_horizon, gem_name| bindings << binding },
         proc   { |message, callstack, deprecation_horizon, gem_name| bindings << binding },
         lambda { |message, callstack| bindings << binding },
@@ -735,12 +765,12 @@ class DeprecationTest < ActiveSupport::TestCase
         proc   { bindings << binding },
 
         lambda do |*args|
-          message, callstack, deprecation_horizon, gem_name = args
+          message, callstack, deprecator = args
           bindings << binding
         end,
 
         lambda do |message, *other|
-          callstack, deprecation_horizon, gem_name = other
+          callstack, deprecator = other
           bindings << binding
         end,
 
