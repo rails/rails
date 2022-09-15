@@ -7,16 +7,24 @@ module ActiveRecord
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     def self.runtime=(value)
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord::LogSubscriber.runtime= is deprecated and will be removed in Rails 7.2.
+      MSG
       ActiveRecord::RuntimeRegistry.sql_runtime = value
     end
 
     def self.runtime
-      ActiveRecord::RuntimeRegistry.sql_runtime ||= 0
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord::LogSubscriber.runtime is deprecated and will be removed in Rails 7.2.
+      MSG
+      ActiveRecord::RuntimeRegistry.sql_runtime
     end
 
     def self.reset_runtime
-      rt, self.runtime = runtime, 0
-      rt
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord::LogSubscriber.reset_runtime is deprecated and will be removed in Rails 7.2.
+      MSG
+      ActiveRecord::RuntimeRegistry.reset
     end
 
     def strict_loading_violation(event)
@@ -29,8 +37,6 @@ module ActiveRecord
     subscribe_log_level :strict_loading_violation, :debug
 
     def sql(event)
-      self.class.runtime += event.duration
-
       payload = event.payload
 
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
