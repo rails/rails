@@ -247,10 +247,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_equal 0, @logger.logged(:debug).size
   end
 
-  def test_initializes_runtime
-    Thread.new { assert_equal 0, ActiveRecord::LogSubscriber.runtime }.join
-  end
-
   if ActiveRecord::Base.connection.prepared_statements
     def test_where_in_binds_logging_include_attribute_names
       Developer.where(id: [1, 2, 3, 4, 5]).load
