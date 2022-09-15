@@ -24,7 +24,7 @@
     This adds two new configuration options The configuration options are as
     follows:
     
-    * `config.active_storage.use_yaml_unsafe_load`
+    * `config.active_record.use_yaml_unsafe_load`
     
     When set to true, this configuration option tells Rails to use the old
     "unsafe" YAML loading strategy, maintaining the existing behavior but leaving
