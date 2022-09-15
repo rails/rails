@@ -106,7 +106,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   test "eager loading all rich text" do
     Message.create!(subject: "Subject", content: "<h1>Content</h1>", body: "<h2>Body</h2>")
 
-    message = assert_queries(1) { Message.with_all_rich_text.last }
+    message = assert_queries(2) { Message.with_all_rich_text.last }
     assert_no_queries do
       assert_equal "Content", message.content.to_plain_text
       assert_equal "Body", message.body.to_plain_text
