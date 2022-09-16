@@ -3192,8 +3192,8 @@ module ApplicationTests
 
     test "ActiveStorage verifier supports rotating the secret key" do
       add_to_config <<-RUBY
-        config.active_storage.rotations.tap do |rotations|
-          rotations.rotate :active_storage, "old secret"
+        config.active_storage.key_rotations.tap do |rotations|
+          rotations.rotate "old secret"
         end
       RUBY
 
