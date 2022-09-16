@@ -1,3 +1,7 @@
+*   Added ability to resize email preview (desktop, mobile) and see source HTML of the email.
+
+    *Igor Kasyanchuk*
+
 *   Delegate application record generator description to orm hooked generator.
 
     *Gannon McGibbon*

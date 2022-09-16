@@ -620,7 +620,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?part=text%2Fplain">', last_response.body
+      assert_match '<iframe name="messageBody" seamless src="?part=text%2Fplain">', last_response.body
       assert_match '<option selected value="part=text%2Fplain">', last_response.body
       assert_match '<option  value="part=text%2Fhtml">', last_response.body
 
@@ -630,7 +630,7 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html?name=Ruby"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
+      assert_match '<iframe name="messageBody" seamless src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
       assert_match '<option selected value="name=Ruby&amp;part=text%2Fhtml">', last_response.body
       assert_match '<option  value="name=Ruby&amp;part=text%2Fplain">', last_response.body
 
