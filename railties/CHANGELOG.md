@@ -1,3 +1,11 @@
+*   Support MySQL's ssl-mode option for the dbconsole command.
+
+    Verifying the identity of database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for the dbconsole command.
+
+    *Petrik de Heus*
+
 *   Delegate application record generator description to orm hooked generator.
 
     *Gannon McGibbon*
