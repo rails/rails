@@ -43,8 +43,8 @@ module ActiveModel
 
     def changed?(attr_name, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN)
       attribute_changed?(attr_name) &&
-        (OPTION_NOT_GIVEN == from || original_value(attr_name) == from) &&
-        (OPTION_NOT_GIVEN == to || fetch_value(attr_name) == to)
+        (OPTION_NOT_GIVEN == from || original_value(attr_name) == type_cast(attr_name, from)) &&
+        (OPTION_NOT_GIVEN == to || fetch_value(attr_name) == type_cast(attr_name, to))
     end
 
     def changed_in_place?(attr_name)
@@ -81,6 +81,10 @@ module ActiveModel
 
       def fetch_value(attr_name)
         attributes.fetch_value(attr_name)
+      end
+
+      def type_cast(attr_name, value)
+        attributes[attr_name].type_cast(value)
       end
   end
 
@@ -141,6 +145,10 @@ module ActiveModel
         value = fetch_value(attr_name)
         value.duplicable? ? value.clone : value
       rescue TypeError, NoMethodError
+        value
+      end
+
+      def type_cast(attr_name, value)
         value
       end
   end
