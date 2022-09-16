@@ -67,8 +67,10 @@ module ActiveRecord
         # * <tt>"schema_name".table_name</tt>
         # * <tt>"schema.name"."table name"</tt>
         def extract_schema_qualified_name(string)
-          schema, table = string.scan(/[^".]+|"[^"]*"/)
-          if table.nil?
+          schema, *table = string.scan(/[^".]+|"[^"]*"/)
+          table = table.join('.')
+
+          if table.empty?
             table = schema
             schema = nil
           end

@@ -378,6 +378,12 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
     assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
 
+    @connection.execute "CREATE INDEX \"namespace.things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index "things", name: "#{SCHEMA_NAME}.namespace.things_Index" }
+
+    @connection.execute "CREATE INDEX \"namespace.things_Index\" ON #{SCHEMA_NAME}.things (moment)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.things", :moment }
+
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
     assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
 
