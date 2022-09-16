@@ -19,14 +19,14 @@ module ActiveRecord
     def create_version(version)
       im = Arel::InsertManager.new(arel_table)
       im.insert(arel_table[primary_key] => version)
-      connection.insert(im, "#{self} Create", primary_key, version)
+      connection.insert(im, "#{self.class} Create", primary_key, version)
     end
 
     def delete_version(version)
       dm = Arel::DeleteManager.new(arel_table)
       dm.wheres = [arel_table[primary_key].eq(version)]
 
-      connection.delete(dm, "#{self} Destroy")
+      connection.delete(dm, "#{self.class} Destroy")
     end
 
     def delete_all_versions
@@ -67,7 +67,8 @@ module ActiveRecord
       sm = Arel::SelectManager.new(arel_table)
       sm.project(arel_table[primary_key])
       sm.order(arel_table[primary_key].asc)
-      connection.select_values(sm)
+
+      connection.select_values(sm, "#{self.class} Load")
     end
 
     def integer_versions
@@ -77,7 +78,8 @@ module ActiveRecord
     def count
       sm = Arel::SelectManager.new(arel_table)
       sm.project(*Arel::Nodes::Count.new([Arel.star]))
-      connection.select_values(sm).first
+
+      connection.select_values(sm, "#{self.class} Count").first
     end
 
     def table_exists?

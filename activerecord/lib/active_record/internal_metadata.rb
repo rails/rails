@@ -53,13 +53,14 @@ module ActiveRecord
     def delete_all_entries
       dm = Arel::DeleteManager.new(arel_table)
 
-      connection.delete(dm, "#{self} Destroy")
+      connection.delete(dm, "#{self.class} Destroy")
     end
 
     def count
       sm = Arel::SelectManager.new(arel_table)
       sm.project(*Arel::Nodes::Count.new([Arel.star]))
-      connection.select_values(sm).first
+
+      connection.select_values(sm, "#{self.class} Count").first
     end
 
     def create_table_and_set_flags(environment, schema_sha1 = nil)
@@ -119,7 +120,7 @@ module ActiveRecord
           [arel_table[:updated_at], current_time]
         ]
 
-        connection.insert(im, "#{self} Create", primary_key, key)
+        connection.insert(im, "#{self.class} Create", primary_key, key)
       end
 
       def update_entry(key, new_value)
@@ -131,7 +132,7 @@ module ActiveRecord
 
         um.where(arel_table[primary_key].eq(key))
 
-        connection.update(um, "#{self} Update")
+        connection.update(um, "#{self.class} Update")
       end
 
       def select_entry(key)
@@ -141,7 +142,7 @@ module ActiveRecord
         sm.order(arel_table[primary_key].asc)
         sm.limit = 1
 
-        connection.select_all(sm).first
+        connection.select_all(sm, "#{self.class} Load").first
       end
   end
 end
