@@ -1,4 +1,4 @@
-*   Rescue `JSON::ParserError` in Cookies json deserializer to discards marshal dumps:
+*   Rescue `JSON::ParserError` in Cookies JSON deserializer to discards marshal dumps:
 
     Without this change, if `action_dispatch.cookies_serializer` is set to `:json` and
     the app tries to read a `:marshal` serialized cookie, it would error out which wouldn't

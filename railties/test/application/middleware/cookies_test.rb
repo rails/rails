@@ -121,7 +121,7 @@ module ApplicationTests
       assert_equal "signed cookie", verifier_sha512.verify(last_response.body, purpose: "cookie.signed_cookie")
     end
 
-    test "signed cookies with SHA512 digest and json serializer and rotated out SHA256 and SHA1 digests" do
+    test "signed cookies with SHA512 digest and JSON serializer and rotated out SHA256 and SHA1 digests" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'

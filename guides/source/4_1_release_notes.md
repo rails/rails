@@ -496,7 +496,7 @@ for detailed changes.
   map to integers in the database, but can be queried by
   name. ([Commit](https://github.com/rails/rails/commit/db41eb8a6ea88b854bf5cd11070ea4245e1639c5))
 
-* Type cast json values on write, so that the value is consistent with reading
+* Type cast JSON values on write, so that the value is consistent with reading
   from the database. ([Pull Request](https://github.com/rails/rails/pull/12643))
 
 * Type cast hstore values on write, so that the value is consistent
