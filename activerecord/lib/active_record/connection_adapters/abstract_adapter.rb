@@ -450,7 +450,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support json data type?
+      # Does this adapter support JSON data type?
       def supports_json?
         false
       end

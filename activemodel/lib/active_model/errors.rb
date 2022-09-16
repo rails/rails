@@ -215,7 +215,7 @@ module ActiveModel
 
     # Returns a Hash that can be used as the JSON representation for this
     # object. You can pass the <tt>:full_messages</tt> option. This determines
-    # if the json object should contain full messages or not (false by default).
+    # if the JSON object should contain full messages or not (false by default).
     #
     #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
     #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}

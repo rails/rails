@@ -530,7 +530,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_predicate topic, :user_defined_time?
   end
 
-  test "user-defined json attribute predicate" do
+  test "user-defined JSON attribute predicate" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
 

@@ -2245,7 +2245,7 @@ start using the more precise `:plain`, `:html`, and `:body` options instead.
 Using `render :text` may pose a security risk, as the content is sent as
 `text/html`.
 
-### PostgreSQL json and hstore datatypes
+### PostgreSQL JSON and hstore datatypes
 
 Rails 4.1 will map `json` and `hstore` columns to a string-keyed Ruby `Hash`.
 In earlier versions, a `HashWithIndifferentAccess` was used. This means that
