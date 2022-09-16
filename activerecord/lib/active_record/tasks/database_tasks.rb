@@ -131,11 +131,7 @@ module ActiveRecord
       end
 
       def create_all(connection_class: ActiveRecord::Base)
-        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
         each_local_configuration { |db_config| create(db_config, connection_class: connection_class) }
-        if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(old_pool.db_config)
-        end
       end
 
       def setup_initial_database_yaml

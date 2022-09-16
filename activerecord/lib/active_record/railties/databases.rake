@@ -91,7 +91,9 @@ db_namespace = namespace :db do
     db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
 
     if db_configs.size == 1
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+      ActiveRecord::TemporaryConnection.for_config(db_configs.first) do |connection|
+        ActiveRecord::Tasks::DatabaseTasks.migrate(connection: connection)
+      end
     else
       mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
 
