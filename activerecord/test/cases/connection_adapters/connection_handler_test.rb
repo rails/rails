@@ -423,38 +423,38 @@ module ActiveRecord
           rd.close
         end
 
-        def test_pool_from_any_process_for_uses_most_recent_spec
-          skip unless current_adapter?(:SQLite3Adapter)
+        if current_adapter?(:SQLite3Adapter)
+          def test_pool_from_any_process_for_uses_most_recent_spec
+            file = Tempfile.new "lol.sqlite3"
 
-          file = Tempfile.new "lol.sqlite3"
+            rd, wr = IO.pipe
+            rd.binmode
+            wr.binmode
 
-          rd, wr = IO.pipe
-          rd.binmode
-          wr.binmode
+            pid = fork do
+              config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(database: file.path)
+              ActiveRecord::Base.establish_connection(config_hash)
 
-          pid = fork do
-            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(database: file.path)
-            ActiveRecord::Base.establish_connection(config_hash)
+              pid2 = fork do
+                wr.write ActiveRecord::Base.connection_db_config.database
+                wr.close
+              end
 
-            pid2 = fork do
-              wr.write ActiveRecord::Base.connection_db_config.database
-              wr.close
+              Process.waitpid pid2
             end
 
-            Process.waitpid pid2
-          end
+            Process.waitpid pid
 
-          Process.waitpid pid
+            wr.close
 
-          wr.close
+            assert_equal file.path, rd.read
 
-          assert_equal file.path, rd.read
-
-          rd.close
-        ensure
-          if file
-            file.close
-            file.unlink
+            rd.close
+          ensure
+            if file
+              file.close
+              file.unlink
+            end
           end
         end
       end
