@@ -1,3 +1,19 @@
+*   Add `assert_error_reported` and `assert_no_error_reported`
+
+    Allows to easily asserts an error happened but was handled
+
+    ```ruby
+    report = assert_error_reported(IOError) do
+      # ...
+    end
+    assert_equal "Oops", report.error.message
+    assert_equal "admin", report.context[:section]
+    assert_equal :warning, report.severity
+    assert_predicate report, :handled?
+    ```
+
+    *Jean Boussier*
+
 *   `ActiveSupport::Deprecation` behavior callbacks can now receive the
     deprecator instance as an argument.  This makes it easier for such callbacks
     to change their behavior based on the deprecator's state.  For example,
