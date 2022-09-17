@@ -1,6 +1,6 @@
 *   Support MySQL's ssl-mode option for the dbconsole command.
 
-    Verifying the identity of database server requires setting the ssl-mode
+    Verifying the identity of the database server requires setting the ssl-mode
     option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
     for the dbconsole command.
 
