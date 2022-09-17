@@ -179,7 +179,7 @@ module ActiveSupport # :nodoc:
     # Raised when ActiveSupport::SafeBuffer#safe_concat is called on unsafe buffers.
     class SafeConcatError < StandardError
       def initialize
-        super "Could not concatenate to the buffer because it is not html safe."
+        super "Could not concatenate to the buffer because it is not HTML safe."
       end
     end
 

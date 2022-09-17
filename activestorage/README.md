@@ -144,11 +144,11 @@ Active Storage, with its included JavaScript library, supports uploading directl
 
 1. Include the Active Storage JavaScript in your application's JavaScript bundle or reference it directly.
 
-    Requiring directly without bundling through the asset pipeline in the application html with autostart:
+    Requiring directly without bundling through the asset pipeline in the application HTML with autostart:
     ```html
     <%= javascript_include_tag "activestorage" %>
     ```
-    Requiring via importmap-rails without bundling through the asset pipeline in the application html without autostart as ESM:
+    Requiring via importmap-rails without bundling through the asset pipeline in the application HTML without autostart as ESM:
     ```ruby
     # config/importmap.rb
     pin "@rails/activestorage", to: "activestorage.esm.js"
