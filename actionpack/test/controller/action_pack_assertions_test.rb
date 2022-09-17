@@ -36,6 +36,8 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_external_protocol_relative() redirect_to "//www.rubyonrails.org"; end
 
+  def redirect_permanently() redirect_to "/some/path", status: :moved_permanently end
+
   def response404() head "404 AWOL" end
 
   def response500() head "500 Sorry" end
@@ -438,6 +440,26 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_nothing_raised {
       assert_redirected_to controller: :elsewhere, action: :flash_me
     }
+  end
+
+  def test_assert_redirection_with_status
+    process :redirect_to_path
+    assert_redirected_to "http://test.host/some/path", status: :found
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_redirected_to "http://test.host/some/path", status: :moved_permanently
+    end
+    assert_raise ActiveSupport::TestCase::Assertion, "Custom message" do
+      assert_redirected_to "http://test.host/some/path", { status: :moved_permanently }, "Custom message"
+    end
+
+    process :redirect_permanently
+    assert_redirected_to "http://test.host/some/path", status: :moved_permanently
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_redirected_to "http://test.host/some/path", status: :found
+    end
+    assert_raise ActiveSupport::TestCase::Assertion, "Custom message" do
+      assert_redirected_to "http://test.host/some/path", { status: :found }, "Custom message"
+    end
   end
 
   def test_redirected_to_with_nested_controller

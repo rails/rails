@@ -50,12 +50,19 @@ module ActionDispatch
       #
       #   # Asserts that the redirection matches the regular expression
       #   assert_redirected_to %r(\Ahttp://example.org)
-      def assert_redirected_to(options = {}, message = nil)
-        assert_response(:redirect, message)
-        return true if options === @response.location
+      #
+      #   # Asserts that the redirection has the HTTP status code 301 (Moved
+      #   # Permanently).
+      #   assert_redirected_to "/some/path", status: :moved_permanently
+      def assert_redirected_to(url_options = {}, options = {}, message = nil)
+        options, message = message, nil if message.is_a?(Hash) && options.empty?
+
+        status = options[:status] || :redirect
+        assert_response(status, message)
+        return true if url_options === @response.location
 
         redirect_is       = normalize_argument_to_redirection(@response.location)
-        redirect_expected = normalize_argument_to_redirection(options)
+        redirect_expected = normalize_argument_to_redirection(url_options)
 
         message ||= "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
         assert_operator redirect_expected, :===, redirect_is, message
