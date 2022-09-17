@@ -1,8 +1,8 @@
 *   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
 
-    Verifying the identity of database server requires setting the ssl-mode
+    Verifying the identity of the database server requires setting the ssl-mode
     option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
-    for MySQL database task like creating a database and dumping the structure.
+    for MySQL database tasks like creating a database and dumping the structure.
 
     *Petrik de Heus*
 
