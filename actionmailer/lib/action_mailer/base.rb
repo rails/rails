@@ -213,7 +213,7 @@ module ActionMailer
   #       end
   #     end
   #
-  # You can also send attachments with html template, in this case you need to add body, attachments,
+  # You can also send attachments with HTML template, in this case you need to add body, attachments,
   # and custom content type like this:
   #
   #     class NotifierMailer < ApplicationMailer

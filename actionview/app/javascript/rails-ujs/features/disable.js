@@ -45,7 +45,7 @@ const disableElement = (e) => {
   }
 }
 
-//  Replace element's html with the 'data-disable-with' after storing original html
+//  Replace element's HTML with the 'data-disable-with' after storing original html
 //  and prevent clicking on it
 var disableLinkElement = function(element) {
   if (getData(element, "ujs:disabled")) { return }
