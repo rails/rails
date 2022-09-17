@@ -59,7 +59,7 @@ module ActiveRecord
         unless fixture_set_names.empty?
           self.fixture_sets = fixture_sets.dup
           fixture_set_names.each do |fs_name|
-            key = fs_name.match?(%r{/}) ? -fs_name.to_s.tr("/", "_") : fs_name
+            key = fs_name.to_s.include?("/") ? -fs_name.to_s.tr("/", "_") : fs_name
             key = -key.to_s if key.is_a?(Symbol)
             fs_name = -fs_name.to_s if fs_name.is_a?(Symbol)
             fixture_sets[key] = fs_name
@@ -117,7 +117,6 @@ module ActiveRecord
         @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") do |_, _, _, _, payload|
           connection_name = payload[:connection_name] if payload.key?(:connection_name)
           shard = payload[:shard] if payload.key?(:shard)
-          setup_shared_connection_pool
 
           if connection_name
             begin
@@ -126,10 +125,14 @@ module ActiveRecord
               connection = nil
             end
 
-            if connection && !@fixture_connections.include?(connection)
-              connection.begin_transaction joinable: false, _lazy: false
-              connection.pool.lock_thread = true if lock_threads
-              @fixture_connections << connection
+            if connection
+              setup_shared_connection_pool
+
+              if !@fixture_connections.include?(connection)
+                connection.begin_transaction joinable: false, _lazy: false
+                connection.pool.lock_thread = true if lock_threads
+                @fixture_connections << connection
+              end
             end
           end
         end
@@ -159,13 +162,13 @@ module ActiveRecord
         ActiveRecord::FixtureSet.reset_cache
       end
 
-      ActiveRecord::Base.clear_active_connections!
+      ActiveRecord::Base.clear_active_connections!(:all)
     end
 
     def enlist_fixture_connections
       setup_shared_connection_pool
 
-      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
+      ActiveRecord::Base.connection_handler.connection_pool_list(:writing).map(&:connection)
     end
 
     private

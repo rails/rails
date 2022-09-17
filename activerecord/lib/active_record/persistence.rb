@@ -707,11 +707,14 @@ module ActiveRecord
     # Note: The new instance will share a link to the same attributes as the original class.
     # Therefore the STI column value will still be the same.
     # Any change to the attributes on either instance will affect both instances.
+    # This includes any attribute initialization done by the new instance.
+    #
     # If you want to change the STI column as well, use #becomes! instead.
     def becomes(klass)
       became = klass.allocate
 
       became.send(:initialize) do |becoming|
+        @attributes.reverse_merge!(becoming.instance_variable_get(:@attributes))
         becoming.instance_variable_set(:@attributes, @attributes)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)

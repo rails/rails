@@ -299,7 +299,7 @@ module ActiveRecord
           schema_cache.clear_data_source_cache!(table_name.to_s)
         end
 
-        result = execute(td.ddl)
+        result = execute schema_creation.accept(td)
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
@@ -329,7 +329,6 @@ module ActiveRecord
 
         yield table_definition if block_given?
 
-        schema_creation.accept(table_definition)
         table_definition
       end
 
@@ -620,7 +619,7 @@ module ActiveRecord
         add_column_def = build_add_column_definition(table_name, column_name, type, **options)
         return unless add_column_def
 
-        execute(add_column_def.ddl)
+        execute schema_creation.accept(add_column_def)
       end
 
       def add_columns(table_name, *column_names, type:, **options) # :nodoc:
@@ -645,7 +644,6 @@ module ActiveRecord
 
         alter_table = create_alter_table(table_name)
         alter_table.add_column(column_name, type, **options)
-        schema_creation.accept(alter_table)
         alter_table
       end
 
@@ -875,7 +873,7 @@ module ActiveRecord
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, **options)
         create_index = build_create_index_definition(table_name, column_name, **options)
-        execute(create_index.ddl)
+        execute schema_creation.accept(create_index)
       end
 
       # Builds a CreateIndexDefinition object.
@@ -885,10 +883,7 @@ module ActiveRecord
       # passing a +table_name+, +column_name+, and other additional options that can be passed.
       def build_create_index_definition(table_name, column_name, **options) # :nodoc:
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
-
-        create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
-        schema_creation.accept(create_index)
-        create_index
+        CreateIndexDefinition.new(index, algorithm, if_not_exists)
       end
 
       # Removes the given index from the table.
@@ -1242,7 +1237,7 @@ module ActiveRecord
       #   remove_check_constraint :products, name: "price_check"
       #
       # To silently ignore a non-existent check constraint rather than raise an error,
-      # use the `if_exists` option.
+      # use the +if_exists+ option.
       #
       #   remove_check_constraint :products, name: "price_check", if_exists: true
       #
@@ -1262,8 +1257,20 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
+
+      # Checks to see if a check constraint exists on a table for a given check constraint definition.
+      #
+      #   check_constraint_exists?(:products, name: "price_check")
+      #
+      def check_constraint_exists?(table_name, **options)
+        if !options.key?(:name) && !options.key?(:expression)
+          raise ArgumentError, "At least one of :name or :expression must be supplied"
+        end
+        check_constraint_for(table_name, **options).present?
+      end
+
       def dump_schema_information # :nodoc:
-        versions = schema_migration.all_versions
+        versions = schema_migration.versions
         insert_versions_sql(versions) if versions.any?
       end
 
@@ -1360,14 +1367,8 @@ module ActiveRecord
       #   add_timestamps(:suppliers, null: true)
       #
       def add_timestamps(table_name, **options)
-        options[:null] = false if options[:null].nil?
-
-        if !options.key?(:precision) && supports_datetime_with_precision?
-          options[:precision] = 6
-        end
-
-        add_column table_name, :created_at, :datetime, **options
-        add_column table_name, :updated_at, :datetime, **options
+        fragments = add_timestamps_for_alter(table_name, **options)
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{fragments.join(', ')}"
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.
@@ -1453,11 +1454,13 @@ module ActiveRecord
         supports_foreign_keys? && foreign_keys_enabled?
       end
 
-      private
-        def check_constraint_exists?(table_name, **options)
-          check_constraint_for(table_name, **options).present?
-        end
+      # Returns an instance of SchemaCreation, which can be used to visit a schema definition
+      # object and return DDL.
+      def schema_creation # :nodoc:
+        SchemaCreation.new(self)
+      end
 
+      private
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
             raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"
@@ -1545,10 +1548,6 @@ module ActiveRecord
               rename_index table_name, generated_index_name, index_name(table_name, column: index.columns)
             end
           end
-        end
-
-        def schema_creation
-          SchemaCreation.new(self)
         end
 
         def create_table_definition(name, **options)
@@ -1645,7 +1644,7 @@ module ActiveRecord
         def check_constraint_for(table_name, **options)
           return unless supports_check_constraints?
           chk_name = check_constraint_name(table_name, **options)
-          check_constraints(table_name).detect { |chk| chk.name == chk_name.to_s }
+          check_constraints(table_name).detect { |chk| chk.defined_for?(name: chk_name, **options) }
         end
 
         def check_constraint_for!(table_name, expression: nil, **options)
@@ -1715,7 +1714,7 @@ module ActiveRecord
 
         def change_column_default_for_alter(table_name, column_name, default_or_changes)
           cd = build_change_column_default_definition(table_name, column_name, default_or_changes)
-          cd.ddl
+          schema_creation.accept(cd)
         end
 
         def rename_column_sql(table_name, column_name, new_column_name)

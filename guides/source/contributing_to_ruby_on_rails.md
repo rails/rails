@@ -25,15 +25,15 @@ Reporting an Issue
 
 Ruby on Rails uses [GitHub Issue Tracking](https://github.com/rails/rails/issues) to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account to submit an issue, comment on issues, or create pull requests.
 
-NOTE: Bugs in the most recent released version of Ruby on Rails will likely get the most attention. Additionally, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide, you'll find out how to get edge Rails for testing. See our [maintenance policy](https://guides.rubyonrails.org/maintenance_policy.html) for information on which versions are supported. Never report a security issue on the GitHub issues tracker.
+NOTE: Bugs in the most recent released version of Ruby on Rails will likely get the most attention. Additionally, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide, you'll find out how to get edge Rails for testing. See our [maintenance policy](maintenance_policy.html) for information on which versions are supported. Never report a security issue on the GitHub issues tracker.
 
 ### Creating a Bug Report
 
 If you've found a problem in Ruby on Rails that is not a security risk, search the [Issues](https://github.com/rails/rails/issues) on GitHub, in case it has already been reported. If you cannot find any open GitHub issues addressing the problem you found, your next step will be to [open a new issue](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
-We've provided an issue template for you so that when creating an issue you include all the information needed to determine whether there is a bug in the framework. Each issue needs to include a title and clear description of the problem. Make sure to include as much relevant information as possible including a code sample or failing test that demonstrates the expected behavior, as well as your system configuration. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
+We've provided an issue template for you so that when creating an issue you include all the information needed to determine whether there is a bug in the framework. Each issue needs to include a title and clear description of the problem. Make sure to include as much relevant information as possible, including a code sample or failing test that demonstrates the expected behavior, as well as your system configuration. Your goal should be to make it easy for yourself - and others - to reproduce the bug and figure out a fix.
 
-Once you open an issue it may or may not see activity right away unless it is a "Code Red, Mission Critical, the World is Coming to an End" kind of bug. That doesn't mean we don't care about your bug, just that there are a lot of issues and pull requests to get through. Other people with the same problem can find your issue and confirm the bug and may collaborate with you on fixing it. If you know how to fix the bug, go ahead and open a pull request.
+Once you open an issue, it may or may not see activity right away unless it is a "Code Red, Mission Critical, the World is Coming to an End" kind of bug. That doesn't mean we don't care about your bug, just that there are a lot of issues and pull requests to get through. Other people with the same problem can find your issue, and confirm the bug, and may collaborate with you on fixing it. If you know how to fix the bug, go ahead and open a pull request.
 
 ### Create an Executable Test Case
 
@@ -85,7 +85,7 @@ discussions new features require.
 Helping to Resolve Existing Issues
 ----------------------------------
 
-Beyond reporting issues, you can help the core team resolve existing ones by providing feedback about them. If you are new to Rails core development providing feedback will help you get familiar with the codebase and the processes.
+Beyond reporting issues, you can help the core team resolve existing ones by providing feedback about them. If you are new to Rails core development, providing feedback will help you get familiar with the codebase and the processes.
 
 If you check the [issues list](https://github.com/rails/rails/issues) in GitHub Issues, you'll find lots of issues already requiring attention. What can you do about these? Quite a bit, actually:
 
@@ -252,7 +252,7 @@ $ yarn link "@rails/activestorage"
 
 ### Write Your Code
 
-Now it's time to write some code! When making changes for Rails here are some things to keep in mind:
+Now it's time to write some code! When making changes for Rails, here are some things to keep in mind:
 
 * Follow Rails style and conventions.
 * Use Rails idioms and helpers.
@@ -498,7 +498,7 @@ For example, if you modify Active Storage's image analyzer to add a new metadata
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
 
-You should add an entry **to the top** of the CHANGELOG of the framework you modified if you're adding or removing a feature, committing a bug fix, or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
+You should add an entry **to the top** of the CHANGELOG of the framework you modified if you're adding or removing a feature, or adding deprecation notices. Refactorings, minor bug fixes, and documentation changes generally should not go to the CHANGELOG.
 
 A CHANGELOG entry should summarize what was changed and should end with the author's name. You can use multiple lines if you need more space, and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach the issue's number. Here is an example CHANGELOG entry:
 
@@ -521,6 +521,100 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
 
 Your name can be added directly after the last word if there are no code
 examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
+
+### Breaking Changes
+
+Anytime a change could break existing applications it's considered a breaking
+change. To ease upgrading Rails applications, breaking changes require a
+deprecation cycle.
+
+#### Removing Behavior
+
+If your breaking change removes existing behavior, you'll first need to add a
+deprecation warning while keeping the existing behavior.
+
+As an example, let's say you want to remove a public method on
+ActiveRecord::Base. If the main branch points to the unreleased 7.0 version,
+Rails 7.0 will need to show a deprecation warning. This makes sure anyone
+upgrading to any Rails 7.0 version will see the deprecation warning.
+In Rails 7.1 the method can be deleted.
+
+You could add the following deprecation warning:
+
+```ruby
+def deprecated_method
+  ActiveSupport::Deprecation.warn(<<-MSG.squish)
+    `ActiveRecord::Base.deprecated_method` is deprecated and will be removed in Rails 7.1.
+  MSG
+  # Existing behavior
+end
+```
+
+#### Changing Behavior
+
+If your breaking change changes existing behavior, you'll need to add a
+framework default. Framework defaults ease Rails upgrades by allowing apps
+to switch to the new defaults one by one.
+
+To implement a new framework default, first create a configuration by adding an
+accessor on the target framework. Set the default value to the existing
+behavior to make sure nothing breaks during an upgrade.
+
+```ruby
+module ActiveJob
+  mattr_accessor :existing_behavior, default: true
+end
+```
+
+The new configuration allows you to conditionally implement the new behavior:
+
+```ruby
+def changed_method
+  if ActiveJob.existing_behavior
+    # Existing behavior
+  else
+    # New behavior
+  end
+end
+```
+
+To set the new framework default, set the new value in
+`Rails::Application::Configuration#load_defaults`:
+
+```ruby
+def load_defaults(target_version)
+  case target_version.to_s
+  when "7.1"
+    ...
+    if respond_to?(:active_job)
+      active_job.existing_behavior = false
+    end
+    ...
+  end
+end
+```
+
+To ease the upgrade it's required to add the new default to the
+`new_framework_defaults` template. Add a commented out section, setting the new
+value:
+
+```ruby
+# new_framework_defaults_7_1.rb.tt
+
+# Rails.application.config.active_job.existing_behavior = false
+```
+
+As a last step add the new configuration to configuration guide in
+`configuration.md`:
+
+```markdown
+#### `config.active_job.existing_behavior
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
+```
 
 ### Ignoring Files Created by Your Editor / IDE
 
@@ -675,7 +769,7 @@ pull requests and give someone else some! They'll appreciate it in
 the same way that you appreciate feedback on your patches.
 
 Note that only the Core and Committers teams are permitted to merge code changes.
-If someone gives feedback and "approves" your changes they may not have the ability
+If someone gives feedback and "approves" your changes, they may not have the ability
 or final say to merge your change.
 
 ### Iterate as Necessary

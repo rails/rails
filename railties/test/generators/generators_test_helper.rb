@@ -92,6 +92,7 @@ module GeneratorsTestHelper
         depends_on_system_test: false,
         options: ActiveSupport::OrderedOptions.new,
         skip_sprockets: false,
+        bundler_windows_platforms: "windows",
       }
     end
 end

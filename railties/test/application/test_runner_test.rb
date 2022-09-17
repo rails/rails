@@ -251,7 +251,7 @@ module ApplicationTests
         directory ||= suite
         create_fixture_test directory
         assert_match "3 users", run_test_command("test/#{suite}")
-        Dir.chdir(app_path) { FileUtils.rm_f "test/#{directory}" }
+        Dir.chdir(app_path) { FileUtils.rm_r "test/#{directory}" }
       end
     end
 
@@ -386,18 +386,18 @@ module ApplicationTests
             assert true
           end
 
-          test "second filter" do
-            puts 'PostTest:SecondFilter'
+          test "line filter does not run this" do
             assert true
           end
 
-          test "line filter does not run this" do
+          test "second filter" do
+            puts 'PostTest:SecondFilter'
             assert true
           end
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb:4:9").tap do |output|
+      run_test_command("test/models/post_test.rb:4:13").tap do |output|
         assert_match "PostTest:FirstFilter", output
         assert_match "PostTest:SecondFilter", output
         assert_match "2 runs, 2 assertions", output
@@ -740,7 +740,7 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
-    def test_run_in_parallel_with_unmarshable_exception
+    def test_run_in_parallel_with_unmarshalable_exception
       exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file = app_file "test/fail_test.rb", <<-RUBY
@@ -762,7 +762,7 @@ module ApplicationTests
 
       output = run_test_command(file)
 
-      assert_match(/RuntimeError: (Wrapped undumpable exception|result not reported)/, output)
+      assert_match(/RuntimeError: (Wrapped undumpable exception|result not reported|Neutered Exception)/, output)
       assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
     end
 

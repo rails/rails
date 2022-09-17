@@ -2,10 +2,10 @@
   "name": "@rails/actiontext",
   "version": "7.1.0-alpha",
   "description": "Edit and display rich text in Rails applications",
-  "main": "app/javascript/actiontext/index.js",
+  "main": "app/assets/javascripts/actiontext.js",
   "type": "module",
   "files": [
-    "app/javascript/actiontext/*.js"
+    "app/assets/javascripts/*.js"
   ],
   "homepage": "https://rubyonrails.org/",
   "repository": {

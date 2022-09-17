@@ -92,7 +92,7 @@ module ActionDispatch
     include RequestCookieMethods
   end
 
-  # Read and write data to cookies through ActionController#cookies.
+  # Read and write data to cookies through ActionController::Base#cookies.
   #
   # When reading cookie data, the data is read from the HTTP request header, Cookie.
   # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
@@ -677,7 +677,7 @@ module ActionDispatch
           deserialize(name) do |rotate|
             @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
           end
-        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature, JSON::ParserError
           nil
         end
 

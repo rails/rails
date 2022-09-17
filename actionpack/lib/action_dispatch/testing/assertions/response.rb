@@ -30,7 +30,7 @@ module ActionDispatch
       def assert_response(type, message = nil)
         message ||= generate_response_message(type)
 
-        if RESPONSE_PREDICATES.keys.include?(type)
+        if RESPONSE_PREDICATES.key?(type)
           assert @response.public_send(RESPONSE_PREDICATES[type]), message
         else
           assert_equal AssertionResponse.new(type).code, @response.response_code, message
@@ -93,7 +93,7 @@ module ActionDispatch
         end
 
         def code_with_name(code_or_name)
-          if RESPONSE_PREDICATES.values.include?("#{code_or_name}?".to_sym)
+          if RESPONSE_PREDICATES.value?("#{code_or_name}?".to_sym)
             code_or_name = RESPONSE_PREDICATES.invert["#{code_or_name}?".to_sym]
           end
 

@@ -19,7 +19,8 @@ module Rails
       mattr_accessor :skip_warn
 
       def self.included(base) # :nodoc:
-        base.class_option :force_plural, type: :boolean, default: false, desc: "Forces the use of the given model name"
+        base.class_option :force_plural, type: :boolean, default: false,
+          desc: "Do not singularize the model name, even if it appears plural"
       end
 
       def initialize(args, *_options)

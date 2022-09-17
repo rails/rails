@@ -4,7 +4,7 @@ module AsyncHelper
   private
     def assert_async_equal(expected, async_result)
       message = "Expected to return an ActiveRecord::Promise, got: #{async_result.inspect}"
-      assert ActiveRecord::Promise === async_result, message
+      assert_equal(true, ActiveRecord::Promise === async_result, message)
 
       if expected.nil?
         assert_nil async_result.value

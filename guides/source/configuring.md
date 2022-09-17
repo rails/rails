@@ -60,86 +60,88 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.1
 
+- [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
-- [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
+- [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
+- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
+- [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
+- [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
-- [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
-- [`config.log_file_size`](#config-log-file-size): `100.megabytes`
-- [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `false`
-- [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
-- [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `false`
-
+- [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
+- [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
+- [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
 
 #### Default Values for Target Version 7.0
 
 - [`config.action_controller.raise_on_open_redirects`](#config-action-controller-raise-on-open-redirects): `true`
-- [`config.action_view.button_to_generates_button_tag`](#config-action-view-button-to-generates-button-tag): `true`
-- [`config.action_view.apply_stylesheet_media_default`](#config-action-view-apply-stylesheet-media-default): `false`
-- [`config.active_support.key_generator_hash_digest_class`](#config-active-support-key-generator-hash-digest-class): `OpenSSL::Digest::SHA256`
-- [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
-- [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.0`
-- [`config.active_support.remove_deprecated_time_with_zone_name`](#config-active-support-remove-deprecated-time-with-zone-name): `true`
-- [`config.active_support.executor_around_test_case`](#config-active-support-executor-around-test-case): `true`
-- [`config.active_support.use_rfc4122_namespaced_uuids`](#config-active-support-use-rfc4122-namespaced-uuids): `true`
-- [`config.active_support.disable_to_s_conversion`](#config-active-support-disable-to-s-conversion): `true`
-- [`config.action_dispatch.return_only_request_media_type_on_content_type`](#config-action-dispatch-return-only-request-media-type-on-content-type): `false`
-- [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
-- [`config.action_mailer.smtp_timeout`](#config-action-mailer-smtp-timeout): `5`
-- [`config.active_storage.video_preview_arguments`](#config-active-storage-video-preview-arguments): `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
-- [`config.active_storage.multiple_file_field_include_hidden`](#config-active-storage-multiple-file-field-include-hidden): `true`
-- [`config.active_record.automatic_scope_inversing`](#config-active-record-automatic-scope-inversing): `true`
-- [`config.active_record.verify_foreign_keys_for_fixtures`](#config-active-record-verify-foreign-keys-for-fixtures): `true`
-- [`config.active_record.partial_inserts`](#config-active-record-partial-inserts): `false`
-- [`config.active_storage.variant_processor`](#config-active-storage-variant-processor): `:vips`
 - [`config.action_controller.wrap_parameters_by_default`](#config-action-controller-wrap-parameters-by-default): `true`
+- [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Download-Options" => "noopen", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_dispatch.return_only_request_media_type_on_content_type`](#config-action-dispatch-return-only-request-media-type-on-content-type): `false`
+- [`config.action_mailer.smtp_timeout`](#config-action-mailer-smtp-timeout): `5`
+- [`config.action_view.apply_stylesheet_media_default`](#config-action-view-apply-stylesheet-media-default): `false`
+- [`config.action_view.button_to_generates_button_tag`](#config-action-view-button-to-generates-button-tag): `true`
+- [`config.active_record.automatic_scope_inversing`](#config-active-record-automatic-scope-inversing): `true`
+- [`config.active_record.partial_inserts`](#config-active-record-partial-inserts): `false`
+- [`config.active_record.verify_foreign_keys_for_fixtures`](#config-active-record-verify-foreign-keys-for-fixtures): `true`
+- [`config.active_storage.multiple_file_field_include_hidden`](#config-active-storage-multiple-file-field-include-hidden): `true`
+- [`config.active_storage.variant_processor`](#config-active-storage-variant-processor): `:vips`
+- [`config.active_storage.video_preview_arguments`](#config-active-storage-video-preview-arguments): `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
+- [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.0`
+- [`config.active_support.disable_to_s_conversion`](#config-active-support-disable-to-s-conversion): `true`
+- [`config.active_support.executor_around_test_case`](#config-active-support-executor-around-test-case): `true`
+- [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_support.isolation_level`](#config-active-support-isolation-level): `:thread`
+- [`config.active_support.key_generator_hash_digest_class`](#config-active-support-key-generator-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_support.remove_deprecated_time_with_zone_name`](#config-active-support-remove-deprecated-time-with-zone-name): `true`
+- [`config.active_support.use_rfc4122_namespaced_uuids`](#config-active-support-use-rfc4122-namespaced-uuids): `true`
 
 #### Default Values for Target Version 6.1
 
-- [`config.active_record.has_many_inversing`](#config-active-record-has-many-inversing): `true`
-- [`config.active_storage.track_variants`](#config-active-storage-track-variants): `true`
-- [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `nil`
-- [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `nil`
+- [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
+- [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
+- [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status): `308`
 - [`config.action_mailbox.queues.incineration`](#config-action-mailbox-queues-incineration): `nil`
 - [`config.action_mailbox.queues.routing`](#config-action-mailbox-queues-routing): `nil`
 - [`config.action_mailer.deliver_later_queue_name`](#config-action-mailer-deliver-later-queue-name): `nil`
-- [`config.active_job.retry_jitter`](#config-active-job-retry-jitter): `0.15`
-- [`config.action_dispatch.cookies_same_site_protection`](#config-action-dispatch-cookies-same-site-protection): `:lax`
-- [`config.action_dispatch.ssl_default_redirect_status`](#config-action-dispatch-ssl-default-redirect-status) = `308`
-- [`ActiveSupport.utc_to_local_returns_utc_offset_times`](#activesupport-utc-to-local-returns-utc-offset-times): `true`
 - [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
 - [`config.action_view.preload_links_header`](#config-action-view-preload-links-header): `true`
+- [`config.active_job.retry_jitter`](#config-active-job-retry-jitter): `0.15`
+- [`config.active_record.has_many_inversing`](#config-active-record-has-many-inversing): `true`
+- [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `nil`
+- [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `nil`
+- [`config.active_storage.track_variants`](#config-active-storage-track-variants): `true`
 
 #### Default Values for Target Version 6.0
 
-- [`config.action_view.default_enforce_utf8`](#config-action-view-default-enforce-utf8): `false`
 - [`config.action_dispatch.use_cookies_with_metadata`](#config-action-dispatch-use-cookies-with-metadata): `true`
 - [`config.action_mailer.delivery_job`](#config-action-mailer-delivery-job): `"ActionMailer::MailDeliveryJob"`
+- [`config.action_view.default_enforce_utf8`](#config-action-view-default-enforce-utf8): `false`
+- [`config.active_record.collection_cache_versioning`](#config-active-record-collection-cache-versioning): `true`
 - [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `:active_storage_analysis`
 - [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `:active_storage_purge`
 - [`config.active_storage.replace_on_assign_to_many`](#config-active-storage-replace-on-assign-to-many): `true`
-- [`config.active_record.collection_cache_versioning`](#config-active-record-collection-cache-versioning): `true`
 
 #### Default Values for Target Version 5.2
 
-- [`config.active_record.cache_versioning`](#config-active-record-cache-versioning): `true`
-- [`config.action_dispatch.use_authenticated_cookie_encryption`](#config-action-dispatch-use-authenticated-cookie-encryption): `true`
-- [`config.active_support.use_authenticated_message_encryption`](#config-active-support-use-authenticated-message-encryption): `true`
-- [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA1`
 - [`config.action_controller.default_protect_from_forgery`](#config-action-controller-default-protect-from-forgery): `true`
+- [`config.action_dispatch.use_authenticated_cookie_encryption`](#config-action-dispatch-use-authenticated-cookie-encryption): `true`
 - [`config.action_view.form_with_generates_ids`](#config-action-view-form-with-generates-ids): `true`
+- [`config.active_record.cache_versioning`](#config-active-record-cache-versioning): `true`
+- [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA1`
+- [`config.active_support.use_authenticated_message_encryption`](#config-active-support-use-authenticated-message-encryption): `true`
 
 #### Default Values for Target Version 5.1
 
-- [`config.assets.unknown_asset_fallback`](#config-assets-unknown-asset-fallback): `false`
 - [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `true`
+- [`config.assets.unknown_asset_fallback`](#config-assets-unknown-asset-fallback): `false`
 
 #### Default Values for Target Version 5.0
 
-- [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
-- [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`ActiveSupport.to_time_preserves_timezone`](#activesupport-to-time-preserves-timezone): `true`
+- [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
+- [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
@@ -374,7 +376,7 @@ Allows you to configure the application's middleware. This is covered in depth i
 
 #### `config.public_file_server.enabled`
 
-Configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production) set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
+Configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production using WEBrick (it is not recommended to use WEBrick in production), set the option to `true`. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 #### `config.railties_order`
 
@@ -1208,11 +1210,11 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.yaml_column_permitted_classes`
 
-Defaults to `[Symbol]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveStorage::Coders::YamlColumn`.
+Defaults to `[Symbol]`. Allows applications to include additional permitted classes to `safe_load()` on the `ActiveRecord::Coders::YAMLColumn`.
 
 #### `config.active_record.use_yaml_unsafe_load`
 
-Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveStorage::Coders::YamlColumn`.
+Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveRecord::Coders::YAMLColumn`.
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
@@ -1748,6 +1750,10 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.0                   | `false`              |
 
+#### `config.action_view.prepend_content_exfiltration_prevention`
+
+Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
+
 ### Configuring Action Mailbox
 
 `config.action_mailbox` provides the following configuration options:
@@ -1900,12 +1906,12 @@ Registers interceptors which will be called before mail is previewed.
 config.action_mailer.preview_interceptors = ["MyPreviewMailInterceptor"]
 ```
 
-#### `config.action_mailer.preview_path`
+#### `config.action_mailer.preview_paths`
 
-Specifies the location of mailer previews.
+Specifies the locations of mailer previews. Appending paths to this configuration option will cause those paths to be used in the search for mailer previews.
 
 ```ruby
-config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
 #### `config.action_mailer.show_previews`
@@ -2168,6 +2174,21 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `:marshal`           |
 | 7.1                   | `:json`              |
 
+#### `config.active_support.raise_on_invalid_cache_expiration_time`
+
+Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
+`write` are given an invalid `expires_at` or `expires_in` time.
+
+Options are `true`, and `false`. If `false`, the exception will be reported
+as `handled` and logged instead.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| 7.0                   | `false`              |
+| 7.1                   | `true`               |
+
 ### Configuring Active Job
 
 `config.active_job` provides the following configuration options:
@@ -2257,14 +2278,21 @@ an `around_perform`. The default value is `true`.
 
 #### `config.active_job.use_big_decimal_serializer`
 
-Enable the use of BigDecimalSerializer instead of legacy BigDecimal argument
-serialization, which may result in the argument being lossfully converted to
-a String when using certain queue adapters.
-This setting is disabled by default to allow race condition free deployment
-of applications with multiple replicas, in which an old replica would not
-support BigDecimalSerializer..
-In such environments, it should be safe to enable this setting following
-successful deployment of Rails 7.1 which introduces BigDecimalSerializer.
+Enables the new `BigDecimal` argument serializer, which guarantees
+roundtripping. Without this serializer, some queue adapters may serialize
+`BigDecimal` arguments as simple (non-roundtrippable) strings.
+
+WARNING: When deploying an application with multiple replicas, old (pre-Rails
+7.1) replicas will not be able to deserialize `BigDecimal` arguments from this
+serializer. Therefore, this setting should only be enabled after all replicas
+have been successfully upgraded to Rails 7.1.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
 
 ### Configuring Action Cable
 
@@ -2340,7 +2368,7 @@ config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
 #### `config.active_storage.variable_content_types`
 
 Accepts an array of strings indicating the content types that Active Storage
-can transform through ImageMagick.
+can transform through the variant processor.
 By default, this is defined as:
 
 ```ruby
@@ -3037,6 +3065,8 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `add_locales`: Adds the files in `config/locales` (from the application, railties, and engines) to `I18n.load_path`, making available the translations in these files.
 
 * `add_view_paths`: Adds the directory `app/views` from the application, railties, and engines to the lookup path for view files for the application.
+
+* `add_mailer_preview_paths`: Adds the directory `test/mailers/previews` from the application, railties, and engines to the lookup path for mailer preview files for the application.
 
 * `load_environment_config`: Loads the `config/environments` file for the current environment.
 

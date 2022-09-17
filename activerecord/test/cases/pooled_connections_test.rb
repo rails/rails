@@ -13,7 +13,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   end
 
   teardown do
-    ActiveRecord::Base.clear_all_connections!
+    ActiveRecord::Base.clear_all_connections!(:all)
     ActiveRecord::Base.establish_connection(@connection)
     @per_test_teardown.each(&:call)
   end

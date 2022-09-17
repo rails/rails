@@ -1120,7 +1120,7 @@ class method, passing in the symbols for the validation methods' names.
 You can pass more than one symbol for each class method and the respective
 validations will be run in the same order as they were registered.
 
-The `valid?` method will verify that the errors collection is empty,
+The `valid?` method will verify that the `errors` collection is empty,
 so your custom validation methods should add errors to it when you
 wish validation to fail:
 

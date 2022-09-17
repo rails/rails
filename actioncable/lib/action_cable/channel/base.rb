@@ -262,7 +262,7 @@ module ActionCable
         end
 
         def dispatch_action(action, data)
-          logger.info action_signature(action, data)
+          logger.debug action_signature(action, data)
 
           if method(action).arity == 1
             public_send action, data

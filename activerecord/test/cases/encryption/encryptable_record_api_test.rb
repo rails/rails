@@ -96,7 +96,7 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
     book = ActiveRecord::Encryption.without_encryption { EncryptedBook.create!(name: "Dune".encode("US-ASCII")) }
     book.encrypt
-    assert Encoding::UTF_8, book.reload.name.encoding
+    assert_equal Encoding::UTF_8, book.reload.name.encoding
   end
 
   test "encrypt won't force encoding for deterministic attributes when option is nil" do
@@ -104,7 +104,7 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
     book = ActiveRecord::Encryption.without_encryption { EncryptedBook.create!(name: "Dune".encode("US-ASCII")) }
     book.encrypt
-    assert Encoding::US_ASCII, book.reload.name.encoding
+    assert_equal Encoding::US_ASCII, book.reload.name.encoding
   end
 
   test "encrypt will preserve case when :ignore_case option is used" do

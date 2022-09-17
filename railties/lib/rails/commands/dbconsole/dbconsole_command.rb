@@ -30,7 +30,8 @@ module Rails
           sslcert: "--ssl-cert",
           sslcapath: "--ssl-capath",
           sslcipher: "--ssl-cipher",
-          sslkey: "--ssl-key"
+          sslkey: "--ssl-key",
+          sslmode: "--ssl-mode"
         }.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
 
         if config[:password] && @options[:include_password]

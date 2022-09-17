@@ -1,5 +1,32 @@
-*   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
+*   Rescue `JSON::ParserError` in Cookies JSON deserializer to discards marshal dumps:
 
+    Without this change, if `action_dispatch.cookies_serializer` is set to `:json` and
+    the app tries to read a `:marshal` serialized cookie, it would error out which wouldn't
+    clear the cookie and force app users to manually clear it in their browser.
+
+    (See #45127 for original bug discussion)
+
+    *Nathan Bardoux*
+
+*   Add `HTTP_REFERER` when following redirects on integration tests
+
+    This makes `follow_redirect!` a closer simulation of what happens in a real browser
+
+    *Felipe Sateler*
+
+*   Added `exclude?` method to `ActionController::Parameters`.
+
+    *Ian Neubert*
+
+*   Rescue `EOFError` exception from `rack` on a multipart request.
+
+    *Nikita Vasilevsky*
+
+*   Log redirects from routes the same way as redirects from controllers.
+
+    *Dennis Paagman*
+
+*   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
     Previously, if another middleware down the chain set `Server-Timing` header,
     it would overwritten by `ActionDispatch::ServerTiming`.
 

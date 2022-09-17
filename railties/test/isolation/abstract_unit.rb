@@ -534,12 +534,6 @@ Module.new do
     f.puts 'require "rails/all"'
   end
 
-  unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/assets/compiled/rails-ujs.js")
-    Dir.chdir("#{RAILS_FRAMEWORK_ROOT}/actionview") do
-      sh "yarn build"
-    end
-  end
-
   assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
   unless Dir.exist?("#{assets_path}/node_modules")
     Dir.chdir(assets_path) do

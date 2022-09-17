@@ -70,7 +70,7 @@ WARNING: Some method names are reserved by Action Controller. Accidentally redef
 NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
 
 [`ActionController::Base`]: https://api.rubyonrails.org/classes/ActionController/Base.html
-[Resource Routing]: https://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default
+[Resource Routing]: routing.html#resource-routing-the-rails-default
 
 Parameters
 ----------

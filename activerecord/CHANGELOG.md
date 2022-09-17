@@ -4,6 +4,129 @@
 
     *Christian Schmidt*
 
+*   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
+
+    Verifying the identity of the database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for MySQL database tasks like creating a database and dumping the structure.
+
+    *Petrik de Heus*
+
+*   Move `ActiveRecord::InternalMetadata` to an independent object.
+
+    `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate quoting `ActiveSupport::Duration` as an integer
+
+    Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+    string template is deprecated. To avoid this warning, you should explicitly
+    convert the duration to a more specific database type. For example, if you
+    want to use a duration as an integer number of seconds:
+    ```
+    Record.where("duration = ?", 1.hour.to_i)
+    ```
+    If you want to use a duration as an ISO 8601 string:
+    ```
+    Record.where("duration = ?", 1.hour.iso8601)
+    ```
+
+    *Aram Greenman*
+
+*   Allow `QueryMethods#in_order_of` to order by a string column name.
+
+    ```ruby
+    Post.in_order_of("id", [4,2,3,1]).to_a
+    Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
+    ```
+
+    *Igor Kasyanchuk*
+
+*   Move `ActiveRecord::SchemaMigration` to an independent object.
+
+    `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+
+    Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
+
+    *Eileen M. Uchitelle*
+
+*   Fix connection handler methods to operate on all pools.
+
+    `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
+
+    *Eileen M. Uchitelle*
+
+*   Allow ActiveRecord::QueryMethods#select to receive hash values.
+
+    Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.
+
+    With this change we can provide `hash` as argument, for example:
+
+    ```ruby
+    Post.joins(:comments).select(posts: [:id, :title, :created_at], comments: [:id, :body, :author_id])
+    #=> "SELECT \"posts\".\"id\", \"posts\".\"title\", \"posts\".\"created_at\", \"comments\".\"id\", \"comments\".\"body\", \"comments\".\"author_id\"
+    #   FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
+
+    Post.joins(:comments).select(posts: { id: :post_id, title: :post_title }, comments: { id: :comment_id, body: :comment_body })
+    #=> "SELECT posts.id as post_id, posts.title as post_title, comments.id as comment_id, comments.body as comment_body
+    #    FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
+    ```
+    *Oleksandr Holubenko*, *Josef Šimánek*, *Jean Boussier*
+
+*   Adapts virtual attributes on `ActiveRecord::Persistence#becomes`.
+
+    When source and target classes have a different set of attributes adapts
+    attributes such that the extra attributes from target are added.
+
+    ```ruby
+    class Person < ApplicationRecord
+    end
+
+    class WebUser < Person
+      attribute :is_admin, :boolean
+      after_initialize :set_admin
+
+      def set_admin
+        write_attribute(:is_admin, email =~ /@ourcompany\.com$/)
+      end
+    end
+
+    person = Person.find_by(email: "email@ourcompany.com")
+    person.respond_to? :is_admin
+    # => false
+    person.becomes(WebUser).is_admin?
+    # => true
+    ```
+
+    *Jacopo Beschi*, *Sampson Crowley*
+
+*   Fix `ActiveRecord::QueryMethods#in_order_of` to include `nil`s, to match the
+    behavior of `Enumerable#in_order_of`.
+
+    For example, `Post.in_order_of(:title, [nil, "foo"])` will now include posts
+    with `nil` titles, the same as `Post.all.to_a.in_order_of(:title, [nil, "foo"])`.
+
+    *fatkodima*
+
+*   Optimize `add_timestamps` to use a single SQL statement.
+
+    ```ruby
+    add_timestamps :my_table
+    ```
+
+    Now results in the following SQL:
+
+    ```sql
+    ALTER TABLE "my_table" ADD COLUMN "created_at" datetime(6) NOT NULL, ADD COLUMN "updated_at" datetime(6) NOT NULL
+    ```
+
+    *Iliana Hadzhiatanasova*
+
 *   Add `drop_enum` migration command for PostgreSQL
 
     This does the inverse of `create_enum`. Before dropping an enum, ensure you have

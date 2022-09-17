@@ -109,7 +109,7 @@ module ActiveSupport
     end
 
     def self.error_reporter
-      @error_reporter ||= ActiveSupport::ErrorReporter.new
+      ActiveSupport.error_reporter
     end
 
     def self.active_key # :nodoc:

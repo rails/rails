@@ -115,11 +115,11 @@ module ActiveRecord
           SQLite3::SchemaDumper.create(self, options)
         end
 
-        private
-          def schema_creation
-            SQLite3::SchemaCreation.new(self)
-          end
+        def schema_creation # :nodoc
+          SQLite3::SchemaCreation.new(self)
+        end
 
+        private
           def create_table_definition(name, **options)
             SQLite3::TableDefinition.new(self, name, **options)
           end

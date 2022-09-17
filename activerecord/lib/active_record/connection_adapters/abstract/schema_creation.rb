@@ -26,7 +26,6 @@ module ActiveRecord
           sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
           sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
-          o.ddl = sql
         end
 
         def visit_ColumnDefinition(o)
@@ -67,7 +66,7 @@ module ActiveRecord
           create_sql << "(#{statements.join(', ')})" if statements.present?
           add_table_options!(create_sql, o)
           create_sql << " AS #{to_sql(o.as)}" if o.as
-          o.ddl = create_sql
+          create_sql
         end
 
         def visit_PrimaryKeyDefinition(o)
@@ -107,8 +106,7 @@ module ActiveRecord
           sql << "(#{quoted_columns(index)})"
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
-          sql = sql.join(" ")
-          o.ddl = sql
+          sql.join(" ")
         end
 
         def visit_CheckConstraintDefinition(o)

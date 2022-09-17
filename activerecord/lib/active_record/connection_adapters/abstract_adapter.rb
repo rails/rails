@@ -125,7 +125,7 @@ module ActiveRecord
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
-          @config.fetch(:prepared_statements, true)
+          @config.fetch(:prepared_statements) { default_prepared_statements }
         )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
@@ -189,25 +189,15 @@ module ActiveRecord
       end
 
       def migration_context # :nodoc:
-        MigrationContext.new(migrations_paths, schema_migration)
+        MigrationContext.new(migrations_paths, schema_migration, internal_metadata)
       end
 
       def schema_migration # :nodoc:
-        @schema_migration ||= begin
-                                conn = self
-                                connection_name = conn.pool.pool_config.connection_name
+        SchemaMigration.new(self)
+      end
 
-                                return ActiveRecord::SchemaMigration if connection_name == "ActiveRecord::Base"
-
-                                schema_migration_name = "#{connection_name}::SchemaMigration"
-
-                                Class.new(ActiveRecord::SchemaMigration) do
-                                  define_singleton_method(:name) { schema_migration_name }
-                                  define_singleton_method(:to_s) { schema_migration_name }
-
-                                  self.connection_specification_name = connection_name
-                                end
-                              end
+      def internal_metadata # :nodoc:
+        InternalMetadata.new(self)
       end
 
       def prepared_statements?
@@ -460,7 +450,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support json data type?
+      # Does this adapter support JSON data type?
       def supports_json?
         false
       end
@@ -795,15 +785,6 @@ module ActiveRecord
         migration_context.current_version
       end
 
-      def field_ordered_value(column, values) # :nodoc:
-        node = Arel::Nodes::Case.new(column)
-        values.each.with_index(1) do |value, order|
-          node.when(value).then(order)
-        end
-
-        Arel::Nodes::Ascending.new(node.else(values.length + 1))
-      end
-
       class << self
         def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
           mapping.register_type(key) do |*args|
@@ -1129,6 +1110,10 @@ module ActiveRecord
         # Implementations may assume this method will only be called while
         # holding @lock (or from #initialize).
         def configure_connection
+        end
+
+        def default_prepared_statements
+          true
         end
     end
   end

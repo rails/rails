@@ -68,6 +68,8 @@ module Rails
           paths.add "vendor",              load_path: true
           paths.add "vendor/assets",       glob: "*"
 
+          paths.add "test/mailers/previews", eager_load: true
+
           paths
         end
       end

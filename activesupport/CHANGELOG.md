@@ -1,3 +1,139 @@
+*   Add `assert_error_reported` and `assert_no_error_reported`
+
+    Allows to easily asserts an error happened but was handled
+
+    ```ruby
+    report = assert_error_reported(IOError) do
+      # ...
+    end
+    assert_equal "Oops", report.error.message
+    assert_equal "admin", report.context[:section]
+    assert_equal :warning, report.severity
+    assert_predicate report, :handled?
+    ```
+
+    *Jean Boussier*
+
+*   `ActiveSupport::Deprecation` behavior callbacks can now receive the
+    deprecator instance as an argument.  This makes it easier for such callbacks
+    to change their behavior based on the deprecator's state.  For example,
+    based on the deprecator's `debug` flag.
+
+    3-arity and splat-args callbacks such as the following will now be passed
+    the deprecator instance as their third argument:
+
+    * `->(message, callstack, deprecator) { ... }`
+    * `->(*args) { ... }`
+    * `->(message, *other_args) { ... }`
+
+    2-arity and 4-arity callbacks such as the following will continue to behave
+    the same as before:
+
+    * `->(message, callstack) { ... }`
+    * `->(message, callstack, deprecation_horizon, gem_name) { ... }`
+    * `->(message, callstack, *deprecation_details) { ... }`
+
+    *Jonathan Hefner*
+
+*   `ActiveSupport::Deprecation#disallowed_warnings` now affects the instance on
+    which it is configured.
+
+    This means that individual `ActiveSupport::Deprecation` instances can be
+    configured with their own disallowed warnings, and the global
+    `ActiveSupport::Deprecation.disallowed_warnings` now only affects the global
+    `ActiveSupport::Deprecation.warn`.
+
+    **Before**
+
+    ```ruby
+    ActiveSupport::Deprecation.disallowed_warnings = ["foo"]
+    deprecator = ActiveSupport::Deprecation.new("2.0", "MyCoolGem")
+    deprecator.disallowed_warnings = ["bar"]
+
+    ActiveSupport::Deprecation.warn("foo") # => raise ActiveSupport::DeprecationException
+    ActiveSupport::Deprecation.warn("bar") # => print "DEPRECATION WARNING: bar"
+    deprecator.warn("foo")                 # => raise ActiveSupport::DeprecationException
+    deprecator.warn("bar")                 # => print "DEPRECATION WARNING: bar"
+    ```
+
+    **After**
+
+    ```ruby
+    ActiveSupport::Deprecation.disallowed_warnings = ["foo"]
+    deprecator = ActiveSupport::Deprecation.new("2.0", "MyCoolGem")
+    deprecator.disallowed_warnings = ["bar"]
+
+    ActiveSupport::Deprecation.warn("foo") # => raise ActiveSupport::DeprecationException
+    ActiveSupport::Deprecation.warn("bar") # => print "DEPRECATION WARNING: bar"
+    deprecator.warn("foo")                 # => print "DEPRECATION WARNING: foo"
+    deprecator.warn("bar")                 # => raise ActiveSupport::DeprecationException
+    ```
+
+    *Jonathan Hefner*
+
+*   Add italic and underline support to `ActiveSupport::LogSubscriber#color`
+
+    Previously, only bold text was supported via a positional argument.
+    This allows for bold, italic, and underline options to be specified
+    for colored logs.
+
+    ```ruby
+    info color("Hello world!", :red, bold: true, underline: true)
+    ```
+
+    *Gannon McGibbon*
+
+*   Add `String#downcase_first` method.
+
+    This method is the corollary of `String#upcase_first`.
+
+    *Mark Schneider*
+
+*   `thread_mattr_accessor` will call `.dup.freeze` on non-frozen default values.
+
+    This provides a basic level of protection against different threads trying
+    to mutate a shared default object.
+
+    *Jonathan Hefner*
+
+*   Add `raise_on_invalid_cache_expiration_time` config to `ActiveSupport::Cache::Store`
+
+    Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
+    `write` are given an invalid `expires_at` or `expires_in` time.
+
+    Options are `true`, and `false`. If `false`, the exception will be reported
+    as `handled` and logged instead. Defaults to `true` if `config.load_defaults >= 7.1`.
+
+     *Trevor Turk*
+
+*   `ActiveSupport::Cache:Store#fetch` now passes an options accessor to the block.
+
+    It makes possible to override cache options:
+
+        Rails.cache.fetch("3rd-party-token") do |name, options|
+          token = fetch_token_from_remote
+          # set cache's TTL to match token's TTL
+          options.expires_in = token.expires_in
+          token
+        end
+
+    *Andrii Gladkyi*, *Jean Boussier*
+
+*   `default` option of `thread_mattr_accessor` now applies through inheritance and
+    also across new threads.
+
+    Previously, the `default` value provided was set only at the moment of defining
+    the attribute writer, which would cause the attribute to be uninitialized in
+    descendants and in other threads.
+
+    Fixes #43312.
+
+    *Thierry Deo*
+
+*   Redis cache store is now compatible with redis-rb 5.0.
+
+    *Jean Boussier*
+
 *   Add `skip_nil:` support to `ActiveSupport::Cache::Store#fetch_multi`.
 
     *Daniel Alfaro*

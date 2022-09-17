@@ -113,9 +113,38 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_mysql_full
-    start(adapter: "mysql2", database: "db", host: "localhost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
+    start(
+      adapter:   "mysql2",
+      database:  "db",
+      host:      "localhost",
+      port:      1234,
+      socket:    "socket",
+      username:  "user",
+      password:  "qwerty",
+      encoding:  "UTF-8",
+      sslca:     "/path/to/ca-cert.pem",
+      sslcert:   "/path/to/client-cert.pem",
+      sslcapath: "/path/to/cacerts",
+      sslcipher: "DHE-RSA-AES256-SHA",
+      sslkey:    "/path/to/client-key.pem",
+      sslmode:   "VERIFY_IDENTITY"
+    )
     assert_not aborted
-    assert_equal [%w[mysql mysql5], "--host=localhost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
+    assert_equal [
+      %w[mysql mysql5],
+      "--host=localhost",
+      "--port=1234",
+      "--socket=socket",
+      "--user=user",
+      "--default-character-set=UTF-8",
+      "--ssl-ca=/path/to/ca-cert.pem",
+      "--ssl-cert=/path/to/client-cert.pem",
+      "--ssl-capath=/path/to/cacerts",
+      "--ssl-cipher=DHE-RSA-AES256-SHA",
+      "--ssl-key=/path/to/client-key.pem",
+      "--ssl-mode=VERIFY_IDENTITY",
+      "-p", "db"
+    ], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_include_password

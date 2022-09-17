@@ -200,6 +200,14 @@ module ActiveRecord
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
 
+  def self.legacy_connection_handling=(_)
+    raise ArgumentError, <<~MSG.squish
+      The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1,
+      but is still defined in your configuration. Please remove this call as it no longer
+      has any effect."
+    MSG
+  end
+
   # Sets the async_query_executor for an application. By default the thread pool executor
   # set to +nil+ which will not run queries in the background. Applications must configure
   # a thread pool executor to use this feature. Options are:

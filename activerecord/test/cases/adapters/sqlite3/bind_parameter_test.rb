@@ -40,7 +40,7 @@ module ActiveRecord
         end
 
         def test_where_with_duration_for_string_column_using_bind_parameters
-          count = Post.where("title = ?", 0.seconds).count
+          count = assert_deprecated { Post.where("title = ?", 0.seconds).count }
           assert_equal 0, count
         end
       end

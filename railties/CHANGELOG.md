@@ -1,9 +1,51 @@
+*   Support MySQL's ssl-mode option for the dbconsole command.
+
+    Verifying the identity of the database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for the dbconsole command.
+
+    *Petrik de Heus*
+
+*   Delegate application record generator description to orm hooked generator.
+
+    *Gannon McGibbon*
+
+*   Show BCC recipients when present in Action Mailer previews.
+
+    *Akshay Birajdar*
+
+*   Extend `routes --grep` to also filter routes by matching against path.
+
+    Example:
+
+    ```
+    > bin/rails routes --grep /cats/1
+    Prefix Verb   URI Pattern         Controller#Action
+       cat GET    /cats/:id(.:format) cats#show
+           PATCH  /cats/:id(.:format) cats#update
+           PUT    /cats/:id(.:format) cats#update
+           DELETE /cats/:id(.:format) cats#destroy
+    ```
+
+    *Orhan Toy*
+
+*   Improve `rails runner` output when given a file path that doesn't exist.
+
+    *Tekin Suleyman*
+
+*   `config.allow_concurrency = false` now use a `Monitor` instead of a `Mutex`
+
+    This allows to enable `config.active_support.executor_around_test_case` even
+    when `config.allow_concurrency` is disabled.
+
+    *Jean Boussier*
+
 *   Add `routes --unused` option to detect extraneous routes.
 
     Example:
 
     ```
-    > bin/rails rails --unused
+    > bin/rails routes --unused
 
     Found 2 unused routes:
 

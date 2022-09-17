@@ -1821,7 +1821,7 @@ you get the instance method `find_by_first_name` for free from Active Record.
 If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
 
 You can specify an exclamation point (`!`) on the end of the dynamic finders
-to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_name!("Ryan")`
+to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_first_name!("Ryan")`
 
 If you want to find both by `first_name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
 For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.

@@ -92,11 +92,11 @@ module ActiveRecord
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
-    ChangeColumnDefinition = Struct.new(:column, :name, :ddl) # :nodoc:
+    ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
 
-    ChangeColumnDefaultDefinition = Struct.new(:column, :default, :ddl) # :nodoc:
+    ChangeColumnDefaultDefinition = Struct.new(:column, :default) # :nodoc:
 
-    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists, :ddl) # :nodoc:
+    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
@@ -140,7 +140,7 @@ module ActiveRecord
 
       def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
-          (validate.nil? || validate == options.fetch(:validate, validate)) &&
+          (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
           options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
 
@@ -162,6 +162,12 @@ module ActiveRecord
 
       def export_name_on_schema_dump?
         !ActiveRecord::SchemaDumper.chk_ignore_pattern.match?(name) if name
+      end
+
+      def defined_for?(name:, expression: nil, validate: nil, **options)
+        self.name == name.to_s &&
+          (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
+          options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
     end
 
@@ -335,7 +341,6 @@ module ActiveRecord
       include ColumnMethods
 
       attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints
-      attr_accessor :ddl
 
       def initialize(
         conn,
@@ -582,7 +587,6 @@ module ActiveRecord
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
-      attr_accessor :ddl
 
       def initialize(td)
         @td   = td

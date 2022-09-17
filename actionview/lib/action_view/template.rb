@@ -120,7 +120,7 @@ module ActionView
     @frozen_string_literal = false
 
     attr_reader :identifier, :handler
-    attr_reader :variable, :format, :variant, :locals, :virtual_path
+    attr_reader :variable, :format, :variant, :virtual_path
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
@@ -129,7 +129,6 @@ module ActionView
       @compiled          = false
       @locals            = locals
       @virtual_path      = virtual_path
-      @strict_locals   = nil
 
       @variable = if @virtual_path
         base = @virtual_path.end_with?("/") ? "" : ::File.basename(@virtual_path)
@@ -140,6 +139,16 @@ module ActionView
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
+    end
+
+    # The locals this template has been or will be compiled for, or nil if this
+    # is a strict locals template.
+    def locals
+      if strict_locals?
+        nil
+      else
+        @locals
+      end
     end
 
     # Returns whether the underlying handler supports streaming. If so,
@@ -158,10 +167,10 @@ module ActionView
       instrument_render_template do
         compile!(view)
         if buffer
-          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals.present?, &block)
+          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals.present?, &block).to_s
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block).to_s
         end
       end
     rescue => e
@@ -177,12 +186,15 @@ module ActionView
     end
 
     def inspect
-      "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
+      "#<#{self.class.name} #{short_identifier} locals=#{locals.inspect}>"
     end
 
     def source
       @source.to_s
     end
+
+    LEADING_ENCODING_REGEXP = /\A#{ENCODING_FLAG}/
+    private_constant :LEADING_ENCODING_REGEXP
 
     # This method is responsible for properly setting the encoding of the
     # source. Until this point, we assume that the source is BINARY data.
@@ -202,7 +214,7 @@ module ActionView
       # Look for # encoding: *. If we find one, we'll encode the
       # String in that encoding, otherwise, we'll use the
       # default external encoding.
-      if source.sub!(/\A#{ENCODING_FLAG}/, "")
+      if source.sub!(LEADING_ENCODING_REGEXP, "")
         encoding = magic_encoding = $1
       else
         encoding = Encoding.default_external
@@ -240,6 +252,14 @@ module ActionView
       return if @strict_locals.nil? # Magic comment not found
 
       @strict_locals = "**nil" if @strict_locals.blank?
+    end
+
+    def strict_locals?
+      if defined?(@strict_locals)
+        @strict_locals
+      else
+        STRICT_LOCALS_REGEX === self.source
+      end
     end
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
@@ -297,7 +317,7 @@ module ActionView
         code = @handler.call(self, source)
 
         method_arguments =
-          if @strict_locals.present?
+          if @strict_locals
             "output_buffer, #{@strict_locals}"
           else
             "local_assigns, output_buffer"
@@ -339,7 +359,7 @@ module ActionView
           raise SyntaxErrorInTemplate.new(self, original_source)
         end
 
-        return unless @strict_locals.present?
+        return unless @strict_locals
 
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
@@ -370,7 +390,7 @@ module ActionView
       end
 
       def locals_code
-        return "" if @strict_locals.present?
+        return "" if @strict_locals
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.

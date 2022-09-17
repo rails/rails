@@ -78,6 +78,8 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
+For more information on changes made to Rails 7.1 please see the [release notes](7_1_release_notes.html).
+
 ### Autoloaded paths are no longer in load path
 
 Starting from Rails 7.1, all paths managed by the autoloader will no longer be added to `$LOAD_PATH`.
@@ -268,7 +270,7 @@ configuring your cache store:
 config.cache_store = :mem_cache_store, "cache.example.com", pool: false
 ```
 
-See the [caching with Rails](https://guides.rubyonrails.org/caching_with_rails.html#connection-pool-options) guide for more information.
+See the [caching with Rails](https://guides.rubyonrails.org/v7.1/caching_with_rails.html#connection-pool-options) guide for more information.
 
 ### `SQLite3Adapter` now configured to be used in a strict strings mode
 
@@ -287,8 +289,18 @@ If you don't want to use `SQLite3Adapter` in a strict mode, you can disable this
 config.active_record.sqlite3_adapter_strict_strings_by_default = false
 ```
 
+### Support multiple preview paths for `ActionMailer::Preview`
+
+Option `config.action_mailer.preview_path` is deprecated in favor of `config.action_mailer.preview_paths`. Appending paths to this configuration option will cause those paths to be used in the search for mailer previews.
+
+```ruby
+config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
+
+For more information on changes made to Rails 7.0 please see the [release notes](7_0_release_notes.html).
 
 ### `ActionView::Helpers::UrlHelper#button_to` changed behavior
 
@@ -330,7 +342,7 @@ gem "sprockets-rails"
 
 ### Applications need to run in `zeitwerk` mode
 
-Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/classic_to_zeitwerk_howto.html) guide for details.
+Applications still running in `classic` mode have to switch to `zeitwerk` mode. Please check the [Classic to Zeitwerk HOWTO](https://guides.rubyonrails.org/v7.0/classic_to_zeitwerk_howto.html) guide for details.
 
 ### The setter `config.autoloader=` has been deleted
 
@@ -759,7 +771,7 @@ video.preview(resize_to_limit: [100, 100])
 video.preview(resize_to_fill: [100, 100])
 ```
 
-### New `ActiveModel:Errors` class
+### New `ActiveModel::Error` class
 
 Errors are now instances of a new `ActiveModel::Error` class, with changes to
 the API. Some of these changes may throw errors depending on how you manipulate
@@ -2233,7 +2245,7 @@ start using the more precise `:plain`, `:html`, and `:body` options instead.
 Using `render :text` may pose a security risk, as the content is sent as
 `text/html`.
 
-### PostgreSQL json and hstore datatypes
+### PostgreSQL JSON and hstore datatypes
 
 Rails 4.1 will map `json` and `hstore` columns to a string-keyed Ruby `Hash`.
 In earlier versions, a `HashWithIndifferentAccess` was used. This means that
@@ -2586,7 +2598,7 @@ Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already
 
 #### Cache
 
-The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
+The caching method changed between Rails 3.x and 4.0. You should [change the cache namespace](https://guides.rubyonrails.org/v4.0/caching_with_rails.html#activesupport-cache-store) and roll out with a cold cache.
 
 ### Helpers Loading Order
 

@@ -1,3 +1,56 @@
+*   Report `:locals` as part of the data returned by ActionView render instrumentation.
+
+    Before:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application"
+    }
+    ```
+
+    After:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application",
+    locals: {foo: "bar"}
+    }
+    ```
+
+    *Aaron Gough*
+
+*   Strip `break_sequence` at the end of `word_wrap`.
+
+    This fixes a bug where `word_wrap` didn't properly strip off break sequences that had printable characters.
+
+    For example, compare the outputs of this template:
+
+    ```erb
+    # <%= word_wrap("11 22\n33 44", line_width: 2, break_sequence: "\n# ") %>
+    ```
+
+    Before:
+
+    ```
+    # 11
+    # 22
+    #
+    # 33
+    # 44
+    #
+    ```
+
+    After:
+
+    ```
+    # 11
+    # 22
+    # 33
+    # 44
+    ```
+
+    *Max Chernyak*
+
 *   Allow templates to set strict `locals`.
 
     By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:

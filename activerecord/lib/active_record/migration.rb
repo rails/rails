@@ -950,14 +950,15 @@ module ActiveRecord
 
     def copy(destination, sources, options = {})
       copied = []
-      schema_migration = options[:schema_migration] || ActiveRecord::SchemaMigration
 
       FileUtils.mkdir_p(destination) unless File.exist?(destination)
+      schema_migration = SchemaMigration::NullSchemaMigration.new
+      internal_metadata = InternalMetadata::NullInternalMetadata.new
 
-      destination_migrations = ActiveRecord::MigrationContext.new(destination, schema_migration).migrations
+      destination_migrations = ActiveRecord::MigrationContext.new(destination, schema_migration, internal_metadata).migrations
       last = destination_migrations.last
       sources.each do |scope, path|
-        source_migrations = ActiveRecord::MigrationContext.new(path, schema_migration).migrations
+        source_migrations = ActiveRecord::MigrationContext.new(path, schema_migration, internal_metadata).migrations
 
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
@@ -1018,7 +1019,7 @@ module ActiveRecord
       if ActiveRecord.timestamped_migrations
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
-        SchemaMigration.normalize_migration_number(number)
+        "%.3d" % number.to_i
       end
     end
 
@@ -1076,15 +1077,38 @@ module ActiveRecord
   #
   # A migration context requires the path to the migrations is set
   # in the +migrations_paths+ parameter. Optionally a +schema_migration+
-  # class can be provided. For most applications, +SchemaMigration+ is
-  # sufficient. Multiple database applications need a +SchemaMigration+
-  # per primary database.
+  # class can be provided. Multiple database applications will instantiate
+  # a +SchemaMigration+ object per database. From the Rake tasks, Rails will
+  # handle this for you.
   class MigrationContext
-    attr_reader :migrations_paths, :schema_migration
+    attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
-    def initialize(migrations_paths, schema_migration = SchemaMigration)
+    def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
+      if schema_migration == SchemaMigration
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
+          to use the default connection, remove this argument. If you want to use a
+          specific connection, instaniate MigrationContext with the connection's schema
+          migration, for example `MigrationContext.new(path, Dog.connection.schema_migration)`.
+        MSG
+
+        schema_migration = nil
+      end
+
+      if internal_metadata == InternalMetadata
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
+          to use the default connection, remove this argument. If you want to use a
+          specific connection, instaniate MigrationContext with the connection's internal
+          metadata, for example `MigrationContext.new(path, nil, Dog.connection.internal_metadata)`.
+        MSG
+
+        internal_metadata = nil
+      end
+
       @migrations_paths = migrations_paths
-      @schema_migration = schema_migration
+      @schema_migration = schema_migration || SchemaMigration.new(ActiveRecord::Base.connection)
+      @internal_metadata = internal_metadata || InternalMetadata.new(ActiveRecord::Base.connection)
     end
 
     # Runs the migrations in the +migrations_path+.
@@ -1128,7 +1152,7 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:up, selected_migrations, schema_migration, target_version).migrate
+      Migrator.new(:up, selected_migrations, schema_migration, internal_metadata, target_version).migrate
     end
 
     def down(target_version = nil, &block) # :nodoc:
@@ -1138,20 +1162,20 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:down, selected_migrations, schema_migration, target_version).migrate
+      Migrator.new(:down, selected_migrations, schema_migration, internal_metadata, target_version).migrate
     end
 
     def run(direction, target_version) # :nodoc:
-      Migrator.new(direction, migrations, schema_migration, target_version).run
+      Migrator.new(direction, migrations, schema_migration, internal_metadata, target_version).run
     end
 
     def open # :nodoc:
-      Migrator.new(:up, migrations, schema_migration)
+      Migrator.new(:up, migrations, schema_migration, internal_metadata)
     end
 
     def get_all_versions # :nodoc:
       if schema_migration.table_exists?
-        schema_migration.all_versions.map(&:to_i)
+        schema_migration.integer_versions
       else
         []
       end
@@ -1210,11 +1234,12 @@ module ActiveRecord
     end
 
     def last_stored_environment # :nodoc:
-      return nil unless ActiveRecord::InternalMetadata.enabled?
+      connection = ActiveRecord::Base.connection
+      return nil unless connection.internal_metadata.enabled?
       return nil if current_version == 0
-      raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
+      raise NoEnvironmentInSchemaError unless connection.internal_metadata.table_exists?
 
-      environment = ActiveRecord::InternalMetadata[:environment]
+      environment = connection.internal_metadata[:environment]
       raise NoEnvironmentInSchemaError unless environment
       environment
     end
@@ -1230,7 +1255,7 @@ module ActiveRecord
       end
 
       def move(direction, steps)
-        migrator = Migrator.new(direction, migrations, schema_migration)
+        migrator = Migrator.new(direction, migrations, schema_migration, internal_metadata)
 
         if current_version != 0 && !migrator.current_migration
           raise UnknownMigrationVersionError.new(current_version)
@@ -1255,23 +1280,27 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        MigrationContext.new(migrations_paths, SchemaMigration).current_version
+        schema_migration = SchemaMigration.new(ActiveRecord::Base.connection)
+        internal_metadata = InternalMetadata.new(ActiveRecord::Base.connection)
+
+        MigrationContext.new(migrations_paths, schema_migration, internal_metadata).current_version
       end
     end
 
     self.migrations_paths = ["db/migrate"]
 
-    def initialize(direction, migrations, schema_migration, target_version = nil)
+    def initialize(direction, migrations, schema_migration, internal_metadata, target_version = nil)
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
       @migrations        = migrations
       @schema_migration  = schema_migration
+      @internal_metadata = internal_metadata
 
       validate(@migrations)
 
       @schema_migration.create_table
-      ActiveRecord::InternalMetadata.create_table
+      @internal_metadata.create_table
     end
 
     def current_version
@@ -1324,7 +1353,7 @@ module ActiveRecord
     end
 
     def load_migrated
-      @migrated_versions = Set.new(@schema_migration.all_versions.map(&:to_i))
+      @migrated_versions = Set.new(@schema_migration.integer_versions)
     end
 
     private
@@ -1350,7 +1379,8 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
+        connection = ActiveRecord::Base.connection
+        connection.internal_metadata[:environment] = connection.migration_context.current_environment
       end
 
       def ran?(migration)
@@ -1402,10 +1432,10 @@ module ActiveRecord
       def record_version_state_after_migrating(version)
         if down?
           migrated.delete(version)
-          @schema_migration.delete_by(version: version.to_s)
+          @schema_migration.delete_version(version.to_s)
         else
           migrated << version
-          @schema_migration.create!(version: version.to_s)
+          @schema_migration.create_version(version.to_s)
         end
       end
 

@@ -19,7 +19,8 @@ module ActiveRecord
         super
         @schema_migration = ActiveRecord::Base.connection.schema_migration
         @schema_migration.create_table
-        @schema_migration.delete_all
+        @schema_migration.delete_all_versions
+        @internal_metadata = ActiveRecord::Base.connection.internal_metadata
       end
 
       teardown do
@@ -30,7 +31,7 @@ module ActiveRecord
         previous_logger = ActiveRecord::Base.logger
         ActiveRecord::Base.logger = nil
         migrations = [Migration.new("a", 1), Migration.new("b", 2), Migration.new("c", 3)]
-        ActiveRecord::Migrator.new(:up, migrations, @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, migrations, @schema_migration, @internal_metadata).migrate
       ensure
         ActiveRecord::Base.logger = previous_logger
       end

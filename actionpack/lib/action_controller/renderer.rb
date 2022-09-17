@@ -81,6 +81,7 @@ module ActionController
     # * <tt>:json</tt> - Renders the provided hash or object in JSON. You don't
     #   need to call <tt>.to_json</tt> on the object you want to render.
     # * <tt>:body</tt> - Renders provided text and sets content type of <tt>text/plain</tt>.
+    # * <tt>:status</tt> - Specifies the HTTP status code to send with the response. Defaults to 200.
     #
     # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
     #

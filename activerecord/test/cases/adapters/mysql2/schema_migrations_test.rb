@@ -5,6 +5,10 @@ require "cases/helper"
 class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
   self.use_transactional_tests = false
 
+  def setup
+    @schema_migration = ActiveRecord::Base.connection.schema_migration
+  end
+
   def test_renaming_index_on_foreign_key
     connection.add_index "engines", "car_id"
     connection.add_foreign_key :engines, :cars, name: "fk_engines_cars"
@@ -17,10 +21,10 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
 
   def test_initializes_schema_migrations_for_encoding_utf8mb4
     with_encoding_utf8mb4 do
-      table_name = ActiveRecord::SchemaMigration.table_name
+      table_name = @schema_migration.table_name
       connection.drop_table table_name, if_exists: true
 
-      ActiveRecord::SchemaMigration.create_table
+      @schema_migration.create_table
 
       assert connection.column_exists?(table_name, :version, :string)
     end
@@ -28,15 +32,16 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
 
   def test_initializes_internal_metadata_for_encoding_utf8mb4
     with_encoding_utf8mb4 do
-      table_name = ActiveRecord::InternalMetadata.table_name
+      internal_metadata = connection.internal_metadata
+      table_name = internal_metadata.table_name
       connection.drop_table table_name, if_exists: true
 
-      ActiveRecord::InternalMetadata.create_table
+      internal_metadata.create_table
 
       assert connection.column_exists?(table_name, :key, :string)
     end
   ensure
-    ActiveRecord::InternalMetadata[:environment] = connection.migration_context.current_environment
+    connection.internal_metadata[:environment] = connection.migration_context.current_environment
   end
 
   private

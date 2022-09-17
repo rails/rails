@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/numeric/time"
+require "active_support/error_reporter/test_helper"
 
 # Tests the base functionality that should be identical across all cache stores.
 module CacheStoreBehavior
@@ -41,6 +42,34 @@ module CacheStoreBehavior
     cache_miss = false
     assert_equal 10, @cache.fetch(key) { |fetch_key| cache_miss = true; fetch_key.length }
     assert_not cache_miss
+  end
+
+  def test_fetch_with_dynamic_options
+    key = SecureRandom.uuid
+    expiry = 10.minutes.from_now
+    expected_options = @cache.options.dup
+    expected_options.delete(:expires_in)
+    expected_options.merge!(
+      expires_at: expiry,
+      version: "v42",
+    )
+
+    assert_called_with(@cache, :write, [key, "bar", expected_options]) do
+      @cache.fetch(key) do |key, options|
+        assert_equal @cache.options[:expires_in], options.expires_in
+        assert_nil options.expires_at
+        assert_nil options.version
+
+        options.expires_at = expiry
+        options.version = "v42"
+
+        assert_nil options.expires_in
+        assert_equal expiry, options.expires_at
+        assert_equal "v42", options.version
+
+        "bar"
+      end
+    end
   end
 
   def test_fetch_with_forced_cache_miss
@@ -566,6 +595,30 @@ module CacheStoreBehavior
     assert_equal "Either :expires_in or :expires_at can be supplied, but not both", error.message
   end
 
+  def test_invalid_expiration_time_raises_an_error_when_raise_on_invalid_cache_expiration_time_is_true
+    with_raise_on_invalid_cache_expiration_time(true) do
+      key = SecureRandom.uuid
+      error = assert_raises(ArgumentError) do
+        @cache.write(key, "bar", expires_in: -60)
+      end
+      assert_equal "Cache expiration time is invalid, cannot be negative: -60", error.message
+    end
+  end
+
+  def test_invalid_expiration_time_reports_and_logs_when_raise_on_invalid_cache_expiration_time_is_false
+    with_raise_on_invalid_cache_expiration_time(false) do
+      error_message = "Cache expiration time is invalid, cannot be negative: -60"
+      report = assert_error_reported(ArgumentError) do
+        logs = capture_logs do
+          key = SecureRandom.uuid
+          @cache.write(key, "bar", expires_in: -60)
+        end
+        assert_includes logs, "ArgumentError: #{error_message}"
+      end
+      assert_includes report.error.message, error_message
+    end
+  end
+
   def test_race_condition_protection_skipped_if_not_defined
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")
@@ -732,6 +785,27 @@ module CacheStoreBehavior
         assert_operator actual_size, :<, uncompressed_size, "value should be compressed"
       else
         assert_equal uncompressed_size, actual_size, "value should not be compressed"
+      end
+    end
+
+    def with_raise_on_invalid_cache_expiration_time(new_value, &block)
+      old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = new_value
+
+      yield
+    ensure
+      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = old_value
+    end
+
+    def capture_logs(&block)
+      old_logger = ActiveSupport::Cache::Store.logger
+      log = StringIO.new
+      ActiveSupport::Cache::Store.logger = ActiveSupport::Logger.new(log)
+      begin
+        yield
+        log.string
+      ensure
+        ActiveSupport::Cache::Store.logger = old_logger
       end
     end
 end

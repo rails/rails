@@ -191,7 +191,8 @@ module ActiveRecord
       end
 
       def test_quote_duration
-        assert_equal "1800", @quoter.quote(30.minutes)
+        expected = assert_deprecated { @quoter.quote(30.minutes) }
+        assert_equal "1800", expected
       end
     end
 
@@ -236,6 +237,10 @@ module ActiveRecord
       def test_type_cast_unknown_should_raise_error
         obj = Class.new.new
         assert_raise(TypeError) { @conn.type_cast(obj) }
+      end
+
+      def test_type_cast_duration_should_raise_error
+        assert_raise(TypeError) { @conn.type_cast(1.hour) }
       end
     end
 
