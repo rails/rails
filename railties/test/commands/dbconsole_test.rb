@@ -127,7 +127,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       sslcapath: "/path/to/cacerts",
       sslcipher: "DHE-RSA-AES256-SHA",
       sslkey:    "/path/to/client-key.pem",
-      sslmode:   "VERIFY_IDENTITY"
+      ssl_mode:  "VERIFY_IDENTITY"
     )
     assert_not aborted
     assert_equal [

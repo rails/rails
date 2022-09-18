@@ -95,7 +95,7 @@ module ActiveRecord
             sslcapath: "--ssl-capath",
             sslcipher: "--ssl-cipher",
             sslkey:    "--ssl-key",
-            sslmode:   "--ssl-mode"
+            ssl_mode:  "--ssl-mode"
           }.filter_map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }
 
           args
