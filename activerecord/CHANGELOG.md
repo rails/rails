@@ -1,3 +1,19 @@
+*   Introduce ReadonlyValidator
+
+    An alternative to attr_readonly, which uses ActiveModel::Validations to
+    throw a validation error when something tries to update a readonly
+    attribute.
+
+    ```
+    class Reply
+      belongs_to :topic
+
+      validates :topic, readonly: true
+    end
+    ```
+
+    *Hartley McGuire*, *Jeremy Cole*
+    
 *   Fix a case where the query cache can return wrong values. See #46044
 
     *Aaron Patterson*
