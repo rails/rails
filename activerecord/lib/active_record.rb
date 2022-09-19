@@ -50,6 +50,7 @@ module ActiveRecord
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :LogSubscriber
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
