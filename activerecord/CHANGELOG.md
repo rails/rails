@@ -1,3 +1,7 @@
+*   Fix a case where the query cache can return wrong values. See #46044
+
+    *Aaron Patterson*
+
 ## Rails 7.0.4 (September 09, 2022) ##
 
 *   Symbol is allowed by default for YAML columns
