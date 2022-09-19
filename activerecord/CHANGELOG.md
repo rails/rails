@@ -1,3 +1,7 @@
+*   Fix a case where the query cache can return wrong values. See #46044
+
+    *Aaron Patterson*
+
 *   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
 
     Verifying the identity of the database server requires setting the ssl-mode

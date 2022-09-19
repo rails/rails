@@ -646,6 +646,51 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
 end
 
+class QueryCacheMutableParamTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class JsonObj < ActiveRecord::Base
+    self.table_name = "json_objs"
+
+    attribute :payload, :json
+  end
+
+  class HashWithFixedHash < Hash
+    # this isn't very realistic, but it is the worst case and therefore a good
+    # case to test
+    def hash
+      1
+    end
+  end
+
+  def setup
+    ActiveRecord::Base.connection.create_table("json_objs", force: true) do |t|
+      if current_adapter?(:PostgreSQLAdapter)
+        t.jsonb "payload"
+      else
+        t.json "payload"
+      end
+    end
+
+    ActiveRecord::Base.connection.enable_query_cache!
+  end
+
+  def test_query_cache_handles_mutated_binds
+    JsonObj.create(payload: { a: 1 })
+
+    search = HashWithFixedHash[a: 1]
+    JsonObj.where(payload: search).first # populate the cache
+
+    search.merge!(b: 2)
+    assert_nil JsonObj.where(payload: search).first, "cache returned a false positive"
+  end
+
+  def teardown
+    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.connection.drop_table("json_objs", if_exists: true)
+  end
+end
+
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks, :posts, :categories, :categories_posts
 
