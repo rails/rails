@@ -522,8 +522,6 @@ module ActiveRecord
         def inverse_of_existing_owner?(record, inversing: false)
           record.new_record? && inversing && !owner.new_record?
         end
-
-
     end
   end
 end
