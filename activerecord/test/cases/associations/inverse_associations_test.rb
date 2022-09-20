@@ -873,7 +873,17 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     end
   end
 
-  def test_dup_with_inversing_does_not_create_additional_records_when_owner_already_exists
+  def test_building_has_many_parent_association_inverses_one_record
+    with_has_many_inversing(Interest) do
+      interest = Interest.new
+      interest.build_human
+      assert_equal 1, interest.human.interests.size
+      interest.save!
+      assert_equal 1, interest.human.interests.size
+    end
+  end
+
+  def test_existing_parent_and_child_with_inversing_does_not_create_additional_associations
     with_has_many_inversing(Interest) do
       human = Human.create!
       interest = Interest.create!(human: human)
@@ -882,6 +892,88 @@ class InverseBelongsToTests < ActiveRecord::TestCase
       assert_equal 1, human_from_dup.reload.interests.size
     end
   end
+
+  def test_existing_parent_and_child_without_inversing_does_not_create_additional_associations
+    human = Human.create!
+    interest = Interest.create!(human: human)
+    human.update!(name: "name")
+    assert_equal 1, human.reload.interests.size
+  end
+
+  def test_existing_parent_and_new_child_without_inversing_does_not_create_additional_associations
+    human = Human.create!
+    interest = Interest.new(human: human)
+    human.update!(name: "name")
+    assert_equal 0, human.reload.interests.size
+  end
+
+  # This test is a problem
+  def test_existing_parent_and_new_child_with_inversing_does_not_create_additional_associations
+    with_has_many_inversing(Interest) do
+      human = Human.create!
+      interest = Interest.new(human: human)
+      human.update!(name: "name")
+      assert_equal 0, human.interests.size
+    end
+  end
+
+  def test_new_parent_and_new_child_with_inversing_does_not_create_additional_associations
+    with_has_many_inversing(Interest) do
+      human = Human.new
+      interest = Interest.new
+      interest.human = human
+      interest_dup = interest.dup
+
+      interest_dup.save!
+      assert_equal 1, human.interests.size
+
+      human.save!
+      assert_equal 1, human.interests.size
+    end
+  end
+
+  def test_new_parent_and_new_child_without_inversing_does_not_create_additional_associations
+    human = Human.new
+    interest = Interest.new
+    interest.human = human
+    interest_dup = interest.dup
+
+    interest_dup.save!
+    assert_equal 0, human.interests.size
+
+    human.save!
+    assert_equal 0, human.interests.size
+  end
+
+  def test_new_parent_and_existing_child_with_inversing_does_not_create_additional_associations
+    with_has_many_inversing(Interest) do
+      human = Human.new
+      interest = Interest.create!
+      interest.human = human
+      interest_dup = interest.dup
+
+      interest_dup.save!
+      assert_equal 1, human.interests.size
+
+      human.save!
+      assert_equal 1, human.interests.size
+    end
+  end
+
+  def test_new_parent_and_existing_child_without_inversing_does_not_create_additional_associations
+    human = Human.new
+    interest = Interest.create!
+    interest.human = human
+    interest_dup = interest.dup
+
+    interest_dup.save!
+    assert_equal 0, human.interests.size
+
+    human.save!
+    assert_equal 0, human.interests.size
+  end
+
+
 end
 
 class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
