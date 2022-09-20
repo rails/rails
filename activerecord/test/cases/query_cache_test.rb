@@ -565,37 +565,38 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
-  def test_clear_query_cache_is_called_on_all_connections
-    skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
-
-    ActiveRecord::Base.connected_to(role: :reading) do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      ActiveRecord::Base.establish_connection(db_config)
-    end
-
-    mw = middleware { |env|
+  # with in memory db, reading role won't be able to see database on writing role
+  unless in_memory_db?
+    def test_clear_query_cache_is_called_on_all_connections
       ActiveRecord::Base.connected_to(role: :reading) do
-        @topic = Topic.first
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
       end
 
-      assert @topic
+      mw = middleware { |env|
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+        end
 
-      ActiveRecord::Base.connected_to(role: :writing) do
-        @topic.title = "Topic title"
-        @topic.save!
-      end
+        assert @topic
 
-      assert_equal "Topic title", @topic.title
+        ActiveRecord::Base.connected_to(role: :writing) do
+          @topic.title = "Topic title"
+          @topic.save!
+        end
 
-      ActiveRecord::Base.connected_to(role: :reading) do
-        @topic = Topic.first
         assert_equal "Topic title", @topic.title
-      end
-    }
 
-    mw.call({})
-  ensure
-    clean_up_connection_handler
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+          assert_equal "Topic title", @topic.title
+        end
+      }
+
+      mw.call({})
+    ensure
+      clean_up_connection_handler
+    end
   end
 
   test "query cache is enabled in threads with shared connection" do
