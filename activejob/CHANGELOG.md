@@ -1,3 +1,7 @@
+*   Add support for Sidekiq's transaction-aware client
+
+    *Jonathan del Strother*
+
 *   Remove QueAdapter from Active Job.
 
     After maintaining Active Job QueAdapter by Rails and Que side
