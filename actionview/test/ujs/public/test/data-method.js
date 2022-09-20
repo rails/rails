@@ -1,12 +1,12 @@
 (function() {
 
-module('data-method', {
-  setup: function() {
+QUnit.module('data-method', {
+  beforeEach: function() {
     $('#qunit-fixture').append($('<a />', {
       href: '/echo', 'data-method': 'delete', text: 'destroy!'
     }))
   },
-  teardown: function() {
+  afterEach: function() {
     $(document).unbind('iframe:loaded')
   }
 })
@@ -14,49 +14,59 @@ module('data-method', {
 function submit(fn, options) {
   $(document).bind('iframe:loaded', function(e, data) {
     fn(data)
-    start()
   })
 
   $('#qunit-fixture').find('a')
     .triggerNative('click')
 }
 
-asyncTest('link with "data-method" set to "delete"', 3, function() {
+QUnit.test('link with "data-method" set to "delete"', function(assert) {
+  const done = assert.async()
+
   submit(function(data) {
-    equal(data.REQUEST_METHOD, 'DELETE')
-    strictEqual(data.params.authenticity_token, undefined)
-    strictEqual(data.HTTP_X_CSRF_TOKEN, undefined)
+    assert.equal(data.REQUEST_METHOD, 'DELETE')
+    assert.strictEqual(data.params.authenticity_token, undefined)
+    assert.strictEqual(data.HTTP_X_CSRF_TOKEN, undefined)
+    done()
   })
 })
 
-asyncTest('click on the child of link with "data-method"', 3, function() {
+QUnit.test('click on the child of link with "data-method"', function(assert) {
+  const done = assert.async()
+
   $(document).bind('iframe:loaded', function(e, data) {
-    equal(data.REQUEST_METHOD, 'DELETE')
-    strictEqual(data.params.authenticity_token, undefined)
-    strictEqual(data.HTTP_X_CSRF_TOKEN, undefined)
-    start()
+    assert.equal(data.REQUEST_METHOD, 'DELETE')
+    assert.strictEqual(data.params.authenticity_token, undefined)
+    assert.strictEqual(data.HTTP_X_CSRF_TOKEN, undefined)
+    done()
   })
   $('#qunit-fixture a').html('<strong>destroy!</strong>').find('strong').triggerNative('click')
 })
 
-asyncTest('link with "data-method" and CSRF', 1, function() {
+QUnit.test('link with "data-method" and CSRF', function(assert) {
+  const done = assert.async()
+
   $('#qunit-fixture')
     .append('<meta name="csrf-param" content="authenticity_token"/>')
     .append('<meta name="csrf-token" content="cf50faa3fe97702ca1ae"/>')
 
   submit(function(data) {
-    equal(data.params.authenticity_token, 'cf50faa3fe97702ca1ae')
+    assert.equal(data.params.authenticity_token, 'cf50faa3fe97702ca1ae')
+    done()
   })
 })
 
-asyncTest('link "target" should be carried over to generated form', 1, function() {
+QUnit.test('link "target" should be carried over to generated form', function(assert) {
+  const done = assert.async()
+
   $('a[data-method]').attr('target', 'super-special-frame')
   submit(function(data) {
-    equal(data.params._target, 'super-special-frame')
+    assert.equal(data.params._target, 'super-special-frame')
+    done()
   })
 })
 
-asyncTest('link with "data-method" and cross origin', 1, function() {
+QUnit.test('link with "data-method" and cross origin', function(assert) {
   var data = {}
 
   $('#qunit-fixture')
@@ -77,9 +87,7 @@ asyncTest('link with "data-method" and cross origin', 1, function() {
 
   link.triggerNative('click')
 
-  start()
-
-  notEqual(data.authenticity_token, 'cf50faa3fe97702ca1ae')
+  assert.notEqual(data.authenticity_token, 'cf50faa3fe97702ca1ae')
 })
 
 })()
