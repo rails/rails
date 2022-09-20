@@ -1,3 +1,7 @@
+*   Add `expires_in` option to `signed_id`.
+
+    *Shouichi Kamiya*
+
 *   Fix a case where the query cache can return wrong values. See #46044
 
     *Aaron Patterson*
