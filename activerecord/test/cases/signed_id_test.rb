@@ -67,11 +67,11 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_nil Account.find_signed("this won't find anything")
   end
 
-  test "find signed record within expiration date" do
+  test "find signed record within expiration duration" do
     assert_equal @account, Account.find_signed(@account.signed_id(expires_in: 1.minute))
   end
 
-  test "fail to find signed record within expiration date" do
+  test "fail to find signed record within expiration duration" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
     assert_nil Account.find_signed(signed_id)
@@ -81,6 +81,16 @@ class SignedIdTest < ActiveRecord::TestCase
     signed_id = @account.signed_id(expires_in: 1.minute)
     @account.destroy
     assert_nil Account.find_signed signed_id
+  end
+
+  test "find signed record within expiration time" do
+    assert_equal @account, Account.find_signed(@account.signed_id(expires_at: 1.minute.from_now))
+  end
+
+  test "fail to find signed record within expiration time" do
+    signed_id = @account.signed_id(expires_at: 1.minute.from_now)
+    travel 2.minutes
+    assert_nil Account.find_signed(signed_id)
   end
 
   test "find signed record with purpose" do
@@ -99,11 +109,11 @@ class SignedIdTest < ActiveRecord::TestCase
     end
   end
 
-  test "find signed record with a bang within expiration date" do
+  test "find signed record with a bang within expiration duration" do
     assert_equal @account, Account.find_signed!(@account.signed_id(expires_in: 1.minute))
   end
 
-  test "finding signed record outside expiration date raises on the bang" do
+  test "finding signed record outside expiration duration raises on the bang" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
 

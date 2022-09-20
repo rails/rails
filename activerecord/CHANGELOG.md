@@ -1,3 +1,7 @@
+*   Add `expires_in` option to `signed_id`.
+
+    *Shouichi Kamiya*
+
 *   Allow applications to set retry deadline for query retries.
 
     Building on the work done in #44576 and #44591, we extend the logic that automatically
