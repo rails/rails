@@ -15,7 +15,7 @@ module Rails
             super
           end
 
-          def perform
+          def perform(*)
             Rails::Generators::Db::System::ChangeGenerator.start(@argv)
           end
         end
