@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+gem "sidekiq", ">= 4.1.0"
 require "sidekiq"
 
 module ActiveJob
