@@ -93,7 +93,7 @@ To report and **swallow** the error, use [`Rails.error.handle`](https://api.ruby
 Rails.error.handle do
   1 + '1' # raises TypeError
 end
-1 + 1 # This will be execute
+1 + 1 # This will be executed
 ```
 
 The error will be reported with `handled: true`
