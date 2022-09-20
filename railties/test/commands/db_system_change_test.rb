@@ -54,6 +54,13 @@ class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
     assert_match "gsub  Gemfile", output
   end
 
+  test "change can be forced" do
+    output = `cd #{app_path}; bin/rails db:system:change --to=postgresql --force`
+
+    assert_match "force  config/database.yml", output
+    assert_match "gsub  Gemfile", output
+  end
+
   private
     def change_database(to:, **options)
       args = ["--to", to]
