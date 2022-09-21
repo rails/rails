@@ -15,8 +15,12 @@ require "sqlite3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
+    def sqlite3_connection_class
+      ConnectionAdapters::SQLite3Adapter
+    end
+
     def sqlite3_connection(config)
-      ConnectionAdapters::SQLite3Adapter.new(config)
+      sqlite3_connection_class.new(config)
     end
   end
 
@@ -39,6 +43,16 @@ module ActiveRecord
           else
             raise
           end
+        end
+
+        def dbconsole(config, options = {})
+          args = []
+
+          args << "-#{options[:mode]}" if options[:mode]
+          args << "-header" if options[:header]
+          args << File.expand_path(config.database, Rails.respond_to?(:root) ? Rails.root : nil)
+
+          find_cmd_and_exec("sqlite3", *args)
         end
       end
 

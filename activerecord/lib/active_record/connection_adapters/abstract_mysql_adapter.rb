@@ -51,6 +51,36 @@ module ActiveRecord
           end
       end
 
+      class << self
+        def dbconsole(config, options = {})
+          mysql_config = config.configuration_hash
+
+          args = {
+            host: "--host",
+            port: "--port",
+            socket: "--socket",
+            username: "--user",
+            encoding: "--default-character-set",
+            sslca: "--ssl-ca",
+            sslcert: "--ssl-cert",
+            sslcapath: "--ssl-capath",
+            sslcipher: "--ssl-cipher",
+            sslkey: "--ssl-key",
+            ssl_mode: "--ssl-mode"
+          }.filter_map { |opt, arg| "#{arg}=#{mysql_config[opt]}" if mysql_config[opt] }
+
+          if mysql_config[:password] && options[:include_password]
+            args << "--password=#{mysql_config[:password]}"
+          elsif mysql_config[:password] && !mysql_config[:password].to_s.empty?
+            args << "-p"
+          end
+
+          args << config.database
+
+          find_cmd_and_exec(["mysql", "mysql5"], *args)
+        end
+      end
+
       def get_database_version # :nodoc:
         full_version_string = get_full_version
         version_string = version_string(full_version_string)

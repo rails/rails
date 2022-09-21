@@ -12,92 +12,13 @@ module Rails
 
     def initialize(options = {})
       @options = options
+      @options[:environment] ||= Rails::Command.environment
     end
 
     def start
-      ENV["RAILS_ENV"] ||= @options[:environment] || environment
-      config = db_config.configuration_hash
-
-      case db_config.adapter
-      when /^(jdbc)?mysql/
-        args = {
-          host: "--host",
-          port: "--port",
-          socket: "--socket",
-          username: "--user",
-          encoding: "--default-character-set",
-          sslca: "--ssl-ca",
-          sslcert: "--ssl-cert",
-          sslcapath: "--ssl-capath",
-          sslcipher: "--ssl-cipher",
-          sslkey: "--ssl-key",
-          ssl_mode: "--ssl-mode"
-        }.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
-
-        if config[:password] && @options[:include_password]
-          args << "--password=#{config[:password]}"
-        elsif config[:password] && !config[:password].to_s.empty?
-          args << "-p"
-        end
-
-        args << db_config.database
-
-        find_cmd_and_exec(["mysql", "mysql5"], *args)
-
-      when /^postgres|^postgis/
-        ENV["PGUSER"]         = config[:username] if config[:username]
-        ENV["PGHOST"]         = config[:host] if config[:host]
-        ENV["PGPORT"]         = config[:port].to_s if config[:port]
-        ENV["PGPASSWORD"]     = config[:password].to_s if config[:password] && @options[:include_password]
-        ENV["PGSSLMODE"]      = config[:sslmode].to_s if config[:sslmode]
-        ENV["PGSSLCERT"]      = config[:sslcert].to_s if config[:sslcert]
-        ENV["PGSSLKEY"]       = config[:sslkey].to_s if config[:sslkey]
-        ENV["PGSSLROOTCERT"]  = config[:sslrootcert].to_s if config[:sslrootcert]
-        if config[:variables]
-          ENV["PGOPTIONS"] = config[:variables].filter_map do |name, value|
-            "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
-          end.join(" ")
-        end
-        find_cmd_and_exec("psql", db_config.database)
-
-      when "sqlite3"
-        args = []
-
-        args << "-#{@options[:mode]}" if @options[:mode]
-        args << "-header" if @options[:header]
-        args << File.expand_path(db_config.database, Rails.respond_to?(:root) ? Rails.root : nil)
-
-        find_cmd_and_exec("sqlite3", *args)
-
-      when "oracle", "oracle_enhanced"
-        logon = ""
-
-        if config[:username]
-          logon = config[:username].dup
-          logon << "/#{config[:password]}" if config[:password] && @options[:include_password]
-          logon << "@#{db_config.database}" if db_config.database
-        end
-
-        find_cmd_and_exec("sqlplus", logon)
-
-      when "sqlserver"
-        args = []
-
-        args += ["-d", "#{db_config.database}"] if db_config.database
-        args += ["-U", "#{config[:username]}"] if config[:username]
-        args += ["-P", "#{config[:password]}"] if config[:password]
-
-        if config[:host]
-          host_arg = +"tcp:#{config[:host]}"
-          host_arg << ",#{config[:port]}" if config[:port]
-          args += ["-S", host_arg]
-        end
-
-        find_cmd_and_exec("sqlcmd", *args)
-
-      else
-        abort "Unknown command-line client for #{db_config.database}."
-      end
+      connection_class.dbconsole(db_config, @options)
+    rescue NotImplementedError
+      abort "Unknown command-line client for #{db_config.database}."
     end
 
     def db_config
@@ -120,15 +41,23 @@ module Rails
       @db_config
     end
 
-    def environment
-      Rails.respond_to?(:env) ? Rails.env : Rails::Command.environment
-    end
-
     def database
       @options[:database]
     end
 
+    def environment
+      @options[:environment]
+    end
+
     private
+      def connection_class
+        if ActiveRecord::Base.respond_to?(db_config.adapter_class_method)
+          ActiveRecord::Base.public_send(db_config.adapter_class_method)
+        else
+          ActiveRecord::ConnectionAdapters::AbstractAdapter
+        end
+      end
+
       def configurations # :doc:
         require APP_PATH
         ActiveRecord::Base.configurations = Rails.application.config.database_configuration
@@ -136,31 +65,11 @@ module Rails
       end
 
       def find_cmd_and_exec(commands, *args) # :doc:
-        commands = Array(commands)
-
-        dirs_on_path = ENV["PATH"].to_s.split(File::PATH_SEPARATOR)
-        unless (ext = RbConfig::CONFIG["EXEEXT"]).empty?
-          commands = commands.map { |cmd| "#{cmd}#{ext}" }
-        end
-
-        full_path_command = nil
-        found = commands.detect do |cmd|
-          dirs_on_path.detect do |path|
-            full_path_command = File.join(path, cmd)
-            begin
-              stat = File.stat(full_path_command)
-            rescue SystemCallError
-            else
-              stat.file? && stat.executable?
-            end
-          end
-        end
-
-        if found
-          exec full_path_command, *args
-        else
-          abort("Couldn't find database client: #{commands.join(', ')}. Check your $PATH and try again.")
-        end
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Rails::DBConsole#find_cmd_and_exec is deprecated and will be removed in Rails 7.2.
+          Please use find_cmd_and_exec on the connection adapter class instead.
+        MSG
+        ActiveRecord::Base.connection.find_cmd_and_exec(commands, *args)
       end
   end
 
