@@ -336,38 +336,41 @@ db_namespace = namespace :db do
 
   # desc "Raises an error if there are pending migrations"
   task abort_if_pending_migrations: :load_config do
-    pending_migrations = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).flat_map do |db_config|
-      ActiveRecord::Base.establish_connection(db_config)
+    pending_migrations = []
 
-      ActiveRecord::Base.connection.migration_context.open.pending_migrations
+    ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each do |conn|
+      pending_migrations << conn.migration_context.open.pending_migrations
     end
+
+    pending_migrations = pending_migrations.flatten!
 
     if pending_migrations.any?
       puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
+
       pending_migrations.each do |pending_migration|
         puts "  %4d %s" % [pending_migration.version, pending_migration.name]
       end
+
       abort %{Run `bin/rails db:migrate` to update your database then try again.}
     end
-  ensure
-    ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
   end
 
   namespace :abort_if_pending_migrations do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       # desc "Raises an error if there are pending migrations for #{name} database"
       task name => :load_config do
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Base.establish_connection(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: Rails.env, name: name) do |conn|
+          pending_migrations = conn.migration_context.open.pending_migrations
 
-        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+          if pending_migrations.any?
+            puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
 
-        if pending_migrations.any?
-          puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
-          pending_migrations.each do |pending_migration|
-            puts "  %4d %s" % [pending_migration.version, pending_migration.name]
+            pending_migrations.each do |pending_migration|
+              puts "  %4d %s" % [pending_migration.version, pending_migration.name]
+            end
+
+            abort %{Run `bin/rails db:migrate:#{name}` to update your database then try again.}
           end
-          abort %{Run `bin/rails db:migrate:#{name}` to update your database then try again.}
         end
       end
     end
