@@ -230,10 +230,9 @@ module ActiveRecord
       end
 
       def truncate_tables(db_config)
-        ActiveRecord::Base.establish_connection(db_config)
-
-        connection = ActiveRecord::Base.connection
-        connection.truncate_tables(*connection.tables)
+        with_temporary_connection(db_config) do |conn|
+          conn.truncate_tables(*conn.tables)
+        end
       end
       private :truncate_tables
 
