@@ -288,6 +288,7 @@ module Rails
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
+            active_record.raise_on_assign_to_attr_readonly = true
           end
 
           if respond_to?(:action_dispatch)

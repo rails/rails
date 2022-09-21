@@ -107,3 +107,8 @@
 # if Rails.env.development? || Rails.env.test?
 #   Rails.application.config.log_file_size = 100 * 1024 * 1024
 # end
+
+# Enable raising on assignment to attr_readonly attributes. The previous
+# behavior would allow assignment but silently not persist changes to the
+# database.
+# Rails.application.config.active_record.raise_on_assign_to_attr_readonly

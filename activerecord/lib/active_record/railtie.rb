@@ -36,6 +36,7 @@ module ActiveRecord
     config.active_record.query_log_tags = [ :application ]
     config.active_record.query_log_tags_format = :legacy
     config.active_record.cache_query_log_tags = false
+    config.active_record.raise_on_assign_to_attr_readonly = false
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 

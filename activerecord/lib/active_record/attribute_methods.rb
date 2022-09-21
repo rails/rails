@@ -396,6 +396,7 @@ module ActiveRecord
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
           self.class.readonly_attribute?(name) ||
+            self.class.counter_cache_column?(name) ||
             column_for_attribute(name).virtual?
         end
       end

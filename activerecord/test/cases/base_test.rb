@@ -66,6 +66,14 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+previous_value, ActiveRecord.raise_on_assign_to_attr_readonly = ActiveRecord.raise_on_assign_to_attr_readonly, false
+
+class NonRaisingPost < Post
+  attr_readonly :title
+end
+
+ActiveRecord.raise_on_assign_to_attr_readonly = previous_value
+
 class Weird < ActiveRecord::Base; end
 
 class LintTest < ActiveRecord::TestCase
@@ -691,16 +699,132 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ "title", "comments_count" ]), ReadonlyTitlePost.readonly_attributes
+    assert_equal Set.new([ "title" ]), ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(title: "cannot change this", body: "changeable")
-    post.reload
     assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
 
-    post.update(title: "try to change", body: "changed")
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.title = "changed via assignment"
+    end
+    post.body = "changed via assignment"
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assignment", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.write_attribute(:title, "changed via write_attribute")
+    end
+    post.write_attribute(:body, "changed via write_attribute")
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via write_attribute", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    end
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.update(title: "changed via update", body: "changed via update")
+    end
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post[:title] = "changed via []="
+    end
+    post[:body] = "changed via []="
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via []=", post.body
+
+    post.save!
+
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via []=", post.body
+  end
+
+  def test_readonly_attributes_on_a_new_record
+    assert_equal Set.new([ "title" ]), ReadonlyTitlePost.readonly_attributes
+
+    post = ReadonlyTitlePost.new(title: "can change this until you save", body: "changeable")
+    assert_equal "can change this until you save", post.title
+    assert_equal "changeable", post.body
+
+    post.title = "changed via assignment"
+    post.body = "changed via assignment"
+    assert_equal "changed via assignment", post.title
+    assert_equal "changed via assignment", post.body
+
+    post.write_attribute(:title, "changed via write_attribute")
+    post.write_attribute(:body, "changed via write_attribute")
+    assert_equal "changed via write_attribute", post.title
+    assert_equal "changed via write_attribute", post.body
+
+
+    post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    assert_equal "changed via assign_attributes", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    post[:title] = "changed via []="
+    post[:body] = "changed via []="
+    assert_equal "changed via []=", post.title
+    assert_equal "changed via []=", post.body
+
+    post.save!
+
+    post = Post.find(post.id)
+    assert_equal "changed via []=", post.title
+    assert_equal "changed via []=", post.body
+  end
+
+  def test_readonly_attributes_when_configured_to_not_raise
+    assert_equal Set.new([ "title" ]), NonRaisingPost.readonly_attributes
+
+    post = NonRaisingPost.create(title: "cannot change this", body: "changeable")
+    assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
+
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
+
+    post.title = "changed via assignment"
+    post.body = "changed via assignment"
+    post.save!
     post.reload
     assert_equal "cannot change this", post.title
-    assert_equal "changed", post.body
+    assert_equal "changed via assignment", post.body
+
+    post.write_attribute(:title, "changed via write_attribute")
+    post.write_attribute(:body, "changed via write_attribute")
+    post.save!
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via write_attribute", post.body
+
+    post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    post.save!
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    post.update(title: "changed via update", body: "changed via update")
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via update", post.body
+
+    post[:title] = "changed via []="
+    post[:body] = "changed via []="
+    post.save!
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via []=", post.body
   end
 
   def test_unicode_column_name

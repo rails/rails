@@ -269,6 +269,9 @@ module ActiveRecord
   singleton_class.attr_accessor :maintain_test_schema
   self.maintain_test_schema = nil
 
+  singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
+  self.raise_on_assign_to_attr_readonly = false
+
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of
