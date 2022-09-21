@@ -453,12 +453,10 @@ db_namespace = namespace :db do
   namespace :schema do
     desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
     task dump: :load_config do
-      ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-        if db_config.schema_dump
-          ActiveRecord::Base.establish_connection(db_config)
-          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
-        end
+      ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each do |conn|
+        db_config = conn.pool.db_config
+        schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
       end
 
       db_namespace["schema:dump"].reenable
@@ -473,12 +471,9 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Creates a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) for #{name} database"
         task name => :load_config do
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: name)
-
-          if db_config.schema_dump
+          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(name: name) do |conn|
+            db_config = conn.pool.db_config
             schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-
-            ActiveRecord::Base.establish_connection(db_config)
             ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
           end
 
