@@ -225,7 +225,7 @@ module ActiveRecord
 
         def self.write(object, attribute, key, value)
           prepare(object, attribute)
-          object.public_send(attribute)[key] = value
+          object.public_send(attribute)[key] = value if value != read(object, attribute, key)
         end
 
         def self.prepare(object, attribute)
