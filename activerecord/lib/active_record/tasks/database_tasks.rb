@@ -360,8 +360,6 @@ module ActiveRecord
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
-        ActiveRecord::Base.establish_connection(db_config)
-        connection = ActiveRecord::Base.connection
 
         case format
         when :ruby
@@ -372,7 +370,7 @@ module ActiveRecord
           raise ArgumentError, "unknown format #{format.inspect}"
         end
 
-        connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
+        migration_connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
       ensure
         Migration.verbose = verbose_was
       end
@@ -470,9 +468,10 @@ module ActiveRecord
 
       def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
         each_current_configuration(environment) do |db_config|
-          load_schema(db_config, format, file)
+          with_temporary_connection(db_config) do
+            load_schema(db_config, format, file)
+          end
         end
-        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)
