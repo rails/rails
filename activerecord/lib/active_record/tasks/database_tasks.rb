@@ -505,7 +505,31 @@ module ActiveRecord
         FileUtils.rm_f filename, verbose: false
       end
 
+      def with_temporary_connection_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, &block)
+        if name
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
+          with_temporary_connection(db_config, &block)
+        else
+          ActiveRecord::Base.configurations.configs_for(env_name: env, name: name).each do |db_config|
+            with_temporary_connection(db_config, &block)
+          end
+        end
+      end
+
+      def migration_connection # :nodoc:
+        @connection = ActiveRecord::Base.connection
+      end
+
       private
+        def with_temporary_connection(db_config)
+          original_db_config = ActiveRecord::Base.connection_db_config
+          pool = ActiveRecord::Base.establish_connection(db_config)
+
+          yield pool.connection
+        ensure
+          ActiveRecord::Base.establish_connection(original_db_config)
+        end
+
         def configs_for(**options)
           Base.configurations.configs_for(**options)
         end
