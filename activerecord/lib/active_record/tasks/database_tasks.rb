@@ -412,23 +412,23 @@ module ActiveRecord
       end
 
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
+        return unless db_config.schema_dump
+
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
         return unless filename
-
-        connection = ActiveRecord::Base.connection
 
         FileUtils.mkdir_p(db_dir)
         case format
         when :ruby
           File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+            ActiveRecord::SchemaDumper.dump(migration_connection, file)
           end
         when :sql
           structure_dump(db_config, filename)
-          if connection.schema_migration.table_exists?
+          if migration_connection.schema_migration.table_exists?
             File.open(filename, "a") do |f|
-              f.puts connection.dump_schema_information
+              f.puts migration_connection.dump_schema_information
               f.print "\n"
             end
           end
