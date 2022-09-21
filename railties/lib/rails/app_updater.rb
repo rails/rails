@@ -30,6 +30,7 @@ module Rails
           options[:skip_puma]           = !defined?(Puma)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
           options[:skip_spring]         = !defined?(Spring)
+          options[:skip_listen]         = !defined?(Listen)
           options
         end
     end
