@@ -82,7 +82,7 @@ end
 
 # Action Cable
 group :cable do
-  gem "puma", require: false
+  gem "puma", ">= 5.0.3", require: false
 
   gem "hiredis", require: false
   gem "redis", "~> 4.0", require: false
