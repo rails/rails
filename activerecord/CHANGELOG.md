@@ -1,3 +1,17 @@
+*   Fix erroneous nil default precision on virtual datetime columns.
+
+    Prior to this change, virtual datetime columns did not have the same
+    default precision as regular datetime columns, resulting in the following
+    being erroneously equivalent:
+
+        t.virtual :name, type: datetime,                 as: "expression"
+        t.virtual :name, type: datetime, precision: nil, as: "expression"
+
+    This change fixes the default precision lookup, so virtual and regular
+    datetime column default precisions match.
+
+    *Sam Bostock*
+
 *   Use connection from `#with_raw_connection` in `#quote_string`.
 
     This ensures that the string quoting is wrapped in the reconnect and retry logic
