@@ -248,7 +248,7 @@ module ActiveRecord
 
         check_target_version
 
-        Base.connection.migration_context.migrate(target_version) do |migration|
+        migration_connection.migration_context.migrate(target_version) do |migration|
           if version.blank?
             scope.blank? || scope == migration.scope
           else
@@ -258,7 +258,7 @@ module ActiveRecord
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
 
-        ActiveRecord::Base.clear_cache!
+        migration_connection.schema_cache.clear!
       ensure
         Migration.verbose = verbose_was
       end
@@ -266,9 +266,9 @@ module ActiveRecord
       def db_configs_with_versions(db_configs) # :nodoc:
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
-        db_configs.each do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-          versions_to_run = ActiveRecord::Base.connection.migration_context.pending_migration_versions
+        with_temporary_connection_for_each do |conn|
+          db_config = conn.pool.db_config
+          versions_to_run = conn.migration_context.pending_migration_versions
           target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
 
           versions_to_run.each do |version|
@@ -514,20 +514,20 @@ module ActiveRecord
         end
       end
 
+      def with_temporary_connection(db_config) # :nodoc:
+        original_db_config = ActiveRecord::Base.connection_db_config
+        pool = ActiveRecord::Base.establish_connection(db_config)
+
+        yield pool.connection
+      ensure
+        ActiveRecord::Base.establish_connection(original_db_config)
+      end
+
       def migration_connection # :nodoc:
         @connection = ActiveRecord::Base.connection
       end
 
       private
-        def with_temporary_connection(db_config)
-          original_db_config = ActiveRecord::Base.connection_db_config
-          pool = ActiveRecord::Base.establish_connection(db_config)
-
-          yield pool.connection
-        ensure
-          ActiveRecord::Base.establish_connection(original_db_config)
-        end
-
         def configs_for(**options)
           Base.configurations.configs_for(**options)
         end

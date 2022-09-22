@@ -92,20 +92,18 @@ db_namespace = namespace :db do
     if db_configs.size == 1
       ActiveRecord::Tasks::DatabaseTasks.migrate
     else
-      original_db_config = ActiveRecord::Base.connection_db_config
       mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions(db_configs)
 
       mapped_versions.sort.each do |version, db_configs|
         db_configs.each do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-          ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
+            ActiveRecord::Tasks::DatabaseTasks.migrate(version)
+          end
         end
       end
     end
 
     db_namespace["_dump"].invoke
-  ensure
-    ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
   end
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord.dump_schema_after_migration is set to false
@@ -137,13 +135,11 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       desc "Migrate #{name} database for current environment"
       task name => :load_config do
-        original_db_config = ActiveRecord::Base.connection_db_config
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Tasks::DatabaseTasks.migrate
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: Rails.env, name: name) do |conn|
+          ActiveRecord::Tasks::DatabaseTasks.migrate
+        end
+
         db_namespace["_dump:#{name}"].invoke
-      ensure
-        ActiveRecord::Base.establish_connection(original_db_config)
       end
     end
 
