@@ -221,7 +221,7 @@ db_namespace = namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
 
-      ActiveRecord::Tasks::Databasetasks.migration_connection.migration_context.run(
+      ActiveRecord::Tasks::DatabaseTasks.migration_connection.migration_context.run(
         :down,
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
