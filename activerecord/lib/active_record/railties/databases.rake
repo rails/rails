@@ -493,16 +493,11 @@ db_namespace = namespace :db do
     namespace :cache do
       desc "Creates a db/schema_cache.yml file."
       task dump: :load_config do
-        ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-            db_config.name,
-            schema_cache_path: db_config.schema_cache_path,
-          )
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
-            ActiveRecord::Base.connection,
-            filename,
-          )
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each do |conn|
+          db_config = conn.pool.db_config
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.name, schema_cache_path: db_config.schema_cache_path)
+
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(conn, filename)
         end
       end
 
