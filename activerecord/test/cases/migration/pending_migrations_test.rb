@@ -6,11 +6,16 @@ module ActiveRecord
   class Migration
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       class PendingMigrationsTest < ActiveRecord::TestCase
+        self.use_transactional_tests = false
+
         setup do
           @migration_dir = Dir.mktmpdir("activerecord-migrations-")
+          @secondary_migration_dir = Dir.mktmpdir("activerecord-migrations-secondary-")
+          @original_configurations = ActiveRecord::Base.configurations
+          ActiveRecord::Base.configurations = base_config
+          ActiveRecord::Base.establish_connection(:primary)
 
           file = ActiveRecord::Base.connection.raw_connection.filename
-          @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:", migrations_paths: @migration_dir
           source_db = SQLite3::Database.new file
           dest_db = ActiveRecord::Base.connection.raw_connection
           backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
@@ -23,9 +28,10 @@ module ActiveRecord
         end
 
         teardown do
-          @conn.release_connection if @conn
-          ActiveRecord::Base.establish_connection :arunit
+          ActiveRecord::Base.configurations = @original_configurations
+          ActiveRecord::Base.establish_connection(:arunit)
           FileUtils.rm_rf(@migration_dir)
+          FileUtils.rm_rf(@secondary_migration_dir)
         end
 
         def run_migrations
@@ -33,9 +39,9 @@ module ActiveRecord
           capture(:stdout) { migrator.migrate }
         end
 
-        def create_migration(number, name)
+        def create_migration(number, name, migration_dir: nil)
           filename = "#{number}_#{name.underscore}.rb"
-          File.write(File.join(@migration_dir, filename), <<~RUBY)
+          File.write(File.join(migration_dir || @migration_dir, filename), <<~RUBY)
             class #{name.classify} < ActiveRecord::Migration::Current
             end
           RUBY
@@ -86,7 +92,7 @@ module ActiveRecord
         def test_understands_migrations_created_out_of_order
           # With a prior file before even initialization
           create_migration "05", "create_bar"
-          run_migrations
+          quietly { run_migrations }
 
           check_pending = CheckPending.new(@app)
 
@@ -100,6 +106,65 @@ module ActiveRecord
             check_pending.call({})
           end
         end
+
+        def test_with_multiple_database
+          create_migration "01", "create_bar", migration_dir: @secondary_migration_dir
+
+          assert_raises ActiveRecord::PendingMigrationError do
+            CheckPending.new(@app).call({})
+          end
+
+          begin
+            ActiveRecord::Base.establish_connection(:secondary)
+            quietly { run_migrations }
+          end
+          ActiveRecord::Base.establish_connection(:primary)
+
+          @app.expect :call, nil, [{}]
+          CheckPending.new(@app).call({})
+          @app.verify
+
+          # Now check exclusion if database_tasks is set to false for the db_config
+          create_migration "02", "create_foo", migration_dir: @secondary_migration_dir
+          assert_raises ActiveRecord::PendingMigrationError do
+            CheckPending.new(@app).call({})
+          end
+
+          new_config = base_config
+          new_config[ActiveRecord::ConnectionHandling::DEFAULT_ENV.call][:secondary][:database_tasks] = false
+          ActiveRecord::Base.configurations = new_config
+
+          @app.expect :call, nil, [{}]
+          CheckPending.new(@app).call({})
+          @app.verify
+        end
+
+        def test_with_stdlib_logger
+          old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
+          quietly do
+            assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new { }).call({}) }
+          end
+        ensure
+          ActiveRecord::Base.logger = old
+        end
+
+        private
+          def base_config
+            {
+              ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
+                primary: {
+                  adapter: "sqlite3",
+                  database: "test/fixtures/fixture_database.sqlite3",
+                  migrations_paths: @migration_dir
+                },
+                secondary: {
+                  adapter: "sqlite3",
+                  database: "test/fixtures/fixture_database.sqlite3",
+                  migrations_paths: @secondary_migration_dir
+                }
+              }
+            }
+          end
       end
     end
   end
