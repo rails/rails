@@ -182,7 +182,6 @@ module ActiveRecord
 
       def create_current(environment = env, name = nil)
         each_current_configuration(environment, name) { |db_config| create(db_config) }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def prepare_all
@@ -345,7 +344,6 @@ module ActiveRecord
 
       def purge_current(environment = env)
         each_current_configuration(environment) { |db_config| purge(db_config) }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def structure_dump(configuration, *arguments)
