@@ -268,10 +268,10 @@ db_namespace = namespace :db do
       desc "Rollback #{name} database for current environment (specify steps w/ STEP=n)."
       task name => :load_config do
         step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
 
-        ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Base.connection.migration_context.rollback(step)
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: Rails.env, name: name) do |conn|
+          conn.migration_context.rollback(step)
+        end
 
         db_namespace["_dump"].invoke
       end
@@ -285,7 +285,7 @@ db_namespace = namespace :db do
 
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
 
-    ActiveRecord::Base.connection.migration_context.rollback(step)
+    ActiveRecord::Tasks::DatabaseTasks.migration_connection.migration_context.rollback(step)
 
     db_namespace["_dump"].invoke
   end
