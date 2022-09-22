@@ -97,10 +97,11 @@ module ActiveRecord
       # QUOTING ==================================================
       #++
 
+      # Quotes strings for use in SQL input.
       def quote_string(string)
-        any_raw_connection.escape(string)
-      rescue Mysql2::Error => error
-        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
+        with_raw_connection(allow_retry: true, uses_transaction: false) do |connection|
+          connection.escape(string)
+        end
       end
 
       #--
