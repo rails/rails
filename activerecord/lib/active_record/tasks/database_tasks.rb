@@ -62,10 +62,10 @@ module ActiveRecord
 
       def check_protected_environments!
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
-          current = ActiveRecord::Base.connection.migration_context.current_environment
-          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
+          current = migration_connection.migration_context.current_environment
+          stored  = migration_connection.migration_context.last_stored_environment
 
-          if ActiveRecord::Base.connection.migration_context.protected_environment?
+          if migration_connection.migration_context.protected_environment?
             raise ActiveRecord::ProtectedEnvironmentError.new(stored)
           end
 
@@ -381,13 +381,12 @@ module ActiveRecord
 
         return true unless file && File.exist?(file)
 
-        ActiveRecord::Base.establish_connection(db_config)
-        connection = ActiveRecord::Base.connection
+        with_temporary_connection(db_config) do |connection|
+          return false unless connection.internal_metadata.enabled?
+          return false unless connection.internal_metadata.table_exists?
 
-        return false unless connection.internal_metadata.enabled?
-        return false unless connection.internal_metadata.table_exists?
-
-        connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+          connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+        end
       end
 
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
@@ -395,17 +394,17 @@ module ActiveRecord
 
         check_schema_file(file) if file
 
-        ActiveRecord::Base.establish_connection(db_config)
-
-        if schema_up_to_date?(db_config, format, file)
-          truncate_tables(db_config)
-        else
-          purge(db_config)
+        with_temporary_connection(db_config) do
+          if schema_up_to_date?(db_config, format, file)
+            truncate_tables(db_config)
+          else
+            purge(db_config)
+            load_schema(db_config, format, file)
+          end
+        rescue ActiveRecord::NoDatabaseError
+          create(db_config)
           load_schema(db_config, format, file)
         end
-      rescue ActiveRecord::NoDatabaseError
-        create(db_config)
-        load_schema(db_config, format, file)
       end
 
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
