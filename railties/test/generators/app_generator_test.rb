@@ -470,6 +470,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
   end
 
+  def test_application_name_is_normalized_in_config
+    run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /<title>MyWebSite<\/title>/
+    assert_file "MyWebSite/config/database.yml", /my_web_site_production/
+  end
+
   def test_gemfile_has_no_whitespace_errors
     run_generator
     absolute = File.expand_path("Gemfile", destination_root)
