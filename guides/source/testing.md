@@ -818,6 +818,15 @@ before system tests run. Plugins and gems can hook into this task to perform oth
 enhancing `test:prepare`:
 
 ```ruby
+namespace :my_plugin do
+  desc "Build your plugin bundle"
+  task :build do
+    unless system "yarn build"
+      raise "my_plugin: Command my_plugin:build failed, ensure yarn is installed and `yarn build` runs without errors"
+    end
+  end
+end
+
 Rake::Task['test:prepare'].enhance(['my_plugin:build'])
 ```
 
