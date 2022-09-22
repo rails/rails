@@ -569,11 +569,10 @@ db_namespace = namespace :db do
       # desc "Empty the #{name} test database"
       namespace :purge do
         task name => %w(load_config check_protected_environments) do
-          original_db_config = ActiveRecord::Base.connection_db_config
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: name)
-          ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
-        ensure
-          ActiveRecord::Base.establish_connection(original_db_config) if original_db_config
+          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: "test", name: name) do |conn|
+            db_config = conn.pool.db_config
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+          end
         end
       end
 
