@@ -83,6 +83,10 @@ module ActiveSupport
     class_attribute :executor, default: Executor
     class_attribute :check, default: lambda { false }
 
+    class << self
+      delegate :error_reporter, to: :executor
+    end
+
     def self.check! # :nodoc:
       @should_reload ||= check.call
     end
