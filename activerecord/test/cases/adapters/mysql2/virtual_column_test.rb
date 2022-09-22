@@ -63,7 +63,7 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
       assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "(?:octet_length|length)\(`name`\)",\s+stored: true$/i, output)
       assert_match(/t\.virtual\s+"name_octet_length",\s+type: :integer,\s+as: "(?:octet_length|length)\(`name`\)",\s+stored: true$/i, output)
       assert_match(/t\.virtual\s+"profile_email",\s+type: :string,\s+as: "json_extract\(`profile`,\w*?'\$\.email'\)", stored: true$/i, output)
-      assert_match(/t\.virtual\s+"time_mirror",\s+type: :datetime,\s+precision: nil,\s+as: "`time`"$/i, output[/^.*time_mirror.*$/])
+      assert_match(/t\.virtual\s+"time_mirror",\s+type: :datetime,\s+as: "`time`"$/i, output[/^.*time_mirror.*$/])
     end
   end
 end
