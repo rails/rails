@@ -190,7 +190,7 @@ db_namespace = namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
 
-      ActiveRecord::Base.connection.migration_context.run(
+      ActiveRecord::Tasks::DatabaseTasks.migration_connection.migration_context.run(
         :up,
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
@@ -203,14 +203,10 @@ db_namespace = namespace :db do
         task name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-
-          ActiveRecord::Base.establish_connection(db_config)
-          ActiveRecord::Tasks::DatabaseTasks.check_target_version
-          ActiveRecord::Base.connection.migration_context.run(
-            :up,
-            ActiveRecord::Tasks::DatabaseTasks.target_version
-          )
+          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: Rails.env, name: name) do |conn|
+            ActiveRecord::Tasks::DatabaseTasks.check_target_version
+            conn.migration_context.run(:up, ActiveRecord::Tasks::DatabaseTasks.target_version)
+          end
 
           db_namespace["_dump"].invoke
         end
@@ -225,7 +221,7 @@ db_namespace = namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
 
-      ActiveRecord::Base.connection.migration_context.run(
+      ActiveRecord::Tasks::Databasetasks.migration_connection.migration_context.run(
         :down,
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
@@ -238,14 +234,10 @@ db_namespace = namespace :db do
         task name => :load_config do
           raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-
-          ActiveRecord::Base.establish_connection(db_config)
-          ActiveRecord::Tasks::DatabaseTasks.check_target_version
-          ActiveRecord::Base.connection.migration_context.run(
-            :down,
-            ActiveRecord::Tasks::DatabaseTasks.target_version
-          )
+          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: Rails.env, name: name) do |conn|
+            ActiveRecord::Tasks::DatabaseTasks.check_target_version
+            conn.migration_context.run(:down, ActiveRecord::Tasks::DatabaseTasks.target_version)
+          end
 
           db_namespace["_dump"].invoke
         end
