@@ -289,7 +289,9 @@ db_namespace = namespace :db do
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task forward: :load_config do
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-    ActiveRecord::Base.connection.migration_context.forward(step)
+
+    ActiveRecord::Tasks::DatabaseTasks.migration_connection.migration_context.forward(step)
+
     db_namespace["_dump"].invoke
   end
 
