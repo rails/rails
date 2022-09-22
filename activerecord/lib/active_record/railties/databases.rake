@@ -321,7 +321,7 @@ db_namespace = namespace :db do
 
   desc "Retrieves the current schema version number"
   task version: :load_config do
-    puts "Current version: #{ActiveRecord::Base.connection.schema_version}"
+    puts "Current version: #{ActiveRecord::Tasks::DatabaseTasks.migration_connection.schema_version}"
   end
 
   # desc "Raises an error if there are pending migrations"
