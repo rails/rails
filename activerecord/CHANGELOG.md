@@ -1,3 +1,10 @@
+*   Use connection from `#with_raw_connection` in `#quote_string`.
+
+    This ensures that the string quoting is wrapped in the reconnect and retry logic
+    that `#with_raw_connection` offers.
+
+    *Adrianna Chang*
+
 *   Add `expires_in` option to `signed_id`.
 
     *Shouichi Kamiya*
