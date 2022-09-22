@@ -2822,6 +2822,33 @@ development:
   use_metadata_table: false
 ```
 
+#### Configuring Retry Behaviour
+
+By default, Rails will automatically reconnect to the database server and retry certain queries
+if something goes wrong. Only safely retryable (idempotent) queries will be retried. The number
+of retries can be specified in your the database configuration via `connection_retries`, or disabled
+by setting the value to 0. The default number of retries is 1.
+
+```yaml
+development:
+  adapter: mysql2
+  connection_retries: 3
+```
+
+The database config also allows a `retry_deadline` to be configured. If a `retry_deadline` is configured,
+an otherwise-retryable query will _not_ be retried if the specified time has elapsed while the query was
+first tried. For example, a `retry_deadline` of 5 seconds means that if 5 seconds have passed since a query
+was first attempted, we won't retry the query, even if it is idempotent and there are `connection_retries` left.
+
+This value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed.
+The value for this config should be specified in seconds.
+
+```yaml
+development:
+  adapter: mysql2
+  retry_deadline: 5 # Stop retrying queries after 5 seconds
+```
+
 ### Creating Rails Environments
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.

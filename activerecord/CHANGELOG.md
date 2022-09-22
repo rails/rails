@@ -1,3 +1,13 @@
+*   Allow applications to set retry deadline for query retries.
+
+    Building on the work done in #44576 and #44591, we extend the logic that automatically
+    reconnects database connections to take into account a timeout limit. We won't retry
+    a query if a given amount of time has elapsed since the query was first attempted. This
+    value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed,
+    but this can be changed via the `retry_deadline` option in the database config.
+
+    *Adrianna Chang*
+
 *   Fix a case where the query cache can return wrong values. See #46044
 
     *Aaron Patterson*
