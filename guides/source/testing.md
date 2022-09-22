@@ -813,7 +813,15 @@ By default, system tests are run with the Selenium driver, using the Chrome
 browser, and a screen size of 1400x1400. The next section explains how to
 change the default settings.
 
-### Changing the Default Settings
+A `test:prepare` rake task is available to enable the precompilation of assets or other tasks
+before system tests run. Plugins and gems can hook into this task to perform other tasks by
+enhancing `test:prepare`:
+
+```ruby
+Rake::Task['test:prepare'].enhance(['my_plugin:build'])
+```
+
+### Changing the Default settings
 
 Rails makes changing the default settings for system tests very simple. All
 the setup is abstracted away so you can focus on writing your tests.
