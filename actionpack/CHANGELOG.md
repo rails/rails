@@ -1,3 +1,9 @@
+*   Added the `:status` option to `assert_redirected_to` to specify the precise
+    HTTP status of the redirect. Defaults to `:redirect` for backwards
+    compatibility.
+
+    *Jon Dufresne*
+
 *   Rescue `JSON::ParserError` in Cookies JSON deserializer to discards marshal dumps:
 
     Without this change, if `action_dispatch.cookies_serializer` is set to `:json` and
