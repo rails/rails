@@ -330,5 +330,8 @@ Minitest/AssertRaisesWithRegexpArgument:
 Minitest/AssertWithExpectedArgument:
   Enabled: true
 
+Minitest/SkipEnsure:
+  Enabled: true
+
 Minitest/UnreachableAssertion:
   Enabled: true

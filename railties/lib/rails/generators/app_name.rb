@@ -11,22 +11,11 @@ module Rails
         end
 
         def original_app_name
-          @original_app_name ||= defined_app_const_base? ? defined_app_name : (options[:name] || File.basename(destination_root))
+          @original_app_name ||= (options[:name] || File.basename(destination_root))
         end
-
-        def defined_app_name
-          defined_app_const_base.underscore
-        end
-
-        def defined_app_const_base
-          Rails.respond_to?(:application) && defined?(Rails::Application) &&
-            Rails.application.is_a?(Rails::Application) && Rails.application.class.name.chomp("::Application")
-        end
-
-        alias :defined_app_const_base? :defined_app_const_base
 
         def app_const_base
-          @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, "_").squeeze("_").camelize
+          @app_const_base ||= app_name.gsub(/\W/, "_").squeeze("_").camelize
         end
         alias :camelized :app_const_base
 

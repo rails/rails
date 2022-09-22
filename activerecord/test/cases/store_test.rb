@@ -31,6 +31,12 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "37signals.com", @john.homepage
   end
 
+  test "writing store attributes does not update unchanged value" do
+    admin_user = Admin::User.new(homepage: nil)
+    admin_user.homepage = nil
+    assert_equal({}, admin_user.settings)
+  end
+
   test "reading store attributes through accessors with prefix" do
     assert_equal "Quinn", @john.parent_name
     assert_nil @john.parent_birthday

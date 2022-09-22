@@ -169,6 +169,14 @@ module ActiveRecord
         (@config[:connection_retries] || 1).to_i
       end
 
+      def retry_deadline
+        if @config[:retry_deadline]
+          @config[:retry_deadline].to_f
+        else
+          nil
+        end
+      end
+
       def default_timezone
         @default_timezone || ActiveRecord.default_timezone
       end
@@ -582,6 +590,7 @@ module ActiveRecord
       # instead.
       def reconnect!(restore_transactions: false)
         retries_available = connection_retries
+        deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
 
         @lock.synchronize do
           reconnect
@@ -596,8 +605,9 @@ module ActiveRecord
           end
         rescue => original_exception
           translated_exception = translate_exception_class(original_exception, nil, nil)
+          retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-          if retries_available > 0
+          if !retry_deadline_exceeded && retries_available > 0
             retries_available -= 1
 
             if retryable_connection_error?(translated_exception)
@@ -872,7 +882,8 @@ module ActiveRecord
         #
         # If +allow_retry+ is true, a connection-related exception will
         # cause an automatic reconnect and re-run of the block, up to
-        # the connection's configured +connection_retries+ setting.
+        # the connection's configured +connection_retries+ setting
+        # and the configured +retry_deadline+ limit.
         #
         # If +uses_transaction+ is false, the block will be run without
         # ensuring virtual transactions have been materialized in the DB
@@ -901,6 +912,7 @@ module ActiveRecord
             materialize_transactions if uses_transaction
 
             retries_available = allow_retry ? connection_retries : 0
+            deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
             reconnectable = reconnect_can_restore_state?
 
             if @verified
@@ -927,8 +939,9 @@ module ActiveRecord
               result
             rescue => original_exception
               translated_exception = translate_exception_class(original_exception, nil, nil)
+              retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-              if retries_available > 0
+              if !retry_deadline_exceeded && retries_available > 0
                 retries_available -= 1
 
                 if retryable_query_error?(translated_exception)

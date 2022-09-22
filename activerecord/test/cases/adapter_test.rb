@@ -651,6 +651,45 @@ module ActiveRecord
         assert_operator Post.count, :>, 0
       end
 
+      test "can reconnect and retry queries under limit when retry deadline is set" do
+        attempts = 0
+        @connection.stub(:retry_deadline, 0.1) do
+          @connection.send(:with_raw_connection, allow_retry: true) do
+            if attempts == 0
+              attempts += 1
+              raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
+            end
+          end
+        end
+      end
+
+      test "does not reconnect and retry queries when retries are disabled" do
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          attempts = 0
+          @connection.send(:with_raw_connection) do
+            if attempts == 0
+              attempts += 1
+              raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
+            end
+          end
+        end
+      end
+
+      test "does not reconnect and retry queries that exceed retry deadline" do
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          attempts = 0
+          @connection.stub(:retry_deadline, 0.1) do
+            @connection.send(:with_raw_connection, allow_retry: true) do
+              if attempts == 0
+                sleep(0.2)
+                attempts += 1
+                raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
+              end
+            end
+          end
+        end
+      end
+
       private
         def raw_transaction_open?(connection)
           case connection.class::ADAPTER_NAME
