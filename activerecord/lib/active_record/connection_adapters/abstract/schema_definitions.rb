@@ -419,12 +419,6 @@ module ActiveRecord
           end
         end
 
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
-          end
-        end
-
         @columns_hash[name] = new_column_definition(name, type, **options)
 
         if index
@@ -491,6 +485,13 @@ module ActiveRecord
           type = integer_like_primary_key_type(type, options)
         end
         type = aliased_types(type.to_s, type)
+
+        if @conn.supports_datetime_with_precision?
+          if type == :datetime && !options.key?(:precision)
+            options[:precision] = 6
+          end
+        end
+
         options[:primary_key] ||= type == :primary_key
         options[:null] = false if options[:primary_key]
         create_column_definition(name, type, options)

@@ -1,3 +1,17 @@
+*   Use connection from `#with_raw_connection` in `#quote_string`.
+
+    Prior to this change, virtual datetime columns did not have the same
+    default precision as regular datetime columns, resulting in the following
+    being erroneously equivalent:
+
+        t.virtual :name, type: datetime,                 as: "expression"
+        t.virtual :name, type: datetime, precision: nil, as: "expression"
+
+    This change fixes the default precision lookup, so virtual and regular
+    datetime column default precisions match.
+
+    *Sam Bostock*
+
 *   Fix a case where the query cache can return wrong values. See #46044
 
     *Aaron Patterson*
@@ -105,21 +119,21 @@
 
     This adds two new configuration options The configuration options are as
     follows:
-    
+
     * `config.active_record.use_yaml_unsafe_load`
-    
+
     When set to true, this configuration option tells Rails to use the old
     "unsafe" YAML loading strategy, maintaining the existing behavior but leaving
     the possible escalation vulnerability in place.  Setting this option to true
     is *not* recommended, but can aid in upgrading.
-    
+
     * `config.active_record.yaml_column_permitted_classes`
-    
+
     The "safe YAML" loading method does not allow all classes to be deserialized
     by default.  This option allows you to specify classes deemed "safe" in your
     application.  For example, if your application uses Symbol and Time in
     serialized data, you can add Symbol and Time to the allowed list as follows:
-    
+
     ```
     config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
     ```
