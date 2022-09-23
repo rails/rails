@@ -1,3 +1,10 @@
+*   Add table to error for duplicate column definitions.
+
+    If a migration defines duplicate columns for a table, the error message
+    shows which table it concerns.
+
+    *Petrik de Heus*
+
 *   Fix erroneous nil default precision on virtual datetime columns.
 
     Prior to this change, virtual datetime columns did not have the same
