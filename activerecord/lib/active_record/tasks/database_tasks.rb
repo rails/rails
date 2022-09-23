@@ -514,16 +514,20 @@ module ActiveRecord
       end
 
       def with_temporary_connection(db_config) # :nodoc:
-        original_db_config = ActiveRecord::Base.connection_db_config
-        pool = ActiveRecord::Base.establish_connection(db_config)
+        original_db_config = migration_class.connection_db_config
+        pool = migration_class.establish_connection(db_config)
 
         yield pool.connection
       ensure
-        ActiveRecord::Base.establish_connection(original_db_config)
+        migration_class.establish_connection(original_db_config)
+      end
+
+      def migration_class
+        ActiveRecord::Base
       end
 
       def migration_connection # :nodoc:
-        @connection = ActiveRecord::Base.connection
+        migration_class.connection
       end
 
       private
