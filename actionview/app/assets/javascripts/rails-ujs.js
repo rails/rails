@@ -27,12 +27,11 @@ Released under the MIT license
     return nonce = metaTag && metaTag.content;
   };
   const cspNonce = () => nonce || loadCSPNonce();
-  const m = Element.prototype.matches || Element.prototype.matchesSelector || Element.prototype.mozMatchesSelector || Element.prototype.msMatchesSelector || Element.prototype.oMatchesSelector || Element.prototype.webkitMatchesSelector;
   const matches = function(element, selector) {
     if (selector.exclude) {
-      return m.call(element, selector.selector) && !m.call(element, selector.exclude);
+      return element.matches(selector.selector) && !element.matches(selector.exclude);
     } else {
-      return m.call(element, selector);
+      return element.matches(selector);
     }
   };
   const EXPANDO = "_ujsData";
