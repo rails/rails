@@ -18,7 +18,7 @@ module ActiveRecord
         @key_provider_param = key_provider
         @key = key
         @deterministic = deterministic
-        @downcase = downcase
+        @downcase = downcase || ignore_case
         @upcase = upcase
         @ignore_case = ignore_case
         @previous_schemes_param = previous_schemes
