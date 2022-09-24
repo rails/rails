@@ -242,7 +242,14 @@ end
 
 They will also work when combining encrypted and unencrypted data, and when configuring previous encryption schemes.
 
-NOTE: If you want to ignore case, make sure to use `downcase:` or `ignore_case:` in the `encrypts` declaration. Using the `case_sensitive:` option in the validation won't work.
+NOTE: If you want to ignore case, make sure to use `downcase:` or `ignore_case:` in the `encrypts` declaration. Using the `case_sensitive:` option in the validation won't work. This also applies to the use of `upcase`.
+
+```ruby
+class Person
+  validates :vehicle_identification_number, uniqueness: true
+  encrypts :vehicle_identification_number, deterministic: true, upcase: true
+end
+```
 
 #### Unique Indexes
 
