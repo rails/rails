@@ -30,7 +30,7 @@ module ActiveRecord
             @downcase = nil
             @upcase = ignore_case
           else
-            @downcase = ignor_case
+            @downcase = ignore_case
             @upcase = nil
           end
         end
