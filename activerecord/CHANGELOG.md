@@ -1,3 +1,13 @@
+*   Add `upcase` option for deterministically encrypted case insensitive unique constraints
+
+    Unique constraints for case insensitive deterministically encrypted columns only had
+    the option to `downcase` the field (which works well for email columns). This change
+    adds the `upcase` option for columns that should be case insensitively unique but
+    naturally exist as upcased (like a license plate number or vin) while removing the
+    need to store the case information separately.
+
+    *Alex Taujenis*
+
 *   Add table to error for duplicate column definitions.
 
     If a migration defines duplicate columns for a table, the error message

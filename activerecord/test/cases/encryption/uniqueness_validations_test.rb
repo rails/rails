@@ -5,20 +5,37 @@ require "models/book_encrypted"
 require "models/author_encrypted"
 
 class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::EncryptionTestCase
-  test "uniqueness validations work" do
+  test "uniqueness validations work when using downcase" do
     EncryptedBookWithDowncaseName.create!(name: "dune")
     assert_raises ActiveRecord::RecordInvalid do
       EncryptedBookWithDowncaseName.create!(name: "dune")
     end
   end
 
-  test "uniqueness validations work when mixing encrypted an unencrypted data" do
+  test "uniqueness validations work when using upcase" do
+    EncryptedBookWithUpcaseName.create!(name: "dune")
+    assert_raises ActiveRecord::RecordInvalid do
+      EncryptedBookWithUpcaseName.create!(name: "dune")
+    end
+  end
+
+  test "uniqueness validations work when mixing encrypted an unencrypted data when using downcase" do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
 
     ActiveRecord::Encryption.without_encryption { EncryptedBookWithDowncaseName.create! name: "dune" }
 
     assert_raises ActiveRecord::RecordInvalid do
       EncryptedBookWithDowncaseName.create!(name: "dune")
+    end
+  end
+
+  test "uniqueness validations work when mixing encrypted an unencrypted data when using upcase" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = true
+
+    ActiveRecord::Encryption.without_encryption { EncryptedBookWithUpcaseName.create! name: "dune" }
+
+    assert_raises ActiveRecord::RecordInvalid do
+      EncryptedBookWithUpcaseName.create!(name: "dune")
     end
   end
 

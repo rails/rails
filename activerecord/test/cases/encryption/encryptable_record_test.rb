@@ -183,6 +183,18 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert EncryptedBookWithDowncaseName.find_by_name("dune")
   end
 
+  test "when using upcase: true it ignores case since everything will be upcase" do
+    EncryptedBookWithUpcaseName.create!(name: "Dune")
+    assert EncryptedBookWithUpcaseName.find_by(name: "Dune")
+    assert EncryptedBookWithUpcaseName.find_by(name: "dune")
+    assert EncryptedBookWithUpcaseName.find_by(name: "DUNE")
+  end
+
+  test "when upcase: true it creates content upcased" do
+    EncryptedBookWithUpcaseName.create!(name: "Dune")
+    assert EncryptedBookWithUpcaseName.find_by_name("DUNE")
+  end
+
   test "when ignore_case: true, it ignores case in queries but keep it when reading the attribute" do
     EncryptedBookThatIgnoresCase.create!(name: "Dune")
     book = EncryptedBookThatIgnoresCase.find_by_name("dune")

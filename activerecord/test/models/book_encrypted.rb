@@ -17,6 +17,13 @@ class EncryptedBookWithDowncaseName < ActiveRecord::Base
   encrypts :name, deterministic: true, downcase: true
 end
 
+class EncryptedBookWithUpcaseName < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  validates :name, uniqueness: true
+  encrypts :name, deterministic: true, upcase: true
+end
+
 class EncryptedBookThatIgnoresCase < ActiveRecord::Base
   self.table_name = "encrypted_books"
 
