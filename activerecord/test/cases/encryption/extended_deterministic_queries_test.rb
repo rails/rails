@@ -25,6 +25,11 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     assert EncryptedBookWithDowncaseName.find_by(name: "DUNE")
   end
 
+  test "Works well with upcased attributes" do
+    ActiveRecord::Encryption.without_encryption { EncryptedBookWithUpcaseName.create! name: "Dune" }
+    assert EncryptedBookWithUpcaseName.find_by(name: "dune")
+  end
+
   test "find_or_create works" do
     EncryptedBook.find_or_create_by!(name: "Dune")
     assert EncryptedBook.find_by(name: "Dune")

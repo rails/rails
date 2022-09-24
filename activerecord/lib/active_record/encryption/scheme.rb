@@ -10,7 +10,7 @@ module ActiveRecord
     class Scheme
       attr_accessor :previous_schemes
 
-      def initialize(key_provider: nil, key: nil, deterministic: nil, downcase: nil, ignore_case: nil,
+      def initialize(key_provider: nil, key: nil, deterministic: nil, downcase: nil, upcase: nil, ignore_case: nil,
                      previous_schemes: nil, **context_properties)
         # Initializing all attributes to +nil+ as we want to allow a "not set" semantics so that we
         # can merge schemes without overriding values with defaults. See +#merge+
@@ -19,6 +19,7 @@ module ActiveRecord
         @key = key
         @deterministic = deterministic
         @downcase = downcase || ignore_case
+        @upcase = upcase || ignore_case
         @ignore_case = ignore_case
         @previous_schemes_param = previous_schemes
         @previous_schemes = Array.wrap(previous_schemes)
@@ -33,6 +34,10 @@ module ActiveRecord
 
       def downcase?
         @downcase
+      end
+
+      def upcase?
+        @upcase
       end
 
       def deterministic?
@@ -53,7 +58,7 @@ module ActiveRecord
       end
 
       def to_h
-        { key_provider: @key_provider_param, key: @key, deterministic: @deterministic, downcase: @downcase, ignore_case: @ignore_case,
+        { key_provider: @key_provider_param, key: @key, deterministic: @deterministic, downcase: @downcase, upcase: @upcase, ignore_case: @ignore_case,
           previous_schemes: @previous_schemes_param, **@context_properties }.compact
       end
 
@@ -69,6 +74,7 @@ module ActiveRecord
         def validate_config!
           raise Errors::Configuration, "ignore_case: can only be used with deterministic encryption" if @ignore_case && !@deterministic
           raise Errors::Configuration, "key_provider: and key: can't be used simultaneously" if @key_provider_param && @key
+          raise Errors::Configuration, "downcase: and upcase: can't be used simultaneously" if @downcase && @upcase
         end
 
         def build_key_provider

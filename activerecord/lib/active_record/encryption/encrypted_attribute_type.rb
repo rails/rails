@@ -12,7 +12,7 @@ module ActiveRecord
 
       attr_reader :scheme, :cast_type
 
-      delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
+      delegate :key_provider, :downcase?, :upcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
       delegate :accessor, to: :cast_type
 
       # === Options
@@ -115,7 +115,11 @@ module ActiveRecord
 
         def serialize_with_current(value)
           casted_value = cast_type.serialize(value)
-          casted_value = casted_value&.downcase if downcase?
+          if downcase?
+            casted_value = casted_value&.downcase
+          elsif upcase?
+            casted_value = casted_value&.upcase
+          end
           encrypt(casted_value.to_s) unless casted_value.nil?
         end
 
@@ -142,7 +146,7 @@ module ActiveRecord
         end
 
         def clean_text_scheme
-          @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
+          @clean_text_scheme ||= ActiveRecord::Encryption::Scheme.new(downcase: downcase?, upcase: upcase?, encryptor: ActiveRecord::Encryption::NullEncryptor.new)
         end
     end
   end
