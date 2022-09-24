@@ -18,9 +18,23 @@ module ActiveRecord
         @key_provider_param = key_provider
         @key = key
         @deterministic = deterministic
-        @downcase = downcase || ignore_case
+
+        # If ignore_case is true, then the downcase or upcase option needs to be set to true
+        # (to actually perform case insensitive matches). This selects downcase as the default
+        # method for case insensitivity.
+        @downcase = downcase
         @upcase = upcase
         @ignore_case = ignore_case
+        if ignore_case
+          if upcase
+            @downcase = false
+            @upcase = true
+          else
+            @downcase = true
+            @upcase = false
+          end
+        end
+
         @previous_schemes_param = previous_schemes
         @previous_schemes = Array.wrap(previous_schemes)
         @context_properties = context_properties
