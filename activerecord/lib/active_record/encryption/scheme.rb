@@ -27,11 +27,11 @@ module ActiveRecord
         @ignore_case = ignore_case
         if ignore_case
           if upcase
-            @downcase = false
-            @upcase = true
+            @downcase = nil
+            @upcase = ignore_case
           else
-            @downcase = true
-            @upcase = false
+            @downcase = ignor_case
+            @upcase = nil
           end
         end
 
