@@ -197,7 +197,7 @@
     isActive() {
       return this.isState("open", "connecting");
     }
-    reconnectAttempted() {
+    triedToReconnect() {
       return this.monitor.reconnectAttempts > 0;
     }
     isProtocolSupported() {
@@ -237,6 +237,9 @@
       const {identifier: identifier, message: message, reason: reason, reconnect: reconnect, type: type} = JSON.parse(event.data);
       switch (type) {
        case message_types.welcome:
+        if (this.triedToReconnect()) {
+          this.reconnectAttempted = true;
+        }
         this.monitor.recordConnect();
         return this.subscriptions.reload();
 
@@ -251,9 +254,16 @@
 
        case message_types.confirmation:
         this.subscriptions.confirmSubscription(identifier);
-        return this.subscriptions.notify(identifier, "connected", {
-          reconnected: this.reconnectAttempted()
-        });
+        if (this.reconnectAttempted) {
+          this.reconnectAttempted = false;
+          return this.subscriptions.notify(identifier, "connected", {
+            reconnected: true
+          });
+        } else {
+          return this.subscriptions.notify(identifier, "connected", {
+            reconnected: false
+          });
+        }
 
        case message_types.rejection:
         return this.subscriptions.reject(identifier);
