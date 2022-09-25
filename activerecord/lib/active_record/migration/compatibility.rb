@@ -61,6 +61,13 @@ module ActiveRecord
           super
         end
 
+        def change_column(table_name, column_name, type, **options)
+          if connection.adapter_name == "Mysql2"
+            options[:collation] = :no_collation
+          end
+          super
+        end
+
         def change_column_null(table_name, column_name, null, default = nil)
           super(table_name, column_name, !!null, default)
         end
