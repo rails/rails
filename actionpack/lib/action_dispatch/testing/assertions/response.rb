@@ -55,7 +55,7 @@ module ActionDispatch
       #   # Permanently).
       #   assert_redirected_to "/some/path", status: :moved_permanently
       def assert_redirected_to(url_options = {}, options = {}, message = nil)
-        options, message = message, nil if message.is_a?(Hash) && options.empty?
+        options, message = {}, options unless options.is_a?(Hash)
 
         status = options[:status] || :redirect
         assert_response(status, message)
