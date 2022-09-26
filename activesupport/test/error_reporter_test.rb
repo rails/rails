@@ -178,6 +178,24 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal :error, @subscriber.events.dig(0, 2)
   end
 
+  test "report errors only once" do
+    assert_difference -> { @subscriber.events.size }, +1 do
+      @reporter.report(@error, handled: false)
+    end
+
+    assert_no_difference -> { @subscriber.events.size } do
+      3.times do
+        @reporter.report(@error, handled: false)
+      end
+    end
+  end
+
+  test "can report frozen exceptions" do
+    assert_difference -> { @subscriber.events.size }, +1 do
+      @reporter.report(@error.freeze, handled: false)
+    end
+  end
+
   class FailingErrorSubscriber
     Error = Class.new(StandardError)
 
