@@ -442,6 +442,14 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     }
   end
 
+  def test_assert_redirection_with_custom_message
+    error = assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_redirected_to "http://test.host/some/path", "wrong redirect"
+    end
+
+    assert_equal("wrong redirect", error.message)
+  end
+
   def test_assert_redirection_with_status
     process :redirect_to_path
     assert_redirected_to "http://test.host/some/path", status: :found
