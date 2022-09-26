@@ -1,3 +1,12 @@
+*   Allow any ERB in the database.yml when creating rake tasks.
+
+    Any ERB can be used in `database.yml` even if it accesses environment
+    configurations.
+
+    Deprecates `config.active_record.suppress_multiple_database_warning`.
+
+    *Eike Send*
+
 *   Add table to error for duplicate column definitions.
 
     If a migration defines duplicate columns for a table, the error message
