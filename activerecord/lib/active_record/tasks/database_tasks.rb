@@ -181,10 +181,10 @@ module ActiveRecord
         seed = false
 
         each_current_configuration(env) do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
+          migration_class.establish_connection(db_config)
 
           begin
-            database_initialized = ActiveRecord::Base.connection.schema_migration.table_exists?
+            database_initialized = migration_connection.schema_migration.table_exists?
           rescue ActiveRecord::NoDatabaseError
             create(db_config)
             retry
@@ -192,21 +192,16 @@ module ActiveRecord
 
           unless database_initialized
             if File.exist?(schema_dump_path(db_config))
-              load_schema(
-                db_config,
-                ActiveRecord.schema_format,
-                nil
-              )
+              load_schema(db_config, ActiveRecord.schema_format, nil)
             end
+
             seed = true
           end
 
           migrate
           dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+          load_seed if seed
         end
-
-        ActiveRecord::Base.establish_connection
-        load_seed if seed
       end
 
       def drop(configuration, *arguments)
