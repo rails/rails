@@ -658,6 +658,20 @@ module ActiveRecord
         end
       end
 
+      if current_adapter?(:Mysql2Adapter)
+        def test_change_column_on_7_0
+          migration = Class.new(ActiveRecord::Migration[7.0]) do
+            def up
+              execute("ALTER TABLE testings CONVERT TO CHARACTER SET utf32")
+              change_column(:testings, :foo, "varchar(255) CHARACTER SET ascii")
+            end
+          end
+          assert_nothing_raised do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          end
+        end
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
