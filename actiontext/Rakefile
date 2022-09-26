@@ -18,4 +18,12 @@ Rake::TestTask.new "test:system" do |t|
   t.verbose = true
 end
 
+namespace :test do
+  task :isolated do
+    FileList["test/**/*_test.rb"].exclude("test/system/**/*", "test/dummy/**/*").all? do |file|
+      sh(Gem.ruby, "-w", "-Ilib", "-Itest", file)
+    end || raise("Failures")
+  end
+end
+
 task default: :test
