@@ -1,3 +1,12 @@
+*   Added `blob_url` to the response of direct uploads API
+
+    Add `blob_url` to the response of the `create` action of the
+    `ActiveStorage::DirectUploadsController`. This will remove the need for
+    another API to fetch the URL of the uploaded blob to be rendered in the
+    frontend.
+
+    *Abhay V Ashokan*
+
 *   Touch all corresponding model records after ActiveStorage::Blob is analyzed
 
     This fixes a race condition where a record can be requested and have a cache entry built, before
