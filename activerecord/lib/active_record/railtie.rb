@@ -34,6 +34,7 @@ module ActiveRecord
     config.active_record.sqlite3_production_warning = true
     config.active_record.query_log_tags_enabled = false
     config.active_record.query_log_tags = [ :application ]
+    config.active_record.query_log_tags_format = :legacy
     config.active_record.cache_query_log_tags = false
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
@@ -244,6 +245,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :shard_resolver,
           :query_log_tags_enabled,
           :query_log_tags,
+          :query_log_tags_format,
           :cache_query_log_tags,
           :sqlite3_production_warning,
           :sqlite3_adapter_strict_strings_by_default,
@@ -384,7 +386,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveRecord.query_transformers << ActiveRecord::QueryLogs
           ActiveRecord::QueryLogs.taggings.merge!(
             application:  Rails.application.class.name.split("::").first,
-            pid:          -> { Process.pid },
+            pid:          -> { Process.pid.to_s },
             socket:       -> { ActiveRecord::Base.connection_db_config.socket },
             db_host:      -> { ActiveRecord::Base.connection_db_config.host },
             database:     -> { ActiveRecord::Base.connection_db_config.database }
@@ -392,6 +394,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
           if app.config.active_record.query_log_tags.present?
             ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags
+          end
+
+          if app.config.active_record.query_log_tags_format.present?
+            ActiveRecord::QueryLogs.update_formatter(app.config.active_record.query_log_tags_format)
           end
 
           if app.config.active_record.cache_query_log_tags

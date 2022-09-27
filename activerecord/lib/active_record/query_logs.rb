@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors_per_thread"
+require "active_record/query_logs_formatter"
 
 module ActiveRecord
   # = Active Record Query Logs
@@ -73,6 +74,7 @@ module ActiveRecord
     mattr_accessor :tags, instance_accessor: false, default: [ :application ]
     mattr_accessor :prepend_comment, instance_accessor: false, default: false
     mattr_accessor :cache_query_log_tags, instance_accessor: false, default: false
+    mattr_accessor :tags_formatter, instance_accessor: false
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
     class << self
@@ -88,6 +90,11 @@ module ActiveRecord
         self.cached_comment = nil
       end
 
+      # Updates the formatter to be what the passed in format is.
+      def update_formatter(format = :legacy)
+        self.tags_formatter = QueryLogs::FormatterFactory.from_symbol(format)
+      end
+
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
 
       private
@@ -99,6 +106,10 @@ module ActiveRecord
           else
             uncached_comment
           end
+        end
+
+        def formatter
+          self.tags_formatter ||= QueryLogs::FormatterFactory.from_symbol(:legacy)
         end
 
         def uncached_comment
@@ -130,7 +141,7 @@ module ActiveRecord
             else
               handler
             end
-            "#{key}:#{val}" unless val.nil?
+            "#{key}#{self.formatter.key_value_separator}#{self.formatter.format_value(val)}" unless val.nil?
           end.join(",")
         end
     end
