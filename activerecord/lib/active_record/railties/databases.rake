@@ -535,14 +535,14 @@ db_namespace = namespace :db do
 
   namespace :encryption do
     desc "Generate a set of keys for configuring Active Record encryption in a given environment"
-    task :init do
+    task :init, :primary_key_bytesize, :deterministic_key_bytesize, :key_derivation_salt_bytesize do |t, args|
       puts <<~MSG
         Add this entry to the credentials of the target environment:#{' '}
 
         active_record_encryption:
-          primary_key: #{SecureRandom.alphanumeric(32)}
-          deterministic_key: #{SecureRandom.alphanumeric(32)}
-          key_derivation_salt: #{SecureRandom.alphanumeric(32)}
+          primary_key: #{SecureRandom.alphanumeric(args[:primary_key_bytesize].presence&.to_i || 32)}
+          deterministic_key: #{SecureRandom.alphanumeric(args[:deterministic_key_bytesize].presence&.to_i || 32)}
+          key_derivation_salt: #{SecureRandom.alphanumeric(args[:key_derivation_salt_bytesize].presence&.to_i || 32)}
       MSG
     end
   end

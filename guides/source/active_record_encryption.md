@@ -43,6 +43,18 @@ active_record_encryption:
 
 NOTE: These generated values are 32 bytes in length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the primary key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
 
+You can also pass arguments to the `bin/rails db:encryption:init` rake task to chose the bytesize of your keys. For example, if you want the `primary_key` and the `deterministic_key` to be **64 bytes**; and the `key_derivation_salt` to be **32 bytes**, you can run the following command:
+
+```bash
+$ bin/rails "db:encryption:init[64,64,32]"
+Add this entry to the credentials of the target environment:
+
+active_record_encryption:
+  primary_key: kkBkJb6LBYCgITxu80LW4KU3c8Pm4zSF7CknrE836pGsBVMrtAoENNFya3pDzASK
+  deterministic_key: rFOHbNpRsvaSqYSuhyRGiWFKPMzjb9wdqfRLQZnCkheVcQjidVR7bn6diUJIjtls
+  key_derivation_salt: TV2LerVWCeShYxSFjjzAs9pJzx77GNJp
+```
+
 ### Declaration of Encrypted Attributes
 
 Encryptable attributes are defined at the model level. These are regular Active Record attributes backed by a column with the same name.
