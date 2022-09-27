@@ -1,6 +1,6 @@
 <header>
   <h1>
-    <%= @exception_wrapper.exception_class.to_s %>
+    <%= @exception_wrapper.exception_class_name %>
     <% if params_valid? && @request.parameters['controller'] %>
       in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
     <% end %>
@@ -21,7 +21,7 @@
   <% @exception_wrapper.wrapped_causes.each.with_index(1) do |wrapper, index| %>
     <div class="details">
       <a class="summary" href="#" onclick="return toggle(<%= wrapper.exception_id %>)">
-        <%= wrapper.exception_class.name %>: <%= h wrapper.message %>
+        <%= wrapper.exception_class_name %>: <%= h wrapper.message %>
       </a>
     </div>
 

@@ -139,7 +139,7 @@ module ActionDispatch
 
         message = []
         message << "  "
-        message << "#{wrapper.exception_class} (#{wrapper.message}):"
+        message << "#{wrapper.exception_class_name} (#{wrapper.message}):"
         message.concat(wrapper.annotated_source_code)
         message << "  "
         message.concat(trace)

@@ -41,7 +41,7 @@ module ActionDispatch
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ]
 
-    attr_reader :backtrace_cleaner, :wrapped_causes
+    attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
@@ -70,10 +70,6 @@ module ActionDispatch
 
     def failures
       @exception.failures
-    end
-
-    def exception_class
-      @exception.class
     end
 
     def has_corrections?
