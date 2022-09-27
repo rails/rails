@@ -34,16 +34,16 @@ module ActionDispatch
 
       response
     rescue Exception => exception
-      invoke_interceptors(request, exception)
+      backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+
+      invoke_interceptors(request, exception, wrapper)
       raise exception unless request.show_exceptions?
-      render_exception(request, exception)
+      render_exception(request, exception, wrapper)
     end
 
     private
-      def invoke_interceptors(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-
+      def invoke_interceptors(request, exception, wrapper)
         @interceptors.each do |interceptor|
           interceptor.call(request, exception)
         rescue Exception
@@ -51,9 +51,7 @@ module ActionDispatch
         end
       end
 
-      def render_exception(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+      def render_exception(request, exception, wrapper)
         log_error(request, wrapper)
 
         if request.get_header("action_dispatch.show_detailed_exceptions")
