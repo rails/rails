@@ -41,7 +41,7 @@ module ActionDispatch
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ]
 
-    attr_reader :backtrace_cleaner, :exception, :wrapped_causes
+    attr_reader :backtrace_cleaner, :wrapped_causes
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
@@ -50,6 +50,14 @@ module ActionDispatch
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
 
       expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
+    end
+
+    def routing_error?
+      @exception.is_a?(ActionController::RoutingError)
+    end
+
+    def template_error?
+      @exception.is_a?(ActionView::Template::Error)
     end
 
     def sub_template_message
@@ -97,6 +105,14 @@ module ActionDispatch
         @exception.cause
       else
         @exception
+      end
+    end
+
+    def annotated_source_code
+      if exception.respond_to?(:annotated_source_code)
+        exception.annotated_source_code
+      else
+        []
       end
     end
 
@@ -196,7 +212,17 @@ module ActionDispatch
       exception.message
     end
 
+    def exception_inspect
+      exception.inspect
+    end
+
+    def exception_id
+      exception.object_id
+    end
+
     private
+      attr_reader :exception
+
       def backtrace
         backtrace_locations = @exception.backtrace_locations
         backtrace = @exception.backtrace

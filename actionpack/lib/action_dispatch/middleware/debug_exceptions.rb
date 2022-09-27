@@ -94,7 +94,7 @@ module ActionDispatch
             wrapper.status_code,
             Rack::Utils::HTTP_STATUS_CODES[500]
           ),
-          exception: wrapper.exception.inspect,
+          exception: wrapper.exception_inspect,
           traces: wrapper.traces
         }
 
@@ -119,7 +119,7 @@ module ActionDispatch
           traces: wrapper.traces,
           show_source_idx: wrapper.source_to_show_id,
           trace_to_show: wrapper.trace_to_show,
-          routes_inspector: routes_inspector(wrapper.exception),
+          routes_inspector: routes_inspector(wrapper),
           source_extracts: wrapper.source_extracts,
           error_highlight_available: wrapper.error_highlight_available?
         )
@@ -135,13 +135,12 @@ module ActionDispatch
         return unless logger
         return if !log_rescued_responses?(request) && wrapper.rescue_response?
 
-        exception = wrapper.exception
         trace = wrapper.exception_trace
 
         message = []
         message << "  "
-        message << "#{exception.class} (#{exception.message}):"
-        message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
+        message << "#{wrapper.exception_class} (#{wrapper.message}):"
+        message.concat(wrapper.annotated_source_code)
         message << "  "
         message.concat(trace)
 
@@ -167,7 +166,7 @@ module ActionDispatch
       end
 
       def routes_inspector(exception)
-        if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
+        if @routes_app.respond_to?(:routes) && (exception.routing_error? || exception.template_error?)
           ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
         end
       end
