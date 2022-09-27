@@ -8,24 +8,18 @@ This guide introduces ways to manage exceptions that occur in Ruby on Rails appl
 After reading this guide, you will know:
 
 * How to use Rails' error reporter to capture and report errors.
-
-(Because error reporting libraries are mainly for production use, this guide is mostly for production environment too.
-However, you may want to test related setup in development by temporarily activating the libraries locally.)
+* How to create custom subscribers for your error-reporting service.
 
 --------------------------------------------------------------------------------
 
-Error Reporter
+Error Reporting
 ------------------------
 
-The [error reporter](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html) collects exceptions occur in Ruby on Rails applications and reports them to registered subscribers.
+The Rails [error reporter](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html) provides a standard way to collect exceptions that occur in your application and report them to your preferred service or location.
 
-The goals are to
+The error reporter aims to replace boilerplate error-handling code like this:
 
-1. Automatically capture and report any unhandled exception from a controller or a job.
-
-2. Replace such manual rescue in applications and libraries
-
-```rb
+```ruby
 begin
   do_something
 rescue SomethingIsBroken => error
@@ -33,28 +27,29 @@ rescue SomethingIsBroken => error
 end
 ```
 
-with
+with a consistent interface:
 
-```rb
+```ruby
 Rails.error.handle(SomethingIsBroken) do
   do_something
 end
 ```
 
-This approach provides several benefits:
+Rails wraps all executions (such as HTTP requests, jobs, and `rails runner` invocations) in the error reporter, so any unhandled errors raised in your app will automatically be reported to your error-reporting service via their subscribers.
 
-* Application or error reporting libraries don't need to insert a Rack middleware to capture unhandled exceptions from requests anymore.
-* To ActiveSupport-aware libraries, this can be used to report errors to the host application.
-* It decouples application code from error reporting libraries.
-* It reduces boilerplate code for handling exceptions.
-* Error reporting libraries will need less monkey-patches and be less intrusive to applications.
+This means that third-party error-reporting libraries no longer need to insert a Rack middleware or do any monkey-patching to capture unhandled exceptions. Libraries that use ActiveSupport can also use this to non-intrusively report warnings that would previously have been lost in logs.
 
-### Subscribe To The Reporter
+Using the Rails' error reporter is not required. All other means of capturing errors still work.
 
-An error subscriber is expected to have a `report` method that takes an exception object and a few options.
-For example:
+### Subscribing to the Reporter
 
-```rb
+To use the error reporter, you need a _subscriber_. A subscriber is any object with a `report` method. When an error occurs in your application or is manually reported, the Rails error reporter will call this method with the error object and some options.
+
+Some error-reporting libraries, such as [Sentry's](https://github.com/getsentry/sentry-ruby/blob/e18ce4b6dcce2ebd37778c1e96164684a1e9ebfc/sentry-rails/lib/sentry/rails/error_subscriber.rb) and [Honeybadger's](https://docs.honeybadger.io/lib/ruby/integration-guides/rails-exception-tracking/), automatically register a subscriber for you. Consult your provider's documentation for more details.
+
+You may also create a custom subscriber. For example:
+
+```ruby
 # config/initializers/error_subscriber.rb
 class ErrorSubscriber
   def report(error, handled:, severity:, context:, source: nil)
@@ -63,55 +58,55 @@ class ErrorSubscriber
 end
 ```
 
-After defining the subscriber class, you can register its instance with the [`#subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-subscribe) method:
+After defining the subscriber class, register it by calling [`Rails.error.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-subscribe) method:
 
-```rb
+```ruby
 Rails.error.subscribe(ErrorSubscriber.new)
 ```
 
-To test the error subscriber, try this in Rails console:
+You can register as many subscribers as you wish. Rails will call them in turn, in the order in which they were registered.
 
-```
-irb(main):001:0> Rails.error.handle { raise }
-```
+Note: The Rails error-reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
 
-And see if the error is reported to the service you use.
+### Using the Error Reporter
 
-#### Libraries Subscribe To Rails Reporter
+There are three ways you can use the error reporter:
 
-Some libraries may provide their own subscriber classes. Please check their documentation for more information.
+#### Reporting and swallowing errors
+[`Rails.error.handle`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-handle) will report any error raised within the block. It will then **swallow** the error, and the rest of your code outside the block will continue as normal.
 
-- [Sentry](https://sentry.io/) ([document](https://github.com/getsentry/sentry-ruby/blob/master/sentry-rails/lib/sentry/rails/error_subscriber.rb))
-
-### Capture and Report Errors
-
-You can wrap your code inside a block with the reporting APIs, which will report the exceptions surface from the block.
-
-To report and **swallow** the error, use [`Rails.error.handle`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-handle):
-
-```rb
-Rails.error.handle do
+```ruby
+result = Rails.error.handle do
   1 + '1' # raises TypeError
 end
+result # => nil
 1 + 1 # This will be executed
 ```
 
-The error will be reported with `handled: true`
+If no error is raised in the block, `Rails.error.handle` will return the result of the block, otherwise it will return `nil`. You can override this by providing a `fallback`:
 
-To report but **not swallow** the error, use [`Rails.error.record`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-record):
+```ruby
+user = Rails.error.handle(fallback: -> { User.anonymous }) do
+  User.find_by(params[:id])
+end
+```
 
-```rb
+#### Reporting and re-raising errors
+[`Rails.error.record`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-record) will report errors to all registered subscribers and then re-raise the error, meaning that the rest of your code won't execute.
+
+```ruby
 Rails.error.record do
   1 + '1' # raises TypeError
 end
 1 + 1 # This won't be executed
 ```
 
-The error will be reported with `handled: false`
+If no error is raised in the block, `Rails.error.record` will return the result of the block.
 
-If you decide to rescue the exception manually, you can also report it with [`Rails.error.report`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-report):
+#### Manually reporting errors
+You can also manually report errors by calling [`Rails.error.report`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-report):
 
-```rb
+```ruby
 begin
   # code
 rescue StandardError => e
@@ -119,37 +114,59 @@ rescue StandardError => e
 end
 ```
 
-#### Options
+Any options you pass will be passed on the error subscribers.
 
-All 3 reporting APIs (`#handle`, `#record`, and `#report`) support the same options:
+### Error-reporting options
 
-- `handled`: a `Boolean` to tell if the error was handled
-- `severity`: a `Symbol` about the severity of the exception. Expected values are: `:error`, `:warning`, and `:info`
-- `context`: a `Hash` to provide more context about the error, like request headers or record attributes
-- `source`: a `String` about the source of the exception. Default is `"application"`
-    - You can use it to skip exceptions from certain sources
+All 3 reporting APIs (`#handle`, `#record`, and `#report`) support the following options, which are then passed along to all registered subscribers:
 
-### Setting Context
+- `handled`: a `Boolean` to indicate if the error was handled. This is set to `true` by default. `#record` sets this to `false`.
+- `severity`: a `Symbol` describing the severity of the error. Expected values are: `:error`, `:warning`, and `:info`. `#handle` sets this to `:warning`, while `#record` sets it to `:error`.
+- `context`: a `Hash` to provide more context about the error, like request or user details
+- `source`: a `String` about the source of the error. The default source is `"application"`. Errors reported by internal libraries may set other sources; the Redis cache library may use `"redis_cache_store.active_support"`, for instance. Your subscriber can use the source to ignore errors you aren't interested in.
 
-In addition to setting context through the `context` option, you can also use the [`#set_context`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-set_context) API. For example:
+```ruby
+Rails.error.handle(context: {user_id: user.id}, severity: :info) do
+  # ...
+end
+```
 
-```rb
+### Filtering by Error Class
+
+With `Rails.error.handle` and `Rails.error.record`, you can also choose to only report errors of a certain class. For example:
+
+```ruby
+Rails.error.handle(IOError) do
+  1 + '1' # raises TypeError
+end
+1 + 1 # TypeErrors are not IOErrors, so this will *not* be executed
+```
+
+Here, the `TypeError` will not be captured by the Rails error reporter. Only instances of  `IOError` and its descendants will be reported. Any other errors will be raised as normal.
+
+### Setting Context Globally
+
+In addition to setting context through the `context` option, you can use the [`#set_context`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-set_context) API. For example:
+
+```ruby
 Rails.error.set_context(section: "checkout", user_id: @user.id)
 ```
 
-The context set this way will be merged with the `context` option
+Any context set this way will be merged with the `context` option
 
-```rb
+```ruby
 Rails.error.set_context(a: 1)
 Rails.error.handle(context: { b: 2 }) { raise }
-# the reported context will be: {:a=>1, :b=>2}
+# The reported context will be: {:a=>1, :b=>2}
+Rails.error.handle(context: { b: 3 }) { raise }
+# The reported context will be: {:a=>1, :b=>3}
 ```
 
 ### For Libraries
 
-Libraries can easily register their subscribers in `Railtie`:
+Error-reporting libraries can register their subscribers in a `Railtie`:
 
-```rb
+```ruby
 module MySdk
   class Railtie < ::Rails::Railtie
     initializer "error_subscribe.my_sdk" do
@@ -158,3 +175,5 @@ module MySdk
   end
 end
 ```
+
+If you register an error subscriber, but still have other error mechanisms like a Rack middleware, you may end up with errors reported multiple times. You should either remove your other mechanisms or adjust your report functionality so it skips reporting an exception it has seen before.
