@@ -166,6 +166,8 @@ module ActiveSupport
     #   Rails.error.report(error)
     #
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
+      return if error.instance_variable_get(:@__rails_error_reported)
+
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
@@ -185,6 +187,10 @@ module ActiveSupport
         else
           raise
         end
+      end
+
+      unless error.frozen?
+        error.instance_variable_set(:@__rails_error_reported, true)
       end
 
       nil
