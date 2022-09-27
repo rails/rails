@@ -41,7 +41,7 @@ module ActionDispatch
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ]
 
-    attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file
+    attr_reader :backtrace_cleaner, :exception, :wrapped_causes
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
@@ -52,11 +52,51 @@ module ActionDispatch
       expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
     end
 
+    def sub_template_message
+      @exception.sub_template_message
+    end
+
+    def has_cause?
+      @exception.cause
+    end
+
+    def failures
+      @exception.failures
+    end
+
+    def exception_class
+      @exception.class
+    end
+
+    def has_corrections?
+      @exception.respond_to?(:original_message) && @exception.respond_to?(:corrections)
+    end
+
+    def original_message
+      @exception.original_message
+    end
+
+    def corrections
+      @exception.corrections
+    end
+
+    def file_name
+      @exception.file_name
+    end
+
+    def line_number
+      @exception.line_number
+    end
+
+    def actions
+      ActiveSupport::ActionableError.actions(@exception)
+    end
+
     def unwrapped_exception
       if wrapper_exceptions.include?(@exception_class_name)
-        exception.cause
+        @exception.cause
       else
-        exception
+        @exception
       end
     end
 
@@ -146,6 +186,14 @@ module ActionDispatch
 
     def source_to_show_id
       (traces[trace_to_show].first || {})[:id]
+    end
+
+    def exception_name
+      exception.cause.class.to_s
+    end
+
+    def message
+      exception.message
     end
 
     private
