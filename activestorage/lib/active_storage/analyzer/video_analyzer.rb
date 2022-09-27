@@ -14,7 +14,7 @@ module ActiveStorage
   #   ActiveStorage::Analyzer::VideoAnalyzer.new(blob).metadata
   #   # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3] }
   #
-  # When a video's angle is 90 or 270 degrees, its width and height are automatically swapped for convenience.
+  # When a video's angle is 90, -90, 270 or -270 degrees, its width and height are automatically swapped for convenience.
   #
   # This analyzer requires the {FFmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
   class Analyzer::VideoAnalyzer < Analyzer
@@ -49,7 +49,11 @@ module ActiveStorage
       end
 
       def angle
-        Integer(tags["rotate"]) if tags["rotate"]
+        if tags["rotate"]
+          Integer(tags["rotate"])
+        elsif side_data && side_data[0] && side_data[0]["rotation"]
+          Integer(side_data[0]["rotation"])
+        end
       end
 
       def display_aspect_ratio
@@ -65,7 +69,7 @@ module ActiveStorage
 
 
       def rotated?
-        angle == 90 || angle == 270
+        angle == 90 || angle == 270 || angle == -90 || angle == -270
       end
 
       def computed_height
@@ -86,9 +90,12 @@ module ActiveStorage
         @display_height_scale ||= Float(display_aspect_ratio.last) / display_aspect_ratio.first if display_aspect_ratio
       end
 
-
       def tags
         @tags ||= video_stream["tags"] || {}
+      end
+
+      def side_data
+        @side_data ||= video_stream["side_data_list"] || {}
       end
 
       def video_stream
