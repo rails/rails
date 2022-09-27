@@ -21,10 +21,14 @@ module ARTest
   def self.connect
     ActiveRecord.async_query_executor = :global_thread_pool
     puts "Using #{connection_name}"
-    if defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled?
-      puts "YJIT enabled? #{RubyVM::YJIT.enabled?}"
+    if defined?(RubyVM::YJIT)
+      if RubyVM::YJIT.enabled?
+        puts "YJIT enabled? #{RubyVM::YJIT.enabled?}"
+      else
+        puts "YJIT is defined but not enabled"
+      end
     else
-      puts "YJIT is not enabled."
+      puts "YJIT is not enabled or defined."
     end
     ActiveRecord::Base.logger = ActiveSupport::Logger.new("debug.log", 1, 100 * 1024 * 1024)
     ActiveRecord::Base.configurations = test_configuration_hashes
