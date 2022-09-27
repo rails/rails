@@ -11,13 +11,6 @@ task about: :environment do
   puts Rails::Info
 end
 
-namespace :test do
-  task :prepare do
-    # Placeholder task for other Railtie and plugins to enhance.
-    # If used with Active Record, this task runs before the database schema is synchronized.
-  end
-end
-
 namespace :time do
   desc "List all time zones, list by two-letter country code (`bin/rails time:zones[US]`), or list by UTC offset (`bin/rails time:zones[-8]`)"
   task :zones, :country_or_offset do |t, args|
