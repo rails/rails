@@ -99,13 +99,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::UrlGenerationError, "No route matches"
       when "/parameter_missing"
         raise ActionController::ParameterMissing.new(:invalid_param_key, %w(valid_param_key))
-      when "/original_syntax_error"
-        eval "broke_syntax =" # `eval` need for raise native SyntaxError at runtime
       when "/syntax_error_into_view"
         begin
+          str = "broke_syntax ="
           eval "broke_syntax ="
         rescue Exception
-          raise ActionView::Template::Error.new(template)
+          raise ActionView::SyntaxErrorInTemplate.new(template, str)
         end
       when "/framework_raises"
         method_that_raises
@@ -594,17 +593,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_not_empty (output.rewind && output.read).lines
   end
 
-  test "display backtrace when error type is SyntaxError" do
-    @app = DevelopmentApp
-
-    get "/original_syntax_error", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
-
-    assert_response 500
-    assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
-    end
-  end
-
   test "display backtrace on template missing errors" do
     @app = DevelopmentApp
 
@@ -627,10 +615,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/syntax_error_into_view", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
 
     assert_response 500
-    assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
-    end
-    assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
+    assert_match %r{ syntax error while rendering template: check broke_syntax =}, body
   end
 
   test "debug exceptions app shows user code that caused the error in source view" do

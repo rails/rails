@@ -48,8 +48,6 @@ module ActionDispatch
       @exception = exception
       @exception_class_name = @exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
-
-      expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
     end
 
     def unwrapped_exception
@@ -234,12 +232,6 @@ module ActionDispatch
         # Windows and Unix path styles.
         file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
         [file, line.to_i]
-      end
-
-      def expand_backtrace
-        @exception.backtrace.unshift(
-          @exception.to_s.split("\n")
-        ).flatten!
       end
   end
 end
