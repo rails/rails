@@ -336,12 +336,19 @@ module ActiveRecord
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
 
-  ##
-  # :singleton-method:
-  # Show a warning when Rails couldn't parse your database.yml
-  # for multiple databases.
-  singleton_class.attr_accessor :suppress_multiple_database_warning
-  self.suppress_multiple_database_warning = false
+  def self.suppress_multiple_database_warning
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      config.active_record.suppress_multiple_database_warning is deprecated and will be removed in Rails 7.2.
+      It no longer has any effect and should be removed from the configuration file.
+    MSG
+  end
+
+  def self.suppress_multiple_database_warning=(value)
+    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      config.active_record.suppress_multiple_database_warning= is deprecated and will be removed in Rails 7.2.
+      It no longer has any effect and should be removed from the configuration file.
+    MSG
+  end
 
   ##
   # :singleton-method:

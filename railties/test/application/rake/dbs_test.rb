@@ -40,15 +40,6 @@ module ApplicationTests
         end
       end
 
-      def db_create_with_warning(expected_database)
-        Dir.chdir(app_path) do
-          output = rails("db:create")
-          assert_match(/Rails couldn't infer whether you are using multiple databases/, output)
-          assert_match(/Created database/, output)
-          assert File.exist?(expected_database)
-        end
-      end
-
       test "db:create and db:drop without database URL" do
         require "#{app_path}/config/environment"
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
@@ -100,6 +91,25 @@ module ApplicationTests
         db_create_and_drop("db/development.sqlite3", environment_loaded: false)
       end
 
+      test "db:create and db:drop don't raise errors when loading YAML with alias ERB" do
+        app_file "config/database.yml", <<-YAML
+          sqlite: &sqlite
+            adapter: sqlite3
+            database: db/development.sqlite3
+
+          development:
+            <<: *<%= ENV["DB"] || "sqlite" %>
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
       test "db:create and db:drop don't raise errors when loading YAML with multiline ERB" do
         app_file "config/database.yml", <<-YAML
           development:
@@ -118,23 +128,21 @@ module ApplicationTests
         db_create_and_drop("db/development.sqlite3", environment_loaded: false)
       end
 
-      test "db:create and db:drop show warning but doesn't raise errors when loading YAML with alias ERB" do
+      test "db:create and db:drop don't raise errors when loading ERB accessing nested configurations" do
         app_file "config/database.yml", <<-YAML
-          sqlite: &sqlite
-            adapter: sqlite3
-            database: db/development.sqlite3
-
           development:
-            <<: *<%= ENV["DB"] || "sqlite" %>
+            database: db/development.sqlite3
+            adapter: sqlite3
+            other: <%= Rails.application.config.other.value %>
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.other = OpenStruct.new(value: 123)
           end
         RUBY
 
-        db_create_with_warning("db/development.sqlite3")
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do

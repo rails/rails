@@ -1769,9 +1769,16 @@ module ApplicationTests
       assert_not ActiveRecord.verbose_query_logs
     end
 
-    test "config.active_record.suppress_multiple_database_warning is false by default in development" do
+    test "config.active_record.suppress_multiple_database_warning getter is deprecated" do
       app "development"
-      assert_not ActiveRecord.suppress_multiple_database_warning
+
+      assert_deprecated { ActiveRecord.suppress_multiple_database_warning }
+    end
+
+    test "config.active_record.suppress_multiple_database_warning setter is deprecated" do
+      app "development"
+
+      assert_deprecated { ActiveRecord.suppress_multiple_database_warning = true }
     end
 
     test "config.active_record.use_yaml_unsafe_load is false by default" do
