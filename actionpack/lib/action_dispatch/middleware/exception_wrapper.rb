@@ -46,10 +46,10 @@ module ActionDispatch
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
       @exception = exception
-      @exception_class_name = @exception.class.name
+      @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
 
-      expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
+      expand_backtrace if exception.is_a?(SyntaxError)
     end
 
     def routing_error?
