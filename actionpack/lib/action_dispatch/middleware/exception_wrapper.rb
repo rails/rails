@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/syntax_error_proxy"
 require "rack/utils"
 
 module ActionDispatch
@@ -45,11 +46,12 @@ module ActionDispatch
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
-      @exception = exception
       @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
-
-      expand_backtrace if exception.is_a?(SyntaxError)
+      @exception = exception
+      if exception.is_a?(SyntaxError)
+        @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
+      end
     end
 
     def routing_error?
@@ -253,23 +255,26 @@ module ActionDispatch
 
       def extract_source(trace)
         if error_highlight_available?
-          spot = ErrorHighlight.spot(@exception, backtrace_location: trace)
-          if spot
-            line = spot[:first_lineno]
-            code = extract_source_fragment_lines(spot[:script_lines], line)
+          begin
+            spot = ErrorHighlight.spot(@exception, backtrace_location: trace)
+            if spot
+              line = spot[:first_lineno]
+              code = extract_source_fragment_lines(spot[:script_lines], line)
 
-            if line == spot[:last_lineno]
-              code[line] = [
-                code[line][0, spot[:first_column]],
-                code[line][spot[:first_column]...spot[:last_column]],
-                code[line][spot[:last_column]..-1],
-              ]
+              if line == spot[:last_lineno]
+                code[line] = [
+                  code[line][0, spot[:first_column]],
+                  code[line][spot[:first_column]...spot[:last_column]],
+                  code[line][spot[:last_column]..-1],
+                ]
+              end
+
+              return {
+                code: code,
+                line_number: line
+              }
             end
-
-            return {
-              code: code,
-              line_number: line
-            }
+          rescue TypeError
           end
         end
 
@@ -304,12 +309,6 @@ module ActionDispatch
         # Windows and Unix path styles.
         file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
         [file, line.to_i]
-      end
-
-      def expand_backtrace
-        @exception.backtrace.unshift(
-          @exception.to_s.split("\n")
-        ).flatten!
       end
   end
 end

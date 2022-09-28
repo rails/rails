@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/syntax_error_proxy"
 
 module ActionView
   # = Action View Errors
@@ -158,9 +159,15 @@ module ActionView
 
       def initialize(template)
         super($!.message)
-        set_backtrace($!.backtrace)
         @cause = $!
+        if @cause.is_a?(SyntaxError)
+          @cause = ActiveSupport::SyntaxErrorProxy.new(@cause)
+        end
         @template, @sub_templates = template, nil
+      end
+
+      def backtrace
+        @cause.backtrace
       end
 
       def file_name
