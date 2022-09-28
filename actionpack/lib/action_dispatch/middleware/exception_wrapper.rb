@@ -222,17 +222,7 @@ module ActionDispatch
       attr_reader :exception
 
       def backtrace
-        backtrace_locations = @exception.backtrace_locations
-        backtrace = @exception.backtrace
-
-        if backtrace_locations && backtrace_locations.size == backtrace.size
-          # Prefer #backtrace_locations as it looks consistent with #backtrace
-          Array(backtrace_locations)
-        else
-          # Conservatively fallback to #backtrace as they are inconsistent;
-          # probably #set_backtrace is used somewhere?
-          Array(backtrace)
-        end
+        @exception.backtrace_locations || []
       end
 
       def causes_for(exception)
@@ -303,12 +293,7 @@ module ActionDispatch
       end
 
       def extract_file_and_line_number(trace)
-        return [trace.path, trace.lineno] if Thread::Backtrace::Location === trace
-
-        # Split by the first colon followed by some digits, which works for both
-        # Windows and Unix path styles.
-        file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
-        [file, line.to_i]
+        [trace.path, trace.lineno]
       end
   end
 end

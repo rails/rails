@@ -170,6 +170,10 @@ module ActionView
         @cause.backtrace
       end
 
+      def backtrace_locations
+        @cause.backtrace_locations
+      end
+
       def file_name
         @template.identifier
       end
