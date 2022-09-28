@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/syntax_error_proxy"
+require "active_support/core_ext/thread/backtrace/location"
 require "rack/utils"
 
 module ActionDispatch
@@ -42,7 +43,7 @@ module ActionDispatch
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ]
 
-    attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name
+    attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
@@ -219,7 +220,6 @@ module ActionDispatch
     end
 
     private
-      attr_reader :exception
 
       def backtrace
         @exception.backtrace_locations || []
@@ -244,28 +244,24 @@ module ActionDispatch
       end
 
       def extract_source(trace)
-        if error_highlight_available?
-          begin
-            spot = ErrorHighlight.spot(@exception, backtrace_location: trace)
-            if spot
-              line = spot[:first_lineno]
-              code = extract_source_fragment_lines(spot[:script_lines], line)
+        spot = trace.spot(@exception)
 
-              if line == spot[:last_lineno]
-                code[line] = [
-                  code[line][0, spot[:first_column]],
-                  code[line][spot[:first_column]...spot[:last_column]],
-                  code[line][spot[:last_column]..-1],
-                ]
-              end
+        if spot
+          line = spot[:first_lineno]
+          code = extract_source_fragment_lines(spot[:script_lines], line)
 
-              return {
-                code: code,
-                line_number: line
-              }
-            end
-          rescue TypeError
+          if line == spot[:last_lineno]
+            code[line] = [
+              code[line][0, spot[:first_column]],
+              code[line][spot[:first_column]...spot[:last_column]],
+              code[line][spot[:last_column]..-1],
+            ]
           end
+
+          return {
+            code: code,
+            line_number: line
+          }
         end
 
         file, line_number = extract_file_and_line_number(trace)

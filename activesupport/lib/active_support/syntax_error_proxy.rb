@@ -13,13 +13,29 @@ module ActiveSupport
     end
 
     class BacktraceLocation < Struct.new(:path, :lineno, :to_s)
+      def spot(_)
+      end
+    end
+
+    class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location)
+      def initialize(loc, ex)
+        super(loc)
+        @ex = ex
+      end
+
+      def spot(_)
+        super(@ex.__getobj__)
+      end
     end
 
     def backtrace_locations
       parse_message_for_trace.map { |trace|
         file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
         BacktraceLocation.new(file, line.to_i, trace)
-      } + super
+        # We have to wrap these backtrace locations because we need the
+        # spot information to come from the originating exception, not the
+        # proxy object that's generating these
+      } + super.map { |loc| BacktraceLocationProxy.new(loc, self) }
     end
 
     private
