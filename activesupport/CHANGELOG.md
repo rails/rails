@@ -1,3 +1,13 @@
+*   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
+
+    Previously they could return old implementations of reloadable classes that have been
+    dereferenced but not yet garbage collected.
+
+    They now automatically filter such classes like `DescendantTracker#subclasses` and
+    `DescendantTracker#descendants`.
+
+    *Jean Boussier*
+
 *   `Rails.error.report` now marks errors as reported to avoid reporting them twice.
 
     In some cases, users might want to report errors explicitly with some extra context
