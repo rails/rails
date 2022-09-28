@@ -1077,6 +1077,10 @@ To load the schema from `db/structure.sql`, run `bin/rails db:schema:load`.
 Loading this file is done by executing the SQL statements it contains. By
 definition, this will create a perfect copy of the database's structure.
 
+An optional [`config.active_record.schema_dump_formats`][] setting can be used
+if you want both `db/schema.rb` and `db/structure.sql` in your project. Simply
+set it to `[:ruby, :sql]`.
+
 [`config.active_record.schema_format`]: configuring.html#config-active-record-schema-format
 
 ### Schema Dumps and Source Control

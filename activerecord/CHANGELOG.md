@@ -1,3 +1,14 @@
+*   Add `ActiveRecord.schema_dump_formats`.
+
+    An optional setting that allows both `db/schema.rb` and `db/structure.sql`
+    to be dumped if desired. For example:
+
+    ```ruby
+    config.active_record.schema_dump_formats = [:ruby, :sql]
+    ```
+
+    *Nero Leung*
+
 *   Add configurable formatter on query log tags to support sqlcommenter. See #45139
 
     It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.

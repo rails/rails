@@ -909,6 +909,10 @@ Determines whether to use `Time.local` (if set to `:local`) or `Time.utc` (if se
 
 Controls the format for dumping the database schema to a file. The options are `:ruby` (the default) for a database-independent version that depends on migrations, or `:sql` for a set of (potentially database-dependent) SQL statements.
 
+#### `config.active_record.schema_dump_formats`
+
+Specifies multiple formats for dumping the database schema to multiple files. Set it to `[:ruby, :sql]` if you want both `db/schema.rb` and `db/structure.sql` in your project. This is an optional setting.
+
 #### `config.active_record.error_on_ignored_order`
 
 Specifies if an error should be raised if the order of a query is ignored during a batch query. The options are `true` (raise error) or `false` (warn). Default is `false`.

@@ -257,6 +257,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
+    include DatabaseTasksSetupper
+
     def test_ensure_db_dir
       Dir.mktmpdir do |dir|
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
@@ -293,6 +295,33 @@ module ActiveRecord
       end
     ensure
       ActiveRecord::Base.clear_cache!
+    end
+
+    def test_multiple_schema_dump_formats
+      original_schema_dump_formats = ActiveRecord.schema_dump_formats
+      ActiveRecord.schema_dump_formats = [:ruby, :sql]
+
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          updated_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(schema_dump: "fake_db_config_schema.rb", adapter: "mysql2")
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", updated_hash)
+          path = "#{dir}/fake_db_config_schema.rb"
+
+          FileUtils.rm_rf(dir)
+          assert_not File.file?(path)
+
+          with_stubbed_new do
+            assert_called_with(eval("@#{:mysql_tasks}"), :structure_dump, [path, nil]) do
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+            end
+          end
+
+          assert File.file?(path)
+        end
+      end
+    ensure
+      ActiveRecord::Base.clear_cache!
+      ActiveRecord.schema_dump_formats = original_schema_dump_formats
     end
   end
 

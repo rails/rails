@@ -299,6 +299,14 @@ module ActiveRecord
 
   ##
   # :singleton-method:
+  # Specifies multiple formats to use when dumping the database schema with Rails'
+  # Rakefile, i.e. [:ruby, :sql]. Useful if you want both schema.rb and structure.sql
+  # in your project.
+  singleton_class.attr_accessor :schema_dump_formats
+  self.schema_dump_formats = [self.schema_format]
+
+  ##
+  # :singleton-method:
   # Specifies if an error should be raised if the query has an order being
   # ignored when doing batch queries. Useful in applications where the
   # scope being ignored is error-worthy, rather than a warning.
