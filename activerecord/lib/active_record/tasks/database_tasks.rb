@@ -138,9 +138,14 @@ module ActiveRecord
       end
 
       def setup_initial_database_yaml
-        return {} unless defined?(Rails)
+        return {} if !defined?(Rails) || Rails.application.config.paths["config/database"].existent.empty?
 
-        Rails.application.config.load_database_yaml
+        begin
+          Rails.application.config.singleton_class.define_method(:method_missing) { |selector, *args, &blk| self }
+          Rails.application.config.database_configuration
+        ensure
+          Rails.application.config.singleton_class.remove_method(:method_missing)
+        end
       end
 
       def for_each(databases)

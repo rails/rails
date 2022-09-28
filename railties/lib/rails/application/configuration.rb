@@ -376,25 +376,6 @@ module Rails
         end
       end
 
-      # Load the <tt>config/database.yml</tt> to create the Rake tasks for
-      # multiple databases without loading the environment and filling in the
-      # environment specific configuration values.
-      #
-      # Do not use this method, use #database_configuration instead.
-      def load_database_yaml # :nodoc:
-        Rails.application.config.singleton_class.define_method(:method_missing) { |selector, *args, &blk| self }
-
-        if path = paths["config/database"].existent.first
-          yaml = Pathname.new(path)
-
-          ActiveSupport::ConfigurationFile.parse(yaml)
-        else
-          {}
-        end
-      ensure
-        Rails.application.config.singleton_class.remove_method(:method_missing)
-      end
-
       # Loads and returns the entire raw configuration of database from
       # values stored in <tt>config/database.yml</tt>.
       def database_configuration

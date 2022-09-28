@@ -2006,31 +2006,20 @@ module ApplicationTests
       end
     end
 
-    test "load_database_yaml returns blank hash if configuration file is blank" do
+    test "setup_initial_database_yaml returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
       app "development"
-      assert_equal({}, Rails.application.config.load_database_yaml)
+      assert_equal({}, ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml)
     end
 
-    test "setup_initial_database_yaml does not print a warning if config.active_record.suppress_multiple_database_warning is true" do
-      app_file "config/database.yml", <<-YAML
-        <%= Rails.env %>:
-          username: bobby
-          adapter: sqlite3
-          database: 'dev_db'
-      YAML
-      add_to_config <<-RUBY
-        config.active_record.suppress_multiple_database_warning = true
-      RUBY
+    test "setup_initial_database_yaml returns blank hash if no database configuration found" do
+      remove_file "config/database.yml"
       app "development"
-
-      assert_silent do
-        ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
-      end
+      assert_equal({}, ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml)
     end
 
     test "raises with proper error message if no database configuration found" do
-      FileUtils.rm("#{app_path}/config/database.yml")
+      remove_file "config/database.yml"
       err = assert_raises RuntimeError do
         app "development"
         Rails.application.config.database_configuration
