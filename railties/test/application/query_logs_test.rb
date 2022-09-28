@@ -22,7 +22,7 @@ module ApplicationTests
           end
 
           def dynamic_content
-            Time.now.to_f
+            Time.now.to_f.to_s
           end
         end
       RUBY
@@ -34,7 +34,7 @@ module ApplicationTests
           end
 
           def dynamic_content
-            Time.now.to_f
+            Time.now.to_f.to_s
           end
         end
       RUBY
@@ -85,6 +85,21 @@ module ApplicationTests
       comment = last_response.body.strip
 
       assert_includes comment, "controller:users"
+    end
+
+    test "sqlcommenter formatting works when specified" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags_format = :sqlcommenter"
+
+      add_to_config "config.active_record.query_log_tags = [ :pid ]"
+
+      boot_app
+
+      get "/"
+      comment = last_response.body.strip
+
+      assert_match(/pid='\d+'/, comment)
+      assert_includes comment, "controller='users'"
     end
 
     test "controller actions tagging filters can be disabled" do

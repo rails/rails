@@ -1,3 +1,9 @@
+*   Add configurable formatter on query log tags to support sqlcommenter. See #45139
+
+    It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.
+
+    *Modulitos and Iheanyi*
+
 *   Allow any ERB in the database.yml when creating rake tasks.
 
     Any ERB can be used in `database.yml` even if it accesses environment
