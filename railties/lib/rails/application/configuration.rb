@@ -382,31 +382,17 @@ module Rails
       #
       # Do not use this method, use #database_configuration instead.
       def load_database_yaml # :nodoc:
+        Rails.application.config.singleton_class.define_method(:method_missing) { |selector, *args, &blk| self }
+
         if path = paths["config/database"].existent.first
-          require "rails/application/dummy_config"
+          yaml = Pathname.new(path)
 
-          original_rails_config = Rails.application.config
-          dummy_config = DummyConfig.new(original_rails_config)
-          database_config = {}
-
-          begin
-            Rails.application.config = dummy_config
-
-            yaml = ERB.new(Pathname.new(path).read).result
-
-            if YAML.respond_to?(:unsafe_load)
-              database_config = YAML.unsafe_load(yaml) || {}
-            else
-              database_config = YAML.load(yaml) || {}
-            end
-          ensure
-            Rails.application.config = original_rails_config
-          end
-
-          database_config
+          ActiveSupport::ConfigurationFile.parse(yaml)
         else
           {}
         end
+      ensure
+        Rails.application.config.singleton_class.remove_method(:method_missing)
       end
 
       # Loads and returns the entire raw configuration of database from
