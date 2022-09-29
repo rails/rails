@@ -15,10 +15,21 @@ module ActiveModel
       end
 
       def value_before_type_cast
-        if user_provided_value.is_a?(Proc)
-          @memoized_value_before_type_cast ||= user_provided_value.call
+        if defined?(@memoized_value_before_type_cast)
+          @memoized_value_before_type_cast
+        elsif user_provided_value.is_a?(Proc)
+          @memoized_value_before_type_cast = user_provided_value.call
         else
           @user_provided_value
+        end
+      end
+
+      def with_value_from_user(value)
+        type.assert_valid_value(value)
+        if defined?(@memoized_value_before_type_cast) || !user_provided_value.is_a?(Proc)
+          self.class.from_user(name, value, type, original_attribute || self)
+        else
+          self.class.from_user(name, value, type, original_attribute)
         end
       end
 
