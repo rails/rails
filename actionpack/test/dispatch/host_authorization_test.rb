@@ -491,4 +491,30 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
     assert_match "Blocked host: www.example.com", output.rewind && output.read
   end
+
+  test "show blocked host if used with permitted forwarded host" do
+    @app = ActionDispatch::HostAuthorization.new(App, "example.com")
+
+    get "/", env: {
+      "HTTP_X_FORWARDED_HOST" => "example.com",
+      "HOST" => "domain.com",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: domain.com", response.body
+  end
+
+  test "show all blocked hosts if multiple forbidden hosts" do
+    @app = ActionDispatch::HostAuthorization.new(App, "only.com")
+
+    get "/", env: {
+      "HTTP_X_FORWARDED_HOST" => "example.com",
+      "HOST" => "domain.com",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked host: domain.com, example.com", response.body
+  end
 end

@@ -94,11 +94,16 @@ module ActionDispatch
         response(format, response_body(request))
       end
 
+      attr_writer :blocked_hosts
+      def blocked_hosts
+        @blocked_hosts || []
+      end
+
       private
         def response_body(request)
           return "" unless request.get_header("action_dispatch.show_detailed_exceptions")
 
-          template = DebugView.new(host: request.host)
+          template = DebugView.new(hosts: blocked_hosts)
           template.render(template: "rescues/blocked_host", layout: "rescues/layout")
         end
 
@@ -139,16 +144,21 @@ module ActionDispatch
         mark_as_authorized(request)
         @app.call(env)
       else
+        @response_app.blocked_hosts = blocked_hosts(request) if @response_app.respond_to?(:"blocked_hosts=")
         @response_app.call(env)
       end
     end
 
     private
-      def authorized?(request)
+      def blocked_hosts(request)
         origin_host = request.get_header("HTTP_HOST")
         forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
 
-        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+        [origin_host, forwarded_host].compact_blank.reject {|host|  @permissions.allows?(host) }
+      end
+
+      def authorized?(request)
+        blocked_hosts(request).empty?
       end
 
       def excluded?(request)
