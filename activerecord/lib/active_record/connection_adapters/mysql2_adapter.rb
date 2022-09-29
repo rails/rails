@@ -52,13 +52,6 @@ module ActiveRecord
           @config[:flags] |= Mysql2::Client::FOUND_ROWS
         end
 
-        unless @config.key?(:prepared_statements)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
-          MSG
-          @config[:prepared_statements] = false
-        end
-
         @connection_parameters ||= @config
       end
 
@@ -104,10 +97,11 @@ module ActiveRecord
       # QUOTING ==================================================
       #++
 
+      # Quotes strings for use in SQL input.
       def quote_string(string)
-        any_raw_connection.escape(string)
-      rescue Mysql2::Error => error
-        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
+        with_raw_connection(allow_retry: true, uses_transaction: false) do |connection|
+          connection.escape(string)
+        end
       end
 
       #--
@@ -141,6 +135,7 @@ module ActiveRecord
 
         def reconnect
           @raw_connection&.close
+          @raw_connection = nil
           connect
         end
 
@@ -170,6 +165,13 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def default_prepared_statements
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
+          MSG
+          false
         end
     end
   end

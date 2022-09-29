@@ -165,14 +165,14 @@ module RenderHtml
       assert_status 200
     end
 
-    test "rendering html should escape the string if it is not html safe" do
+    test "rendering HTML should escape the string if it is not HTML safe" do
       get "/render_html/with_layout/with_unsafe_html_tag"
 
       assert_body "&lt;p&gt;hello world&lt;/p&gt;"
       assert_status 200
     end
 
-    test "rendering html should not escape the string if it is html safe" do
+    test "rendering HTML should not escape the string if it is HTML safe" do
       get "/render_html/with_layout/with_safe_html_tag"
 
       assert_body "<p>hello world</p>"

@@ -78,6 +78,8 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
+For more information on changes made to Rails 7.1 please see the [release notes](7_1_release_notes.html).
+
 ### Autoloaded paths are no longer in load path
 
 Starting from Rails 7.1, all paths managed by the autoloader will no longer be added to `$LOAD_PATH`.
@@ -297,6 +299,8 @@ config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
+
+For more information on changes made to Rails 7.0 please see the [release notes](7_0_release_notes.html).
 
 ### `ActionView::Helpers::UrlHelper#button_to` changed behavior
 
@@ -2241,7 +2245,7 @@ start using the more precise `:plain`, `:html`, and `:body` options instead.
 Using `render :text` may pose a security risk, as the content is sent as
 `text/html`.
 
-### PostgreSQL json and hstore datatypes
+### PostgreSQL JSON and hstore datatypes
 
 Rails 4.1 will map `json` and `hstore` columns to a string-keyed Ruby `Hash`.
 In earlier versions, a `HashWithIndifferentAccess` was used. This means that

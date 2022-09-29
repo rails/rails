@@ -10,7 +10,7 @@ module RenderTemplate
       "locals.html.erb"            => "The secret is <%= secret %>",
       "xml_template.xml.builder"   => "xml.html do\n  xml.p 'Hello'\nend",
       "with_raw.html.erb"          => "Hello <%=raw '<strong>this is raw</strong>' %>",
-      "with_implicit_raw.html.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in an html template",
+      "with_implicit_raw.html.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in an HTML template",
       "with_implicit_raw.text.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in a text template",
       "test/with_json.html.erb"    => "<%= render template: 'test/with_json', formats: [:json] %>",
       "test/with_json.json.erb"    => "<%= render template: 'test/final', formats: [:json]  %>",
@@ -123,7 +123,7 @@ module RenderTemplate
 
       get :with_implicit_raw
 
-      assert_body "Hello <strong>this is also raw</strong> in an html template"
+      assert_body "Hello <strong>this is also raw</strong> in an HTML template"
       assert_status 200
 
       get :with_implicit_raw, params: { format: "text" }

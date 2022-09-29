@@ -154,13 +154,22 @@ module ActiveSupport
       result
     end
 
-    # Converts just the first character to uppercase.
+    # Converts the first character in the string to uppercase.
     #
     #   upcase_first('what a Lovely Day') # => "What a Lovely Day"
     #   upcase_first('w')                 # => "W"
     #   upcase_first('')                  # => ""
     def upcase_first(string)
       string.length > 0 ? string[0].upcase.concat(string[1..-1]) : ""
+    end
+
+    # Converts the first character in the string to lowercase.
+    #
+    #   downcase_first('If they enjoyed The Matrix') # => "if they enjoyed The Matrix"
+    #   downcase_first('I')                          # => "i"
+    #   downcase_first('')                           # => ""
+    def downcase_first(string)
+      string.length > 0 ? string[0].downcase.concat(string[1..-1]) : ""
     end
 
     # Capitalizes all the words and replaces some characters in the string to

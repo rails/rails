@@ -26,7 +26,7 @@ module ActiveRecord
     end
 
     teardown do
-      ActiveRecord::Base.clear_active_connections!
+      ActiveRecord::Base.clear_active_connections!(:all)
       ActiveRecord::Base.connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort

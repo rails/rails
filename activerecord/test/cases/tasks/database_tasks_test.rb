@@ -108,17 +108,22 @@ module ActiveRecord
     end
 
     def test_raises_an_error_if_no_migrations_have_been_made
-      ActiveRecord::Base.connection.internal_metadata.stub(:table_exists?, false) do
-        assert_called_on_instance_of(
-          ActiveRecord::MigrationContext,
-          :current_version,
-          returns: 1
-        ) do
-          assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
-            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
-          end
-        end
+      connection = ActiveRecord::Base.connection
+      internal_metadata = connection.internal_metadata
+      schema_migration = connection.schema_migration
+      schema_migration.create_table
+      schema_migration.create_version("1")
+
+      assert_predicate internal_metadata, :table_exists?
+      internal_metadata.drop_table
+      assert_not_predicate internal_metadata, :table_exists?
+
+      assert_raises(ActiveRecord::NoEnvironmentInSchemaError) do
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
       end
+    ensure
+      schema_migration.delete_version("1")
+      internal_metadata.create_table
     end
   end
 
@@ -1031,14 +1036,18 @@ module ActiveRecord
     end
 
     class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
+      def setup
+        @schema_migration = ActiveRecord::Base.connection.schema_migration
+      end
+
       def test_migrate_status_table
-        ActiveRecord::SchemaMigration.create_table
+        @schema_migration.create_table
         output = capture_migration_status
         assert_match(/database: :memory:/, output)
         assert_match(/down    001             Valid people have last names/, output)
         assert_match(/down    002             We need reminders/, output)
         assert_match(/down    003             Innocent jointable/, output)
-        ActiveRecord::SchemaMigration.drop_table
+        @schema_migration.drop_table
       end
 
       private
@@ -1169,25 +1178,30 @@ module ActiveRecord
       fixtures :authors, :author_addresses
 
       def setup
-        SchemaMigration.create_table
-        SchemaMigration.create!(version: SchemaMigration.table_name)
-        InternalMetadata.create_table
-        InternalMetadata.create!(key: InternalMetadata.table_name)
+        @schema_migration = ActiveRecord::Base.connection.schema_migration
+        @schema_migration.create_table
+        @schema_migration.create_version(@schema_migration.table_name)
+
+        @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+        @internal_metadata.create_table
+        @internal_metadata[@internal_metadata.table_name] = nil
+
+        @old_configurations = ActiveRecord::Base.configurations
       end
 
       def teardown
-        SchemaMigration.delete_all
-        InternalMetadata.delete_all
+        @schema_migration.delete_all_versions
+        @internal_metadata.delete_all_entries
         clean_up_connection_handler
+        ActiveRecord::Base.configurations = @old_configurations
       end
 
       def test_truncate_tables
-        assert_operator SchemaMigration.count, :>, 0
-        assert_operator InternalMetadata.count, :>, 0
+        assert_operator @schema_migration.count, :>, 0
+        assert_operator @internal_metadata.count, :>, 0
         assert_operator Author.count, :>, 0
         assert_operator AuthorAddress.count, :>, 0
 
-        old_configurations = ActiveRecord::Base.configurations
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         configurations = { development: db_config.configuration_hash }
         ActiveRecord::Base.configurations = configurations
@@ -1198,44 +1212,30 @@ module ActiveRecord
           )
         end
 
-        assert_operator SchemaMigration.count, :>, 0
-        assert_operator InternalMetadata.count, :>, 0
+        assert_operator @schema_migration.count, :>, 0
+        assert_operator @internal_metadata.count, :>, 0
         assert_equal 0, Author.count
         assert_equal 0, AuthorAddress.count
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
       end
     end
 
     class DatabaseTasksTruncateAllWithPrefixTest < DatabaseTasksTruncateAllTest
       setup do
         ActiveRecord::Base.table_name_prefix = "p_"
-
-        SchemaMigration.reset_table_name
-        InternalMetadata.reset_table_name
       end
 
       teardown do
         ActiveRecord::Base.table_name_prefix = nil
-
-        SchemaMigration.reset_table_name
-        InternalMetadata.reset_table_name
       end
     end
 
     class DatabaseTasksTruncateAllWithSuffixTest < DatabaseTasksTruncateAllTest
       setup do
         ActiveRecord::Base.table_name_suffix = "_s"
-
-        SchemaMigration.reset_table_name
-        InternalMetadata.reset_table_name
       end
 
       teardown do
         ActiveRecord::Base.table_name_suffix = nil
-
-        SchemaMigration.reset_table_name
-        InternalMetadata.reset_table_name
       end
     end
   end

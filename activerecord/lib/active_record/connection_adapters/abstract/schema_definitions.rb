@@ -469,15 +469,9 @@ module ActiveRecord
 
         if @columns_hash[name]
           if @columns_hash[name].primary_key?
-            raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+            raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
           else
-            raise ArgumentError, "you can't define an already defined column '#{name}'."
-          end
-        end
-
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
+            raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
           end
         end
 
@@ -520,10 +514,6 @@ module ActiveRecord
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
-        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
-          options[:precision] = 6
-        end
-
         column(:created_at, :datetime, **options)
         column(:updated_at, :datetime, **options)
       end
@@ -547,6 +537,13 @@ module ActiveRecord
           type = integer_like_primary_key_type(type, options)
         end
         type = aliased_types(type.to_s, type)
+
+        if @conn.supports_datetime_with_precision?
+          if type == :datetime && !options.key?(:precision)
+            options[:precision] = 6
+          end
+        end
+
         options[:primary_key] ||= type == :primary_key
         options[:null] = false if options[:primary_key]
         create_column_definition(name, type, options)

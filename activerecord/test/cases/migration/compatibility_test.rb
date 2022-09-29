@@ -30,7 +30,7 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
-        @schema_migration.delete_all rescue nil
+        @schema_migration.delete_all_versions rescue nil
       end
 
       def test_migration_doesnt_remove_named_index
@@ -658,6 +658,20 @@ module ActiveRecord
         end
       end
 
+      if current_adapter?(:Mysql2Adapter)
+        def test_change_column_on_7_0
+          migration = Class.new(ActiveRecord::Migration[7.0]) do
+            def up
+              execute("ALTER TABLE testings CONVERT TO CHARACTER SET utf32")
+              change_column(:testings, :foo, "varchar(255) CHARACTER SET ascii")
+            end
+          end
+          assert_nothing_raised do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          end
+        end
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter)
@@ -685,7 +699,7 @@ module LegacyPolymorphicReferenceIndexTestCases
 
   def teardown
     ActiveRecord::Migration.verbose = @verbose_was
-    @schema_migration.delete_all rescue nil
+    @schema_migration.delete_all_versions rescue nil
     connection.drop_table :testings rescue nil
   end
 
@@ -812,7 +826,7 @@ module LegacyPrimaryKeyTestCases
   def teardown
     @migration.migrate(:down) if @migration
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::SchemaMigration.delete_all rescue nil
+    ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
     LegacyPrimaryKey.reset_column_information
   end
 

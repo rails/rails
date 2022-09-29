@@ -1,3 +1,121 @@
+*   Add configurable formatter on query log tags to support sqlcommenter. See #45139
+
+    It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.
+
+    *Modulitos and Iheanyi*
+
+*   Allow any ERB in the database.yml when creating rake tasks.
+
+    Any ERB can be used in `database.yml` even if it accesses environment
+    configurations.
+
+    Deprecates `config.active_record.suppress_multiple_database_warning`.
+
+    *Eike Send*
+
+*   Add table to error for duplicate column definitions.
+
+    If a migration defines duplicate columns for a table, the error message
+    shows which table it concerns.
+
+    *Petrik de Heus*
+
+*   Fix erroneous nil default precision on virtual datetime columns.
+
+    Prior to this change, virtual datetime columns did not have the same
+    default precision as regular datetime columns, resulting in the following
+    being erroneously equivalent:
+
+        t.virtual :name, type: datetime,                 as: "expression"
+        t.virtual :name, type: datetime, precision: nil, as: "expression"
+
+    This change fixes the default precision lookup, so virtual and regular
+    datetime column default precisions match.
+
+    *Sam Bostock*
+
+*   Use connection from `#with_raw_connection` in `#quote_string`.
+
+    This ensures that the string quoting is wrapped in the reconnect and retry logic
+    that `#with_raw_connection` offers.
+
+    *Adrianna Chang*
+
+*   Add `expires_in` option to `signed_id`.
+
+    *Shouichi Kamiya*
+
+*   Allow applications to set retry deadline for query retries.
+
+    Building on the work done in #44576 and #44591, we extend the logic that automatically
+    reconnects database connections to take into account a timeout limit. We won't retry
+    a query if a given amount of time has elapsed since the query was first attempted. This
+    value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed,
+    but this can be changed via the `retry_deadline` option in the database config.
+
+    *Adrianna Chang*
+
+*   Fix a case where the query cache can return wrong values. See #46044
+
+    *Aaron Patterson*
+
+*   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
+
+    Verifying the identity of the database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for MySQL database tasks like creating a database and dumping the structure.
+
+    *Petrik de Heus*
+
+*   Move `ActiveRecord::InternalMetadata` to an independent object.
+
+    `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate quoting `ActiveSupport::Duration` as an integer
+
+    Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+    string template is deprecated. To avoid this warning, you should explicitly
+    convert the duration to a more specific database type. For example, if you
+    want to use a duration as an integer number of seconds:
+    ```
+    Record.where("duration = ?", 1.hour.to_i)
+    ```
+    If you want to use a duration as an ISO 8601 string:
+    ```
+    Record.where("duration = ?", 1.hour.iso8601)
+    ```
+
+    *Aram Greenman*
+
+*   Allow `QueryMethods#in_order_of` to order by a string column name.
+
+    ```ruby
+    Post.in_order_of("id", [4,2,3,1]).to_a
+    Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
+    ```
+
+    *Igor Kasyanchuk*
+
+*   Move `ActiveRecord::SchemaMigration` to an independent object.
+
+    `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+
+    Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
+
+    *Eileen M. Uchitelle*
+
+*   Fix connection handler methods to operate on all pools.
+
+    `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
+
+    *Eileen M. Uchitelle*
+
 *   Allow ActiveRecord::QueryMethods#select to receive hash values.
 
     Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.

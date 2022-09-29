@@ -38,6 +38,7 @@ module ActiveModel
     #     attribute :start, :time, precision: 4
     #   end
     class Time < Value
+      include SerializeCastValue
       include Helpers::Timezone
       include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
@@ -66,6 +67,8 @@ module ActiveModel
 
         super(value)
       end
+
+      alias :serialize_cast_value :serialize_time_value # :nodoc:
 
       private
         def cast_value(value)

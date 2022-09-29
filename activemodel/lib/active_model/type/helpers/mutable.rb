@@ -4,6 +4,10 @@ module ActiveModel
   module Type
     module Helpers # :nodoc: all
       module Mutable
+        def immutable_value(value)
+          value.deep_dup.freeze
+        end
+
         def cast(value)
           deserialize(serialize(value))
         end

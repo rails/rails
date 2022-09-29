@@ -35,7 +35,7 @@ module ActionView
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def append_view_path(path)
-        self._view_paths = view_paths + Array(path)
+        self._view_paths = ActionView::PathSet.new(view_paths.to_a + Array(path))
       end
 
       # Prepend a path to the list of view paths for this controller.
@@ -45,7 +45,7 @@ module ActionView
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def prepend_view_path(path)
-        self._view_paths = ActionView::PathSet.new(Array(path) + view_paths)
+        self._view_paths = ActionView::PathSet.new(Array(path) + view_paths.to_a)
       end
 
       # A list of all of the default view paths for this controller.
@@ -110,7 +110,7 @@ module ActionView
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def append_view_path(path)
-      lookup_context.view_paths.push(*path)
+      lookup_context.append_view_paths(Array(path))
     end
 
     # Prepend a path to the list of view paths for the current LookupContext.
@@ -120,7 +120,7 @@ module ActionView
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)
-      lookup_context.view_paths.unshift(*path)
+      lookup_context.prepend_view_paths(Array(path))
     end
   end
 end

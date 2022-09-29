@@ -37,6 +37,13 @@ module ActiveModel
         assert_equal "Provided hash {:a=>1} doesn't contain necessary keys: [1, 2, 3]", error.message
       end
 
+      test "serialize_cast_value is equivalent to serialize after cast" do
+        type = Type::DateTime.new(precision: 1)
+        value = type.cast("1999-12-31 12:34:56.789 -1000")
+
+        assert_equal type.serialize(value), type.serialize_cast_value(value)
+      end
+
       private
         def with_timezone_config(default:)
           old_zone_default = ::Time.zone_default

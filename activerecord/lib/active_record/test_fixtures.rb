@@ -162,13 +162,13 @@ module ActiveRecord
         ActiveRecord::FixtureSet.reset_cache
       end
 
-      ActiveRecord::Base.clear_active_connections!
+      ActiveRecord::Base.clear_active_connections!(:all)
     end
 
     def enlist_fixture_connections
       setup_shared_connection_pool
 
-      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
+      ActiveRecord::Base.connection_handler.connection_pool_list(:writing).map(&:connection)
     end
 
     private

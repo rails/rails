@@ -1,3 +1,42 @@
+*   Allow passing a class to `dom_id`.
+    You no longer need to call `new` when passing a class to `dom_id`.
+    This makes `dom_id` behave like `dom_class` in this regard.
+    Apart from saving a few keystrokes, it prevents Ruby from needing
+    to instantiate a whole new object just to generate a string.
+
+    Before:
+    ```ruby
+    dom_id(Post) # => NoMethodError: undefined method `to_key' for Post:Class
+    ```
+
+    After:
+    ```ruby
+    dom_id(Post) # => "new_post"
+    ```
+
+    *Goulven Champenois*
+
+*   Report `:locals` as part of the data returned by ActionView render instrumentation.
+
+    Before:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application"
+    }
+    ```
+
+    After:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application",
+    locals: {foo: "bar"}
+    }
+    ```
+
+    *Aaron Gough*
+
 *   Strip `break_sequence` at the end of `word_wrap`.
 
     This fixes a bug where `word_wrap` didn't properly strip off break sequences that had printable characters.

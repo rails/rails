@@ -1,10 +1,21 @@
 Description:
-    The 'rails plugin new' command creates a skeleton for developing any
-    kind of Rails extension with ability to run tests using dummy Rails
-    application.
+    The `rails plugin new` command creates a Rails plugin with ability
+    to run tests using dummy Rails application. A plugin is a gem with
+    either a railtie or an engine.
 
-Example:
-    rails plugin new ~/Code/Ruby/blog
+Examples:
+    `rails plugin new ~/Code/Ruby/blog`
 
-    This generates a skeletal Rails plugin in ~/Code/Ruby/blog.
+    This generates a Rails railtie gem in ~/Code/Ruby/blog.
     See the README in the newly created plugin to get going.
+
+    `rails plugin new blog --full`
+
+    This generates a full Rails engine gem in ./blog. The `--mountable`
+    option may also be used to generate mountable, namespaced isolated
+    engine with assets and layouts.
+
+    `rails plugin new blog --mountable --skip-asset-pipeline`
+
+    This generates a mountable Rails engine gem at ./blog without an asset
+    pipeline. Any part of Rails can be skipped during plugin generation.

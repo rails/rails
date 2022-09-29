@@ -470,6 +470,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
   end
 
+  def test_application_name_is_normalized_in_config
+    run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /<title>MyWebSite<\/title>/
+    assert_file "MyWebSite/config/database.yml", /my_web_site_production/
+  end
+
   def test_gemfile_has_no_whitespace_errors
     run_generator
     absolute = File.expand_path("Gemfile", destination_root)
@@ -647,7 +653,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_a_debugger
     run_generator
-    if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
+    if defined?(JRUBY_VERSION)
       assert_no_gem "debug"
     else
       assert_gem "debug"
@@ -961,7 +967,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Gemfile" do |content|
-      assert_match(/ruby "#{RUBY_VERSION}"/, content)
+      assert_match(/ruby "#{Gem.ruby_version}"/, content)
     end
     assert_file ".ruby-version" do |content|
       if ENV["RBENV_VERSION"]
@@ -1030,19 +1036,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     )
     folders_with_keep.each do |folder|
       assert_file("#{folder}/.keep")
-    end
-  end
-
-  def test_psych_gem
-    run_generator
-    gem_regex = /gem 'psych',\s+'~> 2\.0',\s+platforms: :rbx/
-
-    assert_file "Gemfile" do |content|
-      if defined?(Rubinius)
-        assert_match(gem_regex, content)
-      else
-        assert_no_match(gem_regex, content)
-      end
     end
   end
 

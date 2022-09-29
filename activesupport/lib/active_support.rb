@@ -69,7 +69,9 @@ module ActiveSupport
     autoload :JsonWithMarshalFallback
     autoload :KeyGenerator
     autoload :MessageEncryptor
+    autoload :MessageEncryptors
     autoload :MessageVerifier
+    autoload :MessageVerifiers
     autoload :Multibyte
     autoload :NumberHelper
     autoload :OptionMerger
@@ -95,6 +97,7 @@ module ActiveSupport
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
 
+  @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
 
   def self.cache_format_version

@@ -1125,6 +1125,10 @@ Define an `Array` specifying the key/value tags to be inserted in an SQL
 comment. Defaults to `[ :application ]`, a predefined tag returning the
 application name.
 
+#### `config.active_record.query_log_tags_format`
+
+A `Symbol` specifying the formatter to use for tags. Valid values are `:sqlcommenter` and `:legacy`.  Defaults to `:legacy`.
+
 #### `config.active_record.cache_query_log_tags`
 
 Specifies whether or not to enable caching of query log tags. For applications
@@ -1355,7 +1359,7 @@ Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 
 #### `config.action_controller.raise_on_open_redirects`
 
-Raises an `ArgumentError` when an unpermitted open redirect occurs.
+Raises an `ActionController::Redirecting::UnsafeRedirectError` when an unpermitted open redirect occurs.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2368,7 +2372,7 @@ config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
 #### `config.active_storage.variable_content_types`
 
 Accepts an array of strings indicating the content types that Active Storage
-can transform through ImageMagick.
+can transform through the variant processor.
 By default, this is defined as:
 
 ```ruby
@@ -2820,6 +2824,33 @@ database user that cannot create tables.
 development:
   adapter: postgresql
   use_metadata_table: false
+```
+
+#### Configuring Retry Behaviour
+
+By default, Rails will automatically reconnect to the database server and retry certain queries
+if something goes wrong. Only safely retryable (idempotent) queries will be retried. The number
+of retries can be specified in your the database configuration via `connection_retries`, or disabled
+by setting the value to 0. The default number of retries is 1.
+
+```yaml
+development:
+  adapter: mysql2
+  connection_retries: 3
+```
+
+The database config also allows a `retry_deadline` to be configured. If a `retry_deadline` is configured,
+an otherwise-retryable query will _not_ be retried if the specified time has elapsed while the query was
+first tried. For example, a `retry_deadline` of 5 seconds means that if 5 seconds have passed since a query
+was first attempted, we won't retry the query, even if it is idempotent and there are `connection_retries` left.
+
+This value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed.
+The value for this config should be specified in seconds.
+
+```yaml
+development:
+  adapter: mysql2
+  retry_deadline: 5 # Stop retrying queries after 5 seconds
 ```
 
 ### Creating Rails Environments

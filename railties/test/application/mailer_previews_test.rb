@@ -263,7 +263,7 @@ module ApplicationTests
       prev = ActionMailer::Base.preview_paths
       ActionMailer::Base.preview_paths = ["#{app_path}/lib/mailer/previews"]
       assert_deprecated do
-        assert "#{app_path}/lib/mailer/previews", ActionMailer::Base.preview_path
+        assert_equal "#{app_path}/lib/mailer/previews", ActionMailer::Base.preview_path
       end
     ensure
       ActionMailer::Base.preview_paths = prev
@@ -274,7 +274,7 @@ module ApplicationTests
       assert_deprecated do
         ActionMailer::Base.preview_path = "#{app_path}/lib/mailer/previews"
       end
-      assert ["#{app_path}/lib/mailer/previews"], ActionMailer::Base.preview_paths
+      assert_equal ["#{app_path}/lib/mailer/previews"], ActionMailer::Base.preview_paths
     ensure
       ActionMailer::Base.preview_paths = prev
     end
@@ -353,6 +353,10 @@ module ApplicationTests
       app("development")
 
       get "/rails/mailers/notifier/bar"
+      assert_predicate last_response, :not_found?
+      assert_match "Email &#39;bar&#39; not found in NotifierPreview", h(last_response.body)
+
+      get "/rails/mailers/download/notifier/bar"
       assert_predicate last_response, :not_found?
       assert_match "Email &#39;bar&#39; not found in NotifierPreview", h(last_response.body)
     end
@@ -444,6 +448,13 @@ module ApplicationTests
       assert_match "Ruby on Rails &lt;core@rubyonrails.org&gt;", last_response.body
       assert_match "Andrew White &lt;andyw@pixeltrix.co.uk&gt;", last_response.body
       assert_match "David Heinemeier Hansson &lt;david@heinemeierhansson.com&gt;", last_response.body
+
+      get "/rails/mailers/download/notifier/foo"
+      email = Mail.read_from_string(last_response.body)
+      assert_equal "attachment; filename=\"foo.eml\"; filename*=UTF-8''foo.eml", last_response.headers["Content-Disposition"]
+      assert_equal 200, last_response.status
+      assert_equal ["andyw@pixeltrix.co.uk"], email.to
+      assert_equal ["david@heinemeierhansson.com"], email.cc
     end
 
     test "part menu selects correct option" do
@@ -663,6 +674,13 @@ module ApplicationTests
       get "/rails/mailers/notifier/foo?part=text/plain"
       assert_equal 200, last_response.status
       assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/download/notifier/foo"
+      assert_equal 200, last_response.status
+      email = Mail.read_from_string(last_response.body)
+      assert_equal 2, email.parts.size
+      assert_equal "text/plain; charset=UTF-8", email.parts[0].content_type
+      assert_equal "image/png; filename=pixel.png", email.parts[1].content_type
     end
 
     test "multipart mailer preview with attachment" do
@@ -875,6 +893,36 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo"
       assert_match "<title>Mailer Preview for notifier#foo</title>", last_response.body
+    end
+
+    test "mailer preview sender tags" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+          def foo
+            mail to: "to@example.org", cc: "cc@example.com", bcc: "bcc@example.com"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo"
+      assert_match "<dd id=\"to\">to@example.org</dd>", last_response.body
+      assert_match "<dd id=\"cc\">cc@example.com</dd>", last_response.body
+      assert_match "<dd id=\"bcc\">bcc@example.com</dd>", last_response.body
     end
 
     private

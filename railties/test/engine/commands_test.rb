@@ -30,35 +30,31 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     assert_equal "test", output.strip
   end
 
-  def test_console_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
+  if available_pty?
+    def test_console_command_work_inside_engine
+      primary, replica = PTY.open
+      cmd = "console --singleline"
+      spawn_command(cmd, replica)
+      assert_output(">", primary)
+    ensure
+      primary.puts "quit"
+    end
 
-    primary, replica = PTY.open
-    cmd = "console --singleline"
-    spawn_command(cmd, replica)
-    assert_output(">", primary)
-  ensure
-    primary.puts "quit"
-  end
+    def test_dbconsole_command_work_inside_engine
+      primary, replica = PTY.open
+      spawn_command("dbconsole", replica)
+      assert_output("sqlite>", primary)
+    ensure
+      primary.puts ".exit"
+    end
 
-  def test_dbconsole_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
-
-    primary, replica = PTY.open
-    spawn_command("dbconsole", replica)
-    assert_output("sqlite>", primary)
-  ensure
-    primary.puts ".exit"
-  end
-
-  def test_server_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
-
-    primary, replica = PTY.open
-    pid = spawn_command("server", replica)
-    assert_output("Listening on", primary)
-  ensure
-    kill(pid)
+    def test_server_command_work_inside_engine
+      primary, replica = PTY.open
+      pid = spawn_command("server", replica)
+      assert_output("Listening on", primary)
+    ensure
+      kill(pid)
+    end
   end
 
   private

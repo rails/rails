@@ -607,13 +607,15 @@ module CacheStoreBehavior
 
   def test_invalid_expiration_time_reports_and_logs_when_raise_on_invalid_cache_expiration_time_is_false
     with_raise_on_invalid_cache_expiration_time(false) do
-      with_error_subscriber_and_log do |error_subscriber, log|
-        key = SecureRandom.uuid
-        @cache.write(key, "bar", expires_in: -60)
-        error = ArgumentError.new("Cache expiration time is invalid, cannot be negative: -60")
-        assert_equal [[error, true, :warning, "application", {}]], error_subscriber.events
-        assert_equal "#{error.class}: #{error.message}", log.string.lines.first.chomp
+      error_message = "Cache expiration time is invalid, cannot be negative: -60"
+      report = assert_error_reported(ArgumentError) do
+        logs = capture_logs do
+          key = SecureRandom.uuid
+          @cache.write(key, "bar", expires_in: -60)
+        end
+        assert_includes logs, "ArgumentError: #{error_message}"
       end
+      assert_includes report.error.message, error_message
     end
   end
 
@@ -795,20 +797,15 @@ module CacheStoreBehavior
       ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = old_value
     end
 
-    def with_error_subscriber_and_log(&block)
-      old_error_reporter = ActiveSupport.error_reporter
+    def capture_logs(&block)
       old_logger = ActiveSupport::Cache::Store.logger
-
-      ActiveSupport.error_reporter = ActiveSupport::ErrorReporter.new
-      error_subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
-      ActiveSupport.error_reporter.subscribe(error_subscriber)
-
       log = StringIO.new
       ActiveSupport::Cache::Store.logger = ActiveSupport::Logger.new(log)
-
-      yield(error_subscriber, log)
-    ensure
-      ActiveSupport.error_reporter = old_error_reporter
-      ActiveSupport::Cache::Store.logger = old_logger
+      begin
+        yield
+        log.string
+      ensure
+        ActiveSupport::Cache::Store.logger = old_logger
+      end
     end
 end

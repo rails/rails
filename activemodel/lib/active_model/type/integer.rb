@@ -36,6 +36,7 @@ module ActiveModel
     #     attribute :age, :integer, limit: 6
     #   end
     class Integer < Value
+      include SerializeCastValue
       include Helpers::Numeric
 
       # Column storage size in bytes.
@@ -59,6 +60,10 @@ module ActiveModel
       def serialize(value)
         return if value.is_a?(::String) && non_numeric_string?(value)
         ensure_in_range(super)
+      end
+
+      def serialize_cast_value(value) # :nodoc:
+        ensure_in_range(value)
       end
 
       def serializable?(value)

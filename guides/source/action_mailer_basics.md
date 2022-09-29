@@ -854,18 +854,20 @@ Add this to your `config/environments/$RAILS_ENV.rb` file to send via Gmail:
 ```ruby
 config.action_mailer.delivery_method = :smtp
 config.action_mailer.smtp_settings = {
-  address:              'smtp.gmail.com',
-  port:                 587,
-  domain:               'example.com',
-  user_name:            '<username>',
-  password:             '<password>',
-  authentication:       'plain',
-  enable_starttls_auto: true,
-  open_timeout:         5,
-  read_timeout:         5 }
+  address:         'smtp.gmail.com',
+  port:            587,
+  domain:          'example.com',
+  user_name:       '<username>',
+  password:        '<password>',
+  authentication:  'plain',
+  enable_starttls: true,
+  open_timeout:    5,
+  read_timeout:    5 }
 ```
 
-NOTE: On July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) to block attempts from apps it deems less secure.
+If you are using an old version of the Mail gem (2.6.x or earlier), use `enable_starttls_auto` instead of `enable_starttls`.
+
+NOTE: Google [blocks sign-ins](https://support.google.com/accounts/answer/6010255) from apps it deems less secure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password.
 

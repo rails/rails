@@ -1,3 +1,7 @@
+*   Added ability to download `.eml` file for the email preview.
+
+    *Igor Kasyanchuk*
+
 *   Support multiple preview paths for mailers.
 
     Option `config.action_mailer.preview_path` is deprecated in favor of

@@ -60,7 +60,8 @@ module ActionView
           ActiveSupport::Notifications.instrument(
             "render_template.action_view",
             identifier: template.identifier,
-            layout: layout && layout.virtual_path
+            layout: layout && layout.virtual_path,
+            locals: locals
           ) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end

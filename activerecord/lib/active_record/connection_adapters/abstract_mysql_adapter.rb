@@ -393,8 +393,10 @@ module ActiveRecord
           options[:comment] = column.comment
         end
 
-        unless options.key?(:collation)
-          options[:collation] = column.collation if text_type?(type)
+        if options[:collation] == :no_collation
+          options.delete(:collation)
+        else
+          options[:collation] ||= column.collation if text_type?(type)
         end
 
         unless options.key?(:auto_increment)

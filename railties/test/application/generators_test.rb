@@ -35,6 +35,11 @@ module ApplicationTests
       assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
     end
 
+    test "allow generating plugin inside Rails app directory" do
+      rails "generate", "plugin", "vendor/plugins/bukkits"
+      assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
+    end
+
     test "generators default values" do
       with_bare_config do |c|
         assert_equal(true, c.generators.colorize_logging)

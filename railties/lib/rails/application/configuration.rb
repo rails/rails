@@ -376,24 +376,34 @@ module Rails
         end
       end
 
-      # Load the database YAML without evaluating ERB. This allows us to
-      # create the rake tasks for multiple databases without filling in the
-      # configuration values or loading the environment. Do not use this
-      # method.
+      # Load the <tt>config/database.yml</tt> to create the Rake tasks for
+      # multiple databases without loading the environment and filling in the
+      # environment specific configuration values.
       #
-      # This uses a DummyERB custom compiler so YAML can ignore the ERB
-      # tags and load the database.yml for the rake tasks.
+      # Do not use this method, use #database_configuration instead.
       def load_database_yaml # :nodoc:
         if path = paths["config/database"].existent.first
-          require "rails/application/dummy_erb_compiler"
+          require "rails/application/dummy_config"
 
-          yaml = DummyERB.new(Pathname.new(path).read).result
+          original_rails_config = Rails.application.config
+          dummy_config = DummyConfig.new(original_rails_config)
+          database_config = {}
 
-          if YAML.respond_to?(:unsafe_load)
-            YAML.unsafe_load(yaml) || {}
-          else
-            YAML.load(yaml) || {}
+          begin
+            Rails.application.config = dummy_config
+
+            yaml = ERB.new(Pathname.new(path).read).result
+
+            if YAML.respond_to?(:unsafe_load)
+              database_config = YAML.unsafe_load(yaml) || {}
+            else
+              database_config = YAML.load(yaml) || {}
+            end
+          ensure
+            Rails.application.config = original_rails_config
           end
+
+          database_config
         else
           {}
         end

@@ -1074,24 +1074,24 @@ class RenderTest < ActionController::TestCase
 
   def test_should_render_formatted_template
     get :formatted_html_erb
-    assert_equal "formatted html erb", @response.body
+    assert_equal "formatted HTML erb", @response.body
   end
 
   def test_should_render_formatted_html_erb_template
     get :formatted_xml_erb
-    assert_equal "<test>passed formatted html erb</test>", @response.body
+    assert_equal "<test>passed formatted HTML erb</test>", @response.body
   end
 
   def test_should_render_formatted_html_erb_template_with_bad_accepts_header
     @request.env["HTTP_ACCEPT"] = "; a=dsf"
     get :formatted_xml_erb
-    assert_equal "<test>passed formatted html erb</test>", @response.body
+    assert_equal "<test>passed formatted HTML erb</test>", @response.body
   end
 
   def test_should_render_formatted_html_erb_template_with_faulty_accepts_header
     @request.accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, */*"
     get :formatted_xml_erb
-    assert_equal "<test>passed formatted html erb</test>", @response.body
+    assert_equal "<test>passed formatted HTML erb</test>", @response.body
   end
 
   def test_layout_test_with_different_layout
@@ -1277,7 +1277,7 @@ class RenderTest < ActionController::TestCase
     get :render_to_string_with_template_and_html_partial
     assert_equal "**only partial**\n", @controller.instance_variable_get(:@text)
     assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
-    assert_equal "<strong>only html partial</strong>\n", @response.body
+    assert_equal "<strong>only HTML partial</strong>\n", @response.body
     assert_equal "text/html", @response.media_type
   end
 
@@ -1290,7 +1290,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_template_within_a_template_with_other_format
     get :render_template_within_a_template_with_other_format
-    expected = "only html partial<p>This is grand!</p>"
+    expected = "only HTML partial<p>This is grand!</p>"
     assert_equal expected, @response.body.strip
     assert_equal "text/html", @response.media_type
   end

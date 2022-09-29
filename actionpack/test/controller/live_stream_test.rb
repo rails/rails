@@ -369,8 +369,6 @@ module ActionController
     end
 
     def test_async_stream
-      rubinius_skip "https://github.com/rubinius/rubinius/issues/2934"
-
       @controller.latch = Concurrent::CountDownLatch.new
       parts             = ["hello", "world"]
 

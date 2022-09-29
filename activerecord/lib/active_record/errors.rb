@@ -281,9 +281,9 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Which can be found in the database configuration file located at config/database.yml.
+          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml file.
 
-          To resolve this issue:
+          To resolve this error:
 
           - Did you create the database for this app, or delete it? You may need to create your database.
           - Has the database name changed? Check your database.yml config has the correct database name.

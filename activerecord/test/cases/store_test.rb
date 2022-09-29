@@ -31,6 +31,12 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "37signals.com", @john.homepage
   end
 
+  test "writing store attributes does not update unchanged value" do
+    admin_user = Admin::User.new(homepage: nil)
+    admin_user.homepage = nil
+    assert_equal({}, admin_user.settings)
+  end
+
   test "reading store attributes through accessors with prefix" do
     assert_equal "Quinn", @john.parent_name
     assert_nil @john.parent_birthday
@@ -102,6 +108,14 @@ class StoreTest < ActiveRecord::TestCase
     @john.settings = { color: @john.color, some: "thing" }
     assert @john.settings_changed?
     assert_not @john.color_changed?
+  end
+
+  test "updating the store and changing it back won't mark accessor as changed" do
+    @john.color = "red"
+    assert_equal "black", @john.color_was
+    @john.color = "black"
+    assert_not_predicate @john, :settings_changed?
+    assert_not_predicate @john, :color_changed?
   end
 
   test "updating the store populates the accessor changed array correctly" do

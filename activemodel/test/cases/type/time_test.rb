@@ -35,6 +35,13 @@ module ActiveModel
           assert_equal offset, type.user_input_in_time_zone(time_string).formatted_offset
         end
       end
+
+      test "serialize_cast_value is equivalent to serialize after cast" do
+        type = Type::Time.new(precision: 1)
+        value = type.cast("1999-12-31T12:34:56.789-10:00")
+
+        assert_equal type.serialize(value), type.serialize_cast_value(value)
+      end
     end
   end
 end
