@@ -1,3 +1,23 @@
+*   Add `Rails.application.message_verifiers` as a central point to configure
+    and create message verifiers for an application.
+
+    This allows applications to, for example, rotate old `secret_key_base`
+    values:
+
+    ```ruby
+    config.before_initialize do |app|
+      app.message_verifiers.rotate(secret_key_base: "old secret_key_base")
+    end
+    ```
+
+    And for libraries to create preconfigured message verifiers:
+
+    ```ruby
+    ActiveStorage.verifier = Rails.application.message_verifiers["ActiveStorage"]
+    ```
+
+    *Jonathan Hefner*
+
 *   Support MySQL's ssl-mode option for the dbconsole command.
 
     Verifying the identity of the database server requires setting the ssl-mode
