@@ -69,7 +69,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_preference(:detach, true)
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "goog:chromeOptions" => {
@@ -79,7 +78,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "chrome"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "define extra capabilities using headless_chrome" do
@@ -89,7 +88,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_preference(:detach, true)
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "goog:chromeOptions" => {
@@ -99,7 +97,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "chrome"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "define extra capabilities using firefox" do
@@ -108,7 +106,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_argument("--host=127.0.0.1")
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "moz:firefoxOptions" => {
@@ -117,7 +114,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "firefox"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "define extra capabilities using headless_firefox" do
@@ -126,7 +123,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_argument("--host=127.0.0.1")
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "moz:firefoxOptions" => {
@@ -135,7 +131,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "firefox"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "does not define extra capabilities" do
@@ -176,4 +172,11 @@ class DriverTest < ActiveSupport::TestCase
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, options: { name: :best_driver })
     assert_equal :best_driver, driver.name
   end
+
+  private
+    def assert_driver_capabilities(driver, expected_capabilities)
+      capabilities = driver.__send__(:browser_options)[:capabilities].as_json
+
+      assert_equal expected_capabilities, capabilities.slice(*expected_capabilities.keys)
+    end
 end
