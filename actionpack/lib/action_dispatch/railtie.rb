@@ -68,9 +68,5 @@ module ActionDispatch
 
       ActionDispatch.test_app = app
     end
-
-    rake_tasks do
-      load "rails/tasks/testing.rake"
-    end
   end
 end
