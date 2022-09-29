@@ -10,6 +10,8 @@ module ActiveModel
     # - Empty strings are coerced to +nil+.
     # - All other values will be coerced to +true+.
     class Boolean < Value
+      include SerializeCastValue
+
       FALSE_VALUES = [
         false, 0,
         "0", :"0",
