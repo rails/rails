@@ -68,7 +68,7 @@ group :job do
   gem "delayed_job", require: false
   gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
   gem "sneakers", require: false
-  gem "que", require: false
+  gem "que", "< 2.2.0", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
