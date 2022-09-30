@@ -1500,6 +1500,8 @@ module ActiveRecord
         #   if the record is invalid.
         # [reload_association]
         #   Returns the associated object, forcing a database read.
+        # [reset_association]
+        #   Unloads the associated object. The next access will query it from the database.
         #
         # === Example
         #
@@ -1510,6 +1512,7 @@ module ActiveRecord
         # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save; b</tt>)
         # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save!; b</tt>)
         # * <tt>Account#reload_beneficiary</tt>
+        # * <tt>Account#reset_beneficiary</tt>
         #
         # === Scopes
         #
@@ -1669,6 +1672,8 @@ module ActiveRecord
         #   if the record is invalid.
         # [reload_association]
         #   Returns the associated object, forcing a database read.
+        # [reset_association]
+        #   Unloads the associated object. The next access will query it from the database.
         # [association_changed?]
         #   Returns true if a new associate object has been assigned and the next save will update the foreign key.
         # [association_previously_changed?]
@@ -1683,9 +1688,9 @@ module ActiveRecord
         # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
         # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
         # * <tt>Post#reload_author</tt>
+        # * <tt>Post#reset_author</tt>
         # * <tt>Post#author_changed?</tt>
         # * <tt>Post#author_previously_changed?</tt>
-        # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
         #
@@ -1699,6 +1704,8 @@ module ActiveRecord
         #   belongs_to :level, ->(game) { where("game_level > ?", game.current_level) }
         #
         # === Options
+        #
+        # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # [:class_name]
         #   Specify the class name of the association. Use it only if that name can't be inferred

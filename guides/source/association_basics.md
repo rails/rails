@@ -923,6 +923,7 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
 * `reload_association`
+* `reset_association`
 * `association_changed?`
 * `association_previously_changed?`
 
@@ -943,6 +944,7 @@ build_author
 create_author
 create_author!
 reload_author
+reset_author
 author_changed?
 author_previously_changed?
 ```
@@ -961,6 +963,12 @@ If the associated object has already been retrieved from the database for this o
 
 ```ruby
 @author = @book.reload_author
+```
+
+To unload the cached version of the associated object—causing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
+
+```ruby
+@book.reset_author
 ```
 
 ##### `association=(associate)`
@@ -1320,6 +1328,7 @@ When you declare a `has_one` association, the declaring class automatically gain
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
 * `reload_association`
+* `reset_assocation`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
@@ -1338,6 +1347,7 @@ build_account
 create_account
 create_account!
 reload_account
+reset_account
 ```
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
@@ -1354,6 +1364,12 @@ If the associated object has already been retrieved from the database for this o
 
 ```ruby
 @account = @supplier.reload_account
+```
+
+To unload the cached version of the associated object—forcing the next access, if any, to query it from the database—call `#reset_association` on the parent object.
+
+```ruby
+@supplier.reset_account
 ```
 
 ##### `association=(associate)`
