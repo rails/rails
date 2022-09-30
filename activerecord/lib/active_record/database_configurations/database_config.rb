@@ -18,7 +18,7 @@ module ActiveRecord
       end
 
       def adapter_class_method
-        "#{adapter}_connection_class"
+        "#{adapter}_adapter_class"
       end
 
       def host

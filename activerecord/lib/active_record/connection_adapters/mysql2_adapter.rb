@@ -8,13 +8,13 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    def mysql2_connection_class
+    def mysql2_adapter_class
       ConnectionAdapters::Mysql2Adapter
     end
 
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
-      mysql2_connection_class.new(config)
+      mysql2_adapter_class.new(config)
     end
   end
 

@@ -21,13 +21,13 @@ require "active_record/connection_adapters/postgresql/utils"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    def postgresql_connection_class
+    def postgresql_adapter_class
       ConnectionAdapters::PostgreSQLAdapter
     end
 
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config)
-      postgresql_connection_class.new(config)
+      postgresql_adapter_class.new(config)
     end
   end
 

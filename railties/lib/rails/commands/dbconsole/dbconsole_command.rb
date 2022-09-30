@@ -16,7 +16,7 @@ module Rails
     end
 
     def start
-      connection_class.dbconsole(db_config, @options)
+      adapter_class.dbconsole(db_config, @options)
     rescue NotImplementedError
       abort "Unknown command-line client for #{db_config.database}."
     end
@@ -50,7 +50,7 @@ module Rails
     end
 
     private
-      def connection_class
+      def adapter_class
         if ActiveRecord::Base.respond_to?(db_config.adapter_class_method)
           ActiveRecord::Base.public_send(db_config.adapter_class_method)
         else
