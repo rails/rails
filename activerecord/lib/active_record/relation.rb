@@ -768,15 +768,47 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').to_sql
     #   # SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
-    def to_sql
+    #
+    # For calculation methods like `count` pass the method as argument:
+    #
+    #   User.all.to_sql(:count)
+    #   # SELECT COUNT(*) FROM "users"
+    #
+    # The column name can be passed if required:
+    #
+    #   User.all.to_sql(:maximum, :id)
+    #   # "SELECT MAX("users"."id") FROM "users"
+    def to_sql(operation = nil, column_name = nil)
       @to_sql ||= if eager_loading?
         apply_join_dependency do |relation, join_dependency|
           relation = join_dependency.apply_column_aliases(relation)
-          relation.to_sql
+          relation.to_sql(operation, column_name)
         end
       else
         conn = klass.connection
-        conn.unprepared_statement { conn.to_sql(arel) }
+        conn.unprepared_statement {
+          if operation.present?
+            operation = operation.to_s.downcase
+
+            distinct, column_name = distict_and_column_name(operation, column_name)
+
+            if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
+              query_builder = build_count_subquery(spawn, column_name, distinct)
+            else
+              column = aggregate_column(column_name)
+              relation = build_simple_calculation(operation, column, distinct)
+              query_builder = relation.arel
+            end
+
+            if group_values.any?
+              raise "Calling `to_sql(#{operation.to_sym.inspect})` with a `group` is not supported"
+            else
+              conn.to_sql(query_builder)
+            end
+          else
+            conn.to_sql(arel)
+          end
+        }
       end
     end
 
