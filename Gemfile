@@ -12,7 +12,7 @@ gem "minitest", "~> 5.15.0"
 gem "rake", ">= 11.1"
 
 gem "capybara", ">= 3.26"
-gem "selenium-webdriver", ">= 4.0.0.alpha7"
+gem "selenium-webdriver", "< 4.2"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
@@ -68,7 +68,7 @@ group :job do
   gem "delayed_job", require: false
   gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
   gem "sneakers", require: false
-  gem "que", "< 2.2.0", require: false
+  gem "que", "< 2", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false
