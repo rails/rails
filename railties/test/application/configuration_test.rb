@@ -2012,6 +2012,12 @@ module ApplicationTests
       assert_equal({}, Rails.application.config.load_database_yaml)
     end
 
+    test "load_database_yaml returns blank hash if no database configuration is found" do
+      remove_file "config/database.yml"
+      app "development"
+      assert_equal({}, Rails.application.config.load_database_yaml)
+    end
+
     test "setup_initial_database_yaml does not print a warning if config.active_record.suppress_multiple_database_warning is true" do
       app_file "config/database.yml", <<-YAML
         <%= Rails.env %>:

@@ -384,26 +384,14 @@ module Rails
       def load_database_yaml # :nodoc:
         if path = paths["config/database"].existent.first
           require "rails/application/dummy_config"
-
           original_rails_config = Rails.application.config
-          dummy_config = DummyConfig.new(original_rails_config)
-          database_config = {}
 
           begin
-            Rails.application.config = dummy_config
-
-            yaml = ERB.new(Pathname.new(path).read).result
-
-            if YAML.respond_to?(:unsafe_load)
-              database_config = YAML.unsafe_load(yaml) || {}
-            else
-              database_config = YAML.load(yaml) || {}
-            end
+            Rails.application.config = DummyConfig.new(original_rails_config)
+            ActiveSupport::ConfigurationFile.parse(Pathname.new(path))
           ensure
             Rails.application.config = original_rails_config
           end
-
-          database_config
         else
           {}
         end
