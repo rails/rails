@@ -74,6 +74,12 @@ ONE_RUBY = RUBIES.last || SOFT_FAIL.last
 MASTER_RUBY = "rubylang/ruby:master-nightly-focal"
 SOFT_FAIL << MASTER_RUBY
 
+# Adds yjit: onto the master ruby image string so we
+# know when to turn on YJIT via the environment variable.
+# Same as master ruby, we want this to soft fail.
+YJIT_RUBY = "yjit:#{MASTER_RUBY}"
+SOFT_FAIL << YJIT_RUBY
+
 # Run steps for newer Rubies first.
 RUBIES.reverse!
 SOFT_FAIL.reverse!
@@ -84,6 +90,8 @@ RUBIES.concat SOFT_FAIL
 STEPS = []
 
 def image_name_for(ruby, suffix = BUILD_ID, short: false)
+  ruby = ruby_image(ruby)
+
   tag = "#{mangle_name(ruby)}-#{suffix}"
 
   if short
@@ -97,20 +105,51 @@ def mangle_name(name)
   name.tr("^A-Za-z0-9", "-")
 end
 
+# YJIT uses the same image as ruby-trunk because it's turned on
+# via an ENV var. This needs to remove the `yjit:` added onto the
+# front because otherwise it's not a valid image.
+def ruby_image(ruby)
+  if ruby == YJIT_RUBY
+    ruby.sub("yjit:", "")
+  else
+    ruby
+  end
+end
+
+# A shortened version of the name for the Buildkite label.
+def short_ruby(ruby)
+  if ruby == MASTER_RUBY
+    "master"
+  elsif ruby == YJIT_RUBY
+    "yjit"
+  else
+    ruby.sub(/^ruby:|:latest$/, "")
+  end
+end
+
 def step_for(subdirectory, rake_task, ruby: nil, service: "default")
   return unless REPO_ROOT.join(subdirectory).exist?
 
   label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
   label.sub!(/ test/, "")
   if ruby
-    short_ruby = ruby == MASTER_RUBY ? "master" : ruby.sub(/^ruby:|:latest$/, "")
-    label << " (#{short_ruby})"
+    label << " (#{short_ruby(ruby)})"
   end
 
   if rake_task.start_with?("mysql2:") || rake_task.start_with?("mysql:")
     rake_task = "db:mysql:rebuild #{rake_task}"
   elsif rake_task.start_with?("postgresql:")
     rake_task = "db:postgresql:rebuild #{rake_task}"
+  end
+
+  env = {
+    "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
+  }
+
+  # If we have YJIT_RUBY set the environment variable
+  # to turn it on.
+  if ruby == YJIT_RUBY
+    env["RUBY_YJIT_ENABLE"] = "1"
   end
 
   command = "rake #{rake_task}"
@@ -123,10 +162,6 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     else
       ruby || ONE_RUBY
     end
-
-  env = {
-    "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
-  }
 
   if RAILS_VERSION < Gem::Version.new("5.x")
     env["MYSQL_IMAGE"] = "mysql:5.6"
@@ -328,7 +363,8 @@ puts YAML.dump("steps" => [
           "env" => {
             "BUNDLER" => BUNDLER,
             "RUBYGEMS" => RUBYGEMS,
-            "RUBY_IMAGE" => ruby,
+            "RUBY_IMAGE" => ruby_image(ruby),
+            "RUBY_YJIT_ENABLE" => ruby == YJIT_RUBY ? "1" : "0",
             "encrypted_0fb9444d0374_key" => nil,
             "encrypted_0fb9444d0374_iv" => nil,
           },
