@@ -102,7 +102,9 @@ module Rails
 
       desc "console", "Start the Rails console"
       def perform
-        boot_application!
+        require_application!
+        Rails.configuration.log_to_stdout!
+        Rails.application.require_environment! if defined?(APP_PATH)
         Rails::Console.start(Rails.application, options)
       end
     end

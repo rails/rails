@@ -33,7 +33,7 @@ module Rails
       trap(:INT) { exit }
       create_tmp_directories
       setup_dev_caching
-      log_to_stdout if options[:log_stdout]
+      Rails.configuration.log_to_stdout! if options[:log_stdout]
 
       super()
     ensure
@@ -69,18 +69,6 @@ module Rails
       def create_tmp_directories
         %w(cache pids sockets).each do |dir_to_make|
           FileUtils.mkdir_p(File.join(Rails.root, "tmp", dir_to_make))
-        end
-      end
-
-      def log_to_stdout
-        wrapped_app # touch the app so the logger is set up
-
-        console = ActiveSupport::Logger.new(STDOUT)
-        console.formatter = Rails.logger.formatter
-        console.level = Rails.logger.level
-
-        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
-          Rails.logger = ActiveSupport::BroadcastLogger.new(Rails.logger, console)
         end
       end
 
