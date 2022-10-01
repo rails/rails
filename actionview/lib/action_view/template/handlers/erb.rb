@@ -117,7 +117,7 @@ module ActionView
               tokens << [:TEXT, source.string[pos, len]] if len > 0
               tokens << [:OPEN, source.matched]
               if source.scan(/(.*?)(?=#{finish_re}|$)/m)
-                  tokens << [:CODE, source.matched]
+                tokens << [:CODE, source.matched]
                 tokens << [:CLOSE, source.scan(finish_re)] unless source.eos?
               else
                 raise NotImplemented
@@ -140,9 +140,9 @@ module ActionView
 
           while tok = source_tokens.shift
             case tok
-              in [:TEXT, str]
+            in [:TEXT, str]
               raise unless compiled.scan(str)
-              in [:CODE, str]
+            in [:CODE, str]
               raise "We went too far" if compiled.pos > error_column
 
               if compiled.pos + str.bytesize >= error_column
@@ -151,13 +151,13 @@ module ActionView
               else
                 raise unless compiled.scan(str)
               end
-              in [:OPEN, str]
+            in [:OPEN, str]
               next_tok = source_tokens.first.last
               loop do
                 break if compiled.match?(next_tok)
                 compiled.getch
               end
-              in [:CLOSE, str]
+            in [:CLOSE, str]
               next_tok = source_tokens.first.last
               loop do
                 break if compiled.match?(next_tok)
