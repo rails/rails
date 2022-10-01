@@ -90,8 +90,9 @@ module ActiveRecord
         self.cached_comment = nil
       end
 
-      # Updates the formatter to be what the passed in format is.
-      def update_formatter(format = :legacy)
+      # Updates the tag formatter based on the format passed in. Available
+      # formats are <tt>:marginalia</tt> and <tt>:sqlcommenter</tt>
+      def update_formatter(format = :marginalia)
         self.tags_formatter = QueryLogs::FormatterFactory.from_symbol(format)
       end
 
@@ -109,7 +110,7 @@ module ActiveRecord
         end
 
         def formatter
-          self.tags_formatter ||= QueryLogs::FormatterFactory.from_symbol(:legacy)
+          self.tags_formatter ||= QueryLogs::FormatterFactory.from_symbol(:marginalia)
         end
 
         def uncached_comment

@@ -34,7 +34,7 @@ module ActiveRecord
     config.active_record.sqlite3_production_warning = true
     config.active_record.query_log_tags_enabled = false
     config.active_record.query_log_tags = [ :application ]
-    config.active_record.query_log_tags_format = :legacy
+    config.active_record.query_log_tags_format = :marginalia
     config.active_record.cache_query_log_tags = false
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
