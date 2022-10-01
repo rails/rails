@@ -113,7 +113,9 @@ module ActionDispatch
         DebugView.new(
           request: request,
           exception_wrapper: wrapper,
-          exception: BasicObject.new,
+          # Everything should use the wrapper, but we need to pass
+          # `exception` for legacy code.
+          exception: wrapper.exception,
           traces: wrapper.traces,
           show_source_idx: wrapper.source_to_show_id,
           trace_to_show: wrapper.trace_to_show,
