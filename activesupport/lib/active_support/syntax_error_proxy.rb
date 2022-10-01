@@ -15,6 +15,9 @@ module ActiveSupport
     class BacktraceLocation < Struct.new(:path, :lineno, :to_s)
       def spot(_)
       end
+
+      def label
+      end
     end
 
     class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location)

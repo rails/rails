@@ -220,9 +220,28 @@ module ActionDispatch
     end
 
     private
+      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location)
+        def initialize(location, template)
+          super(location)
+          @template = template
+        end
+
+        def spot(exc)
+          location = super
+          if location
+            @template.translate_location(__getobj__, location)
+          end
+        end
+      end
 
       def backtrace
-        @exception.backtrace_locations || []
+        (@exception.backtrace_locations || []).map do |loc|
+          if ActionView::Template::ERROR_HANDLERS.key?(loc.label)
+            SourceMapLocation.new(loc, ActionView::Template::ERROR_HANDLERS[loc.label])
+          else
+            loc
+          end
+        end
       end
 
       def causes_for(exception)

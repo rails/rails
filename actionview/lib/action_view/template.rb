@@ -122,6 +122,8 @@ module ActionView
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :virtual_path
 
+    ERROR_HANDLERS = {}
+
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
       @identifier        = identifier
@@ -148,6 +150,16 @@ module ActionView
         nil
       else
         @locals
+      end
+    end
+
+    # Translate an error location returned by ErrorHighlight to the correct
+    # source location inside the template.
+    def translate_location(backtrace_location, spot)
+      if handler.respond_to?(:translate_location)
+        handler.translate_location(spot, backtrace_location, source)
+      else
+        spot
       end
     end
 
@@ -352,6 +364,7 @@ module ActionView
           else
             mod.module_eval(source, identifier, 0)
           end
+          ActionView::Template::ERROR_HANDLERS[method_name] = self
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate

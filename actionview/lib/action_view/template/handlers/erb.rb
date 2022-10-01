@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "strscan"
+
 module ActionView
   class Template
     module Handlers
@@ -31,6 +33,24 @@ module ActionView
 
         def handles_encoding?
           true
+        end
+
+        # Translate an error location returned by ErrorHighlight to the correct
+        # source location inside the template.
+        def translate_location(spot, backtrace_location, source)
+          # Tokenize the source line
+          tokens = tokenize(source.lines[backtrace_location.lineno - 1])
+          new_first_column = find_offset(spot[:snippet], tokens, spot[:first_column])
+          lineno_delta = spot[:first_lineno] - backtrace_location.lineno
+          spot[:first_lineno] -= lineno_delta
+          spot[:last_lineno] -= lineno_delta
+
+          column_delta = spot[:first_column] - new_first_column
+          spot[:first_column] -= column_delta
+          spot[:last_column] -= column_delta
+          spot[:script_lines] = source.lines
+
+          spot
         end
 
         def call(template, source)
@@ -78,6 +98,77 @@ module ActionView
 
           # Otherwise, raise an exception
           raise WrongEncodingError.new(string, string.encoding)
+        end
+
+        def tokenize(source)
+          source = StringScanner.new(source.chomp)
+          tokens = []
+
+          start_re = /<%(?:={1,2}|-|\#|%)?/
+          finish_re = /(?:[-=])?%>/
+
+          while !source.eos?
+            pos = source.pos
+            source.scan_until(/(?:#{start_re}|#{finish_re})/)
+            len = source.pos - source.matched.bytesize - pos
+
+            case source.matched
+            when start_re
+              tokens << [:TEXT, source.string[pos, len]] if len > 0
+              tokens << [:OPEN, source.matched]
+              if source.scan(/(.*?)(?=#{finish_re}|$)/m)
+                  tokens << [:CODE, source.matched]
+                tokens << [:CLOSE, source.scan(finish_re)] unless source.eos?
+              else
+                raise NotImplemented
+              end
+            when finish_re
+              tokens << [:CODE, source.string[pos, len]] if len > 0
+              tokens << [:CLOSE, source.matched]
+            else
+              raise NotImplemented, source.matched
+            end
+          end
+
+          tokens
+        end
+
+        def find_offset(compiled, source_tokens, error_column)
+          compiled = StringScanner.new(compiled)
+
+          passed_tokens = []
+
+          while tok = source_tokens.shift
+            case tok
+              in [:TEXT, str]
+              raise unless compiled.scan(str)
+              in [:CODE, str]
+              raise "We went too far" if compiled.pos > error_column
+
+              if compiled.pos + str.bytesize >= error_column
+                offset = error_column - compiled.pos
+                return passed_tokens.map(&:last).join.bytesize + offset
+              else
+                raise unless compiled.scan(str)
+              end
+              in [:OPEN, str]
+              next_tok = source_tokens.first.last
+              loop do
+                break if compiled.match?(next_tok)
+                compiled.getch
+              end
+              in [:CLOSE, str]
+              next_tok = source_tokens.first.last
+              loop do
+                break if compiled.match?(next_tok)
+                compiled.getch
+              end
+            else
+              raise NotImplemented, tok.first
+            end
+
+            passed_tokens << tok
+          end
         end
       end
     end
