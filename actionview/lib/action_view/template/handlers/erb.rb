@@ -139,10 +139,11 @@ module ActionView
           passed_tokens = []
 
           while tok = source_tokens.shift
-            case tok
-            in [:TEXT, str]
+            tok_name, str = *tok
+            case tok_name
+            when :TEXT
               raise unless compiled.scan(str)
-            in [:CODE, str]
+            when :CODE
               raise "We went too far" if compiled.pos > error_column
 
               if compiled.pos + str.bytesize >= error_column
@@ -151,13 +152,13 @@ module ActionView
               else
                 raise unless compiled.scan(str)
               end
-            in [:OPEN, str]
+            when :OPEN
               next_tok = source_tokens.first.last
               loop do
                 break if compiled.match?(next_tok)
                 compiled.getch
               end
-            in [:CLOSE, str]
+            when :CLOSE
               next_tok = source_tokens.first.last
               loop do
                 break if compiled.match?(next_tok)
