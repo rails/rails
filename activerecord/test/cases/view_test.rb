@@ -156,7 +156,7 @@ if ActiveRecord::Base.connection.supports_views?
     end
   end
 
-  # sqlite dose not support CREATE, INSERT, and DELETE for VIEW
+  # SQLite dose not support CREATE, INSERT, and DELETE for VIEW
   if current_adapter?(:Mysql2Adapter, :SQLServerAdapter, :PostgreSQLAdapter)
 
     class UpdateableViewTest < ActiveRecord::TestCase
