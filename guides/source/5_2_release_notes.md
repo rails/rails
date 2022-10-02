@@ -262,7 +262,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     [Commit](https://github.com/rails/rails/commit/619b1b6353a65e1635d10b8f8c6630723a5a6f1a),
     [Commit](https://github.com/rails/rails/commit/4ec8bf68ff92f35e79232fbd605012ce1f4e1e6e))
 
-*   Register most popular audio/video/font mime types supported by modern
+*   Register most popular audio/video/font MIME types supported by modern
     browsers.
     ([Pull Request](https://github.com/rails/rails/pull/31251))
 
