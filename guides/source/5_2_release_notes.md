@@ -526,7 +526,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/63cf15877bae859ff7b4ebaf05186f3ca79c1863))
 
 *   Fixed a bug where column orders for an index weren't written to
-    `db/schema.rb` when using the sqlite adapter.
+    `db/schema.rb` when using the SQLite adapter.
     ([Pull Request](https://github.com/rails/rails/pull/30970))
 
 *   Fix `bin/rails db:migrate` with specified `VERSION`.

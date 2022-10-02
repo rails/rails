@@ -418,7 +418,7 @@ module ActiveRecord
       # something beyond a simple insert (e.g. Oracle).
       # Most of adapters should implement +insert_fixtures_set+ that leverages bulk SQL insert.
       # We keep this method to provide fallback
-      # for databases like sqlite that do not support bulk inserts.
+      # for databases like SQLite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
         execute(build_fixture_sql(Array.wrap(fixture), table_name), "Fixture Insert")
       end
