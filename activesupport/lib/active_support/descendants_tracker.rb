@@ -95,11 +95,6 @@ module ActiveSupport
       end
     end
 
-    def descendants
-      subclasses = self.subclasses
-      subclasses.concat(subclasses.flat_map(&:descendants))
-    end
-
     if RubyFeatures::CLASS_SUBCLASSES
       class << self
         def subclasses(klass)
@@ -109,6 +104,11 @@ module ActiveSupport
         def descendants(klass)
           klass.descendants
         end
+      end
+
+      def descendants
+        subclasses = self.subclasses
+        subclasses.concat(subclasses.flat_map(&:descendants))
       end
     else
       # DescendantsArray is an array that contains weak references to classes.
