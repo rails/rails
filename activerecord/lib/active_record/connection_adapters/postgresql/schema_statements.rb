@@ -614,6 +614,40 @@ module ActiveRecord
           end
         end
 
+        # Returns an array of unique constraints for the given table.
+        # The unique constraints are represented as UniqueKeyDefinition objects.
+        def unique_keys(table_name)
+          scope = quoted_scope(table_name)
+
+          unique_info = exec_query(<<~SQL, "SCHEMA", allow_retry: true, uses_transaction: false)
+            SELECT c.conname, c.conindid, c.condeferrable, c.condeferred
+            FROM pg_constraint c
+            JOIN pg_class t ON c.conrelid = t.oid
+            JOIN pg_namespace n ON n.oid = c.connamespace
+            WHERE c.contype = 'u'
+              AND t.relname = #{scope[:name]}
+              AND n.nspname = #{scope[:schema]}
+          SQL
+
+          unique_info.map do |row|
+            deferrable = extract_unique_key_deferrable(row["condeferrable"], row["condeferred"])
+
+            columns = query_values(<<~SQL, "SCHEMA")
+              SELECT a.attname
+              FROM pg_attribute a
+              WHERE a.attrelid = #{row['conindid']}
+              ORDER BY a.attnum
+            SQL
+
+            options = {
+              name: row["conname"],
+              deferrable: deferrable
+            }
+
+            UniqueKeyDefinition.new(table_name, columns, options)
+          end
+        end
+
         # Adds a new exclusion constraint to the table. +expression+ is a String
         # representation of a list of exclusion elements and operators.
         #
@@ -652,6 +686,57 @@ module ActiveRecord
 
           at = create_alter_table(table_name)
           at.drop_exclusion_constraint(excl_name_to_delete)
+
+          execute schema_creation.accept(at)
+        end
+
+        # Adds a new unique constraint to the table.
+        #
+        # PostgreSQL allows users to create a unique constraints on top of the unique index
+        # that cannot be deferred. In this case, even if users creates deferrable unique constraint,
+        # the existing unique index does not allow users to violate uniqueness within the transaction.
+        # If you want to change existing unique index to deferrable, you need execute `remove_index`
+        # before creating deferrable unique constraints.
+        #
+        #   add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_position"
+        #
+        # generates:
+        #
+        #   ALTER TABLE "sections" ADD CONSTRAINT unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED
+        #
+        # The +options+ hash can include the following keys:
+        # [<tt>:name</tt>]
+        #   The constraint name. Defaults to <tt>uniq_rails_<identifier></tt>.
+        # [<tt>:deferrable</tt>]
+        #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
+        def add_unique_key(table_name, column_name, **options)
+          options = unique_key_options(table_name, column_name, options)
+          at = create_alter_table(table_name)
+          at.add_unique_key(column_name, options)
+
+          execute schema_creation.accept(at)
+        end
+
+        def unique_key_options(table_name, column_name, options) # :nodoc:
+          assert_valid_deferrable(options[:deferrable])
+
+          options = options.dup
+          options[:name] ||= unique_key_name(table_name, column_name: column_name, **options)
+          options
+        end
+
+        # Removes the given unique constraint from the table.
+        #
+        #   remove_unique_key :sections, name: "unique_position"
+        #
+        # The +column_name+ parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's +change+ method so it can be reverted.
+        # In that case, +column_name+ will be used by #add_unique_key.
+        def remove_unique_key(table_name, column_name = nil, **options)
+          unique_name_to_delete = unique_key_for!(table_name, column_name: column_name, **options).name
+
+          at = create_alter_table(table_name)
+          at.drop_unique_key(unique_name_to_delete)
 
           execute schema_creation.accept(at)
         end
@@ -854,6 +939,16 @@ module ActiveRecord
             deferrable && (deferred ? :deferred : true)
           end
 
+          def extract_unique_key_deferrable(deferrable, deferred)
+            deferrable && (deferred ? :deferred : :immediate)
+          end
+
+          def assert_valid_deferrable(deferrable) # :nodoc:
+            return if !deferrable || %i(immediate deferred).include?(deferrable)
+
+            raise ArgumentError, "deferrable must be `:immediate` or `:deferred`, got: `#{deferrable.inspect}`"
+          end
+
           def reference_name_for_table(table_name)
             _schema, table_name = extract_schema_qualified_name(table_name.to_s)
             table_name.singularize
@@ -909,6 +1004,26 @@ module ActiveRecord
           def exclusion_constraint_for!(table_name, expression: nil, **options)
             exclusion_constraint_for(table_name, expression: expression, **options) ||
               raise(ArgumentError, "Table '#{table_name}' has no exclusion constraint for #{expression || options}")
+          end
+
+          def unique_key_name(table_name, **options)
+            options.fetch(:name) do
+              column_name = options.fetch(:column_name)
+              identifier = "#{table_name}_#{column_name}_unique"
+              hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
+              "uniq_rails_#{hashed_identifier}"
+            end
+          end
+
+          def unique_key_for(table_name, **options)
+            unique_key_name = unique_key_name(table_name, **options)
+            unique_keys(table_name).detect { |unique_key| unique_key.name == unique_key_name }
+          end
+
+          def unique_key_for!(table_name, column_name: nil, **options)
+            unique_key_for(table_name, column_name: column_name, **options) ||
+              raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column_name || options}")
           end
 
           def data_source_sql(name = nil, type: nil)

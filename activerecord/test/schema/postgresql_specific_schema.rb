@@ -135,6 +135,16 @@ _SQL
     t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "test_exclusion_constraints_date_overlap"
   end
 
+  create_table :test_unique_keys, force: true do |t|
+    t.integer :position_1
+    t.integer :position_2
+    t.integer :position_3
+
+    t.unique_key :position_1, name: "test_unique_keys_position_deferrable_false"
+    t.unique_key :position_2, name: "test_unique_keys_position_deferrable_immediate", deferrable: :immediate
+    t.unique_key :position_3, name: "test_unique_keys_position_deferrable_deferred", deferrable: :deferred
+  end
+
   if supports_partitioned_indexes?
     create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
       t.string :city_id, null: false

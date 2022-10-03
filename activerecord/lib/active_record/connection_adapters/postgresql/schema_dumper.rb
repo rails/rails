@@ -49,6 +49,26 @@ module ActiveRecord
             end
           end
 
+          def unique_keys_in_create(table, stream)
+            if (unique_keys = @connection.unique_keys(table)).any?
+              add_unique_key_statements = unique_keys.map do |unique_key|
+                parts = [
+                  "t.unique_key #{unique_key.columns.inspect}"
+                ]
+
+                parts << "deferrable: #{unique_key.deferrable.inspect}" if unique_key.deferrable
+
+                if unique_key.export_name_on_schema_dump?
+                  parts << "name: #{unique_key.name.inspect}"
+                end
+
+                "    #{parts.join(', ')}"
+              end
+
+              stream.puts add_unique_key_statements.sort.join("\n")
+            end
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:array] = "true" if column.array?

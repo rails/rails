@@ -1,3 +1,58 @@
+*   Add support for unique constraints (PostgreSQL-only).
+
+    ```ruby
+    add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_section_position"
+    remove_unique_key :sections, name: "unique_section_position"
+    ```
+
+    See PostgreSQL's [Unique Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS) documentation for more on unique constraints.
+
+    By default, unique constraints in PostgreSQL are checked after each statement.
+    This works for most use cases, but becomes a major limitation when replacing
+    records with unique column by using multiple statements.
+
+    An example of swapping unique columns between records.
+
+    ```ruby
+    # position is unique column
+    old_item = Item.create!(position: 1)
+    new_item = Item.create!(position: 2)
+
+    Item.transaction do
+      old_item.update!(position: 2)
+      new_item.update!(position: 1)
+    end
+    ```
+
+    Using the default behavior, the transaction would fail when executing the
+    first `UPDATE` statement.
+
+    By passing the `:deferrable` option to the `add_unique_key` statement in
+    migrations, it's possible to defer this check.
+
+    ```ruby
+    add_unique_key :items, [:position], deferrable: :immediate
+    ```
+
+    Passing `deferrable: :immediate` does not change the behaviour of the previous example,
+    but allows manually deferring the check using `SET CONSTRAINTS ALL DEFERRED` within a transaction.
+    This will cause the unique constraints to be checked after the transaction.
+
+    It's also possible to adjust the default behavior from an immediate
+    check (after the statement), to a deferred check (after the transaction):
+
+    ```ruby
+    add_unique_key :items, [:position], deferrable: :deferred
+    ```
+
+    PostgreSQL allows users to create a unique constraints on top of the unique
+    index that cannot be deferred. In this case, even if users creates deferrable
+    unique constraint, the existing unique index does not allow users to violate uniqueness
+    within the transaction. If you want to change existing unique index to deferrable,
+    you need execute `remove_index` before creating deferrable unique constraints.
+
+    *Hiroyuki Ishii*
+
 *   Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
 
     *Rafael Mendonça França*
