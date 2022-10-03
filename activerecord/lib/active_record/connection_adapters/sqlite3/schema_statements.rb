@@ -120,6 +120,10 @@ module ActiveRecord
         end
 
         private
+          def valid_table_definition_options
+            super + [:rename]
+          end
+
           def create_table_definition(name, **options)
             SQLite3::TableDefinition.new(self, name, **options)
           end
