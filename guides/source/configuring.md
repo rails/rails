@@ -1127,7 +1127,14 @@ application name.
 
 #### `config.active_record.query_log_tags_format`
 
-A `Symbol` specifying the formatter to use for tags. Valid values are `:sqlcommenter` and `:legacy`.  Defaults to `:legacy`.
+A `Symbol` specifying the formatter to use for tags. Valid values are `:sqlcommenter` and `:legacy`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:legacy`            |
+| 7.1                   | `:sqlcommenter`      |
 
 #### `config.active_record.cache_query_log_tags`
 

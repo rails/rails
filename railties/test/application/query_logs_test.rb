@@ -78,6 +78,7 @@ module ApplicationTests
 
     test "controller actions have tagging filters enabled by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags_format = :legacy"
 
       boot_app
 
