@@ -7,7 +7,7 @@ class QueryLogsFormatter < ActiveRecord::TestCase
     assert_raises(ArgumentError) do
       ActiveRecord::QueryLogs::FormatterFactory.from_symbol(:non_existing_formatter)
     end
-    end
+  end
 
   def test_sqlcommenter_key_value_separator
     formatter = ActiveRecord::QueryLogs::FormatterFactory.from_symbol(:sqlcommenter)
