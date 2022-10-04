@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
 require "active_model"
 
 # Show backtraces for deprecated behavior for quicker cleanup.
