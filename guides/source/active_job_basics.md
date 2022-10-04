@@ -79,6 +79,23 @@ end
 
 Note that you can define `perform` with as many arguments as you want.
 
+If you already have an abstract class and its name differs from `ApplicationJob`, you can pass
+the `--parent` option to indicate you want a different abstract class:
+
+```bash
+$ bin/rails generate job process_payment --parent=payment_job
+```
+
+```ruby
+class ProcessPaymentJob < PaymentJob
+  queue_as :default
+
+  def perform(*args)
+    # Do something later
+  end
+end
+```
+
 ### Enqueue the Job
 
 Enqueue a job using [`perform_later`][] and, optionally, [`set`][]. Like so:
