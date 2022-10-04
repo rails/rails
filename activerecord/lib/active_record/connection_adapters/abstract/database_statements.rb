@@ -306,6 +306,7 @@ module ActiveRecord
       #
       # The mysql2 and postgresql adapters support setting the transaction
       # isolation level.
+      #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
         if !requires_new && current_transaction.joinable?
           if isolation
