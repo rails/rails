@@ -94,9 +94,9 @@ module ActiveRecord
       def update_formatter(format)
         self.tags_formatter = case format
         when :legacy
-          Formatter.new(key_value_separator: ":")
+          LegacyFormatter.new
         when :sqlcommenter
-          QuotingFormatter.new(key_value_separator: "=")
+          SQLCommenter.new
         else
           raise ArgumentError, "Formatter is unsupported: #{formatter}"
         end
@@ -148,7 +148,8 @@ module ActiveRecord
             else
               handler
             end
-            "#{key}#{self.formatter.key_value_separator}#{self.formatter.format_value(val)}" unless val.nil?
+
+            self.formatter.format(key, val) unless val.nil?
           end.join(",")
         end
     end
