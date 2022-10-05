@@ -5,6 +5,7 @@ require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifiers"
+require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
@@ -113,6 +114,7 @@ module Rails
       @railties          = nil
       @key_generators    = {}
       @message_verifiers = nil
+      @deprecators       = nil
       @ran_load_hooks    = false
 
       @executor          = Class.new(ActiveSupport::Executor)
@@ -217,6 +219,20 @@ module Rails
     # See the ActiveSupport::MessageVerifier documentation for more information.
     def message_verifier(verifier_name)
       message_verifiers[verifier_name]
+    end
+
+    # A managed collection of deprecators (ActiveSupport::Deprecation::Deprecators).
+    # The collection's configuration methods affect all deprecators in the
+    # collection. Additionally, the collection's +silence+ method silences all
+    # deprecators in the collection for the duration of a given block.
+    #
+    # The collection is prepopulated with a default deprecator, which can be
+    # accessed via <tt>deprecators[:rails]</tt>. More deprecators can be added
+    # via <tt>deprecators[name] = deprecator</tt>.
+    def deprecators
+      @deprecators ||= ActiveSupport::Deprecation::Deprecators.new.tap do |deprecators|
+        deprecators[:rails] = ActiveSupport::Deprecation.instance
+      end
     end
 
     # Convenience for loading config/foo.yml for the current Rails env.

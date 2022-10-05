@@ -328,11 +328,11 @@ class DeprecationTest < ActiveSupport::TestCase
     flunk "assert_deprecated should match any warning in block, not just the last one"
   end
 
-  test "assert_not_deprecated returns result of block" do
+  test "assert_not_deprecated returns the result of the block" do
     assert_equal 123, assert_not_deprecated(@deprecator) { 123 }
   end
 
-  test "assert_deprecated_returns result of block" do
+  test "assert_deprecated returns the result of the block" do
     result = assert_deprecated("abc", @deprecator) do
       @deprecator.warn "abc"
       123
@@ -353,6 +353,18 @@ class DeprecationTest < ActiveSupport::TestCase
     assert @deprecator.silenced
 
     assert_not_deprecated(@deprecator) { @deprecator.warn }
+  end
+
+  test "silence returns the result of the block" do
+    assert_equal 123, @deprecator.silence { 123 }
+  end
+
+  test "silence ensures silencing is reverted after an error is raised" do
+    assert_raises do
+      @deprecator.silence { raise }
+    end
+
+    assert_deprecated(/./, @deprecator) { @deprecator.warn }
   end
 
   test "silence only affects the current thread" do
