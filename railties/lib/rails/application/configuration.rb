@@ -88,11 +88,15 @@ module Rails
       # for the default values associated with a particular version.
       def load_defaults(target_version)
         # To introduce a change in behavior, follow these steps:
-        # 1. Add an accessor on the target object (e.g. the ActiveJob class for global Active Job config).
-        # 2. Set a default value there preserving existing behavior for existing applications.
+        # 1. Add an accessor on the target object (e.g. the ActiveJob class for
+        #    global Active Job config).
+        # 2. Set a default value there preserving existing behavior for existing
+        #    applications.
         # 3. Implement the behavior change based on the config value.
-        # 4. In the section below corresponding to the next release of Rails, set the new value.
-        # 5. Add a commented out section in the `new_framework_defaults` template, setting the new value.
+        # 4. In the section below corresponding to the next release of Rails,
+        #    configure the default value.
+        # 5. Add a commented out section in the `new_framework_defaults` to
+        #    configure the default value again.
         # 6. Update the guide in `configuration.md`.
 
         # To remove configurable deprecated behavior, follow these steps:
@@ -279,6 +283,7 @@ module Rails
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
+            active_record.query_log_tags_format = :sqlcommenter
           end
 
           if respond_to?(:action_dispatch)

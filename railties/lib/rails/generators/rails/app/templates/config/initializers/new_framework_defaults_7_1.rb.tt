@@ -63,3 +63,8 @@
 # Options are `true`, and `false`. If `false`, the exception will be reported
 # as `handled` and logged instead.
 # Rails.application.config.active_support.raise_on_invalid_cache_expiration_time = true
+
+# Specify whether Query Logs will format tags using the SQLCommenter format
+# (https://open-telemetry.github.io/opentelemetry-sqlcommenter/), or using the legacy format.
+# Options are `:legacy` and `:sqlcommenter`.
+# Rails.application.config.active_record.query_log_tags_format = :sqlcommenter
