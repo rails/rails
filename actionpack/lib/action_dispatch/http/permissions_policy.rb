@@ -104,11 +104,8 @@ module ActionDispatch # :nodoc:
       picture_in_picture:   "picture-in-picture",
       screen_wake_lock:     "screen-wake-lock",
       serial:               "serial",
-      speaker:              "speaker",
       sync_xhr:             "sync-xhr",
       usb:                  "usb",
-      vibrate:              "vibrate",
-      vr:                   "vr",
       web_share:            "web-share",
     }.freeze
 
@@ -127,6 +124,25 @@ module ActionDispatch # :nodoc:
 
     DIRECTIVES.each do |name, directive|
       define_method(name) do |*sources|
+        if sources.first
+          @directives[directive] = apply_mappings(sources)
+        else
+          @directives.delete(directive)
+        end
+      end
+    end
+
+    %w[speaker vibrate vr].each do |directive|
+      define_method(directive) do |*sources|
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          The `#{directive}` permissions policy directive is deprecated
+          and will be removed in Rails 7.2.
+
+          There is no browser support for this directive, and no plan
+          for browser support in the future. You can just remove this
+          directive from your application.
+        MSG
+
         if sources.first
           @directives[directive] = apply_mappings(sources)
         else
