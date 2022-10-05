@@ -509,7 +509,7 @@ add_reference :users, :role
 ```
 
 This migration will create a `role_id` column in the users table. It creates an
-index for this column as well, unless explicitly told not with the
+index for this column as well, unless explicitly told not to with the
 `index: false` option:
 
 ```ruby
