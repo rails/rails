@@ -27,20 +27,5 @@ module ActiveRecord
         "'#{value.to_s.gsub("'", "\\\\'")}'"
       end
     end
-
-    class FormatterFactory # :nodoc:
-      # @param [Symbol] formatter: the kind of formatter we're building.
-      # @return [Formatter]
-      def self.from_symbol(formatter)
-        case formatter
-        when :legacy
-          Formatter.new(key_value_separator: ":")
-        when :sqlcommenter
-          QuotingFormatter.new(key_value_separator: "=")
-        else
-          raise ArgumentError, "Formatter is unsupported: #{formatter}"
-        end
-      end
-    end
   end
 end
