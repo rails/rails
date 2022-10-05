@@ -92,14 +92,15 @@ module ActiveRecord
 
       # Updates the formatter to be what the passed in format is.
       def update_formatter(format)
-        self.tags_formatter = case format
-        when :legacy
-          LegacyFormatter.new
-        when :sqlcommenter
-          SQLCommenter.new
-        else
-          raise ArgumentError, "Formatter is unsupported: #{formatter}"
-        end
+        self.tags_formatter =
+          case format
+          when :legacy
+            LegacyFormatter.new
+          when :sqlcommenter
+            SQLCommenter.new
+          else
+            raise ArgumentError, "Formatter is unsupported: #{formatter}"
+          end
       end
 
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
