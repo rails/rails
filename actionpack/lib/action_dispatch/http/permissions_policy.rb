@@ -95,15 +95,21 @@ module ActionDispatch # :nodoc:
       fullscreen:           "fullscreen",
       geolocation:          "geolocation",
       gyroscope:            "gyroscope",
+      hid:                  "hid",
+      idle_detection:       "idle_detection",
       magnetometer:         "magnetometer",
       microphone:           "microphone",
       midi:                 "midi",
       payment:              "payment",
       picture_in_picture:   "picture-in-picture",
+      screen_wake_lock:     "screen-wake-lock",
+      serial:               "serial",
       speaker:              "speaker",
+      sync_xhr:             "sync-xhr",
       usb:                  "usb",
       vibrate:              "vibrate",
       vr:                   "vr",
+      web_share:            "web-share",
     }.freeze
 
     private_constant :MAPPINGS, :DIRECTIVES
