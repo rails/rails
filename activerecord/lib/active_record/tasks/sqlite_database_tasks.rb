@@ -30,8 +30,8 @@ module ActiveRecord
       end
 
       def purge
-        drop
         connection.disconnect!
+        drop
       rescue NoDatabaseError
       ensure
         create

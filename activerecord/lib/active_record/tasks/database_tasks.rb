@@ -60,20 +60,16 @@ module ActiveRecord
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
-      def check_protected_environments!
-        unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
-          current = ActiveRecord::Base.connection.migration_context.current_environment
-          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
+      def check_protected_environments!(environment = env)
+        return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
 
-          if ActiveRecord::Base.connection.migration_context.protected_environment?
-            raise ActiveRecord::ProtectedEnvironmentError.new(stored)
-          end
-
-          if stored && stored != current
-            raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
-          end
+        original_db_config = ActiveRecord::Base.connection_db_config
+        configs_for(env_name: environment).each do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          check_current_protected_environment!
         end
-      rescue ActiveRecord::NoDatabaseError
+      ensure
+        ActiveRecord::Base.establish_connection(original_db_config)
       end
 
       def register_task(pattern, task)
@@ -588,6 +584,20 @@ module ActiveRecord
           else
             structure_load_flags
           end
+        end
+
+        def check_current_protected_environment!
+          current = ActiveRecord::Base.connection.migration_context.current_environment
+          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
+
+          if ActiveRecord::Base.connection.migration_context.protected_environment?
+            raise ActiveRecord::ProtectedEnvironmentError.new(stored)
+          end
+
+          if stored && stored != current
+            raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
+          end
+        rescue ActiveRecord::NoDatabaseError
         end
     end
   end
