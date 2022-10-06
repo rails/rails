@@ -68,6 +68,10 @@ module AbstractController
       end
     end
 
+    def renderer_for(object)
+      nil
+    end
+
   private
     # Normalize args by converting <tt>render "foo"</tt> to
     # <tt>render action: "foo"</tt> and <tt>render "foo/bar"</tt> to

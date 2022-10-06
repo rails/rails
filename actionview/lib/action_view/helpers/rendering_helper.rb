@@ -37,9 +37,18 @@ module ActionView
               view_renderer.render(self, options)
             end
           end
+        when String, Array
+          view_renderer.render_partial(self, partial: options, locals: locals, &block)
         else
-          if options.respond_to?(:render_in)
-            options.render_in(self, &block)
+          object_renderer = controller.renderer_for(options) || options
+          if object_renderer.respond_to?(:render_in)
+            object_renderer.render_in(self, &block)
+          elsif object_renderer.is_a?(Hash)
+            if object_renderer.key?(:locals)
+              object_renderer = object_renderer.dup
+              object_renderer[:locals] = object_renderer[:locals].merge(locals)
+            end
+            view_renderer.render_partial(self, locals: locals, **object_renderer, &block)
           else
             view_renderer.render_partial(self, partial: options, locals: locals, &block)
           end

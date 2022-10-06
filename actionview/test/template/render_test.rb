@@ -726,6 +726,32 @@ module RenderTestCases
     )
   end
 
+  def test_renderer_for_returning_renderable
+    object_to_render = Object.new
+    @view.controller.singleton_class.define_method(:renderer_for) do |object|
+      if object_to_render.equal?(object)
+        TestRenderable.new
+      end
+    end
+    assert_equal(
+      %(Hello, World!),
+      @view.render(object_to_render)
+    )
+  end
+
+  def test_renderer_for_returning_partial_path
+    object_to_render = Struct.new(:name).new("George")
+    @view.controller.singleton_class.define_method(:renderer_for) do |object|
+      if object_to_render.equal?(object)
+        { partial: "test/customer", locals: { customer: object } }
+      end
+    end
+    assert_equal(
+      "Hello: George",
+      @view.render(object_to_render)
+    )
+  end
+
   def test_render_mutate_string_literal
     assert_equal "foobar", @view.render(inline: "'foo' << 'bar'", type: :ruby)
   end
