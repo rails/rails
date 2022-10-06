@@ -19,9 +19,11 @@ require "models/person"
 require "models/ship"
 require "models/admin"
 require "models/admin/user"
+require "models/clothing_item"
 
 class PersistenceTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses, :posts, :minivans
+  fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
+    :posts, :minivans, :clothing_items
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
@@ -1338,5 +1340,52 @@ class PersistenceTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.connection.remove_column(:topics, :foo)
     Topic.reset_column_information
+  end
+
+  def test_update_uses_query_constraints_config
+    clothing_item = clothing_items(:green_t_shirt)
+    sql = capture_sql { clothing_item.update(description: "Lovely green t-shirt")  }.first
+    assert_match(/WHERE .*clothing_type/, sql)
+    assert_match(/WHERE .*color/, sql)
+  end
+
+  def test_save_uses_query_constraints_config
+    clothing_item = clothing_items(:green_t_shirt)
+    clothing_item.description = "Lovely green t-shirt"
+    sql = capture_sql { clothing_item.save }.first
+    assert_match(/WHERE .*clothing_type/, sql)
+    assert_match(/WHERE .*color/, sql)
+  end
+
+  def test_destroy_uses_query_constraints_config
+    clothing_item = clothing_items(:green_t_shirt)
+    sql = capture_sql { clothing_item.destroy }.first
+    assert_match(/WHERE .*clothing_type/, sql)
+    assert_match(/WHERE .*color/, sql)
+  end
+
+  def test_delete_uses_query_constraints_config
+    clothing_item = clothing_items(:green_t_shirt)
+    sql = capture_sql { clothing_item.delete }.first
+    assert_match(/WHERE .*clothing_type/, sql)
+    assert_match(/WHERE .*color/, sql)
+  end
+
+  def test_update_attribute_uses_query_constraints_config
+    clothing_item = clothing_items(:green_t_shirt)
+    sql = capture_sql { clothing_item.update_attribute(:description, "Lovely green t-shirt") }.first
+    assert_match(/WHERE .*clothing_type/, sql)
+    assert_match(/WHERE .*color/, sql)
+  end
+
+  def test_it_is_possible_to_update_parts_of_the_query_constraints_config
+    clothing_item = clothing_items(:green_t_shirt)
+    clothing_item.color = "blue"
+    clothing_item.description = "Now it's a blue t-shirt"
+    sql = capture_sql { clothing_item.save }.first
+    assert_match(/WHERE .*clothing_type/, sql)
+    assert_match(/WHERE .*color/, sql)
+
+    assert_equal("blue", ClothingItem.find_by(id: clothing_item.id).color)
   end
 end

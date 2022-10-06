@@ -1,3 +1,18 @@
+*   Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
+
+    It is now possible to configure columns list that will be used to build an SQL query clauses when
+    updating, deleting or reloading an `ActiveRecord::Base` object
+
+    ```ruby
+    class Developer < ActiveRecord::Base
+      query_constraints :company_id, :id
+    end
+    developer = Developer.first.update(name: "Bob")
+    # => UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+    ```
+
+    *Nikita Vasilevsky*
+
 *   Adds `validate` to foreign keys and check constraints in schema.rb
 
     Previously, `schema.rb` would not record if `validate: false` had been used when adding a foreign key or check

@@ -232,6 +232,14 @@ ActiveRecord::Schema.define do
     t.references :citation
   end
 
+  create_table :clothing_items, force: true do |t|
+    t.string :clothing_type
+    t.string :color
+    t.text :description
+
+    t.index [:clothing_type, :color], unique: true
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id
