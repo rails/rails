@@ -36,10 +36,9 @@ module ActiveSupport
       MAX_KEY_BYTESIZE = 1024
 
       DEFAULT_REDIS_OPTIONS = {
-        connect_timeout:    20,
+        connect_timeout:    1,
         read_timeout:       1,
         write_timeout:      1,
-        reconnect_attempts: 0,
       }
 
       DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do

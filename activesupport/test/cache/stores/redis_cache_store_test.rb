@@ -46,8 +46,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class InitializationTest < ActiveSupport::TestCase
     test "omitted URL uses Redis client with default settings" do
       assert_called_with Redis, :new, [
-        connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0
+        connect_timeout: 1, read_timeout: 1, write_timeout: 1
       ] do
         build
       end
@@ -55,8 +54,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "no URLs uses Redis client with default settings" do
       assert_called_with Redis, :new, [
-        connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0
+        connect_timeout: 1, read_timeout: 1, write_timeout: 1
       ] do
         build url: []
       end
@@ -65,8 +63,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     test "singular URL uses Redis client" do
       assert_called_with Redis, :new, [
         url: REDIS_URL,
-        connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0
+        connect_timeout: 1, read_timeout: 1, write_timeout: 1
       ] do
         build url: REDIS_URL
       end
@@ -75,8 +72,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     test "one URL uses Redis client" do
       assert_called_with Redis, :new, [
         url: REDIS_URL,
-        connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0
+        connect_timeout: 1, read_timeout: 1, write_timeout: 1
       ] do
         build url: [ REDIS_URL ]
       end
@@ -84,10 +80,9 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "multiple URLs uses Redis::Distributed client" do
       default_args = {
-        connect_timeout: 20,
+        connect_timeout: 1,
         read_timeout: 1,
-        write_timeout: 1,
-        reconnect_attempts: 0,
+        write_timeout: 1
       }
 
       mock = Minitest::Mock.new
