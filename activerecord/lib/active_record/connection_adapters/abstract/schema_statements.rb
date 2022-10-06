@@ -98,6 +98,7 @@ module ActiveRecord
       #
       def index_exists?(table_name, column_name, **options)
         checks = []
+        column_name = options[:column] if column_name.nil?
 
         if column_name.present?
           column_names = Array(column_name).map(&:to_s)
