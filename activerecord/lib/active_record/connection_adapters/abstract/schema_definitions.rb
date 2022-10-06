@@ -48,6 +48,7 @@ module ActiveRecord
       end
 
       def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+        columns = options[:column] if columns.nil?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&

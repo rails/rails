@@ -127,6 +127,19 @@ module ActiveRecord
         assert_not connection.index_exists?(table_name, :foo, name: "foo")
       end
 
+      def test_remove_index_with_column_array_which_does_not_exist_doesnt_raise_with_option
+        connection.add_index(table_name, [:foo], name: "foo")
+
+        assert connection.index_exists?(table_name, :foo, name: "foo")
+
+        assert_nothing_raised do
+          connection.remove_index(table_name, column: [:foo, :bar], if_exists: true)
+        end
+
+        assert connection.index_exists?(table_name, :foo, name: "foo")
+        assert_not connection.index_exists?(table_name, nil, column: [:foo, :bar], name: "foo")
+      end
+
       def test_internal_index_with_name_matching_database_limit
         good_index_name = "x" * connection.index_name_length
         connection.add_index(table_name, "foo", name: good_index_name, internal: true)
