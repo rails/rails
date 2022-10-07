@@ -170,8 +170,6 @@ module ActiveRecord
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
-      define_callbacks :load_schema!
-
       initialize_load_schema_monitor
     end
 
@@ -566,9 +564,7 @@ module ActiveRecord
           @load_schema_monitor.synchronize do
             return if defined?(@columns_hash) && @columns_hash
 
-            run_callbacks :load_schema! do
-              load_schema!
-            end
+            load_schema!
 
             @schema_loaded = true
           rescue

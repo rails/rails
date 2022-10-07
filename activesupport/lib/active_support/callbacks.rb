@@ -940,6 +940,8 @@ module ActiveSupport
             if (match_data = name.match(/[!\?]\z/))
               name_start = match_data.pre_match
               name_end = match_data[0]
+              name_end.sub!("!", "_bang")
+              name_end.sub!("?", "_eh")
             end
             name = name.to_sym
             name_start = name_start.to_sym
