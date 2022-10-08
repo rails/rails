@@ -1,5 +1,13 @@
+import $ from 'jquery';
+import Rails from '../../../../app/javascript/rails-ujs/index'
+
+$.rails = Rails
+
 var App = App || {}
 var Turbolinks = Turbolinks || {}
+
+window.Turbolinks = Turbolinks
+window.jQuery = $
 
 QUnit.assert.callbackInvoked = function(callbackName) {
   this.ok(true, callbackName + ' callback should have been invoked')
@@ -48,7 +56,7 @@ $(document).bind('submit', function(e) {
     var form = $(e.target), action = form.attr('action'),
         name = 'form-frame' + jQuery.guid++,
         iframe = $('<iframe name="' + name + '" />'),
-        iframeInput = '<input name="iframe" value="true" type="hidden" />'
+        iframeInput = '<input name="iframe" value="true" type="hidden" />',
         targetInput = '<input name="_target" value="' + (form.attr('target') || '') + '" type="hidden" />'
 
     if (action && action.indexOf('iframe') < 0) {

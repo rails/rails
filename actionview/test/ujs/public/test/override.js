@@ -1,4 +1,4 @@
-(function() {
+import $ from 'jquery'
 
 var realHref
 
@@ -50,5 +50,3 @@ QUnit.test('including rails-ujs multiple times throws error', function(assert) {
   }, 'appending rails.js again throws error')
   setTimeout(function() { done() }, 50)
 })
-
-})()
