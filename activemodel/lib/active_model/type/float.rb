@@ -26,7 +26,6 @@ module ActiveModel
     # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
     # - <tt>"NaN"</tt> is cast to <tt>Float::NAN</tt>.
     class Float < Value
-      include SerializeCastValue
       include Helpers::Numeric
 
       def type

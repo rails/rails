@@ -36,7 +36,6 @@ module ActiveModel
     #     attribute :age, :integer, limit: 6
     #   end
     class Integer < Value
-      include SerializeCastValue
       include Helpers::Numeric
 
       # Column storage size in bytes.
