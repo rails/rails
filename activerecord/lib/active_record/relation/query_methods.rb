@@ -1074,12 +1074,18 @@ module ActiveRecord
       where!("1=0").extending!(NullRelation)
     end
 
-    # Sets readonly attributes for the returned relation. If value is
-    # true (default), attempting to update a record will result in an error.
+    # Mark a relation as readonly. Attempting to update a record will result in
+    # an error.
     #
     #   users = User.readonly
     #   users.first.save
     #   => ActiveRecord::ReadOnlyRecord: User is marked as readonly
+    #
+    # To make a readonly relation writable, pass +false+.
+    #
+    #   users.readonly(false)
+    #   users.first.save
+    #   => true
     def readonly(value = true)
       spawn.readonly!(value)
     end
