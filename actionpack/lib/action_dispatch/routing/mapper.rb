@@ -1584,6 +1584,29 @@ module ActionDispatch
           !parent_resource.singleton? && @scope[:shallow]
         end
 
+        # Loads another routes file with the given +name+ located inside the
+        # +config/routes+ directory. In that file, you can use the normal
+        # routing DSL, but <i>do not</i> surround it with a
+        # +Rails.application.routes.draw+ block.
+        #
+        #   # config/routes.rb
+        #   Rails.application.routes.draw do
+        #     draw :admin                 # Loads `config/routes/admin.rb`
+        #     draw "third_party/some_gem" # Loads `config/routes/third_party/some_gem.rb`
+        #   end
+        #
+        #   # config/routes/admin.rb
+        #   namespace :admin do
+        #     resources :accounts
+        #   end
+        #
+        #   # config/routes/third_party/some_gem.rb
+        #   mount SomeGem::Engine, at: "/some_gem"
+        #
+        # <b>CAUTION:</b> Use this feature with care. Having multiple routes
+        # files can negatively impact discoverability and readability. For most
+        # applications — even those with a few hundred routes — it's easier for
+        # developers to have a single routes file.
         def draw(name)
           path = @draw_paths.find do |_path|
             File.exist? "#{_path}/#{name}.rb"
