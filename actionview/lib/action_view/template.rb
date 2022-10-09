@@ -286,6 +286,14 @@ module ActionView
       @compile_mutex = Mutex.new
     end
 
+    def method_name # :nodoc:
+      @method_name ||= begin
+        m = +"_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+        m.tr!("-", "_")
+        m
+      end
+    end
+
     private
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
@@ -364,7 +372,6 @@ module ActionView
           else
             mod.module_eval(source, identifier, 0)
           end
-          ActionView::Template::ERROR_HANDLERS[identifier] = self
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
@@ -421,14 +428,6 @@ module ActionView
 
         # Assign for the same variable is to suppress unused variable warning
         locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
-      end
-
-      def method_name
-        @method_name ||= begin
-          m = +"_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!("-", "_")
-          m
-        end
       end
 
       def identifier_method_name

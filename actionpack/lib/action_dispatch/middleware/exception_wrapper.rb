@@ -53,6 +53,7 @@ module ActionDispatch
       if exception.is_a?(SyntaxError)
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
       end
+      @backtrace = build_backtrace
     end
 
     def routing_error?
@@ -234,10 +235,22 @@ module ActionDispatch
         end
       end
 
-      def backtrace
+      attr_reader :backtrace
+
+      def build_backtrace
+        built_methods = {}
+
+        ActionView::ViewPaths.all_view_paths.each do |path_set|
+          path_set.each do |resolver|
+            resolver.built_templates.each do |template|
+              built_methods[template.method_name] = template
+            end
+          end
+        end
+
         (@exception.backtrace_locations || []).map do |loc|
-          if ActionView::Template::ERROR_HANDLERS.key?(loc.path)
-            SourceMapLocation.new(loc, ActionView::Template::ERROR_HANDLERS[loc.path])
+          if built_methods.key?(loc.label.to_s)
+            SourceMapLocation.new(loc, built_methods[loc.label.to_s])
           else
             loc
           end
