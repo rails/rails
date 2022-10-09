@@ -210,6 +210,7 @@ module RenderTestCases
     end
   end
 
+  # rubocop:disable Minitest/SkipEnsure
   def test_render_runtime_error
     skip unless RubyVM.respond_to?(:keep_script_lines)
 
@@ -232,6 +233,7 @@ module RenderTestCases
       RubyVM.keep_script_lines = setting
     end
   end
+  # rubocop:enable Minitest/SkipEnsure
 
   def test_render_partial
     assert_equal "only partial", @view.render(partial: "test/partial_only")

@@ -162,7 +162,7 @@ class ERB
       while !source.eos?
         pos = source.pos
         source.scan_until(/(?:#{start_re}|#{finish_re})/)
-          len = source.pos - source.matched.bytesize - pos
+        len = source.pos - source.matched.bytesize - pos
 
         case source.matched
         when start_re

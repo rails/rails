@@ -6,8 +6,6 @@ require "active_support/core_ext/string"
 module ActiveSupport
   class ERBUtilTest < ActiveSupport::TestCase
     def test_template_output
-      first_column = 46
-      compiled = "Posts: '.freeze; @output_buffer.append=( @post.length ); @output_buffer.safe_append='"
       source = "Posts: <%= @post.length %>"
       actual_tokens = tokenize source
       assert_equal [[:TEXT, "Posts: "], [:OPEN, "<%="], [:CODE, " @post.length "], [:CLOSE, "%>"]], actual_tokens
