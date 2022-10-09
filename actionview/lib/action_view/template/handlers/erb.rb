@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "strscan"
+require "active_support/core_ext/string"
 
 module ActionView
   class Template
@@ -39,7 +40,7 @@ module ActionView
         # source location inside the template.
         def translate_location(spot, backtrace_location, source)
           # Tokenize the source line
-          tokens = ERB::Util.tokenize(source.lines[backtrace_location.lineno - 1])
+          tokens = ::ERB::Util.tokenize(source.lines[backtrace_location.lineno - 1])
           new_first_column = find_offset(spot[:snippet], tokens, spot[:first_column])
           lineno_delta = spot[:first_lineno] - backtrace_location.lineno
           spot[:first_lineno] -= lineno_delta

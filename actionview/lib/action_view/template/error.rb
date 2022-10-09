@@ -157,6 +157,8 @@ module ActionView
       # Override to prevent #cause resetting during re-raise.
       attr_reader :cause
 
+      attr_reader :template
+
       def initialize(template)
         super($!.message)
         @cause = $!
