@@ -122,8 +122,6 @@ module ActionView
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :virtual_path
 
-    ERROR_HANDLERS = {}
-
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
       @identifier        = identifier
