@@ -446,7 +446,7 @@ You can use specific variants for previews as well:
 ```ruby
 class User < ApplicationRecord
   has_one_attached :video do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
+    attachable.preview :thumb, resize_to_limit: [100, 100]
   end
 end
 ```
