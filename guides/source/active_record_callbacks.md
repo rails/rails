@@ -38,7 +38,7 @@ class User < ApplicationRecord
 
   private
     def ensure_login_has_a_value
-      if login.nil?
+      if login.blank?
         self.login = email unless email.blank?
       end
     end
