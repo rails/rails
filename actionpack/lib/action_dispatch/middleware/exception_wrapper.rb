@@ -236,8 +236,8 @@ module ActionDispatch
 
       def backtrace
         (@exception.backtrace_locations || []).map do |loc|
-          if ActionView::Template::ERROR_HANDLERS.key?(loc.label)
-            SourceMapLocation.new(loc, ActionView::Template::ERROR_HANDLERS[loc.label])
+          if ActionView::Template::ERROR_HANDLERS.key?(loc.path)
+            SourceMapLocation.new(loc, ActionView::Template::ERROR_HANDLERS[loc.path])
           else
             loc
           end
