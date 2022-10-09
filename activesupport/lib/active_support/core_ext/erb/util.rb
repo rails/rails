@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ERB
   module Util
     HTML_ESCAPE = { "&" => "&amp;",  ">" => "&gt;",   "<" => "&lt;", '"' => "&quot;", "'" => "&#39;" }
