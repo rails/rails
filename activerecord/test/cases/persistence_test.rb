@@ -1186,6 +1186,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal false, developer.persisted?
   end
 
+  def test_exists_returns_boolean
+    developer1 = Developer.new(name: "Jose")
+    assert_equal false, developer1.exists?
+
+    developer1.save!
+    developer2 = Developer.last
+    assert_equal true, developer1.exists?
+    assert_equal true, developer2.exists?
+
+    developer1.destroy
+    assert_equal false, developer1.exists?
+    assert_equal false, developer2.exists?
+  end
+
   def test_class_level_destroy
     should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
     Topic.find(1).replies << should_be_destroyed_reply
