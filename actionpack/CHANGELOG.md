@@ -1,3 +1,8 @@
+*   Add the following permissions policy directives: `hid`, `idle-detection`, `screen-wake-lock`,
+    `serial`, `sync-xhr`, `web-share`.
+
+    *Guillaume Cabanel*
+
 *   The `speaker`, `vibrate`, and `vr` permissions policy directives are now
     deprecated.
 
