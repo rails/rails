@@ -56,6 +56,12 @@ module AbstractController
       Mime[:text]
     end
 
+    # renders and returns, convenience method to address concerns in https://blog.arkency.com/render-is-not-your-final-word-in-your-rails-controllers-action/
+    def render_and_return(*args, &block)
+      render(*args, &block)
+      return
+    end
+
     DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes)
 
     # This method should return a hash with assigns.
