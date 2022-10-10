@@ -1,3 +1,7 @@
+*   Add `ActiveRecord::Persistence#exists?`.
+
+    *Ryo Nakamura*
+
 *   Add configurable formatter on query log tags to support sqlcommenter. See #45139
 
     It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.

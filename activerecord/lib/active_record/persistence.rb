@@ -1035,6 +1035,11 @@ module ActiveRecord
       end
     end
 
+    # Returns true if this object exists in the database, otherwise returns false.
+    def exists?
+      self.class.exists?(id)
+    end
+
   private
     def strict_loaded_associations
       @association_cache.find_all do |_, assoc|
