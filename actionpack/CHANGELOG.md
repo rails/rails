@@ -1,4 +1,5 @@
-*   Add the following permissions policy directives: `hid`, `idle-detection`, `screen-wake-lock`, `serial`, `sync-xhr`, `web-share`.
+*   Add the following permissions policy directives: `hid`, `idle-detection`, `screen-wake-lock`,
+    `serial`, `sync-xhr`, `web-share`.
 
     *Guillaume Cabanel*
 
