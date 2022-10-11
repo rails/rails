@@ -70,11 +70,24 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+      self::OPTION_NAMES = [
+        :limit,
+        :precision,
+        :scale,
+        :default,
+        :null,
+        :collation,
+        :comment,
+        :primary_key,
+        :if_exists,
+        :if_not_exists
+      ]
+
       def primary_key?
         options[:primary_key]
       end
 
-      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+      (self::OPTION_NAMES - [:primary_key]).each do |option_name|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{option_name}
             options[:#{option_name}]
@@ -568,7 +581,15 @@ module ActiveRecord
       end
 
       private
+        def valid_column_definition_options
+          ColumnDefinition::OPTION_NAMES
+        end
+
         def create_column_definition(name, type, options)
+          unless options[:_skip_validate_options]
+            options.except(:_uses_legacy_reference_index_name, :_skip_validate_options).assert_valid_keys(valid_column_definition_options)
+          end
+
           ColumnDefinition.new(name, type, options)
         end
 
