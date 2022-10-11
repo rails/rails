@@ -65,6 +65,11 @@ module ActionView
       _find_all(name, prefix, partial, details, key, locals)
     end
 
+    def built_templates # :nodoc:
+      # Used for error pages
+      []
+    end
+
     def all_template_paths # :nodoc:
       # Not implemented by default
       []
@@ -120,6 +125,10 @@ module ActionView
       end.uniq.map do |filename|
         TemplatePath.parse(filename)
       end
+    end
+
+    def built_templates # :nodoc:
+      @unbound_templates.values.flatten.flat_map(&:built_templates)
     end
 
     private

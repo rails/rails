@@ -210,6 +210,31 @@ module RenderTestCases
     end
   end
 
+  # rubocop:disable Minitest/SkipEnsure
+  def test_render_runtime_error
+    skip unless RubyVM.respond_to?(:keep_script_lines)
+
+    # We need to enable this setting so that when we eval the template
+    # the compiled source is kept around.
+    setting = RubyVM.keep_script_lines
+    RubyVM.keep_script_lines = true
+
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
+
+    # Get the spot information from ErrorHighlight
+    spot = erb_btl.spot(ex.cause)
+    translated_spot = ex.template.translate_location(erb_btl, spot)
+    assert_equal 6, translated_spot[:first_column]
+  ensure
+    if RubyVM.respond_to?(:keep_script_lines)
+      RubyVM.keep_script_lines = setting
+    end
+  end
+  # rubocop:enable Minitest/SkipEnsure
+
   def test_render_partial
     assert_equal "only partial", @view.render(partial: "test/partial_only")
   end
