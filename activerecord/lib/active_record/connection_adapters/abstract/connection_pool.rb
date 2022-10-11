@@ -220,6 +220,18 @@ module ActiveRecord
         release_connection if fresh_connection
       end
 
+      # Check-ins the connection if any, yield, and checkout a new connection when finished.
+      def without_connection
+        if @thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)]
+          reconnect = true
+        end
+
+        release_connection
+        yield
+      ensure
+        connection if reconnect
+      end
+
       # Returns true if a connection has already been opened.
       def connected?
         synchronize { @connections.any? }

@@ -83,6 +83,91 @@ module ActiveRecord
         assert_equal 0, active_connections(pool).size
       end
 
+      def test_without_connection
+        main_thread = pool.connection
+        assert_equal 1, active_connections(pool).size
+
+        new_thread {
+          pool.connection
+          assert_equal 2, active_connections(pool).size
+
+          pool.without_connection do
+            assert_equal 1, active_connections(pool).size
+          end
+
+          assert_equal 2, active_connections(pool).size
+        }.join
+
+        main_thread.close
+        assert_equal 1, active_connections(pool).size
+      end
+
+      def test_without_connection_no_prior_connection
+        assert_equal 0, active_connections(pool).size
+
+        new_thread {
+          pool.without_connection do
+            assert_equal 0, active_connections(pool).size
+          end
+
+          assert_equal 0, active_connections(pool).size
+        }.join
+
+        assert_equal 0, active_connections(pool).size
+      end
+
+      def test_without_connection_inside_with_connection
+        assert_equal 0, active_connections(pool).size
+
+        main_thread = pool.connection
+        assert_equal 1, active_connections(pool).size
+
+        new_thread {
+          pool.with_connection do |conn|
+            assert conn
+            assert_equal 2, active_connections(pool).size
+
+            pool.without_connection do
+              assert_equal 1, active_connections(pool).size
+            end
+
+            assert_equal 2, active_connections(pool).size
+          end
+          assert_equal 1, active_connections(pool).size
+        }.join
+
+        main_thread.close
+        assert_equal 0, active_connections(pool).size
+      end
+
+      def test_making_a_conection_inside_without_connection
+        assert_equal 0, active_connections(pool).size
+
+        main_thread = pool.connection
+        assert_equal 1, active_connections(pool).size
+
+        new_thread {
+          pool.with_connection do |conn|
+            assert conn
+            assert_equal 2, active_connections(pool).size
+
+            pool.without_connection do
+              assert_equal 1, active_connections(pool).size
+
+              pool.connection
+
+              assert_equal 2, active_connections(pool).size
+            end
+
+            assert_equal 2, active_connections(pool).size
+          end
+          assert_equal 1, active_connections(pool).size
+        }.join
+
+        main_thread.close
+        assert_equal 0, active_connections(pool).size
+      end
+
       def test_active_connection_in_use
         assert_not_predicate pool, :active_connection?
         main_thread = pool.connection

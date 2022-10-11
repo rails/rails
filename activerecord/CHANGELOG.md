@@ -1,3 +1,21 @@
+*   Add `ActiveRecord::Base.connection_pool.without_connection(&block)`
+
+    ```ruby
+    Thread.new do
+      Rails.application.executor.wrap do
+        user = User.first
+
+        ActiveRecord::Base.connection_pool.without_connection do
+          sleep(5)
+        end
+
+        user.touch
+      end
+    end
+    ```
+
+    *Teja Sophista*
+
 *   Validate options when managing columns and tables in migrations.
 
     If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
