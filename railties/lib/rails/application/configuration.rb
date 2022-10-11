@@ -34,6 +34,10 @@ module Rails
         @filter_redirect                         = []
         @helpers_paths                           = []
         if Rails.env.development?
+          if defined?(RubyVM) && RubyVM.respond_to?(:keep_script_lines=)
+            RubyVM.keep_script_lines = true
+          end
+
           @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
             ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
         else
