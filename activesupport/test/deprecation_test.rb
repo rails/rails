@@ -779,16 +779,19 @@ class DeprecationTest < ActiveSupport::TestCase
         lambda do |*args|
           message, callstack, deprecator = args
           bindings << binding
+          [message, callstack, deprecator]
         end,
 
         lambda do |message, *other|
           callstack, deprecator = other
           bindings << binding
+          [callstack, deprecator]
         end,
 
         lambda do |message, callstack, *details|
           deprecation_horizon, gem_name = details
           bindings << binding
+          [deprecation_horizon, gem_name]
         end,
       ]
 

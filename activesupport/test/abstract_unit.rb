@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
+
 ORIG_ARGV = ARGV.dup
 
 require "bundler/setup"

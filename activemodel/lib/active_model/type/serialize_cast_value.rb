@@ -6,6 +6,7 @@ module ActiveModel
       def self.included(klass)
         unless klass.respond_to?(:included_serialize_cast_value)
           klass.singleton_class.attr_accessor :included_serialize_cast_value
+          klass.silence_redefinition_of_method(:itself_if_class_included_serialize_cast_value)
           klass.attr_reader :itself_if_class_included_serialize_cast_value
         end
         klass.included_serialize_cast_value = true

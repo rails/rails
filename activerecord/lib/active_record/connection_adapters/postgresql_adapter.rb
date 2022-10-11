@@ -311,6 +311,7 @@ module ActiveRecord
 
         @max_identifier_length = nil
         @type_map = nil
+        @raw_connection = nil
 
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
