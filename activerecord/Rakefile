@@ -101,6 +101,7 @@ end
         require "minitest"
         Minitest.instance_eval do
           alias _original_autorun autorun
+          alias autorun autorun # supress redefinition warning
           def autorun
             # no-op
           end
