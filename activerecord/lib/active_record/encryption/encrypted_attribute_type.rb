@@ -8,7 +8,7 @@ module ActiveRecord
     # model classes. Whenever you declare an attribute as encrypted, it configures an +EncryptedAttributeType+
     # for that attribute.
     class EncryptedAttributeType < ::ActiveRecord::Type::Text
-      include ActiveModel::Type::Helpers::Mutable
+      include ActiveModel::Type::Helpers::Mutable, ActiveModel::Type::SerializeCastValue
 
       attr_reader :scheme, :cast_type
 
@@ -33,6 +33,10 @@ module ActiveRecord
       end
 
       def serialize(value)
+        cast(value)
+      end
+
+      def cast(value)
         if serialize_with_oldest?
           serialize_with_oldest(value)
         else

@@ -1,3 +1,7 @@
+*   Don't encrypt values twice when saving encrypted attributes.
+
+    *Jorge Manrubia*
+
 *   Validate options when managing columns and tables in migrations.
 
     If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
