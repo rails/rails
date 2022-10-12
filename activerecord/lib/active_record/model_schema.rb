@@ -431,6 +431,14 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type.default_value)
       end
 
+      def before_load_schema(&block)
+        set_callback :load_schema, :before, &block
+      end
+
+      def after_load_schema(&block)
+        set_callback :load_schema, :after, &block
+      end
+
       def yaml_encoder # :nodoc:
         @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
@@ -553,6 +561,8 @@ module ActiveRecord
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
+          child_class.extend ActiveSupport::Callbacks
+          child_class.define_callbacks :load_schema
         end
 
         def schema_loaded?
@@ -564,7 +574,9 @@ module ActiveRecord
           @load_schema_monitor.synchronize do
             return if defined?(@columns_hash) && @columns_hash
 
-            load_schema!
+            run_callbacks :load_schema do
+              load_schema!
+            end
 
             @schema_loaded = true
           rescue

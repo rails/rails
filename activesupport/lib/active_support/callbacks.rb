@@ -936,34 +936,26 @@ module ActiveSupport
           options = names.extract_options!
 
           names.each do |name|
-            name_start, name_end = name, ""
-            if (match_data = name.match(/[!\?]\z/))
-              name_start = match_data.pre_match
-              name_end = match_data[0]
-              name_end.sub!("!", "_bang")
-              name_end.sub!("?", "_eh")
-            end
             name = name.to_sym
-            name_start = name_start.to_sym
 
             ([self] + self.descendants).each do |target|
               target.set_callbacks name, CallbackChain.new(name, options)
             end
 
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _run_#{name_start}_callbacks#{name_end}(&block)
+              def _run_#{name}_callbacks(&block)
                 run_callbacks #{name.inspect}, &block
               end
 
-              def self._#{name_start}_callbacks#{name_end}
+              def self._#{name}_callbacks
                 get_callbacks(#{name.inspect})
               end
 
-              def self._#{name_start}_callbacks#{name_end}=(value)
+              def self._#{name}_callbacks=(value)
                 set_callbacks(#{name.inspect}, value)
               end
 
-              def _#{name_start}_callbacks#{name_end}
+              def _#{name}_callbacks
                 __callbacks[#{name.inspect}]
               end
             RUBY
