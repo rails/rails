@@ -5,6 +5,10 @@ require "cases/helper"
 module ActiveModel
   class AttributeTest < ActiveModel::TestCase
     class InscribingType
+      def changed_in_place?(raw_old_value, new_value)
+        false
+      end
+
       def cast(value)
         "cast(#{value})"
       end
@@ -94,6 +98,37 @@ module ActiveModel
       attribute = Attribute.from_user(nil, "whatever", @type)
 
       assert_equal "serialize_cast_value(cast(whatever))", attribute.value_for_database
+    end
+
+    test "value_for_database is memoized" do
+      count = 0
+      @type.define_singleton_method(:serialize) do |value|
+        count += 1
+        nil
+      end
+
+      attribute = Attribute.from_user(nil, "whatever", @type)
+
+      attribute.value_for_database
+      attribute.value_for_database
+      assert_equal 1, count
+    end
+
+    test "value_for_database is recomputed when value changes in place" do
+      count = 0
+      @type.define_singleton_method(:serialize) do |value|
+        count += 1
+        nil
+      end
+      @type.define_singleton_method(:changed_in_place?) do |*|
+        true
+      end
+
+      attribute = Attribute.from_user(nil, "whatever", @type)
+
+      attribute.value_for_database
+      attribute.value_for_database
+      assert_equal 2, count
     end
 
     test "duping dups the value" do
