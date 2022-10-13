@@ -200,8 +200,9 @@ module ActiveRecord
 
           migrate
           dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
-          load_seed if seed
         end
+
+        load_seed if seed
       end
 
       def drop(configuration, *arguments)
