@@ -122,8 +122,8 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get '/load',   to: lambda { |env| [200, {}, Post.all] }
-        get '/unload', to: lambda { |env| [200, {}, []] }
+        get '/load',   to: lambda { |env| Post.all.to_a; [200, {}, [ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq.to_json]] }
+        get '/unload', to: lambda { |env| [200, {}, [ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq.to_json]] }
       end
     RUBY
 
@@ -139,9 +139,11 @@ class LoadingTest < ActiveSupport::TestCase
 
     assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
     get "/load"
-    assert_equal [Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort - initial
+    assert_equal 200, last_response.status
+    assert_equal ["Post"], JSON.parse(last_response.body) - initial
     get "/unload"
-    assert_equal [], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
+    assert_equal 200, last_response.status
+    assert_equal [], JSON.parse(last_response.body) - initial
   end
 
   test "initialize can't be called twice" do
@@ -483,7 +485,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   private
     def setup_ar!
-      ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      ActiveRecord::Base.establish_connection
       ActiveRecord::Migration.verbose = false
       ActiveRecord::Schema.define(version: 1) do
         create_table :posts do |t|
