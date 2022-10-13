@@ -307,6 +307,26 @@ class ExceptionsTest < ActiveSupport::TestCase
     assert_equal "Successfully completed job", JobBuffer.values[9]
   end
 
+  test "successfully retry job throwing ProcRetryError" do
+    RetryJob.perform_later "ProcRetryError", 2
+
+    assert_equal [
+      "Raised ProcRetryError for the 1st time",
+      "Successfully completed job"
+    ], JobBuffer.values
+  end
+
+  test "successfully throw an error when ProcRetryError returns false from its proc" do
+    assert_raises ProcRetryError do
+      RetryJob.perform_later "ProcRetryError", 3
+    end
+
+    assert_equal [
+      "Raised ProcRetryError for the 1st time",
+      "Raised ProcRetryError for the 2nd time"
+    ], JobBuffer.values
+  end
+
   test "running a job enqueued by AJ 5.2" do
     job = RetryJob.new("DefaultsError", 6)
     job.exception_executions = nil # This is how jobs from Rails 5.2 will look

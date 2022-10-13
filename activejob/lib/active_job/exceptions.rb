@@ -25,8 +25,9 @@ module ActiveJob
       #   as a computing proc that takes the number of executions so far as an argument, or as a symbol reference of
       #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
-      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
-      #   to retry the job until it succeeds
+      # * <tt>:attempts</tt> - Re-enqueues the job either the specified number of times (default: 5 attempts),
+      #   as a computing proc that takes the number of executions so far as an argument and returns true or false,
+      #   or a symbol reference of <tt>:unlimited</tt> to retry the job until it succeeds
       # * <tt>:queue</tt> - Re-enqueues the job on a different queue
       # * <tt>:priority</tt> - Re-enqueues the job with a different priority
       # * <tt>:jitter</tt> - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
@@ -37,6 +38,7 @@ module ActiveJob
       #    retry_on CustomAppException # defaults to ~3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
       #    retry_on CustomInfrastructureException, wait: 5.minutes, attempts: :unlimited
+      #    retry_on AnotherCustomException, attempts: ->(executions) { executions < 2 }
       #
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, Timeout::Error, wait: :exponentially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
@@ -58,7 +60,7 @@ module ActiveJob
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
-          if attempts == :unlimited || executions < attempts
+          if retry_is_needed?(count_or_algorithm: attempts, executions: executions)
             retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, jitter: jitter), queue: queue, priority: priority, error: error
           else
             if block_given?
@@ -130,6 +132,21 @@ module ActiveJob
     private
       JITTER_DEFAULT = Object.new
       private_constant :JITTER_DEFAULT
+
+      def retry_is_needed?(count_or_algorithm:, executions:)
+        case count_or_algorithm
+        when :unlimited
+          true
+        when Integer
+          max_executions = count_or_algorithm
+          executions < max_executions
+        when Proc
+          algorithm = count_or_algorithm
+          algorithm.call(executions)
+        else
+          raise "Couldn't determine if retry is needed based on #{count_or_algorithm.inspect}"
+        end
+      end
 
       def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: JITTER_DEFAULT)
         jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
