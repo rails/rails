@@ -73,7 +73,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   end
 
   test "encrypted_attributes returns the list of encrypted attributes in a model (each record class holds their own list)" do
-    assert_equal Set.new([:title, :body]), EncryptedPost.encrypted_attributes
+    assert_equal Set.new([:title, :body, :raw_body]), EncryptedPost.encrypted_attributes
     assert_not_equal EncryptedAuthor.encrypted_attributes, EncryptedPost.encrypted_attributes
   end
 

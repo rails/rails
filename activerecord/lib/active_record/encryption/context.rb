@@ -10,7 +10,7 @@ module ActiveRecord
     # * A cipher, the encryption algorithm
     # * A message serializer
     class Context
-      PROPERTIES = %i[ key_provider key_generator cipher message_serializer encryptor frozen_encryption ]
+      PROPERTIES = %i[ key_provider key_generator cipher message_serializer encryptor frozen_encryption skip_type_cast ]
 
       attr_accessor(*PROPERTIES)
 
@@ -32,6 +32,7 @@ module ActiveRecord
           self.cipher = ActiveRecord::Encryption::Cipher.new
           self.encryptor = ActiveRecord::Encryption::Encryptor.new
           self.message_serializer = ActiveRecord::Encryption::MessageSerializer.new
+          self.skip_type_cast = false
         end
 
         def build_default_key_provider

@@ -47,7 +47,7 @@ module ActiveRecord
         # * Reading encrypted content will return its ciphertexts.
         # * Writing encrypted content will write its clear text.
         def without_encryption(&block)
-          with_encryption_context encryptor: ActiveRecord::Encryption::NullEncryptor.new, &block
+          with_encryption_context skip_type_cast: true, encryptor: ActiveRecord::Encryption::NullEncryptor.new, &block
         end
 
         # Runs the provided block in an encryption context where:

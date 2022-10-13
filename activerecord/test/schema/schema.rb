@@ -862,6 +862,7 @@ ActiveRecord::Schema.define do
     else
       t.text    :body, null: false
     end
+    t.blob    :raw_body
     t.string  :type
     t.integer :legacy_comments_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0

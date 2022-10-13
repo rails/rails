@@ -10,8 +10,9 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
   setup do
     ActiveRecord::Encryption.config.support_unencrypted_data = true
 
-    @post = EncryptedPost.create!(title: "Some encrypted post title", body: "Some body")
+    @post = EncryptedPost.create!(title: "Some encrypted post title", body: "Some body", raw_body: "some raw body")
     @clean_title = @post.title
+    @clean_raw_body = @post.raw_body
   end
 
   test ".with_encryption_context lets you override properties" do
@@ -47,6 +48,30 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
 
       assert_equal encryptor_1, ActiveRecord::Encryption.encryptor
     end
+  end
+
+  test ".with_encryption_context raises an encoding error for binary data that cannot be encoded as a string" do
+    binary_data = Base64.strict_decode64("AhufVG0kg/az30AJ7xiD7JyuxwdSsfMsbTDy36q0pj7YCQ7Nl/H0Vg==")
+
+    assert_raises Encoding::UndefinedConversionError do
+      ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
+        assert_protected_encrypted_attribute(@post, :raw_body, @clean_raw_body)
+
+        @post.update!(raw_body: binary_data)
+      end
+    end
+  end
+
+  test ".without_encryption won't change serialization type" do
+    binary_data = Base64.strict_decode64("AhufVG0kg/az30AJ7xiD7JyuxwdSsfMsbTDy36q0pj7YCQ7Nl/H0Vg==")
+
+    ActiveRecord::Encryption.without_encryption do
+      assert_protected_encrypted_attribute(@post, :raw_body, @clean_raw_body)
+
+      @post.update!(raw_body: binary_data)
+    end
+
+    assert_equal binary_data, @post.raw_body
   end
 
   test ".without_encryption won't decrypt or encrypt data automatically" do

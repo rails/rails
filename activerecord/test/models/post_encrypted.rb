@@ -12,4 +12,5 @@ class EncryptedPost < Post
 
   encrypts :title
   encrypts :body, key_provider: MutableDerivedSecretKeyProvider.new("my post body secret!")
+  encrypts :raw_body
 end

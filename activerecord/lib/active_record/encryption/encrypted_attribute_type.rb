@@ -116,7 +116,12 @@ module ActiveRecord
         def serialize_with_current(value)
           casted_value = cast_type.serialize(value)
           casted_value = casted_value&.downcase if downcase?
-          encrypt(casted_value.to_s) unless casted_value.nil?
+          final_casted_value = if ActiveRecord::Encryption.context.skip_type_cast
+            casted_value
+          else
+            casted_value.to_s
+          end
+          encrypt(final_casted_value) unless casted_value.nil?
         end
 
         def encrypt(value)
