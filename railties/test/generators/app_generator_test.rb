@@ -1074,7 +1074,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
         File.write("Gemfile", gemfile_contents)
 
-        quietly { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "yes | bin/rails app:update", exception: true) }
+        system({ "BUNDLE_GEMFILE" => "Gemfile" }, "yes | bin/rails app:update", exception: true)
       end
     end
 
