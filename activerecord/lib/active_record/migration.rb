@@ -1168,7 +1168,7 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:up, selected_migrations, schema_migration, internal_metadata, target_version, connection).migrate
+      Migrator.new(:up, selected_migrations, schema_migration, internal_metadata, target_version).migrate
     end
 
     def down(target_version = nil, &block) # :nodoc:
@@ -1178,15 +1178,15 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:down, selected_migrations, schema_migration, internal_metadata, target_version, connection).migrate
+      Migrator.new(:down, selected_migrations, schema_migration, internal_metadata, target_version).migrate
     end
 
     def run(direction, target_version) # :nodoc:
-      Migrator.new(direction, migrations, schema_migration, internal_metadata, target_version, connection).run
+      Migrator.new(direction, migrations, schema_migration, internal_metadata, target_version).run
     end
 
     def open # :nodoc:
-      Migrator.new(:up, migrations, schema_migration, internal_metadata, nil, connection)
+      Migrator.new(:up, migrations, schema_migration, internal_metadata)
     end
 
     def get_all_versions # :nodoc:
@@ -1309,15 +1309,13 @@ module ActiveRecord
 
     self.migrations_paths = ["db/migrate"]
 
-    attr_reader :connection
-    def initialize(direction, migrations, schema_migration, internal_metadata, target_version = nil, connection = nil)
+    def initialize(direction, migrations, schema_migration, internal_metadata, target_version = nil)
       @direction         = direction
       @target_version    = target_version
       @migrated_versions = nil
       @migrations        = migrations
       @schema_migration  = schema_migration
       @internal_metadata = internal_metadata
-      @connection = connection || ActiveRecord::Tasks::DatabaseTasks.migration_connection
 
       validate(@migrations)
 
@@ -1379,6 +1377,10 @@ module ActiveRecord
     end
 
     private
+      def connection
+        ActiveRecord::Tasks::DatabaseTasks.migration_connection
+      end
+
       # Used for running a specific migration.
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
