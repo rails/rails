@@ -256,7 +256,7 @@ module ActiveRecord
       end
 
       def test_options_are_not_validated
-        migration = Class.new(ActiveRecord::Migration[7.0]) {
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
           def migrate(x)
             create_table :tests, wrong_id: false do |t|
               t.references :some_table, wrong_primary_key: true

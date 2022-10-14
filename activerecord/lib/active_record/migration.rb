@@ -553,6 +553,9 @@ module ActiveRecord
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
+      def compatible_table_definition(t)
+        t
+      end
     end
 
     def self.inherited(subclass) # :nodoc:
