@@ -1099,7 +1099,7 @@ module ActiveRecord
   class MigrationContext
     attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
-    def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil, connection = nil)
+    def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
       if schema_migration == SchemaMigration
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
@@ -1122,15 +1122,9 @@ module ActiveRecord
         internal_metadata = nil
       end
 
-      @connection = connection
-
       @migrations_paths = migrations_paths
-      @schema_migration = schema_migration || SchemaMigration.new(@connection)
-      @internal_metadata = internal_metadata || InternalMetadata.new(@connection)
-    end
-
-    def connection
-      @connection || ActiveRecord::Tasks::DatabaseTasks.migration_connection
+      @schema_migration = schema_migration || SchemaMigration.new(connection)
+      @internal_metadata = internal_metadata || InternalMetadata.new(connection)
     end
 
     # Runs the migrations in the +migrations_path+.
@@ -1266,6 +1260,10 @@ module ActiveRecord
     end
 
     private
+      def connection
+        ActiveRecord::Tasks::DatabaseTasks.migration_connection
+      end
+
       def migration_files
         paths = Array(migrations_paths)
         Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
@@ -1305,7 +1303,7 @@ module ActiveRecord
         schema_migration = SchemaMigration.new(connection)
         internal_metadata = InternalMetadata.new(connection)
 
-        MigrationContext.new(migrations_paths, schema_migration, internal_metadata, connection).current_version
+        MigrationContext.new(migrations_paths, schema_migration, internal_metadata).current_version
       end
     end
 
