@@ -155,7 +155,7 @@ class Time
 
     new_sec += Rational(new_usec, 1000000)
 
-    if new_offset
+    new_time = if new_offset
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
     elsif utc?
       ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
@@ -166,6 +166,10 @@ class Time
     else
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, utc_offset)
     end
+
+    # if hour isn't changing on a daylight savings day, keep the original hour
+    second_repeated_dst_hour = options[:hour].nil? && (self - 1.hour).hour == hour
+    second_repeated_dst_hour ? new_time + 1.hour : new_time
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days

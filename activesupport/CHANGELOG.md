@@ -1,3 +1,12 @@
+*   Fix `Time#advance` and `Time#change` behavior during fall daylight savings time (DST)
+
+    Previously calling `advance` or `change` during the second repeated hour of DST would
+    change the hour to the first repeated hour.
+
+    Fixes #45055
+
+    *Kevin Hall*
+
 *   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
 
     Previously they could return old implementations of reloadable classes that have been

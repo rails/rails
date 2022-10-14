@@ -1421,4 +1421,33 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
       assert_equal Time.utc(2014, 10, 25, 22, 0, 0), "2014-10-26 01:00:00".in_time_zone
     end
   end
+
+  def test_fall_dst_changes
+    with_tz_default "Europe/Lisbon" do
+      time = Time.new(2021, 10, 31, 0, 0, 0, Time.zone).advance(hours: 2)
+      assert_equal 0, time.advance(seconds: 0) - time
+
+      time = Time.new(2021, 10, 31, 0, 0, 0, Time.zone).advance(hours: 2)
+      assert_equal 3600, time.advance(hours: 1) - time
+
+      time = Time.new(2021, 10, 31, 0, 0, 0, Time.zone).advance(hours: 2)
+      assert_equal 0, time.change(seconds: 0) - time
+    end
+  end
+
+  def test_spring_dst_changes
+    with_tz_default "Europe/Lisbon" do
+      time = Time.new(2021, 3, 28, 0, 0, 0, Time.zone).advance(hours: 2)
+      assert_equal 0, time.advance(seconds: 0) - time
+
+      time = Time.new(2021, 3, 28, 0, 0, 0, Time.zone).advance(hours: 1)
+      assert_equal 3600, time.advance(hours: 1) - time
+
+      time = Time.new(2021, 3, 28, 0, 0, 0, Time.zone).advance(hours: 1)
+      assert_equal 0, time.change(seconds: 0) - time
+
+      time = Time.new(2021, 3, 28, 0, 0, 0, Time.zone).advance(hours: 2)
+      assert_equal 0, time.change(seconds: 0) - time
+    end
+  end
 end
