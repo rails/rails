@@ -657,7 +657,6 @@ module ActiveRecord
         # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
         Base.establish_connection(current_db_config)
 
-        # Ensure all migrations have succeeded
         check_pending_migrations(db_configs: all_configs)
       end
 

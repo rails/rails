@@ -114,10 +114,9 @@ module ActiveRecord
             CheckPending.new(@app).call({})
           end
 
-          begin
-            ActiveRecord::Base.establish_connection(:secondary)
-            quietly { run_migrations }
-          end
+          ActiveRecord::Base.establish_connection(:secondary)
+          quietly { run_migrations }
+
           ActiveRecord::Base.establish_connection(:primary)
 
           @app.expect :call, nil, [{}]
