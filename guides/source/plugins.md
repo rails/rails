@@ -32,7 +32,7 @@ Setup
 Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across
 different Rails applications using RubyGems and Bundler if desired.
 
-### Generate a gemified plugin.
+### Generate a Gemified Plugin
 
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability

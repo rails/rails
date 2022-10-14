@@ -1050,7 +1050,7 @@ NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
 supported runtime in order to use `terser`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
 
-### GZipping your assets
+### GZipping Your Assets
 
 By default, gzipped version of compiled assets will be generated, along with
 the non-gzipped version of assets. Gzipped assets help reduce the transmission

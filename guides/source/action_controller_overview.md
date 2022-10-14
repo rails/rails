@@ -142,7 +142,7 @@ When this form is submitted, the value of `params[:client]` will be `{ "name" =>
 
 The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
 
-### JSON parameters
+### JSON Parameters
 
 If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
@@ -680,7 +680,7 @@ If you use the cookie session store, this would apply to the `session` and
 
 [`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
-Rendering XML and JSON data
+Rendering XML and JSON Data
 ---------------------------
 
 ActionController makes it extremely easy to render `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
@@ -1274,7 +1274,7 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 
-Force HTTPS protocol
+Force HTTPS Protocol
 --------------------
 
 If you'd like to ensure that communication to your controller is only possible
