@@ -1,3 +1,8 @@
+*   Send 303 See Other status code back for the destroy action on newly generated
+    scaffold controllers.
+
+    *Tony Drake*
+
 ## Rails 7.0.4 (September 09, 2022) ##
 
 *   `config.allow_concurrency = false` now use a `Monitor` instead of a `Mutex`
