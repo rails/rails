@@ -302,7 +302,7 @@ module ActiveRecord
     # You can also use one or more strings, which will be used unchanged as SELECT fields.
     #
     #   Model.select('field AS field_one', 'other_field AS field_two')
-    #   # => [#<Model id: nil, field: "value", other_field: "value">]
+    #   # => [#<Model id: nil, field_one: "value", field_two: "value">]
     #
     # If an alias was specified, it will be accessible from the resulting objects:
     #
