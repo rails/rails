@@ -69,6 +69,11 @@ module ActiveRecord
         end
       end
 
+      def initialize_dup(other) # :nodoc:
+        super
+        _clear_locking_column if locking_enabled?
+      end
+
       private
         def _create_record(attribute_names = self.attribute_names)
           if locking_enabled?
@@ -140,6 +145,11 @@ module ActiveRecord
           else
             @attributes[locking_column].original_value_for_database
           end
+        end
+
+        def _clear_locking_column
+          self[self.class.locking_column] = nil
+          clear_attribute_change(self.class.locking_column)
         end
 
         module ClassMethods

@@ -1,3 +1,16 @@
+*   Clear locking column on #dup
+
+    This change fixes not to duplicate locking_column like id and timestamps.
+
+    ```
+    car = Car.create!
+    car.touch
+    car.lock_version #=> 1
+    car.dup.lock_version #=> 0
+    ```
+
+    *Shouichi Kamiya*, *Seonggi Yang*, *Ryohei UEDA*
+
 *   Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
 
     It is now possible to configure columns list that will be used to build an SQL query clauses when
