@@ -1097,7 +1097,7 @@ module ActiveRecord
   # a +SchemaMigration+ object per database. From the Rake tasks, Rails will
   # handle this for you.
   class MigrationContext
-    attr_reader :migrations_paths, :schema_migration, :internal_metadata, :connection
+    attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil, connection = nil)
       if schema_migration == SchemaMigration
@@ -1122,11 +1122,15 @@ module ActiveRecord
         internal_metadata = nil
       end
 
-      @connection = connection || ActiveRecord::Tasks::DatabaseTasks.migration_connection
+      @connection = connection
 
       @migrations_paths = migrations_paths
       @schema_migration = schema_migration || SchemaMigration.new(@connection)
       @internal_metadata = internal_metadata || InternalMetadata.new(@connection)
+    end
+
+    def connection
+      @connection || ActiveRecord::Tasks::DatabaseTasks.migration_connection
     end
 
     # Runs the migrations in the +migrations_path+.
