@@ -78,7 +78,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     end
     RUBY
 
-    app_file "config/initializers/autoload_Y.rb", "Y"
+    app_file "config/initializers/autoload_Y.rb", "Y.succ"
 
     # Preconditions.
     assert_not Object.const_defined?(:X)

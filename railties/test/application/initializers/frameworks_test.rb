@@ -247,7 +247,9 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      require "#{app_path}/config/environment"
+      silence_warnings do
+        require "#{app_path}/config/environment"
+      end
       assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 

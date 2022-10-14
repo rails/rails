@@ -140,6 +140,7 @@ GEM
     bcrypt (3.1.16)
     beaneater (1.1.1)
     benchmark-ips (2.9.2)
+    bindex (0.8.1)
     blade (0.7.3)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (>= 2.0.1)
@@ -298,6 +299,9 @@ GEM
     io-console (0.5.11)
     irb (1.4.1)
       reline (>= 0.3.0)
+    jbuilder (2.11.5)
+      actionview (>= 5.0.0)
+      activesupport (>= 5.0.0)
     jmespath (1.4.0)
     jsbundling-rails (1.0.2)
       railties (>= 6.0.0)
@@ -531,6 +535,11 @@ GEM
       json (>= 1.8)
       nokogiri (~> 1.6)
       rexml (~> 3.2)
+    web-console (4.2.0)
+      actionview (>= 6.0.0)
+      activemodel (>= 6.0.0)
+      bindex (>= 0.4.0)
+      railties (>= 6.0.0)
     webdrivers (5.0.0)
       nokogiri (~> 1.6)
       rubyzip (>= 1.3.0)
@@ -576,6 +585,7 @@ DEPENDENCIES
   google-cloud-storage (~> 1.11)
   image_processing (~> 1.2)
   importmap-rails
+  jbuilder
   jsbundling-rails
   json (>= 2.0.0)
   libxml-ruby
@@ -624,6 +634,7 @@ DEPENDENCIES
   tzinfo-data
   w3c_validators (~> 1.3.6)
   wdm (>= 0.1.0)
+  web-console
   webdrivers
   webmock
   webrick

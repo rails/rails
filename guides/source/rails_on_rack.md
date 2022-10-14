@@ -173,6 +173,24 @@ You can swap an existing middleware in the middleware stack using `config.middle
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 ```
 
+#### Moving a Middleware
+
+You can move an existing middleware in the middleware stack using `config.middleware.move_before` and `config.middleware.move_after`.
+
+```ruby
+# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to before Lifo::ShowExceptions
+config.middleware.move_before Lifo::ShowExceptions, ActionDispatch::ShowExceptions
+```
+
+```ruby
+# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to after Lifo::ShowExceptions
+config.middleware.move_after Lifo::ShowExceptions, ActionDispatch::ShowExceptions
+```
+
 #### Deleting a Middleware
 
 Add the following lines to your application configuration:

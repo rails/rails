@@ -2,45 +2,33 @@
 
 module ActiveRecord
   module QueryLogs
-    class Formatter # :nodoc:
-      attr_reader :key_value_separator
-
-      # @param [String] key_value_separator: indicates the string used for
-      # separating keys and values.
-      #
-      # @param [Symbol] quote_values: indicates how values will be formatted (eg:
-      # in single quotes, not quoted at all, etc)
-      def initialize(key_value_separator:)
-        @key_value_separator = key_value_separator
+    class LegacyFormatter # :nodoc:
+      def initialize
+        @key_value_separator = ":"
       end
 
-      # @param [String-coercible] value
-      # @return [String] The formatted value that will be used in our key-value
-      # pairs.
-      def format_value(value)
-        value
+      # Formats the key value pairs into a string.
+      def format(key, value)
+        "#{key}#{key_value_separator}#{format_value(value)}"
       end
-    end
 
-    class QuotingFormatter < Formatter # :nodoc:
-      def format_value(value)
-        "'#{value.to_s.gsub("'", "\\\\'")}'"
-      end
-    end
+      private
+        attr_reader :key_value_separator
 
-    class FormatterFactory # :nodoc:
-      # @param [Symbol] formatter: the kind of formatter we're building.
-      # @return [Formatter]
-      def self.from_symbol(formatter)
-        case formatter
-        when :legacy
-          Formatter.new(key_value_separator: ":")
-        when :sqlcommenter
-          QuotingFormatter.new(key_value_separator: "=")
-        else
-          raise ArgumentError, "Formatter is unsupported: #{formatter}"
+        def format_value(value)
+          value
         end
+    end
+
+    class SQLCommenter < LegacyFormatter # :nodoc:
+      def initialize
+        @key_value_separator = "="
       end
+
+      private
+        def format_value(value)
+          "'#{value.to_s.gsub("'", "\\\\'")}'"
+        end
     end
   end
 end

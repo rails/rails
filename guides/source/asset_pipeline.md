@@ -1173,7 +1173,7 @@ end
 ```
 
 Now that you have a module that modifies the input data, it's time to register
-it as a preprocessor for your mime type.
+it as a preprocessor for your MIME type.
 
 ```ruby
 Sprockets.register_preprocessor 'text/css', AddComment

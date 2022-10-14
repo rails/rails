@@ -91,8 +91,16 @@ module ActiveRecord
       end
 
       # Updates the formatter to be what the passed in format is.
-      def update_formatter(format = :legacy)
-        self.tags_formatter = QueryLogs::FormatterFactory.from_symbol(format)
+      def update_formatter(format)
+        self.tags_formatter =
+          case format
+          when :legacy
+            LegacyFormatter.new
+          when :sqlcommenter
+            SQLCommenter.new
+          else
+            raise ArgumentError, "Formatter is unsupported: #{formatter}"
+          end
       end
 
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
@@ -109,7 +117,7 @@ module ActiveRecord
         end
 
         def formatter
-          self.tags_formatter ||= QueryLogs::FormatterFactory.from_symbol(:legacy)
+          self.tags_formatter || self.update_formatter(:legacy)
         end
 
         def uncached_comment
@@ -141,7 +149,8 @@ module ActiveRecord
             else
               handler
             end
-            "#{key}#{self.formatter.key_value_separator}#{self.formatter.format_value(val)}" unless val.nil?
+
+            self.formatter.format(key, val) unless val.nil?
           end.join(",")
         end
     end

@@ -1095,6 +1095,9 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def test_with_advisory_lock_doesnt_release_closed_connections
+      # make sure we have a connection
+      ActiveRecord::Base.establish_connection :arunit
+
       migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
 
@@ -1137,10 +1140,8 @@ class MigrationTest < ActiveRecord::TestCase
 
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
-          migrator.stub(:with_advisory_lock_connection, ->(&block) { block.call(ActiveRecord::Base.connection) }) do
-            migrator.send(:with_advisory_lock) do
-              ActiveRecord::Base.connection.release_advisory_lock(lock_id)
-            end
+          migrator.send(:with_advisory_lock) do
+            ActiveRecord::Base.connection.release_advisory_lock(lock_id)
           end
         end
       end

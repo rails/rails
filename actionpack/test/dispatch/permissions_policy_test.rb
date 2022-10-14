@@ -34,10 +34,20 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
 
   def test_invalid_directive_source
     exception = assert_raises(ArgumentError) do
-      @policy.vr [:non_existent]
+      @policy.geolocation [:non_existent]
     end
 
     assert_equal "Invalid HTTP permissions policy source: [:non_existent]", exception.message
+  end
+
+  def test_deprecated_directives
+    assert_deprecated { @policy.speaker :self }
+    assert_deprecated { @policy.vibrate :self }
+    assert_deprecated { @policy.vr :self }
+
+    assert_not_deprecated do
+      assert_equal "speaker 'self'; vibrate 'self'; vr 'self'", @policy.build
+    end
   end
 end
 

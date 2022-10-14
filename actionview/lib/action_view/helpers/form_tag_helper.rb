@@ -1013,9 +1013,14 @@ module ActionView
         end
 
         def convert_direct_upload_option_to_url(options)
-          if options.delete(:direct_upload) && respond_to?(:rails_direct_uploads_url)
+          return options unless options.delete(:direct_upload)
+
+          if respond_to?(:rails_direct_uploads_url)
             options["data-direct-upload-url"] = rails_direct_uploads_url
+          elsif respond_to?(:main_app) && main_app.respond_to?(:rails_direct_uploads_url)
+            options["data-direct-upload-url"] = main_app.rails_direct_uploads_url
           end
+
           options
         end
     end

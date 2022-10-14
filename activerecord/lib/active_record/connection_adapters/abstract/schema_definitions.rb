@@ -48,6 +48,7 @@ module ActiveRecord
       end
 
       def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+        columns = options[:column] if columns.nil?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
@@ -69,11 +70,24 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+      self::OPTION_NAMES = [
+        :limit,
+        :precision,
+        :scale,
+        :default,
+        :null,
+        :collation,
+        :comment,
+        :primary_key,
+        :if_exists,
+        :if_not_exists
+      ]
+
       def primary_key?
         options[:primary_key]
       end
 
-      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+      (self::OPTION_NAMES - [:primary_key]).each do |option_name|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{option_name}
             options[:#{option_name}]
@@ -514,6 +528,10 @@ module ActiveRecord
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
+        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
+          options[:precision] = 6
+        end
+
         column(:created_at, :datetime, **options)
         column(:updated_at, :datetime, **options)
       end
@@ -563,7 +581,15 @@ module ActiveRecord
       end
 
       private
+        def valid_column_definition_options
+          ColumnDefinition::OPTION_NAMES
+        end
+
         def create_column_definition(name, type, options)
+          unless options[:_skip_validate_options]
+            options.except(:_uses_legacy_reference_index_name, :_skip_validate_options).assert_valid_keys(valid_column_definition_options)
+          end
+
           ColumnDefinition.new(name, type, options)
         end
 

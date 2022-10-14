@@ -32,7 +32,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
     ActiveRecord::QueryLogs.cached_comment = nil
-    ActiveRecord::QueryLogs.update_formatter
+    ActiveRecord::QueryLogs.update_formatter(:legacy)
 
     # ActiveSupport::ExecutionContext context is automatically reset in Rails app via an executor hooks set in railtie
     # But not in Active Record's own test suite.
@@ -188,6 +188,34 @@ class QueryLogsTest < ActiveRecord::TestCase
       Dashboard.first
     end
   end
+
+
+  def test_sqlcommenter_format_value
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { custom_proc: -> { "Joe's Crab Shack" } },
+    ]
+
+    assert_sql(%r{custom_proc='Joe\\'s Crab Shack'\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_sqlcommenter_format_value_string_coercible
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { custom_proc: -> { 1234 } },
+    ]
+
+    assert_sql(%r{custom_proc='1234'\*/}) do
+      Dashboard.first
+    end
+  end
+
 
   def test_custom_proc_context_tags
     ActiveSupport::ExecutionContext[:foo] = "bar"

@@ -173,7 +173,7 @@ cache.
 
 ### Shared Partial Caching
 
-It is possible to share partials and associated caching between files with different mime types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the mime type. Because of this templates can be used for multiple mime types. Both HTML and JavaScript requests will respond to the following code:
+It is possible to share partials and associated caching between files with different MIME types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the MIME type. Because of this templates can be used for multiple MIME types. Both HTML and JavaScript requests will respond to the following code:
 
 ```ruby
 render(partial: 'hotels/hotel', collection: @hotels, cached: true)
@@ -187,7 +187,7 @@ Another option is to include the full filename of the partial to render.
 render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
 ```
 
-Will load a file named `hotels/hotel.html.erb` in any file mime type, for example you could include this partial in a JavaScript file.
+Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
 
 ### Managing dependencies
 

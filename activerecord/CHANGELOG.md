@@ -1,3 +1,11 @@
+*   Validate options when managing columns and tables in migrations.
+
+    If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
+    instead of the option being silently ignored. Validation of the options will only be applied for new migrations
+    that are created.
+
+    *Guo Xiang Tan*, *George Wambold*
+
 *   Add configurable formatter on query log tags to support sqlcommenter. See #45139
 
     It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.

@@ -34,13 +34,26 @@ module ActiveRecord
 
       class V7_0 < V7_1
         module TableDefinition
+          def new_column_definition(name, type, **options)
+            options[:_skip_validate_options] = true
+            super
+          end
+
           private
             def raise_on_if_exist_options(options)
             end
         end
 
+        def add_column(table_name, column_name, type, **options)
+          options[:_skip_validate_options] = true
+          super
+        end
+
+
         def create_table(table_name, **options)
           options[:_uses_legacy_table_name] = true
+          options[:_skip_validate_options] = true
+
           if block_given?
             super { |t| yield compatible_table_definition(t) }
           else

@@ -1,3 +1,17 @@
+*   Add the following permissions policy directives: `hid`, `idle-detection`, `screen-wake-lock`,
+    `serial`, `sync-xhr`, `web-share`.
+
+    *Guillaume Cabanel*
+
+*   The `speaker`, `vibrate`, and `vr` permissions policy directives are now
+    deprecated.
+
+    There is no browser support for these directives, and no plan for browser
+    support in the future. You can just remove these directives from your
+    application.
+
+    *Jonathan Hefner*
+
 *   Added the `:status` option to `assert_redirected_to` to specify the precise
     HTTP status of the redirect. Defaults to `:redirect` for backwards
     compatibility.

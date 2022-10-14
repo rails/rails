@@ -8,6 +8,7 @@
 #
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
+require "active_support/testing/strict_warnings"
 require "fileutils"
 require "shellwords"
 

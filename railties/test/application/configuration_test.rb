@@ -231,6 +231,7 @@ module ApplicationTests
       app "development"
       assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
       assert_kind_of ActiveSupport::MessageVerifiers, Rails.application.message_verifiers
+      assert_kind_of ActiveSupport::Deprecation::Deprecators, Rails.application.deprecators
     end
 
     test "Rails::Application responds to paths" do
@@ -2008,6 +2009,12 @@ module ApplicationTests
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
+      app "development"
+      assert_equal({}, Rails.application.config.load_database_yaml)
+    end
+
+    test "load_database_yaml returns blank hash if no database configuration is found" do
+      remove_file "config/database.yml"
       app "development"
       assert_equal({}, Rails.application.config.load_database_yaml)
     end
@@ -3894,6 +3901,10 @@ module ApplicationTests
       assert_equal true, ActiveSupport::Deprecation.silenced
       assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.behavior
       assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
+
+      assert_equal true, Rails.application.deprecators[:rails].silenced
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], Rails.application.deprecators[:rails].behavior
+      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], Rails.application.deprecators[:rails].disallowed_behavior
     end
 
     test "ParamsWrapper is enabled in a new app and uses JSON as the format" do

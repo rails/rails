@@ -1,3 +1,46 @@
+*   Add `Rails.application.deprecators` as a central point to manage deprecators
+    for an application.
+
+    Individual deprecators can be added and retrieved from the collection:
+
+    ```ruby
+    Rails.application.deprecators[:my_gem] = ActiveSupport::Deprecation.new("2.0", "MyGem")
+    Rails.application.deprecators[:other_gem] = ActiveSupport::Deprecation.new("3.0", "OtherGem")
+    ```
+
+    And the collection's configuration methods affect all deprecators in the
+    collection:
+
+    ```ruby
+    Rails.application.deprecators.debug = true
+
+    Rails.application.deprecators[:my_gem].debug
+    # => true
+    Rails.application.deprecators[:other_gem].debug
+    # => true
+    ```
+
+    Additionally, all deprecators in the collection can be silenced for the
+    duration of a given block:
+
+    ```ruby
+    Rails.application.deprecators.silence do
+      Rails.application.deprecators[:my_gem].warn    # => silenced (no warning)
+      Rails.application.deprecators[:other_gem].warn # => silenced (no warning)
+    end
+    ```
+
+    *Jonathan Hefner*
+
+*   Move dbconsole logic to Active Record connection adapter.
+
+    Instead of hosting the connection logic in the command object, the
+    database adapter should be responsible for connecting to a console session.
+    This patch moves #find_cmd_and_exec to the adapter and exposes a new API to
+    lookup the adapter class without instantiating it.
+
+    *Gannon McGibbon, Paarth Madan*
+
 *   Add `Rails.application.message_verifiers` as a central point to configure
     and create message verifiers for an application.
 

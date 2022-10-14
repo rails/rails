@@ -49,6 +49,14 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
   # Returns an ActiveStorage::Variant or ActiveStorage::VariantWithRecord
   # instance for the attachment with the set of +transformations+ provided.
+  # Example:
+  #
+  #   avatar.variant(resize_to_limit: [100, 100]).processed.url
+  #
+  # or if you are using pre-defined variants:
+  #
+  #   avatar.variant(:thumb).processed.url
+  #
   # See ActiveStorage::Blob::Representable#variant for more information.
   #
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
@@ -60,6 +68,14 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
   # Returns an ActiveStorage::Preview instance for the attachment with the set
   # of +transformations+ provided.
+  # Example:
+  #
+  #   video.preview(resize_to_limit: [100, 100]).processed.url
+  #
+  # or if you are using pre-defined variants:
+  #
+  #   video.preview(:thumb).processed.url
+  #
   # See ActiveStorage::Blob::Representable#preview for more information.
   #
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
@@ -71,6 +87,14 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
   # Returns an ActiveStorage::Preview or an ActiveStorage::Variant for the
   # attachment with set of +transformations+ provided.
+  # Example:
+  #
+  #   avatar.representation(resize_to_limit: [100, 100]).processed.url
+  #
+  # or if you are using pre-defined variants:
+  #
+  #   avatar.representation(:thumb).processed.url
+  #
   # See ActiveStorage::Blob::Representable#representation for more information.
   #
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
