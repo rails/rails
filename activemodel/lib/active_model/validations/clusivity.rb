@@ -11,6 +11,8 @@ module ActiveModel
       ERROR_MESSAGE = "An object with the method #include? or a proc, lambda or symbol is required, " \
                       "and must be supplied as the :in (or :within) option of the configuration hash"
 
+      RESERVED_OPTIONS = [:in, :within, :all].freeze
+
       def check_validity!
         unless delimiter.respond_to?(:include?) || delimiter.respond_to?(:call) || delimiter.respond_to?(:to_sym)
           raise ArgumentError, ERROR_MESSAGE
@@ -21,7 +23,7 @@ module ActiveModel
       def include?(record, value)
         members = resolve_value(record, delimiter)
 
-        if value.is_a?(Array)
+        if value.is_a?(Array) && options[:all] == true
           value.all? { |v| members.public_send(inclusion_method(members), v) }
         else
           members.public_send(inclusion_method(members), value)

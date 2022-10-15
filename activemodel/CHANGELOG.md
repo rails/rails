@@ -1,3 +1,7 @@
+*   Add `:all` option to `inclusion` validator.
+
+    *Jacopo Beschi*
+
 *   `has_secure_password` now supports password challenges via a
     `password_challenge` accessor and validation.
 
