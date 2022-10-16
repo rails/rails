@@ -32,7 +32,6 @@ module ActiveModel
     #     attribute :weight, :decimal, precision: 24
     #   end
     class Decimal < Value
-      include SerializeCastValue
       include Helpers::Numeric
       BIGDECIMAL_PRECISION = 18
 

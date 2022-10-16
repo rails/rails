@@ -3,7 +3,6 @@
 module ActiveRecord
   module Type
     class Time < ActiveModel::Type::Time
-      include ActiveModel::Type::SerializeCastValue
       include Internal::Timezone
 
       class Value < DelegateClass(::Time) # :nodoc:
