@@ -53,7 +53,10 @@ module ActiveModel
     end
 
     def value_for_database
-      type.serialize(value)
+      if !defined?(@value_for_database) || type.changed_in_place?(@value_for_database, value)
+        @value_for_database = _value_for_database
+      end
+      @value_for_database
     end
 
     def serializable?(&block)
@@ -159,6 +162,10 @@ module ActiveModel
         assigned? && type.changed?(original_value, value, value_before_type_cast)
       end
 
+      def _value_for_database
+        type.serialize(value)
+      end
+
       def _original_value_for_database
         type.serialize(original_value)
       end
@@ -179,13 +186,14 @@ module ActiveModel
           type.cast(value)
         end
 
-        def value_for_database
-          Type::SerializeCastValue.serialize(type, value)
-        end
-
         def came_from_user?
           !type.value_constructed_by_mass_assignment?(value_before_type_cast)
         end
+
+        private
+          def _value_for_database
+            Type::SerializeCastValue.serialize(type, value)
+          end
       end
 
       class WithCastValue < Attribute # :nodoc:
