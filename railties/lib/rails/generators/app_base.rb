@@ -243,7 +243,7 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+        GemfileEntry.new "puma", ">= 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def asset_pipeline_gemfile_entry

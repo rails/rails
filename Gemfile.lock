@@ -376,7 +376,7 @@ GEM
       rack
       railties (>= 7.0.0.alpha2)
     public_suffix (4.0.6)
-    puma (5.6.5)
+    puma (6.0.0)
       nio4r (~> 2.0)
     queue_classic (4.0.0)
       pg (>= 1.1, < 2.0)
