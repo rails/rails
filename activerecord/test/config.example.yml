@@ -42,8 +42,6 @@ connections:
       collation: utf8mb4_unicode_ci
 <% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
       prepared_statements: true
-<% else %>
-      prepared_statements: false
 <% end %>
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
@@ -57,8 +55,6 @@ connections:
       collation: utf8mb4_general_ci
 <% if ENV['MYSQL_PREPARED_STATEMENTS'] %>
       prepared_statements: true
-<% else %>
-      prepared_statements: false
 <% end %>
 <% if ENV['MYSQL_HOST'] %>
       host: <%= ENV['MYSQL_HOST'] %>
