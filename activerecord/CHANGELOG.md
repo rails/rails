@@ -3,7 +3,7 @@
     If the prepared_statements config is not set, the default value is true. This is consistent
     with the other adapters. See #42975.
 
-    Remove the deprecation warning when `prepared_statements` configuration was not 
+    Remove the deprecation warning when `prepared_statements` configuration was not
     set for the mysql2 adapter introduced in #43141.
 
     *Thiago Araujo and Stefanni Brasil*
