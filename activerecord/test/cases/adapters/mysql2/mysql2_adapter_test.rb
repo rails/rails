@@ -52,7 +52,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       end
     end.new
 
-    assert_deprecated do
+    assert_not_deprecated do
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
         fake_connection,
         ActiveRecord::Base.logger,
@@ -93,7 +93,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       )
     end
 
-    assert_equal false, adapter.prepared_statements
+    assert_equal true, adapter.prepared_statements
   end
 
   def test_exec_query_nothing_raises_with_no_result_queries

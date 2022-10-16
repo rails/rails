@@ -158,7 +158,7 @@ module ActiveRecord
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
-          @config.fetch(:prepared_statements) { default_prepared_statements }
+          @config.fetch(:prepared_statements, true)
         )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
@@ -1156,10 +1156,6 @@ module ActiveRecord
         # Implementations may assume this method will only be called while
         # holding @lock (or from #initialize).
         def configure_connection
-        end
-
-        def default_prepared_statements
-          true
         end
     end
   end
