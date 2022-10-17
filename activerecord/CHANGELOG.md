@@ -1,3 +1,7 @@
+*   Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
+
+    *Sampat Badhe*
+
 *   Validate options when managing columns and tables in migrations.
 
     If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised

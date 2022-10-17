@@ -406,6 +406,7 @@ module ActiveRecord
     # Note that we're unscoping the entire select statement.
     def reselect(*args)
       check_if_method_has_arguments!(__callee__, args)
+      args = process_select_args(args)
       spawn.reselect!(*args)
     end
 
