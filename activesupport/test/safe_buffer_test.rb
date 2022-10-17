@@ -205,10 +205,12 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
   end
 
-  test "Should be safe when sliced if original value was safe" do
+  test "Should be unsafe after slicing" do
     new_buffer = @buffer[0, 0]
     assert_not_nil new_buffer
-    assert new_buffer.html_safe?, "should be safe"
+    assert_not new_buffer.html_safe?, "should be unsafe"
+    assert_not @buffer[0].html_safe?, "should be unsafe"
+    assert_not @buffer.slice(0, 1).html_safe?, "should be unsafe"
   end
 
   test "Should continue unsafe on slice" do
@@ -222,18 +224,6 @@ class SafeBufferTest < ActiveSupport::TestCase
 
     # should still be unsafe
     assert_not y.html_safe?, "should not be safe"
-  end
-
-  test "Should continue safe on slice" do
-    x = "<div>foo</div>".html_safe
-
-    assert_predicate x, :html_safe?
-
-    # getting a slice of it
-    y = x[0..-1]
-
-    # should still be safe
-    assert_predicate y, :html_safe?
   end
 
   test "Should work with interpolation (array argument)" do

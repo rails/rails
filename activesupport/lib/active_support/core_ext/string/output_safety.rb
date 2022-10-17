@@ -38,17 +38,7 @@ module ActiveSupport # :nodoc:
     end
 
     def [](*args)
-      if html_safe?
-        new_string = super
-
-        return unless new_string
-
-        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
-        new_safe_buffer.instance_variable_set :@html_safe, true
-        new_safe_buffer
-      else
-        to_str[*args]
-      end
+      to_str[*args]
     end
 
     def safe_concat(value)
@@ -67,6 +57,8 @@ module ActiveSupport # :nodoc:
     end
 
     def clone_empty
+      return self.class.new if html_safe?
+
       self[0, 0]
     end
 
