@@ -39,38 +39,6 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_mysql2_prepared_statements_default_deprecation_warning
-    fake_connection = Class.new do
-      def query_options
-        {}
-      end
-
-      def query(*)
-      end
-
-      def close
-      end
-    end.new
-
-    assert_deprecated do
-      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
-        fake_connection,
-        ActiveRecord::Base.logger,
-        nil,
-        { socket: File::NULL }
-      )
-    end
-
-    assert_not_deprecated do
-      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
-        fake_connection,
-        ActiveRecord::Base.logger,
-        nil,
-        { socket: File::NULL, prepared_statements: false }
-      )
-    end
-  end
-
   def test_mysql2_default_prepared_statements
     fake_connection = Class.new do
       def query_options
@@ -93,7 +61,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       )
     end
 
-    assert_equal false, adapter.prepared_statements
+    assert_equal true, adapter.prepared_statements
   end
 
   def test_exec_query_nothing_raises_with_no_result_queries
@@ -280,6 +248,31 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     assert_not_nil error.cause
   ensure
     @conn.drop_table :foos, if_exists: true
+  end
+
+  def test_prepared_statements_defaults
+    fake_connection = Class.new do
+      def query_options
+        {}
+      end
+
+      def query(*)
+      end
+
+      def close
+      end
+    end.new
+
+    config = { socket: File::NULL }
+
+    adapter = ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
+      fake_connection,
+      ActiveRecord::Base.logger,
+      nil,
+      config
+    )
+
+    assert_equal true, adapter.prepared_statements?
   end
 
   def test_read_timeout_exception
