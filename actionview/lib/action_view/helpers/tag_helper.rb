@@ -52,6 +52,7 @@ module ActionView
           @view_context = view_context
         end
 
+        # :doc:
         # Transforms a Hash into HTML Attributes, ready to be interpolated into
         # ERB.
         #
@@ -60,6 +61,7 @@ module ActionView
         def attributes(attributes)
           tag_options(attributes.to_h).to_s.strip.html_safe
         end
+        # :nodoc:
 
         def p(*arguments, **options, &block)
           tag_string(:p, *arguments, **options, &block)
