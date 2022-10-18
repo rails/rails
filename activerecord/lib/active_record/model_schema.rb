@@ -170,6 +170,8 @@ module ActiveRecord
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
+      class_attribute :__after_load_schema_callbacks, instance_writer: false, default: []
+
       initialize_load_schema_monitor
     end
 
@@ -431,12 +433,11 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type.default_value)
       end
 
-      def before_load_schema(&block)
-        set_callback :load_schema, :before, &block
-      end
-
-      def after_load_schema(&block)
-        set_callback :load_schema, :after, &block
+      def after_load_schema(*, &block)
+        if block.nil?
+          fail NotImplementedError, "after_load_schema expects a block. It does not supports args"
+        end
+        __after_load_schema_callbacks << [self, block]
       end
 
       def yaml_encoder # :nodoc:
@@ -561,8 +562,6 @@ module ActiveRecord
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
-          child_class.extend ActiveSupport::Callbacks
-          child_class.define_callbacks :load_schema
         end
 
         def schema_loaded?
@@ -574,7 +573,7 @@ module ActiveRecord
           @load_schema_monitor.synchronize do
             return if defined?(@columns_hash) && @columns_hash
 
-            run_callbacks :load_schema do
+            _run_load_schema_callbacks do
               load_schema!
             end
 
@@ -605,6 +604,18 @@ module ActiveRecord
           end
 
           super
+        end
+
+        def _run_load_schema_callbacks # :nodoc:
+          @_load_schema_callback_already_called ||= false
+          yield
+          __after_load_schema_callbacks.each do |(callback_context, block)|
+            callback_context.instance_exec(&block)
+          end
+          return if @_load_schema_callback_already_called
+          @_load_schema_callback_already_called = true
+        ensure
+          @_load_schema_callback_already_called = false
         end
 
         def reload_schema_from_cache

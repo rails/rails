@@ -44,7 +44,6 @@ class SchemaLoadingTest < ActiveRecord::TestCase
 
   def test_has_load_schema_callbacks
     klass = define_model do |c|
-      c.before_load_schema { history << :before_load_schema }
       c.after_load_schema { history << :after_load_schema }
       c.instance_eval do
         def history
@@ -55,7 +54,6 @@ class SchemaLoadingTest < ActiveRecord::TestCase
     klass.new
     assert_equal 1, klass.load_schema_calls
     assert_equal [
-      :before_load_schema,
       :after_load_schema,
     ], klass.history
   end
