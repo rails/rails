@@ -1271,7 +1271,7 @@ module ActiveRecord
       end
 
       def move(direction, steps)
-        migrator = Migrator.new(direction, migrations, schema_migration, internal_metadata, nil, connection)
+        migrator = Migrator.new(direction, migrations, schema_migration, internal_metadata)
 
         if current_version != 0 && !migrator.current_migration
           raise UnknownMigrationVersionError.new(current_version)
