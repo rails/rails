@@ -130,11 +130,9 @@ module ActiveRecord
       end
 
       def create_all
-        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
         each_local_configuration { |db_config| create(db_config) }
-        if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(old_pool.db_config)
-        end
+
+        migration_class.establish_connection(environment.to_sym)
       end
 
       def setup_initial_database_yaml
@@ -174,7 +172,8 @@ module ActiveRecord
 
       def create_current(environment = env, name = nil)
         each_current_configuration(environment, name) { |db_config| create(db_config) }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+
+        migration_class.establish_connection(environment.to_sym)
       end
 
       def prepare_all
@@ -332,7 +331,8 @@ module ActiveRecord
 
       def purge_current(environment = env)
         each_current_configuration(environment) { |db_config| purge(db_config) }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+
+        migration_class.establish_connection(environment.to_sym)
       end
 
       def structure_dump(configuration, *arguments)
