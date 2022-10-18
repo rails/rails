@@ -1317,6 +1317,11 @@ ActiveRecord::Schema.define do
     t.integer :id
     t.datetime :created_at
   end
+
+  create_table :marc_records, force: true do |t|
+    t.string :leader
+    t.json :fields
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|
