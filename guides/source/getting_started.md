@@ -196,7 +196,7 @@ Hello, Rails!
 To begin with, let's get some text up on screen quickly. To do this, you need to
 get your Rails application server running.
 
-### Starting up the Web Server
+### Starting Up the Web Server
 
 You actually have a functional Rails application already. To see it, you need to
 start a web server on your development machine. You can do this by running the

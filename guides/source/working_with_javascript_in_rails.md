@@ -17,7 +17,7 @@ your JavaScript.
 
 --------------------------------------------------------------------------------
 
-Import maps
+Import Maps
 -----------
 
 [Import maps](https://github.com/rails/importmap-rails) let you import JavaScript modules using

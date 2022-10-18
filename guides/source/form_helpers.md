@@ -321,7 +321,7 @@ form_with model: [:admin, :management, @article]
 
 For more information on Rails' routing system and the associated conventions, please see [Rails Routing from the Outside In](routing.html) guide.
 
-### How do forms with PATCH, PUT, or DELETE methods work?
+### How do Forms with PATCH, PUT, or DELETE Methods Work?
 
 The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PATCH", "PUT", and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
 
@@ -1087,7 +1087,7 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an "Add new address" button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
 
-Using Tag Helpers Without a Form Builder
+Using Tag Helpers without a Form Builder
 ----------------------------------------
 
 In case you need to render form fields outside of the context of a form builder, Rails provides tag helpers for common form elements. For example, [`check_box_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-check_box_tag):

@@ -209,7 +209,7 @@ NOTE: Using the Rake task to create the test databases ensures they have the cor
 
 If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
-### Install JavaScript dependencies
+### Install JavaScript Dependencies
 
 If you installed Yarn, you will need to install the JavaScript dependencies:
 

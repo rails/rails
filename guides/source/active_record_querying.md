@@ -899,7 +899,7 @@ FROM orders
 GROUP BY created_at
 ```
 
-### Total of grouped items
+### Total of Grouped Items
 
 To get the total of grouped items on a single query, call [`count`][] after the `group`.
 
@@ -1604,7 +1604,7 @@ end
 
 [`scope`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html#method-i-scope
 
-### Passing in arguments
+### Passing in Arguments
 
 Your scope can take arguments:
 
@@ -1636,7 +1636,7 @@ These methods will still be accessible on the association objects:
 irb> author.books.costs_more_than(100.10)
 ```
 
-### Using conditionals
+### Using Conditionals
 
 Your scope can utilize conditionals:
 
@@ -1658,7 +1658,7 @@ end
 
 However, there is one important caveat: A scope will always return an `ActiveRecord::Relation` object, even if the conditional evaluates to `false`, whereas a class method, will return `nil`. This can cause `NoMethodError` when chaining class methods with conditionals, if any of the conditionals return `false`.
 
-### Applying a default scope
+### Applying a Default Scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
 [`default_scope`][] method within the model itself.
@@ -1720,7 +1720,7 @@ irb> Book.new
 
 [`default_scope`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-default_scope
 
-### Merging of scopes
+### Merging of Scopes
 
 Just like `where` clauses, scopes are merged using `AND` conditions.
 
@@ -1895,7 +1895,7 @@ There are some examples below. This guide won't cover all the possibilities, jus
 When an Active Record method is called, the query is not immediately generated and sent to the database.
 The query is sent only when the data is actually needed. So each example below generates a single query.
 
-### Retrieving filtered data from multiple tables
+### Retrieving Filtered Data from Multiple Tables
 
 ```ruby
 Customer
@@ -1914,7 +1914,7 @@ INNER JOIN reviews
 WHERE (reviews.created_at > '2019-01-08')
 ```
 
-### Retrieving specific data from multiple tables
+### Retrieving Specific Data from Multiple Tables
 
 ```ruby
 Book

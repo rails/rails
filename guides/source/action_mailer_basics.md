@@ -22,7 +22,7 @@ What is Action Mailer?
 Action Mailer allows you to send emails from your application using mailer classes
 and views.
 
-### Mailers are similar to controllers
+### Mailers are Similar to Controllers
 
 They inherit from [`ActionMailer::Base`][] and live in `app/mailers`. Mailers also work
 very similarly to controllers. Some examples of similarities are enumerated below.
@@ -259,7 +259,7 @@ access it with the [`message`][] method on the `ActionMailer::MessageDelivery` o
 [`message`]: https://api.rubyonrails.org/classes/ActionMailer/MessageDelivery.html#method-i-message
 [`with`]: https://api.rubyonrails.org/classes/ActionMailer/Parameterized/ClassMethods.html#method-i-with
 
-### Auto encoding header values
+### Auto Encoding Header Values
 
 Action Mailer handles the auto encoding of multibyte characters inside of
 headers and bodies.
@@ -352,7 +352,7 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
     <%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
     ```
 
-#### Sending Email To Multiple Recipients
+#### Sending Email to Multiple Recipients
 
 It is possible to send email to one or more recipients in one email (e.g.,
 informing all admins of a new signup) by setting the list of emails to the `:to`
@@ -374,7 +374,7 @@ end
 The same format can be used to set carbon copy (Cc:) and blind carbon copy
 (Bcc:) recipients, by using the `:cc` and `:bcc` keys respectively.
 
-#### Sending Email With Name
+#### Sending Email with Name
 
 Sometimes you wish to show the name of the person instead of just their email
 address when they receive the email. You can use [`email_address_with_name`][] for
@@ -473,7 +473,7 @@ You can also consider using the [`append_view_path`][] method.
 [`append_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-append_view_path
 [`prepend_view_path`]: https://api.rubyonrails.org/classes/ActionView/ViewPaths/ClassMethods.html#method-i-prepend_view_path
 
-#### Caching mailer view
+#### Caching Mailer View
 
 You can perform fragment caching in mailer views like in application views using the [`cache`][] method.
 
@@ -625,7 +625,7 @@ NOTE: non-`GET` links require [rails-ujs](https://github.com/rails/rails/blob/ma
 [jQuery UJS](https://github.com/rails/jquery-ujs), and won't work in mailer templates.
 They will result in normal `GET` requests.
 
-### Adding images in Action Mailer Views
+### Adding Images in Action Mailer Views
 
 Unlike controllers, the mailer instance doesn't have any context about the
 incoming request so you'll need to provide the `:asset_host` parameter yourself.
