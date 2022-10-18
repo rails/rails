@@ -137,9 +137,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.migrate
 
       if ActiveRecord.dump_schema_after_migration
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(
-          ActiveRecord::Base.connection_db_config
-        )
+        ActiveRecord::Tasks::DatabaseTasks.dump_schema(connection.pool.db_config)
       end
     end
 
@@ -162,6 +160,10 @@ module ActiveRecord
         end
 
         message
+      end
+
+      def connection
+        ActiveRecord::Tasks::DatabaseTasks.migration_connection
       end
   end
 
