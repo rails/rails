@@ -165,6 +165,29 @@ end
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 
+#### Connection Callbacks
+
+There are `before_command`, `after_command`, and `around_command` callbacks available to be invoked before, after or around every command received by a client respectively.
+The term "command" here refers to any interaction received by a client (subscribing, unsubscribing or performing actions):
+
+```ruby
+# app/channels/application_cable/connection.rb
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    identified_by :user
+
+    around_command :set_current_account
+
+    private
+
+    def set_current_account
+      # Now all channels could use Current.account
+      Current.set(account: user.account) { yield }
+    end
+  end
+end
+```
+
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
@@ -230,6 +253,38 @@ class ChatChannel < ApplicationCable::Channel
 
   def deliver_error_message(e)
     broadcast_to(...)
+  end
+end
+```
+
+#### Channel Callbacks
+
+`ApplicationCable::Channel` provides a number of callbacks that can be used to trigger logic
+during the life cycle of a channel. Available callbacks are:
+
+- `before_subscribe`
+- `after_subscribe` (also aliased as: `on_subscribe`)
+- `before_unsubscribe`
+- `after_unsubscribe` (also aliased as: `on_unsubscribe`)
+
+NOTE: The `after_subscribe` callback is triggered whenever the `subscribed` method is called,
+even if subscription was rejected with the `reject` method. To trigger `after_subscribe`
+only on successful subscriptions, use `after_subscribe :send_welcome_message, unless: :subscription_rejected?`
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  after_subscribe :send_welcome_message, unless: :subscription_rejected?
+  after_subscribe :track_subscription
+
+  private
+
+  def send_welcome_message
+    broadcast_to(...)
+  end
+  
+  def track_subscription
+    # ...
   end
 end
 ```
