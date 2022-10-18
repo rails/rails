@@ -153,7 +153,7 @@ module ActiveRecord
         message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env)
         message += "\n\n"
 
-        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+        pending_migrations = connection.migration_context.open.pending_migrations
 
         message += "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}\n\n"
 
@@ -642,15 +642,19 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        needs_update = !db_configs_in_current_env.all? do |db_config|
+        current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
+
+        needs_update = !db_configs.all? do |db_config|
           Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
         end
 
         if needs_update
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+
           FileUtils.cd(root) do
-            Base.clear_all_connections!
+            Base.connection_handler.clear_all_connections!
             system("bin/rails db:test:prepare")
           end
         end
@@ -682,21 +686,12 @@ module ActiveRecord
       end
 
       def check_pending_migrations # :nodoc:
-        prev_db_config = Base.connection_db_config
+        current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
-        db_configs_in_current_env.each do |db_config|
-          Base.establish_connection(db_config)
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: current_environment) do
           check_pending!
         end
-      ensure
-        Base.establish_connection(prev_db_config)
       end
-
-      private
-        def db_configs_in_current_env
-          current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-          ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
-        end
     end
 
     def disable_ddl_transaction # :nodoc:
