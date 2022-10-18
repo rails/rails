@@ -638,7 +638,6 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        current_db_config = Base.connection_db_config
         all_configs = db_configs_in_current_env
 
         needs_update = !all_configs.all? do |db_config|
@@ -653,9 +652,6 @@ module ActiveRecord
             system("bin/rails db:test:prepare")
           end
         end
-
-        # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_db_config)
 
         check_pending_migrations(db_configs: all_configs)
       end
