@@ -595,7 +595,7 @@ generated URLs are hard to guess, but permanent by design. If your files
 require a higher level of protection consider implementing
 [Authenticated Controllers](#authenticated-controllers).
 
-### Redirect mode
+### Redirect Mode
 
 To generate a permanent URL for a blob, you can pass the blob to the
 [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
@@ -633,7 +633,7 @@ Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: tru
 [ActionView::RoutingUrlFor#url_for]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
 [ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
 
-### Proxy mode
+### Proxy Mode
 
 Optionally, files can be proxied instead. This means that your application servers will download file data from the storage service in response to requests. This can be useful for serving files from a CDN.
 
@@ -650,7 +650,7 @@ Or if you want to explicitly proxy specific attachments there are URL helpers yo
 <%= image_tag rails_storage_proxy_path(@user.avatar) %>
 ```
 
-#### Putting a CDN in front of Active Storage
+#### Putting a CDN in Front of Active Storage
 
 Additionally, in order to use a CDN for Active Storage attachments, you will need to generate URLs with proxy mode so that they are served by your app and the CDN will cache the attachment without any extra configuration. This works out of the box because the default Active Storage proxy controller sets an HTTP header indicating to the CDN to cache the response.
 
@@ -969,7 +969,7 @@ directly from the client to the cloud.
 
 4. That's it! Uploads begin upon form submission.
 
-### Cross-Origin Resource Sharing (CORS) configuration
+### Cross-Origin Resource Sharing (CORS) Configuration
 
 To make direct uploads to a third-party service work, youâ€™ll need to configure the service to allow cross-origin requests from your app. Consult the CORS documentation for your service:
 
@@ -992,7 +992,7 @@ Take care to allow:
 
 No CORS configuration is required for the Disk service since it shares your appâ€™s origin.
 
-#### Example: S3 CORS configuration
+#### Example: S3 CORS Configuration
 
 ```json
 [
@@ -1017,7 +1017,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
 ]
 ```
 
-#### Example: Google Cloud Storage CORS configuration
+#### Example: Google Cloud Storage CORS Configuration
 
 ```json
 [
@@ -1030,7 +1030,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
 ]
 ```
 
-#### Example: Azure Storage CORS configuration
+#### Example: Azure Storage CORS Configuration
 
 ```xml
 <Cors>
@@ -1043,7 +1043,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
 </Cors>
 ```
 
-### Direct upload JavaScript events
+### Direct Upload JavaScript Events
 
 | Event name | Event target | Event data (`event.detail`) | Description |
 | --- | --- | --- | --- |
@@ -1261,9 +1261,9 @@ end
 
 [`fixture_file_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html
 
-### Discarding files created during tests
+### Discarding Files Created During Tests
 
-#### System tests
+#### System Tests
 
 System tests clean up test data by rolling back a transaction. Because `destroy`
 is never called on an object, the attached files are never cleaned up. If you
@@ -1307,7 +1307,7 @@ config.active_job.queue_adapter = :inline
 
 [parallel tests]: testing.html#parallel-testing
 
-#### Integration tests
+#### Integration Tests
 
 Similarly to System Tests, files uploaded during Integration Tests will not be
 automatically cleaned up. If you want to clear the files, you can do it in an
@@ -1336,7 +1336,7 @@ end
 
 [parallel tests]: testing.html#parallel-testing
 
-### Adding attachments to fixtures
+### Adding Attachments to Fixtures
 
 You can add attachments to your existing [fixtures][]. First, you'll want to create a separate storage service:
 
@@ -1384,7 +1384,7 @@ class UserTest < ActiveSupport::TestCase
 end
 ```
 
-#### Cleaning up fixtures
+#### Cleaning up Fixtures
 
 While files uploaded in tests are cleaned up [at the end of each test](#discarding-files-created-during-tests),
 you only need to clean up fixture files once: when all your tests complete.

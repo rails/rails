@@ -689,7 +689,7 @@ irb> Article.count
 NOTE: This application only cares about non-archived `Articles`. A view also
 allows for conditions so we can exclude the archived `Articles` directly.
 
-Structure dumps
+Structure Dumps
 --------------
 
 If your `config.active_record.schema_format` is `:sql`, Rails will call `pg_dump` to generate a

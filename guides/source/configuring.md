@@ -2966,7 +2966,7 @@ NOTE: There is no guarantee that your initializers will run after all the gem
 initializers, so any initialization code that depends on a given gem having been
 initialized should go into a `config.after_initialize` block.
 
-Initialization events
+Initialization Events
 ---------------------
 
 Rails has 5 initialization events which can be hooked into (listed in the order that they are run):
@@ -3132,7 +3132,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `disable_dependency_loading`: Disables the automatic dependency loading if the `config.eager_load` is set to `true`.
 
-Database pooling
+Database Pooling
 ----------------
 
 Active Record database connections are managed by `ActiveRecord::ConnectionAdapters::ConnectionPool` which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml`.
@@ -3163,7 +3163,7 @@ connection pool by incrementing the `pool` option in `database.yml`
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 
 
-Custom configuration
+Custom Configuration
 --------------------
 
 You can configure your own code through the Rails configuration object with

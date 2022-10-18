@@ -72,7 +72,7 @@ Note: The Rails error-reporter will always call registered subscribers, regardle
 
 There are three ways you can use the error reporter:
 
-#### Reporting and swallowing errors
+#### Reporting and Swallowing Errors
 [`Rails.error.handle`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-handle) will report any error raised within the block. It will then **swallow** the error, and the rest of your code outside the block will continue as normal.
 
 ```ruby
@@ -91,7 +91,7 @@ user = Rails.error.handle(fallback: -> { User.anonymous }) do
 end
 ```
 
-#### Reporting and re-raising errors
+#### Reporting and Re-raising Errors
 [`Rails.error.record`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-record) will report errors to all registered subscribers and then re-raise the error, meaning that the rest of your code won't execute.
 
 ```ruby
@@ -103,7 +103,7 @@ end
 
 If no error is raised in the block, `Rails.error.record` will return the result of the block.
 
-#### Manually reporting errors
+#### Manually Reporting Errors
 You can also manually report errors by calling [`Rails.error.report`](https://api.rubyonrails.org/classes/ActiveSupport/ErrorReporter.html#method-i-report):
 
 ```ruby
@@ -116,7 +116,7 @@ end
 
 Any options you pass will be passed on the error subscribers.
 
-### Error-reporting options
+### Error-reporting Options
 
 All 3 reporting APIs (`#handle`, `#record`, and `#report`) support the following options, which are then passed along to all registered subscribers:
 

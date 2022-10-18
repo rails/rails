@@ -748,7 +748,7 @@ Ensure the changesets you introduced are included. Fill in some details about
 your potential patch, using the pull request template provided. When finished, click "Create
 pull request".
 
-### Get some Feedback
+### Get Some Feedback
 
 Most pull requests will go through a few iterations before they get merged.
 Different contributors will sometimes have different opinions, and often
