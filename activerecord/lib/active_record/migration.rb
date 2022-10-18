@@ -638,9 +638,7 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        all_configs = db_configs_in_current_env
-
-        needs_update = !all_configs.all? do |db_config|
+        needs_update = !db_configs_in_current_env.all? do |db_config|
           Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
         end
 
@@ -653,7 +651,7 @@ module ActiveRecord
           end
         end
 
-        check_pending_migrations(db_configs: all_configs)
+        check_pending_migrations
       end
 
       def maintain_test_schema! # :nodoc:
@@ -679,9 +677,10 @@ module ActiveRecord
         @disable_ddl_transaction = true
       end
 
-      def check_pending_migrations(db_configs: db_configs_in_current_env) # :nodoc:
+      def check_pending_migrations # :nodoc:
         prev_db_config = Base.connection_db_config
-        db_configs.each do |db_config|
+
+        db_configs_in_current_env.each do |db_config|
           Base.establish_connection(db_config)
           check_pending!
         end
