@@ -485,6 +485,7 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 ### Warnings
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
+An important note is that while developing locally it is helpful to set `RAILS_STRICT_WARNINGS` so that the testing suite will fail if any warnings are raised. This replicates Rails CI behavior and will ensure that no warnings go unnoticed during local development.
 
 ### Updating the Documentation
 
