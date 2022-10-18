@@ -130,9 +130,11 @@ module ActiveRecord
       end
 
       def create_all
+        db_config = migration_connection.pool.db_config
+
         each_local_configuration { |db_config| create(db_config) }
 
-        migration_class.establish_connection(environment.to_sym)
+        migration_class.establish_connection(db_config)
       end
 
       def setup_initial_database_yaml
