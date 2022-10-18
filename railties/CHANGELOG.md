@@ -1,3 +1,10 @@
+*   Support custom test roots
+
+    In `config/test.rb` test roots can be added to `Rails::TestUnit::Runner.paths["test"]` to be run as part of the
+    standard test commands.
+    
+    *Graham Rogers*
+
 *   Send 303 See Other status code back for the destroy action on newly generated
     scaffold controllers.
 

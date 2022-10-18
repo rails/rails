@@ -27,8 +27,11 @@ module Rails
       end
 
       def perform(*)
-        $LOAD_PATH << Rails::Command.root.join("test").to_s
+        Rails::TestUnit::Runner.paths["test"].each do |path|
+          $LOAD_PATH << path.to_s
+        end
 
+        load "config/tests.rb" if File.exist? "config/tests.rb"
         Rails::TestUnit::Runner.parse_options(args)
         Rails::TestUnit::Runner.run(args)
       end
@@ -37,24 +40,24 @@ module Rails
 
       Rails::TestUnit::Runner::TEST_FOLDERS.each do |name|
         define_method(name) do |*|
-          args.prepend("test/#{name}")
+          self.args.prepend(*Rails::TestUnit::Runner.paths["test"].map { |path| path.join(name) })
           perform
         end
       end
 
       desc "test:all", "Runs all tests, including system tests", hide: true
       def all(*)
-        args.prepend("test/**/*_test.rb")
+        args.prepend(*Rails::TestUnit::Runner.paths["test"].map { |path| path.join("**/*_test.rb") })
         perform
       end
 
       def system(*)
-        args.prepend("test/system")
+        args.prepend(*Rails::TestUnit::Runner.paths["test"].map { |path| path.join("system") })
         perform
       end
 
       def generators(*)
-        args.prepend("test/lib/generators")
+        args.prepend(*Rails::TestUnit::Runner.paths["test"].map { |path| path.join("lib/generators") })
         perform
       end
     end
