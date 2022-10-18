@@ -1,3 +1,7 @@
+*   Support `strict_loading:` option for `has_rich_text` declaration
+
+    *Sean Doyle*
+
 *   Update ContentAttachment so that it can encapsulate arbitrary HTML content in a document.
 
     *Jamis Buck*
