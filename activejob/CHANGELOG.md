@@ -1,3 +1,22 @@
+*   The attempts parameter of the retry_on method now accepts a proc that takes the job instance
+    as an argument and returns the desired number of retry attempts. This can be used to configure
+    dynamic retries. For example:
+
+    ```ruby
+    class MyJob < ActiveJob::Base
+        retry_on CustomRetryException, attempts: ->(job){ job.arguments.last[:retries] || 5 }
+
+        def perform(retries:)
+            # job implementation
+        end
+    end
+
+    MyJob.perform_later(retries: 10)
+    MyJob.perform_later(retries: 1)
+    ```
+
+    *Will Haltom*
+
 *   Add support for Sidekiq's transaction-aware client
 
     *Jonathan del Strother*

@@ -25,7 +25,8 @@ module ActiveJob
       #   as a computing proc that takes the number of executions so far as an argument, or as a symbol reference of
       #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
-      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
+      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts),
+      #   a computing proc that takes the job instance and returns a number of attempts, or a symbol reference of <tt>:unlimited</tt>
       #   to retry the job until it succeeds
       # * <tt>:queue</tt> - Re-enqueues the job on a different queue
       # * <tt>:priority</tt> - Re-enqueues the job with a different priority
@@ -37,6 +38,7 @@ module ActiveJob
       #    retry_on CustomAppException # defaults to ~3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
       #    retry_on CustomInfrastructureException, wait: 5.minutes, attempts: :unlimited
+      #    retry_on CustomRetryException, attempts: ->(job) { job.custom_retries || 5 }
       #
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, Timeout::Error, wait: :exponentially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
@@ -53,12 +55,13 @@ module ActiveJob
       #      # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
       #      # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
       #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
+      #      # Might set custom_retries based on input arguments
       #    end
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
-          if attempts == :unlimited || executions < attempts
+          if attempts == :unlimited || executions < determine_attempts(attempts_count_or_proc: attempts)
             retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, jitter: jitter), queue: queue, priority: priority, error: error
           else
             if block_given?
@@ -162,6 +165,17 @@ module ActiveJob
         else
           # Guard against jobs that were persisted before we started having individual executions counters per retry_on
           executions
+        end
+      end
+
+      def determine_attempts(attempts_count_or_proc:)
+        case attempts_count_or_proc
+        when Integer
+          attempts_count_or_proc
+        when Proc
+          attempts_count_or_proc.call(self)
+        else
+          raise "Couldn't determine desired number of retry attempts based on #{attempts_count_or_proc.inspect}"
         end
       end
   end

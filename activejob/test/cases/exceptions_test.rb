@@ -307,6 +307,16 @@ class ExceptionsTest < ActiveSupport::TestCase
     assert_equal "Successfully completed job", JobBuffer.values[9]
   end
 
+  test "retry job throwing CustomRetryAttemptsError a custom number of times" do
+    assert_raises CustomRetryAttemptsError do
+      # The error will be raised after 6 tries
+      RetryJob.perform_later "CustomRetryAttemptsError", 10, retries: 6
+    end
+
+    assert_equal 6, JobBuffer.values.size
+    assert_equal "Raised CustomRetryAttemptsError for the 6th time", JobBuffer.values[5]
+  end
+
   test "running a job enqueued by AJ 5.2" do
     job = RetryJob.new("DefaultsError", 6)
     job.exception_executions = nil # This is how jobs from Rails 5.2 will look
