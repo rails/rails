@@ -41,6 +41,7 @@ module ActionDispatch
         @filtered_parameters = nil
         @filtered_env        = nil
         @filtered_path       = nil
+        @parameter_filter    = nil
       end
 
       # Returns a hash of parameters with all sensitive data replaced.
@@ -60,13 +61,16 @@ module ActionDispatch
         @filtered_path ||= query_string.empty? ? path : "#{path}?#{filtered_query_string}"
       end
 
-    private
-      def parameter_filter # :doc:
-        parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
-          return NULL_PARAM_FILTER
-        }
+      # Returns the +ActiveSupport::ParameterFilter+ object used to filter in this request.
+      def parameter_filter
+        @parameter_filter ||= if has_header?("action_dispatch.parameter_filter")
+          parameter_filter_for get_header("action_dispatch.parameter_filter")
+        else
+          NULL_PARAM_FILTER
+        end
       end
 
+    private
       def env_filter # :doc:
         user_key = fetch_header("action_dispatch.parameter_filter") {
           return NULL_ENV_FILTER

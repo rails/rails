@@ -1286,6 +1286,18 @@ class RequestParameterFilter < BaseRequestTest
     path = request.filtered_path
     assert_equal request.script_name + "/authenticate?secret", path
   end
+
+  test "parameter_filter returns the same instance of ActiveSupport::ParameterFilter" do
+    request = stub_request(
+      "action_dispatch.parameter_filter" => [:secret]
+    )
+
+    filter = request.parameter_filter
+
+    assert_kind_of ActiveSupport::ParameterFilter, filter
+    assert_equal({ "secret" => "[FILTERED]", "something" => "bar" }, filter.filter("secret" => "foo", "something" => "bar"))
+    assert_same filter, request.parameter_filter
+  end
 end
 
 class RequestEtag < BaseRequestTest
