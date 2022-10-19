@@ -1,3 +1,9 @@
+*   Deprecate delegation from `Base` to `connection_handler`.
+
+    Calling `Base.clear_all_connections!`, `Base.clear_active_connections!`, `Base.clear_reloadable_connections!` and `Base.flush_idle_connections!` is deprecated. Please call these methods on the connection handler directly. In future Rails versions, the delegation from `Base` to the `connection_handler` will be removed.
+
+    *Eileen M. Uchitelle*
+
 *   Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
 
     *Sampat Badhe*

@@ -646,7 +646,7 @@ module ActiveRecord
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
-            Base.clear_all_connections!
+            Base.connection_handler.clear_all_connections!
             system("bin/rails db:test:prepare")
           end
         end

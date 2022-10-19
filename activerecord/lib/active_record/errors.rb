@@ -93,7 +93,7 @@ module ActiveRecord
   # Raised when a pool was unable to get ahold of all its connections
   # to perform a "group" action such as
   # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
-  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  # or {ActiveRecord::Base.connection_handler.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
   class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
