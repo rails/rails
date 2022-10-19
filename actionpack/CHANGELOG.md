@@ -1,3 +1,11 @@
+*   Don't double log the `controller`, `action`, or `namespaced_controller` when using `ActiveRecord::QueryLog`
+
+    Previously if you set `config.active_record.query_log_tags` to an array that included
+    `:controller`, `:namespaced_controller`, or `:action`, that item would get logged twice.
+    This bug has been fixed.
+
+    *Alex Ghiculescu*
+
 *   Rescue `EOFError` exception from `rack` on a multipart request.
 
     *Nikita Vasilevsky*

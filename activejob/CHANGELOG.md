@@ -1,3 +1,10 @@
+*   Don't double log the `job` when using `ActiveRecord::QueryLog`
+
+    Previously if you set `config.active_record.query_log_tags` to an array that included
+    `:job`, the job name would get logged twice. This bug has been fixed.
+
+    *Alex Ghiculescu*
+
 ## Rails 7.0.4 (September 09, 2022) ##
 
 *   Update `ActiveJob::QueueAdapters::QueAdapter` to remove deprecation warning.
