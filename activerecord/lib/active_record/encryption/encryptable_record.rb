@@ -140,12 +140,16 @@ module ActiveRecord
 
       # Returns whether a given attribute is encrypted or not.
       def encrypted_attribute?(attribute_name)
-        ActiveRecord::Encryption.encryptor.encrypted? ciphertext_for(attribute_name)
+        ActiveRecord::Encryption.encryptor.encrypted? read_attribute_before_type_cast(attribute_name)
       end
 
       # Returns the ciphertext for +attribute_name+.
       def ciphertext_for(attribute_name)
-        read_attribute_before_type_cast(attribute_name)
+        if encrypted_attribute?(attribute_name)
+          read_attribute_before_type_cast(attribute_name)
+        else
+          read_attribute_for_database(attribute_name)
+        end
       end
 
       # Encrypts all the encryptable attributes and saves the changes.
