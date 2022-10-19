@@ -297,7 +297,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport::Reloader.before_class_unload do
           if ActiveRecord::Base.connected?
             ActiveRecord::Base.clear_cache!
-            ActiveRecord::Base.clear_reloadable_connections!(:all)
+            ActiveRecord::Base.connection_handler.clear_reloadable_connections!(:all)
           end
         end
       end

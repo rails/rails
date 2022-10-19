@@ -308,10 +308,35 @@ module ActiveRecord
       connection.schema_cache.clear!
     end
 
-    delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
+    def clear_active_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_active_connections!(role)
+    end
+
+    def clear_reloadable_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_reloadable_connections!(role)
+    end
+
+    def clear_all_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_all_connections!(role)
+    end
+
+    def flush_idle_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.flush_idle_connections!(role)
+    end
 
     private
+      def deprecation_for_delegation(method)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Calling `ActiveRecord::Base.#{method} is deprecated. Please
+          call the method directly on the connection handler; for
+          example: `ActiveRecord::Base.connection_handler.#{method}`.
+        MSG
+      end
+
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
