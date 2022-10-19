@@ -161,6 +161,15 @@ module ActiveRecord
       private
         ORIGINAL_ATTRIBUTE_PREFIX = "original_"
 
+        def _create_record(attribute_names = self.attribute_names)
+          if has_encrypted_attributes?
+            # Always persist encrypted attributes, because an attribute might be
+            # encrypting a column default value.
+            attribute_names |= self.class.encrypted_attributes.map(&:to_s)
+          end
+          super
+        end
+
         def encrypt_attributes
           validate_encryption_allowed
 
