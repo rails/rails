@@ -1,3 +1,7 @@
+*   Add `:fiscal` support to `quarter` method of date/time
+
+    *Deepak Mahakale*
+
 *   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
 
     Previously they could return old implementations of reloadable classes that have been

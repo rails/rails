@@ -3341,6 +3341,13 @@ d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
 d.quarter                # => 2
 ```
 
+This method also supports quarter for the fiscal or financial year.
+
+```ruby
+d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
+d.quarter                # => 1
+```
+
 The methods [`beginning_of_quarter`][DateAndTime::Calculations#beginning_of_quarter] and [`end_of_quarter`][DateAndTime::Calculations#end_of_quarter] return the dates for the beginning and end of the quarter of the receiver's calendar year:
 
 ```ruby

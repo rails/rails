@@ -163,8 +163,17 @@ module DateAndTime
     #   Date.new(2010, 4, 12).quarter  # => 2
     #   Date.new(2010, 9, 15).quarter  # => 3
     #   Date.new(2010, 12, 25).quarter # => 4
-    def quarter
-      (month / 3.0).ceil
+    #
+    #   Date.new(2010, 1, 31).quarter(fiscal: true)  # => 4
+    #   Date.new(2010, 4, 12).quarter(fiscal: true)  # => 1
+    #   Date.new(2010, 9, 15).quarter(fiscal: true)  # => 2
+    #   Date.new(2010, 12, 25).quarter(fiscal: true) # => 3
+    def quarter(fiscal: false)
+      if fiscal
+        (advance(months: -3).month / 3.0).ceil
+      else
+        (month / 3.0).ceil
+      end
     end
 
     # Returns a new date/time at the beginning of the year.

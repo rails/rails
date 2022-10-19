@@ -107,6 +107,21 @@ module DateAndTimeBehavior
     assert_equal 4, date_time_init(2005, 12, 31, 23, 59, 59).quarter
   end
 
+  def test_fiscal_quarter
+    assert_equal 4, date_time_init(2005, 1, 1, 0, 0, 0).quarter(fiscal: true)
+    assert_equal 4, date_time_init(2005, 2, 15, 12, 0, 0).quarter(fiscal: true)
+    assert_equal 4, date_time_init(2005, 3, 31, 23, 59, 59).quarter(fiscal: true)
+    assert_equal 1, date_time_init(2005, 4, 1, 0, 0, 0).quarter(fiscal: true)
+    assert_equal 1, date_time_init(2005, 5, 15, 12, 0, 0).quarter(fiscal: true)
+    assert_equal 1, date_time_init(2005, 6, 30, 23, 59, 59).quarter(fiscal: true)
+    assert_equal 2, date_time_init(2005, 7, 1, 0, 0, 0).quarter(fiscal: true)
+    assert_equal 2, date_time_init(2005, 8, 15, 12, 0, 0).quarter(fiscal: true)
+    assert_equal 2, date_time_init(2005, 9, 30, 23, 59, 59).quarter(fiscal: true)
+    assert_equal 3, date_time_init(2005, 10, 1, 0, 0, 0).quarter(fiscal: true)
+    assert_equal 3, date_time_init(2005, 11, 15, 12, 0, 0).quarter(fiscal: true)
+    assert_equal 3, date_time_init(2005, 12, 31, 23, 59, 59).quarter(fiscal: true)
+  end
+
   def test_beginning_of_year
     assert_equal date_time_init(2005, 1, 1, 0, 0, 0), date_time_init(2005, 2, 22, 10, 10, 10).beginning_of_year
   end
