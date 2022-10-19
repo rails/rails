@@ -236,7 +236,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
       ActiveSupport.on_load(:active_record) do
         # Configs used in other initializers
-        configs = configs.except(
+        applicable_configs = configs.except(
           :migration_error,
           :database_selector,
           :database_resolver,
@@ -253,7 +253,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :use_schema_cache_dump
         )
 
-        configs.each do |k, v|
+        applicable_configs.each do |k, v|
           next if k == :encryption
           setter = "#{k}="
           # Some existing initializers might rely on Active Record configuration

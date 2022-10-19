@@ -2398,6 +2398,24 @@ module ApplicationTests
       assert_equal :default, Rails.configuration.debug_exception_response_format
     end
 
+    test "ActiveRecord configs are applied from initializers even loaded prior to initializers running" do
+      # Set to defaults for 6.1 to default to verify_foreign_keys_for_fixtures being false
+      # and establish a DB connection in config to trigger ActiveRecord loading before initializers run
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config <<-RUBY
+        config.load_defaults "6.1"
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_record.verify_foreign_keys_for_fixtures = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord.verify_foreign_keys_for_fixtures
+    end
+
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
       app "development"
 
