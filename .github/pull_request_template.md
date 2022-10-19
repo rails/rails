@@ -1,4 +1,16 @@
 <!--
+Thanks for contributing to Rails!
+
+Please do not make *Draft* pull requests, as they still send
+notifications to everyone watching the Rails repo.
+
+Create a pull request when it is ready for review and feedback
+from the Rails team :).
+
+If your pull request affects documentation or any non-code
+changes, guidelines for those changes are [available
+here](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation)
+
 About this template
 
 The following template aims to help contributors write a good description for their pull requests.
@@ -25,23 +37,8 @@ This Pull Request changes [REPLACE ME]
 Before submitting the PR make sure the following are checked:
 
 * [ ] This Pull Request is related to one change. Changes that are unrelated should be opened in separate PRs.
-* [ ] There are no typos in commit messages and comments.
 * [ ] Commit message has a detailed description of what changed and why. If this PR fixes a related issue include it in the commit message. Ex: `[Fix #issue-number]`
-* [ ] Feature branch is up-to-date with `main` (if not - rebase it).
-* [ ] Pull request only contains one commit for bug fixes and small features. If it's a larger feature, multiple commits are permitted but must be descriptive.
-* [ ] Tests are added if you fix a bug or add a feature.
+* [ ] Tests are added or updated if you fix a bug or add a feature.
 * [ ] CHANGELOG files are updated for the changed libraries if there is a behavior change or additional feature. Minor bug fixes and documentation changes should not be included.
-* [ ] PR is not in a draft state.
 * [ ] CI is passing.
 
-<!--
-Note: Please avoid making *Draft* pull requests, as they still send
-notifications to everyone watching the Rails repo.
-Create a pull request when it is ready for review and feedback
-from the Rails team :).
-
-If your pull request affects documentation or any non-code
-changes, guidelines for those changes are [available
-here](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation)
-
-Thanks for contributing to Rails! -->
