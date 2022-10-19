@@ -1,3 +1,8 @@
+*   Adapter `#execute` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
+    retried, up to the database's configured `connection_retries` value, upon encountering connection-related errors.
+
+    *Adrianna Chang*
+
 *   Only trigger `after_commit :destroy` callbacks when a database row is deleted.
 
     This prevents `after_commit :destroy` callbacks from being triggered again
