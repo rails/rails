@@ -72,7 +72,7 @@ module ActiveJob
         app.config.active_job.log_query_tags_around_perform
 
       if query_logs_tags_enabled
-        app.config.active_record.query_log_tags << :job
+        app.config.active_record.query_log_tags |= [:job]
 
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name if context[:job] }
