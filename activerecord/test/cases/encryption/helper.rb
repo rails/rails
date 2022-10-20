@@ -10,10 +10,13 @@ end
 module ActiveRecord::Encryption
   module EncryptionHelpers
     def assert_encrypted_attribute(model, attribute_name, expected_value)
-      encrypted_content = model.ciphertext_for(attribute_name)
-      assert_not_equal expected_value, encrypted_content
+      assert_not_equal expected_value, model.ciphertext_for(attribute_name)
       assert_equal expected_value, model.public_send(attribute_name)
-      assert_equal expected_value, model.reload.public_send(attribute_name) unless model.new_record?
+      unless model.new_record?
+        model.reload
+        assert_not_equal expected_value, model.ciphertext_for(attribute_name)
+        assert_equal expected_value, model.public_send(attribute_name)
+      end
     end
 
     def assert_invalid_key_cant_read_attribute(model, attribute_name)
