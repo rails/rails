@@ -324,8 +324,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
           # this connection is trivial: the rest of the pool would need to be
           # populated anyway.
 
-          clear_active_connections!(:all)
-          flush_idle_connections!(:all)
+          connection_handler.clear_active_connections!(:all)
+          connection_handler.flush_idle_connections!(:all)
         end
       end
     end
