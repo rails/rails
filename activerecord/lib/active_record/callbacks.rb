@@ -36,10 +36,6 @@ module ActiveRecord
   # Active Record life cycle. The sequence for calling {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] for an existing record is similar,
   # except that each <tt>_create</tt> callback is replaced by the corresponding <tt>_update</tt> callback.
   #
-  # The above callbacks all effect instances of records.  There is one callback which runs at the record class level.
-  #
-  # * (-) <tt>after_load_schema</tt>
-  #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
   #     # Strip everything but digits, so the user can specify "555 234 34" or
@@ -330,14 +326,6 @@ module ActiveRecord
       # :call-seq: after_touch(*args, &block)
       #
       # Registers a callback to be called after a record is touched. See
-      # ActiveRecord::Callbacks for more information.
-
-      ##
-      # :method: after_load_schema
-      #
-      # :call-seq: after_load_schema(*args, &block)
-      #
-      # Registers a callback to be called on the record class after the schema is loaded successfully. See
       # ActiveRecord::Callbacks for more information.
 
       ##

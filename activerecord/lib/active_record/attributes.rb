@@ -260,6 +260,12 @@ module ActiveRecord
         define_default_attribute(name, default, cast_type, from_user: user_provided_default)
       end
 
+
+      # TODO(BF): add this to the included
+      # after_load_schema do
+      #   define_attributes_after_schema_loads
+      # end
+      # def define_attributes_after_schema_loads # :nodoc:
       def load_schema! # :nodoc:
         super
         attributes_to_define_after_schema_loads.each do |name, (cast_type, default)|

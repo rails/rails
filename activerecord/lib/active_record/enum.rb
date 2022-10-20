@@ -121,6 +121,8 @@ module ActiveRecord
       super
     end
 
+    # NOTE: Is above ActiveRecord::ModelSchema in the inheritance hierarchy
+    # such that it is called by +super+, not by any callbacks
     def load_schema! # :nodoc:
       attributes_to_define_after_schema_loads.each do |name, (cast_type, _default)|
         unless columns_hash.key?(name)

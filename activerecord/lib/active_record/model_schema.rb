@@ -170,6 +170,7 @@ module ActiveRecord
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
+      class_attribute :__before_load_schema_callbacks, instance_writer: false, default: []
       class_attribute :__after_load_schema_callbacks, instance_writer: false, default: []
 
       initialize_load_schema_monitor
@@ -433,6 +434,27 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type.default_value)
       end
 
+      ##
+      # :method: before_load_schema
+      #
+      # :call-seq: before_load_schema(*args, &block)
+      #
+      # Registers a callback to be called on the record class before the schema is loaded successfully. See
+      # ActiveRecord::ModelSchema for more information.
+      def before_load_schema(*, &block)
+        if block.nil?
+          fail NotImplementedError, "before_load_schema expects a block. It does not supports args"
+        end
+        __before_load_schema_callbacks << [self, block]
+      end
+
+      ##
+      # :method: after_load_schema
+      #
+      # :call-seq: after_load_schema(*args, &block)
+      #
+      # Registers a callback to be called on the record class after the schema is loaded successfully. See
+      # ActiveRecord::ModelSchema for more information.
       def after_load_schema(*, &block)
         if block.nil?
           fail NotImplementedError, "after_load_schema expects a block. It does not supports args"
@@ -606,8 +628,17 @@ module ActiveRecord
           super
         end
 
+        # = Active Record Schema \Callbacks
+        #
+        # There are two callbacks which runs at the record class level.
+        #
+        # * (-) <tt>before_load_schema</tt>
+        # * (-) <tt>after_load_schema</tt>
         def _run_load_schema_callbacks # :nodoc:
           @_load_schema_callback_already_called ||= false
+          __before_load_schema_callbacks.each do |(callback_context, block)|
+            callback_context.instance_exec(&block)
+          end
           yield
           __after_load_schema_callbacks.each do |(callback_context, block)|
             callback_context.instance_exec(&block)

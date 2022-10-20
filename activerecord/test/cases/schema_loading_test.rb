@@ -5,14 +5,15 @@ require "cases/helper"
 module SchemaLoadCounter
   extend ActiveSupport::Concern
 
-  module ClassMethods
-    attr_accessor :load_schema_calls
-
-    def load_schema!
+  included do
+    before_load_schema do
       self.load_schema_calls ||= 0
       self.load_schema_calls += 1
-      super
     end
+  end
+
+  module ClassMethods
+    attr_accessor :load_schema_calls
   end
 end
 
