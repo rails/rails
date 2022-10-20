@@ -215,7 +215,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  test "read attributes_for_database" do
+  test "read_attribute_for_database" do
+    topic = Topic.new(content: ["ok"])
+    assert_equal "---\n- ok\n", topic.read_attribute_for_database("content")
+  end
+
+  test "read_attribute_for_database with aliased attribute" do
+    topic = Topic.new(title: "Hello")
+    assert_equal "Hello", topic.read_attribute_for_database(:heading)
+  end
+
+  test "attributes_for_database" do
     topic = Topic.new
     topic.content = { "one" => 1, "two" => 2 }
 
@@ -226,7 +236,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_not_equal topic.attributes, before_type_cast_attributes
   end
 
-  test "read attributes_after_type_cast on a date" do
+  test "read attributes after type cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
     in_time_zone tz do
