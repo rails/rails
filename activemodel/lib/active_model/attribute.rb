@@ -175,6 +175,19 @@ module ActiveModel
           type.deserialize(value)
         end
 
+        def forgetting_assignment
+          # If this attribute was not persisted (with a `value_for_database`
+          # that might differ from `value_before_type_cast`) and `value` has not
+          # changed in place, we can simply dup this attribute to avoid
+          # deserialize / cast / serialize calls from computing the new
+          # attribute's `value_before_type_cast`.
+          if !defined?(@value_for_database) && !changed_in_place?
+            dup
+          else
+            super
+          end
+        end
+
         private
           def _original_value_for_database
             value_before_type_cast
