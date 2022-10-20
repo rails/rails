@@ -1,4 +1,8 @@
-*   Fix encryption of column default values.
+*   Fix a bug where using groups and counts with long table names would return incorrect results.
+
+    *Shota Toguchi*
+
+* Fix encryption of column default values.
 
     Previously, encrypted attributes that used column default values appeared to
     be encrypted on create, but were not:
