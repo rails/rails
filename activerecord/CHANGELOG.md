@@ -1,6 +1,6 @@
 *   Fix a bug where using groups and counts with long table names would return incorrect results.
 
-    *Shota Toguchi, Yusaku Ono*
+    *Shota Toguchi*, *Yusaku Ono*
 
 *   Fix encryption of column default values.
 
@@ -57,7 +57,7 @@
 
     It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.
 
-    *Modulitos and Iheanyi*
+    *Modulitos* and *Iheanyi*
 
 *   Allow any ERB in the database.yml when creating rake tasks.
 
