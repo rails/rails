@@ -1,3 +1,7 @@
+*   Fix a bug where using groups and counts with long table names would return incorrect results.
+
+    *Shota Toguchi*, *Yusaku Ono*
+
 *   Use connection from `#with_raw_connection` in `#quote_string`.
 
     Prior to this change, virtual datetime columns did not have the same
