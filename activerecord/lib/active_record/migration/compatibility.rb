@@ -34,7 +34,12 @@ module ActiveRecord
 
       class V7_0 < V7_1
         module TableDefinition
-          def new_column_definition(name, type, **options)
+          def column(name, type, **options)
+            options[:_skip_validate_options] = true
+            super
+          end
+
+          def change(name, type, **options)
             options[:_skip_validate_options] = true
             super
           end
@@ -75,6 +80,7 @@ module ActiveRecord
         end
 
         def change_column(table_name, column_name, type, **options)
+          options[:_skip_validate_options] = true
           if connection.adapter_name == "Mysql2"
             options[:collation] = :no_collation
           end
