@@ -59,6 +59,10 @@ module ActionView
       #   when it is set to true.
       # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
       #   you have Content Security Policy enabled.
+      # * <tt>:async</tt>  - When set will add the async attribute, allowing the script to be fetched
+      #   in parallel to be parsed and evaluated as soon as possible.
+      # * <tt>:defer</tt>  - When set will add the defer attribute indicating the script is meant to be
+      #   executed after the document has been parsed, but before the firing <tt>DOMContentLoaded</tt>
       #
       # ==== Examples
       #
@@ -86,6 +90,12 @@ module ActionView
       #
       #   javascript_include_tag "http://www.example.com/xmlhr.js", nonce: true
       #   # => <script src="http://www.example.com/xmlhr.js" nonce="..."></script>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js", async: true
+      #   # => <script src="http://www.example.com/xmlhr.js" async="async"></script>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js", defer: true
+      #   # => <script src="http://www.example.com/xmlhr.js" defer="defer"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
