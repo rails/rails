@@ -108,7 +108,7 @@ If you want to cache a fragment under certain conditions, you can use
 <% end %>
 ```
 
-#### Collection caching
+#### Collection Caching
 
 The `render` helper can also cache individual templates rendered for a collection.
 It can even one up the previous example with `each` by reading all cache
@@ -189,14 +189,14 @@ render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
 
 Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
 
-### Managing dependencies
+### Managing Dependencies
 
 In order to correctly invalidate the cache, you need to properly define the
 caching dependencies. Rails is clever enough to handle common cases so you don't
 have to specify anything. However, sometimes, when you're dealing with custom
 helpers for instance, you need to explicitly define them.
 
-#### Implicit dependencies
+#### Implicit Dependencies
 
 Most template dependencies can be derived from calls to `render` in the template
 itself. Here are some examples of render calls that `ActionView::Digestor` knows
@@ -228,7 +228,7 @@ to:
 render partial: "documents/document", collection: @project.documents.where(published: true)
 ```
 
-#### Explicit dependencies
+#### Explicit Dependencies
 
 Sometimes you'll have template dependencies that can't be derived at all. This
 is typically the case when rendering happens in helpers. Here's an example:
@@ -264,7 +264,7 @@ comment format anywhere in the template, like:
 <% end %>
 ```
 
-#### External dependencies
+#### External Dependencies
 
 If you use a helper method, for example, inside a cached block and you then update
 that helper, you'll have to bump the cache as well. It doesn't really matter how
@@ -296,7 +296,7 @@ end
 
 NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching, you need to generate a cache key.
 
-#### Avoid caching instances of Active Record objects
+#### Avoid Caching Instances of Active Record Objects
 
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
 
@@ -589,7 +589,7 @@ values with `Rails.cache` and then try to pull them out with the `dalli` gem.
 However, you also don't need to worry about exceeding the memcached size limit or
 violating syntax rules.
 
-Conditional GET support
+Conditional GET Support
 -----------------------
 
 Conditional GETs are a feature of the HTTP specification that provide a way for web servers to tell browsers that the response to a GET request hasn't changed since the last request and can be safely pulled from the browser cache.

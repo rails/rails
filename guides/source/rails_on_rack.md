@@ -80,7 +80,7 @@ To find out more about different `rackup` options, you can run:
 $ rackup --help
 ```
 
-### Development and auto-reloading
+### Development and Auto-reloading
 
 Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.
 

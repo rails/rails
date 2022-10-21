@@ -1,3 +1,84 @@
+*   Fix `ciphertext_for` for yet-to-be-encrypted values.
+
+    Previously, `ciphertext_for` returned the cleartext of values that had not
+    yet been encrypted, such as with an unpersisted record:
+
+      ```ruby
+      Post.encrypts :body
+
+      post = Post.create!(body: "Hello")
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"abc..."
+
+      post.body = "World"
+      post.ciphertext_for(:body)
+      # => "World"
+      ```
+
+    Now, `ciphertext_for` will always return the ciphertext of encrypted
+    attributes:
+
+      ```ruby
+      Post.encrypts :body
+
+      post = Post.create!(body: "Hello")
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"abc..."
+
+      post.body = "World"
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"xyz..."
+      ```
+
+    *Jonathan Hefner*
+
+*   Fix a bug where using groups and counts with long table names would return incorrect results.
+
+    *Shota Toguchi*, *Yusaku Ono*
+
+*   Fix encryption of column default values.
+
+    Previously, encrypted attributes that used column default values appeared to
+    be encrypted on create, but were not:
+
+      ```ruby
+      Book.encrypts :name
+
+      book = Book.create!
+      book.name
+      # => "<untitled>"
+      book.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      book.reload.name_before_type_cast
+      # => "<untitled>"
+      ```
+
+    Now, attributes with column default values are encrypted:
+
+      ```ruby
+      Book.encrypts :name
+
+      book = Book.create!
+      book.name
+      # => "<untitled>"
+      book.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      book.reload.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      ```
+
+    *Jonathan Hefner*
+
+*   Deprecate delegation from `Base` to `connection_handler`.
+
+    Calling `Base.clear_all_connections!`, `Base.clear_active_connections!`, `Base.clear_reloadable_connections!` and `Base.flush_idle_connections!` is deprecated. Please call these methods on the connection handler directly. In future Rails versions, the delegation from `Base` to the `connection_handler` will be removed.
+
+    *Eileen M. Uchitelle*
+
+*   Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
+
+    *Sampat Badhe*
+
 *   Validate options when managing columns and tables in migrations.
 
     If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
@@ -10,7 +91,7 @@
 
     It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.
 
-    *Modulitos and Iheanyi*
+    *Modulitos* and *Iheanyi*
 
 *   Allow any ERB in the database.yml when creating rake tasks.
 

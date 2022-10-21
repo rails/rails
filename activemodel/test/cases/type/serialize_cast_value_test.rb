@@ -9,49 +9,75 @@ module ActiveModel
         def serialize(value)
           "serialize(#{value})"
         end
-
-        def serialize_cast_value(value)
-          raise "this should never be called"
-        end
       end
 
       class IncludesModule < DoesNotIncludeModule
         include SerializeCastValue
 
         def serialize_cast_value(value)
-          super("serialize_cast_value(#{value})")
+          "serialize_cast_value(#{super})"
         end
       end
 
-      test "calls #serialize when a class does not include SerializeCastValue" do
-        assert_equal "serialize(foo)", SerializeCastValue.serialize(DoesNotIncludeModule.new, "foo")
+      test "provides a default #serialize_cast_value implementation" do
+        type = Class.new(DoesNotIncludeModule) { include SerializeCastValue }
+        assert_equal "foo", type.new.serialize_cast_value("foo")
       end
 
-      test "calls #serialize_cast_value when a class directly includes SerializeCastValue" do
-        assert_equal "serialize_cast_value(foo)", SerializeCastValue.serialize(IncludesModule.new, "foo")
+      test "uses #serialize when a class does not include SerializeCastValue" do
+        assert_serializes_using :serialize, DoesNotIncludeModule.new
       end
 
-      test "calls #serialize when a subclass does not directly include SerializeCastValue" do
+      test "uses #serialize_cast_value when a class includes SerializeCastValue" do
+        assert_serializes_using :serialize_cast_value, IncludesModule.new
+      end
+
+      test "uses #serialize_cast_value when a subclass inherits both #serialize and #serialize_cast_value" do
         subclass = Class.new(IncludesModule)
-        assert_equal "serialize(foo)", SerializeCastValue.serialize(subclass.new, "foo")
+        assert_serializes_using :serialize_cast_value, subclass.new
       end
 
-      test "calls #serialize_cast_value when a subclass re-includes SerializeCastValue" do
-        subclass = Class.new(IncludesModule)
-        subclass.include SerializeCastValue
-        assert_equal "serialize_cast_value(foo)", SerializeCastValue.serialize(subclass.new, "foo")
+      test "uses #serialize when a subclass defines a newer #serialize implementation" do
+        subclass = Class.new(IncludesModule) { def serialize(value); super; end }
+        assert_serializes_using :serialize, subclass.new
       end
 
-      test "calls #serialize when a delegate class does not include SerializeCastValue" do
+      test "uses #serialize_cast_value when a subclass defines a newer #serialize_cast_value implementation" do
+        subclass = Class.new(IncludesModule) { def serialize_cast_value(value); super; end }
+        assert_serializes_using :serialize_cast_value, subclass.new
+      end
+
+      test "uses #serialize when a subclass defines a newer #serialize implementation via a module" do
+        mod = Module.new { def serialize(value); super; end }
+        subclass = Class.new(IncludesModule) { include mod }
+        assert_serializes_using :serialize, subclass.new
+      end
+
+      test "uses #serialize_cast_value when a subclass defines a newer #serialize_cast_value implementation via a module" do
+        mod = Module.new { def serialize_cast_value(value); super; end }
+        subclass = Class.new(IncludesModule) { include mod }
+        assert_serializes_using :serialize_cast_value, subclass.new
+      end
+
+      test "uses #serialize when a delegate class does not include SerializeCastValue" do
         delegate_class = DelegateClass(IncludesModule)
-        assert_equal "serialize(foo)", SerializeCastValue.serialize(delegate_class.new(IncludesModule.new), "foo")
+        assert_serializes_using :serialize, delegate_class.new(IncludesModule.new)
       end
 
-      test "calls #serialize_cast_value when a delegate class includes SerializeCastValue" do
-        delegate_class = DelegateClass(IncludesModule)
-        delegate_class.include SerializeCastValue
-        assert_equal "serialize_cast_value(foo)", SerializeCastValue.serialize(delegate_class.new(IncludesModule.new), "foo")
+      test "uses #serialize_cast_value when a delegate class prepends SerializeCastValue" do
+        delegate_class = DelegateClass(IncludesModule) { prepend SerializeCastValue }
+        assert_serializes_using :serialize_cast_value, delegate_class.new(IncludesModule.new)
       end
+
+      test "uses #serialize_cast_value when a delegate class subclass includes SerializeCastValue" do
+        delegate_subclass = Class.new(DelegateClass(IncludesModule)) { include SerializeCastValue }
+        assert_serializes_using :serialize_cast_value, delegate_subclass.new(IncludesModule.new)
+      end
+
+      private
+        def assert_serializes_using(method_name, type)
+          assert_equal "#{method_name}(foo)", SerializeCastValue.serialize(type, "foo")
+        end
     end
   end
 end

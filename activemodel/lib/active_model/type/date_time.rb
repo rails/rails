@@ -38,18 +38,15 @@ module ActiveModel
     #     attribute :start, :datetime, precision: 4
     #   end
     class DateTime < Value
-      include SerializeCastValue
       include Helpers::Timezone
-      include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 4 => 0, 5 => 0 }
       )
+      include Helpers::TimeValue
 
       def type
         :datetime
       end
-
-      alias :serialize_cast_value :serialize_time_value # :nodoc:
 
       private
         def cast_value(value)

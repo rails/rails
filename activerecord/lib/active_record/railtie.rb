@@ -297,7 +297,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport::Reloader.before_class_unload do
           if ActiveRecord::Base.connected?
             ActiveRecord::Base.clear_cache!
-            ActiveRecord::Base.clear_reloadable_connections!(:all)
+            ActiveRecord::Base.connection_handler.clear_reloadable_connections!(:all)
           end
         end
       end
@@ -324,8 +324,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
           # this connection is trivial: the rest of the pool would need to be
           # populated anyway.
 
-          clear_active_connections!(:all)
-          flush_idle_connections!(:all)
+          connection_handler.clear_active_connections!(:all)
+          connection_handler.flush_idle_connections!(:all)
         end
       end
     end

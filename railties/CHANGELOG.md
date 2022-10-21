@@ -1,3 +1,8 @@
+*   Send 303 See Other status code back for the destroy action on newly generated
+    scaffold controllers.
+
+    *Tony Drake*
+
 *   Add `Rails.application.deprecators` as a central point to manage deprecators
     for an application.
 
@@ -39,7 +44,7 @@
     This patch moves #find_cmd_and_exec to the adapter and exposes a new API to
     lookup the adapter class without instantiating it.
 
-    *Gannon McGibbon, Paarth Madan*
+    *Gannon McGibbon*, *Paarth Madan*
 
 *   Add `Rails.application.message_verifiers` as a central point to configure
     and create message verifiers for an application.

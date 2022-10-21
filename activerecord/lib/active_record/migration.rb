@@ -601,7 +601,7 @@ module ActiveRecord
         @mutex.synchronize do
           @watcher ||= build_watcher do
             @needs_check = true
-            ActiveRecord::Migration.check_pending!(connection)
+            ActiveRecord::Migration.check_pending_migrations
             @needs_check = false
           end
 
@@ -617,12 +617,10 @@ module ActiveRecord
 
       private
         def build_watcher(&block)
-          paths = Array(connection.migration_context.migrations_paths)
+          current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+          all_configs = ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
+          paths = all_configs.flat_map { |config| config.migrations_paths || Migrator.migrations_paths }.uniq
           @file_watcher.new([], paths.index_with(["rb"]), &block)
-        end
-
-        def connection
-          ActiveRecord::Base.connection
         end
     end
 
@@ -640,10 +638,7 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        current_db_config = Base.connection_db_config
-        all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
-
-        needs_update = !all_configs.all? do |db_config|
+        needs_update = !db_configs_in_current_env.all? do |db_config|
           Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
         end
 
@@ -651,15 +646,12 @@ module ActiveRecord
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
-            Base.clear_all_connections!
+            Base.connection_handler.clear_all_connections!
             system("bin/rails db:test:prepare")
           end
         end
 
-        # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_db_config)
-
-        check_pending!
+        check_pending_migrations
       end
 
       def maintain_test_schema! # :nodoc:
@@ -684,6 +676,23 @@ module ActiveRecord
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
+
+      def check_pending_migrations # :nodoc:
+        prev_db_config = Base.connection_db_config
+
+        db_configs_in_current_env.each do |db_config|
+          Base.establish_connection(db_config)
+          check_pending!
+        end
+      ensure
+        Base.establish_connection(prev_db_config)
+      end
+
+      private
+        def db_configs_in_current_env
+          current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+          ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
+        end
     end
 
     def disable_ddl_transaction # :nodoc:
