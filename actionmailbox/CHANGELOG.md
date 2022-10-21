@@ -1,3 +1,9 @@
+*   Fixed ingress controllers' ability to accept emails that contain no UTF-8 encoded parts.
+
+    Fixes #46297.
+
+    *Jan Honza Sterba*
+
 *   Add X-Forwarded-To addresses to recipients.
 
     *Andrew Stewart*
