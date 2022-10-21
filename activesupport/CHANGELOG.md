@@ -1,3 +1,14 @@
+*   `Rails.error.handle` and `Rails.error.record` filter now by multiple error classes.
+
+    ```ruby
+    Rails.error.handle(IOError, ArgumentError) do
+      1 + '1' # raises TypeError
+    end
+    1 + 1 # TypeErrors are not IOErrors or ArgumentError, so this will *not* be handled
+    ```
+
+    *Martin Spickermann*
+
 *   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
 
     Previously they could return old implementations of reloadable classes that have been

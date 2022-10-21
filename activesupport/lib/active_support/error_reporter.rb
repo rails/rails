@@ -42,7 +42,7 @@ module ActiveSupport
     #     1 + '1'
     #   end
     #
-    # Can be restricted to handle only a specific error class:
+    # Can be restricted to handle only specific error classes:
     #
     #   maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
     #
@@ -69,9 +69,10 @@ module ActiveSupport
     # * +:source+ - This value is passed along to subscribers to indicate the
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
-    def handle(error_class = StandardError, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
+    def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
+      error_classes = [StandardError] if error_classes.blank?
       yield
-    rescue error_class => error
+    rescue *error_classes => error
       report(error, handled: true, severity: severity, context: context, source: source)
       fallback.call if fallback
     end
@@ -84,7 +85,7 @@ module ActiveSupport
     #     1 + '1'
     #   end
     #
-    # Can be restricted to handle only a specific error class:
+    # Can be restricted to handle only specific error classes:
     #
     #   tags = Rails.error.record(Redis::BaseError) { redis.get("tags") }
     #
@@ -104,9 +105,10 @@ module ActiveSupport
     # * +:source+ - This value is passed along to subscribers to indicate the
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
-    def record(error_class = StandardError, severity: :error, context: {}, source: DEFAULT_SOURCE)
+    def record(*error_classes, severity: :error, context: {}, source: DEFAULT_SOURCE)
+      error_classes = [StandardError] if error_classes.blank?
       yield
-    rescue error_class => error
+    rescue *error_classes => error
       report(error, handled: false, severity: severity, context: context, source: source)
       raise
     end

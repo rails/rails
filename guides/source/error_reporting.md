@@ -131,9 +131,9 @@ Rails.error.handle(context: {user_id: user.id}, severity: :info) do
 end
 ```
 
-### Filtering by Error Class
+### Filtering by Error Classes
 
-With `Rails.error.handle` and `Rails.error.record`, you can also choose to only report errors of a certain class. For example:
+With `Rails.error.handle` and `Rails.error.record`, you can also choose to only report errors of certain classes. For example:
 
 ```ruby
 Rails.error.handle(IOError) do
