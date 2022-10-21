@@ -129,11 +129,12 @@ class Hash
     def _deep_transform_keys_in_object!(object, &block)
       case object
       when Hash
-        object.keys.each do |key|
-          value = object.delete(key)
-          object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
+        object.tap do |result|
+          result.keys.each do |key|
+            value = result.delete(key)
+            result[yield(key)] = _deep_transform_keys_in_object!(value, &block)
+          end
         end
-        object
       when Array
         object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
       else
