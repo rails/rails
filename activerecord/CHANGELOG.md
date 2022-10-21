@@ -1,3 +1,10 @@
+*   Only trigger `after_commit :destroy` callbacks when a database row is deleted.
+
+    This prevents `after_commit :destroy` callbacks from being triggered again
+    when `destroy` is called multiple times on the same record.
+
+    *Ben Sheldon*
+
 *   Fix `ciphertext_for` for yet-to-be-encrypted values.
 
     Previously, `ciphertext_for` returned the cleartext of values that had not
