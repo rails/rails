@@ -1,0 +1,3 @@
+bundle install --without job cable storage ujs test db
+cd guides/
+bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
