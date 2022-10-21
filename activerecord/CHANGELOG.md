@@ -1,3 +1,12 @@
+*   Make `update` and `save` behave the same in tests where transactions are rolled back
+
+    Fixes a bug in transactional tests where if a save is attempted using `update`
+    but is rolled back, the record's mutation state could be lost.
+
+    See [#44713](https://github.com/rails/rails/issues/44713) for more information.
+
+    *Alex Ghiculescu*
+    
 *   Fix `ciphertext_for` for yet-to-be-encrypted values.
 
     Previously, `ciphertext_for` returned the cleartext of values that had not

@@ -350,8 +350,9 @@ module ActiveRecord
       ensure_finalize = !connection.transaction_open?
 
       connection.transaction do
-        add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-        remember_transaction_record_state
+        if add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+          remember_transaction_record_state
+        end
 
         status = yield
         raise ActiveRecord::Rollback unless status

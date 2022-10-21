@@ -1307,10 +1307,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 end
 
-class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
-  self.use_transactional_tests = true
-  fixtures :topics
-
+module TransactionsWithTransactionalFixturesBehaviours
   def test_automatic_savepoint_in_outer_transaction
     @first = Topic.find(1)
 
@@ -1344,6 +1341,43 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
 
     assert_not_predicate @first.reload, :approved?
   end
+
+  def test_rolling_back_a_transaction_in_a_test_using_save_keeps_changes
+    @first = Topic.find(1)
+
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert @first.approved
+    assert @first.changes.key?("approved")
+  end
+
+  def test_rolling_back_a_transaction_in_a_test_using_update_keeps_changes
+    @first = Topic.find(1)
+
+    Topic.transaction do
+      @first.update(approved: true)
+      raise ActiveRecord::Rollback
+    end
+
+    assert @first.approved
+    assert @first.changes.key?("approved")
+  end
+end
+
+class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_tests = true
+  fixtures :topics
+  include TransactionsWithTransactionalFixturesBehaviours
+end if Topic.connection.supports_savepoints?
+
+class TransactionsWithoutTransactionalFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+  fixtures :topics
+  include TransactionsWithTransactionalFixturesBehaviours
 end if Topic.connection.supports_savepoints?
 
 if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)

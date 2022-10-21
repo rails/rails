@@ -79,7 +79,7 @@ module ActiveRecord
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
-      def add_record(record, _ = true); end
+      def uniquely_add_record(record, _ = true); end
       def restartable?; false; end
       def dirty?; false; end
       def dirty!; end
@@ -109,19 +109,21 @@ module ActiveRecord
         @dirty
       end
 
-      def add_record(record, ensure_finalize = true)
-        @records ||= []
+      # Add the record to the current transaction, used by after_commit (etc) callbacks.
+      # Returns true if the record was added to the transaction, false if it had been previously added.
+      def uniquely_add_record(record, ensure_finalize = true)
+        @records ||= Set.new.compare_by_identity
         if ensure_finalize
-          @records << record
+          @records.add?(record)
         else
           @lazy_enrollment_records ||= ObjectSpace::WeakMap.new
-          @lazy_enrollment_records[record] = record
+          @lazy_enrollment_records[record] = record unless @lazy_enrollment_records.key?(record)
         end
       end
 
       def records
         if @lazy_enrollment_records
-          @records.concat @lazy_enrollment_records.values
+          @records.merge @lazy_enrollment_records.values
           @lazy_enrollment_records = nil
         end
         @records
