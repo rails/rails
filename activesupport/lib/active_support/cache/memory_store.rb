@@ -190,12 +190,12 @@ module ActiveSupport
 
         def modify_value(name, amount, options)
           options = merged_options(options)
-          synchronize do
-            if num = read(name, options)
-              num = num.to_i + amount
-              write(name, num, options)
-              num
-            end
+
+          if entry = read_entry(name, **options)
+            num = entry.value.to_i + amount
+            entry = Entry.new(num, expires_at: entry.expires_at, version: entry.version)
+            write_entry(name, entry)
+            num
           end
         end
     end
