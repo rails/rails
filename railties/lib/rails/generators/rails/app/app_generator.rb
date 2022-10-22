@@ -438,7 +438,7 @@ module Rails
 
       def delete_app_views_if_api_option
         if options[:api]
-          if options[:skip_action_mailer]
+          if skip_action_mailer?
             remove_dir "app/views"
           else
             remove_file "app/views/layouts/application.html.erb"
@@ -483,7 +483,7 @@ module Rails
       end
 
       def delete_action_mailer_files_skipping_action_mailer
-        if options[:skip_action_mailer]
+        if skip_action_mailer?
           remove_file "app/views/layouts/mailer.html.erb"
           remove_file "app/views/layouts/mailer.text.erb"
           remove_dir "app/mailers"

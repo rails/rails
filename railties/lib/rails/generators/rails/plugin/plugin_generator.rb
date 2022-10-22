@@ -28,14 +28,14 @@ module Rails
 
         empty_directory_with_keep_file "app/models/concerns"
         empty_directory_with_keep_file "app/controllers/concerns"
-        remove_dir "app/mailers" if options[:skip_action_mailer]
+        remove_dir "app/mailers" if skip_action_mailer?
         remove_dir "app/jobs" if options[:skip_active_job]
       elsif full?
         empty_directory_with_keep_file "app/models"
         empty_directory_with_keep_file "app/controllers"
         empty_directory_with_keep_file "app/models/concerns"
         empty_directory_with_keep_file "app/controllers/concerns"
-        empty_directory_with_keep_file "app/mailers" unless options[:skip_action_mailer]
+        empty_directory_with_keep_file "app/mailers" unless skip_action_mailer?
         empty_directory_with_keep_file "app/jobs" unless options[:skip_active_job]
 
         unless api?
