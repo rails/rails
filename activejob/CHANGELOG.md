@@ -1,3 +1,16 @@
+*   Add Proc as a supported type for ActiveJob retry_on attempts:
+
+    Example:
+
+     ```ruby
+    class RetryJob < ActiveJob::Base
+      retry_on ProcRetryError, attempts: ->(executions) { executions < 2 }
+      # ...
+    end
+    ```
+
+    *Rose Wiegley*
+
 *   Add support for Sidekiq's transaction-aware client
 
     *Jonathan del Strother*
