@@ -1,3 +1,9 @@
+*   Fix MemoryStore to preserve entries TTL when incrementing or decrementing
+
+    This is to be more consistent with how MemCachedStore and RedisCacheStore behaves.
+
+    *Jean Boussier*
+
 *   `Rails.error.handle` and `Rails.error.record` filter now by multiple error classes.
 
     ```ruby
