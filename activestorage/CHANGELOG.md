@@ -1,3 +1,14 @@
+*   Add missing preview event to `ActiveStorage::LogSubscriber`
+
+    A `preview` event is being instrumented in `ActiveStorage::Previewer`.
+    However it was not added inside ActiveStorage's LogSubscriber class.
+
+    This will allow to have logs for when a preview happens
+    in the same fashion as all other ActiveStorage events such as
+    `upload` and `download` inside `Rails.logger`.
+
+    *Chedli Bourguiba*
+
 *   Fix retrieving rotation value from FFmpeg on version 5.0+.
 
     In FFmpeg version 5.0+ the rotation value has been removed from tags.
