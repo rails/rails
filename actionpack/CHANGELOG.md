@@ -1,3 +1,37 @@
+*   Add `config.action_controller.redirect_code_for_unsafe_http_methods`
+
+    When a client follows an HTTP 302 redirect, it will typically use the same
+    HTTP method as the original request.  This can cause issues when, for
+    example, redirecting an XHR `DELETE` request after a `destroy`.
+
+    The solution so far has been to specify an explicit response code in such
+    cases.  For example:
+
+      ```ruby
+      def destroy
+        Post.destroy(params[:id])
+        redirect_to root_path, status: 303
+      end
+      ```
+
+    The `config.action_controller.redirect_code_for_unsafe_http_methods` setting
+    allows specifying a default HTTP response code to use when redirecting a
+    request made with an [unsafe HTTP method][], such as `POST` or `DELETE`.
+    For example, when set to 303, the explicit response code may be omitted:
+
+      ```ruby
+      def destroy
+        Post.destroy(params[:id])
+        redirect_to root_path
+      end
+      ```
+
+    This setting defaults to `303` when using `config.load_defaults 7.1`.
+
+    [unsafe HTTP method]: https://developer.mozilla.org/en-US/docs/Glossary/Safe/HTTP
+
+    *Jonathan Hefner*
+
 *   Add the following permissions policy directives: `hid`, `idle-detection`, `screen-wake-lock`,
     `serial`, `sync-xhr`, `web-share`.
 

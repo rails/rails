@@ -222,6 +222,19 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://test.host/redirect/hello_world", redirect_to_url
   end
 
+  def test_redirect_with_no_status_using_unsafe_http_method
+    post :simple_redirect
+    assert_response 302
+
+    original_redirect_code_for_unsafe_http_methods = ActionController::Base.redirect_code_for_unsafe_http_methods
+    ActionController::Base.redirect_code_for_unsafe_http_methods = 303
+
+    post :simple_redirect
+    assert_response 303
+  ensure
+    ActionController::Base.redirect_code_for_unsafe_http_methods = original_redirect_code_for_unsafe_http_methods
+  end
+
   def test_redirect_with_status
     get :redirect_with_status
     assert_response 301

@@ -1422,6 +1422,32 @@ module ApplicationTests
       assert_equal true, ActionController::Base.raise_on_open_redirects
     end
 
+    test "ActionController::Base.redirect_code_for_unsafe_http_methods is 303 by default for new apps" do
+      app "development"
+
+      assert_equal 303, ActionController::Base.redirect_code_for_unsafe_http_methods
+    end
+
+    test "ActionController::Base.redirect_code_for_unsafe_http_methods is 302 by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal 302, ActionController::Base.redirect_code_for_unsafe_http_methods
+    end
+
+    test "ActionController::Base.redirect_code_for_unsafe_http_methods can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.action_controller.redirect_code_for_unsafe_http_methods = 303
+      RUBY
+
+      app "development"
+
+      assert_equal 303, ActionController::Base.redirect_code_for_unsafe_http_methods
+    end
+
     test "config.action_dispatch.show_exceptions is sent in env" do
       make_basic_app do |application|
         application.config.action_dispatch.show_exceptions = true

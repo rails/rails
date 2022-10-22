@@ -11,6 +11,7 @@ module ActionController
 
     included do
       mattr_accessor :raise_on_open_redirects, default: false
+      class_attribute :redirect_code_for_unsafe_http_methods, default: 302
     end
 
     # Redirects the browser to the target specified in +options+. This parameter can be any one of:
@@ -85,7 +86,7 @@ module ActionController
 
       allow_other_host = response_options.delete(:allow_other_host) { _allow_other_host }
 
-      self.status        = _extract_redirect_to_status(options, response_options)
+      self.status        = _extract_redirect_to_status(request, options, response_options)
       self.location      = _enforce_open_redirect_protection(_compute_redirect_to_location(request, options), allow_other_host: allow_other_host)
       self.response_body = ""
     end
@@ -176,13 +177,15 @@ module ActionController
         !raise_on_open_redirects
       end
 
-      def _extract_redirect_to_status(options, response_options)
+      def _extract_redirect_to_status(request, options, response_options)
         if options.is_a?(Hash) && options.key?(:status)
           Rack::Utils.status_code(options.delete(:status))
         elsif response_options.key?(:status)
           Rack::Utils.status_code(response_options[:status])
-        else
+        elsif request.method_safe?
           302
+        else
+          Rack::Utils.status_code(redirect_code_for_unsafe_http_methods)
         end
       end
 

@@ -127,6 +127,8 @@ module ActionDispatch
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
+    SAFE_HTTP_METHODS = %w(GET HEAD OPTIONS SEARCH)
+
     HTTP_METHOD_LOOKUP = {}
 
     # Populate the HTTP method lookup cache.
@@ -213,6 +215,13 @@ module ActionDispatch
     # Returns a symbol form of the #method.
     def method_symbol
       HTTP_METHOD_LOOKUP[method]
+    end
+
+    # Returns true if #method is a safe HTTP method. A safe HTTP method
+    # indicates that the request should not alter the state of the server. For
+    # example, +GET+ is safe, but +POST+ is not.
+    def method_safe? # :nodoc:
+      SAFE_HTTP_METHODS.include?(method)
     end
 
     # Provides access to the request's HTTP headers, for example:
