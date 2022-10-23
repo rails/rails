@@ -1,0 +1,84 @@
+# frozen_string_literal: true
+require_relative "abstract_unit"
+module ActiveSupport
+  class BroadcastLoggerTest < TestCase
+    attr_reader :logger, :log1, :log2
+    setup do
+      @log1 = FakeLogger.new
+      @log2 = FakeLogger.new
+      @log1.extend Logger.broadcast @log2
+      @logger = @log1
+    end
+    Logger::Severity.constants.each do |level_name|
+      method = level_name.downcase
+      level = Logger::Severity.const_get(level_name)
+      test "##{method} adds the message to all loggers" do
+        logger.public_send(method, "msg")
+        assert_equal [level, "msg", nil], log1.adds.first
+        assert_equal [level, "msg", nil], log2.adds.first
+      end
+    end
+    test "#close broadcasts to all loggers" do
+      logger.close
+      assert log1.closed, "should be closed"
+      assert log2.closed, "should be closed"
+    end
+    test "#<< shovels the value into all loggers" do
+      logger << "foo"
+      assert_equal %w{ foo }, log1.chevrons
+      assert_equal %w{ foo }, log2.chevrons
+    end
+    test "#level= assigns the level to all loggers" do
+      assert_equal ::Logger::DEBUG, logger.level
+      logger.level = ::Logger::FATAL
+      assert_equal ::Logger::FATAL, log1.level
+      assert_equal ::Logger::FATAL, log2.level
+    end
+    test "#progname= assigns to all the loggers" do
+      assert_nil logger.progname
+      logger.progname = ::Logger::FATAL
+      assert_equal ::Logger::FATAL, log1.progname
+      assert_equal ::Logger::FATAL, log2.progname
+    end
+    test "#formatter= assigns to all the loggers" do
+      assert_nil logger.formatter
+      logger.formatter = ::Logger::FATAL
+      assert_equal ::Logger::FATAL, log1.formatter
+      assert_equal ::Logger::FATAL, log2.formatter
+    end
+    test "#local_level= assigns the local_level to all loggers" do
+      assert_equal ::Logger::DEBUG, logger.local_level
+      logger.local_level = ::Logger::FATAL
+      assert_equal ::Logger::FATAL, log1.local_level
+      assert_equal ::Logger::FATAL, log2.local_level
+    end
+    test "#silence does not break custom loggers" do
+      new_logger = FakeLogger.new
+      custom_logger = CustomLogger.new
+      assert_respond_to new_logger, :silence
+      assert_not_respond_to custom_logger, :silence
+
+      custom_logger.extend(Logger.broadcast(new_logger))
+
+      custom_logger.silence do
+@@ -115,8 +118,6 @@ class BroadcastLoggerTest < TestCase
+    end
+
+    class CustomLogger
+      include ActiveSupport::LoggerSilence
+
+      attr_reader :adds, :closed, :chevrons
+      attr_accessor :level, :progname, :formatter, :local_level
+
+@@ -168,6 +169,11 @@ def close
+    end
+
+    class FakeLogger < CustomLogger
+      include ActiveSupport::LoggerSilence
+
+      # LoggerSilence includes LoggerThreadSafeLevel which defines these as
+      # methods, so we need to redefine them
+      attr_accessor :level, :local_level
+    end
+  end
+end
