@@ -1,21 +1,19 @@
-# Configure Rails Environment
-ENV["RAILS_ENV"] = "test"
-
-require_relative "<%= File.join("..", options[:dummy_path], "config/environment") -%>"
-<% unless options[:skip_active_record] -%>
-ActiveRecord::Migrator.migrations_paths = [File.expand_path("../<%= options[:dummy_path] -%>/db/migrate", __dir__)]
-<% if options[:mountable] -%>
-ActiveRecord::Migrator.migrations_paths << File.expand_path("../db/migrate", __dir__)
-<% end -%>
-<% end -%>
+ENV["RAILS_ENV"] ||= "test"
+require_relative "../config/environment"
 require "rails/test_help"
 
-<% unless options[:skip_active_record] -%>
-# Load fixtures from the engine
-if ActiveSupport::TestCase.respond_to?(:fixture_path=)
-  ActiveSupport::TestCase.fixture_path = File.expand_path("fixtures", __dir__)
-  ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
-  ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + "/files"
-  ActiveSupport::TestCase.fixtures :all
-end
+class ActiveSupport::TestCase
+  # Run tests in parallel with specified workers
+<% if Process.respond_to?(:fork) && !Gem.win_platform? -%>
+  parallelize(workers: :number_of_processors)
+<%- else -%>
+  parallelize(workers: :number_of_processors, with: :threads)
 <% end -%>
+
+<% unless options[:skip_active_record] -%>
+  # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+  fixtures :all
+
+<% end -%>
+  # Add more helper methods to be used by all tests here...
+end

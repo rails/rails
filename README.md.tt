@@ -1,28 +1,24 @@
-# <%= camelized_modules %>
-Short description and motivation.
+# README
 
-## Usage
-How to use my plugin.
+This README would normally document whatever steps are necessary to get the
+application up and running.
 
-## Installation
-Add this line to your application's Gemfile:
+Things you may want to cover:
 
-```ruby
-gem "<%= name %>"
-```
+* Ruby version
 
-And then execute:
-```bash
-$ bundle
-```
+* System dependencies
 
-Or install it yourself as:
-```bash
-$ gem install <%= name %>
-```
+* Configuration
 
-## Contributing
-Contribution directions go here.
+* Database creation
 
-## License
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+* Database initialization
+
+* How to run the test suite
+
+* Services (job queues, cache servers, search engines, etc.)
+
+* Deployment instructions
+
+* ...
