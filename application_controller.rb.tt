@@ -1,5 +1,2 @@
-<%= wrap_in_modules <<~rb
-  class ApplicationController < ActionController::#{api? ? "API" : "Base"}
-  end
-rb
-%>
+class ApplicationController < ActionController::<%= options.api? ? "API" : "Base" %>
+end

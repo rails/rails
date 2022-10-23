@@ -1,160 +1,91 @@
 # frozen_string_literal: true
 
-require "active_support/ordered_options"
-require "active_support/core_ext/object"
-require "rails/paths"
-require "rails/rack"
+require "rails/railtie/configuration"
 
 module Rails
-  module Configuration
-    # MiddlewareStackProxy is a proxy for the Rails middleware stack that allows
-    # you to configure middlewares in your application. It works basically as a
-    # command recorder, saving each command to be applied after initialization
-    # over the default middleware stack, so you can add, swap, or remove any
-    # middleware in Rails.
-    #
-    # You can add your own middlewares by using the +config.middleware.use+ method:
-    #
-    #     config.middleware.use Magical::Unicorns
-    #
-    # This will put the <tt>Magical::Unicorns</tt> middleware on the end of the stack.
-    # You can use +insert_before+ if you wish to add a middleware before another:
-    #
-    #     config.middleware.insert_before Rack::Head, Magical::Unicorns
-    #
-    # There's also +insert_after+ which will insert a middleware after another:
-    #
-    #     config.middleware.insert_after Rack::Head, Magical::Unicorns
-    #
-    # Middlewares can also be completely swapped out and replaced with others:
-    #
-    #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
-    #
-    # Middlewares can be moved from one place to another:
-    #
-    #     config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
-    #
-    # This will move the <tt>Magical::Unicorns</tt> middleware before the
-    # <tt>ActionDispatch::Flash</tt>. You can also move it after:
-    #
-    #     config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
-    #
-    # And finally they can also be removed from the stack completely:
-    #
-    #     config.middleware.delete ActionDispatch::Flash
-    #
-    class MiddlewareStackProxy
-      def initialize(operations = [], delete_operations = [])
-        @operations = operations
-        @delete_operations = delete_operations
+  class Engine
+    class Configuration < ::Rails::Railtie::Configuration
+      attr_reader :root
+      attr_accessor :middleware, :javascript_path
+      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
+
+      def initialize(root = nil)
+        super()
+        @root = root
+        @generators = app_generators.dup
+        @middleware = Rails::Configuration::MiddlewareStackProxy.new
+        @javascript_path = "javascript"
       end
 
-      def insert_before(...)
-        @operations << -> middleware { middleware.insert_before(...) }
+      # Holds generators configuration:
+      #
+      #   config.generators do |g|
+      #     g.orm             :data_mapper, migration: true
+      #     g.template_engine :haml
+      #     g.test_framework  :rspec
+      #   end
+      #
+      # If you want to disable color in console, do:
+      #
+      #   config.generators.colorize_logging = false
+      #
+      def generators
+        @generators ||= Rails::Configuration::Generators.new
+        yield(@generators) if block_given?
+        @generators
       end
 
-      alias :insert :insert_before
+      def paths
+        @paths ||= begin
+          paths = Rails::Paths::Root.new(@root)
 
-      def insert_after(...)
-        @operations << -> middleware { middleware.insert_after(...) }
-      end
+          paths.add "app",                 eager_load: true,
+                                           glob: "{*,*/concerns}",
+                                           exclude: ["assets", javascript_path]
+          paths.add "app/assets",          glob: "*"
+          paths.add "app/controllers",     eager_load: true
+          paths.add "app/channels",        eager_load: true
+          paths.add "app/helpers",         eager_load: true
+          paths.add "app/models",          eager_load: true
+          paths.add "app/mailers",         eager_load: true
+          paths.add "app/views"
 
-      def swap(...)
-        @operations << -> middleware { middleware.swap(...) }
-      end
+          paths.add "lib",                 load_path: true
+          paths.add "lib/assets",          glob: "*"
+          paths.add "lib/tasks",           glob: "**/*.rake"
 
-      def use(...)
-        @operations << -> middleware { middleware.use(...) }
-      end
+          paths.add "config"
+          paths.add "config/environments", glob: -"#{Rails.env}.rb"
+          paths.add "config/initializers", glob: "**/*.rb"
+          paths.add "config/locales",      glob: "**/*.{rb,yml}"
+          paths.add "config/routes.rb"
+          paths.add "config/routes",       glob: "**/*.rb"
 
-      def delete(...)
-        @delete_operations << -> middleware { middleware.delete(...) }
-      end
+          paths.add "db"
+          paths.add "db/migrate"
+          paths.add "db/seeds.rb"
 
-      def move_before(...)
-        @delete_operations << -> middleware { middleware.move_before(...) }
-      end
+          paths.add "vendor",              load_path: true
+          paths.add "vendor/assets",       glob: "*"
 
-      alias :move :move_before
-
-      def move_after(...)
-        @delete_operations << -> middleware { middleware.move_after(...) }
-      end
-
-      def unshift(...)
-        @operations << -> middleware { middleware.unshift(...) }
-      end
-
-      def merge_into(other) # :nodoc:
-        (@operations + @delete_operations).each do |operation|
-          operation.call(other)
+          paths
         end
-
-        other
       end
 
-      def +(other) # :nodoc:
-        MiddlewareStackProxy.new(@operations + other.operations, @delete_operations + other.delete_operations)
+      def root=(value)
+        @root = paths.path = Pathname.new(value).expand_path
       end
 
-      protected
-        attr_reader :operations, :delete_operations
-    end
-
-    class Generators # :nodoc:
-      attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging, :api_only
-      attr_reader :hidden_namespaces, :after_generate_callbacks
-
-      def initialize
-        @aliases = Hash.new { |h, k| h[k] = {} }
-        @options = Hash.new { |h, k| h[k] = {} }
-        @fallbacks = {}
-        @templates = []
-        @colorize_logging = true
-        @api_only = false
-        @hidden_namespaces = []
-        @after_generate_callbacks = []
+      def eager_load_paths
+        @eager_load_paths ||= paths.eager_load
       end
 
-      def initialize_copy(source)
-        @aliases = @aliases.deep_dup
-        @options = @options.deep_dup
-        @fallbacks = @fallbacks.deep_dup
-        @templates = @templates.dup
+      def autoload_once_paths
+        @autoload_once_paths ||= paths.autoload_once
       end
 
-      def hide_namespace(namespace)
-        @hidden_namespaces << namespace
-      end
-
-      def after_generate(&block)
-        @after_generate_callbacks << block
-      end
-
-      def method_missing(method, *args)
-        method = method.to_s.delete_suffix("=").to_sym
-
-        if args.empty?
-          if method == :rails
-            return @options[method]
-          else
-            return @options[:rails][method]
-          end
-        end
-
-        if method == :rails || args.first.is_a?(Hash)
-          namespace, configuration = method, args.shift
-        else
-          namespace, configuration = args.shift, args.shift
-          namespace = namespace.to_sym if namespace.respond_to?(:to_sym)
-          @options[:rails][method] = namespace
-        end
-
-        if configuration
-          aliases = configuration.delete(:aliases)
-          @aliases[namespace].merge!(aliases) if aliases
-          @options[namespace].merge!(configuration)
-        end
+      def autoload_paths
+        @autoload_paths ||= paths.autoload_paths
       end
     end
   end

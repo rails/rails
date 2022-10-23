@@ -1,18 +1,9 @@
 # frozen_string_literal: true
 
-require "rails/command"
+unless defined?(APP_PATH)
+  if File.exist?(File.expand_path("test/dummy/config/application.rb", ENGINE_ROOT))
+    APP_PATH = File.expand_path("test/dummy/config/application", ENGINE_ROOT)
+  end
+end
 
-aliases = {
-  "g"  => "generate",
-  "d"  => "destroy",
-  "c"  => "console",
-  "s"  => "server",
-  "db" => "dbconsole",
-  "r"  => "runner",
-  "t"  => "test"
-}
-
-command = ARGV.shift
-command = aliases[command] || command
-
-Rails::Command.invoke command, ARGV
+require "rails/commands"

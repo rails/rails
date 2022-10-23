@@ -1,25 +1,38 @@
 # frozen_string_literal: true
 
-require "rails/generators/test_unit"
+require "rails/generators/erb"
 
-module TestUnit # :nodoc:
+module Erb # :nodoc:
   module Generators # :nodoc:
     class MailerGenerator < Base # :nodoc:
       argument :actions, type: :array, default: [], banner: "method method"
 
-      def check_class_collision
-        class_collisions "#{class_name}MailerTest", "#{class_name}MailerPreview"
-      end
+      def copy_view_files
+        view_base_path = File.join("app/views", class_path, file_name + "_mailer")
+        empty_directory view_base_path
 
-      def create_test_files
-        template "functional_test.rb", File.join("test/mailers", class_path, "#{file_name}_mailer_test.rb")
-      end
+        if behavior == :invoke
+          formats.each do |format|
+            layout_path = File.join("app/views/layouts", class_path, filename_with_extensions("mailer", format))
+            template filename_with_extensions(:layout, format), layout_path unless File.exist?(layout_path)
+          end
+        end
 
-      def create_preview_files
-        template "preview.rb", File.join("test/mailers/previews", class_path, "#{file_name}_mailer_preview.rb")
+        actions.each do |action|
+          @action = action
+
+          formats.each do |format|
+            @path = File.join(view_base_path, filename_with_extensions(action, format))
+            template filename_with_extensions(:view, format), @path
+          end
+        end
       end
 
       private
+        def formats
+          [:text, :html]
+        end
+
         def file_name
           @_file_name ||= super.sub(/_mailer\z/i, "")
         end
