@@ -1,2 +1,2 @@
-*.rb diff=ruby
-*.gemspec diff=ruby
+clipboard.js linguist-vendored
+turbolinks.js linguist-vendored
