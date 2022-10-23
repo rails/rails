@@ -1,0 +1,7 @@
+require "test_helper"
+
+class <%= camelized_modules %>Test < ActiveSupport::TestCase
+  test "it has a version number" do
+    assert <%= camelized_modules %>::VERSION
+  end
+end

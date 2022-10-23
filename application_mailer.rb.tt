@@ -1,0 +1,7 @@
+<%= wrap_in_modules <<~rb
+  class ApplicationMailer < ActionMailer::Base
+    default from: "from@example.com"
+    layout "mailer"
+  end
+rb
+%>

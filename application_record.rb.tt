@@ -1,0 +1,6 @@
+<%= wrap_in_modules <<~rb
+  class ApplicationRecord < ActiveRecord::Base
+    self.abstract_class = true
+  end
+rb
+%>

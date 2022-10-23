@@ -1,0 +1,16 @@
+/.bundle/
+/doc/
+/log/*.log
+/pkg/
+/tmp/
+<% if with_dummy_app? -%>
+<% if sqlite3? -%>
+/<%= dummy_path %>/db/*.sqlite3
+/<%= dummy_path %>/db/*.sqlite3-*
+<% end -%>
+/<%= dummy_path %>/log/*.log
+<% unless skip_active_storage? -%>
+/<%= dummy_path %>/storage/
+<% end -%>
+/<%= dummy_path %>/tmp/
+<% end -%>

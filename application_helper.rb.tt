@@ -1,0 +1,5 @@
+<%= wrap_in_modules <<~rb
+  module ApplicationHelper
+  end
+rb
+%>

@@ -1,0 +1,19 @@
+source "https://rubygems.org"
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+<% unless options[:skip_gemspec] -%>
+
+# Specify your gem's dependencies in <%= name %>.gemspec.
+gemspec
+<% end -%>
+<% gemfile_entries.each do |gemfile_entry| %>
+<%= gemfile_entry %>
+<% end -%>
+<% if RUBY_ENGINE == "ruby" -%>
+
+# Start debugger with binding.b [https://github.com/ruby/debug]
+# gem "debug", ">= 1.0.0"
+<% end -%>
+<% if RUBY_PLATFORM.match?(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
+
+gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+<% end -%>
