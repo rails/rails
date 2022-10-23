@@ -1,0 +1,48 @@
+require "bundler/inline"
+
+RAILS_VERSION = "7.0.2.4"
+
+gemfile(true) do
+  source "https://rubygems.org"
+  gem "activerecord", RAILS_VERSION
+  gem "sqlite3"
+end
+
+require "active_record"
+require "minitest/autorun"
+require "logger"
+
+ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+ActiveRecord::Base.logger = Logger.new(STDOUT)
+
+ActiveRecord::Schema.define do
+  create_table :records, force: true do |t|
+  end
+end
+
+class Record < ActiveRecord::Base
+end
+
+def transaction_with_return
+  ActiveRecord::Base.transaction { return Record.create! }
+end
+
+def transaction_without_return
+  ActiveRecord::Base.transaction { Record.create! }
+end
+
+class BugTest < Minitest::Test
+  def setup
+    Record.delete_all
+  end
+
+  def test_transaction_block_with_return
+    transaction_with_return
+    assert_equal 1, Record.count
+  end
+
+  def test_transaction_block_without_return
+    transaction_without_return
+    assert_equal 1, Record.count
+  end
+end
