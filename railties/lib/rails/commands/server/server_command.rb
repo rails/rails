@@ -1,7 +1,3 @@
-
- 2  
-railties/lib/rails/commands/server/server_command.rb
-@@ -1,85 +1,85 @@
 # frozen_string_literal: true
 require "fileutils"
 require "action_dispatch"
