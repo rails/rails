@@ -1,15 +1,4 @@
-
-@@ -1,643 +1,643 @@
-**READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
-Configuring Rails Applications
-==============================
-This guide covers the configuration and initialization features available to Rails applications.
-After reading this guide, you will know:
-* How to adjust the behavior of your Rails applications.
-* How to add additional code to be run at application start time.
---------------------------------------------------------------------------------
-Locations for Initialization Code
----------------------------------
+Configuring Rails Application 
 Rails offers four standard spots to place initialization code:
 * `config/application.rb`
 * Environment-specific configuration files
