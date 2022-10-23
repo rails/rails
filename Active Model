@@ -1,0 +1,9 @@
+class A
+  attribute_method_suffix "_changed?"
+  define_attribute_methods :x
+end
+
+class B
+  attribute_method_suffix "?"
+  define_attribute_methods :x_changed
+end
