@@ -94,9 +94,9 @@
 
     *Guo Xiang Tan*, *George Wambold*
 
-*   Add configurable formatter on query log tags to support sqlcommenter. See #45139
+*   Update query log tags to use the [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/) format by default. See [#46179](https://github.com/rails/rails/issues/46179)
 
-    It is now possible to opt into sqlcommenter-formatted query log tags with `config.active_record.query_log_tags_format = :sqlcommenter`.
+    To opt out of SQLCommenter-formatted query log tags, set `config.active_record.query_log_tags_format = :legacy`. By default, this is set to `:sqlcommenter`.
 
     *Modulitos* and *Iheanyi*
 
