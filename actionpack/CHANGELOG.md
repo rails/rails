@@ -1,3 +1,10 @@
+*   Don't double log the `controller` or `action` when using `ActiveRecord::QueryLog`
+
+    Previously if you set `config.active_record.query_log_tags` to an array that included
+    `:controller` or `:action`, that item would get logged twice. This bug has been fixed.
+
+    *Alex Ghiculescu*
+
 *   Add the following permissions policy directives: `hid`, `idle-detection`, `screen-wake-lock`,
     `serial`, `sync-xhr`, `web-share`.
 
