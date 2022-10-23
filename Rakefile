@@ -1,72 +1,88 @@
 # frozen_string_literal: true
 
-require "net/http"
+namespace :guides do
+  desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
+  task generate: "generate:html"
 
-$:.unshift __dir__
-require "tasks/release"
-require "railties/lib/rails/api/task"
-
-desc "Build gem files for all projects"
-task build: "all:build"
-
-desc "Build, install and verify the gem files in a generated Rails app."
-task verify: "all:verify"
-
-desc "Prepare the release"
-task prep_release: "all:prep_release"
-
-desc "Release all gems to rubygems and create a tag"
-task release: "all:release"
-
-desc "Run all tests by default"
-task default: %w(test test:isolated)
-
-%w(test test:isolated package gem).each do |task_name|
-  desc "Run #{task_name} task for all projects"
-  task task_name do
-    errors = []
-    FRAMEWORKS.each do |project|
-      system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
+  namespace :generate do
+    desc "Generate HTML guides"
+    task :html do
+      ruby "-Eutf-8:utf-8", "rails_guides.rb"
     end
-    fail("Errors in #{errors.join(', ')}") unless errors.empty?
+
+    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
+    task :kindle do
+      require "kindlerb"
+      unless Kindlerb.kindlegen_available?
+        abort "Please run `setupkindlerb` to install kindlegen"
+      end
+      unless /convert/.match?(`convert`)
+        abort "Please install ImageMagick"
+      end
+      ENV["KINDLE"] = "1"
+      Rake::Task["guides:generate:html"].invoke
+    end
+  end
+
+  # Validate guides -------------------------------------------------------------------------
+  desc 'Validate guides, use ONLY=foo to process just "foo.html"'
+  task :validate do
+    ruby "w3c_validator.rb"
+  end
+
+  desc "Show help"
+  task :help do
+    puts <<HELP
+
+Guides are taken from the source directory, and the result goes into the
+output directory. Assets are stored under files, and copied to output/files as
+part of the generation process.
+
+You can generate HTML, Kindle or both formats using the `guides:generate` task.
+
+All of these processes are handled via rake tasks, here's a full list of them:
+
+#{%x[rake -T]}
+Some arguments may be passed via environment variables:
+
+  RAILS_VERSION=tag
+    If guides are being generated for a specific Rails version set the Git tag
+    here, otherwise the current SHA1 is going to be used to generate edge guides.
+
+  ALL=1
+    Force generation of all guides.
+
+  ONLY=name
+    Useful if you want to generate only one or a set of guides.
+
+    Generate only association_basics.html:
+      ONLY=assoc
+
+    Separate many using commas:
+      ONLY=assoc,migrations
+
+  GUIDES_LANGUAGE
+    Use it when you want to generate translated guides in
+    source/<GUIDES_LANGUAGE> folder (such as source/es)
+
+Examples:
+  $ rake guides:generate ALL=1 RAILS_VERSION=v5.1.0
+  $ rake guides:generate ONLY=migrations
+  $ rake guides:generate:kindle
+  $ rake guides:generate GUIDES_LANGUAGE=es
+HELP
   end
 end
 
-desc "Smoke-test all projects"
-task :smoke do
-  (FRAMEWORKS - %w(activerecord)).each do |project|
-    system %(cd #{project} && #{$0} test:isolated --trace)
+task :test do
+  templates = Dir.glob("bug_report_templates/*.rb")
+  counter = templates.count do |file|
+    puts "--- Running #{file}"
+    Bundler.unbundled_system(Gem.ruby, "-w", file) ||
+      puts("+++ 💥 FAILED (exit #{$?.exitstatus})")
   end
-  system %(cd activerecord && #{$0} sqlite3:isolated_test --trace)
+  puts "+++ #{counter} / #{templates.size} templates executed successfully"
+  exit 1 if counter < templates.size
 end
 
-desc "Install gems for all projects."
-task install: "all:install"
-
-desc "Generate documentation for the Rails framework"
-if ENV["EDGE"]
-  Rails::API::EdgeTask.new("rdoc")
-else
-  Rails::API::StableTask.new("rdoc")
-end
-
-desc "Bump all versions to match RAILS_VERSION"
-task update_versions: "all:update_versions"
-
-# We have a webhook configured in GitHub that gets invoked after pushes.
-# This hook triggers the following tasks:
-#
-#   * updates the local checkout
-#   * updates Rails Contributors
-#   * generates and publishes edge docs
-#   * if there's a new stable tag, generates and publishes stable docs
-#
-# Everything is automated and you do NOT need to run this task normally.
-desc "Publishes docs, run this AFTER a new stable tag has been pushed"
-task :publish_docs do
-  Net::HTTP.new("api.rubyonrails.org", 8080).start do |http|
-    request  = Net::HTTP::Post.new("/rails-master-hook")
-    response = http.request(request)
-    puts response.body
-  end
-end
+task default: "guides:help"

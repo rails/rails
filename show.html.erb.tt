@@ -1,0 +1,10 @@
+<p style="color: green"><%%= notice %></p>
+
+<%%= render @<%= singular_table_name %> %>
+
+<div>
+  <%%= link_to "Edit this <%= human_name.downcase %>", <%= edit_helper(type: :path) %> %> |
+  <%%= link_to "Back to <%= human_name.pluralize.downcase %>", <%= index_helper(type: :path) %> %>
+
+  <%%= button_to "Destroy this <%= human_name.downcase %>", <%= model_resource_name(prefix: "@") %>, method: :delete %>
+</div>

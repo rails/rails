@@ -1,0 +1,28 @@
+require_relative "lib/<%= namespaced_name %>/version"
+
+Gem::Specification.new do |spec|
+  spec.name        = <%= name.inspect %>
+  spec.version     = <%= camelized_modules %>::VERSION
+  spec.authors     = [<%= author.inspect %>]
+  spec.email       = [<%= email.inspect %>]
+  spec.homepage    = "TODO"
+  spec.summary     = "TODO: Summary of <%= camelized_modules %>."
+  spec.description = "TODO: Description of <%= camelized_modules %>."
+  <% unless inside_application? -%>
+  spec.license     = "MIT"
+  <% end -%>
+
+  # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
+  # to allow pushing to a single host or delete this section to allow pushing to any host.
+  spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "TODO: Put your gem's public repo URL here."
+  spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+
+  spec.files = Dir.chdir(File.expand_path(__dir__)) do
+    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+  end
+
+  <%= "# " if rails_prerelease? -%>spec.add_dependency "rails", "<%= Array(rails_version_specifier).join('", "') %>"
+end

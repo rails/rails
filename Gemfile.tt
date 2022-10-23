@@ -1,0 +1,68 @@
+source "https://rubygems.org"
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
+ruby <%= "\"#{RUBY_VERSION}\"" -%>
+
+<% gemfile_entries.each do |gemfile_entry| %>
+<%= gemfile_entry %>
+<% end -%>
+<% unless options.minimal? -%>
+
+# Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
+# gem "kredis"
+
+# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
+# gem "bcrypt", "~> 3.1.7"
+<% end -%>
+
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+<% if depend_on_bootsnap? -%>
+
+# Reduces boot times through caching; required in config/boot.rb
+gem "bootsnap", require: false
+<% end -%>
+<% unless skip_sprockets? || options.minimal? -%>
+
+# Use Sass to process CSS
+# gem "sassc-rails"
+<% end -%>
+<% unless skip_active_storage? -%>
+
+# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
+# gem "image_processing", "~> 1.2"
+<% end -%>
+<%- if options.api? -%>
+
+# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
+# gem "rack-cors"
+<%- end -%>
+<% if RUBY_ENGINE == "ruby" -%>
+
+group :development, :test do
+  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
+  gem "debug", platforms: %i[ mri mingw x64_mingw ]
+end
+<% end -%>
+
+group :development do
+<%- unless options.api? || options.skip_dev_gems? -%>
+  # Use console on exceptions pages [https://github.com/rails/web-console]
+  gem "web-console"
+
+  # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
+  # gem "rack-mini-profiler"
+
+<%- end -%>
+  # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
+  # gem "spring"
+end
+
+<%- if depends_on_system_test? -%>
+group :test do
+  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
+  gem "capybara"
+  gem "selenium-webdriver"
+  gem "webdrivers"
+end
+<%- end -%>
