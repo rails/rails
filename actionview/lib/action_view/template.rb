@@ -180,7 +180,7 @@ module ActionView
           view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block).to_s
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)&.to_s
         end
       end
     rescue => e

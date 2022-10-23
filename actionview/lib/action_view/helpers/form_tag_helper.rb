@@ -422,9 +422,17 @@ module ActionView
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
 
+      ##
+      # :call-seq:
+      #   check_box_tag(name, options = {})
+      #   check_box_tag(name, value, options = {})
+      #   check_box_tag(name, value, checked, options = {})
+      #
       # Creates a check box form input tag.
       #
       # ==== Options
+      # * <tt>:value</tt> - The value of the input. Defaults to <tt>"1"</tt>.
+      # * <tt>:checked</tt> - If set to true, the checkbox will be checked by default.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -443,16 +451,27 @@ module ActionView
       #
       #   check_box_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
-      def check_box_tag(name, value = "1", checked = false, options = {})
+      def check_box_tag(name, *args)
+        if args.length >= 4
+          raise ArgumentError, "wrong number of arguments (given #{args.length + 1}, expected 1..4)"
+        end
+        options = args.extract_options!
+        value, checked = args.empty? ? ["1", false] : [*args, false]
         html_options = { "type" => "checkbox", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
 
+      ##
+      # :call-seq:
+      #   radio_button_tag(name, value, options = {})
+      #   radio_button_tag(name, value, checked, options = {})
+      #
       # Creates a radio button; use groups of radio buttons named the same to allow users to
       # select from a group of options.
       #
       # ==== Options
+      # * <tt>:checked</tt> - If set to true, the radio button will be selected by default.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -468,7 +487,12 @@ module ActionView
       #
       #   radio_button_tag 'color', "green", true, class: "color_input"
       #   # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />
-      def radio_button_tag(name, value, checked = false, options = {})
+      def radio_button_tag(name, value, *args)
+        if args.length >= 3
+          raise ArgumentError, "wrong number of arguments (given #{args.length + 2}, expected 2..4)"
+        end
+        options = args.extract_options!
+        checked = args.empty? ? false : args.first
         html_options = { "type" => "radio", "name" => name, "id" => "#{sanitize_to_id(name)}_#{sanitize_to_id(value)}", "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag :input, html_options
