@@ -1,0 +1,45 @@
+Hi everyone,
+
+I am happy to announce that Rails <%= versions.join(" and ") %> <%= versions.size > 1 ? "have" : "has" %> been released.
+
+<% if future_date %>
+If no regressions are found, expect the final release on <%= future_date.strftime("%A, %B %-d, %Y") %>.
+If you find one, please open an [issue on GitHub](https://github.com/rails/rails/issues/new)
+<%= "and mention me (@#{github_user}) on it, " unless github_user.empty? %>so that we can fix it before the final release.
+<% end %>
+<% versions.each do |version| %>
+
+## CHANGES since <%= version.previous %>
+
+To view the changes for each gem, please read the changelogs on GitHub:
+<% FRAMEWORKS.sort.each do |framework| %>
+<%= "* [#{FRAMEWORK_NAMES[framework]} CHANGELOG](https://github.com/rails/rails/blob/v#{version}/#{framework}/CHANGELOG.md)" %>
+
+<% end %>
+
+To see a summary of changes, please read the release on GitHub:
+
+<%= "[#{version} CHANGELOG](https://github.com/rails/rails/releases/tag/v#{version})" %>
+
+
+*Full listing*
+
+To see the full list of changes, [check out all the commits on
+GitHub](https://github.com/rails/rails/compare/v<%= "#{version.previous}...v#{version}" %>).
+<% end %>
+
+## SHA-256
+
+If you'd like to verify that your gem is the same as the one I've uploaded,
+please use these SHA-256 hashes.
+
+<% versions.each do |version| %>
+Here are the checksums for <%= version %>:
+
+```
+$ shasum -a 256 *-<%= version %>.gem
+<%= `shasum -a 256 *-#{version}.gem` %>
+```
+
+<% end %>
+As always, huge thanks to the many contributors who helped with this release.
