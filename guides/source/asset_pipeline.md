@@ -656,14 +656,29 @@ JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and
 `.scss` files are **not** automatically included as they compile to JS/CSS.
 
 If you have other manifests or individual stylesheets and JavaScript files to
-include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
+include, you can add them yourself:
 
-```ruby
-Rails.application.config.assets.precompile += %w( admin.js admin.css )
-```
+- **Sprockets 3:** Add files to the `precompile` array in `config/initializers/assets.rb`:
+
+  ```ruby
+  Rails.application.config.assets.precompile += %w( admin.js admin.css )
+  ```
+
+- **Sprockets 4:** Add files or directories inside `./app/assets/config/manifest.js`
+
+  ```js
+  //= link_tree ../images
+  //= link admin.js
+  //= link admin.css
+  // Or link whole directories:
+  //= link_directory ../javascripts .js
+  //= link_directory ../stylesheets .css
+  ```
 
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
-even if you want to add Sass or CoffeeScript files to the precompile array.
+even if you want to add Sass or CoffeeScript files to the precompile array or manifest file.
+
+NOTE. More information on the differences between Sprockets 3 and 4 please can be found in the [Sprockets Upgrading Guide](https://github.com/rails/sprockets/blob/main/UPGRADING.md#manifestjs)
 
 The command also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
 a 16-byte random hex string) that contains a list with all your assets and their respective
