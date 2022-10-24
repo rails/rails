@@ -3893,18 +3893,18 @@ module ApplicationTests
       assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
     end
 
-    test "can entirely opt out of ActiveSupport::Deprecations" do
+    test "can entirely opt out of deprecation warnings" do
       add_to_config "config.active_support.report_deprecations = false"
 
       app "production"
 
-      assert_equal true, ActiveSupport::Deprecation.silenced
-      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.behavior
-      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
+      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
 
-      assert_equal true, Rails.application.deprecators[:rails].silenced
-      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], Rails.application.deprecators[:rails].behavior
-      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], Rails.application.deprecators[:rails].disallowed_behavior
+      Rails.application.deprecators.each do |deprecator|
+        assert_equal true, deprecator.silenced
+        assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], deprecator.behavior
+        assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], deprecator.disallowed_behavior
+      end
     end
 
     test "ParamsWrapper is enabled in a new app and uses JSON as the format" do
