@@ -120,6 +120,30 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_bulk_alter?
+        def test_bulk_invert_change_table
+          block = Proc.new do |t|
+            t.string :name
+            t.rename :kind, :cultivar
+          end
+
+          @recorder.revert do
+            @recorder.change_table :fruits, bulk: true, &block
+          end
+
+          @recorder.revert do
+            @recorder.revert do
+              @recorder.change_table :fruits, bulk: true, &block
+            end
+          end
+
+          assert_equal [
+            [:change_table, [:fruits]],
+            [:change_table, [:fruits]]
+          ], @recorder.commands.map { |command| command[0...-1] }
+        end
+      end
+
       def test_invert_create_table
         @recorder.revert do
           @recorder.record :create_table, [:system_settings]

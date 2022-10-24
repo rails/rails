@@ -1561,6 +1561,47 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         @indexes ||= Person.connection.indexes("delete_me")
       end
   end # AlterTableMigrationsTest
+
+  class RevertBulkAlterTableMigrationsTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    def setup
+      @connection = Person.connection
+      Person.reset_column_information
+      Person.reset_sequence_name
+    end
+
+    teardown do
+      @connection.remove_columns(:people, :column1, :column2) rescue nil
+    end
+
+    def test_bulk_revert
+      @connection.add_column(:people, :column1, :string)
+      @connection.add_column(:people, :column2, :string)
+      assert_column Person, :column1
+      assert_column Person, :column2
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        disable_ddl_transaction!
+
+        def write(text = ""); end
+
+        def change
+          change_table :people, bulk: true do |t|
+            t.column :column1, :string
+            t.column :column2, :string
+          end
+        end
+      }.new
+
+      assert_queries(1) do
+        migration.migrate(:down)
+      end
+
+      assert_no_column Person, :column1
+      assert_no_column Person, :column2
+    end
+  end
 end
 
 class CopyMigrationsTest < ActiveRecord::TestCase
