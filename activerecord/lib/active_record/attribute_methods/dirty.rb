@@ -29,7 +29,7 @@ module ActiveRecord
 
       module ClassMethods
         def partial_writes
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord.deprecator.warn(<<-MSG.squish)
             ActiveRecord::Base.partial_writes is deprecated and will be removed in Rails 7.1.
             Use `partial_updates` and `partial_inserts` instead.
           MSG
@@ -37,7 +37,7 @@ module ActiveRecord
         end
 
         def partial_writes?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord.deprecator.warn(<<-MSG.squish)
             `ActiveRecord::Base.partial_writes?` is deprecated and will be removed in Rails 7.1.
             Use `partial_updates?` and `partial_inserts?` instead.
           MSG
@@ -45,7 +45,7 @@ module ActiveRecord
         end
 
         def partial_writes=(value)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord.deprecator.warn(<<-MSG.squish)
             `ActiveRecord::Base.partial_writes=` is deprecated and will be removed in Rails 7.1.
             Use `partial_updates=` and `partial_inserts=` instead.
           MSG

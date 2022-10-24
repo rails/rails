@@ -7,21 +7,21 @@ module ActiveRecord
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     def self.runtime=(value)
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      ActiveRecord.deprecator.warn(<<-MSG.squish)
         ActiveRecord::LogSubscriber.runtime= is deprecated and will be removed in Rails 7.2.
       MSG
       ActiveRecord::RuntimeRegistry.sql_runtime = value
     end
 
     def self.runtime
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      ActiveRecord.deprecator.warn(<<-MSG.squish)
         ActiveRecord::LogSubscriber.runtime is deprecated and will be removed in Rails 7.2.
       MSG
       ActiveRecord::RuntimeRegistry.sql_runtime
     end
 
     def self.reset_runtime
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      ActiveRecord.deprecator.warn(<<-MSG.squish)
         ActiveRecord::LogSubscriber.reset_runtime is deprecated and will be removed in Rails 7.2.
       MSG
       ActiveRecord::RuntimeRegistry.reset

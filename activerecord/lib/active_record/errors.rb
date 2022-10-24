@@ -12,7 +12,8 @@ module ActiveRecord
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor
   DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
   deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
-    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead."
+    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead.",
+    deprecator: ActiveRecord.deprecator
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that

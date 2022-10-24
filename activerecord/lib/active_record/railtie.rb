@@ -73,6 +73,10 @@ module ActiveRecord
       require "active_record/base"
     end
 
+    initializer "active_record.deprecator" do |app|
+      app.deprecators[:active_record] = ActiveRecord.deprecator
+    end
+
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true

@@ -330,7 +330,7 @@ module ActiveRecord
 
     private
       def deprecation_for_delegation(method)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           Calling `ActiveRecord::Base.#{method} is deprecated. Please
           call the method directly on the connection handler; for
           example: `ActiveRecord::Base.connection_handler.#{method}`.
