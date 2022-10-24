@@ -80,6 +80,18 @@ module ActiveRecord
       assert_equal expected, actual
     end
 
+    def test_reselect_with_hash_argument
+      expected = Post.select(:title, posts: { title: :post_title }).to_sql
+      actual = Post.select(:title, :body).reselect(:title, posts: { title: :post_title }).to_sql
+      assert_equal expected, actual
+    end
+
+    def test_reselect_with_one_level_hash_argument
+      expected = Post.select(:title, title: :post_title).to_sql
+      actual = Post.select(:title, :body).reselect(:title, title: :post_title).to_sql
+      assert_equal expected, actual
+    end
+
     def test_non_select_columns_wont_be_loaded
       posts = Post.select("UPPER(title) AS title")
 

@@ -265,6 +265,13 @@ module ActiveRecord
             end
 
             add_column :tests, "last_name", :string, wrong_precision: true
+
+            change_column :tests, :some_id, :float, wrong_index: true
+
+            change_table :tests do |t|
+              t.change :some_id, :float, null: false, wrong_index: true
+              t.integer :another_id, wrong_unique: true
+            end
           end
         }.new
 

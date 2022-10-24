@@ -33,8 +33,6 @@ module ActiveModel
     #
     #   person.active # => "aye"
     class ImmutableString < Value
-      include SerializeCastValue
-
       def initialize(**args)
         @true  = -(args.delete(:true)&.to_s  || "t")
         @false = -(args.delete(:false)&.to_s || "f")
@@ -52,6 +50,10 @@ module ActiveModel
         when false then @false
         else super
         end
+      end
+
+      def serialize_cast_value(value) # :nodoc:
+        value
       end
 
       private

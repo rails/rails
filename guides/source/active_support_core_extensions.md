@@ -451,7 +451,7 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 [Object#with_options]: https://api.rubyonrails.org/classes/Object.html#method-i-with_options
 
-### JSON support
+### JSON Support
 
 Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
@@ -2895,7 +2895,7 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 [Hash#deep_merge!]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge-21
 [Hash#deep_merge]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge
 
-### Deep duplicating
+### Deep Duplicating
 
 The method [`Hash#deep_dup`][Hash#deep_dup] duplicates itself and all keys and values
 inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
@@ -3235,7 +3235,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [DateAndTime::Calculations#on_weekend?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-on_weekend-3F
 [DateAndTime::Calculations#past?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-past-3F
 
-#### Named dates
+#### Named Dates
 
 ##### `beginning_of_week`, `end_of_week`
 

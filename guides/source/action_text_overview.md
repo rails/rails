@@ -25,7 +25,7 @@ RichText model that's associated with any existing Active Record model in the ap
 Any embedded images (or other attachments) are automatically stored using
 Active Storage and associated with the included RichText model.
 
-## Trix compared to other rich text editors
+## Trix Compared to Other Rich Text Editors
 
 Most WYSIWYG editors are wrappers around HTML’s `contenteditable` and `execCommand` APIs,
 designed by Microsoft to support live editing of web pages in Internet Explorer 5.5,
@@ -61,7 +61,7 @@ After the installation is complete, a Rails app should have the following change
 
 2. The `trix` stylesheet will be included together with Action Text styles in your `application.css` file.
 
-## Creating Rich Text content
+## Creating Rich Text Content
 
 Add a rich text field to an existing model:
 
@@ -111,7 +111,7 @@ end
 
 [`rich_text_area`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-rich_text_area
 
-## Rendering Rich Text content
+## Rendering Rich Text Content
 
 By default, Action Text will render rich text content inside an element with the
 `.trix-content` class:
@@ -214,7 +214,7 @@ By default, all `ActiveRecord::Base` descendants mix-in
 
 [global-id]: https://github.com/rails/globalid#usage
 
-## Avoid N+1 queries
+## Avoid N+1 Queries
 
 If you wish to preload the dependent `ActionText::RichText` model, assuming your rich text field is named `content`, you can use the named scope:
 
@@ -223,7 +223,7 @@ Message.all.with_rich_text_content # Preload the body without attachments.
 Message.all.with_rich_text_content_and_embeds # Preload both body and attachments.
 ```
 
-## API / Backend development
+## API / Backend Development
 
 1. A backend API (for example, using JSON) needs a separate endpoint for uploading files that creates an `ActiveStorage::Blob` and returns its `attachable_sgid`:
 
