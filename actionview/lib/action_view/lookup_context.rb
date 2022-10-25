@@ -17,6 +17,8 @@ module ActionView
 
     singleton_class.attr_accessor :registered_details
     self.registered_details = []
+    singleton_class.attr_accessor :view_path_cache
+    self.view_path_cache = Concurrent::Map.new
 
     def self.register_detail(name, &block)
       registered_details << name
@@ -149,11 +151,11 @@ module ActionView
       alias :any_templates? :any?
 
       def append_view_paths(paths)
-        @view_paths = build_view_paths(@view_paths.to_a + paths)
+        @view_paths = build_view_paths(@view_paths.to_a + cache_paths(paths))
       end
 
       def prepend_view_paths(paths)
-        @view_paths = build_view_paths(paths + @view_paths.to_a)
+        @view_paths = build_view_paths(cache_paths(paths) + @view_paths.to_a)
       end
 
     private
@@ -164,6 +166,22 @@ module ActionView
           paths
         else
           ActionView::PathSet.new(Array(paths))
+        end
+      end
+
+      # #build_view_paths creates a new PathSet on each invocation. This helper
+      # caches stringish path arguments, enabling template caching for
+      # dynamically added view paths (e.g. added in a request context).
+      def cache_paths(paths)
+        Array(paths).map do |path|
+          if ActionView::Resolver.caching? && (path.is_a?(String) || path.is_a?(Pathname))
+            # Let PathSet transform `path` and cache the result
+            LookupContext.view_path_cache.fetch_or_store(path.to_s) do
+              PathSet.new([path]).paths[0]
+            end
+          else
+            path
+          end
         end
       end
 

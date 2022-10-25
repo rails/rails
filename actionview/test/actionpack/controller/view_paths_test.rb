@@ -102,6 +102,28 @@ class ViewLoadPathsTest < ActionController::TestCase
     assert_paths TestController, *class_view_paths
   end
 
+  def test_append_view_path_does_not_bust_template_cache
+    template_instances = 2.times.map do
+      controller = Test::SubController.new
+      controller.append_view_path "#{FIXTURE_LOAD_PATH}/override2"
+      controller.lookup_context.find_all("layouts/test/sub")
+    end
+
+    object_ids = template_instances.flatten.map(&:object_id)
+    assert_equal 1, object_ids.uniq.count
+  end
+
+  def test_prepend_view_path_does_not_bust_template_cache
+    template_instances = 2.times.map do
+      controller = TestController.new
+      controller.prepend_view_path "#{FIXTURE_LOAD_PATH}/override"
+      controller.lookup_context.find_all("hello_world", "test")
+    end
+
+    object_ids = template_instances.flatten.map(&:object_id)
+    assert_equal 1, object_ids.uniq.count
+  end
+
   def test_view_paths
     get :hello_world
     assert_response :success
