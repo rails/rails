@@ -246,6 +246,8 @@ module ActiveRecord
               parts << "name: #{check_constraint.name.inspect}"
             end
 
+            parts << "validate: #{check_constraint.validate?.inspect}" unless check_constraint.validate?
+
             "    #{parts.join(', ')}"
           end
 
@@ -276,6 +278,7 @@ module ActiveRecord
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
             parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
+            parts << "validate: #{foreign_key.validate?.inspect}" unless foreign_key.validate?
 
             "  #{parts.join(', ')}"
           end
