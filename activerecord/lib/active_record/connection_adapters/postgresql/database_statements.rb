@@ -33,15 +33,20 @@ module ActiveRecord
 
         # Executes an SQL statement, returning a PG::Result object on success
         # or raising a PG::Error exception otherwise.
+        #
+        # Setting +allow_retry+ to true causes the db to reconnect and retry
+        # executing the SQL statement in case of a connection-related exception.
+        # This option should only be enabled for known idempotent queries.
+        #
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(sql, name = nil)
+        def execute(sql, name = nil, allow_retry: false)
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 
-          with_raw_connection do |conn|
+          with_raw_connection(allow_retry: allow_retry) do |conn|
             log(sql, name) do
               conn.async_exec(sql)
             end

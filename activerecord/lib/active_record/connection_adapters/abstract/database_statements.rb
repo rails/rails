@@ -110,10 +110,15 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection and returns
       # the raw result from the connection adapter.
+      #
+      # Setting +allow_retry+ to true causes the db to reconnect and retry
+      # executing the SQL statement in case of a connection-related exception.
+      # This option should only be enabled for known idempotent queries.
+      #
       # Note: depending on your database connector, the result returned by this
       # method may be manually memory managed. Consider using the exec_query
       # wrapper instead.
-      def execute(sql, name = nil)
+      def execute(sql, name = nil, allow_retry: false)
         raise NotImplementedError
       end
 
