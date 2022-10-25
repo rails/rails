@@ -1773,13 +1773,17 @@ module ApplicationTests
     test "config.active_record.suppress_multiple_database_warning getter is deprecated" do
       app "development"
 
-      assert_deprecated { ActiveRecord.suppress_multiple_database_warning }
+      assert_deprecated(Rails.application.deprecators[:active_record]) do
+        ActiveRecord.suppress_multiple_database_warning
+      end
     end
 
     test "config.active_record.suppress_multiple_database_warning setter is deprecated" do
       app "development"
 
-      assert_deprecated { ActiveRecord.suppress_multiple_database_warning = true }
+      assert_deprecated(Rails.application.deprecators[:active_record]) do
+        ActiveRecord.suppress_multiple_database_warning = true
+      end
     end
 
     test "config.active_record.use_yaml_unsafe_load is false by default" do
@@ -3893,12 +3897,19 @@ module ApplicationTests
       assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
     end
 
+    test "Rails.application.deprecators includes framework deprecators" do
+      app "production"
+
+      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
+      assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
+    end
+
     test "can entirely opt out of deprecation warnings" do
       add_to_config "config.active_support.report_deprecations = false"
 
       app "production"
 
-      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
+      assert_predicate Rails.application.deprecators.each, :any?
 
       Rails.application.deprecators.each do |deprecator|
         assert_equal true, deprecator.silenced

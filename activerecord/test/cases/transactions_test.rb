@@ -211,7 +211,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       transaction_with_shallow_return
     end
     assert committed
@@ -226,7 +226,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_deprecation_on_ruby_timeout_outside_inner_transaction
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       catch do |timeout|
         Topic.transaction do
           Topic.transaction(requires_new: true) do

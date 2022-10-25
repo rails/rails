@@ -1097,7 +1097,7 @@ module ActiveRecord
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
       if schema_migration == SchemaMigration
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
           specific connection, instaniate MigrationContext with the connection's schema
@@ -1108,7 +1108,7 @@ module ActiveRecord
       end
 
       if internal_metadata == InternalMetadata
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
           specific connection, instaniate MigrationContext with the connection's internal
