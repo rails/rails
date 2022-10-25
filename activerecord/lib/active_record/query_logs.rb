@@ -134,7 +134,7 @@ module ActiveRecord
         def tag_content
           context = ActiveSupport::ExecutionContext.to_h
 
-          tags.flat_map { |i| [*i] }.filter_map do |tag|
+          pairs = tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, handler = tag
             handler ||= taggings[key]
 
@@ -149,9 +149,9 @@ module ActiveRecord
             else
               handler
             end
-
-            self.formatter.format(key, val) unless val.nil?
-          end.join(",")
+            [key, val] unless val.nil?
+          end
+          self.formatter.format(pairs)
         end
     end
   end
