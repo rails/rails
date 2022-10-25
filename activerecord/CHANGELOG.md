@@ -1,3 +1,11 @@
+*   Adds `validate` to foreign keys and check constraints in schema.rb
+
+    Previously, `schema.rb` would not record if `validate: false` had been used when adding a foreign key or check
+    constraint, so restoring a database from the schema could result in foreign keys or check constraints being
+    incorrectly validated.
+
+    *Tommy Graves*
+
 *   Adapter `#execute` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
     retried, up to the database's configured `connection_retries` value, upon encountering connection-related errors.
 
