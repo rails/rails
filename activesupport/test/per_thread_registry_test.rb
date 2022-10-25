@@ -4,7 +4,7 @@ require_relative "abstract_unit"
 
 class PerThreadRegistryTest < ActiveSupport::TestCase
   class TestRegistry
-    ActiveSupport::Deprecation.silence do
+    ActiveSupport.deprecator.silence do
       extend ActiveSupport::PerThreadRegistry
     end
 

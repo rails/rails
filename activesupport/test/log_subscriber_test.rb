@@ -72,7 +72,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
 
   def test_deprecated_bold_format_for_messages
     ActiveSupport::LogSubscriber.colorize_logging = true
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       @log_subscriber.deprecated(nil)
     end
   end

@@ -65,8 +65,8 @@ module ActiveSupport
   # (via <tt>action_dispatch.callback</tt> notification) in a Rails environment.
   class LogSubscriber < Subscriber
     # Embed in a String to clear all previous ANSI sequences.
-    CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.")
-    BOLD  = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[1m", "BOLD is deprecated! Use MODES[:bold] instead.")
+    CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.", ActiveSupport.deprecator)
+    BOLD  = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[1m", "BOLD is deprecated! Use MODES[:bold] instead.", ActiveSupport.deprecator)
 
     # ANSI sequence modes
     MODES = {
@@ -179,7 +179,7 @@ module ActiveSupport
 
     def mode_from(options)
       if options.is_a?(TrueClass) || options.is_a?(FalseClass)
-        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+        ActiveSupport.deprecator.warn(<<~MSG.squish)
           Bolding log text with a positional boolean is deprecated and will be removed
           in Rails 7.2. Use an option hash instead (eg. `color(:red, "my text", bold: true)`).
         MSG

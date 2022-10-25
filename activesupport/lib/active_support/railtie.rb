@@ -10,6 +10,10 @@ module ActiveSupport
 
     config.eager_load_namespaces << ActiveSupport
 
+    initializer "active_support.deprecator" do |app|
+      app.deprecators[:active_support] = ActiveSupport.deprecator
+    end
+
     initializer "active_support.isolation_level" do |app|
       config.after_initialize do
         if level = app.config.active_support.delete(:isolation_level)

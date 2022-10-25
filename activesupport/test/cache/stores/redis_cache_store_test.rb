@@ -272,7 +272,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include ConnectionPoolBehavior
 
     def test_deprecated_connection_pool_works
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         cache = ActiveSupport::Cache.lookup_store(:redis_cache_store, pool_size: 2, pool_timeout: 1)
         pool = cache.redis # loads 'connection_pool' gem
         assert_kind_of ::ConnectionPool, pool

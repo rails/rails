@@ -3902,6 +3902,7 @@ module ApplicationTests
 
       assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
+      assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
     end
 
     test "can entirely opt out of deprecation warnings" do
@@ -3963,19 +3964,19 @@ module ApplicationTests
 
       app "production"
 
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "21 Feb", Date.new(2005, 2, 21).to_s(:short)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "2005-02-21 14:30:00", DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "555-1234", 5551234.to_s(:phone)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_s(:db)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "2005-02-21 17:44:30", Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
       end
     end
