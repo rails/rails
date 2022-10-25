@@ -7,7 +7,7 @@ module ActiveModel
   module Type
     module Helpers # :nodoc: all
       module TimeValue
-        def serialize(value)
+        def serialize_cast_value(value)
           value = apply_seconds_precision(value)
 
           if value.acts_like?(:time)

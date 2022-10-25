@@ -237,6 +237,10 @@ module ActiveRecord
         end
 
         private
+          def valid_column_definition_options
+            super + [:array, :using, :cast_as, :as, :type, :enum_type, :stored]
+          end
+
           def aliased_types(name, fallback)
             fallback
           end

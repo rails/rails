@@ -366,7 +366,7 @@ class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
       If you expected this exception, use `assert_raises` as near to the code that raises as possible.
       Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
     MSG
-    assert @out.string.include?(expected), @out.string
+    assert_includes @out.string, expected
   end
 
   def test_warning_is_not_logged_if_caught_correctly_by_user
@@ -391,7 +391,7 @@ class ExceptionsInsideAssertionsTest < ActiveSupport::TestCase
       If you expected this exception, use `assert_raises` as near to the code that raises as possible.
       Other block based assertions (e.g. `assert_no_changes`) can be used, as long as `assert_raises` is inside their block.
     MSG
-    assert @out.string.include?(expected), @out.string
+    assert_includes @out.string, expected
     assert error.message.include?("ArgumentError: ArgumentError")
     assert error.message.include?("in `block (2 levels) in run_test_that_should_fail_confusingly'")
   end

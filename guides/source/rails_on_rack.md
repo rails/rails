@@ -80,7 +80,7 @@ To find out more about different `rackup` options, you can run:
 $ rackup --help
 ```
 
-### Development and auto-reloading
+### Development and Auto-reloading
 
 Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.
 
@@ -171,6 +171,24 @@ You can swap an existing middleware in the middleware stack using `config.middle
 
 # Replace ActionDispatch::ShowExceptions with Lifo::ShowExceptions
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
+```
+
+#### Moving a Middleware
+
+You can move an existing middleware in the middleware stack using `config.middleware.move_before` and `config.middleware.move_after`.
+
+```ruby
+# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to before Lifo::ShowExceptions
+config.middleware.move_before Lifo::ShowExceptions, ActionDispatch::ShowExceptions
+```
+
+```ruby
+# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to after Lifo::ShowExceptions
+config.middleware.move_after Lifo::ShowExceptions, ActionDispatch::ShowExceptions
 ```
 
 #### Deleting a Middleware

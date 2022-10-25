@@ -32,7 +32,7 @@ Setup
 Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across
 different Rails applications using RubyGems and Bundler if desired.
 
-### Generate a gemified plugin.
+### Generate a Gemified Plugin
 
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability
@@ -52,7 +52,18 @@ $ rails plugin new --help
 Testing Your Newly Generated Plugin
 -----------------------------------
 
-You can navigate to the directory that contains the plugin, run the `bundle install` command
+You can navigate to the directory that contains the plugin, change the following lines in `yaffle.gemspec`
+
+```ruby
+  spec.summary     = "Summary of Yaffle."
+  spec.description = "Description of Yaffle."
+...
+  spec.homepage    = "http://example.com"
+  spec.metadata["source_code_uri"] = "http://example.com"
+  spec.metadata["changelog_uri"] = "http://example.com"
+```
+
+run the `bundle install` command
 and run the one generated test using the `bin/test` command.
 
 You should see:
@@ -108,6 +119,7 @@ In `lib/yaffle.rb`, add `require "yaffle/core_ext"`:
 ```ruby
 # yaffle/lib/yaffle.rb
 
+require "yaffle/version"
 require "yaffle/railtie"
 require "yaffle/core_ext"
 
@@ -161,6 +173,7 @@ end
 ```ruby
 # yaffle/lib/yaffle.rb
 
+require "yaffle/version"
 require "yaffle/railtie"
 require "yaffle/core_ext"
 require "yaffle/acts_as_yaffle"
@@ -491,7 +504,7 @@ The first step is to update the README file with detailed information about how 
 * How to add the functionality to the app (several examples of common use cases)
 * Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add rdoc comments to all the methods that developers will use. It's also customary to add `# :nodoc:` comments to those parts of the code that are not included in the public API.
+Once your README is solid, go through and add RDoc comments to all the methods that developers will use. It's also customary to add `# :nodoc:` comments to those parts of the code that are not included in the public API.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 

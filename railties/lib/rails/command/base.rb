@@ -181,6 +181,7 @@ module Rails
         attr_reader :current_subcommand
 
         def invoke_command(command, *) # :nodoc:
+          @current_subcommand ||= nil
           original_subcommand, @current_subcommand = @current_subcommand, command.name
           super
         ensure

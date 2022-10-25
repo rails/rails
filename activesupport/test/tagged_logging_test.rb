@@ -227,64 +227,6 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     assert_equal "[OMG] Broadcasting...\n", broadcast_output.string
   end
 
-  test "keeps broadcasting functionality when passed a block" do
-    broadcast_output = StringIO.new
-    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
-    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
-
-    @logger.tagged("OMG") { |logger| logger.info "Broadcasting..." }
-
-    assert_equal "[OMG] Broadcasting...\n", @output.string
-    assert_equal "[OMG] Broadcasting...\n", broadcast_output.string
-  end
-
-  test "broadcasting when passing a block works and keeps formatter untouched" do
-    broadcast_output = StringIO.new
-    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
-    my_formatter = Class.new do
-      def call(_, _, _, msg)
-        ActiveSupport::JSON.encode(message: msg, tags: current_tags)
-      end
-    end
-    broadcast_logger.formatter = my_formatter.new
-
-    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
-    @logger.tagged("OMG") { |logger| logger.info "Broadcasting..." }
-
-    assert_equal "[OMG] Broadcasting...\n", @output.string
-    assert_equal "{\"message\":\"Broadcasting...\",\"tags\":[\"OMG\"]}", broadcast_output.string
-  end
-
-  test "broadcasting without passing a block works and keeps formatter untouched" do
-    broadcast_output = StringIO.new
-    broadcast_logger = ActiveSupport::TaggedLogging.new(Logger.new(broadcast_output))
-    my_formatter = Class.new do
-      def call(_, _, _, msg)
-        ActiveSupport::JSON.encode(message: msg, tags: current_tags)
-      end
-    end
-    broadcast_logger.formatter = my_formatter.new
-
-    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
-    tagger_logger1 = @logger.tagged("OMG")
-    tagger_logger2 = tagger_logger1.tagged("FOO")
-    tagger_logger2.info("Broadcasting...")
-
-    assert_equal "[OMG] [FOO] Broadcasting...\n", @output.string
-    assert_equal "{\"message\":\"Broadcasting...\",\"tags\":[\"OMG\",\"FOO\"]}", broadcast_output.string
-  end
-
-  test "broadcasting on a non tagged logger" do
-    broadcast_output = StringIO.new
-    broadcast_logger = ActiveSupport::Logger.new(broadcast_output)
-
-    @logger.extend(ActiveSupport::Logger.broadcast(broadcast_logger))
-    @logger.tagged("OMG") { |logger| logger.info "Broadcasting..." }
-
-    assert_equal "[OMG] Broadcasting...\n", @output.string
-    assert_equal "Broadcasting...\n", broadcast_output.string
-  end
-
   test "keeps formatter singleton class methods" do
     plain_output = StringIO.new
     plain_logger = Logger.new(plain_output)

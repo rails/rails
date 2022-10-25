@@ -150,6 +150,20 @@ class AggregationsTest < ActiveRecord::TestCase
     customers(:barney).fullname_no_converter = { first: "Barney", last: "Stinson" }
     assert_equal({ first: "Barney", last: "Stinson" }.to_s, customers(:barney).name)
   end
+
+  def test_hash_mapping
+    assert_equal "Quiet Road", customers(:barney).address_hash_mapping.street
+    assert_equal "Peaceful Town", customers(:barney).address_hash_mapping.city
+    assert_equal "Tranquil Land", customers(:barney).address_hash_mapping.country
+  end
+
+  def test_value_object_with_hash_mapping_assignment_changes_model_attributes
+    customers(:barney).address_hash_mapping = Address.new("Lively Street", customers(:barney).address_city, customers(:barney).address_country)
+
+    customers(:barney).save
+
+    assert_equal "Lively Street", customers(:barney).address_street
+  end
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase

@@ -170,7 +170,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     routing_table = body[/route_table.*<.table>/m]
     assert_match "/:controller(/:action)(.:format)", routing_table
     assert_match ":controller#:action", routing_table
-    assert_no_match "&lt;|&gt;", routing_table, "there should not be escaped html in the output"
+    assert_no_match "&lt;|&gt;", routing_table, "there should not be escaped HTML in the output"
   end
 
   test "displays request and response info when a RoutingError occurs" do

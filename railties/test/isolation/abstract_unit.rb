@@ -8,6 +8,7 @@
 #
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
+require "active_support/testing/strict_warnings"
 require "fileutils"
 require "shellwords"
 
@@ -532,12 +533,6 @@ Module.new do
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts 'require "bootsnap/setup" if ENV["BOOTSNAP_CACHE_DIR"]'
     f.puts 'require "rails/all"'
-  end
-
-  unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/assets/compiled/rails-ujs.js")
-    Dir.chdir("#{RAILS_FRAMEWORK_ROOT}/actionview") do
-      sh "yarn build"
-    end
   end
 
   assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"

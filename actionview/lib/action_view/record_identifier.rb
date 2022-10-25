@@ -31,6 +31,8 @@ module ActionView
   # automatically generated, following naming conventions encapsulated by the
   # RecordIdentifier methods #dom_id and #dom_class:
   #
+  #   dom_id(Post)             # => "new_post"
+  #   dom_class(Post)          # => "post"
   #   dom_id(Post.new)         # => "new_post"
   #   dom_class(Post.new)      # => "post"
   #   dom_id(Post.find 42)     # => "post_42"
@@ -79,18 +81,19 @@ module ActionView
     # The DOM id convention is to use the singular form of an object or class with the id following an underscore.
     # If no id is found, prefix with "new_" instead.
     #
-    #   dom_id(Post.find(45))       # => "post_45"
-    #   dom_id(Post.new)            # => "new_post"
+    #   dom_id(Post.find(45)) # => "post_45"
+    #   dom_id(Post)          # => "new_post"
     #
     # If you need to address multiple instances of the same class in the same view, you can prefix the dom_id:
     #
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
-    #   dom_id(Post.new, :custom)    # => "custom_post"
-    def dom_id(record, prefix = nil)
-      if record_id = record_key_for_dom_id(record)
-        "#{dom_class(record, prefix)}#{JOIN}#{record_id}"
+    #   dom_id(Post, :custom)        # => "custom_post"
+    def dom_id(record_or_class, prefix = nil)
+      record_id = record_key_for_dom_id(record_or_class) unless record_or_class.is_a?(Class)
+      if record_id
+        "#{dom_class(record_or_class, prefix)}#{JOIN}#{record_id}"
       else
-        dom_class(record, prefix || NEW)
+        dom_class(record_or_class, prefix || NEW)
       end
     end
 

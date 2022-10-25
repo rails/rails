@@ -55,6 +55,14 @@ module ActiveSupport
       assert_equal ::Logger::FATAL, log2.progname
     end
 
+    test "#formatter= assigns to all the loggers" do
+      assert_nil logger.formatter
+      logger.formatter = ::Logger::FATAL
+
+      assert_equal ::Logger::FATAL, log1.formatter
+      assert_equal ::Logger::FATAL, log2.formatter
+    end
+
     test "#local_level= assigns the local_level to all loggers" do
       assert_equal ::Logger::DEBUG, logger.local_level
       logger.local_level = ::Logger::FATAL
@@ -66,6 +74,9 @@ module ActiveSupport
     test "#silence does not break custom loggers" do
       new_logger = FakeLogger.new
       custom_logger = CustomLogger.new
+      assert_respond_to new_logger, :silence
+      assert_not_respond_to custom_logger, :silence
+
       custom_logger.extend(Logger.broadcast(new_logger))
 
       custom_logger.silence do
@@ -107,8 +118,6 @@ module ActiveSupport
     end
 
     class CustomLogger
-      include ActiveSupport::LoggerSilence
-
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
 
@@ -160,6 +169,11 @@ module ActiveSupport
     end
 
     class FakeLogger < CustomLogger
+      include ActiveSupport::LoggerSilence
+
+      # LoggerSilence includes LoggerThreadSafeLevel which defines these as
+      # methods, so we need to redefine them
+      attr_accessor :level, :local_level
     end
   end
 end

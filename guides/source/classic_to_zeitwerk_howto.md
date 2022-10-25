@@ -50,11 +50,11 @@ If for whatever reason you find a situation you don't know how to resolve, don't
 How to Activate `zeitwerk` Mode
 -------------------------------
 
-### Applications running Rails 5.x or Less
+### Applications Running Rails 5.x or Less
 
 In applications running a Rails version previous to 6.0, `zeitwerk` mode is not available. You need to be at least in Rails 6.0.
 
-### Applications running Rails 6.x
+### Applications Running Rails 6.x
 
 In applications running Rails 6.x there are two scenarios.
 
@@ -208,7 +208,7 @@ If your application uses `Concerns` as namespace, you have two options:
     delete("#{Rails.root}/app/models/concerns")
   ```
 
-### Having `app` in the autoload paths
+### Having `app` in the Autoload Paths
 
 Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that.
 
@@ -273,7 +273,7 @@ won't work, child objects like `Hotel::Pricing` won't be found.
 
 This restriction only applies to explicit namespaces. Classes and modules not defining a namespace can be defined using those idioms.
 
-### One file, one constant (at the same top-level)
+### One File, One Constant (at the Same Top-level)
 
 In `classic` mode you could technically define several constants at the same top-level and have them all reloaded. For example, given
 
@@ -426,7 +426,7 @@ Starting with Rails 7, newly generated applications are configured that way by d
 
 If your project does not have continuous integration, you can still eager load in the test suite by calling `Rails.application.eager_load!`:
 
-#### minitest
+#### Minitest
 
 ```ruby
 require "test_helper"
@@ -450,7 +450,7 @@ RSpec.describe "Zeitwerk compliance" do
 end
 ```
 
-Delete any `require` calls
+Delete any `require` Calls
 --------------------------
 
 In my experience, projects generally do not do this. But I've seen a couple, and have heard of a few others.
@@ -468,13 +468,13 @@ Please delete any `require` calls of that type.
 New Features You Can Leverage
 -----------------------------
 
-### Delete `require_dependency` calls
+### Delete `require_dependency` Calls
 
 All known use cases of `require_dependency` have been eliminated with Zeitwerk. You should grep the project and delete them.
 
 If your application uses Single Table Inheritance, please see the [Single Table Inheritance section](autoloading_and_reloading_constants.html#single-table-inheritance) of the Autoloading and Reloading Constants (Zeitwerk Mode) guide.
 
-### Qualified Names in Class and Module Definitions Are Now Possible
+### Qualified Names in Class and Module Definitions are Now Possible
 
 You can now robustly use constant paths in class and module definitions:
 

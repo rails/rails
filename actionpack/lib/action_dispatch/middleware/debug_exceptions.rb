@@ -34,16 +34,16 @@ module ActionDispatch
 
       response
     rescue Exception => exception
-      invoke_interceptors(request, exception)
+      backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+
+      invoke_interceptors(request, exception, wrapper)
       raise exception unless request.show_exceptions?
-      render_exception(request, exception)
+      render_exception(request, exception, wrapper)
     end
 
     private
-      def invoke_interceptors(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-
+      def invoke_interceptors(request, exception, wrapper)
         @interceptors.each do |interceptor|
           interceptor.call(request, exception)
         rescue Exception
@@ -51,9 +51,7 @@ module ActionDispatch
         end
       end
 
-      def render_exception(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+      def render_exception(request, exception, wrapper)
         log_error(request, wrapper)
 
         if request.get_header("action_dispatch.show_detailed_exceptions")
@@ -94,7 +92,7 @@ module ActionDispatch
             wrapper.status_code,
             Rack::Utils::HTTP_STATUS_CODES[500]
           ),
-          exception: wrapper.exception.inspect,
+          exception: wrapper.exception_inspect,
           traces: wrapper.traces
         }
 
@@ -115,15 +113,15 @@ module ActionDispatch
         DebugView.new(
           request: request,
           exception_wrapper: wrapper,
+          # Everything should use the wrapper, but we need to pass
+          # `exception` for legacy code.
           exception: wrapper.exception,
           traces: wrapper.traces,
           show_source_idx: wrapper.source_to_show_id,
           trace_to_show: wrapper.trace_to_show,
-          routes_inspector: routes_inspector(wrapper.exception),
+          routes_inspector: routes_inspector(wrapper),
           source_extracts: wrapper.source_extracts,
-          error_highlight_available: wrapper.error_highlight_available?,
-          line_number: wrapper.line_number,
-          file: wrapper.file
+          error_highlight_available: wrapper.error_highlight_available?
         )
       end
 
@@ -137,13 +135,12 @@ module ActionDispatch
         return unless logger
         return if !log_rescued_responses?(request) && wrapper.rescue_response?
 
-        exception = wrapper.exception
         trace = wrapper.exception_trace
 
         message = []
         message << "  "
-        message << "#{exception.class} (#{exception.message}):"
-        message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
+        message << "#{wrapper.exception_class_name} (#{wrapper.message}):"
+        message.concat(wrapper.annotated_source_code)
         message << "  "
         message.concat(trace)
 
@@ -169,7 +166,7 @@ module ActionDispatch
       end
 
       def routes_inspector(exception)
-        if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
+        if @routes_app.respond_to?(:routes) && (exception.routing_error? || exception.template_error?)
           ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
         end
       end

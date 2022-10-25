@@ -181,8 +181,7 @@ module ActiveRecord
           tbl.puts "  end"
           tbl.puts
 
-          tbl.rewind
-          stream.print tbl.read
+          stream.print tbl.string
         rescue => e
           stream.puts "# Could not dump table #{table.inspect} because of following #{e.class}"
           stream.puts "#   #{e.message}"

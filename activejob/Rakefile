@@ -2,7 +2,7 @@
 
 require "rake/testtask"
 
-ACTIVEJOB_ADAPTERS = %w(async inline delayed_job que queue_classic resque sidekiq sneakers sucker_punch backburner test)
+ACTIVEJOB_ADAPTERS = %w(async inline delayed_job queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
 
 task default: :test

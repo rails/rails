@@ -89,6 +89,39 @@ module ActiveRecord
         @quoted_table_names ||= {}
       end
 
+      def self.find_cmd_and_exec(commands, *args) # :doc:
+        commands = Array(commands)
+
+        dirs_on_path = ENV["PATH"].to_s.split(File::PATH_SEPARATOR)
+        unless (ext = RbConfig::CONFIG["EXEEXT"]).empty?
+          commands = commands.map { |cmd| "#{cmd}#{ext}" }
+        end
+
+        full_path_command = nil
+        found = commands.detect do |cmd|
+          dirs_on_path.detect do |path|
+            full_path_command = File.join(path, cmd)
+            begin
+              stat = File.stat(full_path_command)
+            rescue SystemCallError
+            else
+              stat.file? && stat.executable?
+            end
+          end
+        end
+
+        if found
+          exec full_path_command, *args
+        else
+          abort("Couldn't find database client: #{commands.join(', ')}. Check your $PATH and try again.")
+        end
+      end
+
+      # Opens a database console session.
+      def self.dbconsole(config, options = {})
+        raise NotImplementedError
+      end
+
       def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
         super()
 
@@ -125,7 +158,7 @@ module ActiveRecord
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
-          @config.fetch(:prepared_statements, true)
+          @config.fetch(:prepared_statements) { default_prepared_statements }
         )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
@@ -169,6 +202,14 @@ module ActiveRecord
         (@config[:connection_retries] || 1).to_i
       end
 
+      def retry_deadline
+        if @config[:retry_deadline]
+          @config[:retry_deadline].to_f
+        else
+          nil
+        end
+      end
+
       def default_timezone
         @default_timezone || ActiveRecord.default_timezone
       end
@@ -193,39 +234,11 @@ module ActiveRecord
       end
 
       def schema_migration # :nodoc:
-        @schema_migration ||= begin
-                                conn = self
-                                connection_name = conn.pool.pool_config.connection_name
-
-                                return ActiveRecord::SchemaMigration if connection_name == "ActiveRecord::Base"
-
-                                schema_migration_name = "#{connection_name}::SchemaMigration"
-
-                                Class.new(ActiveRecord::SchemaMigration) do
-                                  define_singleton_method(:name) { schema_migration_name }
-                                  define_singleton_method(:to_s) { schema_migration_name }
-
-                                  self.connection_specification_name = connection_name
-                                end
-                              end
+        SchemaMigration.new(self)
       end
 
       def internal_metadata # :nodoc:
-        @internal_metadata ||= begin
-                                conn = self
-                                connection_name = conn.pool.pool_config.connection_name
-
-                                return ActiveRecord::InternalMetadata if connection_name == "ActiveRecord::Base"
-
-                                internal_metadata_name = "#{connection_name}::InternalMetadata"
-
-                                Class.new(ActiveRecord::InternalMetadata) do
-                                  define_singleton_method(:name) { internal_metadata_name }
-                                  define_singleton_method(:to_s) { internal_metadata_name }
-
-                                  self.connection_specification_name = connection_name
-                                end
-                              end
+        InternalMetadata.new(self)
       end
 
       def prepared_statements?
@@ -478,7 +491,7 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support json data type?
+      # Does this adapter support JSON data type?
       def supports_json?
         false
       end
@@ -610,6 +623,7 @@ module ActiveRecord
       # instead.
       def reconnect!(restore_transactions: false)
         retries_available = connection_retries
+        deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
 
         @lock.synchronize do
           reconnect
@@ -624,8 +638,9 @@ module ActiveRecord
           end
         rescue => original_exception
           translated_exception = translate_exception_class(original_exception, nil, nil)
+          retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-          if retries_available > 0
+          if !retry_deadline_exceeded && retries_available > 0
             retries_available -= 1
 
             if retryable_connection_error?(translated_exception)
@@ -900,7 +915,8 @@ module ActiveRecord
         #
         # If +allow_retry+ is true, a connection-related exception will
         # cause an automatic reconnect and re-run of the block, up to
-        # the connection's configured +connection_retries+ setting.
+        # the connection's configured +connection_retries+ setting
+        # and the configured +retry_deadline+ limit.
         #
         # If +uses_transaction+ is false, the block will be run without
         # ensuring virtual transactions have been materialized in the DB
@@ -929,6 +945,7 @@ module ActiveRecord
             materialize_transactions if uses_transaction
 
             retries_available = allow_retry ? connection_retries : 0
+            deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
             reconnectable = reconnect_can_restore_state?
 
             if @verified
@@ -955,8 +972,9 @@ module ActiveRecord
               result
             rescue => original_exception
               translated_exception = translate_exception_class(original_exception, nil, nil)
+              retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-              if retries_available > 0
+              if !retry_deadline_exceeded && retries_available > 0
                 retries_available -= 1
 
                 if retryable_query_error?(translated_exception)
@@ -1138,6 +1156,10 @@ module ActiveRecord
         # Implementations may assume this method will only be called while
         # holding @lock (or from #initialize).
         def configure_connection
+        end
+
+        def default_prepared_statements
+          true
         end
     end
   end

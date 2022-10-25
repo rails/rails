@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
 require "active_job"
 require "support/job_buffer"
 

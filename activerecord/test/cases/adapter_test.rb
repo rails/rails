@@ -651,6 +651,60 @@ module ActiveRecord
         assert_operator Post.count, :>, 0
       end
 
+      test "can reconnect and retry queries under limit when retry deadline is set" do
+        attempts = 0
+        @connection.stub(:retry_deadline, 0.1) do
+          @connection.send(:with_raw_connection, allow_retry: true) do
+            if attempts == 0
+              attempts += 1
+              raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
+            end
+          end
+        end
+      end
+
+      test "does not reconnect and retry queries when retries are disabled" do
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          attempts = 0
+          @connection.send(:with_raw_connection) do
+            if attempts == 0
+              attempts += 1
+              raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
+            end
+          end
+        end
+      end
+
+      test "does not reconnect and retry queries that exceed retry deadline" do
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          attempts = 0
+          @connection.stub(:retry_deadline, 0.1) do
+            @connection.send(:with_raw_connection, allow_retry: true) do
+              if attempts == 0
+                sleep(0.2)
+                attempts += 1
+                raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
+              end
+            end
+          end
+        end
+      end
+
+      unless current_adapter?(:SQLite3Adapter)
+        test "#execute is retryable" do
+          conn_id = case @connection.class::ADAPTER_NAME
+                    when "Mysql2"
+                      @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
+                    when "PostgreSQL"
+                      @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+          end
+
+          kill_connection_from_server(conn_id)
+
+          @connection.execute("SELECT 1", allow_retry: true)
+        end
+      end
+
       private
         def raw_transaction_open?(connection)
           case connection.class::ADAPTER_NAME
@@ -691,6 +745,18 @@ module ActiveRecord
           else
             skip
           end
+        end
+
+        def kill_connection_from_server(connection_id)
+          conn = @connection.pool.checkout
+          case conn.class::ADAPTER_NAME
+          when "Mysql2"
+            conn.execute("KILL #{connection_id}")
+          when "PostgreSQL"
+            conn.execute("SELECT pg_cancel_backend(#{connection_id})")
+          end
+
+          conn.close
         end
     end
   end

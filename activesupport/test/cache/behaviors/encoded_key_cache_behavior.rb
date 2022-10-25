@@ -6,7 +6,7 @@
 module EncodedKeyCacheBehavior
   Encoding.list.each do |encoding|
     define_method "test_#{encoding.name.underscore}_encoded_values" do
-      key = (+"foo").force_encoding(encoding)
+      key = (+"foo_#{encoding.name.underscore}").force_encoding(encoding)
       assert @cache.write(key, "1", raw: true)
       assert_equal "1", @cache.read(key, raw: true)
       assert_equal "1", @cache.fetch(key, raw: true)

@@ -35,7 +35,8 @@ class TestRun
   end
 
   def completed?
-    @qunit_testresult.text.include?("Tests completed")
+    @qunit_testresult.text.include?("tests completed") &&
+    @qunit_testresult.find_elements(:class, "total").any?
   end
 
   def result
@@ -50,7 +51,7 @@ class TestRun
     end
 
     def duration
-      match = /Tests completed in (?<milliseconds>\d+) milliseconds/.match @qunit_testresult.text
+      match = /tests completed in (?<milliseconds>\d+) milliseconds/.match @qunit_testresult.text
       match[:milliseconds].to_i / 1000
     end
 

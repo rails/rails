@@ -1,3 +1,87 @@
+*   Send 303 See Other status code back for the destroy action on newly generated
+    scaffold controllers.
+
+    *Tony Drake*
+
+*   Add `Rails.application.deprecators` as a central point to manage deprecators
+    for an application.
+
+    Individual deprecators can be added and retrieved from the collection:
+
+    ```ruby
+    Rails.application.deprecators[:my_gem] = ActiveSupport::Deprecation.new("2.0", "MyGem")
+    Rails.application.deprecators[:other_gem] = ActiveSupport::Deprecation.new("3.0", "OtherGem")
+    ```
+
+    And the collection's configuration methods affect all deprecators in the
+    collection:
+
+    ```ruby
+    Rails.application.deprecators.debug = true
+
+    Rails.application.deprecators[:my_gem].debug
+    # => true
+    Rails.application.deprecators[:other_gem].debug
+    # => true
+    ```
+
+    Additionally, all deprecators in the collection can be silenced for the
+    duration of a given block:
+
+    ```ruby
+    Rails.application.deprecators.silence do
+      Rails.application.deprecators[:my_gem].warn    # => silenced (no warning)
+      Rails.application.deprecators[:other_gem].warn # => silenced (no warning)
+    end
+    ```
+
+    *Jonathan Hefner*
+
+*   Move dbconsole logic to Active Record connection adapter.
+
+    Instead of hosting the connection logic in the command object, the
+    database adapter should be responsible for connecting to a console session.
+    This patch moves #find_cmd_and_exec to the adapter and exposes a new API to
+    lookup the adapter class without instantiating it.
+
+    *Gannon McGibbon*, *Paarth Madan*
+
+*   Add `Rails.application.message_verifiers` as a central point to configure
+    and create message verifiers for an application.
+
+    This allows applications to, for example, rotate old `secret_key_base`
+    values:
+
+    ```ruby
+    config.before_initialize do |app|
+      app.message_verifiers.rotate(secret_key_base: "old secret_key_base")
+    end
+    ```
+
+    And for libraries to create preconfigured message verifiers:
+
+    ```ruby
+    ActiveStorage.verifier = Rails.application.message_verifiers["ActiveStorage"]
+    ```
+
+    *Jonathan Hefner*
+
+*   Support MySQL's ssl-mode option for the dbconsole command.
+
+    Verifying the identity of the database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for the dbconsole command.
+
+    *Petrik de Heus*
+
+*   Delegate application record generator description to orm hooked generator.
+
+    *Gannon McGibbon*
+
+*   Show BCC recipients when present in Action Mailer previews.
+
+    *Akshay Birajdar*
+
 *   Extend `routes --grep` to also filter routes by matching against path.
 
     Example:

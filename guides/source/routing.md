@@ -815,7 +815,7 @@ end
 
 Both the `matches?` method and the lambda gets the `request` object as an argument.
 
-#### Constraints in a block form
+#### Constraints in a Block Form
 
 You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example:
 
@@ -1278,7 +1278,7 @@ video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
-Breaking up *very* large route file into multiple small ones:
+Breaking Up *Very* Large Route File into Multiple Small Ones:
 -------------------------------------------------------
 
 If you work in a large application with thousands of routes, a single `config/routes.rb` file can become cumbersome and hard to read.
@@ -1313,7 +1313,7 @@ You can use the normal routing DSL inside the `admin.rb` routing file, but you *
 
 [`draw`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw
 
-### Don't use this feature unless you really need it
+### Don't Use This Feature Unless You Really Need It
 
 Having multiple routing files makes discoverability and understandability harder. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
 

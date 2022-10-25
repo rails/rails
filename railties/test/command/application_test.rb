@@ -13,7 +13,7 @@ class Rails::Command::ApplicationTest < ActiveSupport::TestCase
     assert_not output.start_with?("No value provided for required arguments")
 
     # Includes contents of ~/railties/lib/rails/generators/rails/app/USAGE:
-    assert output.include?("The 'rails new' command creates a new Rails application with a default
+    assert output.include?("The `rails new` command creates a new Rails application with a default
     directory structure and configuration at the path you specify.")
   end
 end

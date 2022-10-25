@@ -110,10 +110,15 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection and returns
       # the raw result from the connection adapter.
+      #
+      # Setting +allow_retry+ to true causes the db to reconnect and retry
+      # executing the SQL statement in case of a connection-related exception.
+      # This option should only be enabled for known idempotent queries.
+      #
       # Note: depending on your database connector, the result returned by this
       # method may be manually memory managed. Consider using the exec_query
       # wrapper instead.
-      def execute(sql, name = nil)
+      def execute(sql, name = nil, allow_retry: false)
         raise NotImplementedError
       end
 
@@ -306,6 +311,7 @@ module ActiveRecord
       #
       # The mysql2 and postgresql adapters support setting the transaction
       # isolation level.
+      #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
         if !requires_new && current_transaction.joinable?
           if isolation
@@ -418,7 +424,7 @@ module ActiveRecord
       # something beyond a simple insert (e.g. Oracle).
       # Most of adapters should implement +insert_fixtures_set+ that leverages bulk SQL insert.
       # We keep this method to provide fallback
-      # for databases like sqlite that do not support bulk inserts.
+      # for databases like SQLite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
         execute(build_fixture_sql(Array.wrap(fixture), table_name), "Fixture Insert")
       end

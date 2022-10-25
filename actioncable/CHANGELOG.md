@@ -1,3 +1,22 @@
+*   The `connected()` callback can now take a `{reconnected}` parameter to differentiate
+    connections from reconnections.
+
+    ```js
+    import consumer from "./consumer"
+
+    consumer.subscriptions.create("ExampleChannel", {
+      connected({reconnected}) {
+        if (reconnected) {
+          ...
+        } else {
+          ...
+        }
+      }
+    })
+    ```
+
+    *Mansa Keïta*
+
 *   The Redis adapter is now compatible with redis-rb 5.0
 
     Compatibility with redis-rb 3.x was dropped.

@@ -3,8 +3,6 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class SQLiteDatabaseTasks # :nodoc:
-      delegate :connection, :establish_connection, to: ActiveRecord::Base
-
       def self.using_database_configurations?
         true
       end
@@ -17,7 +15,7 @@ module ActiveRecord
       def create
         raise DatabaseAlreadyExists if File.exist?(db_config.database)
 
-        establish_connection(db_config)
+        establish_connection
         connection
       end
 
@@ -67,6 +65,14 @@ module ActiveRecord
 
       private
         attr_reader :db_config, :root
+
+        def connection
+          ActiveRecord::Base.connection
+        end
+
+        def establish_connection(config = db_config)
+          ActiveRecord::Base.establish_connection(config)
+        end
 
         def run_cmd(cmd, args, out)
           fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)

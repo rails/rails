@@ -1,9 +1,9 @@
-<%= @exception.class.to_s %><%
+<%= @exception_wrapper.exception_class_name %><%
   if params_valid? && @request.parameters['controller']
 %> in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
 <% end %>
 
-<%= @exception.message %>
+<%= @exception_wrapper.message %>
 <%= render template: "rescues/_source" %>
 <%= render template: "rescues/_trace" %>
 <%= render template: "rescues/_request_and_response" %>

@@ -37,8 +37,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_process_status
-    rubinius_skip "https://github.com/rubinius/rubinius/issues/3334"
-
     # There doesn't seem to be a good way to get a handle on a Process::Status object without actually
     # creating a child process, hence this to populate $?
     system("not_a_real_program_#{SecureRandom.hex}")

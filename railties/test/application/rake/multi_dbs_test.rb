@@ -304,13 +304,15 @@ module ApplicationTests
             down_output = rails("db:migrate:down:#{namespace}", "VERSION=#{version}")
             up_output = rails("db:migrate:up:#{namespace}", "VERSION=#{version}")
           else
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               down_output = rails("db:migrate:down", "VERSION=#{version}")
             end
+            assert_match("You're using a multiple database application", exception.message)
 
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               up_output = rails("db:migrate:up", "VERSION=#{version}")
             end
+            assert_match("You're using a multiple database application", exception.message)
           end
 
           case namespace
@@ -333,9 +335,10 @@ module ApplicationTests
           if namespace
             rollback_output = rails("db:rollback:#{namespace}")
           else
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               rollback_output = rails("db:rollback")
             end
+            assert_match("You're using a multiple database application", exception.message)
           end
 
           case namespace
@@ -358,9 +361,10 @@ module ApplicationTests
           if namespace
             redo_output = rails("db:migrate:redo:#{namespace}")
           else
-            assert_raises RuntimeError, /You're using a multiple database application/ do
+            exception = assert_raises RuntimeError do
               redo_output = rails("db:migrate:redo")
             end
+            assert_match("You're using a multiple database application", exception.message)
           end
 
           case namespace
@@ -952,6 +956,19 @@ module ApplicationTests
         RUBY
 
         db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML containing ERB in database keys" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            <% 5.times do |i| %>
+            shard_<%= i %>:
+              database: db/development_shard_<%= i %>.sqlite3
+              adapter: sqlite3
+            <% end %>
+        YAML
+
+        db_create_and_drop_namespace("shard_3", "db/development_shard_3.sqlite3")
       end
 
       test "schema generation when dump_schema_after_migration is true schema_dump is false" do

@@ -102,9 +102,9 @@
   // Enables path search functionality
   function setupMatchPaths() {
     // Check if there are any matched results in a section
-    function checkNoMatch(section, noMatchText) {
+    function checkNoMatch(section, trElement) {
       if (section.children.length <= 1) {
-        section.innerHTML += noMatchText;
+        section.appendChild(trElement);
       }
     }
 
@@ -145,21 +145,30 @@
       }
     }
 
+    function buildTr(string) {
+      var tr = document.createElement('tr');
+      var th = document.createElement('th');
+      th.setAttribute('colspan', 4);
+      tr.appendChild(th);
+      th.innerText = string;
+      return tr;
+    }
+
     // On key press perform a search for matching paths
     delayedKeyup(searchElem, function() {
       var path = sanitizePath(searchElem.value),
-          defaultExactMatch = '<tr><th colspan="4">Paths Matching (' + path +'):</th></tr>',
-          defaultFuzzyMatch = '<tr><th colspan="4">Paths Containing (' + path +'):</th></tr>',
-          noExactMatch      = '<tr><th colspan="4">No Exact Matches Found</th></tr>',
-          noFuzzyMatch      = '<tr><th colspan="4">No Fuzzy Matches Found</th></tr>';
+          defaultExactMatch = buildTr('Paths Matching (' + path + '):'),
+          defaultFuzzyMatch = buildTr('Paths Containing (' + path +'):'),
+          noExactMatch      = buildTr('No Exact Matches Found'),
+          noFuzzyMatch      = buildTr('No Fuzzy Matches Found');
 
       if (!path)
         return searchElem.onblur();
 
       getJSON('/rails/info/routes?path=' + path, function(matches){
         // Clear out results section
-        exactSection.innerHTML = defaultExactMatch;
-        fuzzySection.innerHTML = defaultFuzzyMatch;
+        exactSection.replaceChildren(defaultExactMatch);
+        fuzzySection.replaceChildren(defaultFuzzyMatch);
 
         // Display exact matches and fuzzy matches
         pathElements.forEach(function(elem) {

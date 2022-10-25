@@ -297,6 +297,12 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_encrypted_attribute(book, :name, "<untitled>")
   end
 
+  test "loading records with encrypted attributes defined on columns with default values" do
+    EncryptedBook.insert({ format: "ebook" })
+    book = EncryptedBook.last
+    assert_equal "<untitled>", book.name
+  end
+
   private
     class FailingKeyProvider
       def decryption_key(message) end

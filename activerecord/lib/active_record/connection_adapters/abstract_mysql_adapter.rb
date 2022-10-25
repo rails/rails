@@ -51,6 +51,36 @@ module ActiveRecord
           end
       end
 
+      class << self
+        def dbconsole(config, options = {})
+          mysql_config = config.configuration_hash
+
+          args = {
+            host: "--host",
+            port: "--port",
+            socket: "--socket",
+            username: "--user",
+            encoding: "--default-character-set",
+            sslca: "--ssl-ca",
+            sslcert: "--ssl-cert",
+            sslcapath: "--ssl-capath",
+            sslcipher: "--ssl-cipher",
+            sslkey: "--ssl-key",
+            ssl_mode: "--ssl-mode"
+          }.filter_map { |opt, arg| "#{arg}=#{mysql_config[opt]}" if mysql_config[opt] }
+
+          if mysql_config[:password] && options[:include_password]
+            args << "--password=#{mysql_config[:password]}"
+          elsif mysql_config[:password] && !mysql_config[:password].to_s.empty?
+            args << "-p"
+          end
+
+          args << config.database
+
+          find_cmd_and_exec(["mysql", "mysql5"], *args)
+        end
+      end
+
       def get_database_version # :nodoc:
         full_version_string = get_full_version
         version_string = version_string(full_version_string)
@@ -191,11 +221,15 @@ module ActiveRecord
       #++
 
       # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil, async: false)
+      #
+      # Setting +allow_retry+ to true causes the db to reconnect and retry
+      # executing the SQL statement in case of a connection-related exception.
+      # This option should only be enabled for known idempotent queries.
+      def execute(sql, name = nil, async: false, allow_retry: false)
         sql = transform_query(sql)
         check_if_write_query(sql)
 
-        raw_execute(sql, name, async: async)
+        raw_execute(sql, name, async: async, allow_retry: allow_retry)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -393,8 +427,10 @@ module ActiveRecord
           options[:comment] = column.comment
         end
 
-        unless options.key?(:collation)
-          options[:collation] = column.collation if text_type?(type)
+        if options[:collation] == :no_collation
+          options.delete(:collation)
+        else
+          options[:collation] ||= column.collation if text_type?(type)
         end
 
         unless options.key?(:auto_increment)

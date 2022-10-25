@@ -149,6 +149,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not_predicate @params[:person].except(:name), :permitted?
   end
 
+  test "exclude? returns true if the given key is not present in the params" do
+    assert @params.exclude?(:address)
+  end
+
+  test "exclude? returns false if the given key is present in the params" do
+    assert_not @params.exclude?(:person)
+  end
+
   test "fetch retains permitted status" do
     @params.permit!
     assert_predicate @params.fetch(:person), :permitted?

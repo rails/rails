@@ -34,6 +34,10 @@ module Rails
         @filter_redirect                         = []
         @helpers_paths                           = []
         if Rails.env.development?
+          if defined?(RubyVM) && RubyVM.respond_to?(:keep_script_lines=)
+            RubyVM.keep_script_lines = true
+          end
+
           @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
             ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
         else
@@ -88,11 +92,15 @@ module Rails
       # for the default values associated with a particular version.
       def load_defaults(target_version)
         # To introduce a change in behavior, follow these steps:
-        # 1. Add an accessor on the target object (e.g. the ActiveJob class for global Active Job config).
-        # 2. Set a default value there preserving existing behavior for existing applications.
+        # 1. Add an accessor on the target object (e.g. the ActiveJob class for
+        #    global Active Job config).
+        # 2. Set a default value there preserving existing behavior for existing
+        #    applications.
         # 3. Implement the behavior change based on the config value.
-        # 4. In the section below corresponding to the next release of Rails, set the new value.
-        # 5. Add a commented out section in the `new_framework_defaults` template, setting the new value.
+        # 4. In the section below corresponding to the next release of Rails,
+        #    configure the default value.
+        # 5. Add a commented out section in the `new_framework_defaults` to
+        #    configure the default value again.
         # 6. Update the guide in `configuration.md`.
 
         # To remove configurable deprecated behavior, follow these steps:
@@ -279,6 +287,7 @@ module Rails
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
+            active_record.query_log_tags_format = :sqlcommenter
           end
 
           if respond_to?(:action_dispatch)
@@ -376,23 +385,21 @@ module Rails
         end
       end
 
-      # Load the database YAML without evaluating ERB. This allows us to
-      # create the rake tasks for multiple databases without filling in the
-      # configuration values or loading the environment. Do not use this
-      # method.
+      # Load the <tt>config/database.yml</tt> to create the Rake tasks for
+      # multiple databases without loading the environment and filling in the
+      # environment specific configuration values.
       #
-      # This uses a DummyERB custom compiler so YAML can ignore the ERB
-      # tags and load the database.yml for the rake tasks.
+      # Do not use this method, use #database_configuration instead.
       def load_database_yaml # :nodoc:
         if path = paths["config/database"].existent.first
-          require "rails/application/dummy_erb_compiler"
+          require "rails/application/dummy_config"
+          original_rails_config = Rails.application.config
 
-          yaml = DummyERB.new(Pathname.new(path).read).result
-
-          if YAML.respond_to?(:unsafe_load)
-            YAML.unsafe_load(yaml) || {}
-          else
-            YAML.load(yaml) || {}
+          begin
+            Rails.application.config = DummyConfig.new(original_rails_config)
+            ActiveSupport::ConfigurationFile.parse(Pathname.new(path))
+          ensure
+            Rails.application.config = original_rails_config
           end
         else
           {}

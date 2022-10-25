@@ -8,6 +8,10 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
       class InactivePgConnection
+        def initialize
+          @raw_connection = nil
+        end
+
         def query(*args)
           raise PG::Error
         end

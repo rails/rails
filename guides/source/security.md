@@ -588,7 +588,7 @@ INFO: _Injection is a class of attacks that introduce malicious code or paramete
 
 Injection is very tricky, because the same code or parameter can be malicious in one context, but totally harmless in another. A context can be a scripting, query, or programming language, the shell, or a Ruby/Rails method. The following sections will cover all important contexts where injection attacks may happen. The first section, however, covers an architectural decision in connection with Injection.
 
-### Permitted lists versus Restricted lists
+### Permitted Lists Versus Restricted Lists
 
 NOTE: _When sanitizing, protecting, or verifying something, prefer permitted lists over restricted lists._
 
@@ -614,10 +614,10 @@ SQL injection attacks aim at influencing database queries by manipulating web ap
 Project.where("name = '#{params[:name]}'")
 ```
 
-This could be in a search action and the user may enter a project's name that they want to find. If a malicious user enters `' OR 1 --`, the resulting SQL query will be:
+This could be in a search action and the user may enter a project's name that they want to find. If a malicious user enters `' OR 1) --`, the resulting SQL query will be:
 
 ```sql
-SELECT * FROM projects WHERE name = '' OR 1 --'
+SELECT * FROM projects WHERE (name = '' OR 1) --')
 ```
 
 The two dashes start a comment ignoring everything after it. So the query returns all records from the projects table including those blind to the user. This is because the condition is true for all records.
@@ -913,7 +913,7 @@ system("/bin/echo","hello; rm *")
 # prints "hello; rm *" and does not delete files
 ```
 
-#### Kernel#open's vulnerability
+#### Kernel#open's Vulnerability
 
 `Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
 

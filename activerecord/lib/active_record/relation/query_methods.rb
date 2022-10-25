@@ -291,10 +291,18 @@ module ActiveRecord
     #   Model.select(:field, :other_field, :and_one_more)
     #   # => [#<Model id: nil, field: "value", other_field: "value", and_one_more: "value">]
     #
+    # The argument also can be a hash of fields and aliases.
+    #
+    #   Model.select(models: { field: :alias, other_field: :other_alias })
+    #   # => [#<Model id: nil, alias: "value", other_alias: "value">]
+    #
+    #   Model.select(models: [:field, :other_field])
+    #   # => [#<Model id: nil, field: "value", other_field: "value">]
+    #
     # You can also use one or more strings, which will be used unchanged as SELECT fields.
     #
     #   Model.select('field AS field_one', 'other_field AS field_two')
-    #   # => [#<Model id: nil, field: "value", other_field: "value">]
+    #   # => [#<Model id: nil, field_one: "value", field_two: "value">]
     #
     # If an alias was specified, it will be accessible from the resulting objects:
     #
@@ -316,6 +324,8 @@ module ActiveRecord
       end
 
       check_if_method_has_arguments!(__callee__, fields, "Call `select' with at least one field.")
+
+      fields = process_select_args(fields)
       spawn._select!(*fields)
     end
 
@@ -396,6 +406,7 @@ module ActiveRecord
     # Note that we're unscoping the entire select statement.
     def reselect(*args)
       check_if_method_has_arguments!(__callee__, args)
+      args = process_select_args(args)
       spawn.reselect!(*args)
     end
 
@@ -517,7 +528,7 @@ module ActiveRecord
       self.references_values |= references unless references.empty?
 
       values = values.map { |value| type_caster.type_cast_for_database(column, value) }
-      arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
+      arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
       where_clause =
         if values.include?(nil)
@@ -1064,12 +1075,18 @@ module ActiveRecord
       where!("1=0").extending!(NullRelation)
     end
 
-    # Sets readonly attributes for the returned relation. If value is
-    # true (default), attempting to update a record will result in an error.
+    # Mark a relation as readonly. Attempting to update a record will result in
+    # an error.
     #
     #   users = User.readonly
     #   users.first.save
     #   => ActiveRecord::ReadOnlyRecord: User is marked as readonly
+    #
+    # To make a readonly relation writable, pass +false+.
+    #
+    #   users.readonly(false)
+    #   users.first.save
+    #   => true
     def readonly(value = true)
       spawn.readonly!(value)
     end
@@ -1775,7 +1792,7 @@ module ActiveRecord
           node.when(column.eq(value)).then(order)
         end
 
-        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+        Arel::Nodes::Ascending.new(node)
       end
 
       def resolve_arel_attributes(attrs)
@@ -1826,6 +1843,37 @@ module ActiveRecord
 
           args.flatten!
           args.compact_blank!
+        end
+      end
+
+      def process_select_args(fields)
+        fields.flat_map do |field|
+          if field.is_a?(Hash)
+            transform_select_hash_values(field)
+          else
+            field
+          end
+        end
+      end
+
+      def transform_select_hash_values(fields)
+        fields.flat_map do |key, columns_aliases|
+          case columns_aliases
+          when Hash
+            columns_aliases.map do |column, column_alias|
+              arel_column("#{key}.#{column}") do
+                predicate_builder.resolve_arel_attribute(key.to_s, column)
+              end.as(column_alias.to_s)
+            end
+          when Array
+            columns_aliases.map do |column|
+              arel_column("#{key}.#{column}", &:itself)
+            end
+          when String, Symbol
+            arel_column(key.to_s) do
+              predicate_builder.resolve_arel_attribute(klass.table_name, key.to_s)
+            end.as(columns_aliases.to_s)
+          end
         end
       end
 

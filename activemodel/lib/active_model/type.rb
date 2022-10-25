@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_model/type/helpers"
+require "active_model/type/serialize_cast_value"
 require "active_model/type/value"
 
 require "active_model/type/big_integer"

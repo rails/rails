@@ -36,6 +36,9 @@ require "models/tuning_peg"
 require "models/reply"
 require "models/attachment"
 require "models/translation"
+require "models/chef"
+require "models/cake_designer"
+require "models/drink_designer"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -1276,6 +1279,8 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 end
 
 class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
+  fixtures :chefs, :cake_designers, :drink_designers
+
   self.use_transactional_tests = false unless supports_savepoints?
 
   def setup
@@ -1416,6 +1421,34 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_not_predicate ship, :valid?
   end
+
+  def test_recognises_inverse_polymorphic_association_changes_with_same_foreign_key
+    chef_a = chefs(:gordon_ramsay)
+    chef_b = chefs(:marco_pierre_white)
+
+    cake_designer_a = cake_designers(:flora) # id: 1
+    cake_designer_a.update!(chef: chef_a)
+    cake_designer_b = cake_designers(:frosty) # id: 3
+    cake_designer_b.update!(chef: chef_b)
+
+    drink_designer_a = drink_designers(:turner) # id: 1
+    drink_designer_b = drink_designers(:sparrow) # id: 2
+
+    swap_chefs(cake_designer_b, drink_designer_b)
+    assert_predicate cake_designer_b.reload.chef, :present?
+    assert_not_predicate drink_designer_b.reload.chef, :present?
+
+    swap_chefs(cake_designer_a, drink_designer_a)
+    assert_predicate cake_designer_a.reload.chef, :present?
+    assert_not_predicate drink_designer_a.reload.chef, :present?
+  end
+
+  private
+    def swap_chefs(cake_designer, drink_designer)
+      drink_designer.chef = cake_designer.chef
+      drink_designer.save!
+      cake_designer.save!
+    end
 end
 
 class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase

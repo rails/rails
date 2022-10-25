@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors_per_thread"
+require "active_record/query_logs_formatter"
 
 module ActiveRecord
   # = Active Record Query Logs
@@ -73,6 +74,7 @@ module ActiveRecord
     mattr_accessor :tags, instance_accessor: false, default: [ :application ]
     mattr_accessor :prepend_comment, instance_accessor: false, default: false
     mattr_accessor :cache_query_log_tags, instance_accessor: false, default: false
+    mattr_accessor :tags_formatter, instance_accessor: false
     thread_mattr_accessor :cached_comment, instance_accessor: false
 
     class << self
@@ -88,6 +90,19 @@ module ActiveRecord
         self.cached_comment = nil
       end
 
+      # Updates the formatter to be what the passed in format is.
+      def update_formatter(format)
+        self.tags_formatter =
+          case format
+          when :legacy
+            LegacyFormatter.new
+          when :sqlcommenter
+            SQLCommenter.new
+          else
+            raise ArgumentError, "Formatter is unsupported: #{formatter}"
+          end
+      end
+
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
 
       private
@@ -99,6 +114,10 @@ module ActiveRecord
           else
             uncached_comment
           end
+        end
+
+        def formatter
+          self.tags_formatter || self.update_formatter(:legacy)
         end
 
         def uncached_comment
@@ -115,7 +134,7 @@ module ActiveRecord
         def tag_content
           context = ActiveSupport::ExecutionContext.to_h
 
-          tags.flat_map { |i| [*i] }.filter_map do |tag|
+          pairs = tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, handler = tag
             handler ||= taggings[key]
 
@@ -130,8 +149,9 @@ module ActiveRecord
             else
               handler
             end
-            "#{key}:#{val}" unless val.nil?
-          end.join(",")
+            [key, val] unless val.nil?
+          end
+          self.formatter.format(pairs)
         end
     end
   end

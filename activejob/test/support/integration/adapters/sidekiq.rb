@@ -25,6 +25,7 @@ module SidekiqJobsManager
     death_read, death_write = IO.pipe
 
     @pid = fork do
+      Sidekiq.redis_pool.reload(&:close)
       continue_read.close
       death_write.close
 

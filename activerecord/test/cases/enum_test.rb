@@ -413,7 +413,7 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
-        enum :status, {}
+        enum(:status, {}, **{})
       end
     end
 

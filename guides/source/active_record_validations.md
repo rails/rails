@@ -1020,7 +1020,7 @@ conditions in a shorter way.
 validates :password, confirmation: true, unless: -> { password.blank? }
 ```
 
-### Grouping Conditional validations
+### Grouping Conditional Validations
 
 Sometimes it is useful to have multiple validations use one condition. It can
 be easily achieved using [`with_options`][].
@@ -1120,7 +1120,7 @@ class method, passing in the symbols for the validation methods' names.
 You can pass more than one symbol for each class method and the respective
 validations will be run in the same order as they were registered.
 
-The `valid?` method will verify that the errors collection is empty,
+The `valid?` method will verify that the `errors` collection is empty,
 so your custom validation methods should add errors to it when you
 wish validation to fail:
 
@@ -1228,7 +1228,7 @@ irb> person.errors[:name]
 => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
-### `errors.where` and error object
+### `errors.where` and Error Object
 
 Sometimes we may need more information about each error beside its message. Each error is encapsulated as an `ActiveModel::Error` object, and [`where`][] method is the most common way of access.
 

@@ -61,6 +61,10 @@ module ActiveModel
         ensure_in_range(super)
       end
 
+      def serialize_cast_value(value) # :nodoc:
+        ensure_in_range(value)
+      end
+
       def serializable?(value)
         cast_value = cast(value)
         in_range?(cast_value) || begin
