@@ -17,6 +17,10 @@ module ActionController
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
 
+    initializer "action_controller.deprecator" do |app|
+      app.deprecators[:action_controller] = ActionController.deprecator
+    end
+
     initializer "action_controller.assets_config", group: :all do |app|
       app.config.action_controller.assets_dir ||= app.config.paths["public"].first
     end
