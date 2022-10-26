@@ -520,6 +520,27 @@ When building a model with a foreign key that will reference this UUID, treat
 rails generate model Case device_id:uuid
 ```
 
+To set the default value on the primary key, pass it in the
+`--primary-key-default={default value}` argument to the model generator.
+
+For example:
+
+```ruby
+rails generate model Device --primary-key-type=uuid --primary-key-default="uuid_generate_v4()" kind:string
+```
+
+```ruby
+# db/migrate/20221028135255_create_devices.rb
+class CreateDevices < ActiveRecord::Migration[7.0]
+  def change
+    create_table :devices, id: :uuid, default: "uuid_generate_v4()" do |t|
+      t.string :kind
+      t.timestamps
+    end
+  end
+end
+```
+
 
 Generated Columns
 -----------------

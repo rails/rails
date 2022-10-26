@@ -1,3 +1,34 @@
+*   Add `primary-key-default` option to create table migrations.
+
+    This allows setting the `default` argument when creating a migration
+
+    ```bash
+    rails generate migration create_books --primary-key-type=uuid --primary-key-default="uuid_generate_v4()"
+    ```
+
+    ```ruby
+    class CreateBooks < ActiveRecord::Migration[7.0]
+      def change
+        create_table :books, id: :uuid, default: "uuid_generate_v4()" do |t|
+
+          t.timestamps
+        end
+      end
+    end
+    ```
+
+    It also allows you to create an initializer to configure the generator to
+    use the `primary_key_default` value for all new create table migrations.
+
+    ```ruby
+    Rails.application.config.generators do |g|
+      g.orm(:active_record, primary_key_type: :uuid)
+      g.orm(:active_record, primary_key_default: "\"uuid_generate_v4()\"")
+    end
+    ```
+
+    *Paul Yoder*
+
 *   Clear locking column on #dup
 
     This change fixes not to duplicate locking_column like id and timestamps.
