@@ -1357,6 +1357,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_match(/WHERE .*color/, sql)
   end
 
+  def test_reload_uses_query_constraints_config
+    clothing_item = clothing_items(:green_t_shirt)
+    sql = capture_sql { clothing_item.reload  }.first
+    assert_match(/WHERE .*clothing_type/, sql)
+    assert_match(/WHERE .*color/, sql)
+  end
+
   def test_destroy_uses_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
     sql = capture_sql { clothing_item.destroy }.first
