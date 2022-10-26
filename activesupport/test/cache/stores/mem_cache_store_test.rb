@@ -359,7 +359,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_connection_pool_works
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
       pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
       assert_kind_of ::ConnectionPool, pool

@@ -97,16 +97,16 @@ class ToSTest < ActiveSupport::TestCase
   def test_to_s_db
     collection = [TestDB.new, TestDB.new, TestDB.new]
 
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "null", [].to_s(:db)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "1,2,3", collection.to_s(:db)
     end
   end
 
   def test_to_s_not_existent
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "[]", [].to_s(:not_existent)
     end
   end

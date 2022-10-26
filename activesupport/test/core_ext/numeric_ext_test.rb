@@ -158,7 +158,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__phone
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal("555-1234", 5551234.to_s(:phone))
     end
     assert_equal("555-1234", 5551234.to_fs(:phone))
@@ -176,7 +176,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__currency
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal("$1,234,567,890.50", 1234567890.50.to_s(:currency))
     end
     assert_equal("$1,234,567,890.50", 1234567890.50.to_fs(:currency))
@@ -192,7 +192,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__rounded
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal("-111.235", -111.2346.to_s(:rounded))
     end
     assert_equal("-111.235", -111.2346.to_fs(:rounded))
@@ -255,7 +255,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__percentage
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal("100.000%", 100.to_s(:percentage))
     end
     assert_equal("100.000%", 100.to_fs(:percentage))
@@ -269,7 +269,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__delimited
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal("12,345,678", 12345678.to_s(:delimited))
     end
     assert_equal("12,345,678", 12345678.to_fs(:delimited))
@@ -292,7 +292,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs__human_size
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "0 Bytes",   0.to_s(:human_size)
     end
     assert_equal "0 Bytes",   0.to_fs(:human_size)
@@ -344,7 +344,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_number_to_human
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "-123", -123.to_s(:human)
     end
     assert_equal "-123", -123.to_fs(:human)
@@ -416,7 +416,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_with_invalid_formatter
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "123", 123.to_s(:invalid)
     end
     assert_equal "123", 123.to_fs(:invalid)
