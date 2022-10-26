@@ -1,19 +1,23 @@
 <header role="banner">
-  <h1>No template for interactive request</h1>
+  <h1>No view template for interactive request</h1>
 </header>
 
 <main id="container">
   <h2><%= h @exception.message %></h2>
 
-  <p class="summary">
-    <strong>NOTE!</strong><br>
-    Unless told otherwise, Rails expects an action to render a template with the same name,<br>
-    contained in a folder named after its controller.
-
-    If this controller is an API responding with 204 (No Content), <br>
-    which does not require a template,
-    then this error will occur when trying to access it via browser,<br>
-    since we expect an HTML template
-    to be rendered for such requests. If that's the case, carry on.
-  </p>
+  <div class="summary">
+    <p>
+      <strong>NOTE:</strong>Rails usually expects a controller action to render a view template with the same name. 
+    </p>
+    <p>
+      For example, a <code>BooksController#index</code> action defined in <code>app/controller/books_controller.rb</code> should have a corresponding view template 
+      in a file named <code>app/views/books/index.erb.html</code>.
+    </p>
+    <p>
+      However, if this controller is an API endpoint responding with 204 (No Content), which does not require a view template because it doesn't serve an HTML response, then this error will occur when trying to access it with a browser. In this particular scenario, you can ignore this error.
+    </p>
+    <p>
+      You can find more about view template rendering conventions in the <a href="https://guides.rubyonrails.org/layouts_and_rendering.html#rendering-by-default-convention-over-configuration-in-action">Rails Guides on Layouts and Rendering in Rails</a>.
+    </p>
+  </div>
 </main>
