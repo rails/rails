@@ -201,7 +201,9 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg")
 
     # image/jpg is not recognised by mini_mime (image/jpeg is correct)
-    blob.update(content_type: "image/jpg")
+    assert_deprecated do
+      blob.update(content_type: "image/jpg")
+    end
 
     assert_nothing_raised do
       blob.variant(resize_to_limit: [100, 100])
