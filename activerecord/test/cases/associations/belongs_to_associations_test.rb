@@ -1134,7 +1134,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     error = assert_raise ArgumentError do
       Class.new(Author).belongs_to :special_author_address, dependent: :nullify
     end
-    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete, :destroy_async], but is :nullify"
+    assert_equal error.message, "The :dependent option must be one of [nil, :destroy, :delete, :destroy_async], but is :nullify"
   end
 
   class EssayDestroy < ActiveRecord::Base

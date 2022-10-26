@@ -3132,6 +3132,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_invalid_dependent_option_raises_exception
+    error = assert_raise ArgumentError do
+      Class.new(Account).has_many :firms, dependent: :none
+    end
+    assert_equal error.message, "The :dependent option must be one of [nil, :destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception, :destroy_async], but is :none"
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target

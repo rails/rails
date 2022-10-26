@@ -201,6 +201,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { firm.destroy }
   end
 
+  def test_has_one_invalid_dependent_option_raises_exception
+    error = assert_raise ArgumentError do
+      Class.new(Account).has_one :firm, dependent: :none
+    end
+    assert_equal error.message, "The :dependent option must be one of [nil, :destroy, :destroy_async, :delete, :nullify, :restrict_with_error, :restrict_with_exception], but is :none"
+  end
+
   def test_restrict_with_exception
     firm = RestrictedWithExceptionFirm.create!(name: "restrict")
     firm.create_account(credit_limit: 10)
