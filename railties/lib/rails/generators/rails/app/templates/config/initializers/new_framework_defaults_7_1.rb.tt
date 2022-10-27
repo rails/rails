@@ -68,3 +68,42 @@
 # (https://open-telemetry.github.io/opentelemetry-sqlcommenter/), or using the legacy format.
 # Options are `:legacy` and `:sqlcommenter`.
 # Rails.application.config.active_record.query_log_tags_format = :sqlcommenter
+
+# Specify the serializer used by `MessageEncryptor` by default.
+# Options are `:json`, `:hybrid`, and `:marshal`.
+#
+# New apps by default will use `:json`.
+#
+# Rails.application.config.active_support.default_message_encryptor_serializer = :json
+#
+# However, if you are upgrading an app, you will likely want to start with
+# `:hybrid`. If you switch to `:json` before existing messages have expired or 
+# been converted, those messages will no longer be readable.
+#
+# Rails.application.config.active_support.default_message_encryptor_serializer = :hybrid
+#
+# For detailed migration steps, check out https://guides.rubyonrails.org/v7.1/upgrading_ruby_on_rails.html#new-activesupport-messageencryptor-default-serializer
+
+# Specify the serializer used by `MessageVerifier` by default.
+# Options are `:json`, `:hybrid`, and `:marshal`.
+#
+# New apps by default will use `:json`.
+#
+# Rails.application.config.active_support.default_message_verifier_serializer = :json
+#
+# However, if you are upgrading an app, you will likely want to start with
+# `:hybrid`. If you switch to `:json` before existing messages have expired or
+# been converted, those messages will no longer be readable.
+#
+# Rails.application.config.active_support.default_message_verifier_serializer = :hybrid
+#
+# For detailed migration steps, check out https://guides.rubyonrails.org/v7.1/upgrading_ruby_on_rails.html#new-activesupport-messageverifier-default-serializer
+
+# Set the maximum size for Rails log files.
+#
+# `load_defaults 7.1` does not set this value for environments other than
+# development and test.
+#
+# if Rails.env.development? || Rails.env.test?
+#   Rails.application.config.log_file_size = 100 * 1024 * 1024
+# end
