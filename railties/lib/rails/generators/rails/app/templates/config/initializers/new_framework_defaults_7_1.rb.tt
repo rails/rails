@@ -68,3 +68,13 @@
 # (https://open-telemetry.github.io/opentelemetry-sqlcommenter/), or using the legacy format.
 # Options are `:legacy` and `:sqlcommenter`.
 # Rails.application.config.active_record.query_log_tags_format = :sqlcommenter
+
+
+# Specifies what serializer the `MessageEncryptor` class will use by default.
+# Options are `:json`, `:hybrid` and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
+# Rails.application.config.active_support.default_message_encryptor_serializer = :json
+
+
+# Specifies what serializer the `MessageVerifier` class will use by default.
+# Options are `:json`, `:hybrid`, and `:marshal`. `:hybrid` uses the `JsonWithMarshalFallback` class.
+# Rails.application.config.active_support.default_message_verifier_serializer = :json
