@@ -1047,13 +1047,13 @@ class RequestMimeType < BaseRequestTest
 
     assert_equal(Mime[:xml], request.content_mime_type)
     assert_equal("application/xml", request.media_type)
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       assert_nil(request.content_charset)
     end
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       assert_equal({}, request.media_type_params)
     end
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       assert_equal("application/xml", request.content_type)
     end
   ensure

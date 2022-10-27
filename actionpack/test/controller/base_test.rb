@@ -220,7 +220,7 @@ class UrlOptionsTest < ActionController::TestCase
       set.draw do
         get "from_view", to: "url_options#from_view", as: :from_view
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -257,7 +257,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       set.draw do
         get "from_view", to: "default_url_options#from_view", as: :from_view
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -277,7 +277,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
           resources :descriptions
         end
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end

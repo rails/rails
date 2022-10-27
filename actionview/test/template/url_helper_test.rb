@@ -1072,7 +1072,7 @@ class UrlHelperControllerTest < ActionController::TestCase
         to: "url_helper_controller_test/url_helper#show_named_route",
         as: :show_named_route
 
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get "/:controller(/:action(/:id))"
       end
 
