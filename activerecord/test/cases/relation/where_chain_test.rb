@@ -68,6 +68,21 @@ module ActiveRecord
       assert_equal [posts(:authorless)], Post.where.missing(:author, :comments).to_a
     end
 
+    def test_present
+      Post.where.present(Author.where("authors.id = posts.author_id")).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_includes     relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
+
+    def test_absent
+      relation = Post.where.absent(Author.where("authors.id = posts.author_id"))
+
+      assert posts(:authorless).author.blank?
+      assert_equal [posts(:authorless)], relation.to_a
+    end
+
     def test_not_inverts_where_clause
       relation = Post.where.not(title: "hello")
       expected_where_clause = Post.where(title: "hello").where_clause.invert

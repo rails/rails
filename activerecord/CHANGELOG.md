@@ -1,3 +1,21 @@
+*   Implements `exists` and `not exists` through chaining `where.present` and `where.absent`
+
+    Before, slow with many authors:
+
+    ```ruby
+    Post.where(author: Author.all)
+    Post.where.not(author: Author.all)
+    ```
+
+    After, fast with many authors:
+
+    ```ruby
+    Post.where.present(Author.where("authors.id = posts.author_id"))
+    Post.where.absent(Author.where("authors.id = posts.author_id"))
+    ```
+
+    *Lázaro Nixon*
+
 *   Adds `validate` to foreign keys and check constraints in schema.rb
 
     Previously, `schema.rb` would not record if `validate: false` had been used when adding a foreign key or check

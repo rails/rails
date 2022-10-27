@@ -111,6 +111,42 @@ module ActiveRecord
         @scope
       end
 
+      # Returns a new relation, which is the result of the existence of this relation
+      # in the one passed as argument.
+      #
+      # It is similar to IN clause, but it is much faster when the sub-query results
+      # is very large. For example, posts that are associated to authors:
+      #
+      #   Post.where(author: Author.all)
+      #   # SELECT "posts".* FROM "posts"
+      #   # WHERE "posts"."author_id" IN (SELECT "authors"."id" FROM "authors")
+      #
+      #   Post.where.present(Author.where("authors.id = posts.author_id"))
+      #   # SELECT "posts".* FROM "posts"
+      #   # WHERE EXISTS (SELECT 1 FROM "authors" WHERE (authors.id = posts.author_id))
+      def present(other)
+        @scope.where!(other.reselect(1).arel.exists)
+        @scope
+      end
+
+      # Returns a new relation, which is the result of the absensence of this relation
+      # in the one passed as argument.
+      #
+      # It is similar to NOT IN clause, but it is much faster when the sub-query results
+      # is very large. For example, posts that are not associated to authors:
+      #
+      #   Post.where.not(author: Author.all)
+      #   # SELECT "posts".* FROM "posts"
+      #   # WHERE "posts"."author_id" NOT IN (SELECT "authors"."id" FROM "authors")
+      #
+      #   Post.where.absent(Author.where("authors.id = posts.author_id"))
+      #   # SELECT "posts".* FROM "posts"
+      #   # WHERE NOT (EXISTS (SELECT 1 FROM "authors" WHERE (authors.id = posts.author_id)))
+      def absent(other)
+        @scope.where!(other.reselect(1).arel.exists.not)
+        @scope
+      end
+
       private
         def scope_association_reflection(association)
           reflection = @scope.klass._reflect_on_association(association)
@@ -820,6 +856,18 @@ module ActiveRecord
     #    # SELECT "posts".* FROM "posts"
     #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
     #    # WHERE "authors"."id" IS NULL
+    #
+    # Chaining with WhereChain#present:
+    #
+    #   Post.where.present(Author.where("authors.id = posts.author_id"))
+    #   # SELECT "posts".* FROM "posts"
+    #   # WHERE EXISTS (SELECT 1 FROM "authors" WHERE (authors.id = posts.author_id))
+    #
+    # Chaining with WhereChain#absent:
+    #
+    #   Post.where.absent(Author.where("authors.id = posts.author_id"))
+    #   # SELECT "posts".* FROM "posts"
+    #   # WHERE NOT (EXISTS (SELECT 1 FROM "authors" WHERE (authors.id = posts.author_id)))
     #
     # === blank condition
     #
