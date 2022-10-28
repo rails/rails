@@ -28,6 +28,7 @@ module ActiveRecord
         end
 
         teardown do
+          ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
           ActiveRecord::Base.configurations = @original_configurations
           ActiveRecord::Base.establish_connection(:arunit)
           FileUtils.rm_rf(@migration_dir)
