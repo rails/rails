@@ -325,11 +325,12 @@ class GuestsCleanupJob < ApplicationJob
   end
 
   private
-    def around_cleanup
-      # Do something before perform
-      yield
-      # Do something after perform
-    end
+  
+  def around_cleanup
+    # Do something before perform
+    yield
+    # Do something after perform
+  end
 end
 ```
 
