@@ -40,7 +40,7 @@ module ActiveModel
         end
 
         def user_input_in_time_zone(value)
-          value.in_time_zone
+          value&.in_time_zone
         end
 
         private

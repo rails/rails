@@ -284,6 +284,26 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_timezone_awareness_unbounded_tsrange
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
+      PostgresqlRange.reset_column_information
+      time_string = Time.current.to_s
+      time = Time.zone.parse(time_string)
+
+      record = PostgresqlRange.new(ts_range: ..time_string)
+      assert_equal(..time, record.ts_range)
+      assert_equal ActiveSupport::TimeZone[tz], record.ts_range.end.time_zone
+
+      record.save!
+      record.reload
+
+      assert_equal(..time, record.ts_range)
+      assert_equal ActiveSupport::TimeZone[tz], record.ts_range.end.time_zone
+    end
+  end
+
   def test_timezone_array_awareness_tsrange
     tz = "Pacific Time (US & Canada)"
 
