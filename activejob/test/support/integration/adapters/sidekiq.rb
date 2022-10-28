@@ -37,7 +37,7 @@ module SidekiqJobsManager
       $stderr.sync = true
 
       logfile = Rails.root.join("log/sidekiq.log").to_s
-      Sidekiq.logger = Sidekiq::Logger.new(logfile)
+      set_logger(Sidekiq::Logger.new(logfile))
 
       self_read, self_write = IO.pipe
       trap "TERM" do
@@ -54,23 +54,27 @@ module SidekiqJobsManager
 
       require "sidekiq/cli"
       require "sidekiq/launcher"
-      if Sidekiq.respond_to?(:[]=)
-        config = Sidekiq
-        config[:queues] = ["integration_tests"]
-        config[:environment] = "test"
-        config[:concurrency] = 1
-        config[:timeout] = 1
+      if Sidekiq::MAJOR >= 7
+        config = Sidekiq.default_configuration
+        config.queues = ["integration_tests"]
+        config.concurrency = 1
+        config.average_scheduled_poll_interval = 0.5
+        config.merge!(
+          environment: "test",
+          timeout: 1,
+          poll_interval_average: 1
+        )
       else
         config = {
           queues: ["integration_tests"],
           environment: "test",
           concurrency: 1,
-          timeout: 1
+          timeout: 1,
+          average_scheduled_poll_interval: 0.5,
+          poll_interval_average: 1
         }
       end
       sidekiq = Sidekiq::Launcher.new(config)
-      Sidekiq.average_scheduled_poll_interval = 0.5
-      Sidekiq.options[:poll_interval_average] = 1
       begin
         sidekiq.run
         continue_write.puts "started"
@@ -101,10 +105,22 @@ module SidekiqJobsManager
   def can_run?
     begin
       Sidekiq.redis(&:info)
-      Sidekiq.logger = nil
-    rescue
-      return false
+    rescue => e
+      if e.class.to_s.include?("CannotConnectError")
+        return false
+      else
+        raise
+      end
     end
+    set_logger(nil)
     true
+  end
+
+  def set_logger(logger)
+    if Sidekiq::MAJOR >= 7
+      Sidekiq.default_configuration.logger = logger
+    else
+      Sidekiq.logger = logger
+    end
   end
 end
