@@ -1,3 +1,15 @@
+*   Add `ids` method to `Enumerable`.
+
+    This can be used as same as `Enumerable#pluck` with id as argument.
+
+    ```ruby
+    people = [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }, { id: 3, name: "Aaron" }, {}]
+    people.ids
+    # => [1, 2, 3, nil]
+    ```
+
+    *Shingo Kobayashi*
+
 *   Fix `Time#change` and `Time#advance` for times around the end of Daylight
     Saving Time.
 

@@ -261,6 +261,13 @@ module Enumerable
     when 2.. then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "multiple items found"
     end
   end
+
+  # Returns ids which can be fetched by using <tt>#pluck</tt> with id as argument.
+  #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }, { id: 3, name: "Aaron" }, {}].ids
+  #   # => [1, 2, 3, nil]
+  def ids
+    pluck(:id)
+  end
 end
 
 class Hash

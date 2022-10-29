@@ -370,6 +370,12 @@ class EnumerableTests < ActiveSupport::TestCase
     end
   end
 
+  def test_ids
+    cities = GenericEnumerable.new([{ id: 1, name: "Tokyo" }, { id: 2, name: "Osaka" }, { id: 3, name: "Fukuoka" }, {}])
+    assert_equal [1, 2, 3, nil], cities.ids
+    assert_equal [], [].ids
+  end
+
   private
     def constant_cache_invalidations
       RubyVM.stat(:constant_cache_invalidations)
