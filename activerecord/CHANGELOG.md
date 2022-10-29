@@ -1,3 +1,16 @@
+*   Fix `composed_of` value freezing and duplication.
+
+    Previously composite values exhibited two confusing behaviors:
+
+    - When reading a compositve value it'd _NOT_ be frozen, allowing it to get out of sync with its underlying database
+      columns.
+    - When writing a compositve value the argument would be frozen, potentially confusing the caller.
+
+    Currently, composite values instantiated based on database columns are frozen (addressing the first issue) and
+    assigned compositve values are duplicated and the duplicate is frozen (addressing the second issue).
+
+    *Greg Navis*
+
 *   Fix redundant updates to the column insensitivity cache
 
     Fixed redundant queries checking column capability for insensitive

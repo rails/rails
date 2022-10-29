@@ -971,9 +971,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_predicate dup, :persisted?
 
     # test if the attributes have been duped
-    original_amount = dup.salary.amount
-    dev.salary.amount = 1
-    assert_equal original_amount, dup.salary.amount
+    salary = DeveloperSalary.new(42)
+    dup.salary = salary
+    salary.amount = 1
+    assert_equal 42, dup.salary.amount
 
     assert dup.save
     assert_predicate dup, :persisted?
