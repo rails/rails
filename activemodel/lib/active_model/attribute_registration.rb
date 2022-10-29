@@ -16,6 +16,7 @@ module ActiveModel
         pending.type = type if type
         pending.default = default unless no_default
 
+        define_predicate_method(name) if type.is_a?(ActiveModel::Type::Boolean)
         reset_default_attributes
       end
 
@@ -71,6 +72,10 @@ module ActiveModel
 
         def resolve_type_name(name, **options)
           Type.lookup(name, **options)
+        end
+
+        def define_predicate_method(name)
+          define_method("#{name}?") { public_send(name) == true }
         end
     end
   end

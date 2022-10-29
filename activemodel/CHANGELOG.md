@@ -1,3 +1,23 @@
+*   Boolean attributes defined with the `ActiveModel::Attributes` API will now
+    have their respective predicate method defined automatically.
+
+    For example:
+
+    ```ruby
+    class Person
+      include ActiveModel::Attributes
+
+      attribute :loves_rails, :boolean
+    end
+
+    person = Person.new
+    person.love_rails?  # => false
+    person.love_rails = true
+    person.love_rails?  # => true
+    ```
+
+    *Connor McQuillan*
+
 *   Custom attribute types that inherit from Active Model built-in types and do
     not override the `serialize` method will now benefit from an optimization
     when serializing attribute values for the database.

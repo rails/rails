@@ -115,6 +115,20 @@ module ActiveModel
       end
     end
 
+    test "boolean attributes define predicate methods" do
+      model = ModelForAttributesTest.new(boolean_field: "1")
+
+      assert_equal true, model.boolean_field?
+
+      model.boolean_field = "false"
+
+      assert_equal false, model.boolean_field?
+
+      model.boolean_field = nil
+
+      assert_equal false, model.boolean_field?
+    end
+
     test "children inherit attributes" do
       data = ChildModelForAttributesTest.new(integer_field: "4.4")
 
