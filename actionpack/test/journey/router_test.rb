@@ -499,13 +499,13 @@ module ActionDispatch
         end
 
         def get(*args)
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             mapper.get(*args)
           end
         end
 
         def match(*args)
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             mapper.match(*args)
           end
         end

@@ -3891,6 +3891,7 @@ module ApplicationTests
       assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
       assert_equal AbstractController.deprecator, Rails.application.deprecators[:action_controller]
       assert_equal ActionController.deprecator, Rails.application.deprecators[:action_controller]
+      assert_equal ActionDispatch.deprecator, Rails.application.deprecators[:action_dispatch]
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
       assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
     end

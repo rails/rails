@@ -134,7 +134,7 @@ module ActionDispatch # :nodoc:
 
     %w[speaker vibrate vr].each do |directive|
       define_method(directive) do |*sources|
-        ActiveSupport::Deprecation.warn(<<~MSG)
+        ActionDispatch.deprecator.warn(<<~MSG)
           The `#{directive}` permissions policy directive is deprecated
           and will be removed in Rails 7.2.
 

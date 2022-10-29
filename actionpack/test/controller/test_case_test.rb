@@ -183,7 +183,7 @@ XML
     @request.delete_header "PATH_INFO"
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller(/:action(/:id))"
         end
       end
@@ -661,7 +661,7 @@ XML
       set.draw do
         get "file/*path", to: "test_case_test/test#test_params"
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -1076,7 +1076,7 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
     @request.env["PATH_INFO"] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller(/:action(/:id))"
         end
       end
@@ -1205,7 +1205,7 @@ class AnonymousControllerTest < ActionController::TestCase
 
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller(/:action(/:id))"
         end
       end
