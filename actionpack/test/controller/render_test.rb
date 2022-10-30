@@ -395,9 +395,7 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_dynamic_render
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      assert_deprecated(ActionDispatch.deprecator) do
-        get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
-      end
+      get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
     end
   end
 
