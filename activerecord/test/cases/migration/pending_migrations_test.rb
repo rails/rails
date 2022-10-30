@@ -9,20 +9,11 @@ module ActiveRecord
         self.use_transactional_tests = false
 
         setup do
-          @migration_dir = Dir.mktmpdir("activerecord-migrations-")
-          @secondary_migration_dir = Dir.mktmpdir("activerecord-migrations-secondary-")
+          @tmp_dir = Dir.mktmpdir("pending_migrations_test-")
+
           @original_configurations = ActiveRecord::Base.configurations
           ActiveRecord::Base.configurations = base_config
           ActiveRecord::Base.establish_connection(:primary)
-
-          file = ActiveRecord::Base.connection.raw_connection.filename
-          source_db = SQLite3::Database.new file
-          dest_db = ActiveRecord::Base.connection.raw_connection
-          backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
-          backup.step(-1)
-          backup.finish
-
-          ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
           @app = Minitest::Mock.new
         end
@@ -30,8 +21,7 @@ module ActiveRecord
         teardown do
           ActiveRecord::Base.configurations = @original_configurations
           ActiveRecord::Base.establish_connection(:arunit)
-          FileUtils.rm_rf(@migration_dir)
-          FileUtils.rm_rf(@secondary_migration_dir)
+          FileUtils.rm_rf(@tmp_dir)
         end
 
         def run_migrations
@@ -39,9 +29,12 @@ module ActiveRecord
           capture(:stdout) { migrator.migrate }
         end
 
-        def create_migration(number, name, migration_dir: nil)
+        def create_migration(number, name, database: :primary)
+          migration_dir = migrations_path_for(database)
+          FileUtils.mkdir_p(migration_dir)
+
           filename = "#{number}_#{name.underscore}.rb"
-          File.write(File.join(migration_dir || @migration_dir, filename), <<~RUBY)
+          File.write(File.join(migration_dir, filename), <<~RUBY)
             class #{name.classify} < ActiveRecord::Migration::Current
             end
           RUBY
@@ -108,7 +101,7 @@ module ActiveRecord
         end
 
         def test_with_multiple_database
-          create_migration "01", "create_bar", migration_dir: @secondary_migration_dir
+          create_migration "01", "create_bar", database: :secondary
 
           assert_raises ActiveRecord::PendingMigrationError do
             CheckPending.new(@app).call({})
@@ -124,7 +117,7 @@ module ActiveRecord
           @app.verify
 
           # Now check exclusion if database_tasks is set to false for the db_config
-          create_migration "02", "create_foo", migration_dir: @secondary_migration_dir
+          create_migration "02", "create_foo", database: :secondary
           assert_raises ActiveRecord::PendingMigrationError do
             CheckPending.new(@app).call({})
           end
@@ -148,18 +141,26 @@ module ActiveRecord
         end
 
         private
+          def database_path_for(database_name)
+            File.join(@tmp_dir, "#{database_name}.sqlite3")
+          end
+
+          def migrations_path_for(database_name)
+            File.join(@tmp_dir, "#{database_name}-migrations")
+          end
+
           def base_config
             {
               ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
                 primary: {
                   adapter: "sqlite3",
-                  database: "test/fixtures/fixture_database.sqlite3",
-                  migrations_paths: @migration_dir
+                  database: database_path_for(:primary),
+                  migrations_paths: migrations_path_for(:primary),
                 },
                 secondary: {
                   adapter: "sqlite3",
-                  database: "test/fixtures/fixture_database.sqlite3",
-                  migrations_paths: @secondary_migration_dir
+                  database: database_path_for(:secondary),
+                  migrations_paths: migrations_path_for(:secondary),
                 }
               }
             }
