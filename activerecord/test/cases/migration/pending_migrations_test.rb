@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/hash/deep_merge"
 
 module ActiveRecord
   class Migration
@@ -14,8 +15,6 @@ module ActiveRecord
           @original_configurations = ActiveRecord::Base.configurations
           ActiveRecord::Base.configurations = base_config
           ActiveRecord::Base.establish_connection(:primary)
-
-          @app = Minitest::Mock.new
         end
 
         teardown do
@@ -42,43 +41,16 @@ module ActiveRecord
 
         def test_errors_if_pending
           create_migration "01", "create_foo"
-
-          assert_raises ActiveRecord::PendingMigrationError do
-            CheckPending.new(@app).call({})
-          end
-
-          # Continues failing
-          assert_raises ActiveRecord::PendingMigrationError do
-            CheckPending.new(@app).call({})
-          end
+          assert_pending_migrations
         end
 
         def test_checks_if_supported
           run_migrations
-
-          check_pending = CheckPending.new(@app)
-
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
-
-          # With cached result
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
+          assert_no_pending_migrations
         end
 
         def test_okay_with_no_migrations
-          check_pending = CheckPending.new(@app)
-
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
-
-          # With cached result
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
+          assert_no_pending_migrations
         end
 
         # Regression test for https://github.com/rails/rails/pull/29759
@@ -86,61 +58,61 @@ module ActiveRecord
           # With a prior file before even initialization
           create_migration "05", "create_bar"
           quietly { run_migrations }
-
-          check_pending = CheckPending.new(@app)
-
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
+          assert_no_pending_migrations
 
           # It understands the new migration created at 01
           create_migration "01", "create_foo"
-          assert_raises ActiveRecord::PendingMigrationError do
-            check_pending.call({})
-          end
+          assert_pending_migrations
         end
 
         def test_with_multiple_database
           create_migration "01", "create_bar", database: :secondary
-
-          assert_raises ActiveRecord::PendingMigrationError do
-            CheckPending.new(@app).call({})
-          end
+          assert_pending_migrations
 
           ActiveRecord::Base.establish_connection(:secondary)
           quietly { run_migrations }
 
           ActiveRecord::Base.establish_connection(:primary)
 
-          @app.expect :call, nil, [{}]
-          CheckPending.new(@app).call({})
-          @app.verify
+          assert_no_pending_migrations
 
           # Now check exclusion if database_tasks is set to false for the db_config
           create_migration "02", "create_foo", database: :secondary
-          assert_raises ActiveRecord::PendingMigrationError do
-            CheckPending.new(@app).call({})
-          end
+          assert_pending_migrations
 
-          new_config = base_config
-          new_config[ActiveRecord::ConnectionHandling::DEFAULT_ENV.call][:secondary][:database_tasks] = false
-          ActiveRecord::Base.configurations = new_config
-
-          @app.expect :call, nil, [{}]
-          CheckPending.new(@app).call({})
-          @app.verify
+          ActiveRecord::Base.configurations = base_config(secondary: { database_tasks: false })
+          assert_no_pending_migrations
         end
 
         def test_with_stdlib_logger
-          old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
-          quietly do
-            assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new { }).call({}) }
-          end
+          old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new(StringIO.new)
+          assert_nothing_raised { CheckPending.new(proc { }).call({}) }
         ensure
           ActiveRecord::Base.logger = old
         end
 
         private
+          def assert_pending_migrations
+            # Do twice to test that the error continues to be raised.
+            2.times do
+              assert_raises ActiveRecord::PendingMigrationError do
+                CheckPending.new(proc { flunk }).call({})
+              end
+            end
+          end
+
+          def assert_no_pending_migrations
+            app = Minitest::Mock.new
+            check_pending = CheckPending.new(app)
+
+            # Do twice to also test the cached result.
+            2.times do
+              app.expect :call, nil, [{}]
+              check_pending.call({})
+              app.verify
+            end
+          end
+
           def database_path_for(database_name)
             File.join(@tmp_dir, "#{database_name}.sqlite3")
           end
@@ -149,7 +121,7 @@ module ActiveRecord
             File.join(@tmp_dir, "#{database_name}-migrations")
           end
 
-          def base_config
+          def base_config(additional_config = {})
             {
               ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
                 primary: {
@@ -161,8 +133,8 @@ module ActiveRecord
                   adapter: "sqlite3",
                   database: database_path_for(:secondary),
                   migrations_paths: migrations_path_for(:secondary),
-                }
-              }
+                },
+              }.deep_merge(additional_config)
             }
           end
       end
