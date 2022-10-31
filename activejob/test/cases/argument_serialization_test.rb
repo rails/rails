@@ -53,7 +53,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   test "dangerously treats BigDecimal arguments as primitives not requiring serialization by default" do
-    assert_deprecated(<<~MSG.chomp) do
+    assert_deprecated(<<~MSG.chomp, ActiveJob.deprecator) do
       Primitive serialization of BigDecimal job arguments is deprecated as it may serialize via .to_s using certain queue adapters.
       Enable config.active_job.use_big_decimal_serializer to use BigDecimalSerializer instead, which will be mandatory in Rails 7.2.
 
