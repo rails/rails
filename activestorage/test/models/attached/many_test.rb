@@ -207,7 +207,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs within a transaction with append_on_assign config uploads all the files" do
     append_on_assign do
-      assert_deprecated do
+      assert_deprecated(ActiveStorage.deprecator) do
         ActiveRecord::Base.transaction do
           @user.highlights.attach fixture_file_upload("racecar.jpg")
           @user.highlights.attach fixture_file_upload("video.mp4")
@@ -223,7 +223,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching new blobs within a transaction with append_on_assign config create the exact amount of records" do
     append_on_assign do
-      assert_deprecated do
+      assert_deprecated(ActiveStorage.deprecator) do
         assert_difference -> { ActiveStorage::Blob.count }, +2 do
           ActiveRecord::Base.transaction do
             @user.highlights.attach fixture_file_upload("racecar.jpg")
@@ -414,7 +414,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "updating an existing record with attachments when appending on assign" do
     append_on_assign do
-      assert_deprecated do
+      assert_deprecated(ActiveStorage.deprecator) do
         @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
 
         assert_difference -> { @user.reload.highlights.count }, +2 do
@@ -605,7 +605,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
         Calling `purge` from `highlights_attachments` is deprecated and will be removed in Rails 7.1.
         To migrate to Rails 7.1's behavior call `purge` from `highlights` instead: `highlights.purge`.
       MSG
-      assert_deprecated(message) do
+      assert_deprecated(message, ActiveStorage.deprecator) do
         assert_changes -> { @user.updated_at } do
           @user.highlights_attachments.purge
         end
@@ -700,7 +700,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
         Calling `purge_later` from `highlights_attachments` is deprecated and will be removed in Rails 7.1.
         To migrate to Rails 7.1's behavior call `purge_later` from `highlights` instead: `highlights.purge_later`.
       MSG
-      assert_deprecated(message) do
+      assert_deprecated(message, ActiveStorage.deprecator) do
         perform_enqueued_jobs do
           assert_changes -> { @user.updated_at } do
             @user.highlights_attachments.purge_later
@@ -963,7 +963,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "successfully attaches new blobs and destroys attachments marked for destruction via nested attributes" do
     append_on_assign do
-      assert_deprecated do
+      assert_deprecated(ActiveStorage.deprecator) do
         town_blob = create_blob(filename: "town.jpg")
         @user.highlights.attach(town_blob)
         @user.reload
@@ -991,7 +991,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
         Using association setter would result in purging the existing attached attachments and replacing them with new ones.
       MSG
 
-      assert_deprecated(message) do
+      assert_deprecated(message, ActiveStorage.deprecator) do
         @user.update! highlights: [create_blob(filename: "whenever.jpg")]
       end
     end
