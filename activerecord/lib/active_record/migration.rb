@@ -143,17 +143,19 @@ module ActiveRecord
       end
     end
 
-    def initialize(message = nil)
-      super(message || detailed_migration_message)
+    def initialize(message = nil, pending_migrations: nil)
+      if pending_migrations.nil?
+        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+      end
+
+      super(message || detailed_migration_message(pending_migrations))
     end
 
     private
-      def detailed_migration_message
+      def detailed_migration_message(pending_migrations)
         message = "Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate"
         message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env) && !(Rails.env.development? || Rails.env.test?)
         message += "\n\n"
-
-        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
 
         message += "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}\n\n"
 
@@ -634,7 +636,9 @@ module ActiveRecord
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
-        raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
+        if pending_migrations = connection.migration_context.pending_migrations
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
+        end
       end
 
       def load_schema_if_pending!
@@ -678,17 +682,28 @@ module ActiveRecord
       end
 
       def check_pending_migrations # :nodoc:
-        prev_db_config = Base.connection_db_config
-
-        db_configs_in_current_env.each do |db_config|
-          Base.establish_connection(db_config)
-          check_pending!
+        if pending_migrations.any?
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
         end
-      ensure
-        Base.establish_connection(prev_db_config)
       end
 
       private
+        def pending_migrations
+          prev_db_config = Base.connection_db_config
+          pending_migrations = []
+
+          db_configs_in_current_env.each do |db_config|
+            conn = Base.establish_connection(db_config).connection
+            if pending = conn.migration_context.open.pending_migrations
+              pending_migrations << pending
+            end
+          end
+
+          pending_migrations.flatten
+        ensure
+          Base.establish_connection(prev_db_config)
+        end
+
         def db_configs_in_current_env
           current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
           ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
