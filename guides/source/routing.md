@@ -1278,7 +1278,7 @@ video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
-Breaking Up *Very* Large Route File into Multiple Small Ones:
+Breaking Up *Very* Large Route File into Multiple Small Ones
 -------------------------------------------------------
 
 If you work in a large application with thousands of routes, a single `config/routes.rb` file can become cumbersome and hard to read.
