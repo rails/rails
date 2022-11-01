@@ -61,7 +61,8 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     @connection.create_schema "other_schema"
 
     migrations = [EnableHstoreInSchema.new(nil, 1)]
-    ActiveRecord::Migrator.new(:up, migrations, ActiveRecord::Base.connection.schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, migrations, @connection.schema_migration, @connection.internal_metadata).migrate
+    
     assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
   ensure
     @connection.drop_schema "other_schema", if_exists: true
