@@ -10,6 +10,10 @@ module ActiveJob
     config.active_job.custom_serializers = []
     config.active_job.log_query_tags_around_perform = true
 
+    initializer "active_job.deprecator" do |app|
+      app.deprecators[:active_job] = ActiveJob.deprecator
+    end
+
     initializer "active_job.logger" do
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
