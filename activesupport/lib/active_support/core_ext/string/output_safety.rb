@@ -192,7 +192,7 @@ module ActiveSupport # :nodoc:
           rescue NoMethodError => error
             if error.name == :to_str
               str = arg.to_s
-              ActiveSupport::Deprecation.warn <<~MSG.squish
+              ActiveSupport.deprecator.warn <<~MSG.squish
                 Implicit conversion of #{arg.class} into String by ActiveSupport::SafeBuffer
                 is deprecated and will be removed in Rails 7.1.
                 You must explicitly cast it to a String.

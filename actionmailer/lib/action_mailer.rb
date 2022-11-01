@@ -25,6 +25,7 @@
 
 require "abstract_controller"
 require "action_mailer/version"
+require "action_mailer/deprecator"
 
 # Common Active Support usage in Action Mailer
 require "active_support"

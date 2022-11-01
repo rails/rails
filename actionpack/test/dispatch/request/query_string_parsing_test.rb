@@ -146,7 +146,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
   test "ambiguous query string returns a bad request" do
     with_routing do |set|
       set.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":action", to: ::QueryStringParsingTest::TestController
         end
       end
@@ -160,7 +160,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     def assert_parses(expected, actual)
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":action", to: ::QueryStringParsingTest::TestController
           end
         end

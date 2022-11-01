@@ -151,7 +151,7 @@ module ActiveRecord
         end
 
         if identity_or_column.nil?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord.deprecator.warn(<<-MSG.squish)
             Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
             Sum of non-numeric elements requires an initial argument.
           MSG

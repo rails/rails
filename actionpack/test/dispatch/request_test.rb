@@ -1047,13 +1047,13 @@ class RequestMimeType < BaseRequestTest
 
     assert_equal(Mime[:xml], request.content_mime_type)
     assert_equal("application/xml", request.media_type)
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       assert_nil(request.content_charset)
     end
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       assert_equal({}, request.media_type_params)
     end
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       assert_equal("application/xml", request.content_type)
     end
   ensure
@@ -1285,6 +1285,18 @@ class RequestParameterFilter < BaseRequestTest
 
     path = request.filtered_path
     assert_equal request.script_name + "/authenticate?secret", path
+  end
+
+  test "parameter_filter returns the same instance of ActiveSupport::ParameterFilter" do
+    request = stub_request(
+      "action_dispatch.parameter_filter" => [:secret]
+    )
+
+    filter = request.parameter_filter
+
+    assert_kind_of ActiveSupport::ParameterFilter, filter
+    assert_equal({ "secret" => "[FILTERED]", "something" => "bar" }, filter.filter("secret" => "foo", "something" => "bar"))
+    assert_same filter, request.parameter_filter
   end
 end
 

@@ -415,7 +415,7 @@ module ActionView
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
         deprecated_locals = locals.grep(/\A@+/)
         if deprecated_locals.any?
-          ActiveSupport::Deprecation.warn(<<~MSG)
+          ActionView.deprecator.warn(<<~MSG)
             Passing instance variables to `render` is deprecated.
             In Rails 7.1, #{deprecated_locals.to_sentence} will be ignored.
           MSG

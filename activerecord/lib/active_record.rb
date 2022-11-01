@@ -30,6 +30,7 @@ require "arel"
 require "yaml"
 
 require "active_record/version"
+require "active_record/deprecator"
 require "active_model/attribute_set"
 require "active_record/errors"
 
@@ -59,6 +60,7 @@ module ActiveRecord
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
+  autoload :QueryConstraints
   autoload :QueryLogs
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
@@ -337,14 +339,14 @@ module ActiveRecord
   self.dump_schemas = :schema_search_path
 
   def self.suppress_multiple_database_warning
-    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+    ActiveRecord.deprecator.warn(<<-MSG.squish)
       config.active_record.suppress_multiple_database_warning is deprecated and will be removed in Rails 7.2.
       It no longer has any effect and should be removed from the configuration file.
     MSG
   end
 
   def self.suppress_multiple_database_warning=(value)
-    ActiveSupport::Deprecation.warn(<<-MSG.squish)
+    ActiveRecord.deprecator.warn(<<-MSG.squish)
       config.active_record.suppress_multiple_database_warning= is deprecated and will be removed in Rails 7.2.
       It no longer has any effect and should be removed from the configuration file.
     MSG

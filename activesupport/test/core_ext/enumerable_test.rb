@@ -57,10 +57,10 @@ class EnumerableTests < ActiveSupport::TestCase
     enum = GenericEnumerable.new(%w(a b c))
     assert_equal "abc", enum.sum("")
     assert_equal "aabbcc", enum.sum("") { |i| i * 2 }
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "abc", enum.sum
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "aabbcc", enum.sum { |i| i * 2 }
     end
 
@@ -69,12 +69,12 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, payments.sum { |p| p.price * 2 }
 
     payments = GenericEnumerable.new([ SummablePayment.new(5), SummablePayment.new(15) ])
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal SummablePayment.new(20), payments.sum
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0))
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal SummablePayment.new(20), payments.sum { |p| p }
     end
 
@@ -117,7 +117,7 @@ class EnumerableTests < ActiveSupport::TestCase
     expected_raise = TypeError
 
     assert_raise(expected_raise) { GenericEnumerable.new([5, 15, nil]).sum }
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal 0, [nil].sum
     end
 
@@ -141,7 +141,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 10, (1..4).sum
     assert_equal 10, (1..4.5).sum
     assert_equal 6, (1...4).sum
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "abc", ("a".."c").sum
     end
     assert_equal "abc", ("a".."c").sum("")
@@ -162,11 +162,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = %w(a b c)
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "abc", enum.sum
     end
     assert_equal "abc", enum.sum("")
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "aabbcc", enum.sum { |i| i * 2 }
     end
     assert_equal "aabbcc", enum.sum("") { |i| i * 2 }
@@ -176,11 +176,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, payments.sum { |p| p.price * 2 }
 
     payments = [ SummablePayment.new(5), SummablePayment.new(15) ]
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal SummablePayment.new(20), payments.sum
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0))
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal SummablePayment.new(20), payments.sum { |p| p }
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }

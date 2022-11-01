@@ -40,7 +40,7 @@ class DestroyAssociationAsyncJobTest < ActiveRecord::TestCase
   end
 
   test "deprecation of rescuing ActiveJobRequiredError which has been replaced by a NameError" do
-    assert_deprecated { ActiveRecord::ActiveJobRequiredError }
+    assert_deprecated(ActiveRecord.deprecator) { ActiveRecord::ActiveJobRequiredError }
   end
 
   test "belong_to dependent destroy_async requires destroy_association_async_job" do

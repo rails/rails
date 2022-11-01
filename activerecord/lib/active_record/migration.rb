@@ -150,7 +150,7 @@ module ActiveRecord
     private
       def detailed_migration_message
         message = "Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate"
-        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env)
+        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env) && !(Rails.env.development? || Rails.env.test?)
         message += "\n\n"
 
         pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
@@ -646,7 +646,7 @@ module ActiveRecord
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
-            Base.connection_handler.clear_all_connections!
+            Base.connection_handler.clear_all_connections!(:all)
             system("bin/rails db:test:prepare")
           end
         end
@@ -1097,7 +1097,7 @@ module ActiveRecord
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
       if schema_migration == SchemaMigration
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
           specific connection, instaniate MigrationContext with the connection's schema
@@ -1108,7 +1108,7 @@ module ActiveRecord
       end
 
       if internal_metadata == InternalMetadata
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
           specific connection, instaniate MigrationContext with the connection's internal

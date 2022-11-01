@@ -361,8 +361,8 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      A
-      M
+      assert A
+      assert M
       Post.current_scope = Post
       assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post) # precondition
 

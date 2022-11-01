@@ -525,7 +525,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 6, [1, 2, 3].sum(&:abs)
     assert_equal 15, some_companies.sum(&:id)
     assert_equal 25, some_companies.sum(10, &:id)
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       assert_equal "LeetsoftJadedpixel", some_companies.sum(&:name)
     end
     assert_equal "companies: LeetsoftJadedpixel", some_companies.sum("companies: ", &:name)

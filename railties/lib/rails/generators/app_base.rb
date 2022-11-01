@@ -437,7 +437,7 @@ module Rails
         return if options[:skip_action_cable]
 
         comment = "Use Redis adapter to run Action Cable in production"
-        GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
+        GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
       end
 
       def bundle_command(command, env = {})

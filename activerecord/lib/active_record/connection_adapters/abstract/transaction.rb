@@ -487,7 +487,7 @@ module ActiveRecord
                 if !completed && transaction.written_indirectly
                   # This is the case that was missed in the 6.1 deprecation, so we have to
                   # do it now
-                  ActiveSupport::Deprecation.warn(<<~EOW)
+                  ActiveRecord.deprecator.warn(<<~EOW)
                     Using `return`, `break` or `throw` to exit a transaction block is
                     deprecated without replacement. If the `throw` came from
                     `Timeout.timeout(duration)`, pass an exception class as a second

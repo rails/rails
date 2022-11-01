@@ -68,7 +68,7 @@ module ApplicationTests
         app.config.action_dispatch.trusted_proxies = [IPAddr.new("4.2.42.0/24"), /^4\.2\.42\.43$/, "4.2.42.44"]
       end
 
-      assert_not_deprecated do
+      assert_not_deprecated(ActionDispatch.deprecator) do
         assert_equal "1.1.1.1",
                      remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42,4.2.42.43,4.2.42.44")
       end
@@ -88,7 +88,7 @@ module ApplicationTests
         app.config.action_dispatch.trusted_proxies = IPAddr.new("4.2.42.0/24")
       end
 
-      assert_deprecated(/Setting config\.action_dispatch\.trusted_proxies to a single value/) do
+      assert_deprecated(/Setting config\.action_dispatch\.trusted_proxies to a single value/, ActionDispatch.deprecator) do
         assert_equal "1.1.1.1",
                      remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
       end

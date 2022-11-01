@@ -443,7 +443,7 @@ module ActiveRecord
           "structure.sql"
         end
       end
-      deprecate :schema_file_type
+      deprecate :schema_file_type, deprecator: ActiveRecord.deprecator
 
       def schema_dump_path(db_config, format = ActiveRecord.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]

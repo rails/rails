@@ -332,7 +332,23 @@ db_namespace = namespace :db do
 
   desc "Retrieves the current schema version number"
   task version: :load_config do
-    puts "Current version: #{ActiveRecord::Base.connection.schema_version}"
+    ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
+      ActiveRecord::Base.establish_connection(db_config)
+      puts "\ndatabase: #{ActiveRecord::Base.connection_db_config.database}\n"
+      puts "Current version: #{ActiveRecord::Base.connection.schema_version}"
+      puts
+    end
+  end
+
+  namespace :version do
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Retrieves the current schema version number for #{name} database"
+      task name => :load_config do
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
+        ActiveRecord::Base.establish_connection(db_config)
+        puts "Current version: #{ActiveRecord::Base.connection.schema_version}"
+      end
+    end
   end
 
   # desc "Raises an error if there are pending migrations"

@@ -93,7 +93,7 @@ module ActiveRecord
       end
 
       def all_connection_pools
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           The `all_connection_pools` method is deprecated in favor of `connection_pool_list`.
           Call `connection_pool_list(:all)` to get the same behavior as `all_connection_pools`.
         MSG
@@ -288,7 +288,7 @@ module ActiveRecord
           end
 
           if roles.flatten.uniq.count > 1
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveRecord.deprecator.warn(<<-MSG.squish)
               `#{method}` currently only applies to connection pools in the current
               role (`#{ActiveRecord::Base.current_role}`). In Rails 7.1, this method
               will apply to all known pools, regardless of role. To affect only those

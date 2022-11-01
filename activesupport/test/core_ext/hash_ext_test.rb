@@ -586,7 +586,7 @@ class HashToXmlTest < ActiveSupport::TestCase
 
   def test_timezoned_attributes
     # TODO: Remove assertion in Rails 7.1 and add ActiveSupport::TimeWithZone to XML type mapping
-    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated") do
+    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated", ActiveSupport.deprecator) do
       xml = {
         created_at: Time.utc(1999, 2, 2),
         local_created_at: Time.utc(1999, 2, 2).in_time_zone("Eastern Time (US & Canada)")
