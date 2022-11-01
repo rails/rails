@@ -3898,6 +3898,7 @@ module ApplicationTests
       assert_equal ActionText.deprecator, Rails.application.deprecators[:action_text]
       assert_equal ActionView.deprecator, Rails.application.deprecators[:action_view]
       assert_equal ActiveJob.deprecator, Rails.application.deprecators[:active_job]
+      assert_equal ActiveModel.deprecator, Rails.application.deprecators[:active_model]
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
       assert_equal ActiveStorage.deprecator, Rails.application.deprecators[:active_storage]
       assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
