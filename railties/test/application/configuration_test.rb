@@ -3895,6 +3895,7 @@ module ApplicationTests
       assert_equal ActionDispatch.deprecator, Rails.application.deprecators[:action_dispatch]
       assert_equal ActionMailbox.deprecator, Rails.application.deprecators[:action_mailbox]
       assert_equal ActionMailer.deprecator, Rails.application.deprecators[:action_mailer]
+      assert_equal ActionText.deprecator, Rails.application.deprecators[:action_text]
       assert_equal ActionView.deprecator, Rails.application.deprecators[:action_view]
       assert_equal ActiveJob.deprecator, Rails.application.deprecators[:active_job]
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
