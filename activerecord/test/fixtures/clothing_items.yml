@@ -1,0 +1,14 @@
+green_pants:
+  color: green
+  clothing_type: pants
+  description: Cool green pants
+
+green_t_shirt:
+  color: green
+  clothing_type: t-shirt
+  description: Cool green t-shirt
+
+red_t_shirt:
+  color: red
+  clothing_type: t-shirt
+  description: Cool red t-shirt
