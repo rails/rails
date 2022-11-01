@@ -619,6 +619,10 @@ module ActiveRecord
       end
 
       private
+        def text_type?(type)
+          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        end
+
         def type_map
           emulate_booleans ? TYPE_MAP_WITH_BOOLEAN : TYPE_MAP
         end
@@ -711,8 +715,8 @@ module ActiveRecord
             options[:comment] = column.comment
           end
 
-          unless options.key?(:collation) || type == :binary
-            options[:collation] = column.collation
+          unless options.key?(:collation)
+            options[:collation] = column.collation if text_type?(type)
           end
 
           unless options.key?(:auto_increment)
