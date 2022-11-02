@@ -1025,10 +1025,11 @@ module ActiveSupport
         @created_at = 0.0
         @expires_in = expires_at&.to_f || expires_in && (expires_in.to_f + Time.now.to_f)
         @compressed = true if compressed
+        @serialized = false
       end
 
       def value
-        compressed? ? uncompress(@value) : @value
+        compressed? ? uncompress(deserialized) : deserialized
       end
 
       def mismatched?(version)
@@ -1062,7 +1063,7 @@ module ActiveSupport
         when String
           @value.bytesize
         else
-          @s ||= Marshal.dump(@value).bytesize
+          @s ||= serialized.bytesize
         end
       end
 
@@ -1079,12 +1080,10 @@ module ActiveSupport
         when String
           uncompressed_size = @value.bytesize
         else
-          serialized = Marshal.dump(@value)
           uncompressed_size = serialized.bytesize
         end
 
         if uncompressed_size >= compress_threshold
-          serialized ||= Marshal.dump(@value)
           compressed = Zlib::Deflate.deflate(serialized)
 
           if compressed.bytesize < uncompressed_size
@@ -1101,13 +1100,32 @@ module ActiveSupport
       # Duplicates the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
-        if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
-          if @value.is_a?(String)
-            @value = @value.dup
-          else
-            @value = Marshal.load(Marshal.dump(@value))
-          end
+        serialize_value!
+        deserialize_value!
+      end
+
+      def serialize_value!
+        if @serialized || !requires_duplication?
+          # Do nothing
+        elsif @value.is_a?(String)
+          @value = @value.dup
+        else
+          @value = serialized
+          @serialized = true
         end
+
+        @value
+      end
+
+      def deserialize_value!
+        if @serialized
+          @value = deserialized
+          @serialized = false
+        elsif @value.is_a?(String)
+          @value = @value.dup
+        end
+
+        @value
       end
 
       def pack
@@ -1117,8 +1135,20 @@ module ActiveSupport
       end
 
       private
+        def deserialized
+          @serialized ? Marshal.load(@value) : @value
+        end
+
+        def serialized
+          @serialized ? @value : Marshal.dump(@value)
+        end
+
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
+        end
+
+        def requires_duplication?
+          @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
         end
     end
   end

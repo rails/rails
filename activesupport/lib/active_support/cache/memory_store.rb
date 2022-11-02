@@ -28,19 +28,19 @@ module ActiveSupport
         extend self
 
         def dump(entry)
-          entry.dup_value! unless entry.compressed?
+          entry.serialize_value! unless entry.compressed?
           entry
         end
 
         def dump_compressed(entry, threshold)
           entry = entry.compressed(threshold)
-          entry.dup_value! unless entry.compressed?
+          entry.serialize_value! unless entry.compressed?
           entry
         end
 
         def load(entry)
           entry = entry.dup
-          entry.dup_value!
+          entry.deserialize_value!
           entry
         end
       end
