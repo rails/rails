@@ -1,3 +1,12 @@
+*   Invalidate transaction as early as possible
+
+    After rescuing a `TransactionRollbackError` exception Rails invalidates transactions earlier in the flow
+    allowing the framework to skip issuing the `ROLLBACK` statement in more cases.
+    Only affects adapters that have `savepoint_errors_invalidate_transactions?` configured as `true`,
+    which at this point is only applicable to the `mysql2` adapter.
+
+    *Nikita Vasilevsky*
+
 *   Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
 
     It is now possible to configure columns list that will be used to build an SQL query clauses when

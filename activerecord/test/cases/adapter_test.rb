@@ -785,3 +785,27 @@ if ActiveRecord::Base.connection.supports_advisory_locks?
     end
   end
 end
+
+if ActiveRecord::Base.connection.savepoint_errors_invalidate_transactions?
+  class InvalidateTransactionTest < ActiveRecord::TestCase
+    def test_invalidates_transaction_on_rollback_error
+      @invalidated = false
+      connection = ActiveRecord::Base.connection
+
+      connection.transaction do
+        connection.send(:with_raw_connection) do
+          raise ActiveRecord::Deadlocked, "made-up deadlock"
+        end
+
+      rescue ActiveRecord::Deadlocked => error
+        flunk("Rescuing wrong error") unless error.message == "made-up deadlock"
+
+        @invalidated = connection.current_transaction.state.invalidated?
+      end
+
+      # asserting outside of the transaction to make sure we actually reach the end of the test
+      # and perform the assertion
+      assert @invalidated
+    end
+  end
+end
