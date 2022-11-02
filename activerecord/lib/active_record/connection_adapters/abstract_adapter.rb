@@ -1016,13 +1016,10 @@ module ActiveRecord
         end
 
         def retryable_query_error?(exception)
-          # We definitely can't retry if we were inside a transaction that was instantly
-          # rolled back by this error
-          if exception.is_a?(TransactionRollbackError) && savepoint_errors_invalidate_transactions? && open_transactions > 0
-            false
-          else
-            exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
-          end
+          # We definitely can't retry if we were inside an invalidated transaction
+          return false if current_transaction.state&.invalidated?
+
+          exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
         end
 
         def backoff(counter)
