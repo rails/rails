@@ -3,6 +3,7 @@
 require "helper"
 require "jobs/hello_job"
 require "jobs/enqueue_error_job"
+require "jobs/multiple_kwargs_job"
 require "active_support/core_ext/numeric/time"
 
 class QueuingTest < ActiveSupport::TestCase
@@ -53,5 +54,20 @@ class QueuingTest < ActiveSupport::TestCase
       assert_equal false, job.successfully_enqueued?
       assert_equal ActiveJob::EnqueueError, job.enqueue_error.class
     end
+  end
+
+  test "run multiple queued jobs" do
+    ActiveJob.perform_all_later(HelloJob.new("Jamie"), HelloJob.new("John"))
+    assert_equal ["Jamie says hello", "John says hello"], JobBuffer.values.sort
+  end
+
+  test "run multiple queued jobs passed as array" do
+    ActiveJob.perform_all_later([HelloJob.new("Jamie"), HelloJob.new("John")])
+    assert_equal ["Jamie says hello", "John says hello"], JobBuffer.values.sort
+  end
+
+  test "run multiple queued jobs of different classes" do
+    ActiveJob.perform_all_later([HelloJob.new("Jamie"), MultipleKwargsJob.new(argument1: "John", argument2: 42)])
+    assert_equal ["Jamie says hello", "Job with argument1: John, argument2: 42"], JobBuffer.values.sort
   end
 end

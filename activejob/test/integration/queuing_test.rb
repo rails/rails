@@ -77,6 +77,16 @@ class QueuingTest < ActiveSupport::TestCase
     skip
   end
 
+  test "should run job bulk enqueued in the future at the specified time" do
+    ActiveJob.perform_all_later([TestJob.new(@id).set(wait: 5.seconds)])
+    wait_for_jobs_to_finish_for(2.seconds)
+    assert_job_not_executed
+    wait_for_jobs_to_finish_for(10.seconds)
+    assert_job_executed
+  rescue NotImplementedError
+    skip
+  end
+
   test "should supply a provider_job_id when available for immediate jobs" do
     skip unless adapter_is?(:async, :delayed_job, :sidekiq, :queue_classic)
     test_job = TestJob.perform_later @id
