@@ -517,7 +517,8 @@ module ActiveRecord
     # only, not its associations. The extent of a "deep" copy is application
     # specific and is therefore left to the application to implement according
     # to its need.
-    # The dup method does not preserve the timestamps (created|updated)_(at|on).
+    # The dup method does not preserve the timestamps (created|updated)_(at|on)
+    # and locking column.
 
     ##
     def initialize_dup(other) # :nodoc:

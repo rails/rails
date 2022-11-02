@@ -1,3 +1,16 @@
+*   Clear locking column on #dup
+
+    This change fixes not to duplicate locking_column like id and timestamps.
+
+    ```
+    car = Car.create!
+    car.touch
+    car.lock_version #=> 1
+    car.dup.lock_version #=> 0
+    ```
+
+    *Shouichi Kamiya*, *Seonggi Yang*, *Ryohei UEDA*
+
 *   Invalidate transaction as early as possible
 
     After rescuing a `TransactionRollbackError` exception Rails invalidates transactions earlier in the flow
