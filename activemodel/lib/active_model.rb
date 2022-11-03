@@ -26,6 +26,7 @@
 require "active_support"
 require "active_support/rails"
 require "active_model/version"
+require "active_model/deprecator"
 
 module ActiveModel
   extend ActiveSupport::Autoload

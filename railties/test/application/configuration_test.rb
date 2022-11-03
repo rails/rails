@@ -3889,12 +3889,16 @@ module ApplicationTests
       app "production"
 
       assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
+      assert_equal ActionCable.deprecator, Rails.application.deprecators[:action_cable]
       assert_equal AbstractController.deprecator, Rails.application.deprecators[:action_controller]
       assert_equal ActionController.deprecator, Rails.application.deprecators[:action_controller]
       assert_equal ActionDispatch.deprecator, Rails.application.deprecators[:action_dispatch]
+      assert_equal ActionMailbox.deprecator, Rails.application.deprecators[:action_mailbox]
       assert_equal ActionMailer.deprecator, Rails.application.deprecators[:action_mailer]
+      assert_equal ActionText.deprecator, Rails.application.deprecators[:action_text]
       assert_equal ActionView.deprecator, Rails.application.deprecators[:action_view]
       assert_equal ActiveJob.deprecator, Rails.application.deprecators[:active_job]
+      assert_equal ActiveModel.deprecator, Rails.application.deprecators[:active_model]
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
       assert_equal ActiveStorage.deprecator, Rails.application.deprecators[:active_storage]
       assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
