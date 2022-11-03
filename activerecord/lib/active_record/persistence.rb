@@ -1041,9 +1041,17 @@ module ActiveRecord
 
     def _find_record(options)
       if options && options[:lock]
-        self.class.preload(strict_loaded_associations).lock(options[:lock]).find(id)
+        self.class.preload(strict_loaded_associations).lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
       else
-        self.class.preload(strict_loaded_associations).find(id)
+        self.class.preload(strict_loaded_associations).find_by!(_in_memory_query_constraints_hash)
+      end
+    end
+
+    def _in_memory_query_constraints_hash
+      return { @primary_key => id } unless self.class.query_constraints_list
+
+      self.class.query_constraints_list.index_with do |column_name|
+        attribute(column_name)
       end
     end
 
