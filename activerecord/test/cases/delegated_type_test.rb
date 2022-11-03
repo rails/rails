@@ -1,19 +1,21 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/account"
 require "models/entry"
 require "models/message"
+require "models/recipient"
 require "models/comment"
 require "models/uuid_entry"
 require "models/uuid_message"
 require "models/uuid_comment"
 
 class DelegatedTypeTest < ActiveRecord::TestCase
-  fixtures :comments
+  fixtures :comments, :accounts
 
   setup do
-    @entry_with_message = Entry.create! entryable: Message.new(subject: "Hello world!")
-    @entry_with_comment = Entry.create! entryable: comments(:greetings)
+    @entry_with_message = Entry.create! entryable: Message.new(subject: "Hello world!"), account: accounts(:signals37)
+    @entry_with_comment = Entry.create! entryable: comments(:greetings), account: accounts(:signals37)
 
     if current_adapter?(:PostgreSQLAdapter)
       @uuid_entry_with_message = UuidEntry.create! uuid: SecureRandom.uuid, entryable: UuidMessage.new(uuid: SecureRandom.uuid, subject: "Hello world!")
@@ -71,6 +73,20 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
     assert_equal @uuid_entry_with_comment.entryable_uuid, @uuid_entry_with_comment.uuid_comment_uuid
     assert_nil @uuid_entry_with_comment.uuid_message_uuid
+  end
+
+  test "touch account" do
+    previous_account_updated_at  = @entry_with_message.account.updated_at
+    previous_entry_updated_at    = @entry_with_message.updated_at
+    previous_messsage_updated_at = @entry_with_message.entryable.updated_at
+
+    travel 5.seconds do
+      Recipient.create! message: @entry_with_message.entryable, email_address: "test@test.com"
+    end
+
+    assert_not_equal @entry_with_message.reload.account.updated_at, previous_account_updated_at
+    assert_not_equal @entry_with_message.reload.updated_at, previous_entry_updated_at
+    assert_not_equal @entry_with_message.reload.entryable.updated_at, previous_messsage_updated_at
   end
 
   test "builder method" do
