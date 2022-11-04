@@ -511,7 +511,7 @@ When using `magazine_ad_path`, you can pass in instances of `Magazine` and `Ad` 
 <%= link_to 'Ad details', magazine_ad_path(@magazine, @ad) %>
 ```
 
-You can also use `url_for` with a set of objects, and Rails will automatically determine which route you want:
+You can also use [`url_for`][ActionView::RoutingUrlFor#url_for] with a set of objects, and Rails will automatically determine which route you want:
 
 ```erb
 <%= link_to 'Ad details', url_for([@magazine, @ad]) %>
@@ -536,6 +536,8 @@ For other actions, you just need to insert the action name as the first element 
 ```
 
 This allows you to treat instances of your models as URLs, and is a key advantage to using the resourceful style.
+
+[ActionView::RoutingUrlFor#url_for]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
 
 ### Adding More RESTful Actions
 
@@ -1164,15 +1166,29 @@ resources to use `photos_path` and `accounts_path`.
 
 NOTE: The `namespace` scope will automatically add `:as` as well as `:module` and `:path` prefixes.
 
-You can prefix routes with a named parameter also:
+#### Parametric Scopes
+
+You can prefix routes with a named parameter:
 
 ```ruby
-scope ':username' do
+scope ':account_id', as: 'account', constraints: { account_id: /\d+/ } do
   resources :articles
 end
 ```
 
-This will provide you with URLs such as `/bob/articles/1` and will allow you to reference the `username` part of the path as `params[:username]` in controllers, helpers, and views.
+This will provide you with paths such as `/1/articles/9` and will allow you to reference the `account_id` part of the path as `params[:account_id]` in controllers, helpers, and views.
+
+It will also generate path and URL helpers prefixed with `account_`, into which you can pass your objects as expected:
+
+```ruby
+account_article_path(@account, @article) # => /1/article/9
+url_for([@account, @article])            # => /1/article/9
+form_with(model: [@account, @article])   # => <form action="/1/article/9" ...>
+```
+
+We are [using a constraint](#segment-constraints) to limit the scope to only match ID-like strings. You can change the constraint to suit your needs, or omit it entirely. The `:as` option is also not strictly required, but without it, Rails will raise an error when evaluating `url_for([@account, @article])` or other helpers that rely on `url_for`, such as [`form_with`][].
+
+[`form_with`]: https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with
 
 ### Restricting the Routes Created
 
