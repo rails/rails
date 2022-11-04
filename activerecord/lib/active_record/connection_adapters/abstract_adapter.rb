@@ -1169,6 +1169,11 @@ module ActiveRecord
         def default_prepared_statements
           true
         end
+
+        def extract_table_ref_from_insert_sql(sql)
+          sql[/into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im]
+          $1.strip if $1
+        end
     end
   end
 end

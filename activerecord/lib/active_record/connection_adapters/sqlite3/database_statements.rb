@@ -74,6 +74,23 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        def sql_for_insert(sql, pk, binds) # :nodoc:
+          if use_insert_returning?
+            if pk.nil?
+              # Extract the table from the insert sql. Yuck.
+              table_ref = extract_table_ref_from_insert_sql(sql)
+              pk = primary_key(table_ref) if table_ref
+            end
+
+            if pk = suppress_composite_primary_key(pk)
+              sql = "#{sql} RETURNING #{quote_column_name(pk)}"
+            end
+          end
+
+          super
+        end
+        private :sql_for_insert
+
         def begin_isolated_db_transaction(isolation) # :nodoc:
           raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
           raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
@@ -143,7 +160,7 @@ module ActiveRecord
           end
 
           def last_inserted_id(result)
-            @raw_connection.last_insert_row_id
+            use_insert_returning? ? super : @raw_connection.last_insert_row_id
           end
 
           def build_fixture_statements(fixture_set)

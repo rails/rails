@@ -86,7 +86,8 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (PostgreSQL only) An array of attributes to return for all successfully
+      #   (Only PostgreSQL and SQLite3 version >= 3.35.0)
+      #   An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
@@ -176,7 +177,8 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (PostgreSQL only) An array of attributes to return for all successfully
+      #   (Only PostgreSQL and SQLite3 version >= 3.35.0)
+      #   An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
@@ -242,7 +244,8 @@ module ActiveRecord
       # ==== Options
       #
       # [:returning]
-      #   (PostgreSQL only) An array of attributes to return for all successfully
+      #   (Only PostgreSQL and SQLite3 version >= 3.35.0)
+      #   An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
       #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL

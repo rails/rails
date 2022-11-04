@@ -31,6 +31,8 @@ module ActiveRecord
     # Options:
     #
     # * <tt>:database</tt> - Path to the database file.
+    # * <tt>:insert_returning</tt> - An optional boolean to control the use of <tt>RETURNING</tt> for <tt>INSERT</tt> statements
+    #   defaults to true. (Only SQLite3 version >= 3.35.0)
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
 
@@ -123,6 +125,12 @@ module ActiveRecord
 
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
         @connection_parameters = @config.merge(database: @config[:database].to_s, results_as_hash: true)
+
+        @use_insert_returning = if supports_insert_returning?
+          @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
+        else
+          false
+        end
       end
 
       def database_exists?
@@ -135,6 +143,10 @@ module ActiveRecord
 
       def supports_savepoints?
         true
+      end
+
+      def supports_insert_returning?
+        ::SQLite3::SQLITE_VERSION_NUMBER >= 3035000
       end
 
       def supports_transaction_isolation?
@@ -378,11 +390,16 @@ module ActiveRecord
           end
         end
 
+        sql << " RETURNING #{insert.returning}" if insert.returning
         sql
       end
 
       def shared_cache? # :nodoc:
         @config.fetch(:flags, 0).anybits?(::SQLite3::Constants::Open::SHAREDCACHE)
+      end
+
+      def use_insert_returning?
+        @use_insert_returning
       end
 
       def get_database_version # :nodoc:

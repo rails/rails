@@ -217,12 +217,31 @@ module ActiveRecord
         assert_equal "''", @conn.quote_string("'")
       end
 
+      def test_exec_insert_with_returning_disabled
+        connection = connection_without_insert_returning
+        with_example_table(connection: connection) do
+          connection.exec_insert("INSERT INTO ex (number) VALUES (10)", nil, [], "id")
+          expect = connection.query("select max(id) from ex").first.first
+          assert_equal expect.to_i, connection.instance_variable_get(:@raw_connection).last_insert_row_id
+        end
+      end
+
+      def test_exec_insert_with_returning_disabled_and_no_pk_given
+        connection = connection_without_insert_returning
+        with_example_table(connection: connection) do
+          connection.exec_insert("INSERT INTO ex (number) VALUES (10)", nil, [])
+          expect = connection.query("select max(id) from ex").first.first
+          assert_equal expect.to_i, connection.instance_variable_get(:@raw_connection).last_insert_row_id
+        end
+      end
+
       def test_insert_logged
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
-          assert_logged [[sql, name, []]] do
-            @conn.insert(sql, name)
+          match_sql = @conn.supports_insert_returning? ? "#{sql} RETURNING #{@conn.quote_column_name("id")}" : sql
+          assert_logged [[match_sql, name, []]] do
+            @conn.insert(sql, name, "id")
           end
         end
       end
@@ -699,12 +718,16 @@ module ActiveRecord
           ActiveSupport::Notifications.unsubscribe(subscription)
         end
 
-        def with_example_table(definition = nil, table_name = "ex", &block)
+        def with_example_table(definition = nil, table_name = "ex", connection: @conn, &block)
           definition ||= <<~SQL
             id integer PRIMARY KEY AUTOINCREMENT,
             number integer
           SQL
-          super(@conn, table_name, definition, &block)
+          super(connection, table_name, definition, &block)
+        end
+
+        def connection_without_insert_returning
+          ActiveRecord::Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", timeout: 100)
         end
 
         def with_strict_strings_by_default

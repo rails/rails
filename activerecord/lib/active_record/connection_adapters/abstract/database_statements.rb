@@ -620,6 +620,10 @@ module ActiveRecord
             relation
           end
         end
+
+        def suppress_composite_primary_key(pk)
+          pk unless pk.is_a?(Array)
+        end
     end
   end
 end

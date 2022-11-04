@@ -168,10 +168,6 @@ module ActiveRecord
           def last_insert_id_result(sequence_name)
             exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
-
-          def suppress_composite_primary_key(pk)
-            pk unless pk.is_a?(Array)
-          end
       end
     end
   end
