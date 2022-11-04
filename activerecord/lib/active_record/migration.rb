@@ -642,11 +642,7 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        needs_update = !db_configs_in_current_env.all? do |db_config|
-          Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
-        end
-
-        if needs_update
+        if any_schema_needs_update?
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
@@ -690,6 +686,12 @@ module ActiveRecord
       end
 
       private
+        def any_schema_needs_update?
+          !db_configs_in_current_env.all? do |db_config|
+            Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
+          end
+        end
+
         def pending_migrations
           prev_db_config = Base.connection_db_config
           pending_migrations = []
