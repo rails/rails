@@ -682,8 +682,10 @@ module ActiveRecord
       end
 
       def check_pending_migrations # :nodoc:
-        if pending_migrations.any?
-          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
+        migrations = pending_migrations
+
+        if migrations.any?
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: migrations)
         end
       end
 
