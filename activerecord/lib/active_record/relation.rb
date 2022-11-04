@@ -45,7 +45,7 @@ module ActiveRecord
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
         name = reflection.foreign_key
-        value = value.read_attribute(reflection.klass.primary_key) unless value.nil?
+        value = value.read_attribute(reflection.association_primary_key) unless value.nil?
       end
 
       attr = table[name]

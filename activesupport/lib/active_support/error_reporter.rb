@@ -42,7 +42,7 @@ module ActiveSupport
     #     1 + '1'
     #   end
     #
-    # Can be restricted to handle only a specific error class:
+    # Can be restricted to handle only specific error classes:
     #
     #   maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
     #
@@ -69,9 +69,10 @@ module ActiveSupport
     # * +:source+ - This value is passed along to subscribers to indicate the
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
-    def handle(error_class = StandardError, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
+    def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
+      error_classes = [StandardError] if error_classes.blank?
       yield
-    rescue error_class => error
+    rescue *error_classes => error
       report(error, handled: true, severity: severity, context: context, source: source)
       fallback.call if fallback
     end
@@ -84,7 +85,7 @@ module ActiveSupport
     #     1 + '1'
     #   end
     #
-    # Can be restricted to handle only a specific error class:
+    # Can be restricted to handle only specific error classes:
     #
     #   tags = Rails.error.record(Redis::BaseError) { redis.get("tags") }
     #
@@ -104,9 +105,10 @@ module ActiveSupport
     # * +:source+ - This value is passed along to subscribers to indicate the
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
-    def record(error_class = StandardError, severity: :error, context: {}, source: DEFAULT_SOURCE)
+    def record(*error_classes, severity: :error, context: {}, source: DEFAULT_SOURCE)
+      error_classes = [StandardError] if error_classes.blank?
       yield
-    rescue error_class => error
+    rescue *error_classes => error
       report(error, handled: false, severity: severity, context: context, source: source)
       raise
     end
@@ -121,6 +123,18 @@ module ActiveSupport
         raise ArgumentError, "Error subscribers must respond to #report"
       end
       @subscribers << subscriber
+    end
+
+    # Unregister an error subscriber. Accepts either a subscriber or a class.
+    #
+    #  subscriber = MyErrorSubscriber.new
+    #  Rails.error.subscribe(subscriber)
+    #
+    #  Rails.error.unsubscribe(subscriber)
+    #  # or
+    #  Rails.error.unsubscribe(MyErrorSubscriber)
+    def unsubscribe(subscriber)
+      @subscribers.delete_if { |s| subscriber === s }
     end
 
     # Prevent a subscriber from being notified of errors for the
@@ -154,6 +168,8 @@ module ActiveSupport
     #   Rails.error.report(error)
     #
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
+      return if error.instance_variable_defined?(:@__rails_error_reported)
+
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
@@ -173,6 +189,10 @@ module ActiveSupport
         else
           raise
         end
+      end
+
+      unless error.frozen?
+        error.instance_variable_set(:@__rails_error_reported, true)
       end
 
       nil

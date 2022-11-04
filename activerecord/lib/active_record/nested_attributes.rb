@@ -280,6 +280,26 @@ module ActiveRecord
     #   member = Member.new
     #   member.avatar_attributes = {icon: 'sad'}
     #   member.avatar.width # => 200
+    #
+    # === Creating forms with nested attributes
+    #
+    # Use ActionView::Helpers::FormHelper#fields_for to create form elements
+    # for updating or destroying nested attributes.
+    #
+    # === Testing
+    #
+    # If you are using ActionView::Helpers::FormHelper#fields_for, your integration
+    # tests should replicate the HTML structure it provides. For example;
+    #
+    #   post members_path, params: {
+    #     member: {
+    #       name: 'joe',
+    #       posts_attributes: {
+    #         '0' => { title: 'Foo' },
+    #         '1' => { title: 'Bar' }
+    #       }
+    #     }
+    #   }
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == "_destroy" || value.blank? } }
 
@@ -375,11 +395,11 @@ module ActiveRecord
         end
     end
 
-    # Returns ActiveRecord::AutosaveAssociation::marked_for_destruction? It's
+    # Returns ActiveRecord::AutosaveAssociation#marked_for_destruction? It's
     # used in conjunction with fields_for to build a form element for the
     # destruction of this association.
     #
-    # See ActionView::Helpers::FormHelper::fields_for for more info.
+    # See ActionView::Helpers::FormHelper#fields_for for more info.
     def _destroy
       marked_for_destruction?
     end

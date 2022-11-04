@@ -96,7 +96,7 @@ module ActiveModel
       # Example:
       #
       #   validates :password, presence: true, confirmation: true, if: :password_required?
-      #   validates :token, length: 24, strict: TokenLengthException
+      #   validates :token, length: {is: 24}, strict: TokenLengthException
       #
       #
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+

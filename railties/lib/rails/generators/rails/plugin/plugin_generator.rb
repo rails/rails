@@ -311,6 +311,7 @@ module Rails
         [
           rails_gemfile_entry,
           simplify_gemfile_entries(
+            web_server_gemfile_entry,
             database_gemfile_entry,
             asset_pipeline_gemfile_entry,
           ),

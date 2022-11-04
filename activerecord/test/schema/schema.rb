@@ -232,6 +232,14 @@ ActiveRecord::Schema.define do
     t.references :citation
   end
 
+  create_table :clothing_items, force: true do |t|
+    t.string :clothing_type
+    t.string :color
+    t.text :description
+
+    t.index [:clothing_type, :color], unique: true
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id
@@ -1316,6 +1324,11 @@ ActiveRecord::Schema.define do
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
     t.datetime :created_at
+  end
+
+  create_table :toooooooooooooooooooooooooooooooooo_long_table_names, force: true do |t|
+    t.bigint :toooooooo_long_a_id, null: false
+    t.bigint :toooooooo_long_b_id, null: false
   end
 end
 

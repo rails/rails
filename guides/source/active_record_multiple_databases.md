@@ -32,7 +32,7 @@ The following features are not (yet) supported:
 
 * Load balancing replicas
 
-## Setting up your application
+## Setting up Your Application
 
 While Rails tries to do most of the work for you there are still some steps you'll
 need to do to get your application ready for multiple databases.
@@ -274,7 +274,7 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
 
-## Activating automatic role switching
+## Activating Automatic Role Switching
 
 Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
@@ -332,7 +332,7 @@ config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelec
 config.active_record.database_resolver_context = MyCookieResolver
 ```
 
-## Using manual connection switching
+## Using Manual Connection Switching
 
 There are some cases where you may want your application to connect to a writer or a replica
 and the automatic connection switching isn't adequate. For example, you may know that for a
@@ -367,7 +367,7 @@ ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
 end
 ```
 
-## Horizontal sharding
+## Horizontal Sharding
 
 Horizontal sharding is when you split up your database to reduce the number of rows on each
 database server, but maintain the same schema across "shards". This is commonly called "multi-tenant"
@@ -432,7 +432,7 @@ ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
 end
 ```
 
-## Activating automatic shard switching
+## Activating Automatic Shard Switching
 
 Applications are able to automatically switch shards per request using the provided
 middleware.
@@ -515,7 +515,7 @@ end
 `ActiveRecord::Base.connected_to` maintains the ability to switch
 connections globally.
 
-### Handling associations with joins across databases
+### Handling Associations with Joins across Databases
 
 As of Rails 7.0+, Active Record has an option for handling associations that would perform
 a join across multiple databases. If you have a has many through or a has one through association

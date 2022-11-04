@@ -64,6 +64,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
+- [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
@@ -1125,6 +1126,17 @@ Define an `Array` specifying the key/value tags to be inserted in an SQL
 comment. Defaults to `[ :application ]`, a predefined tag returning the
 application name.
 
+#### `config.active_record.query_log_tags_format`
+
+A `Symbol` specifying the formatter to use for tags. Valid values are `:sqlcommenter` and `:legacy`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:legacy`            |
+| 7.1                   | `:sqlcommenter`      |
+
 #### `config.active_record.cache_query_log_tags`
 
 Specifies whether or not to enable caching of query log tags. For applications
@@ -1355,7 +1367,7 @@ Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
 
 #### `config.action_controller.raise_on_open_redirects`
 
-Raises an `ArgumentError` when an unpermitted open redirect occurs.
+Raises an `ActionController::Redirecting::UnsafeRedirectError` when an unpermitted open redirect occurs.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2019,15 +2031,15 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_support.deprecation`
 
-Configures the behavior of deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, or `:silence`. The default is `:stderr`. Alternatively, you can set `ActiveSupport::Deprecation.behavior`.
+Configures the behavior of deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, or `:silence`. The default is `:stderr`.
 
 #### `config.active_support.disallowed_deprecation`
 
-Configures the behavior of disallowed deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, or `:silence`. The default is `:raise`. Alternatively, you can set `ActiveSupport::Deprecation.disallowed_behavior`.
+Configures the behavior of disallowed deprecation warnings. The options are `:raise`, `:stderr`, `:log`, `:notify`, or `:silence`. The default is `:raise`.
 
 #### `config.active_support.disallowed_deprecation_warnings`
 
-Configures deprecation warnings that the Application considers disallowed. This allows, for example, specific deprecations to be treated as hard failures. Alternatively, you can set `ActiveSupport::Deprecation.disallowed_warnings`.
+Configures deprecation warnings that the Application considers disallowed. This allows, for example, specific deprecations to be treated as hard failures.
 
 #### `config.active_support.report_deprecations`
 
@@ -2368,7 +2380,7 @@ config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
 #### `config.active_storage.variable_content_types`
 
 Accepts an array of strings indicating the content types that Active Storage
-can transform through ImageMagick.
+can transform through the variant processor.
 By default, this is defined as:
 
 ```ruby
@@ -2822,6 +2834,33 @@ development:
   use_metadata_table: false
 ```
 
+#### Configuring Retry Behaviour
+
+By default, Rails will automatically reconnect to the database server and retry certain queries
+if something goes wrong. Only safely retryable (idempotent) queries will be retried. The number
+of retries can be specified in your the database configuration via `connection_retries`, or disabled
+by setting the value to 0. The default number of retries is 1.
+
+```yaml
+development:
+  adapter: mysql2
+  connection_retries: 3
+```
+
+The database config also allows a `retry_deadline` to be configured. If a `retry_deadline` is configured,
+an otherwise-retryable query will _not_ be retried if the specified time has elapsed while the query was
+first tried. For example, a `retry_deadline` of 5 seconds means that if 5 seconds have passed since a query
+was first attempted, we won't retry the query, even if it is idempotent and there are `connection_retries` left.
+
+This value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed.
+The value for this config should be specified in seconds.
+
+```yaml
+development:
+  adapter: mysql2
+  retry_deadline: 5 # Stop retrying queries after 5 seconds
+```
+
 ### Creating Rails Environments
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.
@@ -2928,7 +2967,7 @@ NOTE: There is no guarantee that your initializers will run after all the gem
 initializers, so any initialization code that depends on a given gem having been
 initialized should go into a `config.after_initialize` block.
 
-Initialization events
+Initialization Events
 ---------------------
 
 Rails has 5 initialization events which can be hooked into (listed in the order that they are run):
@@ -3094,7 +3133,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `disable_dependency_loading`: Disables the automatic dependency loading if the `config.eager_load` is set to `true`.
 
-Database pooling
+Database Pooling
 ----------------
 
 Active Record database connections are managed by `ActiveRecord::ConnectionAdapters::ConnectionPool` which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml`.
@@ -3125,7 +3164,7 @@ connection pool by incrementing the `pool` option in `database.yml`
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 
 
-Custom configuration
+Custom Configuration
 --------------------
 
 You can configure your own code through the Rails configuration object with

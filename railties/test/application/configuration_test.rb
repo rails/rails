@@ -230,6 +230,8 @@ module ApplicationTests
     test "Rails.application responds to all instance methods" do
       app "development"
       assert_equal Rails.application.routes_reloader, AppTemplate::Application.routes_reloader
+      assert_kind_of ActiveSupport::MessageVerifiers, Rails.application.message_verifiers
+      assert_kind_of ActiveSupport::Deprecation::Deprecators, Rails.application.deprecators
     end
 
     test "Rails::Application responds to paths" do
@@ -729,6 +731,16 @@ module ApplicationTests
       end
     end
 
+    test "Rails.application.key_generator supports specifying a secret base" do
+      app "production"
+
+      key = app.key_generator.generate_key("salt")
+      other_key = app.key_generator("other secret base").generate_key("salt")
+
+      assert_not_equal key, other_key
+      assert_equal key.length, other_key.length
+    end
+
     test "application verifier can build different verifiers" do
       make_basic_app do |application|
         application.config.session_store :disabled
@@ -746,6 +758,23 @@ module ApplicationTests
 
       assert_equal default_verifier.object_id, app.message_verifier(:sensitive_value).object_id
       assert_not_equal default_verifier.object_id, text_verifier.object_id
+    end
+
+    test "Rails.application.message_verifiers.rotate supports :secret_key_base option" do
+      old_secret_key_base = "old secret_key_base"
+
+      add_to_config <<~RUBY
+        config.before_initialize do |app|
+          app.message_verifiers.rotate(secret_key_base: #{old_secret_key_base.inspect})
+        end
+      RUBY
+
+      app "production"
+
+      old_secret = app.key_generator(old_secret_key_base).generate_key("salt")
+      old_message = ActiveSupport::MessageVerifier.new(old_secret).generate("old message")
+
+      assert_equal "old message", app.message_verifiers["salt"].verify(old_message)
     end
 
     test "secrets.secret_key_base is used when config/secrets.yml is present" do
@@ -1741,9 +1770,20 @@ module ApplicationTests
       assert_not ActiveRecord.verbose_query_logs
     end
 
-    test "config.active_record.suppress_multiple_database_warning is false by default in development" do
+    test "config.active_record.suppress_multiple_database_warning getter is deprecated" do
       app "development"
-      assert_not ActiveRecord.suppress_multiple_database_warning
+
+      assert_deprecated(Rails.application.deprecators[:active_record]) do
+        ActiveRecord.suppress_multiple_database_warning
+      end
+    end
+
+    test "config.active_record.suppress_multiple_database_warning setter is deprecated" do
+      app "development"
+
+      assert_deprecated(Rails.application.deprecators[:active_record]) do
+        ActiveRecord.suppress_multiple_database_warning = true
+      end
     end
 
     test "config.active_record.use_yaml_unsafe_load is false by default" do
@@ -1973,6 +2013,12 @@ module ApplicationTests
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
+      app "development"
+      assert_equal({}, Rails.application.config.load_database_yaml)
+    end
+
+    test "load_database_yaml returns blank hash if no database configuration is found" do
+      remove_file "config/database.yml"
       app "development"
       assert_equal({}, Rails.application.config.load_database_yaml)
     end
@@ -2676,10 +2722,6 @@ module ApplicationTests
     test "use_big_decimal_serializer is enabled in new apps" do
       app "development"
 
-      # When loaded, ActiveJob::Base triggers the :active_job load hooks, which is where config is attached.
-      # Referencing the constant auto-loads it.
-      ActiveJob::Base
-
       assert ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be enabled in new apps"
     end
 
@@ -2687,10 +2729,6 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "7.0"'
       app "development"
-
-      # When loaded, ActiveJob::Base triggers the :active_job load hooks, which is where config is attached.
-      # Referencing the constant auto-loads it.
-      ActiveJob::Base
 
       assert_not ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be disabled in defaults prior to 7.1"
     end
@@ -2702,10 +2740,6 @@ module ApplicationTests
         Rails.application.config.active_job.use_big_decimal_serializer = true
       RUBY
       app "development"
-
-      # When loaded, ActiveJob::Base triggers the :active_job load hooks, which is where config is attached.
-      # Referencing the constant auto-loads it.
-      ActiveJob::Base
 
       assert ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be enabled if set in config"
     end
@@ -3851,14 +3885,37 @@ module ApplicationTests
       assert_equal true, ActiveSupport::TimeWithZone.methods(false).include?(:name)
     end
 
-    test "can entirely opt out of ActiveSupport::Deprecations" do
+    test "Rails.application.deprecators includes framework deprecators" do
+      app "production"
+
+      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
+      assert_equal ActionCable.deprecator, Rails.application.deprecators[:action_cable]
+      assert_equal AbstractController.deprecator, Rails.application.deprecators[:action_controller]
+      assert_equal ActionController.deprecator, Rails.application.deprecators[:action_controller]
+      assert_equal ActionDispatch.deprecator, Rails.application.deprecators[:action_dispatch]
+      assert_equal ActionMailbox.deprecator, Rails.application.deprecators[:action_mailbox]
+      assert_equal ActionMailer.deprecator, Rails.application.deprecators[:action_mailer]
+      assert_equal ActionText.deprecator, Rails.application.deprecators[:action_text]
+      assert_equal ActionView.deprecator, Rails.application.deprecators[:action_view]
+      assert_equal ActiveJob.deprecator, Rails.application.deprecators[:active_job]
+      assert_equal ActiveModel.deprecator, Rails.application.deprecators[:active_model]
+      assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
+      assert_equal ActiveStorage.deprecator, Rails.application.deprecators[:active_storage]
+      assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
+    end
+
+    test "can entirely opt out of deprecation warnings" do
       add_to_config "config.active_support.report_deprecations = false"
 
       app "production"
 
-      assert_equal true, ActiveSupport::Deprecation.silenced
-      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.behavior
-      assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], ActiveSupport::Deprecation.disallowed_behavior
+      assert_predicate Rails.application.deprecators.each, :any?
+
+      Rails.application.deprecators.each do |deprecator|
+        assert_equal true, deprecator.silenced
+        assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], deprecator.behavior
+        assert_equal [ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:silence]], deprecator.disallowed_behavior
+      end
     end
 
     test "ParamsWrapper is enabled in a new app and uses JSON as the format" do
@@ -3906,19 +3963,19 @@ module ApplicationTests
 
       app "production"
 
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "21 Feb", Date.new(2005, 2, 21).to_s(:short)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "2005-02-21 14:30:00", DateTime.new(2005, 2, 21, 14, 30, 0, 0).to_s(:db)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "555-1234", 5551234.to_s(:phone)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_s(:db)
       end
-      assert_deprecated do
+      assert_deprecated(Rails.application.deprecators[:active_support]) do
         assert_equal "2005-02-21 17:44:30", Time.utc(2005, 2, 21, 17, 44, 30.12345678901).to_s(:db)
       end
     end

@@ -22,7 +22,7 @@ module ApplicationTests
           end
 
           def dynamic_content
-            Time.now.to_f
+            Time.now.to_f.to_s
           end
         end
       RUBY
@@ -34,7 +34,7 @@ module ApplicationTests
           end
 
           def dynamic_content
-            Time.now.to_f
+            Time.now.to_f.to_s
           end
         end
       RUBY
@@ -78,6 +78,7 @@ module ApplicationTests
 
     test "controller actions have tagging filters enabled by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags_format = :legacy"
 
       boot_app
 
@@ -85,6 +86,21 @@ module ApplicationTests
       comment = last_response.body.strip
 
       assert_includes comment, "controller:users"
+    end
+
+    test "sqlcommenter formatting works when specified" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags_format = :sqlcommenter"
+
+      add_to_config "config.active_record.query_log_tags = [ :pid ]"
+
+      boot_app
+
+      get "/"
+      comment = last_response.body.strip
+
+      assert_match(/pid='\d+'/, comment)
+      assert_includes comment, "controller='users'"
     end
 
     test "controller actions tagging filters can be disabled" do
@@ -97,6 +113,18 @@ module ApplicationTests
       comment = last_response.body.strip
 
       assert_not_includes comment, "controller:users"
+    end
+
+    test "controller tags are not doubled up if already configured" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :job, :controller, :pid ]"
+
+      boot_app
+
+      get "/"
+      comment = last_response.body.strip
+
+      assert_match(/\/\*action='index',controller='users',pid='\d+'\*\//, comment)
     end
 
     test "job perform method has tagging filters enabled by default" do
@@ -118,6 +146,17 @@ module ApplicationTests
       comment = UserJob.new.perform_now
 
       assert_not_includes comment, "UserJob"
+    end
+
+    test "job tags are not doubled up if already configured" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :job, :controller, :pid ]"
+
+      boot_app
+
+      comment = UserJob.new.perform_now
+
+      assert_match(/\/\*job='UserJob',pid='\d+'\*\//, comment)
     end
 
     test "query cache is cleared between requests" do

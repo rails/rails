@@ -19,11 +19,11 @@ module ActiveSupport
         return if silenced
 
         callstack ||= caller_locations(2)
-        deprecation_message(callstack, message).tap do |m|
+        deprecation_message(callstack, message).tap do |full_message|
           if deprecation_disallowed?(message)
-            disallowed_behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
+            disallowed_behavior.each { |b| b.call(full_message, callstack, self) }
           else
-            behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
+            behavior.each { |b| b.call(full_message, callstack, self) }
           end
         end
       end
@@ -38,7 +38,22 @@ module ActiveSupport
       #   end
       #   # => nil
       def silence(&block)
-        @silenced_thread.bind(true, &block)
+        begin_silence
+        block.call
+      ensure
+        end_silence
+      end
+
+      def begin_silence # :nodoc:
+        @silence_counter.value += 1
+      end
+
+      def end_silence # :nodoc:
+        @silence_counter.value -= 1
+      end
+
+      def silenced
+        @silenced || @silence_counter.value.nonzero?
       end
 
       # Allow previously disallowed deprecation warnings within the block.
@@ -77,10 +92,6 @@ module ActiveSupport
         else
           yield
         end
-      end
-
-      def silenced
-        @silenced || @silenced_thread.value
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
@@ -125,6 +136,7 @@ module ActiveSupport
         end
 
         def extract_callstack(callstack)
+          return [] if callstack.empty?
           return _extract_callstack(callstack) if callstack.first.is_a? String
 
           offending_line = callstack.find { |frame|

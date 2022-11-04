@@ -1,3 +1,50 @@
+*   Don't double log the `controller` or `action` when using `ActiveRecord::QueryLog`
+
+    Previously if you set `config.active_record.query_log_tags` to an array that included
+    `:controller` or `:action`, that item would get logged twice. This bug has been fixed.
+
+    *Alex Ghiculescu*
+
+*   Add the following permissions policy directives: `hid`, `idle-detection`, `screen-wake-lock`,
+    `serial`, `sync-xhr`, `web-share`.
+
+    *Guillaume Cabanel*
+
+*   The `speaker`, `vibrate`, and `vr` permissions policy directives are now
+    deprecated.
+
+    There is no browser support for these directives, and no plan for browser
+    support in the future. You can just remove these directives from your
+    application.
+
+    *Jonathan Hefner*
+
+*   Added the `:status` option to `assert_redirected_to` to specify the precise
+    HTTP status of the redirect. Defaults to `:redirect` for backwards
+    compatibility.
+
+    *Jon Dufresne*
+
+*   Rescue `JSON::ParserError` in Cookies JSON deserializer to discards marshal dumps:
+
+    Without this change, if `action_dispatch.cookies_serializer` is set to `:json` and
+    the app tries to read a `:marshal` serialized cookie, it would error out which wouldn't
+    clear the cookie and force app users to manually clear it in their browser.
+
+    (See #45127 for original bug discussion)
+
+    *Nathan Bardoux*
+
+*   Add `HTTP_REFERER` when following redirects on integration tests
+
+    This makes `follow_redirect!` a closer simulation of what happens in a real browser
+
+    *Felipe Sateler*
+
+*   Added `exclude?` method to `ActionController::Parameters`.
+
+    *Ian Neubert*
+
 *   Rescue `EOFError` exception from `rack` on a multipart request.
 
     *Nikita Vasilevsky*

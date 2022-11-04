@@ -11,6 +11,7 @@ require "models/uuid_item"
 require "models/author"
 require "models/person"
 require "models/essay"
+require "models/keyboard"
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -68,6 +69,14 @@ class TopicWithAfterCreate < Topic
   def set_author
     update!(author_name: "#{title} #{id}")
   end
+end
+
+class LessonWithUniqKeyboard < ActiveRecord::Base
+  self.table_name = "lessons"
+
+  belongs_to :keyboard, primary_key: :name, foreign_key: :name
+
+  validates_uniqueness_of :keyboard
 end
 
 class UniquenessValidationTest < ActiveRecord::TestCase
@@ -764,6 +773,15 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
   ensure
     TopicWithEvent.clear_validators!
     Event.delete_all
+  end
+
+  def test_uniqueness_on_custom_relation_primary_key
+    Keyboard.create!(name: "Keyboard #1")
+    LessonWithUniqKeyboard.create!(name: "Keyboard #1")
+
+    another = LessonWithUniqKeyboard.new(name: "Keyboard #1")
+    assert_not_predicate another, :valid?
+    assert_equal ["has already been taken"], another.errors[:keyboard]
   end
 
   def test_index_of_sublist_of_columns

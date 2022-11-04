@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
+
 $:.unshift File.expand_path("lib", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
@@ -50,7 +52,8 @@ ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActionController.deprecator.debug = true
+ActionDispatch.deprecator.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
@@ -60,7 +63,7 @@ FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do
-  ActiveSupport::Deprecation.silence do
+  ActionDispatch.deprecator.silence do
     get ":controller(/:action)"
   end
 end
@@ -69,7 +72,7 @@ module ActionDispatch
   module SharedRoutes
     def before_setup
       @routes = Routing::RouteSet.new
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         @routes.draw { get ":controller(/:action)" }
       end
       super
@@ -116,7 +119,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   self.app = build_app
 
   app.routes.draw do
-    ActiveSupport::Deprecation.silence do
+    ActionDispatch.deprecator.silence do
       get ":controller(/:action)"
     end
   end
@@ -359,11 +362,6 @@ class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
   private
-    # Skips the current run on Rubinius using Minitest::Assertions#skip
-    def rubinius_skip(message = "")
-      skip message if RUBY_ENGINE == "rbx"
-    end
-
     # Skips the current run on JRuby using Minitest::Assertions#skip
     def jruby_skip(message = "")
       skip message if defined?(JRUBY_VERSION)

@@ -26,6 +26,7 @@
 require "securerandom"
 require "active_support/dependencies/autoload"
 require "active_support/version"
+require "active_support/deprecator"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
@@ -69,7 +70,9 @@ module ActiveSupport
     autoload :JsonWithMarshalFallback
     autoload :KeyGenerator
     autoload :MessageEncryptor
+    autoload :MessageEncryptors
     autoload :MessageVerifier
+    autoload :MessageVerifiers
     autoload :Multibyte
     autoload :NumberHelper
     autoload :OptionMerger
@@ -95,6 +98,7 @@ module ActiveSupport
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
 
+  @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
 
   def self.cache_format_version
@@ -111,7 +115,7 @@ module ActiveSupport
 
   def self.to_time_preserves_timezone=(value)
     unless value
-      ActiveSupport::Deprecation.warn(
+      ActiveSupport.deprecator.warn(
         "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
       )
     end

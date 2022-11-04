@@ -92,7 +92,7 @@ module Rails
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
         class_option :edge,                type: :boolean, default: nil,
-                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository"
+                                           desc: "Set up the #{name} with a Gemfile pointing to the #{edge_branch} branch on the Rails repository"
 
         class_option :main,                type: :boolean, default: nil, aliases: "--master",
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository main branch"
@@ -105,6 +105,10 @@ module Rails
 
         class_option :help,                type: :boolean, aliases: "-h", group: :rails,
                                            desc: "Show this help message and quit"
+      end
+
+      def self.edge_branch # :nodoc:
+        Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
       end
 
       def initialize(positional_argv, option_argv, *)
@@ -124,7 +128,6 @@ module Rails
           hotwire_gemfile_entry,
           css_gemfile_entry,
           jbuilder_gemfile_entry,
-          psych_gemfile_entry,
           cable_gemfile_entry,
         ].flatten.compact.select(&@gem_filter)
       end
@@ -240,7 +243,7 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+        GemfileEntry.new "puma", ">= 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def asset_pipeline_gemfile_entry
@@ -357,7 +360,6 @@ module Rails
         if options.dev?
           GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
         elsif options.edge?
-          edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
           GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
         elsif options.main?
           GemfileEntry.github("rails", "rails/rails", "main", "Use main development branch of Rails")
@@ -431,19 +433,11 @@ module Rails
         end
       end
 
-      def psych_gemfile_entry
-        return unless defined?(Rubinius)
-
-        comment = "Use Psych as the YAML engine, instead of Syck, so serialized " \
-                  "data can be read safely from different rubies"
-        GemfileEntry.new("psych", "~> 2.0", comment, platforms: :rbx)
-      end
-
       def cable_gemfile_entry
         return if options[:skip_action_cable]
 
         comment = "Use Redis adapter to run Action Cable in production"
-        GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
+        GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
       end
 
       def bundle_command(command, env = {})
@@ -474,6 +468,10 @@ module Rails
 
       def bundle_install?
         !(options[:skip_bundle] || options[:pretend])
+      end
+
+      def bundler_windows_platforms
+        Gem.rubygems_version >= Gem::Version.new("3.3.22") ? "windows" : "mswin mswin64 mingw x64_mingw"
       end
 
       def depends_on_system_test?
@@ -564,6 +562,10 @@ module Rails
         else
           "git init && git symbolic-ref HEAD refs/heads/main"
         end
+      end
+
+      def edge_branch
+        self.class.edge_branch
       end
     end
   end

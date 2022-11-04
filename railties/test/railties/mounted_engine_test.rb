@@ -118,6 +118,7 @@ module ApplicationTests
           get '/application_route_in_view', to: 'posts#application_route_in_view'
           get '/engine_polymorphic_path', to: 'posts#engine_polymorphic_path'
           get '/engine_asset_path', to: 'posts#engine_asset_path'
+          get '/file_field_with_direct_upload_path', to: 'posts#file_field_with_direct_upload_path'
         end
       RUBY
 
@@ -149,6 +150,10 @@ module ApplicationTests
 
             def engine_asset_path
               render inline: "<%= asset_path 'images/foo.png', skip_pipeline: true %>"
+            end
+
+            def file_field_with_direct_upload_path
+              render inline: "<%= file_field_tag :image, direct_upload: true %>"
             end
           end
         end
@@ -268,6 +273,10 @@ module ApplicationTests
       # test that asset path will not get script_name when generated in the engine
       get "/someone/blog/engine_asset_path"
       assert_equal "/images/foo.png", last_response.body
+
+      # test that the active storage direct upload URL is added to a file field that explicitly requires it within en engine's view code
+      get "/someone/blog/file_field_with_direct_upload_path"
+      assert_equal "<input type=\"file\" name=\"image\" id=\"image\" data-direct-upload-url=\"http://example.org/rails/active_storage/direct_uploads\" />", last_response.body
     end
 
     test "route path for controller action when engine is mounted at root" do

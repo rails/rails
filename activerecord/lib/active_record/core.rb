@@ -309,7 +309,7 @@ module ActiveRecord
       ).each do |attr|
         module_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def #{attr}
-            ActiveSupport::Deprecation.warn(<<~MSG)
+            ActiveRecord.deprecator.warn(<<~MSG)
               ActiveRecord::Base.#{attr} is deprecated and will be removed in Rails 7.1.
               Use `ActiveRecord.#{attr}` instead.
             MSG
@@ -317,7 +317,7 @@ module ActiveRecord
           end
 
           def #{attr}=(value)
-            ActiveSupport::Deprecation.warn(<<~MSG)
+            ActiveRecord.deprecator.warn(<<~MSG)
               ActiveRecord::Base.#{attr}= is deprecated and will be removed in Rails 7.1.
               Use `ActiveRecord.#{attr}=` instead.
             MSG
@@ -517,7 +517,8 @@ module ActiveRecord
     # only, not its associations. The extent of a "deep" copy is application
     # specific and is therefore left to the application to implement according
     # to its need.
-    # The dup method does not preserve the timestamps (created|updated)_(at|on).
+    # The dup method does not preserve the timestamps (created|updated)_(at|on)
+    # and locking column.
 
     ##
     def initialize_dup(other) # :nodoc:

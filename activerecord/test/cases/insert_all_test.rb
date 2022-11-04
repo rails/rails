@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "models/category"
 require "models/cart"
 require "models/developer"
 require "models/ship"
@@ -279,6 +280,26 @@ class InsertAllTest < ActiveRecord::TestCase
       assert_equal "Perelandra 2", book.title, "Should have updated the title"
       assert_equal "111111", book.isbn, "Should have updated the isbn"
       assert_equal 7, book.author_id, "Should not have updated the author_id"
+    end
+  end
+
+  def test_insert_all_and_upsert_all_with_sti
+    assert_difference -> { Category.count }, 2 do
+      SpecialCategory.insert_all [{ name: "First" }, { name: "Second", type: nil }]
+    end
+
+    first, second = Category.last(2)
+    assert_equal "SpecialCategory", first.type
+    assert_nil second.type
+
+    if supports_insert_on_duplicate_update?
+      SpecialCategory.upsert_all [{ id: 103, name: "First" }, { id: 104, name: "Second", type: nil }]
+
+      category3 = Category.find(103)
+      assert_equal "SpecialCategory", category3.type
+
+      category4 = Category.find(104)
+      assert_nil category4.type
     end
   end
 

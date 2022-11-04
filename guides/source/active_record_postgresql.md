@@ -501,8 +501,25 @@ irb> device.id
 => "814865cd-5a1d-4771-9306-4268f188fe9e"
 ```
 
-NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option was
-passed to `create_table`.
+NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option 
+was passed to `create_table`.
+
+To use the Rails model generator for a table using UUID as the primary key, pass
+`--primary-key-type=uuid` to the model generator.
+
+For example:
+
+```ruby
+rails generate model Device --primary-key-type=uuid kind:string
+```
+
+When building a model with a foreign key that will reference this UUID, treat 
+`uuid` as the native field type, for example:
+
+```ruby
+rails generate model Case device_id:uuid
+```
+
 
 Generated Columns
 -----------------
@@ -672,7 +689,7 @@ irb> Article.count
 NOTE: This application only cares about non-archived `Articles`. A view also
 allows for conditions so we can exclude the archived `Articles` directly.
 
-Structure dumps
+Structure Dumps
 --------------
 
 If your `config.active_record.schema_format` is `:sql`, Rails will call `pg_dump` to generate a

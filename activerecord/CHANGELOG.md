@@ -2,6 +2,270 @@
 
     *Carlos Palhares*
 
+*   Clear locking column on #dup
+
+    This change fixes not to duplicate locking_column like id and timestamps.
+
+    ```
+    car = Car.create!
+    car.touch
+    car.lock_version #=> 1
+    car.dup.lock_version #=> 0
+    ```
+
+    *Shouichi Kamiya*, *Seonggi Yang*, *Ryohei UEDA*
+
+*   Invalidate transaction as early as possible
+
+    After rescuing a `TransactionRollbackError` exception Rails invalidates transactions earlier in the flow
+    allowing the framework to skip issuing the `ROLLBACK` statement in more cases.
+    Only affects adapters that have `savepoint_errors_invalidate_transactions?` configured as `true`,
+    which at this point is only applicable to the `mysql2` adapter.
+
+    *Nikita Vasilevsky*
+
+*   Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
+
+    It is now possible to configure columns list that will be used to build an SQL query clauses when
+    updating, deleting or reloading an `ActiveRecord::Base` object
+
+    ```ruby
+    class Developer < ActiveRecord::Base
+      query_constraints :company_id, :id
+    end
+    developer = Developer.first.update(name: "Bob")
+    # => UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+    ```
+
+    *Nikita Vasilevsky*
+
+*   Adds `validate` to foreign keys and check constraints in schema.rb
+
+    Previously, `schema.rb` would not record if `validate: false` had been used when adding a foreign key or check
+    constraint, so restoring a database from the schema could result in foreign keys or check constraints being
+    incorrectly validated.
+
+    *Tommy Graves*
+
+*   Adapter `#execute` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
+    retried, up to the database's configured `connection_retries` value, upon encountering connection-related errors.
+
+    *Adrianna Chang*
+
+*   Only trigger `after_commit :destroy` callbacks when a database row is deleted.
+
+    This prevents `after_commit :destroy` callbacks from being triggered again
+    when `destroy` is called multiple times on the same record.
+
+    *Ben Sheldon*
+
+*   Fix `ciphertext_for` for yet-to-be-encrypted values.
+
+    Previously, `ciphertext_for` returned the cleartext of values that had not
+    yet been encrypted, such as with an unpersisted record:
+
+      ```ruby
+      Post.encrypts :body
+
+      post = Post.create!(body: "Hello")
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"abc..."
+
+      post.body = "World"
+      post.ciphertext_for(:body)
+      # => "World"
+      ```
+
+    Now, `ciphertext_for` will always return the ciphertext of encrypted
+    attributes:
+
+      ```ruby
+      Post.encrypts :body
+
+      post = Post.create!(body: "Hello")
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"abc..."
+
+      post.body = "World"
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"xyz..."
+      ```
+
+    *Jonathan Hefner*
+
+*   Fix a bug where using groups and counts with long table names would return incorrect results.
+
+    *Shota Toguchi*, *Yusaku Ono*
+
+*   Fix encryption of column default values.
+
+    Previously, encrypted attributes that used column default values appeared to
+    be encrypted on create, but were not:
+
+      ```ruby
+      Book.encrypts :name
+
+      book = Book.create!
+      book.name
+      # => "<untitled>"
+      book.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      book.reload.name_before_type_cast
+      # => "<untitled>"
+      ```
+
+    Now, attributes with column default values are encrypted:
+
+      ```ruby
+      Book.encrypts :name
+
+      book = Book.create!
+      book.name
+      # => "<untitled>"
+      book.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      book.reload.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      ```
+
+    *Jonathan Hefner*
+
+*   Deprecate delegation from `Base` to `connection_handler`.
+
+    Calling `Base.clear_all_connections!`, `Base.clear_active_connections!`, `Base.clear_reloadable_connections!` and `Base.flush_idle_connections!` is deprecated. Please call these methods on the connection handler directly. In future Rails versions, the delegation from `Base` to the `connection_handler` will be removed.
+
+    *Eileen M. Uchitelle*
+
+*   Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
+
+    *Sampat Badhe*
+
+*   Validate options when managing columns and tables in migrations.
+
+    If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
+    instead of the option being silently ignored. Validation of the options will only be applied for new migrations
+    that are created.
+
+    *Guo Xiang Tan*, *George Wambold*
+
+*   Update query log tags to use the [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/) format by default. See [#46179](https://github.com/rails/rails/issues/46179)
+
+    To opt out of SQLCommenter-formatted query log tags, set `config.active_record.query_log_tags_format = :legacy`. By default, this is set to `:sqlcommenter`.
+
+    *Modulitos* and *Iheanyi*
+
+*   Allow any ERB in the database.yml when creating rake tasks.
+
+    Any ERB can be used in `database.yml` even if it accesses environment
+    configurations.
+
+    Deprecates `config.active_record.suppress_multiple_database_warning`.
+
+    *Eike Send*
+
+*   Add table to error for duplicate column definitions.
+
+    If a migration defines duplicate columns for a table, the error message
+    shows which table it concerns.
+
+    *Petrik de Heus*
+
+*   Fix erroneous nil default precision on virtual datetime columns.
+
+    Prior to this change, virtual datetime columns did not have the same
+    default precision as regular datetime columns, resulting in the following
+    being erroneously equivalent:
+
+        t.virtual :name, type: datetime,                 as: "expression"
+        t.virtual :name, type: datetime, precision: nil, as: "expression"
+
+    This change fixes the default precision lookup, so virtual and regular
+    datetime column default precisions match.
+
+    *Sam Bostock*
+
+*   Use connection from `#with_raw_connection` in `#quote_string`.
+
+    This ensures that the string quoting is wrapped in the reconnect and retry logic
+    that `#with_raw_connection` offers.
+
+    *Adrianna Chang*
+
+*   Add `expires_in` option to `signed_id`.
+
+    *Shouichi Kamiya*
+
+*   Allow applications to set retry deadline for query retries.
+
+    Building on the work done in #44576 and #44591, we extend the logic that automatically
+    reconnects database connections to take into account a timeout limit. We won't retry
+    a query if a given amount of time has elapsed since the query was first attempted. This
+    value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed,
+    but this can be changed via the `retry_deadline` option in the database config.
+
+    *Adrianna Chang*
+
+*   Fix a case where the query cache can return wrong values. See #46044
+
+    *Aaron Patterson*
+
+*   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
+
+    Verifying the identity of the database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for MySQL database tasks like creating a database and dumping the structure.
+
+    *Petrik de Heus*
+
+*   Move `ActiveRecord::InternalMetadata` to an independent object.
+
+    `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate quoting `ActiveSupport::Duration` as an integer
+
+    Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+    string template is deprecated. To avoid this warning, you should explicitly
+    convert the duration to a more specific database type. For example, if you
+    want to use a duration as an integer number of seconds:
+    ```
+    Record.where("duration = ?", 1.hour.to_i)
+    ```
+    If you want to use a duration as an ISO 8601 string:
+    ```
+    Record.where("duration = ?", 1.hour.iso8601)
+    ```
+
+    *Aram Greenman*
+
+*   Allow `QueryMethods#in_order_of` to order by a string column name.
+
+    ```ruby
+    Post.in_order_of("id", [4,2,3,1]).to_a
+    Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
+    ```
+
+    *Igor Kasyanchuk*
+
+*   Move `ActiveRecord::SchemaMigration` to an independent object.
+
+    `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+
+    Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
+
+    *Eileen M. Uchitelle*
+
+*   Fix connection handler methods to operate on all pools.
+
+    `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
+
+    *Eileen M. Uchitelle*
+
 *   Allow ActiveRecord::QueryMethods#select to receive hash values.
 
     Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.

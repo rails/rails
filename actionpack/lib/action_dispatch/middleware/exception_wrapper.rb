@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/syntax_error_proxy"
+require "active_support/core_ext/thread/backtrace/location"
 require "rack/utils"
 
 module ActionDispatch
@@ -41,22 +43,76 @@ module ActionDispatch
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ]
 
-    attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file
+    attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
-      @exception = exception
-      @exception_class_name = @exception.class.name
+      @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
+      @exception = exception
+      if exception.is_a?(SyntaxError)
+        @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
+      end
+      @backtrace = build_backtrace
+    end
 
-      expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
+    def routing_error?
+      @exception.is_a?(ActionController::RoutingError)
+    end
+
+    def template_error?
+      @exception.is_a?(ActionView::Template::Error)
+    end
+
+    def sub_template_message
+      @exception.sub_template_message
+    end
+
+    def has_cause?
+      @exception.cause
+    end
+
+    def failures
+      @exception.failures
+    end
+
+    def has_corrections?
+      @exception.respond_to?(:original_message) && @exception.respond_to?(:corrections)
+    end
+
+    def original_message
+      @exception.original_message
+    end
+
+    def corrections
+      @exception.corrections
+    end
+
+    def file_name
+      @exception.file_name
+    end
+
+    def line_number
+      @exception.line_number
+    end
+
+    def actions
+      ActiveSupport::ActionableError.actions(@exception)
     end
 
     def unwrapped_exception
       if wrapper_exceptions.include?(@exception_class_name)
-        exception.cause
+        @exception.cause
       else
-        exception
+        @exception
+      end
+    end
+
+    def annotated_source_code
+      if exception.respond_to?(:annotated_source_code)
+        exception.annotated_source_code
+      else
+        []
       end
     end
 
@@ -148,18 +204,56 @@ module ActionDispatch
       (traces[trace_to_show].first || {})[:id]
     end
 
-    private
-      def backtrace
-        backtrace_locations = @exception.backtrace_locations
-        backtrace = @exception.backtrace
+    def exception_name
+      exception.cause.class.to_s
+    end
 
-        if backtrace_locations && backtrace_locations.size == backtrace.size
-          # Prefer #backtrace_locations as it looks consistent with #backtrace
-          Array(backtrace_locations)
-        else
-          # Conservatively fallback to #backtrace as they are inconsistent;
-          # probably #set_backtrace is used somewhere?
-          Array(backtrace)
+    def message
+      exception.message
+    end
+
+    def exception_inspect
+      exception.inspect
+    end
+
+    def exception_id
+      exception.object_id
+    end
+
+    private
+      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location)
+        def initialize(location, template)
+          super(location)
+          @template = template
+        end
+
+        def spot(exc)
+          location = super
+          if location
+            @template.translate_location(__getobj__, location)
+          end
+        end
+      end
+
+      attr_reader :backtrace
+
+      def build_backtrace
+        built_methods = {}
+
+        ActionView::ViewPaths.all_view_paths.each do |path_set|
+          path_set.each do |resolver|
+            resolver.built_templates.each do |template|
+              built_methods[template.method_name] = template
+            end
+          end
+        end
+
+        (@exception.backtrace_locations || []).map do |loc|
+          if built_methods.key?(loc.label.to_s)
+            SourceMapLocation.new(loc, built_methods[loc.label.to_s])
+          else
+            loc
+          end
         end
       end
 
@@ -182,25 +276,24 @@ module ActionDispatch
       end
 
       def extract_source(trace)
-        if error_highlight_available?
-          spot = ErrorHighlight.spot(@exception, backtrace_location: trace)
-          if spot
-            line = spot[:first_lineno]
-            code = extract_source_fragment_lines(spot[:script_lines], line)
+        spot = trace.spot(@exception)
 
-            if line == spot[:last_lineno]
-              code[line] = [
-                code[line][0, spot[:first_column]],
-                code[line][spot[:first_column]...spot[:last_column]],
-                code[line][spot[:last_column]..-1],
-              ]
-            end
+        if spot
+          line = spot[:first_lineno]
+          code = extract_source_fragment_lines(spot[:script_lines], line)
 
-            return {
-              code: code,
-              line_number: line
-            }
+          if line == spot[:last_lineno]
+            code[line] = [
+              code[line][0, spot[:first_column]],
+              code[line][spot[:first_column]...spot[:last_column]],
+              code[line][spot[:last_column]..-1],
+            ]
           end
+
+          return {
+            code: code,
+            line_number: line
+          }
         end
 
         file, line_number = extract_file_and_line_number(trace)
@@ -228,18 +321,7 @@ module ActionDispatch
       end
 
       def extract_file_and_line_number(trace)
-        return [trace.path, trace.lineno] if Thread::Backtrace::Location === trace
-
-        # Split by the first colon followed by some digits, which works for both
-        # Windows and Unix path styles.
-        file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
-        [file, line.to_i]
-      end
-
-      def expand_backtrace
-        @exception.backtrace.unshift(
-          @exception.to_s.split("\n")
-        ).flatten!
+        [trace.path, trace.lineno]
       end
   end
 end

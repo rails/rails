@@ -148,7 +148,7 @@ module ActiveStorage
                   ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
                 end
             else
-              ActiveSupport::Deprecation.warn \
+              ActiveStorage.deprecator.warn \
                 "config.active_storage.replace_on_assign_to_many is deprecated and will be removed in Rails 7.1. " \
                 "Make sure that your code works well with config.active_storage.replace_on_assign_to_many set to true before upgrading. " \
                 "To append new attachables to the Active Storage association, prefer using `attach`. " \
@@ -179,7 +179,7 @@ module ActiveStorage
           def deprecate(action)
             reflection_name = proxy_association.reflection.name
             attached_name = reflection_name.to_s.partition("_").first
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveStorage.deprecator.warn(<<-MSG.squish)
               Calling `#{action}` from `#{reflection_name}` is deprecated and will be removed in Rails 7.1.
               To migrate to Rails 7.1's behavior call `#{action}` from `#{attached_name}` instead: `#{attached_name}.#{action}`.
             MSG

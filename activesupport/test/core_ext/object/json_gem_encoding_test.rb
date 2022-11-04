@@ -4,7 +4,7 @@ require_relative "../../abstract_unit"
 require "json"
 require_relative "../../json/encoding_test_cases"
 
-# These test cases were added to test that we do not interfere with json gem's
+# These test cases were added to test that we do not interfere with JSON gem's
 # output when the AS encoder is loaded, primarily for problems reported in
 # #20775. They need to be executed in isolation to reproduce the scenario
 # correctly, because other test cases might have already loaded additional

@@ -201,6 +201,25 @@ module ApplicationTests
       assert_match "Invalid query parameters", last_response.body
     end
 
+    test "displays diagnostics message when too deep query parameters are provided" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
+      limit = Rack::Utils.param_depth_limit + 1
+      malicious_url = "/foo?#{'[test]' * limit}=test"
+
+      get malicious_url
+      assert_equal 400, last_response.status
+      assert_match "Invalid query parameters", last_response.body
+    end
+
     test "displays statement invalid template correctly" do
       controller :foo, <<-RUBY
         class FooController < ActionController::Base

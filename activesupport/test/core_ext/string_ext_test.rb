@@ -90,6 +90,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_downcase_first
+    assert_equal "try again", "Try again".downcase_first
+  end
+
+  def test_downcase_first_with_one_char
+    assert_equal "t", "T".downcase_first
+  end
+
+  def test_downcase_first_with_empty_string
+    assert_equal "", "".downcase_first
+  end
+
   def test_upcase_first
     assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
   end
@@ -824,7 +836,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Adding an object not responding to `#to_str` to a safe string is deprecated" do
     string = @string.html_safe
-    assert_deprecated("Implicit conversion of #{@to_s_object.class} into String by ActiveSupport::SafeBuffer is deprecated") do
+    assert_deprecated("Implicit conversion of #{@to_s_object.class} into String by ActiveSupport::SafeBuffer is deprecated", ActiveSupport.deprecator) do
       string << @to_s_object
     end
     assert_equal "helloto_s", string

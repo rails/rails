@@ -302,7 +302,7 @@ module ActiveRecord
     # You can also use one or more strings, which will be used unchanged as SELECT fields.
     #
     #   Model.select('field AS field_one', 'other_field AS field_two')
-    #   # => [#<Model id: nil, field: "value", other_field: "value">]
+    #   # => [#<Model id: nil, field_one: "value", field_two: "value">]
     #
     # If an alias was specified, it will be accessible from the resulting objects:
     #
@@ -406,6 +406,7 @@ module ActiveRecord
     # Note that we're unscoping the entire select statement.
     def reselect(*args)
       check_if_method_has_arguments!(__callee__, args)
+      args = process_select_args(args)
       spawn.reselect!(*args)
     end
 
@@ -527,7 +528,7 @@ module ActiveRecord
       self.references_values |= references unless references.empty?
 
       values = values.map { |value| type_caster.type_cast_for_database(column, value) }
-      arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
+      arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
 
       where_clause =
         if values.include?(nil)
@@ -1074,12 +1075,18 @@ module ActiveRecord
       where!("1=0").extending!(NullRelation)
     end
 
-    # Sets readonly attributes for the returned relation. If value is
-    # true (default), attempting to update a record will result in an error.
+    # Mark a relation as readonly. Attempting to update a record will result in
+    # an error.
     #
     #   users = User.readonly
     #   users.first.save
     #   => ActiveRecord::ReadOnlyRecord: User is marked as readonly
+    #
+    # To make a readonly relation writable, pass +false+.
+    #
+    #   users.readonly(false)
+    #   users.first.save
+    #   => true
     def readonly(value = true)
       spawn.readonly!(value)
     end
@@ -1785,7 +1792,7 @@ module ActiveRecord
           node.when(column.eq(value)).then(order)
         end
 
-        Arel::Nodes::Ascending.new(node.else(values.length + 1))
+        Arel::Nodes::Ascending.new(node)
       end
 
       def resolve_arel_attributes(attrs)

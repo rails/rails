@@ -354,6 +354,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal 1, request_count
 
       follow_redirect!
+      assert_equal "http://www.example.com/redirect", request.referer
       assert_response :success
       assert_equal "/get", path
 
@@ -626,7 +627,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         set.draw do
           get "moved" => redirect("/method")
 
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             match ":action", to: controller, via: [:get, :post], as: :action
             get "get/:action", to: controller, as: :get_action
           end
@@ -1040,7 +1041,7 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
   def test_request
     with_routing do |routes|
       routes.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":action" => FooController
         end
       end
@@ -1084,7 +1085,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_standard_json_encoding_works
     with_routing do |routes|
       routes.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           post ":action" => FooController
         end
       end
@@ -1111,7 +1112,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_doesnt_mangle_request_path
     with_routing do |routes|
       routes.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           post ":action" => FooController
         end
       end
@@ -1152,7 +1153,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_parsed_body_without_as_option
     with_routing do |routes|
       routes.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":action" => FooController
         end
       end
@@ -1166,7 +1167,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_parameters_with_as_option
     with_routing do |routes|
       routes.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":action" => FooController
         end
       end
@@ -1180,7 +1181,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_request_with_json_uses_method_override_and_sends_a_post_request
     with_routing do |routes|
       routes.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":action" => FooController
         end
       end
@@ -1196,7 +1197,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_request_with_json_excludes_null_query_string
     with_routing do |routes|
       routes.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":action" => FooController
         end
       end
@@ -1211,7 +1212,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     def post_to_foos(as:)
       with_routing do |routes|
         routes.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             post ":action" => FooController
           end
         end

@@ -154,6 +154,10 @@ module ActiveRecord
             @default_row_format
           end
 
+          def valid_primary_key_options
+            super + [:unsigned]
+          end
+
           def create_table_definition(name, **options)
             MySQL::TableDefinition.new(self, name, **options)
           end

@@ -29,6 +29,7 @@ require "active_support/core_ext/module/attribute_accessors"
 
 require "action_pack"
 require "rack"
+require "action_dispatch/deprecator"
 
 module Rack
   autoload :Test, "rack/test"

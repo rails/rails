@@ -155,7 +155,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     end
 
     decorator = decorator_class.new(TestController.view_paths)
-    TestController.view_paths = ActionView::PathSet.new.push(decorator)
+    TestController.view_paths = ActionView::PathSet.new([decorator])
 
     get :hello_world
     assert_response :success

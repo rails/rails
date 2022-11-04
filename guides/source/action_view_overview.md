@@ -204,7 +204,7 @@ This will render a file named `_menu.html.erb` at that point within the view tha
 
 That code will pull in the partial from `app/views/shared/_menu.html.erb`.
 
-#### Using Partials to simplify Views
+#### Using Partials to Simplify Views
 
 One way to use partials is to treat them as the equivalent of subroutines; a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:
 
@@ -223,7 +223,7 @@ One way to use partials is to treat them as the equivalent of subroutines; a way
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
-#### `render` without `partial` and `locals` options
+#### `render` without `partial` and `locals` Options
 
 In the above example, `render` takes 2 options: `partial` and `locals`. But if
 these are the only options you want to pass, you can skip using these options.
@@ -239,7 +239,7 @@ You can also do:
 <%= render "product", product: @product %>
 ```
 
-#### The `as` and `object` options
+#### The `as` and `object` Options
 
 By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
 
@@ -398,7 +398,7 @@ views are located. By default, it only looks inside the `app/views` directory.
 We can add other locations and give them certain precedence when resolving
 paths using the `prepend_view_path` and `append_view_path` methods.
 
-### Prepend view path
+### Prepend View Path
 
 This can be helpful for example when we want to put views inside a different
 directory for subdomains.
@@ -411,7 +411,7 @@ prepend_view_path "app/views/#{request.subdomain}"
 
 Then Action View will look first in this directory when resolving views.
 
-### Append view path
+### Append View Path
 
 Similarly, we can append paths:
 

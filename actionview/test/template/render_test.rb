@@ -204,11 +204,34 @@ module RenderTestCases
   def test_render_outside_path
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      assert_deprecated do
-        @view.render(template: "../\\../test/abstract_unit.rb")
-      end
+      @view.render(template: "../\\../test/abstract_unit.rb")
     end
   end
+
+  # rubocop:disable Minitest/SkipEnsure
+  def test_render_runtime_error
+    skip unless RubyVM.respond_to?(:keep_script_lines)
+
+    # We need to enable this setting so that when we eval the template
+    # the compiled source is kept around.
+    setting = RubyVM.keep_script_lines
+    RubyVM.keep_script_lines = true
+
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
+
+    # Get the spot information from ErrorHighlight
+    spot = erb_btl.spot(ex.cause)
+    translated_spot = ex.template.translate_location(erb_btl, spot)
+    assert_equal 6, translated_spot[:first_column]
+  ensure
+    if RubyVM.respond_to?(:keep_script_lines)
+      RubyVM.keep_script_lines = setting
+    end
+  end
+  # rubocop:enable Minitest/SkipEnsure
 
   def test_render_partial
     assert_equal "only partial", @view.render(partial: "test/partial_only")
@@ -309,7 +332,7 @@ module RenderTestCases
   end
 
   def test_render_template_with_errors
-    e = assert_raises(ActionView::Template::Error) { assert_deprecated { @view.render(template: "test/_raise") } }
+    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/_raise") }
     assert_match %r!method.*doesnt_exist!, e.message
     assert_equal "", e.sub_template_message
     assert_equal "1", e.line_number
@@ -512,7 +535,7 @@ module RenderTestCases
   end
 
   def test_optional_second_arg_works_without_deprecation
-    assert_not_deprecated do
+    assert_not_deprecated(ActionView.deprecator) do
       ActionView::Template.register_template_handler :ruby_handler, ->(view, source = nil) { source }
     end
     assert_equal "3", @view.render(inline: "(1 + 2).to_s", type: :ruby_handler)
@@ -563,9 +586,7 @@ module RenderTestCases
     %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
       assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
       assert_raises(ActionView::MissingTemplate) do
-        ActiveSupport::Deprecation.silence do
-          @view.render(template: "test/malformed/#{name}")
-        end
+        @view.render(template: "test/malformed/#{name}")
       end
     end
   end

@@ -208,8 +208,8 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_clears_active_connections
         with_stubbed_connection do
-          ActiveRecord::Base.stub(:establish_connection, nil) do
-            assert_called(ActiveRecord::Base, :clear_active_connections!) do
+          ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+            assert_called(ActiveRecord::Base.connection_handler, :clear_active_connections!) do
               ActiveRecord::Tasks::DatabaseTasks.purge @configuration
             end
           end

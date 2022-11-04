@@ -1,3 +1,216 @@
+*   Fix `Time#change` and `Time#advance` for times around the end of Daylight
+    Saving Time.
+
+    Previously, when `Time#change` or `Time#advance` constructed a time inside
+    the final stretch of Daylight Saving Time (DST), the non-DST offset would
+    always be chosen for local times:
+
+    ```ruby
+    # DST ended just before 2021-11-07 2:00:00 AM in US/Eastern.
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    And the DST offset would always be chosen for times with a `TimeZone`
+    object:
+
+    ```ruby
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0400
+    ```
+
+    Now, `Time#change` and `Time#advance` will choose the offset that matches
+    the original time's offset when possible:
+
+    ```ruby
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0400
+
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    *Kevin Hall*, *Takayoshi Nishida*, and *Jonathan Hefner*
+
+*   Fix MemoryStore to preserve entries TTL when incrementing or decrementing
+
+    This is to be more consistent with how MemCachedStore and RedisCacheStore behaves.
+
+    *Jean Boussier*
+
+*   `Rails.error.handle` and `Rails.error.record` filter now by multiple error classes.
+
+    ```ruby
+    Rails.error.handle(IOError, ArgumentError) do
+      1 + '1' # raises TypeError
+    end
+    1 + 1 # TypeErrors are not IOErrors or ArgumentError, so this will *not* be handled
+    ```
+
+    *Martin Spickermann*
+
+*   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
+
+    Previously they could return old implementations of reloadable classes that have been
+    dereferenced but not yet garbage collected.
+
+    They now automatically filter such classes like `DescendantTracker#subclasses` and
+    `DescendantTracker#descendants`.
+
+    *Jean Boussier*
+
+*   `Rails.error.report` now marks errors as reported to avoid reporting them twice.
+
+    In some cases, users might want to report errors explicitly with some extra context
+    before letting it bubble up.
+
+    This also allows to safely catch and report errors outside of the execution context.
+
+    *Jean Boussier*
+
+*   Add `assert_error_reported` and `assert_no_error_reported`
+
+    Allows to easily asserts an error happened but was handled
+
+    ```ruby
+    report = assert_error_reported(IOError) do
+      # ...
+    end
+    assert_equal "Oops", report.error.message
+    assert_equal "admin", report.context[:section]
+    assert_equal :warning, report.severity
+    assert_predicate report, :handled?
+    ```
+
+    *Jean Boussier*
+
+*   `ActiveSupport::Deprecation` behavior callbacks can now receive the
+    deprecator instance as an argument.  This makes it easier for such callbacks
+    to change their behavior based on the deprecator's state.  For example,
+    based on the deprecator's `debug` flag.
+
+    3-arity and splat-args callbacks such as the following will now be passed
+    the deprecator instance as their third argument:
+
+    * `->(message, callstack, deprecator) { ... }`
+    * `->(*args) { ... }`
+    * `->(message, *other_args) { ... }`
+
+    2-arity and 4-arity callbacks such as the following will continue to behave
+    the same as before:
+
+    * `->(message, callstack) { ... }`
+    * `->(message, callstack, deprecation_horizon, gem_name) { ... }`
+    * `->(message, callstack, *deprecation_details) { ... }`
+
+    *Jonathan Hefner*
+
+*   `ActiveSupport::Deprecation#disallowed_warnings` now affects the instance on
+    which it is configured.
+
+    This means that individual `ActiveSupport::Deprecation` instances can be
+    configured with their own disallowed warnings, and the global
+    `ActiveSupport::Deprecation.disallowed_warnings` now only affects the global
+    `ActiveSupport::Deprecation.warn`.
+
+    **Before**
+
+    ```ruby
+    ActiveSupport::Deprecation.disallowed_warnings = ["foo"]
+    deprecator = ActiveSupport::Deprecation.new("2.0", "MyCoolGem")
+    deprecator.disallowed_warnings = ["bar"]
+
+    ActiveSupport::Deprecation.warn("foo") # => raise ActiveSupport::DeprecationException
+    ActiveSupport::Deprecation.warn("bar") # => print "DEPRECATION WARNING: bar"
+    deprecator.warn("foo")                 # => raise ActiveSupport::DeprecationException
+    deprecator.warn("bar")                 # => print "DEPRECATION WARNING: bar"
+    ```
+
+    **After**
+
+    ```ruby
+    ActiveSupport::Deprecation.disallowed_warnings = ["foo"]
+    deprecator = ActiveSupport::Deprecation.new("2.0", "MyCoolGem")
+    deprecator.disallowed_warnings = ["bar"]
+
+    ActiveSupport::Deprecation.warn("foo") # => raise ActiveSupport::DeprecationException
+    ActiveSupport::Deprecation.warn("bar") # => print "DEPRECATION WARNING: bar"
+    deprecator.warn("foo")                 # => print "DEPRECATION WARNING: foo"
+    deprecator.warn("bar")                 # => raise ActiveSupport::DeprecationException
+    ```
+
+    *Jonathan Hefner*
+
+*   Add italic and underline support to `ActiveSupport::LogSubscriber#color`
+
+    Previously, only bold text was supported via a positional argument.
+    This allows for bold, italic, and underline options to be specified
+    for colored logs.
+
+    ```ruby
+    info color("Hello world!", :red, bold: true, underline: true)
+    ```
+
+    *Gannon McGibbon*
+
+*   Add `String#downcase_first` method.
+
+    This method is the corollary of `String#upcase_first`.
+
+    *Mark Schneider*
+
 *   `thread_mattr_accessor` will call `.dup.freeze` on non-frozen default values.
 
     This provides a basic level of protection against different threads trying

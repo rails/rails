@@ -1,3 +1,30 @@
+*   Custom attribute types that inherit from Active Model built-in types and do
+    not override the `serialize` method will now benefit from an optimization
+    when serializing attribute values for the database.
+
+    For example, with a custom type like the following:
+
+    ```ruby
+    class DowncasedString < ActiveModel::Type::String
+      def cast(value)
+        super&.downcase
+      end
+    end
+
+    ActiveRecord::Type.register(:downcased_string, DowncasedString)
+
+    class User < ActiveRecord::Base
+      attribute :email, :downcased_string
+    end
+
+    user = User.new(email: "FooBar@example.com")
+    ```
+
+    Serializing the `email` attribute for the database will be roughly twice as
+    fast.  More expensive `cast` operations will likely see greater improvements.
+
+    *Jonathan Hefner*
+
 *   `has_secure_password` now supports password challenges via a
     `password_challenge` accessor and validation.
 

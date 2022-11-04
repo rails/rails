@@ -1350,7 +1350,7 @@ class BasicsTest < ActiveRecord::TestCase
       rd.binmode
       wr.binmode
 
-      ActiveRecord::Base.connection_handler.clear_all_connections!
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
 
       fork do
         rd.close
@@ -1460,6 +1460,13 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.instantiate(attrs, types)
 
     assert_equal "t.lo", topic.author_name
+  end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_column_types_on_queries_on_postgresql
+      result = ActiveRecord::Base.connection.exec_query("SELECT 1 AS test")
+      assert_equal ActiveModel::Type::Integer, result.column_types["test"].class
+    end
   end
 
   def test_typecasting_aliases

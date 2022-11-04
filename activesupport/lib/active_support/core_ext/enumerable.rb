@@ -84,7 +84,7 @@ module Enumerable
       identity ||= 0
       _original_sum_with_required_identity(identity, &block)
     else
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      ActiveSupport.deprecator.warn(<<-MSG.squish)
         Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
         Sum of non-numeric elements requires an initial argument.
       MSG

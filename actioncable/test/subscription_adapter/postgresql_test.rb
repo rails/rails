@@ -35,7 +35,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
   def teardown
     super
 
-    ActiveRecord::Base.clear_all_connections!
+    ActiveRecord::Base.connection.clear_all_connections!
   end
 
   def cable_config

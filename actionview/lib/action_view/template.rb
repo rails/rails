@@ -151,6 +151,16 @@ module ActionView
       end
     end
 
+    # Translate an error location returned by ErrorHighlight to the correct
+    # source location inside the template.
+    def translate_location(backtrace_location, spot)
+      if handler.respond_to?(:translate_location)
+        handler.translate_location(spot, backtrace_location, source)
+      else
+        spot
+      end
+    end
+
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
     def supports_streaming?
@@ -170,7 +180,7 @@ module ActionView
           view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block).to_s
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)&.to_s
         end
       end
     rescue => e
@@ -272,6 +282,14 @@ module ActionView
     def marshal_load(array) # :nodoc:
       @source, @identifier, @handler, @compiled, @locals, @virtual_path, @format, @variant = *array
       @compile_mutex = Mutex.new
+    end
+
+    def method_name # :nodoc:
+      @method_name ||= begin
+        m = +"_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+        m.tr!("-", "_")
+        m
+      end
     end
 
     private
@@ -397,7 +415,7 @@ module ActionView
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
         deprecated_locals = locals.grep(/\A@+/)
         if deprecated_locals.any?
-          ActiveSupport::Deprecation.warn(<<~MSG)
+          ActionView.deprecator.warn(<<~MSG)
             Passing instance variables to `render` is deprecated.
             In Rails 7.1, #{deprecated_locals.to_sentence} will be ignored.
           MSG
@@ -408,14 +426,6 @@ module ActionView
 
         # Assign for the same variable is to suppress unused variable warning
         locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
-      end
-
-      def method_name
-        @method_name ||= begin
-          m = +"_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
-          m.tr!("-", "_")
-          m
-        end
       end
 
       def identifier_method_name

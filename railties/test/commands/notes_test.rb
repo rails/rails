@@ -162,6 +162,12 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
     OUTPUT
   end
 
+  test "does not pick up notes inside string literals" do
+    app_file "app/models/profile.rb", '"# TODO: do something"'
+
+    assert_empty run_notes_command
+  end
+
   private
     def run_notes_command(args = [])
       rails "notes", args

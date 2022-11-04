@@ -215,7 +215,7 @@ module ActiveModel
 
     # Returns a Hash that can be used as the JSON representation for this
     # object. You can pass the <tt>:full_messages</tt> option. This determines
-    # if the json object should contain full messages or not (false by default).
+    # if the JSON object should contain full messages or not (false by default).
     #
     #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
     #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
@@ -287,7 +287,7 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:name=>["can't be blank"]}
     #
-    #   person.errors.add(:name, :too_long, { count: 25 })
+    #   person.errors.add(:name, :too_long, count: 25)
     #   person.errors.messages
     #   # => ["is too long (maximum is 25 characters)"]
     #
@@ -338,7 +338,7 @@ module ActiveModel
     # If the error requires options, then it returns +true+ with
     # the correct options, or +false+ with incorrect or missing options.
     #
-    #   person.errors.add :name, :too_long, { count: 25 }
+    #   person.errors.add :name, :too_long, count: 25
     #   person.errors.added? :name, :too_long, count: 25                     # => true
     #   person.errors.added? :name, "is too long (maximum is 25 characters)" # => true
     #   person.errors.added? :name, :too_long, count: 24                     # => false
@@ -360,7 +360,7 @@ module ActiveModel
     # present, or +false+ otherwise. +type+ is treated the same as for +add+.
     #
     #   person.errors.add :age
-    #   person.errors.add :name, :too_long, { count: 25 }
+    #   person.errors.add :name, :too_long, count: 25
     #   person.errors.of_kind? :age                                            # => true
     #   person.errors.of_kind? :name                                           # => false
     #   person.errors.of_kind? :name, :too_long                                # => true

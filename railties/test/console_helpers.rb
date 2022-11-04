@@ -18,8 +18,8 @@ module ConsoleHelpers
 
     assert_includes output, expected, "#{expected.inspect} expected, but got:\n\n#{output}"
   end
+end
 
-  def available_pty?
-    defined?(PTY) && PTY.respond_to?(:open)
-  end
+def available_pty?
+  defined?(PTY) && PTY.respond_to?(:open)
 end

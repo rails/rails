@@ -2,6 +2,7 @@
 
 require "abstract_controller"
 require "action_dispatch"
+require "action_controller/deprecator"
 require "action_controller/metal/strong_parameters"
 require "action_controller/metal/exceptions"
 

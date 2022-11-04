@@ -33,15 +33,20 @@ module ActiveRecord
 
         # Executes an SQL statement, returning a PG::Result object on success
         # or raising a PG::Error exception otherwise.
+        #
+        # Setting +allow_retry+ to true causes the db to reconnect and retry
+        # executing the SQL statement in case of a connection-related exception.
+        # This option should only be enabled for known idempotent queries.
+        #
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(sql, name = nil)
+        def execute(sql, name = nil, allow_retry: false)
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 
-          with_raw_connection do |conn|
+          with_raw_connection(allow_retry: allow_retry) do |conn|
             log(sql, name) do
               conn.async_exec(sql)
             end
@@ -66,11 +71,7 @@ module ActiveRecord
             fields.each_with_index do |fname, i|
               ftype = result.ftype i
               fmod  = result.fmod i
-              case type = get_oid_type(ftype, fmod, fname)
-              when Type::Integer, Type::Float, OID::Decimal, Type::String, Type::DateTime, Type::Boolean
-                # skip if a column has already been type casted by pg decoders
-              else types[fname] = type
-              end
+              types[fname] = get_oid_type(ftype, fmod, fname)
             end
             build_result(columns: fields, rows: result.values, column_types: types)
           end

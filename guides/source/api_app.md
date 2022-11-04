@@ -131,7 +131,7 @@ If you're building a Rails application that will be an API server first and
 foremost, you can start with a more limited subset of Rails and add in features
 as needed.
 
-### Creating a new application
+### Creating a New Application
 
 You can generate a new api Rails app:
 
@@ -151,7 +151,7 @@ This will do three main things for you:
 - Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
-### Changing an existing application
+### Changing an Existing Application
 
 If you want to take an existing application and make it an API one, read the
 following steps.

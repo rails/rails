@@ -5,6 +5,13 @@ require "active_support/deprecation"
 module ActiveSupport
   module Testing
     module Deprecation
+      ##
+      # :call-seq:
+      #   assert_deprecated(&block)
+      #   assert_deprecated(match, &block)
+      #   assert_deprecated(deprecator, &block)
+      #   assert_deprecated(match, deprecator, &block)
+      #
       # Asserts that a matching deprecation warning was emitted by the given deprecator during the execution of the yielded block.
       #
       #   assert_deprecated(/foo/, CustomDeprecator) do
@@ -19,7 +26,7 @@ module ActiveSupport
       #
       # If the +match+ is omitted (or explicitly +nil+), any deprecation warning will match.
       #
-      #   assert_deprecated(nil, CustomDeprecator) do
+      #   assert_deprecated(CustomDeprecator) do
       #     CustomDeprecator.warn "foo should no longer be used"
       #   end
       #
@@ -29,6 +36,7 @@ module ActiveSupport
       #     ActiveSupport::Deprecation.warn "foo should no longer be used"
       #   end
       def assert_deprecated(match = nil, deprecator = nil, &block)
+        match, deprecator = nil, match if match.is_a?(ActiveSupport::Deprecation)
         result, warnings = collect_deprecations(deprecator, &block)
         assert !warnings.empty?, "Expected a deprecation warning within the block but received none"
         if match

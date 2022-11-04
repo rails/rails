@@ -29,18 +29,19 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     @connection_a.schema_migration.create_table
     @connection_b.schema_migration.create_table
 
-    @connection_a.schema_migration.delete_all rescue nil
-    @connection_b.schema_migration.delete_all rescue nil
+    @connection_a.schema_migration.delete_all_versions rescue nil
+    @connection_b.schema_migration.delete_all_versions rescue nil
 
     @path_a = MIGRATIONS_ROOT + "/valid"
     @path_b = MIGRATIONS_ROOT + "/to_copy"
 
     @schema_migration_a = @connection_a.schema_migration
-    @migrations_a = ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a).migrations
     @internal_metadata_a = @connection_a.internal_metadata
+    @migrations_a = ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a, @internal_metadata_a).migrations
+
     @schema_migration_b = @connection_b.schema_migration
-    @migrations_b = ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b).migrations
     @internal_metadata_b = @connection_b.internal_metadata
+    @migrations_b = ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b, @internal_metadata_b).migrations
 
     @migrations_a_list = [[1, "ValidPeopleHaveLastNames"], [2, "WeNeedReminders"], [3, "InnocentJointable"]]
     @migrations_b_list = [[1, "PeopleHaveHobbies"], [2, "PeopleHaveDescriptions"]]
@@ -57,8 +58,8 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection_a.schema_migration.delete_all rescue nil
-    @connection_b.schema_migration.delete_all rescue nil
+    @connection_a.schema_migration.delete_all_versions rescue nil
+    @connection_b.schema_migration.delete_all_versions rescue nil
 
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::Migration.class_eval do
@@ -69,9 +70,11 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     end
   end
 
-  def test_schema_migration_class_names
-    assert_equal "ActiveRecord::SchemaMigration", @schema_migration_a.name
-    assert_equal "ARUnit2Model::SchemaMigration", @schema_migration_b.name
+  def test_schema_migration_is_different_for_different_connections
+    assert_not_equal @schema_migration_a, @schema_migration_b
+    assert_not_equal @schema_migration_a.connection, @schema_migration_b.connection
+    assert_equal "ActiveRecord::Base", @schema_migration_a.connection.pool.pool_config.connection_name
+    assert_equal "ARUnit2Model", @schema_migration_b.connection.pool.pool_config.connection_name
   end
 
   def test_finds_migrations
@@ -87,23 +90,23 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrations_status
-    @schema_migration_a.create(version: 2)
-    @schema_migration_a.create(version: 10)
+    @schema_migration_a.create_version(2)
+    @schema_migration_a.create_version(10)
 
     assert_equal [
       ["down", "001", "Valid people have last names"],
       ["up",   "002", "We need reminders"],
       ["down", "003", "Innocent jointable"],
       ["up",   "010", "********** NO FILE **********"],
-    ], ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a).migrations_status
+    ], ActiveRecord::MigrationContext.new(@path_a, @schema_migration_a, @internal_metadata_a).migrations_status
 
-    @schema_migration_b.create(version: 4)
+    @schema_migration_b.create_version(4)
 
     assert_equal [
       ["down", "001", "People have hobbies"],
       ["down", "002", "People have descriptions"],
       ["up", "004", "********** NO FILE **********"]
-    ], ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b).migrations_status
+    ], ActiveRecord::MigrationContext.new(@path_b, @schema_migration_b, @internal_metadata_b).migrations_status
   end
 
   def test_get_all_versions
@@ -136,14 +139,14 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   def test_finds_pending_migrations
-    @schema_migration_a.create!(version: "1")
+    @schema_migration_a.create_version("1")
     migration_list_a = [ActiveRecord::Migration.new("foo", 1), ActiveRecord::Migration.new("bar", 3)]
     migrations_a = ActiveRecord::Migrator.new(:up, migration_list_a, @schema_migration_a, @internal_metadata_a).pending_migrations
 
     assert_equal 1, migrations_a.size
     assert_equal migration_list_a.last, migrations_a.first
 
-    @schema_migration_b.create!(version: "1")
+    @schema_migration_b.create_version("1")
     migration_list_b = [ActiveRecord::Migration.new("foo", 1), ActiveRecord::Migration.new("bar", 3)]
     migrations_b = ActiveRecord::Migrator.new(:up, migration_list_b, @schema_migration_b, @internal_metadata_b).pending_migrations
 

@@ -29,6 +29,7 @@ class ExecutorTest < ActiveSupport::TestCase
     end
     assert_equal [error, false, :error, "application.active_support", {}], subscriber.events.last
 
+    error = DummyError.new("Oops")
     assert_raises DummyError do
       executor.wrap(source: "custom") do
         raise error

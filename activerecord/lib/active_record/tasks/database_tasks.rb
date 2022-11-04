@@ -140,15 +140,7 @@ module ActiveRecord
       def setup_initial_database_yaml
         return {} unless defined?(Rails)
 
-        begin
-          Rails.application.config.load_database_yaml
-        rescue
-          unless ActiveRecord.suppress_multiple_database_warning
-            $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
-          end
-
-          {}
-        end
+        Rails.application.config.load_database_yaml
       end
 
       def for_each(databases)
@@ -192,7 +184,7 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(db_config)
 
           begin
-            database_initialized = ActiveRecord::SchemaMigration.table_exists?
+            database_initialized = ActiveRecord::Base.connection.schema_migration.table_exists?
           rescue ActiveRecord::NoDatabaseError
             create(db_config)
             retry
@@ -451,7 +443,7 @@ module ActiveRecord
           "structure.sql"
         end
       end
-      deprecate :schema_file_type
+      deprecate :schema_file_type, deprecator: ActiveRecord.deprecator
 
       def schema_dump_path(db_config, format = ActiveRecord.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]

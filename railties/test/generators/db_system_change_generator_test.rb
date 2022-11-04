@@ -36,7 +36,7 @@ module Rails
 
             assert_file("config/database.yml") do |content|
               assert_match "adapter: postgresql", content
-              assert_match "database: test_app", content
+              assert_match "database: tmp_production", content
             end
 
             assert_file("Gemfile") do |content|
@@ -50,7 +50,7 @@ module Rails
 
             assert_file("config/database.yml") do |content|
               assert_match "adapter: mysql2", content
-              assert_match "database: test_app", content
+              assert_match "database: tmp_production", content
             end
 
             assert_file("Gemfile") do |content|
@@ -79,7 +79,7 @@ module Rails
 
             assert_file("config/database.yml") do |content|
               assert_match "adapter: mysql2", content
-              assert_match "database: test_app", content
+              assert_match "database: tmp_production", content
             end
 
             assert_file("Gemfile") do |content|

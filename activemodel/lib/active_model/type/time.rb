@@ -39,10 +39,10 @@ module ActiveModel
     #   end
     class Time < Value
       include Helpers::Timezone
-      include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 1 => 2000, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
       )
+      include Helpers::TimeValue
 
       def type
         :time

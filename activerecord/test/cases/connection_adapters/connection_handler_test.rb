@@ -15,6 +15,10 @@ module ActiveRecord
         @pool = @handler.establish_connection(db_config)
       end
 
+      def teardown
+        clean_up_connection_handler
+      end
+
       def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
         original_rails_env = ENV["RAILS_ENV"]
         original_rack_env  = ENV["RACK_ENV"]
@@ -64,7 +68,7 @@ module ActiveRecord
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
 
-          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+          ActiveRecord::Base.connects_to(shards: { default: { also_writing: :arunit }, one: { also_writing: :arunit } })
 
           assert_raises(ArgumentError) { setup_shared_connection_pool }
         ensure
@@ -92,9 +96,9 @@ module ActiveRecord
         def test_setting_writing_role_while_using_another_named_role_does_not_raise
           connection_handler = ActiveRecord::Base.connection_handler
           ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :all
+          old_role, ActiveRecord.writing_role = ActiveRecord.writing_role, :also_writing
 
-          ActiveRecord::Base.connects_to(shards: { default: { all: :arunit }, one: { all: :arunit } })
+          ActiveRecord::Base.connects_to(shards: { default: { also_writing: :arunit }, one: { also_writing: :arunit } })
 
           assert_nothing_raised { setup_shared_connection_pool }
         ensure
@@ -229,11 +233,11 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert_not_predicate @handler, :active_connections?
+        assert_not @handler.active_connections?(:all)
         assert @handler.retrieve_connection(@connection_name)
-        assert_predicate @handler, :active_connections?
-        @handler.clear_active_connections!
-        assert_not_predicate @handler, :active_connections?
+        assert @handler.active_connections?(:all)
+        @handler.clear_active_connections!(:all)
+        assert_not @handler.active_connections?(:all)
       end
 
       def test_retrieve_connection_pool
@@ -419,38 +423,38 @@ module ActiveRecord
           rd.close
         end
 
-        def test_pool_from_any_process_for_uses_most_recent_spec
-          skip unless current_adapter?(:SQLite3Adapter)
+        if current_adapter?(:SQLite3Adapter)
+          def test_pool_from_any_process_for_uses_most_recent_spec
+            file = Tempfile.new "lol.sqlite3"
 
-          file = Tempfile.new "lol.sqlite3"
+            rd, wr = IO.pipe
+            rd.binmode
+            wr.binmode
 
-          rd, wr = IO.pipe
-          rd.binmode
-          wr.binmode
+            pid = fork do
+              config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(database: file.path)
+              ActiveRecord::Base.establish_connection(config_hash)
 
-          pid = fork do
-            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(database: file.path)
-            ActiveRecord::Base.establish_connection(config_hash)
+              pid2 = fork do
+                wr.write ActiveRecord::Base.connection_db_config.database
+                wr.close
+              end
 
-            pid2 = fork do
-              wr.write ActiveRecord::Base.connection_db_config.database
-              wr.close
+              Process.waitpid pid2
             end
 
-            Process.waitpid pid2
-          end
+            Process.waitpid pid
 
-          Process.waitpid pid
+            wr.close
 
-          wr.close
+            assert_equal file.path, rd.read
 
-          assert_equal file.path, rd.read
-
-          rd.close
-        ensure
-          if file
-            file.close
-            file.unlink
+            rd.close
+          ensure
+            if file
+              file.close
+              file.unlink
+            end
           end
         end
       end

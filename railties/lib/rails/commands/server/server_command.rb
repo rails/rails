@@ -79,7 +79,7 @@ module Rails
         console.formatter = Rails.logger.formatter
         console.level = Rails.logger.level
 
-        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
+        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
           Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
         end
       end

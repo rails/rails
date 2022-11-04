@@ -10,7 +10,7 @@ module ActiveRecord
           case value
           when Rational
             quote(value.to_f.to_s)
-          when Numeric, ActiveSupport::Duration
+          when Numeric
             quote(value.to_s)
           when BigDecimal
             quote(value.to_s("F"))
@@ -18,6 +18,9 @@ module ActiveRecord
             "'1'"
           when false
             "'0'"
+          when ActiveSupport::Duration
+            warn_quote_duration_deprecated
+            quote(value.to_s)
           else
             quote(value)
           end

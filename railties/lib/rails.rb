@@ -88,7 +88,7 @@ module Rails
     #   end
     #   Rails.error.report(error)
     def error
-      application && application.executor.error_reporter
+      ActiveSupport.error_reporter
     end
 
     # Returns all Rails groups for loading based on:

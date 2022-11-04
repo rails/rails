@@ -12,7 +12,8 @@ module ActiveRecord
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor
   DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
   deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
-    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead."
+    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead.",
+    deprecator: ActiveRecord.deprecator
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
@@ -93,7 +94,7 @@ module ActiveRecord
   # Raised when a pool was unable to get ahold of all its connections
   # to perform a "group" action such as
   # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
-  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  # or {ActiveRecord::Base.connection_handler.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
   class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
@@ -281,9 +282,9 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Which can be found in the database configuration file located at config/database.yml.
+          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml file.
 
-          To resolve this issue:
+          To resolve this error:
 
           - Did you create the database for this app, or delete it? You may need to create your database.
           - Has the database name changed? Check your database.yml config has the correct database name.

@@ -15,12 +15,14 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.create_table :virtual_columns, force: true do |t|
-        t.string  :name
-        t.virtual :upper_name,  type: :string,  as: "UPPER(`name`)"
-        t.virtual :name_length, type: :integer, as: "LENGTH(`name`)", stored: true
-        t.virtual :name_octet_length, type: :integer, as: "OCTET_LENGTH(`name`)", stored: true
-        t.json    :profile
-        t.virtual :profile_email, type: :string, as: "json_extract(`profile`,_utf8mb4'$.email')", stored: true
+        t.string   :name
+        t.virtual  :upper_name,  type: :string,  as: "UPPER(`name`)"
+        t.virtual  :name_length, type: :integer, as: "LENGTH(`name`)", stored: true
+        t.virtual  :name_octet_length, type: :integer, as: "OCTET_LENGTH(`name`)", stored: true
+        t.json     :profile
+        t.virtual  :profile_email, type: :string, as: "json_extract(`profile`,_utf8mb4'$.email')", stored: true
+        t.datetime :time
+        t.virtual  :time_mirror, type: :datetime, as: "`time`"
       end
       VirtualColumn.create(name: "Rails")
     end
@@ -61,6 +63,7 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
       assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "(?:octet_length|length)\(`name`\)",\s+stored: true$/i, output)
       assert_match(/t\.virtual\s+"name_octet_length",\s+type: :integer,\s+as: "(?:octet_length|length)\(`name`\)",\s+stored: true$/i, output)
       assert_match(/t\.virtual\s+"profile_email",\s+type: :string,\s+as: "json_extract\(`profile`,\w*?'\$\.email'\)", stored: true$/i, output)
+      assert_match(/t\.virtual\s+"time_mirror",\s+type: :datetime,\s+as: "`time`"$/i, output[/^.*time_mirror.*$/])
     end
   end
 end

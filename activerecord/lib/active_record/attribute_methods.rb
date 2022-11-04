@@ -34,7 +34,7 @@ module ActiveRecord
           Base.private_instance_methods -
           Base.superclass.instance_methods -
           Base.superclass.private_instance_methods +
-          %i[__id__ dup freeze hash object_id class clone]
+          %i[__id__ dup freeze frozen? hash object_id class clone]
         ).map { |m| -m.to_s }.to_set.freeze
       end
     end
@@ -332,7 +332,6 @@ module ActiveRecord
     end
 
     # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-    # (Alias for the protected #write_attribute method).
     #
     #   class Person < ActiveRecord::Base
     #   end

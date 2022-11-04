@@ -159,7 +159,7 @@ module ActiveSupport
       "Yakutsk"                      => "Asia/Yakutsk",
       "Darwin"                       => "Australia/Darwin",
       "Adelaide"                     => "Australia/Adelaide",
-      "Canberra"                     => "Australia/Melbourne",
+      "Canberra"                     => "Australia/Canberra",
       "Melbourne"                    => "Australia/Melbourne",
       "Sydney"                       => "Australia/Sydney",
       "Brisbane"                     => "Australia/Brisbane",

@@ -17,6 +17,10 @@ module ActionController
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
 
+    initializer "action_controller.deprecator" do |app|
+      app.deprecators[:action_controller] = ActionController.deprecator
+    end
+
     initializer "action_controller.assets_config", group: :all do |app|
       app.config.action_controller.assets_dir ||= app.config.paths["public"].first
     end
@@ -112,7 +116,7 @@ module ActionController
         app.config.action_controller.log_query_tags_around_actions
 
       if query_logs_tags_enabled
-        app.config.active_record.query_log_tags += [:controller, :action]
+        app.config.active_record.query_log_tags |= [:controller, :action]
 
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings.merge!(

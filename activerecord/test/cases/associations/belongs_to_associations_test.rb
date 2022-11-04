@@ -1660,5 +1660,8 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
     author = Author.create! name: "Author", author_address_id: address.id
 
     author.destroy!
+
+    assert_not AuthorAddress.exists?(address.id)
+    assert_not Author.exists?(author.id)
   end
 end

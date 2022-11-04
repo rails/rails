@@ -1,3 +1,88 @@
+*   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument
+
+    This is to make the API more consistent with the `FormHelper` variants. You can now provide `checked` as a positional or keyword argument:
+
+    ```erb
+    = check_box_tag "admin", "1", false
+    = check_box_tag "admin", "1", checked: false
+
+    = radio_button_tag 'favorite_color', 'maroon', false
+    = radio_button_tag 'favorite_color', 'maroon', checked: false
+    ```
+
+    *Alex Ghiculescu*
+
+*   Allow passing a class to `dom_id`.
+    You no longer need to call `new` when passing a class to `dom_id`.
+    This makes `dom_id` behave like `dom_class` in this regard.
+    Apart from saving a few keystrokes, it prevents Ruby from needing
+    to instantiate a whole new object just to generate a string.
+
+    Before:
+    ```ruby
+    dom_id(Post) # => NoMethodError: undefined method `to_key' for Post:Class
+    ```
+
+    After:
+    ```ruby
+    dom_id(Post) # => "new_post"
+    ```
+
+    *Goulven Champenois*
+
+*   Report `:locals` as part of the data returned by ActionView render instrumentation.
+
+    Before:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application"
+    }
+    ```
+
+    After:
+    ```ruby
+    {
+    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+    layout: "layouts/application",
+    locals: {foo: "bar"}
+    }
+    ```
+
+    *Aaron Gough*
+
+*   Strip `break_sequence` at the end of `word_wrap`.
+
+    This fixes a bug where `word_wrap` didn't properly strip off break sequences that had printable characters.
+
+    For example, compare the outputs of this template:
+
+    ```erb
+    # <%= word_wrap("11 22\n33 44", line_width: 2, break_sequence: "\n# ") %>
+    ```
+
+    Before:
+
+    ```
+    # 11
+    # 22
+    #
+    # 33
+    # 44
+    #
+    ```
+
+    After:
+
+    ```
+    # 11
+    # 22
+    # 33
+    # 44
+    ```
+
+    *Max Chernyak*
+
 *   Allow templates to set strict `locals`.
 
     By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:

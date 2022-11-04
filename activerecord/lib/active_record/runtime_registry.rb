@@ -10,11 +10,20 @@ module ActiveRecord
     extend self
 
     def sql_runtime
-      ActiveSupport::IsolatedExecutionState[:active_record_sql_runtime]
+      ActiveSupport::IsolatedExecutionState[:active_record_sql_runtime] ||= 0.0
     end
 
     def sql_runtime=(runtime)
       ActiveSupport::IsolatedExecutionState[:active_record_sql_runtime] = runtime
     end
+
+    def reset
+      rt, self.sql_runtime = sql_runtime, 0.0
+      rt
+    end
   end
+end
+
+ActiveSupport::Notifications.monotonic_subscribe("sql.active_record") do |name, start, finish, id, payload|
+  ActiveRecord::RuntimeRegistry.sql_runtime += (finish - start) * 1_000.0
 end

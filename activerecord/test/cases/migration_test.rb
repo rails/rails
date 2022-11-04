@@ -53,8 +53,8 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
 
-    ActiveRecord::SchemaMigration.create_table
-    ActiveRecord::SchemaMigration.delete_all
+    @schema_migration.create_table
+    @schema_migration.delete_all_versions
 
     %w(things awesome_things prefix_things_suffix p_awesome_things_s).each do |table|
       Thing.connection.drop_table(table) rescue nil
@@ -79,6 +79,22 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_passing_a_schema_migration_class_to_migration_context_is_deprecated
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = assert_deprecated(ActiveRecord.deprecator) { ActiveRecord::MigrationContext.new(migrations_path, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata) }
+    migrator.up
+
+    assert_equal 3, migrator.current_version
+    assert_equal false, migrator.needs_migration?
+
+    migrator.down
+    assert_equal 0, migrator.current_version
+    assert_equal true, migrator.needs_migration?
+
+    @schema_migration.create_version(3)
+    assert_equal true, migrator.needs_migration?
+  end
+
   def test_migration_context_with_default_schema_migration
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
@@ -91,7 +107,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 0, migrator.current_version
     assert_equal true, migrator.needs_migration?
 
-    ActiveRecord::SchemaMigration.create!(version: 3)
+    @schema_migration.create_version(3)
     assert_equal true, migrator.needs_migration?
   end
 
@@ -111,7 +127,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 0, migrator.current_version
     assert_equal true, migrator.needs_migration?
 
-    ActiveRecord::SchemaMigration.create!(version: 3)
+    @schema_migration.create_version(3)
     assert_equal true, migrator.needs_migration?
   end
 
@@ -635,42 +651,40 @@ class MigrationTest < ActiveRecord::TestCase
   def test_schema_migrations_table_name
     original_schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
 
-    assert_equal "schema_migrations", ActiveRecord::SchemaMigration.table_name
+    assert_equal "schema_migrations", @schema_migration.table_name
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
-    assert_equal "prefix_schema_migrations_suffix", ActiveRecord::SchemaMigration.table_name
+    assert_equal "prefix_schema_migrations_suffix", @schema_migration.table_name
     ActiveRecord::Base.schema_migrations_table_name = "changed"
     Reminder.reset_table_name
-    assert_equal "prefix_changed_suffix", ActiveRecord::SchemaMigration.table_name
+    assert_equal "prefix_changed_suffix", @schema_migration.table_name
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
-    assert_equal "changed", ActiveRecord::SchemaMigration.table_name
+    assert_equal "changed", @schema_migration.table_name
   ensure
     ActiveRecord::Base.schema_migrations_table_name = original_schema_migrations_table_name
-    ActiveRecord::SchemaMigration.reset_table_name
     Reminder.reset_table_name
   end
 
   def test_internal_metadata_table_name
     original_internal_metadata_table_name = ActiveRecord::Base.internal_metadata_table_name
 
-    assert_equal "ar_internal_metadata", ActiveRecord::InternalMetadata.table_name
+    assert_equal "ar_internal_metadata", @internal_metadata.table_name
     ActiveRecord::Base.table_name_prefix = "p_"
     ActiveRecord::Base.table_name_suffix = "_s"
     Reminder.reset_table_name
-    assert_equal "p_ar_internal_metadata_s", ActiveRecord::InternalMetadata.table_name
+    assert_equal "p_ar_internal_metadata_s", @internal_metadata.table_name
     ActiveRecord::Base.internal_metadata_table_name = "changed"
     Reminder.reset_table_name
-    assert_equal "p_changed_s", ActiveRecord::InternalMetadata.table_name
+    assert_equal "p_changed_s", @internal_metadata.table_name
     ActiveRecord::Base.table_name_prefix = ""
     ActiveRecord::Base.table_name_suffix = ""
     Reminder.reset_table_name
-    assert_equal "changed", ActiveRecord::InternalMetadata.table_name
+    assert_equal "changed", @internal_metadata.table_name
   ensure
     ActiveRecord::Base.internal_metadata_table_name = original_internal_metadata_table_name
-    ActiveRecord::InternalMetadata.reset_table_name
     Reminder.reset_table_name
   end
 
@@ -699,7 +713,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_internal_metadata_stores_environment_when_migration_fails
-    @internal_metadata.delete_all
+    @internal_metadata.delete_all_entries
     current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
     migration = Class.new(ActiveRecord::Migration::Current) {
@@ -715,7 +729,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_internal_metadata_stores_environment_when_other_data_exists
-    @internal_metadata.delete_all
+    @internal_metadata.delete_all_entries
     @internal_metadata[:foo] = "bar"
 
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
@@ -748,6 +762,31 @@ class MigrationTest < ActiveRecord::TestCase
     @internal_metadata.create_table
   end
 
+  def test_inserting_a_new_entry_into_internal_metadata
+    @internal_metadata[:version] = "foo"
+    assert_equal "foo", @internal_metadata[:version]
+  ensure
+    @internal_metadata.delete_all_entries
+  end
+
+  def test_updating_an_existing_entry_into_internal_metadata
+    @internal_metadata[:version] = "foo"
+    updated_at = @internal_metadata.send(:select_entry, :version)["updated_at"]
+    assert_equal "foo", @internal_metadata[:version]
+
+    # same version doesn't update timestamps
+    @internal_metadata[:version] = "foo"
+    assert_equal "foo", @internal_metadata[:version]
+    assert_equal updated_at, @internal_metadata.send(:select_entry, :version)["updated_at"]
+
+    # updated version updates timestamps
+    @internal_metadata[:version] = "not_foo"
+    assert_equal "not_foo", @internal_metadata[:version]
+    assert_not_equal updated_at, @internal_metadata.send(:select_entry, :version)["updated_at"]
+  ensure
+    @internal_metadata.delete_all_entries
+  end
+
   def test_internal_metadata_create_table_wont_be_affected_by_schema_cache
     @internal_metadata.drop_table
     assert_not_predicate @internal_metadata, :table_exists?
@@ -774,28 +813,26 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_schema_migration_create_table_wont_be_affected_by_schema_cache
-    ActiveRecord::SchemaMigration.drop_table
-    assert_not_predicate ActiveRecord::SchemaMigration, :table_exists?
+    @schema_migration.drop_table
+    assert_not_predicate @schema_migration, :table_exists?
 
-    ActiveRecord::SchemaMigration.connection.transaction do
-      ActiveRecord::SchemaMigration.create_table
-      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+    @schema_migration.connection.transaction do
+      @schema_migration.create_table
+      assert_predicate @schema_migration, :table_exists?
 
-      schema_migration = ActiveRecord::SchemaMigration.create!(version: "foo")
-      assert_equal "foo", schema_migration[:version]
+      assert_equal "foo", @schema_migration.create_version("foo")
       raise ActiveRecord::Rollback
     end
 
-    ActiveRecord::SchemaMigration.connection.transaction do
-      ActiveRecord::SchemaMigration.create_table
-      assert_predicate ActiveRecord::SchemaMigration, :table_exists?
+    @schema_migration.connection.transaction do
+      @schema_migration.create_table
+      assert_predicate @schema_migration, :table_exists?
 
-      schema_migration = ActiveRecord::SchemaMigration.create!(version: "bar")
-      assert_equal "bar", schema_migration[:version]
+      assert_equal "bar", @schema_migration.create_version("bar")
       raise ActiveRecord::Rollback
     end
   ensure
-    ActiveRecord::SchemaMigration.create_table
+    @schema_migration.create_table
   end
 
   def test_proper_table_name_on_migration
@@ -1058,6 +1095,9 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def test_with_advisory_lock_doesnt_release_closed_connections
+      # make sure we have a connection
+      ActiveRecord::Base.establish_connection :arunit
+
       migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
 
@@ -1100,10 +1140,8 @@ class MigrationTest < ActiveRecord::TestCase
 
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
-          migrator.stub(:with_advisory_lock_connection, ->(&block) { block.call(ActiveRecord::Base.connection) }) do
-            migrator.send(:with_advisory_lock) do
-              ActiveRecord::Base.connection.release_advisory_lock(lock_id)
-            end
+          migrator.send(:with_advisory_lock) do
+            ActiveRecord::Base.connection.release_advisory_lock(lock_id)
           end
         end
       end
@@ -1523,6 +1561,47 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         @indexes ||= Person.connection.indexes("delete_me")
       end
   end # AlterTableMigrationsTest
+
+  class RevertBulkAlterTableMigrationsTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    def setup
+      @connection = Person.connection
+      Person.reset_column_information
+      Person.reset_sequence_name
+    end
+
+    teardown do
+      @connection.remove_columns(:people, :column1, :column2) rescue nil
+    end
+
+    def test_bulk_revert
+      @connection.add_column(:people, :column1, :string)
+      @connection.add_column(:people, :column2, :string)
+      assert_column Person, :column1
+      assert_column Person, :column2
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        disable_ddl_transaction!
+
+        def write(text = ""); end
+
+        def change
+          change_table :people, bulk: true do |t|
+            t.column :column1, :string
+            t.column :column2, :string
+          end
+        end
+      }.new
+
+      assert_queries(1) do
+        migration.migrate(:down)
+      end
+
+      assert_no_column Person, :column1
+      assert_no_column Person, :column2
+    end
+  end
 end
 
 class CopyMigrationsTest < ActiveRecord::TestCase

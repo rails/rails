@@ -16,7 +16,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction to instrumentation
+Introduction to Instrumentation
 -------------------------------
 
 The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the [Rails framework](#rails-framework-hooks). With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
@@ -25,7 +25,7 @@ For example, there is a hook provided within Active Record that is called every 
 
 You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
 
-Subscribing to an event
+Subscribing to an Event
 -----------------------
 
 Subscribing to an event is easy. Use `ActiveSupport::Notifications.subscribe` with a block to
@@ -281,27 +281,31 @@ INFO. Additional keys may be added by the caller.
 
 #### render_template.action_view
 
-| Key           | Value                 |
-| ------------- | --------------------- |
-| `:identifier` | Full path to template |
-| `:layout`     | Applicable layout     |
+| Key           | Value                              |
+| ------------- | ---------------------------------- |
+| `:identifier` | Full path to template              |
+| `:layout`     | Applicable layout                  |
+| `:locals`     | Local variables passed to template |
 
 ```ruby
 {
   identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
-  layout: "layouts/application"
+  layout: "layouts/application",
+  locals: {foo: "bar"}
 }
 ```
 
 #### render_partial.action_view
 
-| Key           | Value                 |
-| ------------- | --------------------- |
-| `:identifier` | Full path to template |
+| Key           | Value                              |
+| ------------- | ---------------------------------- |
+| `:identifier` | Full path to template              |
+| `:locals`     | Local variables passed to template |
 
 ```ruby
 {
-  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb"
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
+  locals: {foo: "bar"}
 }
 ```
 
@@ -743,7 +747,7 @@ information about it.
 | `:exception`        | An array of two elements. Exception class name and the message |
 | `:exception_object` | The exception object                                           |
 
-Creating custom events
+Creating Custom Events
 ----------------------
 
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of
