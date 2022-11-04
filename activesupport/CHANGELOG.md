@@ -1,5 +1,18 @@
 ## Rails 7.0.4 (September 09, 2022) ##
 
+*   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
+
+    Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork
+    process closed the read end, wrote to it, and then terminated (which
+    presumably closed the file descriptors on its end). The parent process
+    closed the write end, read from it, and returned, never closing the read
+    end.
+
+    This resulted in an accumulation of open file descriptors, which could
+    cause errors if the limit is reached.
+
+    *Sam Bostock*
+
 *   Redis cache store is now compatible with redis-rb 5.0.
 
     *Jean Boussier*

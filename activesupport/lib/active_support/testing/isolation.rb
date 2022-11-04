@@ -25,38 +25,39 @@ module ActiveSupport
 
       module Forking
         def run_in_isolation(&blk)
-          read, write = IO.pipe
-          read.binmode
-          write.binmode
+          IO.pipe do |read, write|
+            read.binmode
+            write.binmode
 
-          pid = fork do
-            read.close
-            yield
-            begin
-              if error?
-                failures.map! { |e|
-                  begin
-                    Marshal.dump e
-                    e
-                  rescue TypeError
-                    ex = Exception.new e.message
-                    ex.set_backtrace e.backtrace
-                    Minitest::UnexpectedError.new ex
-                  end
-                }
+            pid = fork do
+              read.close
+              yield
+              begin
+                if error?
+                  failures.map! { |e|
+                    begin
+                      Marshal.dump e
+                      e
+                    rescue TypeError
+                      ex = Exception.new e.message
+                      ex.set_backtrace e.backtrace
+                      Minitest::UnexpectedError.new ex
+                    end
+                  }
+                end
+                test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
+                result = Marshal.dump(test_result)
               end
-              test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
-              result = Marshal.dump(test_result)
+
+              write.puts [result].pack("m")
+              exit!
             end
 
-            write.puts [result].pack("m")
-            exit!
+            write.close
+            result = read.read
+            Process.wait2(pid)
+            result.unpack1("m")
           end
-
-          write.close
-          result = read.read
-          Process.wait2(pid)
-          result.unpack1("m")
         end
       end
 
