@@ -1392,8 +1392,8 @@ module ApplicationTests
     test "config.enable_dependency_loading is deprecated" do
       app "development"
 
-      assert_deprecated { Rails.application.config.enable_dependency_loading }
-      assert_deprecated { Rails.application.config.enable_dependency_loading = true }
+      assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading }
+      assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading = true }
     end
 
     test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
@@ -3902,6 +3902,7 @@ module ApplicationTests
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
       assert_equal ActiveStorage.deprecator, Rails.application.deprecators[:active_storage]
       assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
+      assert_equal Rails.deprecator, Rails.application.deprecators[:rails]
     end
 
     test "can entirely opt out of deprecation warnings" do

@@ -339,12 +339,12 @@ module Rails
       private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
 
       def enable_dependency_loading
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading
       end
 
       def enable_dependency_loading=(value)
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading = value
       end
 
