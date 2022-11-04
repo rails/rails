@@ -60,7 +60,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
       assert_equal "hello world", queue.pop
     end
 
-    ActiveRecord::Base.clear_reloadable_connections!
+    ActiveRecord::Base.connection_handler.clear_reloadable_connections!
 
     assert adapter.active?
   end
