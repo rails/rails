@@ -1601,6 +1601,12 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
+        # [:touch]
+        #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
+        #   when this record is either saved or destroyed. If you specify a symbol, that attribute
+        #   will be updated with the current time in addition to the +updated_at+ / +updated_on+ attribute.
+        #   Please note that no validation will be performed when touching, and only the +after_touch+,
+        #   +after_commit+, and +after_rollback+ callbacks will be executed.
         # [:inverse_of]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_one association.
@@ -1748,11 +1754,11 @@ module ActiveRecord
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for
         #   sets <tt>:autosave</tt> to <tt>true</tt>.
         # [:touch]
-        #   If true, the associated object will be touched (the updated_at/on attributes set to current time)
+        #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
-        #   will be updated with the current time in addition to the updated_at/on attribute.
-        #   Please note that with touching no validation is performed and only the +after_touch+,
-        #   +after_commit+ and +after_rollback+ callbacks are executed.
+        #   will be updated with the current time in addition to the +updated_at+ / +updated_on+ attribute.
+        #   Please note that no validation will be performed when touching, and only the +after_touch+,
+        #   +after_commit+, and +after_rollback+ callbacks will be executed.
         # [:inverse_of]
         #   Specifies the name of the #has_one or #has_many association on the associated
         #   object that is the inverse of this #belongs_to association.
