@@ -100,37 +100,35 @@ module ActiveSupport
         @mask = mask
       end
 
-      def call(params, parents = [], original_params = params)
+      def call(params, full_parent_key = nil, original_params = params)
         filtered_params = params.class.new
 
         params.each do |key, value|
-          filtered_params[key] = value_for_key(key, value, parents, original_params)
+          filtered_params[key] = value_for_key(key, value, full_parent_key, original_params)
         end
 
         filtered_params
       end
 
-      def value_for_key(key, value, parents = [], original_params = nil)
-        parents.push(key) if deep_regexps
+      def value_for_key(key, value, full_parent_key = nil, original_params = nil)
+        if deep_regexps
+          full_key = full_parent_key ? "#{full_parent_key}.#{key}" : key.to_s
+        end
+
         if regexps.any? { |r| r.match?(key.to_s) }
           value = @mask
-        elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| r.match?(joined) }
+        elsif deep_regexps&.any? { |r| r.match?(full_key) }
           value = @mask
         elsif value.is_a?(Hash)
-          value = call(value, parents, original_params)
+          value = call(value, full_key, original_params)
         elsif value.is_a?(Array)
-          # If we don't pop the current parent it will be duplicated as we
-          # process each array value.
-          parents.pop if deep_regexps
-          value = value.map { |v| value_for_key(key, v, parents, original_params) }
-          # Restore the parent stack after processing the array.
-          parents.push(key) if deep_regexps
+          value = value.map { |v| value_for_key(key, v, full_parent_key, original_params) }
         elsif blocks.any?
           key = key.dup if key.duplicable?
           value = value.dup if value.duplicable?
           blocks.each { |b| b.arity == 2 ? b.call(key, value) : b.call(key, value, original_params) }
         end
-        parents.pop if deep_regexps
+
         value
       end
     end
