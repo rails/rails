@@ -1122,7 +1122,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
     assert_no_queries do
       assert_nil Topic.none.pick(:heading)
-      assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+      assert_nil Topic.where(id: 99999999999999999999).pick(:heading)
     end
 
     assert_async_equal "The First Topic", Topic.order(:id).async_pick(:heading)
@@ -1132,7 +1132,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
     assert_no_queries do
       assert_nil Topic.none.pick(:author_name, :author_email_address)
-      assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+      assert_nil Topic.where(id: 99999999999999999999).pick(:author_name, :author_email_address)
     end
 
     assert_async_equal ["David", "david@loudthinking.com"], Topic.order(:id).async_pick(:author_name, :author_email_address)

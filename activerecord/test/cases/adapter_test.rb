@@ -203,7 +203,7 @@ module ActiveRecord
 
       def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::RangeError) do
-          Book.connection.create("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+          Book.connection.create("INSERT INTO books(author_id) VALUES (18446744073709551616)")
         end
 
         assert_not_nil error.cause

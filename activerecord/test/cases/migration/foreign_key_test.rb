@@ -235,7 +235,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         def test_add_foreign_key_with_non_standard_primary_key
           @connection.create_table :space_shuttles, id: false, force: true do |t|
-            t.bigint :pk, primary_key: true
+            t.bigint :pk, primary_key: true, unsigned: true
           end
 
           @connection.add_foreign_key(:astronauts, :space_shuttles,
