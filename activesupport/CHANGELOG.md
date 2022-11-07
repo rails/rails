@@ -1,3 +1,51 @@
+*   `Array#flip`, `Array#flip!`, `Hash#flip`, `Hash#flip!` are introduced.
+
+    ```ruby
+    ary = ["a", "b", "c", "d"]
+
+    ary.flip(0, 3)
+    # => ["d", "b", "c", "a"]
+
+    ary
+    # => ["a", "b", "c", "d"]
+
+    ary.flip!(0, 3)
+    # => ["d", "b", "c", "a"]
+
+    ary
+    # => ["d", "b", "c", "a"]
+
+    ary.flip!(0, 0)
+    # => nil
+
+    ary.flip!(-1, 3)
+    # => nil
+    ```
+
+    ```ruby
+    hsh = { a: 1, b: 2, c: 3 }
+
+    hsh.flip(:a, :b)
+    # => { a: 2, b: 1, c: 3 }
+
+    hsh
+    # => { a: 1, b: 2, c: 3 }
+
+    hsh.flip!(:a, :b)
+    # => { a: 2, b: 1, c: 3 }
+
+    hsh
+    # => { a: 2, b: 1, c: 3 }
+
+    hsh.flip!(:a, :a)
+    # => nil
+
+    hsh.with_indifferent_access.flip!("a", :a)
+    # => nil
+    ```
+
+    *Edem Topuzov*
+
 *   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
 
     Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork
