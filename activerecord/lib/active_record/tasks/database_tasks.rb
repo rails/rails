@@ -281,9 +281,9 @@ module ActiveRecord
         db_configs_with_versions
       end
 
-      def migrate_status
+      def migrate_status(exit_on_migrations_needed = true)
         unless ActiveRecord::Base.connection.schema_migration.table_exists?
-          Kernel.abort "Schema migrations table does not exist yet."
+          Kernel.abort "Schema migrations table does not exist yet." # Will abort with rc of 1
         end
 
         migrations_needed = false
@@ -303,7 +303,7 @@ module ActiveRecord
 
         puts
 
-        Kernel.exit(2) if migrations_needed
+        Kernel.exit(2) if migrations_needed && exit_on_migrations_needed
       end
 
       def check_target_version

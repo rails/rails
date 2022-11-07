@@ -1053,7 +1053,7 @@ module ActiveRecord
       private
         def capture_migration_status
           capture(:stdout) do
-            ActiveRecord::Tasks::DatabaseTasks.migrate_status
+            ActiveRecord::Tasks::DatabaseTasks.migrate_status(false)
           end
         end
     end
