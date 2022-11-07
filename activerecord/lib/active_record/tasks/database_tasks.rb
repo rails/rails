@@ -303,7 +303,7 @@ module ActiveRecord
 
         puts
 
-        exit(2) if migrations_needed
+        Kernel.exit(2) if migrations_needed
       end
 
       def check_target_version
