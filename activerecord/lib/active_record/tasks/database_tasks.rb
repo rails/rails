@@ -292,8 +292,15 @@ module ActiveRecord
         puts "-" * 50
         ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
           puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
+        migrations_needed = false
+        migrations = ActiveRecord::Base.connection.migration_context.migrations_status.map do |status, version, name|
+          migrations_needed = true if status == "down"
+
+          "#{status.center(8)}  #{version.ljust(14)}  #{name}"
         end
         puts
+
+        exit(2) if migrations_needed
       end
 
       def check_target_version
