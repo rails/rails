@@ -261,6 +261,18 @@ module Enumerable
     when 2.. then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "multiple items found"
     end
   end
+
+  private
+    # Support method for +flip+ array and hash methods.
+    # +fetch+ will raise +KeyError+, +IndexError+, +TypeError+ for unacceptable arguments.
+    def _flip_object_elements!(obj, from, to)
+      obj[from], obj[to] = obj.fetch(to), obj.fetch(from)
+
+      # checks for bang methods if no changes are made
+      yield if block_given?
+
+      obj
+    end
 end
 
 class Hash
