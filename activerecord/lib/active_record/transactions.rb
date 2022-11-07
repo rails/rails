@@ -345,11 +345,21 @@ module ActiveRecord
     # This method is available within the context of an ActiveRecord::Base
     # instance.
     def with_transaction_returning_status
+      autosave_tracker = nil
       status = nil
       connection = self.class.connection
       ensure_finalize = !connection.transaction_open?
 
+
       connection.transaction do
+        if connection.instance_variable_get(:@autosave_tracker).nil?
+          connection.instance_variable_set(:@autosave_tracker, {
+            "#{self.class}##{self.object_id}_save" => true,
+            "#{self.class}##{self.object_id}_valid" => true
+          })
+          autosave_tracker = true
+        end
+
         add_to_transaction(ensure_finalize || has_transactional_callbacks?)
         remember_transaction_record_state
 
@@ -357,6 +367,8 @@ module ActiveRecord
         raise ActiveRecord::Rollback unless status
       end
       status
+    ensure
+      connection.instance_variable_set(:@autosave_tracker, nil) if autosave_tracker
     end
 
     def trigger_transactional_callbacks? # :nodoc:

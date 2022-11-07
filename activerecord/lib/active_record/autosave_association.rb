@@ -268,19 +268,21 @@ module ActiveRecord
 
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
-    def changed_for_autosave?
-      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
+    def changed_for_autosave?(forr = nil)
+      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?(forr)
     end
 
     private
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
-      def associated_records_to_validate_or_save(association, new_record, autosave)
+      def associated_records_to_validate_or_save(association, new_record, autosave, forr = nil)
         if new_record || custom_validation_context?
           association && association.target
         elsif autosave
-          association.target.find_all(&:changed_for_autosave?)
+          association.target.find_all do |record|
+            !autosave_visited(record, forr) && record.changed_for_autosave?
+          end
         else
           association.target.find_all(&:new_record?)
         end
@@ -289,19 +291,25 @@ module ActiveRecord
       # Go through nested autosave associations that are loaded in memory (without loading
       # any new ones), and return true if any are changed for autosave.
       # Returns false if already called to prevent an infinite loop.
-      def nested_records_changed_for_autosave?
+      def nested_records_changed_for_autosave?(forr = nil)
         @_nested_records_changed_for_autosave_already_called ||= false
         return false if @_nested_records_changed_for_autosave_already_called
-        begin
-          @_nested_records_changed_for_autosave_already_called = true
-          self.class._reflections.values.any? do |reflection|
-            if reflection.options[:autosave]
-              association = association_instance_get(reflection.name)
-              association && Array.wrap(association.target).any?(&:changed_for_autosave?)
-            end
+        @_nested_records_changed_for_autosave_already_called = true
+        self.class._reflections.values.any? do |reflection|
+          if reflection.options[:autosave]
+            association = association_instance_get(reflection.name)
+            association && Array.wrap(association.target).any? { |r| r.changed_for_autosave?(forr) }
           end
-        ensure
-          @_nested_records_changed_for_autosave_already_called = false
+        end
+      ensure
+        @_nested_records_changed_for_autosave_already_called = false
+      end
+
+      def autosave_visited(record, forr)
+        if tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
+          result = tracker["#{record.class}##{record.object_id}_#{forr}"]
+          tracker["#{record.class}##{record.object_id}_#{forr}"] = true
+          result
         end
       end
 
@@ -310,7 +318,9 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        association_valid?(reflection, record) if record && (record.changed_for_autosave? || custom_validation_context?)
+        if record && !autosave_visited(record, :valid) && (record.changed_for_autosave? || custom_validation_context?)
+          association_valid?(reflection, record)
+        end
       end
 
       # Validate the associated records if <tt>:validate</tt> or
@@ -318,7 +328,7 @@ module ActiveRecord
       # +reflection+.
       def validate_collection_association(reflection)
         if association = association_instance_get(reflection.name)
-          if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
+          if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave], :valid)
             records.each_with_index { |record, index| association_valid?(reflection, record, index) }
           end
         end
@@ -390,8 +400,8 @@ module ActiveRecord
 
           # reconstruct the scope now that we know the owner's id
           association.reset_scope
-
-          if records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
+          records = associated_records_to_validate_or_save(association, new_record_before_save, autosave, :save)
+          if records
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }
@@ -443,7 +453,7 @@ module ActiveRecord
 
           if autosave && record.marked_for_destruction?
             record.destroy
-          elsif autosave != false
+          elsif autosave != false && !autosave_visited(record, :save)
             key = reflection.options[:primary_key] ? public_send(reflection.options[:primary_key]) : id
 
             if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, key)
@@ -497,8 +507,9 @@ module ActiveRecord
             self[reflection.foreign_key] = nil
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
-
+            if !autosave_visited(record, :save) && (record.new_record? || (autosave && record.changed_for_autosave?))
+              saved = record.save(validate: !autosave)
+            end
             if association.updated?
               association_id = record.public_send(reflection.options[:primary_key] || :id)
               self[reflection.foreign_key] = association_id
