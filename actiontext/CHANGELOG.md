@@ -1,3 +1,7 @@
+*   Update bundled Trix version from `1.3.1` to `2.0.4`.
+
+    *Sean Doyle*
+
 *   Apply `field_error_proc` to `rich_text_area` form fields.
 
     *Kaíque Kandy Koga*
