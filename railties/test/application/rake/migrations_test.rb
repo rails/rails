@@ -75,7 +75,7 @@ module ApplicationTests
 
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
         assert_match(/up\s+003\s+Three migration/, output)
@@ -87,7 +87,7 @@ module ApplicationTests
         assert_match(/down\s+003\s+Three migration/, output)
 
         rails "db:migrate", "VERSION=3"
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
         assert_match(/up\s+003\s+Three migration/, output)
@@ -112,7 +112,7 @@ module ApplicationTests
 
         rails("db:migrate", "VERSION=")
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
 
@@ -131,7 +131,7 @@ module ApplicationTests
         output = rails("db:migrate:down", allow_failure: true)
         assert_match(/VERSION is required - To go down one migration, use db:rollback/, output)
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
       end
@@ -166,7 +166,7 @@ module ApplicationTests
 
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
 
@@ -195,7 +195,7 @@ module ApplicationTests
       end
 
       test "migration status when schema migrations table is not present" do
-        output = rails("db:migrate:status", allow_failure: true, allow_failure: true)
+        output = rails("db:migrate:status", allow_failure: true)
         assert_equal "Schema migrations table does not exist yet.\n", output
       end
 
@@ -204,7 +204,7 @@ module ApplicationTests
         rails "generate", "migration", "add_email_to_users", "email:string"
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
@@ -223,7 +223,7 @@ module ApplicationTests
         rails "generate", "migration", "add_email_to_users", "email:string"
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{3,}\s+Create users/, output)
         assert_match(/up\s+\d{3,}\s+Add email to users/, output)
@@ -240,7 +240,7 @@ module ApplicationTests
         rails "generate", "migration", "add_email_to_users", "email:string"
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
@@ -252,7 +252,7 @@ module ApplicationTests
         assert_match(/down\s+\d{14}\s+Add email to users/, output)
 
         rails "db:migrate:redo"
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
@@ -263,7 +263,7 @@ module ApplicationTests
         rails "generate", "migration", "add_email_to_users", "email:string"
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
@@ -275,7 +275,7 @@ module ApplicationTests
         assert_match(/down\s+\d{14}\s+Add email to users/, output)
 
         rails "db:forward", "STEP=2"
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{14}\s+Create users/, output)
         assert_match(/up\s+\d{14}\s+Add email to users/, output)
@@ -288,7 +288,7 @@ module ApplicationTests
           rails "db:migrate"
           `rm db/migrate/*email*.rb`
 
-          output = rails("db:migrate:status", allow_failure: true)
+          output = rails("db:migrate:status")
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
 
@@ -297,7 +297,7 @@ module ApplicationTests
           assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
           assert_match(/No migration with version number\s\d{14}\./, output)
 
-          output = rails("db:migrate:status", allow_failure: true)
+          output = rails("db:migrate:status")
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
 
@@ -306,7 +306,7 @@ module ApplicationTests
           assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
           assert_match(/No migration with version number\s\d{14}\./, output)
 
-          output = rails("db:migrate:status", allow_failure: true)
+          output = rails("db:migrate:status")
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
         end
@@ -325,7 +325,7 @@ module ApplicationTests
 
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
 
@@ -334,7 +334,7 @@ module ApplicationTests
         assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
         assert_match(/No migration with version number 3/, output)
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
       end
@@ -388,7 +388,7 @@ module ApplicationTests
         rails "generate", "migration", "add_email_to_users", "email:string"
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{3,}\s+Create users/, output)
         assert_match(/up\s+\d{3,}\s+Add email to users/, output)
@@ -400,7 +400,7 @@ module ApplicationTests
         assert_match(/down\s+\d{3,}\s+Add email to users/, output)
 
         rails "db:migrate:redo"
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+\d{3,}\s+Create users/, output)
         assert_match(/up\s+\d{3,}\s+Add email to users/, output)
@@ -419,7 +419,7 @@ module ApplicationTests
 
         rails "db:migrate"
 
-        output = rails("db:migrate:status", allow_failure: true)
+        output = rails("db:migrate:status")
 
         assert_match(/up\s+001\s+One migration/, output)
         assert_match(/up\s+002\s+Two migration/, output)
@@ -502,7 +502,7 @@ module ApplicationTests
           rails "db:migrate"
           `rm db/migrate/*email*.rb`
 
-          output = rails("db:migrate:status", allow_failure: true)
+          output = rails("db:migrate:status")
 
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
