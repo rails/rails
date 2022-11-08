@@ -12,7 +12,7 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
-                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
+                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
                     :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
@@ -278,6 +278,7 @@ module Rails
           load_defaults "7.0"
 
           self.add_autoload_paths_to_load_path = false
+          self.precompile_filter_parameters = true
 
           if Rails.env.development? || Rails.env.test?
             self.log_file_size = 100 * 1024 * 1024

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/array/extract"
 
 module ActiveSupport
   # +ParameterFilter+ allows you to specify keys for sensitive data from
@@ -31,6 +32,34 @@ module ActiveSupport
   #   => reverses the value to all keys matching /secret/i
   class ParameterFilter
     FILTERED = "[FILTERED]" # :nodoc:
+
+    # Precompiles an array of filters that otherwise would be passed directly to
+    # #initialize. Depending on the quantity and types of filters,
+    # precompilation can improve filtering performance, especially in the case
+    # where the ParameterFilter instance itself cannot be retained (but the
+    # precompiled filters can be retained).
+    #
+    #   filters = [/foo/, :bar, "nested.baz", /nested\.qux/]
+    #
+    #   precompiled = ActiveSupport::ParameterFilter.precompile_filters(filters)
+    #   # => [/(?-mix:foo)|(?i:bar)/, /(?i:nested\.baz)|(?-mix:nested\.qux)/]
+    #
+    #   ActiveSupport::ParameterFilter.new(precompiled)
+    #
+    def self.precompile_filters(filters)
+      filters, patterns = filters.partition { |filter| filter.is_a?(Proc) }
+
+      patterns.map! do |pattern|
+        pattern.is_a?(Regexp) ? pattern : "(?i:#{Regexp.escape pattern.to_s})"
+      end
+
+      deep_patterns = patterns.extract! { |pattern| pattern.to_s.include?("\\.") }
+
+      filters << Regexp.new(patterns.join("|")) if patterns.any?
+      filters << Regexp.new(deep_patterns.join("|")) if deep_patterns.any?
+
+      filters
+    end
 
     # Create instance with given filters. Supported type of filters are +String+, +Regexp+, and +Proc+.
     # Other types of filters are treated as +String+ using +to_s+.

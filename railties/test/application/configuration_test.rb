@@ -521,6 +521,7 @@ module ApplicationTests
     end
 
     test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
+      remove_from_config '.*config\.load_defaults.*\n'
       app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
       RUBY
@@ -528,6 +529,46 @@ module ApplicationTests
       app "development"
 
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
+      filters = [/foo/, :bar, "baz.qux"]
+
+      add_to_config <<~RUBY
+        config.filter_parameters += #{filters.inspect}
+        config.precompile_filter_parameters = true
+      RUBY
+
+      app "development"
+
+      assert_equal ActiveSupport::ParameterFilter.precompile_filters(filters), Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "filter_parameters is not precompiled when config.precompile_filter_parameters is false" do
+      filters = [/foo/, :bar, "baz.qux"]
+
+      add_to_config <<~RUBY
+        config.filter_parameters += #{filters.inspect}
+        config.precompile_filter_parameters = false
+      RUBY
+
+      app "development"
+
+      assert_equal filters, Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "config.precompile_filter_parameters is true by default for new apps" do
+      app "development"
+
+      assert Rails.application.config.precompile_filter_parameters
+    end
+
+    test "config.precompile_filter_parameters is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_not Rails.application.config.precompile_filter_parameters
     end
 
     test "config.to_prepare is forwarded to ActionDispatch" do
