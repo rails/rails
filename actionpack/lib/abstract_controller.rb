@@ -21,6 +21,7 @@ module AbstractController
   autoload :Translation
   autoload :AssetPaths
   autoload :UrlFor
+  autoload :Ratelimiter
 
   def self.eager_load!
     super

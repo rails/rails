@@ -222,6 +222,7 @@ module ActionController
 
       # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.
+      AbstractController::Ratelimiter,
       AbstractController::Callbacks,
 
       # Append rescue at the bottom to wrap as much as possible.
