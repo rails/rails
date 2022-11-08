@@ -176,5 +176,5 @@ gem "wdm", ">= 0.1.0", platforms: [:windows]
 # Also, Rails depends on a new API available since error_highlight 0.4.0.
 # (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
 if RUBY_VERSION >= "3.1"
-  gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
+  gem "error_highlight", ">= 0.4.0", "< 0.5.0", platforms: [:ruby]
 end
