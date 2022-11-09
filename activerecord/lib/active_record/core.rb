@@ -698,7 +698,7 @@ module ActiveRecord
               pp.text attr_name
               pp.text ":"
               pp.breakable
-              value = _read_attribute(attr_name)
+              value = attribute_for_pretty_print(attr_name)
               value = inspection_filter.filter_param(attr_name, value) unless value.nil?
               pp.pp value
             end

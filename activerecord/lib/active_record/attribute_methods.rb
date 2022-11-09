@@ -288,6 +288,15 @@ module ActiveRecord
       format_for_inspect(attr_name, value)
     end
 
+    def attribute_for_pretty_print(attr_name)
+      value = _read_attribute(attr_name)
+      if value.is_a?(String) && value.length > 50
+        "#{value[0, 50]}..."
+      else
+        value
+      end
+    end
+
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
     # database load and is neither +nil+ nor <tt>empty?</tt> (the latter only applies
     # to objects that respond to <tt>empty?</tt>, most notably Strings). Otherwise, +false+.
