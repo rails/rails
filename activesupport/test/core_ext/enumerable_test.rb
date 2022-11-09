@@ -255,6 +255,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal false, GenericEnumerable.new([ 2 ]).many? { |x| x > 1 }
     assert_equal false, GenericEnumerable.new([ 1, 2 ]).many? { |x| x > 1 }
     assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? { |x| x > 1 }
+    assert_equal true,  GenericEnumerable.new([ 1, 2, 3]).each_with_index.many? { |x, i| x == i + 1 }
   end
 
   def test_many_iterates_only_on_what_is_needed
