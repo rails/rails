@@ -231,7 +231,7 @@ module Rails
     # via <tt>deprecators[name] = deprecator</tt>.
     def deprecators
       @deprecators ||= ActiveSupport::Deprecation::Deprecators.new.tap do |deprecators|
-        deprecators[:rails] = ActiveSupport::Deprecation.instance
+        deprecators[:rails] = Rails.deprecator
       end
     end
 
