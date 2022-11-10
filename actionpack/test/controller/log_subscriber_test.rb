@@ -218,6 +218,20 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Rails Testing", @controller.last_payload[:headers]["User-Agent"]
   end
 
+  def test_process_action_with_allow_parameters
+    @request.env["action_dispatch.parameter_allow_filter"] = [:step]
+
+    get :show, params: {
+      lifo: "Pratik", amount: "420", step: "1"
+    }
+    wait
+
+    params = logs[1]
+    assert_match(/"amount"=>"\[FILTERED\]"/, params)
+    assert_match(/"lifo"=>"\[FILTERED\]"/, params)
+    assert_match(/"step"=>"1"/, params)
+  end
+
   def test_process_action_with_filter_parameters
     @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 

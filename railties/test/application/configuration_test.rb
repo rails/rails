@@ -3390,6 +3390,15 @@ module ApplicationTests
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
     end
 
+    test "ActiveRecord::Base.allow_attributes should equal to allow_parameters" do
+      app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
+        Rails.application.config.allow_parameters = [ :id, :name ]
+      RUBY
+      app "development"
+      assert_equal [ :id, :name ], Rails.application.config.allow_parameters
+      assert_equal [ :id, :name ], ActiveRecord::Base.allow_attributes
+    end
+
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
       app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :credit_card_number ]

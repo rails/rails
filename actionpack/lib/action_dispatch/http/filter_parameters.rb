@@ -46,14 +46,14 @@ module ActionDispatch
 
       # Returns a hash of parameters with all sensitive data replaced.
       def filtered_parameters
-        @filtered_parameters ||= parameter_filter.filter(parameters)
+        @filtered_parameters ||= (allow_filter || parameter_filter).filter(parameters)
       rescue ActionDispatch::Http::Parameters::ParseError
         @filtered_parameters = {}
       end
 
       # Returns a hash of request.env with all sensitive data replaced.
       def filtered_env
-        @filtered_env ||= env_filter.filter(@env)
+        @filtered_env ||= (allow_filter || env_filter).filter(@env)
       end
 
       # Reconstructs a path with all sensitive GET parameters replaced.
@@ -78,6 +78,12 @@ module ActionDispatch
         parameter_filter_for(Array(user_key) + ENV_MATCH)
       end
 
+      def allow_filter
+        if allow_filter = get_header("action_dispatch.parameter_allow_filter")
+          ActiveSupport::ParameterAllowFilter.new(allow_filter)
+        end
+      end
+
       def parameter_filter_for(filters) # :doc:
         ActiveSupport::ParameterFilter.new(filters)
       end
@@ -86,7 +92,7 @@ module ActionDispatch
       PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string # :doc:
         query_string.gsub(PAIR_RE) do |_|
-          parameter_filter.filter($1 => $2).first.join("=")
+          (allow_filter || parameter_filter).filter($1 => $2).first.join("=")
         end
       end
     end
