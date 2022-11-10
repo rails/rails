@@ -1664,6 +1664,8 @@ module ActiveRecord
         /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
       end
 
+      FIELD_SQL_FUNC_REGEX = /(\b(?<field>field\((?>[^)(]+|\g<0>)*\))(\s+(?<direction>asc|desc)\b)?)/i
+
       def reverse_sql_order(order_query)
         if order_query.empty?
           return [table[primary_key].desc] if primary_key
@@ -1683,12 +1685,62 @@ module ActiveRecord
             if does_not_support_reverse?(o)
               raise IrreversibleOrderError, "Order #{o.inspect} cannot be reversed automatically"
             end
-            o.split(",").map! do |s|
-              s.strip!
-              s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") || (s << " DESC")
-            end
+            reverse_order_string(o)
           else
             o
+          end
+        end
+      end
+
+      def reverse_order_string(o)
+        return flip_sql_order_direction_for_each_non_field_function_ordering(o) unless o.match?(FIELD_SQL_FUNC_REGEX)
+
+        result = o
+        field_func_replacements = {}
+        other_replacements = {}
+
+        # Figure out what each `FIELD(id, 1,2,3)`-style ordering should be replaced with to invert its direction:
+        o.gsub(FIELD_SQL_FUNC_REGEX).map do |part|
+          matches = part.match(FIELD_SQL_FUNC_REGEX)
+          opposite_direction = (matches[:direction] || "").downcase == "desc" ? "ASC" : "DESC"
+          field_func_replacements[part] = "#{matches[:field]} #{opposite_direction}"
+        end
+
+        # Update the working `result` string so that each `FIELD(...)` function sorts in the opposite direction:
+        field_func_replacements.each do |original, replacement|
+          start_index = result.index(original)
+          end_index = start_index + original.size
+          result = result[0...start_index] + replacement + result[end_index..-1]
+        end
+
+        # Figure out what non-`FIELD(...)`-style orderings are left that we still need to invert the direction of:
+        field_func_replacements.each do |original, replacement|
+          start_index = result.index(replacement)
+          end_index = start_index + replacement.size
+          prefix = result[0...start_index]
+          suffix = result[end_index..-1]
+          [prefix, suffix].select(&:present?).reject { |part| part.match?(FIELD_SQL_FUNC_REGEX) }.each do |part|
+            part = part.strip.chomp(",").delete_prefix(",")
+            other_replacements[part] = flip_sql_order_direction_for_each_non_field_function_ordering(part)
+              .join(",")
+          end
+        end
+
+        # Update the working `result` string so that each non-`FIELD(...)` ordering sorts in the opposite direction:
+        other_replacements.each do |original, replacement|
+          start_index = result.index(original)
+          end_index = start_index + original.size
+          result = result[0...start_index] + replacement + result[end_index..-1]
+        end
+
+        result
+      end
+
+      def flip_sql_order_direction_for_each_non_field_function_ordering(o)
+        o.split(",").filter_map do |s|
+          if s.present?
+            s.strip!
+            s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") || (s << " DESC")
           end
         end
       end
@@ -1698,10 +1750,12 @@ module ActiveRecord
         # override methods like #count.
         order = String.new(order) unless order.instance_of?(String)
 
+        # Uses "nulls first" like construction.
+        return true if /\bnulls\s+(?:first|last)\b/i.match?(order)
+
         # Uses SQL function with multiple arguments.
-        (order.include?(",") && order.split(",").find { |section| section.count("(") != section.count(")") }) ||
-          # Uses "nulls first" like construction.
-          /\bnulls\s+(?:first|last)\b/i.match?(order)
+        order.include?(",") && order.split(",").find { |section| section.count("(") != section.count(")") } &&
+          !order.match?(FIELD_SQL_FUNC_REGEX)
       end
 
       def build_order(arel)

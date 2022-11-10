@@ -1,3 +1,14 @@
+*   Add support for reversing the order of `ORDER BY FIELD(id, 1,2,3)`-style ordering via #reverse_order.
+
+    Calling #reverse_order on a relation that is ordered using the `FIELD` SQL function will no longer raise `ActiveRecord::IrreversibleOrderError`.
+
+    ```
+    Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]]).reverse_order.to_sql
+    # => SELECT "tags".* FROM "tags" ORDER BY field(id, 1,3,2) DESC
+    ```
+
+    *Sarah Vessels*
+
 *   Clear locking column on #dup
 
     This change fixes not to duplicate locking_column like id and timestamps.

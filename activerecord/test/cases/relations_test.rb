@@ -369,6 +369,47 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reverse_order_with_only_field_function_without_initial_direction
+    query = Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]])
+    reversed = assert_nothing_raised { query.reverse_order }
+    if current_adapter?(:Mysql2Adapter)
+      assert_includes reversed.to_sql, "ORDER BY field(id, '1','3','2') DESC"
+    else
+      assert_includes reversed.to_sql, "ORDER BY field(id, 1,3,2) DESC"
+    end
+  end
+
+  def test_reverse_order_with_only_field_function_asc
+    query = Tag.order(Arel.sql("FIELD(tags.id || ' str', '1 str', '2 str', '3 str') asc"))
+    reversed = assert_nothing_raised { query.reverse_order }
+    assert_includes reversed.to_sql, "ORDER BY FIELD(tags.id || ' str', '1 str', '2 str', '3 str') DESC"
+  end
+
+  def test_reverse_order_with_only_field_function_desc
+    query = Tag.order(Arel.sql("Field(CASE WHEN foo = 1 THEN `tags`.`id` ELSE `tags`.`field`, 1, 2, 3) Desc"))
+    reversed = assert_nothing_raised { query.reverse_order }
+    assert_includes reversed.to_sql,
+      "ORDER BY Field(CASE WHEN foo = 1 THEN `tags`.`id` ELSE `tags`.`field`, 1, 2, 3) ASC"
+  end
+
+  def test_reverse_order_with_field_function_and_trailing_order_arguments
+    query = Tag.order(Arel.sql("FIELD(id, 1,2,3), name"))
+    reversed = assert_nothing_raised { query.reverse_order }
+    assert_includes reversed.to_sql, "ORDER BY FIELD(id, 1,2,3) DESC,name DESC"
+  end
+
+  def test_reverse_order_with_field_function_and_leading_order_arguments
+    query = Tag.order(Arel.sql("name ASC, FIELD(id, 1,2,3) DESC"))
+    reversed = assert_nothing_raised { query.reverse_order }
+    assert_includes reversed.to_sql, "ORDER BY name DESC, FIELD(id, 1,2,3) ASC"
+  end
+
+  def test_reverse_order_with_multiple_field_functions
+    query = Tag.order(Arel.sql("FIELD(name, 'a','b','c'), FIELD(id, 1,2,3) DESC"))
+    reversed = assert_nothing_raised { query.reverse_order }
+    assert_includes reversed.to_sql, "ORDER BY FIELD(name, 'a','b','c') DESC, FIELD(id, 1,2,3) ASC"
+  end
+
   def test_order_with_hash_and_symbol_generates_the_same_sql
     assert_equal Topic.order(:id).to_sql, Topic.order(id: :asc).to_sql
   end
