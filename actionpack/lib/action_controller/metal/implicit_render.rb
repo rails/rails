@@ -42,7 +42,7 @@ module ActionController
         raise ActionController::UnknownFormat, message
       elsif interactive_browser_request?
         message = "#{self.class.name}\##{action_name} is missing a template for request formats: #{request.formats.map(&:to_s).join(',')}"
-        raise ActionController::MissingExactTemplate, message
+        raise ActionController::MissingExactTemplate.new(message, self.class, action_name)
       else
         logger.info "No template found for #{self.class.name}\##{action_name}, rendering head :no_content" if logger
         super
