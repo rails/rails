@@ -1396,6 +1396,16 @@ module ActiveRecord
         when String, Array
           parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
         when Hash
+          parts = []
+          opts.delete_if do |key, values|
+            next false unless key.is_a?(Array)
+
+            parts << Arel::Nodes::RowConstructor.new(values, arel_table[key], :in)
+            true
+          end
+
+          return Relation::WhereClause.new(parts) if opts.empty?
+
           opts = opts.transform_keys do |key|
             key = key.to_s
             klass.attribute_aliases[key] || key
@@ -1403,9 +1413,10 @@ module ActiveRecord
           references = PredicateBuilder.references(opts)
           self.references_values |= references unless references.empty?
 
-          parts = predicate_builder.build_from_hash(opts) do |table_name|
+          parts_from_builder = predicate_builder.build_from_hash(opts) do |table_name|
             lookup_table_klass_from_join_dependencies(table_name)
           end
+          parts.push(*parts_from_builder)
         when Arel::Nodes::Node
           parts = [opts]
         else

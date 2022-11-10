@@ -23,13 +23,16 @@ require "models/car"
 require "models/tyre"
 require "models/subscriber"
 require "models/non_primary_key"
+require "models/clothing_item"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
 class FinderTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects,
+    :posts, :comments, :accounts, :authors, :author_addresses, :customers,
+    :categories, :categorizations, :cars, :clothing_items
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -1188,6 +1191,27 @@ class FinderTest < ActiveRecord::TestCase
     p1, p2 = Post.limit(2).order("id asc").to_a
     assert_equal [p1, p2], Post.where(id: [p1, p2]).order("id asc").to_a
     assert_equal [p1, p2], Post.where(id: [p1, p2.id]).order("id asc").to_a
+  end
+
+  unless current_adapter?(:SQLite3Adapter)
+    def test_where_row_construtor
+      p1, p2 = Post.limit(2).order("id asc").to_a
+
+      values = [[p1.id], [p2.id]]
+      assert_equal [p1, p2], Post.where([:id] => values).order("id asc").to_a
+
+      values = [[p1.author_id, p1.id], [p2.author_id, p2.id]]
+      assert_equal [p1, p2], Post.where([:author_id, :id] => values).order("id asc").to_a
+
+      values = [[p1.author_id, p1.id, p1.type], [p2.author_id, p2.id, p2.type]]
+      assert_equal [p1, p2], Post.where([:author_id, :id, :type] => values).order("id asc").to_a
+
+      green_pants = clothing_items(:green_pants)
+      red_t_shirt = clothing_items(:red_t_shirt)
+      expected = [green_pants, red_t_shirt].sort
+      values = expected.map { |item| [item.color, item.clothing_type] }
+      assert_equal expected, ClothingItem.where([:color, :clothing_type] => values).to_a.sort
+    end
   end
 
   def test_hash_condition_find_with_nil

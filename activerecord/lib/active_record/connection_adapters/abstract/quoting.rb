@@ -25,6 +25,7 @@ module ActiveRecord
         when ActiveSupport::Duration
           warn_quote_duration_deprecated
           value.to_s
+        when Array then quote_array(value)
         else raise TypeError, "can't quote #{value.class.name}"
         end
       end
@@ -52,6 +53,10 @@ module ActiveRecord
       # so this method will cast numbers to string.
       def quote_bound_value(value)
         quote(value)
+      end
+
+      def quote_array(a)
+        "(#{a.map { |entry| quote(entry) }.join(',')})"
       end
 
       # If you are having to call this function, you are likely doing something

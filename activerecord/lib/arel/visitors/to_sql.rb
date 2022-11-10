@@ -353,6 +353,34 @@ module Arel # :nodoc: all
           collector
         end
 
+        def visit_Arel_Nodes_RowConstructor(o, collector)
+          collector.preparable = false
+
+          table_name = quote_table_name(o.table_name)
+          collector << "("
+          collector << o.column_names.map do |column_name|
+            "#{table_name}.#{quote_column_name(column_name)}"
+          end.join(", ")
+          collector << ")"
+
+          if o.type == :in
+            collector << " IN ("
+          else
+            collector << " NOT IN ("
+          end
+
+          values = o.casted_values
+
+          if values.empty?
+            collector << @connection.quote(nil)
+          else
+            collector.add_binds(values)
+          end
+
+          collector << ")"
+          collector
+        end
+
         def visit_Arel_SelectManager(o, collector)
           collector << "("
           visit(o.ast, collector) << ")"

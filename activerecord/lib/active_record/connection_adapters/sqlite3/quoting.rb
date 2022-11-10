@@ -58,6 +58,10 @@ module ActiveRecord
           end
         end
 
+        def quote_array(_a)
+          raise TypeError, "Array values not supported by SQLite3 adapter"
+        end
+
         def type_cast(value) # :nodoc:
           case value
           when BigDecimal

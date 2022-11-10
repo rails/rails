@@ -80,6 +80,8 @@ module Arel # :nodoc: all
     end
 
     def [](name, table = self)
+      return AttributesSet.new(table, name.map(&:to_s)) if name.is_a?(Array)
+
       name = name.to_s if name.is_a?(Symbol)
       name = @klass.attribute_aliases[name] || name if @klass
       Attribute.new(table, name)
