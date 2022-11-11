@@ -1,3 +1,7 @@
+*   Add `bypass_numeric_quoting` option to `Arel.sql()` to bypass the quoting of known-safe numeric values.
+
+    *João Marcos S. B. de Moraes*
+
 *   Clear locking column on #dup
 
     This change fixes not to duplicate locking_column like id and timestamps.
