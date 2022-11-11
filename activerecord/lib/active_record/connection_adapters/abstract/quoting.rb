@@ -10,8 +10,10 @@ module ActiveRecord
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         case value
+        when Arel::Nodes::SqlLiteral
+          value.bypass_numeric_quoting ? value : quoted_string(value)
         when String, Symbol, ActiveSupport::Multibyte::Chars
-          "'#{quote_string(value.to_s)}'"
+          quoted_string(value)
         when true       then quoted_true
         when false      then quoted_false
         when nil        then "NULL"
@@ -145,6 +147,10 @@ module ActiveRecord
       end
 
       def quoted_binary(value) # :nodoc:
+        quoted_string(value)
+      end
+
+      def quoted_string(value) # :nodoc:
         "'#{quote_string(value.to_s)}'"
       end
 
