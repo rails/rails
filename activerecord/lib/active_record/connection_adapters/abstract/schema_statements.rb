@@ -1765,7 +1765,7 @@ module ActiveRecord
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
             sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
-            sql << ";\n\n"
+            sql << ";"
             sql
           else
             "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"

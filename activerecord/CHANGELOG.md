@@ -1,3 +1,9 @@
+*   Do not write additional new lines when dumping sql migration versions
+
+    This change updates the `insert_versions_sql` function so that the database insert string containing the current database migration versions does not end with two additional new lines.
+
+    *Misha Schwartz*
+
 *   Fix `composed_of` value freezing and duplication.
 
     Previously composite values exhibited two confusing behaviors:
@@ -367,6 +373,7 @@
     `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
 
     *Eileen M. Uchitelle*
+
 
 *   Allow ActiveRecord::QueryMethods#select to receive hash values.
 

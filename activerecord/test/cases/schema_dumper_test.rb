@@ -34,9 +34,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ('20100301010101'),
     ('20100201010101'),
     ('20100101010101');
-
     STR
-    assert_equal expected, schema_info
+    assert_equal expected.strip, schema_info
   ensure
     @schema_migration.delete_all_versions
   end
