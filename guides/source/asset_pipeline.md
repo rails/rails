@@ -656,24 +656,26 @@ JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and
 `.scss` files are **not** automatically included as they compile to JS/CSS.
 
 If you have other manifests or individual stylesheets and JavaScript files to
-include, you can add them yourself:
+include, you can add them yourself.
 
-- **Sprockets 3:** Add files to the `precompile` array in `config/initializers/assets.rb`:
+When you are using **Sprockets 3**, add the files to the `precompile` array in
+`config/initializers/assets.rb`:
 
-  ```ruby
-  Rails.application.config.assets.precompile += %w( admin.js admin.css )
-  ```
+```ruby
+Rails.application.config.assets.precompile += %w( admin.js admin.css )
+```
 
-- **Sprockets 4:** Add files or directories inside `./app/assets/config/manifest.js`
+When you are using **Sprockets 4**, add the files or directories to
+`app/assets/config/manifest.js`:
 
-  ```js
-  //= link_tree ../images
-  //= link admin.js
-  //= link admin.css
-  // Or link whole directories:
-  //= link_directory ../javascripts .js
-  //= link_directory ../stylesheets .css
-  ```
+```js
+//= link_tree ../images
+//= link admin.js
+//= link admin.css
+// Or link whole directories:
+//= link_directory ../javascripts .js
+//= link_directory ../stylesheets .css
+```
 
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
 even if you want to add Sass or CoffeeScript files to the precompile array or manifest file.
