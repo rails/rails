@@ -534,7 +534,7 @@ If your breaking change removes existing behavior, you'll first need to add a
 deprecation warning while keeping the existing behavior.
 
 As an example, let's say you want to remove a public method on
-ActiveRecord::Base. If the main branch points to the unreleased 7.0 version,
+`ActiveRecord::Base`. If the main branch points to the unreleased 7.0 version,
 Rails 7.0 will need to show a deprecation warning. This makes sure anyone
 upgrading to any Rails 7.0 version will see the deprecation warning.
 In Rails 7.1 the method can be deleted.
@@ -543,7 +543,7 @@ You could add the following deprecation warning:
 
 ```ruby
 def deprecated_method
-  ActiveSupport::Deprecation.warn(<<-MSG.squish)
+  ActiveRecord.deprecator.warn(<<-MSG.squish)
     `ActiveRecord::Base.deprecated_method` is deprecated and will be removed in Rails 7.1.
   MSG
   # Existing behavior
