@@ -304,7 +304,7 @@ User.update(:all, max_login_attempts: 3, must_change_password: true)
 
 ### Delete
 
-Likewise, once retrieved an Active Record object can be destroyed which removes
+Likewise, once retrieved, an Active Record object can be destroyed, which removes
 it from the database.
 
 ```ruby
