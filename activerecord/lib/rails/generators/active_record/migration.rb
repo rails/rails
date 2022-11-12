@@ -22,6 +22,11 @@ module ActiveRecord
           ", id: :#{key_type}" if key_type
         end
 
+        def primary_key_default
+          key_default = options[:primary_key_default]
+          ", default: #{key_default}" if key_default
+        end
+
         def foreign_key_type
           key_type = options[:primary_key_type]
           ", type: :#{key_type}" if key_type

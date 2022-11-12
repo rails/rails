@@ -301,6 +301,15 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_primary_key_default_value_to_create_table_migration
+    run_generator ["create_books", "--primary_key_type=uuid", "--primary_key_default=\"uuid_generate_v4()\""]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books, id: :uuid, default: "uuid_generate_v4\(\)"/, change)
+      end
+    end
+  end
+
   def test_database_puts_migrations_in_configured_folder
     with_database_configuration do
       run_generator ["create_books", "--database=secondary"]
