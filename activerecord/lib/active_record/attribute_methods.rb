@@ -312,7 +312,7 @@ module ActiveRecord
 
     # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
     # "2004-12-12" in a date column is cast to a date object, like <tt>Date.new(2004, 12, 12)</tt>). It raises
-    # <tt>ActiveModel::MissingAttributeError</tt> if the identified attribute is missing.
+    # ActiveModel::MissingAttributeError if the identified attribute is missing.
     #
     # Note: +:id+ is always present.
     #

@@ -6,7 +6,7 @@ module ActionView
   module RoutingUrlFor
     # Returns the URL for the set of +options+ provided. This takes the
     # same options as +url_for+ in Action Controller (see the
-    # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default
+    # documentation for ActionDispatch::Routing::UrlFor#url_for). Note that by default
     # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative <tt>"/controller/action"</tt>
     # instead of the fully qualified URL like <tt>"http://example.com/controller/action"</tt>.
     #
