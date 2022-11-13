@@ -997,6 +997,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "preserves attachment changes when using STI" do
+    user = User.new(name: "John", highlights: [create_blob(filename: "funky.jpg")])
+    special_user = user.becomes(SpecialUser)
+    assert_predicate special_user.highlights, :attached?
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

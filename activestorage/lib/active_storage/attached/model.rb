@@ -228,6 +228,8 @@ module ActiveStorage
         end
     end
 
+    attr_writer :attachment_changes
+
     def attachment_changes # :nodoc:
       @attachment_changes ||= {}
     end
@@ -244,6 +246,15 @@ module ActiveStorage
 
     def reload(*) # :nodoc:
       super.tap { @attachment_changes = nil }
+    end
+
+    def becomes(klass) # :nodoc:
+      super.tap do |became|
+        attachment_changes = @attachment_changes&.each_value do |change|
+          change.record = became
+        end
+        became.attachment_changes = attachment_changes
+      end
     end
   end
 end
