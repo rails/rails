@@ -6,16 +6,16 @@ module ActionDispatch
     # is also possible: a URL can be generated from one of your routing definitions.
     # URL generation functionality is centralized in this module.
     #
-    # See ActionDispatch::Routing for general information about routing and routes.rb.
+    # See ActionDispatch::Routing for general information about routing and <tt>config/routes.rb</tt>.
     #
     # <b>Tip:</b> If you need to generate URLs from your models or some other place,
     # then ActionController::UrlFor is what you're looking for. Read on for
     # an introduction. In general, this module should not be included on its own,
-    # as it is usually included by url_helpers (as in Rails.application.routes.url_helpers).
+    # as it is usually included by +url_helpers+ (as in <tt>Rails.application.routes.url_helpers</tt>).
     #
     # == URL generation from parameters
     #
-    # As you may know, some functions, such as ActionController::Base#url_for
+    # As you may know, some functions, such as <tt>ActionController::Base#url_for</tt>
     # and ActionView::Helpers::UrlHelper#link_to, can generate URLs given a set
     # of parameters. For example, you've probably had the chance to write code
     # like this in one of your views:
@@ -24,7 +24,7 @@ module ActionDispatch
     #           action: 'new', message: 'Welcome!') %>
     #   # => <a href="/users/new?message=Welcome%21">Click here</a>
     #
-    # link_to, and all other functions that require URL generation functionality,
+    # +link_to+, and all other functions that require URL generation functionality,
     # actually use ActionController::UrlFor under the hood. And in particular,
     # they use the ActionController::UrlFor#url_for method. One can generate
     # the same path as the above example by using the following code:
@@ -48,8 +48,8 @@ module ActionDispatch
     #           host: 'www.example.com')
     #   # => "http://www.example.com/users/new?message=Welcome%21"
     #
-    # By default, all controllers and views have access to a special version of url_for,
-    # that already knows what the current hostname is. So if you use url_for in your
+    # By default, all controllers and views have access to a special version of +url_for+,
+    # that already knows what the current hostname is. So if you use +url_for+ in your
     # controllers or your views, then you don't need to explicitly pass the <tt>:host</tt>
     # argument.
     #
@@ -72,7 +72,7 @@ module ActionDispatch
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views, and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
-    # you can do that by including Rails.application.routes.url_helpers in your class:
+    # you can do that by including <tt>Rails.application.routes.url_helpers</tt> in your class:
     #
     #   class User < ActiveRecord::Base
     #     include Rails.application.routes.url_helpers
@@ -115,11 +115,11 @@ module ActionDispatch
         default_url_options
       end
 
-      # Generate a URL based on the options provided, default_url_options, and the
-      # routes defined in routes.rb. The following options are supported:
+      # Generate a URL based on the options provided, +default_url_options+, and the
+      # routes defined in <tt>config/routes.rb</tt>. The following options are supported:
       #
       # * <tt>:only_path</tt> - If true, the relative URL is returned. Defaults to +false+.
-      # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
+      # * <tt>:protocol</tt> - The protocol to connect to. Defaults to <tt>"http"</tt>.
       # * <tt>:host</tt> - Specifies the host the link should be targeted at.
       #   If <tt>:only_path</tt> is false, this option must be
       #   provided either explicitly, or via +default_url_options+.
@@ -134,7 +134,7 @@ module ActionDispatch
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
       # * <tt>:params</tt> - The query parameters to be appended to the path.
-      # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/".
+      # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in <tt>"/archive/2009/"</tt>.
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
