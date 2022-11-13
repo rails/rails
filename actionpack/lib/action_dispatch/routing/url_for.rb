@@ -9,7 +9,7 @@ module ActionDispatch
     # See ActionDispatch::Routing for general information about routing and <tt>config/routes.rb</tt>.
     #
     # <b>Tip:</b> If you need to generate URLs from your models or some other place,
-    # then ActionController::UrlFor is what you're looking for. Read on for
+    # then ActionDispatch::Routing::UrlFor is what you're looking for. Read on for
     # an introduction. In general, this module should not be included on its own,
     # as it is usually included by +url_helpers+ (as in <tt>Rails.application.routes.url_helpers</tt>).
     #
@@ -25,11 +25,11 @@ module ActionDispatch
     #   # => <a href="/users/new?message=Welcome%21">Click here</a>
     #
     # +link_to+, and all other functions that require URL generation functionality,
-    # actually use ActionController::UrlFor under the hood. And in particular,
-    # they use the ActionController::UrlFor#url_for method. One can generate
+    # actually use ActionDispatch::Routing::UrlFor under the hood. And in particular,
+    # they use the ActionDispatch::Routing::UrlFor#url_for method. One can generate
     # the same path as the above example by using the following code:
     #
-    #   include UrlFor
+    #   include ActionDispatch::Routing::UrlFor
     #   url_for(controller: 'users',
     #           action: 'new',
     #           message: 'Welcome!',
@@ -53,12 +53,12 @@ module ActionDispatch
     # controllers or your views, then you don't need to explicitly pass the <tt>:host</tt>
     # argument.
     #
-    # For convenience reasons, mailers provide a shortcut for ActionController::UrlFor#url_for.
-    # So within mailers, you only have to type +url_for+ instead of 'ActionController::UrlFor#url_for'
-    # in full. However, mailers don't have hostname information, and you still have to provide
-    # the +:host+ argument or set the default host that will be used in all mailers using the
-    # configuration option +config.action_mailer.default_url_options+. For more information on
-    # url_for in mailers read the ActionMailer::Base documentation.
+    # For convenience, mailers also include ActionDispatch::Routing::UrlFor. So
+    # within mailers, you can use url_for. However, mailers cannot access
+    # incoming web requests in order to derive hostname information, so you have
+    # to provide the +:host+ option or set the default host using
+    # +default_url_options+. For more information on url_for in mailers see the
+    # ActionMailer::Base documentation.
     #
     #
     # == URL generation for named routes
