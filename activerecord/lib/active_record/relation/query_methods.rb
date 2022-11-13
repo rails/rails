@@ -1517,9 +1517,6 @@ module ActiveRecord
         result
       end
 
-      class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
-      end
-
       def build_join_buckets
         buckets = Hash.new { |h, k| h[k] = [] }
 
