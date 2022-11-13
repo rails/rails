@@ -23,7 +23,7 @@ module ActiveRecord
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
       # it has been typecast (for example, "2004-12-12" in a date column is cast
-      # to a date object, like Date.new(2004, 12, 12)).
+      # to a date object, like <tt>Date.new(2004, 12, 12)</tt>).
       def read_attribute(attr_name, &block)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
