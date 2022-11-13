@@ -193,12 +193,24 @@ module Enumerable
   #
   #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
   #   # => [[1, "David"], [2, "Rafael"]]
-  def pluck(*keys)
+  #
+  #   Person = Struct.new(:name, keyworkd_init: true)
+  #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name, init_with: Person)
+  #   # => [Person.new(id: id, name: "David"), Person.new(id: id, name: "Rafael")]
+  def pluck(*keys, init_with: nil)
     if keys.many?
-      map { |element| keys.map { |key| element[key] } }
+      if init_with
+        map { |element| init_with.new(**keys.index_with { |key| element[key] }) }
+      else
+        map { |element| keys.map { |key| element[key] } }
+      end
     else
       key = keys.first
-      map { |element| element[key] }
+      if init_with
+        map { |element| init_with.new(Hash[key.to_sym, element[key]]) }
+      else
+        map { |element| element[key] }
+      end
     end
   end
 

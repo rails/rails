@@ -299,6 +299,35 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [], [].pluck(:dollars, :cents)
   end
 
+  def test_pluck_with_object_class
+    price_class = Struct.new(:price, keyword_init: true)
+    payment_class = Struct.new(:dollars, :cents, keyword_init: true)
+
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    expected_results = [price_class.new(price: 5), price_class.new(price: 15), price_class.new(price: 10)]
+
+    assert_equal expected_results, payments.pluck(:price, init_with: price_class)
+
+    payments = GenericEnumerable.new([
+      ExpandedPayment.new(5, 99),
+      ExpandedPayment.new(15, 0),
+      ExpandedPayment.new(10, 50)
+    ])
+
+    expected_results = [
+      payment_class.new(dollars: 5, cents: 99),
+      payment_class.new(dollars: 15, cents: 0),
+      payment_class.new(dollars: 10, cents: 50)
+    ]
+
+    assert_equal expected_results, payments.pluck(:dollars, :cents, init_with: payment_class)
+
+    assert_raises(ArgumentError) { payments.pluck(:dollars, :cents, init_with: Struct.new(:dollars, keyword_init: true)) }
+
+    assert_equal [], [].pluck(:price, init_with: price_class)
+    assert_equal [], [].pluck(:dollars, :cents, init_with: payment_class)
+  end
+
   def test_pick
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal 5, payments.pick(:price)
