@@ -58,7 +58,7 @@ module ActionDispatch
     # in full. However, mailers don't have hostname information, and you still have to provide
     # the +:host+ argument or set the default host that will be used in all mailers using the
     # configuration option +config.action_mailer.default_url_options+. For more information on
-    # url_for in mailers read the ActionMailer#Base documentation.
+    # url_for in mailers read the ActionMailer::Base documentation.
     #
     #
     # == URL generation for named routes

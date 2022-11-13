@@ -44,7 +44,7 @@ module ActiveStorage
 
     # Generate a YAML-encoded representation of an ActiveStorage::Blob
     # instance's attributes, resolve the file relative to the directory mentioned
-    # by <tt>ActiveSupport::Testing::FileFixtures.file_fixture</tt>, and upload
+    # by ActiveSupport::Testing::FileFixtures.file_fixture, and upload
     # the file to the Service
     #
     # === Examples
