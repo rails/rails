@@ -134,7 +134,7 @@ module ActionDispatch
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
       # * <tt>:params</tt> - The query parameters to be appended to the path.
-      # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
+      # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/".
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
