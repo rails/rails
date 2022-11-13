@@ -586,8 +586,10 @@ module ActiveRecord
       #     has_many :birthday_events, ->(user) { where(starts_on: user.birthday) }, class_name: 'Event'
       #   end
       #
-      # Note: Joining, eager loading, and preloading of these associations is not possible.
-      # These operations happen before instance creation and the scope will be called with a +nil+ argument.
+      # Note: Joining and eager loading of these associations is not possible.
+      # These two operations happen before instance creation and the scope will be called with a +nil+ argument.
+      # It is allowed to be preloaded, but in the case that there's a different scope for each record,
+      # this will perform N+1 queries. (this is essentially the same as preloading polymorphic scopes).
       #
       # == Association callbacks
       #
