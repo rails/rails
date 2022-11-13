@@ -222,8 +222,8 @@ module ActiveRecord
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if role and/or is the current connected role and/or
-    # current connected shard. If no shard is passed the default will be
+    # Returns true if role is the current connected role and/or
+    # current connected shard. If no shard is passed, the default will be
     # used.
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
