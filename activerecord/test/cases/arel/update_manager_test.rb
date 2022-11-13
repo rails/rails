@@ -119,6 +119,17 @@ module Arel
         _(um.table(Table.new(:users))).must_equal um
       end
 
+      it "generates an update statement with from" do
+        um = Arel::UpdateManager.new
+
+        table = Table.new(:users)
+        from_item = Table.new(:posts)
+
+        um.table table
+        um.from from_item
+        _(um.to_sql).must_be_like %{ UPDATE "users" FROM "posts" }
+      end
+
       it "generates an update statement with joins" do
         um = Arel::UpdateManager.new
 

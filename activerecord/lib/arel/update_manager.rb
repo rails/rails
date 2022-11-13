@@ -29,6 +29,11 @@ module Arel # :nodoc: all
       self
     end
 
+    def from(table)
+      @ast.from = table
+      self
+    end
+
     def group(columns)
       columns.each do |column|
         column = Nodes::SqlLiteral.new(column) if String === column
