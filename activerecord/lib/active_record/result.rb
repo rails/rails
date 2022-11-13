@@ -102,7 +102,7 @@ module ActiveRecord
       self
     end
 
-    def cast_values(type_overrides = {}) # :nodoc:
+    def cast_values(type_overrides = {}, as_hash = false) # :nodoc:
       if columns.one?
         # Separated to avoid allocating an array per row
 
@@ -112,8 +112,10 @@ module ActiveRecord
           column_type(columns.first, type_overrides)
         end
 
-        rows.map do |(value)|
-          type.deserialize(value)
+        if as_hash
+          rows.map { |(value)| { columns.first.to_sym => type.deserialize(value) } }
+        else
+          rows.map { |(value)| type.deserialize(value) }
         end
       else
         types = if type_overrides.is_a?(Array)
@@ -122,8 +124,12 @@ module ActiveRecord
           columns.map { |name| column_type(name, type_overrides) }
         end
 
-        rows.map do |values|
-          Array.new(values.size) { |i| types[i].deserialize(values[i]) }
+        if as_hash
+          rows.map do |values|
+            Hash[Array.new(values.size) { |i| [columns[i].to_sym, types[i].deserialize(values[i])] }]
+          end
+        else
+          rows.map { |values| Array.new(values.size) { |i| types[i].deserialize(values[i]) } }
         end
       end
     end

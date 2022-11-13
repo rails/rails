@@ -50,10 +50,32 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { @author.comments.pluck(:id) }
   end
 
+  def test_pluck_on_disable_joins_through_with_init_class
+    klass = Struct.new(:id, keyword_init: true) do
+      def <=>(other)
+        id <=> other.id
+      end
+    end
+    assert_equal @author.comments.pluck(:id, init_with: klass).sort, @author.no_joins_comments.pluck(:id, init_with: klass).sort
+    assert_queries(2) { @author.no_joins_comments.pluck(:id, init_with: klass) }
+    assert_queries(1) { @author.comments.pluck(:id, init_with: klass) }
+  end
+
   def test_pluck_on_disable_joins_through_using_custom_foreign_key
     assert_equal @author.comments_with_foreign_key.pluck(:id).sort, @author.no_joins_comments_with_foreign_key.pluck(:id).sort
     assert_queries(2) { @author.no_joins_comments_with_foreign_key.pluck(:id) }
     assert_queries(1) { @author.comments_with_foreign_key.pluck(:id) }
+  end
+
+  def test_pluck_on_disable_joins_through_using_custom_foreign_key_with_init_class
+    klass = Struct.new(:id, keyword_init: true) do
+      def <=>(other)
+        id <=> other.id
+      end
+    end
+    assert_equal @author.comments_with_foreign_key.pluck(:id, init_with: klass).sort, @author.no_joins_comments_with_foreign_key.pluck(:id, init_with: klass).sort
+    assert_queries(2) { @author.no_joins_comments_with_foreign_key.pluck(:id, init_with: klass) }
+    assert_queries(1) { @author.comments_with_foreign_key.pluck(:id, init_with: klass) }
   end
 
   def test_fetching_on_disable_joins_through
@@ -107,6 +129,13 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     rating_ids = Rating.where(comment: @comment).pluck(:id)
     assert_equal rating_ids, assert_queries(1) { @author.ratings.pluck(:id) }
     assert_equal rating_ids, assert_queries(3) { @author.no_joins_ratings.pluck(:id) }
+  end
+
+  def test_pluck_on_disable_joins_through_a_through_with_init_class
+    klass = Struct.new(:id, keyword_init: true)
+    rating_ids = Rating.where(comment: @comment).pluck(:id, init_with: klass)
+    assert_equal rating_ids, assert_queries(1) { @author.ratings.pluck(:id, init_with: klass) }
+    assert_equal rating_ids, assert_queries(3) { @author.no_joins_ratings.pluck(:id, init_with: klass) }
   end
 
   def test_count_on_disable_joins_through_a_through

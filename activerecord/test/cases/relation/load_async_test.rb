@@ -205,6 +205,12 @@ module ActiveRecord
       assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
     end
 
+    def test_pluck_with_init_class
+      klass = Struct.new(:title, keyword_init: true)
+      titles = Post.where(author_id: 1).pluck(:title, init_with: klass)
+      assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title, init_with: klass)
+    end
+
     def test_size
       expected_size = Post.where(author_id: 1).size
 
@@ -324,6 +330,12 @@ module ActiveRecord
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
         assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+      end
+
+      def test_pluck_with_init_class
+        klass = Struct.new(:title, keyword_init: true)
+        titles = Post.where(author_id: 1).pluck(:title, init_with: klass)
+        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title, init_with: klass)
       end
 
       def test_size
@@ -459,6 +471,12 @@ module ActiveRecord
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
         assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+      end
+
+      def test_pluck_with_init_class
+        klass = Struct.new(:title, keyword_init: true)
+        titles = Post.where(author_id: 1).pluck(:title, init_with: klass)
+        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title, init_with: klass)
       end
 
       def test_size

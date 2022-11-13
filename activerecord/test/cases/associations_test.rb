@@ -274,6 +274,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_no_queries { david.first_posts.pluck(:title) }
   end
 
+  def test_pluck_uses_loaded_target_with_init_class
+    klass = Struct.new(:title, keyword_init: true)
+    david = authors(:david)
+    assert_equal david.first_posts.pluck(:title, init_with: klass), david.first_posts.load.pluck(:title, init_with: klass)
+    assert_predicate david.first_posts, :loaded?
+    assert_no_queries { david.first_posts.pluck(:title, init_with: klass) }
+  end
+
   def test_pick_uses_loaded_target
     david = authors(:david)
     assert_equal david.first_posts.pick(:title), david.first_posts.load.pick(:title)

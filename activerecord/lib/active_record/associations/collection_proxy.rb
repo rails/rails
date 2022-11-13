@@ -723,8 +723,8 @@ module ActiveRecord
         null_scope? ? scope.calculate(operation, column_name) : super
       end
 
-      def pluck(*column_names)
-        null_scope? ? scope.pluck(*column_names) : super
+      def pluck(*column_names, **opts)
+        null_scope? ? scope.pluck(*column_names, **opts) : super
       end
 
       ##

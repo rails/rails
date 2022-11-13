@@ -84,6 +84,12 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [BigDecimal("123.45")], PostgresqlMoney.pluck(Arel.sql("id * wealth"))
   end
 
+  def test_pluck_with_type_cast_with_init_class
+    klass = Struct.new(:product, keyword_init: true)
+    @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (1, '123.45'::money)")
+    assert_equal [klass.new(product: BigDecimal("123.45"))], PostgresqlMoney.pluck(Arel.sql("id * wealth product"), init_with: klass)
+  end
+
   def test_schema_dumping
     output = dump_table_schema("postgresql_moneys")
     assert_match %r{t\.money\s+"wealth",\s+scale: 2$}, output

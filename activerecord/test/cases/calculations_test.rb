@@ -803,9 +803,26 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal [1, 2, 3, 4, 5], Topic.order(:id).async_pluck(:id)
   end
 
+  def init_class_for(*attributes, &block)
+    Struct.new(*attributes, keyword_init: true, &block)
+  end
+
+  def test_pluck_with_init_class
+    klass = init_class_for(:id)
+    expected = [1, 2, 3, 4, 5].map { |id| klass.new(id: id) }
+    assert_equal expected, Topic.order(:id).pluck(:id, init_with: klass)
+    assert_async_equal expected, Topic.order(:id).async_pluck(:id, init_with: klass)
+  end
+
   def test_pluck_async_on_loaded_relation
     relation = Topic.order(:id).load
     assert_async_equal relation.pluck(:id), relation.async_pluck(:id)
+  end
+
+  def test_pluck_async_on_loaded_relation_with_init_class
+    klass = init_class_for(:id)
+    relation = Topic.order(:id).load
+    assert_async_equal relation.pluck(:id, init_with: klass), relation.async_pluck(:id, init_with: klass)
   end
 
   def test_pluck_with_empty_in
@@ -813,6 +830,14 @@ class CalculationsTest < ActiveRecord::TestCase
       assert_equal [], Topic.where(id: []).pluck(:id)
     end
     assert_async_equal [], Topic.where(id: []).async_pluck(:id)
+  end
+
+  def test_pluck_with_empty_in_with_init_class
+    klass = init_class_for(:id)
+    assert_queries(0) do
+      assert_equal [], Topic.where(id: []).pluck(:id, init_with: klass)
+    end
+    assert_async_equal [], Topic.where(id: []).async_pluck(:id, init_with: klass)
   end
 
   def test_pluck_without_column_names
@@ -823,12 +848,36 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_pluck_without_column_names_with_init_class
+    attributes = %i(id type firm_id firm_name name client_of rating account_id description)
+    klass = init_class_for(*attributes)
+
+    expected_values = if current_adapter?(:OracleAdapter)
+      [1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]
+    else
+      [1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]
+    end
+
+    expected = klass.new(**Hash[attributes.zip(expected_values)])
+    assert_equal [expected], Company.order(:id).limit(1).pluck(init_with: klass)
+  end
+
   def test_pluck_type_cast
     topic = topics(:first)
     relation = Topic.where(id: topic.id)
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
+  end
+
+  def test_pluck_type_cast_with_init_class
+    topic = topics(:first)
+    relation = Topic.where(id: topic.id)
+    %i(approved last_read written_on).each do |attribute|
+      klass = init_class_for(attribute)
+      expected = klass.new(attribute => topic.send(attribute))
+      assert_equal [ expected ], relation.pluck(attribute, init_with: klass)
+    end
   end
 
   def test_pluck_type_cast_with_conflict_column_names
@@ -840,6 +889,22 @@ class CalculationsTest < ActiveRecord::TestCase
     actual = AuthorAddress.joins(author: [:topics, :books]).order(:"books.last_read")
       .where("books.last_read": [:unread, :reading, :read])
       .pluck(:"topics.last_read", :"books.last_read")
+
+    assert_equal expected, actual
+  end
+
+  def test_pluck_type_cast_with_conflict_column_names_with_init_class
+    skip
+    klass = init_class_for(:last_read_topic, :last_read_book)
+    expected = [
+      [Date.new(2004, 4, 15), "unread"],
+      [Date.new(2004, 4, 15), "reading"],
+      [Date.new(2004, 4, 15), "read"],
+    ].map { |(topic, book)| klass.new(last_read_topic: topic, last_read_book: book) }
+
+    actual = AuthorAddress.joins(author: [:topics, :books]).order(:"books.last_read")
+      .where("books.last_read": [:unread, :reading, :read])
+      .pluck("topics.last_read last_read_topic", "books.last_read last_read_book", init_with: klass)
 
     assert_equal expected, actual
   end
@@ -870,6 +935,34 @@ class CalculationsTest < ActiveRecord::TestCase
   end
   private :assert_pluck_type_cast_without_table_name_qualified_column
 
+  def test_pluck_type_cast_with_joins_without_table_name_qualified_column_with_init_class
+    assert_pluck_type_cast_without_table_name_qualified_column_with_init_class(AuthorAddress.joins(author: :books))
+  end
+
+  def test_pluck_type_cast_with_left_joins_without_table_name_qualified_column_with_init_class
+    assert_pluck_type_cast_without_table_name_qualified_column_with_init_class(AuthorAddress.left_joins(author: :books))
+  end
+
+  def test_pluck_type_cast_with_eager_load_without_table_name_qualified_column_with_init_class
+    assert_pluck_type_cast_without_table_name_qualified_column_with_init_class(AuthorAddress.eager_load(author: :books))
+  end
+
+  def assert_pluck_type_cast_without_table_name_qualified_column_with_init_class(author_addresses)
+    klass = init_class_for(:format, :last_read)
+    expected = [
+      [nil, "unread"],
+      ["ebook", "reading"],
+      ["paperback", "read"],
+    ].map { |(format, last_read)| klass.new(format: format, last_read: last_read)}
+
+    actual = author_addresses.order(:last_read)
+      .where("books.last_read": [:unread, :reading, :read])
+      .pluck(:format, :last_read, init_with: klass)
+
+    assert_equal expected, actual
+  end
+  private :assert_pluck_type_cast_without_table_name_qualified_column
+
   def test_pluck_with_type_cast_does_not_corrupt_the_query_cache
     topic = topics(:first)
     relation = Topic.where(id: topic.id)
@@ -882,8 +975,26 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_pluck_with_type_cast_does_not_corrupt_the_query_cache_with_init_class
+    topic = topics(:first)
+    relation = Topic.where(id: topic.id)
+    assert_queries 1 do
+      Topic.cache do
+        kind = relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on).class
+        relation.pluck(:written_on, init_with: init_class_for(:written_on))
+        assert_kind_of kind, relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on)
+      end
+    end
+  end
+
   def test_pluck_and_distinct
     assert_equal [50, 53, 55, 60], Account.order(:credit_limit).distinct.pluck(:credit_limit)
+  end
+
+  def test_pluck_and_distinct_with_init_class
+    klass = init_class_for(:credit_limit)
+    expected = [50, 53, 55, 60].map { |credit| klass.new(credit_limit: credit) }
+    assert_equal expected, Account.order(:credit_limit).distinct.pluck(:credit_limit, init_with: klass)
   end
 
   def test_pluck_in_relation
@@ -892,8 +1003,19 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [contract.id], company.contracts.pluck(:id)
   end
 
+  def test_pluck_in_relation_with_init_class
+    klass = init_class_for(:id)
+    company = Company.first
+    contract = company.contracts.create!
+    assert_equal [klass.new(id: contract.id)], company.contracts.pluck(:id, init_with: klass)
+  end
+
   def test_pluck_on_aliased_attribute
     assert_equal "The First Topic", Topic.order(:id).pluck(:heading).first
+  end
+
+  def test_pluck_on_aliased_attribute_with_init_class
+    assert_equal "The First Topic", Topic.order(:id).pluck(:heading, init_with: Topic).first.title
   end
 
   def test_pluck_with_serialization
@@ -901,8 +1023,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [{ "foo" => "bar" }], Topic.where(id: t.id).pluck(:content)
   end
 
+  def test_pluck_with_serialization_with_init_class
+    klass = init_class_for(:content)
+    t = Topic.create!(content: { "foo" => "bar" })
+    assert_equal [klass.new(content: { "foo" => "bar" })], Topic.where(id: t.id).pluck(:content, init_with: klass)
+  end
+
   def test_pluck_with_qualified_column_name
     assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck("topics.id")
+  end
+
+  def test_pluck_with_qualified_column_name_with_init_class
+    klass = init_class_for(:id)
+    expected = [1, 2, 3, 4, 5].map { |id| klass.new(id: id) }
+    assert_equal expected, Topic.order(:id).pluck("topics.id", init_with: klass)
   end
 
   def test_pluck_auto_table_name_prefix
@@ -910,9 +1044,21 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [c.id], Company.joins(:contracts).pluck(:id)
   end
 
+  def test_pluck_auto_table_name_prefix_with_init_class
+    klass = init_class_for(:id)
+    c = Company.create!(name: "test", contracts: [Contract.new])
+    assert_equal [klass.new(id: c.id)], Company.joins(:contracts).pluck(:id, init_with: klass)
+  end
+
   def test_pluck_if_table_included
     c = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     assert_equal [c.id], Company.includes(:contracts).where("contracts.id" => c.contracts.first).pluck(:id)
+  end
+
+  def test_pluck_if_table_included_with_init_class
+    klass = init_class_for(:id)
+    c = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
+    assert_equal [klass.new(id: c.id)], Company.includes(:contracts).where("contracts.id" => c.contracts.first).pluck(:id, init_with: klass)
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_joined
@@ -921,11 +1067,34 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [metadata], Company.joins(:contracts).pluck(:metadata)
   end
 
+  def test_pluck_not_auto_table_name_prefix_if_column_joined_with_init_class
+    klass = init_class_for(:metadata)
+    company = Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
+    metadata = company.contracts.first.metadata
+    assert_equal [klass.new(metadata: metadata)], Company.joins(:contracts).pluck(:metadata, init_with: klass)
+  end
+
   def test_pluck_with_selection_clause
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
+  end
+
+  def test_pluck_with_selection_clause_with_init_class
+    klass = init_class_for(:credit_limit) do
+      def <=>(other)
+        credit_limit <=> other.credit_limit
+      end
+    end
+
+    expected = [50, 53, 55, 60].map { |credit| klass.new(credit_limit: credit) }
+    assert_equal expected, Account.pluck(Arel.sql("DISTINCT credit_limit"), init_with: klass).sort
+    assert_equal expected, Account.pluck(Arel.sql("DISTINCT accounts.credit_limit"), init_with: klass).sort
+    assert_equal expected, Account.pluck(Arel.sql("DISTINCT(credit_limit)"), init_with: klass).sort
+
+    klass = Struct.new(:credit_sum, keyword_init: true)
+    assert_equal [klass.new(credit_sum: 50 + 53 + 55 + 60)], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit)) AS credit_sum"), init_with: klass)
   end
 
   def test_plucks_with_ids
@@ -937,13 +1106,31 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id)
   end
 
+  def test_pluck_with_includes_limit_and_empty_result_with_init_class
+    klass = init_class_for(:id)
+    assert_equal [], Topic.includes(:replies).limit(0).pluck(:id, init_with: klass)
+    assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id, init_with: klass)
+  end
+
   def test_pluck_with_includes_offset
     assert_equal [5], Topic.includes(:replies).order(:id).offset(4).pluck(:id)
     assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
   end
 
+  def test_pluck_with_includes_offset_with_init_class
+    klass = init_class_for(:id)
+    assert_equal [klass.new(id: 5)], Topic.includes(:replies).order(:id).offset(4).pluck(:id, init_with: klass)
+    assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id, init_with: klass)
+  end
+
   def test_pluck_with_join
     assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, :"topics.id")
+  end
+
+  def test_pluck_with_join_with_init_class
+    klass = init_class_for(:id, :topic_id)
+    expected = [[2, 2], [4, 4]].map { |(id, topic_id)| klass.new(id: id, topic_id: topic_id) }
+    assert_equal expected, Reply.includes(:topic).order(:id).pluck(:id, "topics.id AS topic_id", init_with: klass)
   end
 
   def test_group_by_with_order_by_virtual_count_attribute
@@ -984,6 +1171,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [7], ids.compact
   end
 
+  def test_pluck_not_auto_table_name_prefix_if_column_included_with_init_class
+    klass = init_class_for(:developer_id)
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
+    results = Company.includes(:contracts).pluck(:developer_id, init_with: klass)
+    assert_equal Company.count, results.length
+    assert_equal [klass.new(developer_id: 7)], results.compact.select(&:developer_id)
+  end
+
   def test_pluck_multiple_columns
     assert_equal [
       [1, "The First Topic"], [2, "The Second Topic of the day"],
@@ -997,14 +1192,48 @@ class CalculationsTest < ActiveRecord::TestCase
     ], Topic.order(:id).pluck(:id, :title, :author_name)
   end
 
+  def test_pluck_multiple_columns_with_init_class
+    klass = init_class_for(:id, :title)
+    expected = [
+      [1, "The First Topic"],[2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ].map { |(id, title)| klass.new(id: id, title: title) }
+
+    assert_equal expected, Topic.order(:id).pluck(:id, :title, init_with: klass)
+
+    klass = init_class_for(:id, :title, :author_name)
+    expected = [
+      [1, "The First Topic", "David"], [2, "The Second Topic of the day", "Mary"],
+      [3, "The Third Topic of the day", "Carl"], [4, "The Fourth Topic of the day", "Carl"],
+      [5, "The Fifth Topic of the day", "Jason"]
+    ].map { |(id, title, author_name)| klass.new(id: id, title: title, author_name: author_name) }
+
+    assert_equal expected, Topic.order(:id).pluck(:id, :title, :author_name, init_with: klass)
+  end
+
   def test_pluck_with_multiple_columns_and_selection_clause
     assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
       Account.order(:id).pluck("id, credit_limit")
   end
 
+  def test_pluck_with_multiple_columns_and_selection_clause_with_init_class
+    klass = init_class_for(:id, :credit_limit)
+    expected = [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]]
+      .map { |(id, credit_limit)| klass.new(id: id, credit_limit: credit_limit) }
+    assert_equal expected, Account.order(:id).pluck("id, credit_limit", init_with: klass)
+  end
+
   def test_pluck_with_line_endings
     assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
       Account.order(:id).pluck("id, credit_limit\n")
+  end
+
+  def test_pluck_with_line_endings_with_init_class
+    klass = init_class_for(:id, :credit_limit)
+    expected = [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]]
+      .map { |(id, credit_limit)| klass.new(id: id, credit_limit: credit_limit) }
+    assert_equal expected, Account.order(:id).pluck("id, credit_limit\n", init_with: klass)
   end
 
   def test_pluck_with_multiple_columns_and_includes
@@ -1016,10 +1245,27 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal ["test", 7], companies_and_developers.last
   end
 
+  def test_pluck_with_multiple_columns_and_includes_with_init_class
+    klass = init_class_for(:name, :developer_id)
+    Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
+    companies_and_developers = Company.order("companies.id").includes(:contracts).pluck(:name, :developer_id, init_with: klass)
+
+    assert_equal Company.count, companies_and_developers.length
+    assert_equal klass.new(name: "37signals", developer_id: nil), companies_and_developers.first
+    assert_equal klass.new(name: "test", developer_id: 7), companies_and_developers.last
+  end
+
   def test_pluck_with_reserved_words
     Possession.create!(where: "Over There")
 
     assert_equal ["Over There"], Possession.pluck(:where)
+  end
+
+  def test_pluck_with_reserved_words_with_init_class
+    klass = init_class_for(:where)
+    Possession.create!(where: "Over There")
+
+    assert_equal [klass.new(where: "Over There")], Possession.pluck(:where, init_with: klass)
   end
 
   def test_pluck_replaces_select_clause
@@ -1028,10 +1274,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [false, true, true, true, true], takes_relation.pluck(:approved)
   end
 
+  def test_pluck_replaces_select_clause_with_init_class
+    takes_relation = Topic.select(:approved, :id).order(:id)
+
+    klass = init_class_for(:id)
+    expected = [1, 2, 3, 4, 5].map { |id| klass.new(id: id) }
+    assert_equal expected , takes_relation.pluck(:id, init_with: klass)
+
+    klass = init_class_for(:approved)
+    expected = [false, true, true, true, true].map { |approved| klass.new(approved: approved) }
+    assert_equal expected, takes_relation.pluck(:approved, init_with: klass)
+  end
+
   def test_pluck_columns_with_same_name
     expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
     actual = Topic.joins(:replies).order(:id)
       .pluck("topics.title", "replies_topics.title")
+    assert_equal expected, actual
+  end
+
+  def test_pluck_columns_with_same_name_with_init_class
+    klass = init_class_for(:title, :reply_title)
+    expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
+      .map { |(title1, title2)| klass.new(title: title1, reply_title: title2) }
+    actual = Topic.joins(:replies).order(:id).pluck("topics.title", "replies_topics.title reply_title", init_with: klass)
     assert_equal expected, actual
   end
 
@@ -1043,6 +1309,21 @@ class CalculationsTest < ActiveRecord::TestCase
     ], Topic.order(:id).pluck(
       Arel.sql("COALESCE(id, 0) id"),
       Arel.sql("COALESCE(title, 'untitled') title")
+    )
+  end
+
+  def test_pluck_functions_with_alias_with_init_class
+    klass = init_class_for(:id, :title)
+    expected = [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ].map { |(id, title)| klass.new(id: id, title: title) }
+
+    assert_equal expected , Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0) id"),
+      Arel.sql("COALESCE(title, 'untitled') title"),
+      init_with: klass
     )
   end
 
@@ -1070,6 +1351,33 @@ class CalculationsTest < ActiveRecord::TestCase
     )
   end
 
+  def test_pluck_functions_without_alias_with_init_class
+    skip
+    klass = init_class_for(:id, :title)
+    expected = if current_adapter?(:PostgreSQLAdapter)
+      # Postgres returns the same name for each column in the given query, so each column is named "coalesce"
+      # As a result Rails cannot accurately type cast each value.
+      # To work around this, you should use aliases in your select statement (see test_pluck_functions_with_alias).
+      [
+        ["1", "The First Topic"], ["2", "The Second Topic of the day"],
+        ["3", "The Third Topic of the day"], ["4", "The Fourth Topic of the day"],
+        ["5", "The Fifth Topic of the day"]
+      ]
+    else
+      [
+        [1, "The First Topic"], [2, "The Second Topic of the day"],
+        [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+        [5, "The Fifth Topic of the day"]
+      ]
+    end.map { |(id, title)| klass.new(id: id, title: title) }
+
+    assert_equal expected, Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0)"),
+      Arel.sql("COALESCE(title, 'untitled')"),
+      init_with: klass
+    )
+  end
+
   def test_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
@@ -1086,11 +1394,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal [part.id], ShipPart.joins(:trinkets).async_pluck(:id)
   end
 
+  def test_pluck_joined_with_polymorphic_relation_with_init_class
+    klass = init_class_for(:id)
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal [klass.new(id: part.id)], ShipPart.joins(:trinkets).pluck(:id, init_with: klass)
+    assert_async_equal [klass.new(id: part.id)], ShipPart.joins(:trinkets).async_pluck(:id, init_with: klass)
+  end
+
   def test_pluck_loaded_relation
     companies = Company.order(:id).limit(3).load
 
     assert_queries(0) do
       assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:name)
+    end
+  end
+
+  def test_pluck_loaded_relation_with_init_class
+    klass = init_class_for(:name)
+    companies = Company.order(:id).limit(3).load
+
+    assert_queries(0) do
+      expected = ["37signals", "Summit", "Microsoft"].map { |name| klass.new(name: name) }
+      assert_equal expected, companies.pluck(:name, init_with: klass)
     end
   end
 
@@ -1102,6 +1429,17 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_pluck_loaded_relation_multiple_columns_with_init_class
+    klass = init_class_for(:id, :name)
+    companies = Company.order(:id).limit(3).load
+
+    assert_queries(0) do
+      expected = [[1, "37signals"], [2, "Summit"], [3, "Microsoft"]]
+        .map { |(id, name)| klass.new(id: id, name: name) }
+      assert_equal expected, companies.pluck(:id, :name, init_with: klass)
+    end
+  end
+
   def test_pluck_loaded_relation_sql_fragment
     companies = Company.order(:name).limit(3).load
 
@@ -1110,11 +1448,29 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_pluck_loaded_relation_sql_fragment_with_init_class
+    klass = init_class_for(:name)
+    companies = Company.order(:name).limit(3).load
+
+    assert_queries(1) do
+      expected = ["37signals", "Apex", "Ex Nihilo"].map { |name| klass.new(name: name) }
+      assert_equal expected, companies.pluck(Arel.sql("DISTINCT name"), init_with: klass)
+    end
+  end
+
   def test_pluck_loaded_relation_aliased_attribute
     companies = Company.order(:id).limit(3).load
 
     assert_queries(0) do
       assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:new_name)
+    end
+  end
+
+  def test_pluck_loaded_relation_aliased_attribute_with_init_class
+    companies = Company.order(:id).limit(3).load
+
+    assert_queries(0) do
+      assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:new_name, init_with: Company).map(&:name)
     end
   end
 

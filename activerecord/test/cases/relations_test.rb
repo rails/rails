@@ -199,6 +199,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal relation.pluck(:id), subquery.pluck(:id)
   end
 
+  def test_pluck_with_from_includes_original_table_name_with_init_class
+    klass = Struct.new(:id, keyword_init: true)
+    relation = Comment.joins(:post).order(:id)
+    subquery = Comment.from("#{Comment.table_name} /*! USE INDEX (PRIMARY) */").joins(:post).order(:id)
+    assert_equal relation.pluck(:id, init_with: klass), subquery.pluck(:id, init_with: klass)
+  end
+
   def test_select_with_from_includes_quoted_original_table_name
     relation = Comment.joins(:post).select(:id).order(:id)
     subquery = Comment.from("#{Comment.quoted_table_name} /*! USE INDEX (PRIMARY) */").joins(:post).select(:id).order(:id)
@@ -209,6 +216,13 @@ class RelationTest < ActiveRecord::TestCase
     relation = Comment.joins(:post).order(:id)
     subquery = Comment.from("#{Comment.quoted_table_name} /*! USE INDEX (PRIMARY) */").joins(:post).order(:id)
     assert_equal relation.pluck(:id), subquery.pluck(:id)
+  end
+
+  def test_pluck_with_from_includes_quoted_original_table_name_with_init_class
+    klass = Struct.new(:id, keyword_init: true)
+    relation = Comment.joins(:post).order(:id)
+    subquery = Comment.from("#{Comment.quoted_table_name} /*! USE INDEX (PRIMARY) */").joins(:post).order(:id)
+    assert_equal relation.pluck(:id, init_with: klass), subquery.pluck(:id, init_with: klass)
   end
 
   def test_select_with_subquery_in_from_uses_original_table_name
@@ -222,6 +236,13 @@ class RelationTest < ActiveRecord::TestCase
     relation = Comment.joins(:post).order(:id)
     subquery = Comment.from(Comment.all, Comment.quoted_table_name).joins(:post).order(:id)
     assert_equal relation.pluck(:id), subquery.pluck(:id)
+  end
+
+  def test_pluck_with_subquery_in_from_uses_original_table_name_with_init_class
+    klass = Struct.new(:id, keyword_init: true)
+    relation = Comment.joins(:post).order(:id)
+    subquery = Comment.from(Comment.all, Comment.quoted_table_name).joins(:post).order(:id)
+    assert_equal relation.pluck(:id, init_with: klass), subquery.pluck(:id, init_with: klass)
   end
 
   def test_select_with_subquery_in_from_does_not_use_original_table_name

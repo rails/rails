@@ -253,9 +253,9 @@ module ActiveRecord
     #   # => ['0', '27761', '173']
     #
     # See also #ids.
-    def pluck(*column_names)
+    def pluck(*column_names, **opts)
       if loaded? && all_attributes?(column_names)
-        result = records.pluck(*column_names)
+        result = records.pluck(*column_names, **opts)
         if @async
           return Promise::Complete.new(result)
         else
@@ -265,7 +265,7 @@ module ActiveRecord
 
       if has_include?(column_names.first)
         relation = apply_join_dependency
-        relation.pluck(*column_names)
+        relation.pluck(*column_names, **opts)
       else
         klass.disallow_raw_sql!(column_names)
         columns = arel_columns(column_names)
@@ -278,15 +278,19 @@ module ActiveRecord
             klass.connection.select_all(relation.arel, "#{klass.name} Pluck", async: @async)
           end
         end
-        result.then do |result|
-          type_cast_pluck_values(result, columns)
+
+        if opts[:init_with]
+          result.then { |result| type_cast_pluck_values(result, columns, true) }
+                .then { |result| result.map { |params| opts[:init_with].new(**params) } }
+        else
+          result.then { |result| type_cast_pluck_values(result, columns, false) }
         end
       end
     end
 
     # Same as <tt>#pluck</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
-    def async_pluck(*column_names)
-      async.pluck(*column_names)
+    def async_pluck(*column_names, **opts)
+      async.pluck(*column_names, **opts)
     end
 
     # Pick the value(s) from the named column(s) in the current relation.
@@ -505,7 +509,7 @@ module ActiveRecord
         nil
       end
 
-      def type_cast_pluck_values(result, columns)
+      def type_cast_pluck_values(result, columns, init_option = false)
         cast_types = if result.columns.size != columns.size
           klass.attribute_types
         else
@@ -519,7 +523,7 @@ module ActiveRecord
               end
           end
         end
-        result.cast_values(cast_types)
+        result.cast_values(cast_types, init_option)
       end
 
       def type_cast_calculated_value(value, operation, type)
