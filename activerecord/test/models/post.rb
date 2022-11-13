@@ -207,6 +207,15 @@ class Post < ActiveRecord::Base
   end
 end
 
+class ActiveModelPostWithAttributes
+  include ActiveModel::Attributes
+
+  attribute :title, :string
+  attribute :type,  :string
+  attribute :published, :boolean, default: true
+  attribute :author_name, :string
+end
+
 class SpecialPost < Post; end
 
 class StiPost < Post

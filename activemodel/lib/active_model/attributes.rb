@@ -74,6 +74,13 @@ module ActiveModel
         attribute_types.keys
       end
 
+      def attributes_builder # :nodoc:
+        unless defined?(@attributes_builder) && @attributes_builder
+          @attributes_builder = ActiveModel::AttributeSet::Builder.new(attribute_types, _default_attributes)
+        end
+        @attributes_builder
+      end
+
       private
         def define_method_attribute=(name, owner:)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
@@ -136,6 +143,12 @@ module ActiveModel
     def freeze # :nodoc:
       @attributes = @attributes.clone.freeze unless frozen?
       super
+    end
+
+    def init_with_attributes(attributes)
+      @attributes = attributes
+      yield self if block_given?
+      self
     end
 
     private

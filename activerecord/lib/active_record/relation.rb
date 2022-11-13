@@ -21,6 +21,7 @@ module ActiveRecord
 
     attr_reader :table, :klass, :loaded, :predicate_builder
     attr_accessor :skip_preloading_value
+    attr_writer :instantiating_class
     alias :model :klass
     alias :loaded? :loaded
     alias :locked? :lock_value
@@ -826,6 +827,16 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins, aliases)
     end
 
+    def cast_results_with(instantiating_class)
+      if instantiating_class < Base
+        raise ArgumentError, "ActiveRecord classes aren't allowed"
+      end
+
+      dup.tap do |relation|
+        relation.instantiating_class = instantiating_class
+      end
+    end
+
     class StrictLoadingScope # :nodoc:
       def self.empty_scope?
         true
@@ -965,7 +976,7 @@ module ActiveRecord
           @_join_dependency = nil
           records
         else
-          klass._load_from_sql(rows, &block).freeze
+          klass._load_from_sql(rows, @instantiating_class, &block).freeze
         end
       end
 

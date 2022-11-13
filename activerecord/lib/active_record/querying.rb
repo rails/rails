@@ -62,7 +62,7 @@ module ActiveRecord
       connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
     end
 
-    def _load_from_sql(result_set, &block) # :nodoc:
+    def _load_from_sql(result_set, loading_class = nil, &block) # :nodoc:
       column_types = result_set.column_types
 
       unless column_types.empty?
@@ -77,7 +77,9 @@ module ActiveRecord
       }
 
       message_bus.instrument("instantiation.active_record", payload) do
-        if result_set.includes_column?(inheritance_column)
+        if loading_class
+          result_set.map { |record| instantiate_instance_of(loading_class, record, column_types, &block) }
+        elsif result_set.includes_column?(inheritance_column)
           result_set.map { |record| instantiate(record, column_types, &block) }
         else
           # Instantiate a homogeneous set

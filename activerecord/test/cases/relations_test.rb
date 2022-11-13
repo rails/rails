@@ -830,6 +830,47 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 3, Post.where(author: [decorator.new(author)]).to_a.length
   end
 
+  def test_cast_results_with_raises_when_used_with_another_active_record
+    relation = Post.where(author: Post.last.author).all
+    assert_raise { relation.cast_results_with(TaggedPost) }
+  end
+
+  def test_cast_results_with_where_class_is_not_an_active_record
+    posts = Post.where(author: Post.last.author).all
+
+    post = posts.first
+    other_post = posts.cast_results_with(ActiveModelPostWithAttributes).first
+
+    assert_equal other_post.body, post.body
+    assert_equal other_post.type, post.type
+    assert_raises(NoMethodError) { post.published }
+    assert_equal true, other_post.published
+  end
+
+  def test_cast_results_with_does_not_update_previous_scope
+    posts = Post.where(author: Post.last.author).all
+    other_posts = posts.cast_results_with(ActiveModelPostWithAttributes)
+
+    assert Post === posts.first
+    assert ActiveModelPostWithAttributes === other_posts.first
+  end
+
+  def test_cast_results_with_where_select_joins_attributes
+    posts = Post.joins(:author).select(:title, :body, authors: { name: :author_name })
+
+    post = posts.first
+    other_post = posts.cast_results_with(ActiveModelPostWithAttributes).first
+
+    assert_equal post.author_name, other_post.author_name
+    assert_equal post.title, other_post.title
+    assert_equal post.body, other_post.body
+  end
+
+  def test_cast_results_with_find_by
+    post = Post.all.cast_results_with(ActiveModelPostWithAttributes).find_by(author: Author.first)
+    assert ActiveModelPostWithAttributes === post
+  end
+
   def test_find_by_with_delegated_ar_object
     decorator = Class.new(SimpleDelegator)
     author = Author.first

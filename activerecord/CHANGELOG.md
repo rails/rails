@@ -1,3 +1,47 @@
+*   Introduce ActiveRecord::Relation#cast_results_with
+
+    This is method allows to load and map results of an active record relation
+    with another class when the query is loaded. The class needs to include
+    ActiveMode::Attributes module.
+
+    Example:
+
+    ```ruby
+    ActiveRecord::Schema.define do
+      create_table :people, force: true do |t|
+        t.string :name, null: false
+      end
+    end
+
+    class Person < ActiveRecord::Base; end
+
+    class PolitePerson
+      include ActiveModel::Attributes
+
+      attribute :name, :string
+
+      def greeting
+        "Hello, my name is #{name}"
+      end
+    end
+
+    Person.create!(name: 'Alex')
+    Person.create!(name: 'Jess')
+
+    person = Person
+      .where(name: 'Jess')
+      .cast_results_with(PolitePerson)
+      .first
+
+    person.name
+    => "Jess"
+
+    person.greeting
+    => "Hello my name is Jess"
+    ```
+
+    *Alexandre Barret*
+
 *   Add automatic filtering of encrypted attributes on inspect
 
     This feature is enabled by default but can be disabled with

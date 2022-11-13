@@ -1,3 +1,45 @@
+*   Introduces the AttributeSet::Builder to classes with ActiveModel::Attributes
+    This allows classes to load results from the database by defining dynamic
+    attributes.
+
+    Example:
+
+    ```ruby
+    ActiveRecord::Schema.define do
+      create_table :people, force: true do |t|
+        t.string :name, null: false
+      end
+    end
+
+    class Person < ActiveRecord::Base; end
+
+    class PolitePerson
+      include ActiveModel::Attributes
+
+      attribute :name, :string
+
+      def greeting
+        "Hello, my name is #{name}"
+      end
+    end
+
+    Person.create!(name: 'Alex')
+    Person.create!(name: 'Jess')
+
+    person = Person
+      .where(name: 'Jess')
+      .cast_results_with(PolitePerson)
+      .first
+
+    person.name
+    => "Jess"
+
+    person.greeting
+    => "Hello my name is Jess"
+    ```
+
+    *Alexandre Barret*
+
 *   Custom attribute types that inherit from Active Model built-in types and do
     not override the `serialize` method will now benefit from an optimization
     when serializing attribute values for the database.
