@@ -13,6 +13,7 @@ require "action_view"
 require "rails_guides/markdown"
 require "rails_guides/helpers"
 require "rails_guides/epub"
+require "rails_guides/search_index"
 
 module RailsGuides
   class Generator
@@ -40,6 +41,7 @@ module RailsGuides
       generate_guides
       copy_assets
       generate_epub if @epub
+      generate_search_index
     end
 
     private
@@ -84,6 +86,10 @@ module RailsGuides
           output_file = output_file_for(guide)
           generate_guide(guide, output_file) if generate?(guide, output_file)
         end
+      end
+
+      def generate_search_index
+        SearchIndex.new(@guides_dir, @output_dir, guides_to_generate).generate
       end
 
       def guides_to_generate
