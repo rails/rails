@@ -1,3 +1,13 @@
+*   Allow not to generate some scopes by `ActiveRecord.enum`.
+
+    ```ruby
+    class Book < ApplicationRecord
+      enum :status, [:proposed, :written], scopes: { except: :proposed }
+    end
+    ```
+
+    *Alexandr Borisov*
+
 *   Raise on assignment to readonly attributes
 
     ```ruby

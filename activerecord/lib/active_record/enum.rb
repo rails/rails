@@ -257,11 +257,20 @@ module ActiveRecord
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
             if scopes
-              klass.send(:detect_enum_conflict!, name, value_method_name, true)
-              klass.scope value_method_name, -> { where(name => value) }
+              scopes_except = scopes.is_a?(Hash) && scopes.key?(:except) ? scopes[:except] : []
+              scopes_except = [scopes_except] unless scopes_except.is_a?(Array)
+              scopes_except.map!(&:to_s)
 
-              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              unless scopes_except.include?(value_method_name)
+                klass.send(:detect_enum_conflict!, name, value_method_name, true)
+                klass.scope value_method_name, -> { where(name => value) }
+              end
+
+              negative_value_method_name = "not_#{value_method_name}"
+              unless scopes_except.include?(negative_value_method_name)
+                klass.send(:detect_enum_conflict!, name, negative_value_method_name, true)
+                klass.scope negative_value_method_name, -> { where.not(name => value) }
+              end
             end
           end
       end

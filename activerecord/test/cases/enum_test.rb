@@ -801,6 +801,26 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
+  test "scopes can be partially disabled by scopes: { except: [:scope_name] }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written], scopes: { except: [:proposed] }
+    end
+
+    assert_raises(NoMethodError) { klass.proposed }
+    assert_nothing_raised { klass.written }
+  end
+
+  test "scopes can be partially disabled by scopes: { except: :scope_name }" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, [:proposed, :written], scopes: { except: :proposed }
+    end
+
+    assert_raises(NoMethodError) { klass.proposed }
+    assert_nothing_raised { klass.written }
+  end
+
   test "query state by predicate with :prefix" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
