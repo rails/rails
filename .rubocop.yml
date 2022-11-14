@@ -211,6 +211,9 @@ Lint/AmbiguousRegexpLiteral:
 Lint/DuplicateRequire:
   Enabled: true
 
+Lint/DuplicateMagicComment:
+  Enabled: true
+
 Lint/DuplicateMethods:
   Enabled: true
 
