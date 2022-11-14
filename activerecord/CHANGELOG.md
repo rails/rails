@@ -2,6 +2,16 @@
 
     *João Marcos S. B. de Moraes*
 
+*   Add automatic filtering of encrypted attributes on inspect
+
+    This feature is enabled by default but can be disabled with
+
+    ```ruby
+    config.active_record.encryption.add_to_filter_parameters = false
+    ```
+
+    *Hartley McGuire*
+
 *   Clear locking column on #dup
 
     This change fixes not to duplicate locking_column like id and timestamps.
