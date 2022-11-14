@@ -1,3 +1,15 @@
+*   Allow unscoping of preload and eager_load associations
+
+    Added the ability to unscope preload and eager_load associations just like
+    includes, joins, etc. See ActiveRecord::QueryMethods::VALID_UNSCOPING_VALUES
+    for the full list of supported unscopable scopes.
+
+    ```ruby
+    query.unscope(:eager_load, :preload).group(:id).select(:id)
+    ```
+
+    *David Morehouse*
+
 *   Add automatic filtering of encrypted attributes on inspect
 
     This feature is enabled by default but can be disabled with
