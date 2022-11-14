@@ -34,7 +34,11 @@ module ActionView
       end
 
       def error_message
-        object.errors[@method_name]
+        if association = find_association
+          object.errors[association.name]
+        else
+          object.errors[@method_name]
+        end
       end
 
       private
@@ -48,6 +52,14 @@ module ActionView
 
         def tag_generate_errors?(options)
           options["type"] != "hidden"
+        end
+
+        def find_association
+          return unless object.class.respond_to?(:reflect_on_all_associations)
+
+          object.class.reflect_on_all_associations(:belongs_to).find do |reflection|
+            reflection.foreign_key == @method_name
+          end
         end
     end
   end

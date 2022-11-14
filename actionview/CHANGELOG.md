@@ -1,3 +1,33 @@
+*   Adds foreign key to `field_error_proc` instead of the relation name.
+
+    Given you have a validation for a `belongs_to` association and it fails,
+    the foreign key is added to `field_error_proc` instead of the relation name,
+    this makes possible for example, style select tags.
+
+    ```ruby
+    class Mascot < ActiveRecord::Base
+      belongs_to :company, optional: false
+    end
+    ```
+
+    ```ruby
+    select "mascot", "company_id", Company.all
+    ```
+
+    Before:
+    ```html
+    <select name="mascot[company_id]" id="mascot_company_id">...</select>
+    ```
+
+    After:
+    ```html
+    <div class="field_with_errors">
+      <select name="mascot[company_id]" id="mascot_company_id">...</select>
+    </div>
+    ```
+
+    *Lázaro Nixon*
+
 *   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument
 
     This is to make the API more consistent with the `FormHelper` variants. You can now provide `checked` as a positional or keyword argument:

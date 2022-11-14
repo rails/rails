@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require "active_record_unit"
 
 class ActiveModelHelperTest < ActionView::TestCase
   tests ActionView::Helpers::ActiveModelHelper
@@ -31,6 +31,9 @@ class ActiveModelHelperTest < ActionView::TestCase
     @post.category    = "rails"
     @post.published   = false
     @post.updated_at  = Date.new(2004, 6, 15)
+
+    @mascot = Mascot.new
+    @mascot.validate
   end
 
   def test_text_area_with_errors
@@ -69,6 +72,13 @@ class ActiveModelHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<div class="field_with_errors"><select name="post[category]" id="post_category"><optgroup label="A"><option value="A1">A1</option>\n<option value="A2">A2</option></optgroup><optgroup label="B"><option value="B1">B1</option>\n<option value="B2">B2</option></optgroup></select></div>),
       select("post", "category", grouped_options)
+    )
+  end
+
+  def test_select_with_association_errors
+    assert_dom_equal(
+      %(<div class="field_with_errors"><select name="mascot[company_id]" id="mascot_company_id"><option value="a">a</option>\n<option value="b">b</option></select></div>),
+      select("mascot", "company_id", [:a, :b])
     )
   end
 
