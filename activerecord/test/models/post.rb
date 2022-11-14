@@ -379,6 +379,9 @@ class FakeKlass
     def base_class?
       true
     end
+
+    def deterministic_encrypted_attributes
+    end
   end
 
   inherited self
