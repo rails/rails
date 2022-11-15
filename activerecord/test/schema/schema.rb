@@ -17,6 +17,7 @@ ActiveRecord::Schema.define do
     t.string  :firm_name
     t.integer :credit_limit
     t.integer "a" * max_identifier_length
+    t.datetime :updated_at
   end
 
   create_table :admin_accounts, force: true do |t|
@@ -465,8 +466,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :entries, force: true do |t|
-    t.string  :entryable_type, null: false
-    t.integer :entryable_id, null: false
+    t.string   :entryable_type, null: false
+    t.integer  :entryable_id, null: false
+    t.integer  :account_id, null: false
+    t.datetime :updated_at
   end
 
   create_table :essays, force: true do |t|
@@ -672,7 +675,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :messages, force: true do |t|
-    t.string :subject
+    t.string   :subject
+    t.datetime :updated_at
   end
 
   create_table :minivans, force: true, id: false do |t|
@@ -1275,6 +1279,11 @@ ActiveRecord::Schema.define do
   create_table :recipes, force: true do |t|
     t.integer :chef_id
     t.integer :hotel_id
+  end
+
+  create_table :recipients, force: true do |t|
+    t.integer  :message_id
+    t.string   :email_address
   end
 
   create_table :records, force: true do |t|
