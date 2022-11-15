@@ -74,7 +74,7 @@ There is an important concern about string column sizes: in modern databases the
 
 In practice, this means:
 
-* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size. 
+* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
 * When encrypting short texts written in non-western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
 * When encrypting long texts, you can ignore column size concerns.
 
@@ -373,12 +373,11 @@ Active Record uses the key to derive the key used to encrypt and decrypt the dat
 - All the keys will be tried when decrypting content until one works.
 
 ```yml
-active_record
-  encryption:
-    primary_key:
-        - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
-        - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
-    key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
+active_record_encryption:
+  primary_key:
+    - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
+    - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
+  key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
 ```
 
 This enables workflows in which you keep a short list of keys by adding new keys, re-encrypting content, and deleting old keys.
