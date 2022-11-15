@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "yaml"
+require "erb"
 require "active_support/encrypted_file"
 require "active_support/ordered_options"
 require "active_support/core_ext/object/inclusion"
@@ -57,6 +58,8 @@ module ActiveSupport
       end
 
       def deserialize(content)
+        content = ERB.new(content).result
+
         config = YAML.respond_to?(:unsafe_load) ?
           YAML.unsafe_load(content, filename: content_path) :
           YAML.load(content, filename: content_path)

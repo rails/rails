@@ -66,6 +66,12 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal "things", @credentials[:new]
   end
 
+  test "parses erb in the config" do
+    @credentials.write({ erb: "<%= 1 + 1 %>" }.to_yaml)
+
+    assert_equal "2", @credentials[:erb]
+  end
+
   test "raises helpful error when loading invalid content" do
     @credentials.write("key: value\nbad")
 

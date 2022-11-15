@@ -1,3 +1,11 @@
+*   Support ERB in `ActiveSupport::EncryptedConfiguration`.
+
+    Allows dynamic content in `config/credentials.yml.enc`, as supported in
+    other YAML configs like `config/database.yml`. Useful if you want overrides
+    in different environments without using multi environment credentials.
+
+    *Trevor Turk*
+
 *   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
 
     Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork
