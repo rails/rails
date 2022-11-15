@@ -53,7 +53,7 @@ module ActiveRecord
     # handle cases in which there are more threads than connections: if all
     # connections have been checked out, and a thread tries to checkout a
     # connection anyway, then ConnectionPool will wait until some other thread
-    # has checked in a connection.
+    # has checked in a connection, or the +checkout_timeout+ has expired.
     #
     # == Obtaining (checking out) a connection
     #
@@ -77,6 +77,12 @@ module ActiveRecord
     #
     # Connections in the pool are actually AbstractAdapter objects (or objects
     # compatible with AbstractAdapter's interface).
+    #
+    # While a thread has a connection checked out from the pool using one of the
+    # above three methods, that connection will automatically be the one used
+    # by ActiveRecord queries executing on that thread. It is not required to
+    # explicitly pass the checked out connection to Rails models or queries, for
+    # example.
     #
     # == Options
     #
@@ -206,10 +212,15 @@ module ActiveRecord
         end
       end
 
-      # If a connection obtained through #connection or #with_connection methods
-      # already exists yield it to the block. If no such connection
-      # exists checkout a connection, yield it to the block, and checkin the
-      # connection when finished.
+      # Yields a connection from the connection pool to the block. If no connection
+      # is already checked out by the current thread, a connection will be checked
+      # out from the pool, yielded to the block, and then returned to the pool when
+      # the block is finished. If a connection has already been checked out on the
+      # current thread, such as via #connection or #with_connection, that existing
+      # connection will be the one yielded and it will not be returned to the pool
+      # automatically at the end of the block; it is expected that such an existing
+      # connection will be properly returned to the pool by the code that checked
+      # it out.
       def with_connection
         unless conn = @thread_cached_conns[connection_cache_key(ActiveSupport::IsolatedExecutionState.context)]
           conn = connection
