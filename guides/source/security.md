@@ -1243,7 +1243,7 @@ Rails.application.config.content_security_policy_nonce_generator = -> request { 
 There are a few tradeoffs to consider when configuring the nonce generator.
 Using `SecureRandom.base64(16)` is a good default value, because it will
 generate a new random nonce for each request. However, this method is
-incompatible with [Conditional GET caching](caching_with_rails.html#conditional-get-caching)
+incompatible with [conditional GET caching](caching_with_rails.html#conditional-get-support)
 because new nonces will result in new ETag values for every request. An
 alternative to per-request random nonces would be to use the session id:
 
