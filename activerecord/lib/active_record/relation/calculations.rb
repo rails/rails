@@ -317,12 +317,33 @@ module ActiveRecord
       async.pick(*column_names)
     end
 
-    # Pluck all the ID's for the relation using the table's primary key
+    # Returns the base model's ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.person_id = people.id
     def ids
-      pluck primary_key
+      if loaded?
+        result = records.pluck(primary_key)
+        return @async ? Promise::Complete.new(result) : result
+      end
+
+      columns = arel_columns([primary_key])
+      relation = spawn
+      relation.select_values = columns
+      result = if relation.where_clause.contradiction?
+        ActiveRecord::Result.empty
+      else
+        skip_query_cache_if_necessary do
+          klass.connection.select_all(relation, "#{klass.name} Ids", async: @async)
+        end
+      end
+
+      result.then { |result| type_cast_pluck_values(result, columns) }
+    end
+
+    # Same as <tt>#ids</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_ids
+      async.ids
     end
 
     private

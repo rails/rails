@@ -928,8 +928,69 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
-  def test_plucks_with_ids
-    assert_equal Company.all.map(&:id).sort, Company.ids.sort
+  def test_ids
+    assert_equal Company.all.map(&:id).sort, Company.all.ids.sort
+  end
+
+  def test_ids_with_scope
+    scoped_ids = [1, 2]
+    assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.where(id: scoped_ids).ids.sort
+  end
+
+  def test_ids_on_loaded_relation
+    loaded_companies = Company.all.load
+    company_ids = Company.all.map(&:id)
+    assert_queries(0) do
+      assert_equal company_ids.sort, loaded_companies.ids.sort
+    end
+  end
+
+  def test_ids_on_loaded_relation_with_scope
+    scoped_ids = [1, 2]
+    loaded_companies = Company.where(id: scoped_ids).load
+    company_ids = Company.where(id: scoped_ids).map(&:id)
+    assert_queries(0) do
+      assert_equal company_ids.sort, loaded_companies.ids.sort
+    end
+  end
+
+  def test_ids_async_on_loaded_relation
+    loaded_companies = Company.all.order(:id).load
+    assert_async_equal loaded_companies.ids, loaded_companies.async_ids
+  end
+
+  def test_ids_with_contradicting_scope
+    empty_scope_ids = []
+    company_ids = Company.where(id: empty_scope_ids).map(&:id)
+    assert_predicate company_ids, :empty?
+    assert_queries(0) do
+      assert_equal company_ids, Company.where(id: empty_scope_ids).ids
+    end
+  end
+
+  def test_ids_with_eager_load
+    company = Company.first
+    5.times { company.contracts.create! }
+    assert_equal Company.all.map(&:id).sort, Company.all.eager_load(:contracts).ids.sort
+  end
+
+  def test_ids_with_preload
+    company = Company.first
+    5.times { company.contracts.create! }
+    assert_equal Company.all.map(&:id).sort, Company.all.preload(:contracts).ids.sort
+  end
+
+  def test_ids_with_includes
+    company = Company.first
+    5.times { company.contracts.create! }
+    assert_equal Company.all.map(&:id).sort, Company.all.includes(:contracts).ids.sort
+  end
+
+  def test_ids_with_scope_and_includes
+    scoped_ids = [1, 2]
+    company = Company.where(id: scoped_ids).first
+    5.times { company.contracts.create! }
+    assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.where(id: scoped_ids).includes(:contracts).ids.sort
   end
 
   def test_pluck_with_includes_limit_and_empty_result

@@ -256,9 +256,9 @@ module ActiveRecord
       posts_with_joins_and_merges = Post.joins(:author, :categorizations)
                                         .merge(Author.select(:id)).merge(categorizations_with_authors)
 
-      author_with_posts = Author.joins(:posts).ids
-      categorizations_with_author = Categorization.joins(:author).ids
-      posts_with_author_and_categorizations = Post.joins(:categorizations).where(author_id: author_with_posts, categorizations: { id: categorizations_with_author }).ids
+      author_with_posts = Author.joins(:posts).pluck(:id)
+      categorizations_with_author = Categorization.joins(:author).pluck(:id)
+      posts_with_author_and_categorizations = Post.joins(:categorizations).where(author_id: author_with_posts, categorizations: { id: categorizations_with_author }).pluck(:id)
 
       assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.count
       assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.to_a.size
