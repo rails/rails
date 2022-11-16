@@ -32,7 +32,7 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   test "table options with CHARSET" do
     @connection.create_table "mysql_table_options", force: true, options: "CHARSET=latin1"
     output = dump_table_schema("mysql_table_options")
-    expected = /create_table "mysql_table_options", charset: "latin1", force: :cascade/
+    expected = /create_table "mysql_table_options", charset: "latin1"(?:, collation: "\w+")?, force: :cascade/
     assert_match expected, output
   end
 
