@@ -369,8 +369,8 @@ module ActiveSupport
       # If passed an optional +locale+ parameter, the uncountables will be
       # found for that locale.
       #
-      #  apply_inflections('post', inflections.plurals, :en)    # => "posts"
-      #  apply_inflections('posts', inflections.singulars, :en) # => "post"
+      #   apply_inflections('post', inflections.plurals, :en)    # => "posts"
+      #   apply_inflections('posts', inflections.singulars, :en) # => "post"
       def apply_inflections(word, rules, locale = :en)
         result = word.to_s.dup
 
