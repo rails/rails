@@ -7,16 +7,13 @@ module ActiveStorage
   # Fixtures are a way of organizing data that you want to test against; in
   # short, sample data.
   #
-  # To learn more about fixtures, read the
-  # {ActiveRecord::FixtureSet}[rdoc-ref:ActiveRecord::FixtureSet] documentation.
+  # To learn more about fixtures, read the ActiveRecord::FixtureSet documentation.
   #
   # === YAML
   #
-  # Like other Active Record-backed models,
-  # {ActiveStorage::Attachment}[rdoc-ref:ActiveStorage::Attachment] and
-  # {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob] records inherit from
-  # {ActiveRecord::Base}[rdoc-ref:ActiveRecord::Base] instances and therefore
-  # can be populated by fixtures.
+  # Like other Active Record-backed models, ActiveStorage::Attachment and
+  # ActiveStorage::Blob records inherit from ActiveRecord::Base instances and
+  # therefore can be populated by fixtures.
   #
   # Consider a hypothetical <tt>Article</tt> model class, its related
   # fixture data, as well as fixture data for related ActiveStorage::Attachment
@@ -44,7 +41,7 @@ module ActiveStorage
 
     # Generate a YAML-encoded representation of an ActiveStorage::Blob
     # instance's attributes, resolve the file relative to the directory mentioned
-    # by <tt>ActiveSupport::Testing::FileFixtures.file_fixture</tt>, and upload
+    # by ActiveSupport::Testing::FileFixtures.file_fixture, and upload
     # the file to the Service
     #
     # === Examples

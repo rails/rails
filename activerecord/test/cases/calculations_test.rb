@@ -666,7 +666,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_no_parameters_isnt_deprecated
-    assert_not_deprecated { Account.count }
+    assert_not_deprecated(ActiveRecord.deprecator) { Account.count }
   end
 
   def test_count_with_too_many_parameters_raises

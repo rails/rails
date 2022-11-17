@@ -279,7 +279,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_early_return_from_transaction
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       @first.with_lock do
         break
       end

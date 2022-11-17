@@ -1259,6 +1259,49 @@ module ApplicationTests
           end
         end
       end
+
+      test "after schema is loaded test run on the correct connections" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: db/default.sqlite3
+              adapter: sqlite3
+            animals:
+              database: db/development_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+          test:
+            primary:
+              database: db/default_test.sqlite3
+              adapter: sqlite3
+            animals:
+              database: db/test_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+        YAML
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+
+          File.open("test/models/book_test.rb", "w") do |file|
+            file.write(<<~EOS)
+              require "test_helper"
+
+              class BookTest < ActiveSupport::TestCase
+                test "a book" do
+                  assert Book.first
+                end
+              end
+            EOS
+          end
+
+          rails "db:migrate"
+          rails "db:schema:dump"
+          output = rails "test"
+          assert_match(/1 runs, 1 assertions, 0 failures, 0 errors, 0 skips/, output)
+        end
+      end
     end
   end
 end

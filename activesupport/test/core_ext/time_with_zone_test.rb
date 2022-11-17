@@ -206,7 +206,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     EOF
 
     # TODO: Remove assertion in Rails 7.1
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal(yaml, @twz.to_yaml)
     end
   end
@@ -222,7 +222,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     EOF
 
     # TODO: Remove assertion in Rails 7.1
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal(yaml, { "twz" => @twz }.to_yaml)
     end
   end

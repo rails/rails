@@ -402,6 +402,20 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_unscope_eager_load
+    expected = Developer.all.collect(&:name)
+    received = Developer.eager_load(:projects).select(:id).unscope(:eager_load, :select)
+    assert_equal expected, received.collect(&:name)
+    assert_equal false, received.first.projects.loaded?
+  end
+
+  def test_unscope_preloads
+    expected = Developer.all.collect(&:name)
+    received = Developer.preload(:projects).select(:id).unscope(:preload, :select)
+    assert_equal expected, received.collect(&:name)
+    assert_equal false, received.first.projects.loaded?
+  end
+
   def test_unscope_having
     expected = DeveloperOrderedBySalary.all.collect(&:name)
     received = DeveloperOrderedBySalary.having("name IN ('Jamis', 'David')").unscope(:having).collect(&:name)
