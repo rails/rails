@@ -112,4 +112,31 @@ class ActionText::ModelTest < ActiveSupport::TestCase
       assert_equal "Body", message.body.to_plain_text
     end
   end
+
+  test "attachment_service is nil" do
+    default_reflection = Message.reflect_on_association(:rich_text_content).class_name.safe_constantize.reflect_on_attachment(:embeds)
+    assert_nil default_reflection.options[:service_name]
+  end
+
+  test "raises error when misconfigured service is passed" do
+    error = assert_raises ArgumentError do
+      Message.class_eval do
+        has_rich_text :content, attachment_service: :unknown
+      end
+    end
+
+    assert_match(/Cannot configure service :unknown for ActionText::RichText#embeds/, error.message)
+  end
+
+  test "attachment_service is set to the one provided" do
+    Message.class_eval do
+      has_rich_text :content, attachment_service: :local
+    end
+    reflection = Message.reflect_on_association(:rich_text_content).class_name.safe_constantize.reflect_on_attachment(:embeds)
+    assert_equal :local, reflection.options[:service_name]
+  ensure
+    Message.class_eval do
+      has_rich_text :content
+    end
+  end
 end
