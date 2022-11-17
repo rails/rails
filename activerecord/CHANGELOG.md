@@ -1,3 +1,26 @@
+*   Raise on assignment to readonly attributes
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      attr_readonly :content
+    end
+    Post.create!(content: "cannot be updated")
+    post.content # "cannot be updated"
+    post.content = "something else" # => ActiveRecord::ReadonlyAttributeError
+    ```
+
+    Previously, assignment would succeed but silently not write to the database.
+
+    This behavior can be controlled by configuration:
+
+    ```ruby
+    config.active_record.raise_on_assign_to_attr_readonly = true
+    ```
+
+    and will be enabled by default with `load_defaults 7.1`.
+
+    *Alex Ghiculescu*, *Hartley McGuire*
+
 *   Allow unscoping of preload and eager_load associations
 
     Added the ability to unscope preload and eager_load associations just like

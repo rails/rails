@@ -30,6 +30,8 @@ ARTest.connect
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
 
+ActiveRecord.raise_on_assign_to_attr_readonly = true
+
 def current_adapter?(*types)
   types.any? do |type|
     ActiveRecord::ConnectionAdapters.const_defined?(type) &&

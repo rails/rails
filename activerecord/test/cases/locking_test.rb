@@ -461,7 +461,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     s.reload
     assert_equal "unchangeable name", s.name
 
-    s.update(name: "changed name")
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      s.update(name: "changed name")
+    end
     s.reload
     assert_equal "unchangeable name", s.name
   end
