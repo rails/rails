@@ -1,3 +1,16 @@
+*   `ActiveSupport::CurrentAttributes.resets` now accepts a method name
+
+    The block API is still the recommended approach, but now both APIs are supported:
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      resets { Time.zone = nil }
+      resets :clear_time_zone
+    end
+    ```
+
+    *Alex Ghiculescu*
+
 *   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
 
     Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork
