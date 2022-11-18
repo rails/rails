@@ -542,6 +542,24 @@ module ActiveRecord
       update_all updates
     end
 
+    # Updates all records in the current relation by initializing +attribute+ to zero if +nil+
+    # and adding the value passed as +by+ (default is 1). It does not instantiate the involved models,
+    # and it does not trigger Active Record callbacks or validations. Supports the +touch+ option from
+    # +update_counters+, see that for more.
+    # Returns the number of rows affected.
+    def increment_all(attribute, by = 1, touch: nil)
+      update_counters(attribute => by, touch: touch)
+    end
+
+    # Updates all records in the current relation by initializing +attribute+ to zero if +nil+
+    # and subtracting the value passed as +by+ (default is 1). It does not instantiate the involved models,
+    # and it does not trigger Active Record callbacks or validations. Supports the +touch+ option from
+    # +update_counters+, see that for more.
+    # Returns the number of rows affected.
+    def decrement_all(attribute, by = 1, touch: nil)
+      update_counters(attribute => -by, touch: touch)
+    end
+
     # Touches all records in the current relation, setting the +updated_at+/+updated_on+ attributes to the current time or the time specified.
     # It does not instantiate the involved models, and it does not trigger Active Record callbacks or validations.
     # This method can be passed attribute names and an optional time argument.
