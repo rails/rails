@@ -173,6 +173,10 @@ module ActiveRecord
         else
           @lock_thread = nil
         end
+
+        if (active_connection = @thread_cached_conns[connection_cache_key(current_thread)])
+          active_connection.synchronized = lock_thread
+        end
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -352,7 +356,9 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
-        checkout_and_verify(acquire_connection(checkout_timeout))
+        connection = checkout_and_verify(acquire_connection(checkout_timeout))
+        connection.synchronized = @lock_thread
+        connection
       end
 
       # Check-in a database connection back into the pool, indicating that you
