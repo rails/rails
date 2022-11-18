@@ -1165,11 +1165,5 @@ module ActiveRecord
         persisted?, new_record?, or destroyed? before touching.
       MSG
     end
-
-    # The name of the method used to touch a +belongs_to+ association when the
-    # +:touch+ option is used.
-    def belongs_to_touch_method
-      :touch
-    end
   end
 end
