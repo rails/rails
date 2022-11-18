@@ -738,7 +738,7 @@ default. Loading involves three steps:
 2. Load the fixture data into the table
 3. Dump the fixture data into a method in case you want to access it directly
 
-TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html)).
+TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](https://www.postgresql.org/docs/current/sql-altertable.html)).
 
 #### Fixtures are Active Record Objects
 
