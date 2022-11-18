@@ -212,6 +212,13 @@ class Array
     end
   end
 
+  # Returns ActiveRecord::Relation, if array of objects consists of:
+  #
+  # 1. Objects belonging to the same class
+  # 2. Objects that inherit from ApplicationRecord
+  #
+  # If either one of the requirements is not fulfilled, the exception is raised.
+
   def to_relation
     return ApplicationRecord.none if self.empty?
     
