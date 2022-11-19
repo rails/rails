@@ -220,15 +220,15 @@ class Array
   # If either one of the requirements is not fulfilled, the exception is raised.
 
   def to_relation
-    return ApplicationRecord.none if self.empty?
-    
-    classes = self.collect(&:class).uniq
+    return ApplicationRecord.none if empty?
+
+    classes = collect(&:class).uniq
     raise "Objects of different type. Array cannot be converted to ActiveRecord::Relation." if classes.size > 1
 
-    if classes.first.ancestors.include? ApplicationRecord
-      classes.first.where(id: self.collect(&:id))
+    if classes.first.ancestors.include? ActiveRecord::Base
+      classes.first.where(id: collect(&:id))
     else
-      raise "Array element doesn't inherit from ApplicationRecord and can't converted" 
+      raise "Array element doesn't inherit from ActiveRecord and can't converted"
     end
   end
 end

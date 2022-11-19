@@ -5,6 +5,7 @@ require "active_support/core_ext/array"
 require "active_support/core_ext/big_decimal"
 require "active_support/core_ext/hash"
 require "active_support/core_ext/string"
+require "active_record"
 
 class ToSentenceTest < ActiveSupport::TestCase
   def test_plain_array_to_sentence
@@ -236,5 +237,62 @@ class ToXmlTest < ActiveSupport::TestCase
     [].to_xml(options)
     # :builder, etc, shouldn't be added to options
     assert_equal({ skip_instruct: true }, options)
+  end
+end
+
+class ToRelationTest < ActiveSupport::TestCase
+  setup do
+    connection = { adapter: "sqlite3", database: "to_relation_conversion" }
+    ActiveRecord::Base.establish_connection(connection)
+
+    class Duck
+    end
+
+    class Dog < ActiveRecord::Base
+      connection.create_table :dogs, force: true do |t|
+        t.string :name
+      end
+    end
+
+    class Cat < ActiveRecord::Base
+      connection.create_table :cats, force: true do |t|
+        t.string :name
+      end
+    end
+
+    @dog = Dog.create!(name: "Wof")
+    @cat = Cat.create!(name: "Leo")
+    @duck = Duck.new
+  end
+
+  def test_to_relation_with_multiple_classes
+    array = [
+      @dog,
+      @cat
+    ]
+
+    assert_raise(Exception) { array.to_relation }
+  end
+
+  def test_to_relation_with_non_activerecord_objects
+    array = [
+      @cat,
+      @duck
+    ]
+
+    assert_raise(Exception) { array.to_relation }
+  end
+
+  def test_to_relation_with_empty_array
+    assert_raise(Exception) { [].to_relation }
+  end
+
+  def test_to_relation_with_correct_objects
+    relation = [
+      @cat,
+      Cat.create!(name: "Leo")
+    ].to_relation
+
+    assert_equal(true, relation.is_a?(ActiveRecord::Relation))
   end
 end
