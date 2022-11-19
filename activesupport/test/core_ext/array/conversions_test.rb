@@ -284,7 +284,7 @@ class ToRelationTest < ActiveSupport::TestCase
   end
 
   def test_to_relation_with_empty_array
-    assert_raise(Exception) { [].to_relation }
+    assert_equal(ActiveRecord::NullRelation, [].to_relation)
   end
 
   def test_to_relation_with_correct_objects

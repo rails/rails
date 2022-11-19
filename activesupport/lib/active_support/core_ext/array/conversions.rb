@@ -218,9 +218,10 @@ class Array
   # 2. Objects that inherit from ApplicationRecord
   #
   # If either one of the requirements is not fulfilled, the exception is raised.
+  # If passed array is empty ActiveRecord::NullRelation will be returned.
 
   def to_relation
-    return ApplicationRecord.none if empty?
+    return ActiveRecord::NullRelation if self.empty?
 
     classes = collect(&:class).uniq
     raise "Objects of different type. Array cannot be converted to ActiveRecord::Relation." if classes.size > 1
