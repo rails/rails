@@ -165,7 +165,20 @@ module ActiveRecord
       end
 
       def before_commit_records
-        records.uniq.each(&:before_committed!) if records && @run_commit_callbacks
+        return unless records
+
+        ite = records.uniq(&:__id__)
+
+        if @run_commit_callbacks
+          instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
+            candidates[record] = record
+          end
+
+          while record = ite.shift
+            should_run_callbacks = record.__id__ == instances_to_run_callbacks_on[record].__id__
+            record.before_committed! if should_run_callbacks
+          end
+        end
       end
 
       def commit_records
