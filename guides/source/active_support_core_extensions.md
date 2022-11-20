@@ -2617,6 +2617,11 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 [Array#to_xml]: https://api.rubyonrails.org/classes/Array.html#method-i-to_xml
 
+#### to_relation
+
+The to_relation method convers an array of ActiveRecord objects into ActiveRecord::Relation. Exception is raised if array consists of objects with different classes or if one of the objects isn't from ActiveRecord. In case of using to_relation on 
+empty array the ActiveRecord::NullRelation is returned.
+
 ### Wrapping
 
 The method [`Array.wrap`][Array.wrap] wraps its argument in an array unless it is already an array (or array-like).
