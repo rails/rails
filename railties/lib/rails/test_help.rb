@@ -31,6 +31,10 @@ if defined?(ActiveRecord::Base)
   ActiveSupport.on_load(:action_dispatch_integration_test) do
     self.fixture_path = ActiveSupport::TestCase.fixture_path
   end
+else
+  ActiveSupport.on_load(:active_support_test_case) do
+    self.file_fixture_path = "#{Rails.root}/test/fixtures/files"
+  end
 end
 
 # :enddoc:
