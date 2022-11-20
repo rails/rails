@@ -2619,8 +2619,44 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 #### to_relation
 
-The to_relation method convers an array of ActiveRecord objects into ActiveRecord::Relation. Exception is raised if array consists of objects with different classes or if one of the objects isn't from ActiveRecord. In case of using to_relation on 
-empty array the ActiveRecord::NullRelation is returned.
+The to_relation method converts the array of ActiveRecord objects into ActiveRecord::Relation. Exception is raised if array consists of objects belonging to a different class or if one of the objects isn't from ActiveRecord. In case of using to_relation on empty array the ActiveRecord::NullRelation is returned. Example:
+
+For classes:
+```ruby
+# class Dog < ActiveRecord::Base
+#   [...]
+# end
+#
+# class Cat < ActiveRecord::Base
+#   [...]
+# end
+#
+# class Duck
+#   [...]
+# end
+```
+
+```ruby
+dog = Dog.create!
+cat = Cat.create!
+duck = Duck.new
+
+[dog, cat].to_relation
+# =>
+# RuntimeError: Objects of different class. Array cannot be converted to ActiveRecord::Relation
+
+[dog, duck].to_relation
+# =>
+# RuntimeError: Array element doesn't inherit from ActiveRecord and can't be converted
+
+[cat, cat].to_relation
+# =>
+# ActiveRecord::Relation
+
+[].to_relation
+# =>
+# ActiveRecord::NullRelation
+```
 
 ### Wrapping
 

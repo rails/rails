@@ -215,7 +215,7 @@ class Array
   # Returns ActiveRecord::Relation, if array of objects consists of:
   #
   # 1. Objects belonging to the same class
-  # 2. Objects that inherit from ApplicationRecord
+  # 2. Objects that inherit from ActiveRecord
   #
   # If either one of the requirements is not fulfilled, the exception is raised.
   # If passed array is empty ActiveRecord::NullRelation will be returned.
@@ -224,12 +224,12 @@ class Array
     return ActiveRecord::NullRelation if self.empty?
 
     classes = collect(&:class).uniq
-    raise "Objects of different type. Array cannot be converted to ActiveRecord::Relation." if classes.size > 1
+    raise "Objects of different class. Array cannot be converted to ActiveRecord::Relation" if classes.size > 1
 
     if classes.first.ancestors.include? ActiveRecord::Base
       classes.first.where(id: collect(&:id))
     else
-      raise "Array element doesn't inherit from ActiveRecord and can't converted"
+      raise "Array element doesn't inherit from ActiveRecord and can't be converted"
     end
   end
 end
