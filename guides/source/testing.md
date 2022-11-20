@@ -1286,9 +1286,9 @@ All of request types have equivalent methods that you can use. In a typical C.R.
 
 NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
 
-### Testing XHR (AJAX) Requests
+### Testing XHR (Ajax) Requests
 
-To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
+To test Ajax requests, you can specify the `xhr: true` option to `get`, `post`,
 `patch`, `put`, and `delete` methods. For example:
 
 ```ruby

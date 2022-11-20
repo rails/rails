@@ -34,7 +34,7 @@ gem "bootsnap", require: false
 <% end -%>
 <%- if options.api? -%>
 
-# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
+# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
 <%- end -%>
 <% if RUBY_ENGINE == "ruby" -%>
