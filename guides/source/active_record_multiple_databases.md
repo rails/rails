@@ -476,6 +476,30 @@ config.active_record.shard_resolver = ->(request) {
 }
 ```
 
+## Migrate to the new connection handling
+
+In Rails 6.1+, Active Record provides a new internal API for connection management.
+In most cases applications will not need to make any changes except to opt-in to the
+new behavior (if upgrading from 6.0 and below) by setting `config.active_record.legacy_connection_handling = false` into the `config/application.rb` file.
+
+If you have a single database
+application, no other changes will be required. If you have a multiple database application
+the following changes are required if you application is using these methods:
+
+* `connection_handlers` and `connection_handlers=` no longer works in the new connection
+handling. If you were calling a method on one of the connection handlers, for example,
+`connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")`
+you will now need to update that call to be
+`connection_handlers.retrieve_connection_pool("ActiveRecord::Base", role: :reading)`.
+* Calls to `ActiveRecord::Base.connection_handler.prevent_writes` will need to be updated
+to `ActiveRecord::Base.connection.preventing_writes?`.
+* If you need all the pools, including writing and reading, a new method has been provided on
+the handler. Call `connection_handler.all_connection_pools` to use this. In most cases though
+you'll want writing or reading pools with `connection_handler.connection_pool_list(:writing)` or
+`connection_handler.connection_pool_list(:reading)`.
+* If you turn off `legacy_connection_handling` in your application, any method that's unsupported
+will raise an error (i.e. `connection_handlers=`).
+
 ## Granular Database Connection Switching
 
 In Rails 6.1 it's possible to switch connections for one database instead of
