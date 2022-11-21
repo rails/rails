@@ -11,9 +11,7 @@ module ActiveSupport
       Stub = Struct.new(:object, :method_name, :original_method)
 
       def initialize
-        @stubs = Concurrent::Map.new do |h, k|
-          h.compute_if_absent(k) { {} }
-        end
+        @stubs = Hash.new { |h, k| h[k] = {} }
       end
 
       # Stubs object.method_name with the given block
