@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/time/calculations"
-require "concurrent/map"
 
 module ActiveSupport
   module Testing
@@ -11,7 +10,7 @@ module ActiveSupport
       Stub = Struct.new(:object, :method_name, :original_method)
 
       def initialize
-        @stubs = Concurrent::Map.new { |h, k| h[k] = {} }
+        @stubs = Hash.new { |h, k| h[k] = {} }
       end
 
       # Stubs object.method_name with the given block
