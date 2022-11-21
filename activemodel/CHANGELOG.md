@@ -1,3 +1,23 @@
+*   Add ActiveModel::Attributes#==.
+
+    I want to be able to compare identity checks with == method.
+    Because I want to compare attribute identities,
+    but currently I have to go through the attribute method.
+
+    I wanted to use AttributeSet#== for the comparison to avoid creating
+    unnecessary objects, but since it does not return true if the value
+    before type cast are different, I used Attributes#attributes instead.
+
+    ```ruby
+    # before
+    UserModel.new(id: 1) == UserModel.new(id: 1) # false
+
+    # after
+    UserModel.new(id: 1) == UserModel.new(id: 1) # true
+    ```
+
+    *aaasa*
+
 *   Custom attribute types that inherit from Active Model built-in types and do
     not override the `serialize` method will now benefit from an optimization
     when serializing attribute values for the database.

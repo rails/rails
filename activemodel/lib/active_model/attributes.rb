@@ -138,6 +138,14 @@ module ActiveModel
       super
     end
 
+    # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
+    # is of the same type and +self+ and +comparison_object+ have the same attributes.
+    def ==(comparison_object)
+      super ||
+        comparison_object.instance_of?(self.class) &&
+          attributes == comparison_object.attributes
+    end
+
     private
       def _write_attribute(attr_name, value)
         @attributes.write_from_user(attr_name, value)

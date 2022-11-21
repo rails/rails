@@ -41,6 +41,20 @@ module ActiveModel
       end
     end
 
+    class ModelForEqualityTest
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :id, :integer
+    end
+
+    class ModelForInequalityTest
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :id, :integer
+    end
+
     test "models that proxy attributes do not conflict with models with generated methods" do
       ModelWithGeneratedAttributeMethods.new
 
@@ -174,6 +188,25 @@ module ActiveModel
       assert_raise(ArgumentError) do
         ModelForAttributesTest.attribute :foo, :unknown
       end
+    end
+
+    test "equality" do
+      a = ModelForEqualityTest.new
+      assert_equal(a, a)
+      assert_equal(a, ModelForEqualityTest.new)
+
+      b = ModelForEqualityTest.new(id: 1)
+      assert_equal(b, ModelForEqualityTest.new(id: 1))
+      assert_equal(b, ModelForEqualityTest.new(id: "1"))
+    end
+
+    test "inequality" do
+      a = ModelForEqualityTest.new(id: 1)
+      b = ModelForEqualityTest.new(id: 2)
+      c = ModelForInequalityTest.new(id: 2)
+
+      assert_not_equal(a, b)
+      assert_not_equal(b, c)
     end
   end
 end
