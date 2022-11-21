@@ -17,7 +17,7 @@
     config.active_record.raise_on_assign_to_attr_readonly = true
     ```
 
-    and will be enabled by default with `load_defaults 7.1`.
+    and will be enabled by default with `config.load_defaults 7.1`.
 
     *Alex Ghiculescu*, *Hartley McGuire*
 

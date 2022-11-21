@@ -12,10 +12,11 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Attributes listed as readonly will be used to create a new record but update operations will
-      # ignore these fields.
+      # Attributes listed as readonly will be used to create a new record.
+      # Assigning a new value to a readonly attribute on a persisted record raises an error.
       #
-      # You can assign a new value to a readonly attribute, but it will be ignored when the record is updated.
+      # By setting `config.active_record.raise_on_assign_to_attr_readonly` to `false`, it will
+      # not raise. The value will change in memory, but will not be persisted on `save`.
       #
       # ==== Examples
       #
@@ -24,7 +25,8 @@ module ActiveRecord
       #   end
       #
       #   post = Post.create!(title: "Introducing Ruby on Rails!")
-      #   post.update(title: "a different title") # change to title will be ignored
+      #   post.title = "a different title" # raises ActiveRecord::ReadonlyAttributeError
+      #   post.update(title: "a different title") # raises ActiveRecord::ReadonlyAttributeError
       def attr_readonly(*attributes)
         new_attributes = attributes.map(&:to_s).reject { |a| _attr_readonly.include?(a) }
 
