@@ -15,24 +15,9 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveStorage::Record
-  # We use constant paths in the following include calls to avoid a gotcha of
-  # classic mode: If the parent application defines a top-level Analyzable, for
-  # example, and ActiveStorage::Blob::Analyzable is not yet loaded, a bare
-  #
-  #   include Analyzable
-  #
-  # would resolve to the top-level one, const_missing would not be triggered,
-  # and therefore ActiveStorage::Blob::Analyzable would not be autoloaded.
-  #
-  # By using qualified names, we ensure const_missing is invoked if needed.
-  # Please, note that Ruby 2.5 or newer is required, so Object is not checked
-  # when looking up the ancestors of ActiveStorage::Blob.
-  #
-  # Zeitwerk mode does not have this gotcha. If we ever drop classic mode, this
-  # can be simplified, bare constant names would just work.
-  include ActiveStorage::Blob::Analyzable
-  include ActiveStorage::Blob::Identifiable
-  include ActiveStorage::Blob::Representable
+  include Analyzable
+  include Identifiable
+  include Representable
 
   self.table_name = "active_storage_blobs"
 
