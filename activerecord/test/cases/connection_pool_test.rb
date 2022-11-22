@@ -801,6 +801,19 @@ module ActiveRecord
         @connection_test_model_class = ThreadConnectionTestModel
       end
 
+      def test_lock_thread_allow_fiber_reentrency
+        @pool.lock_thread = true
+        connection = @pool.checkout
+        connection.transaction do
+          enumerator = Enumerator.new do |yielder|
+            connection.transaction do
+              yielder.yield 1
+            end
+          end
+          assert_equal 1, enumerator.next
+        end
+      end
+
       private
         def new_thread(...)
           Thread.new(...)

@@ -156,7 +156,7 @@ module ActiveRecord
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
         @statements = build_statement_pool
-        self.synchronized = false
+        self.lock_thread = nil
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
           @config.fetch(:prepared_statements) { default_prepared_statements }
@@ -172,8 +172,12 @@ module ActiveRecord
         @verified = false
       end
 
-      def synchronized=(synchronized) # :nodoc:
-        @lock = if synchronized
+      def lock_thread=(lock_thread) # :nodoc:
+        @lock =
+        case lock_thread
+        when Thread
+          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+        when Fiber
           ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
         else
           ActiveSupport::Concurrency::NullLock
