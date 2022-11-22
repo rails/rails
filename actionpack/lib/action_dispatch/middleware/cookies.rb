@@ -92,7 +92,7 @@ module ActionDispatch
     include RequestCookieMethods
   end
 
-  # Read and write data to cookies through ActionController#cookies.
+  # Read and write data to cookies through ActionController::Base#cookies.
   #
   # When reading cookie data, the data is read from the HTTP request header, Cookie.
   # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
@@ -178,8 +178,7 @@ module ActionDispatch
   #   only HTTP. Defaults to +false+.
   # * <tt>:same_site</tt> - The value of the +SameSite+ cookie attribute, which
   #   determines how this cookie should be restricted in cross-site contexts.
-  #   Possible values are +nil+, +:none+, +:lax+, and +:strict+. Defaults to
-  #   +:lax+.
+  #   Possible values are +:none+, +:lax+, and +:strict+. Defaults to +:lax+.
   class Cookies
     HTTP_HEADER   = "Set-Cookie"
     GENERATOR_KEY = "action_dispatch.key_generator"

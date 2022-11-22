@@ -394,6 +394,54 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_active_job
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-active-job" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_action_mailbox
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-action-mailbox" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_action_text
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-action-text" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
+  def test_app_update_preserves_skip_test
+    app_root = File.join(destination_root, "myapp")
+    run_generator [ app_root, "--skip-test" ]
+
+    FileUtils.cd(app_root) do
+      config = "config/application.rb"
+      assert_no_changes -> { File.readlines(config).grep(/require /) } do
+        quietly { system("yes | bin/rails app:update") }
+      end
+    end
+  end
+
   def test_gem_for_active_storage
     run_generator
     assert_file "Gemfile", /^# gem "image_processing"/
@@ -593,6 +641,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/application.rb" do |content|
       assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
     end
   end
 

@@ -3,6 +3,7 @@
 require "securerandom"
 
 module ActiveStorage::Streaming
+  extend ActiveSupport::Concern
   DEFAULT_BLOB_STREAMING_DISPOSITION = "inline"
 
   include ActionController::DataStreaming

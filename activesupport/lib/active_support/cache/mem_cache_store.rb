@@ -128,6 +128,22 @@ module ActiveSupport
         end
       end
 
+      ##
+      # :method: write
+      # :call-seq: write(name, value, options = nil)
+      #
+      # Behaves the same as ActiveSupport::Cache::Store#write, but supports
+      # additional options specific to memcached.
+      #
+      # ==== Additional Options
+      #
+      # * <tt>raw: true</tt> - Sends the value directly to the server as raw
+      #   bytes. The value must be a string or number. You can use memcached
+      #   direct operations like +increment+ and +decrement+ only on raw values.
+      #
+      # * <tt>unless_exist: true</tt> - Prevents overwriting an existing cache
+      #   entry.
+
       # Increment a cached value. This method uses the memcached incr atomic
       # operator and can only be used on values written with the +:raw+ option.
       # Calling it on a value not stored with +:raw+ will initialize that value

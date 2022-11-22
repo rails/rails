@@ -78,6 +78,12 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.postgresql_time_zone_aware_types" do
+      ActiveSupport.on_load(:active_record_postgresqladapter) do
+        ActiveRecord::Base.time_zone_aware_types << :timestamptz
+      end
+    end
+
     initializer "active_record.logger" do
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
@@ -91,22 +97,6 @@ module ActiveRecord
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
           ActiveRecord::Migration::CheckPending,
           file_watcher: app.config.file_watcher
-      end
-    end
-
-    initializer "active_record.database_selector" do
-      if options = config.active_record.database_selector
-        resolver = config.active_record.database_resolver
-        operations = config.active_record.database_resolver_context
-        config.app_middleware.use ActiveRecord::Middleware::DatabaseSelector, resolver, operations, options
-      end
-    end
-
-    initializer "active_record.shard_selector" do
-      if resolver = config.active_record.shard_resolver
-        options = config.active_record.shard_selector || {}
-
-        config.app_middleware.use ActiveRecord::Middleware::ShardSelector, resolver, options
       end
     end
 
@@ -400,24 +390,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
               value.current_scope = nil
             end
           end
-        end
-      end
-    end
-
-    initializer "active_record.use_yaml_unsafe_load" do |app|
-      config.after_initialize do
-        unless app.config.active_record.use_yaml_unsafe_load.nil?
-          ActiveRecord.use_yaml_unsafe_load =
-            app.config.active_record.use_yaml_unsafe_load
-        end
-      end
-    end
-
-    initializer "active_record.yaml_column_permitted_classes" do |app|
-      config.after_initialize do
-        unless app.config.active_record.yaml_column_permitted_classes.nil?
-          ActiveRecord.yaml_column_permitted_classes =
-            app.config.active_record.yaml_column_permitted_classes
         end
       end
     end

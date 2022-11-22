@@ -712,6 +712,7 @@ module ActiveRecord
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
       @cache_keys = nil
+      @cache_versions = nil
       @records = nil
       self
     end

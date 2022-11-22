@@ -21,9 +21,8 @@ module ActionDispatch # :nodoc:
   # Nevertheless, integration tests may want to inspect controller responses in
   # more detail, and that's when \Response can be useful for application
   # developers. Integration test methods such as
-  # ActionDispatch::Integration::Session#get and
-  # ActionDispatch::Integration::Session#post return objects of type
-  # TestResponse (which are of course also of type \Response).
+  # Integration::RequestHelpers#get and Integration::RequestHelpers#post return
+  # objects of type TestResponse (which are of course also of type \Response).
   #
   # For example, the following demo integration test prints the body of the
   # controller response to the console:

@@ -1,3 +1,100 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
+*   Symbol is allowed by default for YAML columns
+
+    *Étienne Barrié*
+
+*   Fix `ActiveRecord::Store` to serialize as a regular Hash
+
+    Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
+    which is wasteful and cause problem with YAML safe_load.
+
+    *Jean Boussier*
+
+*   Add `timestamptz` as a time zone aware type for PostgreSQL
+
+    This is required for correctly parsing `timestamp with time zone` values in your database.
+
+    If you don't want this, you can opt out by adding this initializer:
+
+    ```ruby
+    ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+    ```
+
+    *Alex Ghiculescu*
+
+*   Fix supporting timezone awareness for `tsrange` and `tstzrange` array columns.
+
+    ```ruby
+    # In database migrations
+    add_column :shops, :open_hours, :tsrange, array: true
+    # In app config
+    ActiveRecord::Base.time_zone_aware_types += [:tsrange]
+    # In the code times are properly converted to app time zone
+    Shop.create!(open_hours: [Time.current..8.hour.from_now])
+    ```
+
+    *Wojciech Wnętrzak*
+
+*   Resolve issue where a relation cache_version could be left stale.
+
+    Previously, when `reset` was called on a relation object it did not reset the cache_versions
+    ivar. This led to a confusing situation where despite having the correct data the relation
+    still reported a stale cache_version.
+
+    Usage:
+
+    ```ruby
+    developers = Developer.all
+    developers.cache_version
+
+    Developer.update_all(updated_at: Time.now.utc + 1.second)
+
+    developers.cache_version # Stale cache_version
+    developers.reset
+    developers.cache_version # Returns the current correct cache_version
+    ```
+
+    Fixes #45341.
+
+    *Austen Madden*
+
+*   Fix `load_async` when called on an association proxy.
+
+    Calling `load_async` directly an association would schedule
+    a query but never use it.
+
+    ```ruby
+    comments = post.comments.load_async # schedule a query
+    comments.to_a # perform an entirely new sync query
+    ```
+
+    Now it does use the async query, however note that it doesn't
+    cause the association to be loaded.
+
+    *Jean Boussier*
+
+*   Fix eager loading for models without primary keys.
+
+    *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
+
+*   `rails db:schema:{dump,load}` now checks `ENV["SCHEMA_FORMAT"]` before config
+
+    Since `rails db:structure:{dump,load}` was deprecated there wasn't a simple
+    way to dump a schema to both SQL and Ruby formats. You can now do this with
+    an environment variable. For example:
+
+    ```
+    SCHEMA_FORMAT=sql rake db:schema:dump
+    ```
+
+    *Alex Ghiculescu*
+
+*   Fix Hstore deserialize regression.
+
+    *edsharp*
+
+
 ## Rails 7.0.3.1 (July 12, 2022) ##
 
 *   Change ActiveRecord::Coders::YAMLColumn default to safe_load

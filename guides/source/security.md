@@ -665,7 +665,7 @@ Also, the second query renames some columns with the AS statement so that the we
 
 #### Countermeasures
 
-Ruby on Rails has a built-in filter for special SQL characters, which will escape `'` , `"` , NULL character, and line breaks. *Using `Model.find(id)` or `Model.find_by_some thing(something)` automatically applies this countermeasure*. But in SQL fragments, especially *in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually*.
+Ruby on Rails has a built-in filter for special SQL characters, which will escape `'` , `"` , NULL character, and line breaks. *Using `Model.find(id)` or `Model.find_by_something(something)` automatically applies this countermeasure*. But in SQL fragments, especially *in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually*.
 
 Instead of passing a string, you can use positional handlers to sanitize tainted strings like this:
 
@@ -690,8 +690,10 @@ Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity)
 ```
 
 Note the previous mentioned countermeasures are only available in model instances. You can
-try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences
+try [`sanitize_sql`][] elsewhere. _Make it a habit to think about the security consequences
 when using an external string in SQL_.
+
+[`sanitize_sql`]: https://api.rubyonrails.org/classes/ActiveRecord/Sanitization/ClassMethods.html#method-i-sanitize_sql
 
 ### Cross-Site Scripting (XSS)
 
@@ -1076,10 +1078,10 @@ Here is a list of common headers:
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
 
-### Content-Security-Policy Header
+### `Content-Security-Policy` Header
 
 To help protect against XSS and injection attacks, it is recommended to define a
-[Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+[`Content-Security-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
 response header for your application. Rails provides a DSL that allows you to
 configure the header.
 
@@ -1132,7 +1134,7 @@ end
 #### Reporting Violations
 
 Enable the
-[report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
+[`report-uri`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
 directive to report violations to the specified URI:
 
 ```ruby
@@ -1143,7 +1145,7 @@ end
 
 When migrating legacy content, you might want to report violations without
 enforcing the policy. Set the
-[Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+[`Content-Security-Policy-Report-Only`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
 response header to only report violations:
 
 ```ruby
@@ -1160,9 +1162,9 @@ end
 
 #### Adding a Nonce
 
-If you are considering 'unsafe-inline', consider using nonces instead. [Nonces
+If you are considering `'unsafe-inline'`, consider using nonces instead. [Nonces
 provide a substantial improvement](https://www.w3.org/TR/CSP3/#security-nonces)
-over 'unsafe-inline' when implementing a Content Security Policy on top
+over `'unsafe-inline'` when implementing a Content Security Policy on top
 of existing code.
 
 ```ruby

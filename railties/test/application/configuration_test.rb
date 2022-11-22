@@ -1711,9 +1711,9 @@ module ApplicationTests
       assert ActiveRecord.use_yaml_unsafe_load
     end
 
-    test "config.active_record.yaml_column_permitted_classes is [] by default" do
+    test "config.active_record.yaml_column_permitted_classes is [Symbol] by default" do
       app "production"
-      assert_equal([], ActiveRecord.yaml_column_permitted_classes)
+      assert_equal([Symbol], ActiveRecord.yaml_column_permitted_classes)
     end
 
     test "config.active_record.yaml_column_permitted_classes can be configured" do
@@ -1970,6 +1970,25 @@ module ApplicationTests
       assert_equal "sqlite3", ar_config["development"]["adapter"]
       assert_equal "bobby",   ar_config["development"]["username"]
       assert_equal "dev_db",  ar_config["development"]["database"]
+    end
+
+    test "loads database.yml using shared keys with a 3-tier config" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          username: bobby
+          adapter: sqlite3
+
+        development:
+          primary:
+            database: 'dev_db'
+      YAML
+
+      app "development"
+
+      ar_config = Rails.application.config.database_configuration
+      assert_equal "sqlite3", ar_config["development"]["primary"]["adapter"]
+      assert_equal "bobby",   ar_config["development"]["primary"]["username"]
+      assert_equal "dev_db",  ar_config["development"]["primary"]["database"]
     end
 
     test "config.action_mailer.show_previews defaults to true in development" do
@@ -3624,6 +3643,97 @@ module ApplicationTests
 
       app "development"
       assert_equal :fiber, ActiveSupport::IsolatedExecutionState.isolation_level
+    end
+
+    test "cache_format_version in a new app" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "cache_format_version with explicit 7.0 defaults" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "cache_format_version with 6.1 defaults" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "cache_format_version **cannot** be set via new framework defaults" do
+      add_to_config <<-RUBY
+        config.cache_store = :null_store
+      RUBY
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+        Rails.application.config.active_support.cache_format_version = 7.0
+      RUBY
+
+      app "development"
+
+      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "adds a time zone aware type if using PostgreSQL" do
+      original_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "production"
+
+      assert_equal [:datetime, :time, :timestamptz], ActiveRecord::Base.time_zone_aware_types
+    ensure
+      ActiveRecord::Base.configurations = original_configurations
+    end
+
+    test "doesn't add a time zone aware type if using MySQL" do
+      original_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = { production: { db1: { adapter: "mysql2" } } }
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "mysql2")
+      RUBY
+
+      app "production"
+
+      assert_equal [:datetime, :time], ActiveRecord::Base.time_zone_aware_types
+    ensure
+      ActiveRecord::Base.configurations = original_configurations
+    end
+
+    test "can opt out of extra time zone aware types if using PostgreSQL" do
+      original_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+      app_file "config/initializers/tz_aware_types.rb", <<~RUBY
+        ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+      RUBY
+
+      app "production"
+
+      assert_equal [:datetime, :time], ActiveRecord::Base.time_zone_aware_types
+    ensure
+      ActiveRecord::Base.configurations = original_configurations
     end
 
     private

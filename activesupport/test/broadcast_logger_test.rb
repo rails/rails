@@ -55,6 +55,14 @@ module ActiveSupport
       assert_equal ::Logger::FATAL, log2.progname
     end
 
+    test "#formatter= assigns to all the loggers" do
+      assert_nil logger.formatter
+      logger.formatter = ::Logger::FATAL
+
+      assert_equal ::Logger::FATAL, log1.formatter
+      assert_equal ::Logger::FATAL, log2.formatter
+    end
+
     test "#local_level= assigns the local_level to all loggers" do
       assert_equal ::Logger::DEBUG, logger.local_level
       logger.local_level = ::Logger::FATAL

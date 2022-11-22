@@ -1,3 +1,29 @@
+## Rails 7.0.4 (September 09, 2022) ##
+
+*   `config.allow_concurrency = false` now use a `Monitor` instead of a `Mutex`
+
+    This allows to enable `config.active_support.executor_around_test_case` even
+    when `config.allow_concurrency` is disabled.
+
+    *Jean Boussier*
+
+*   Skip Active Storage and Action Mailer if Active Job is skipped.
+
+    *Étienne Barrié*
+
+*   Correctly check if frameworks are disabled when running app:update.
+
+    *Étienne Barrié* and *Paulo Barros*
+
+*   Fixed `config.active_support.cache_format_version` never being applied.
+
+    Rails 7.0 shipped with a new serializer for Rails.cache, but the associated config
+    wasn't working properly. Note that even after this fix, it can only be applied from
+    the `application.rb` file.
+
+    *Alex Ghiculescu*
+
+
 ## Rails 7.0.3.1 (July 12, 2022) ##
 
 *   No changes.

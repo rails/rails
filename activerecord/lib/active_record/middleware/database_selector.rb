@@ -44,7 +44,7 @@ module ActiveRecord
     #   config.active_record.database_resolver_context = MyResolver::MySession
     #
     # Note: If you are using `rails new my_app --minimal` you will need to call
-    # `require "active_support/core_ext/integer/time"` to load the libaries
+    # `require "active_support/core_ext/integer/time"` to load the libraries
     # for +Time+.
     class DatabaseSelector
       def initialize(app, resolver_klass = nil, context_klass = nil, options = {})

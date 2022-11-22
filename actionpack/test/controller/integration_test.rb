@@ -850,6 +850,30 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
+class ControllerWithHeadersMethodIntegrationTest < ActionDispatch::IntegrationTest
+  class TestController < ActionController::Base
+    def index
+      render plain: "ok"
+    end
+
+    def headers
+      {}.freeze
+    end
+  end
+
+  test "doesn't call controller's headers method" do
+    with_routing do |routes|
+      routes.draw do
+        get "/ok" => "controller_with_headers_method_integration_test/test#index"
+      end
+
+      get "/ok"
+
+      assert_response 200
+    end
+  end
+end
+
 class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
     def index

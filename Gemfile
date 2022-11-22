@@ -6,7 +6,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-gem "minitest", ">= 5.15.0"
+gem "minitest", ">= 5.15.0", "< 5.16.0"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
@@ -34,6 +34,9 @@ gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
+
+# Lock rack-test to v1 until #45467 is fixed
+gem "rack-test", "< 2"
 
 group :rubocop do
   gem "rubocop", ">= 0.90", require: false
@@ -71,7 +74,7 @@ group :job do
   gem "delayed_job", require: false
   gem "queue_classic", github: "jhawthorn/queue_classic", branch: "fix-connection-pg-14", require: false, platforms: :ruby
   gem "sneakers", require: false
-  gem "que", require: false
+  gem "que", "< 2", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
   gem "sequel", require: false

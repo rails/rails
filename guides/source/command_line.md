@@ -14,6 +14,59 @@ After reading this guide, you will know:
 
 NOTE: This tutorial assumes you have basic Rails knowledge from reading the [Getting Started with Rails Guide](getting_started.html).
 
+Creating a Rails App
+--------------------
+
+First, let's create a simple Rails application using the `rails new` command.
+
+We will use this application to play and discover all the commands described in this guide.
+
+INFO: You can install the rails gem by typing `gem install rails`, if you don't have it already.
+
+### `rails new`
+
+The first argument we'll pass to the `rails new` command is the application name.
+
+```bash
+$ rails new my_app
+     create
+     create  README.md
+     create  Rakefile
+     create  config.ru
+     create  .gitignore
+     create  Gemfile
+     create  app
+     ...
+     create  tmp/cache
+     ...
+        run  bundle install
+```
+
+Rails will set up what seems like a huge amount of stuff for such a tiny command! We've got the entire Rails directory structure now with all the code we need to run our simple application right out of the box.
+
+If you wish to skip some files from being generated or skip some libraries, you can append any of the following arguments to your `rails new` command:
+
+| Argument                | Description                                                 |
+| ----------------------- | ----------------------------------------------------------- |
+| `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
+| `--skip-keeps`          | Skip source control .keep files                             |
+| `--skip-action-mailer`  | Skip Action Mailer files                                    |
+| `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
+| `--skip-action-text`    | Skip Action Text gem                                        |
+| `--skip-active-record`  | Skip Active Record files                                    |
+| `--skip-active-job`     | Skip Active Job                                             |
+| `--skip-active-storage` | Skip Active Storage files                                   |
+| `--skip-action-cable`   | Skip Action Cable files                                     |
+| `--skip-asset-pipeline` | Skip Asset Pipeline                                         |
+| `--skip-javascript`     | Skip JavaScript files                                       |
+| `--skip-hotwire`        | Skip Hotwire integration                                    |
+| `--skip-jbuilder`       | Skip jbuilder gem                                           |
+| `--skip-test`           | Skip test files                                             |
+| `--skip-system-test`    | Skip system test files                                      |
+| `--skip-bootsnap`       | Skip bootsnap gem                                           |
+
+These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
+
 Command Line Basics
 -------------------
 
@@ -65,52 +118,6 @@ In addition to those commands, there are:
  tmp:create                          Creates tmp directories ...
 ```
 
-Let's create a simple Rails application to step through each of these commands in context.
-
-### `rails new`
-
-The first thing we'll want to do is create a new Rails application by running the `rails new` command after installing Rails.
-
-INFO: You can install the rails gem by typing `gem install rails`, if you don't have it already.
-
-```bash
-$ rails new commandsapp
-     create
-     create  README.md
-     create  Rakefile
-     create  config.ru
-     create  .gitignore
-     create  Gemfile
-     create  app
-     ...
-     create  tmp/cache
-     ...
-        run  bundle install
-```
-
-Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
-
-If you wish to skip some files or components from being generated, you can append the following arguments to your `rails new` command:
-
-| Argument                | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
-| `--skip-git`            | Skip .gitignore file                                        |
-| `--skip-keeps`          | Skip source control .keep files                             |
-| `--skip-action-mailer`  | Skip Action Mailer files                                    |
-| `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
-| `--skip-action-text`    | Skip Action Text gem                                        |
-| `--skip-active-record`  | Skip Active Record files                                    |
-| `--skip-active-job`     | Skip Active Job                                             |
-| `--skip-active-storage` | Skip Active Storage files                                   |
-| `--skip-action-cable`   | Skip Action Cable files                                     |
-| `--skip-asset-pipeline` | Skip Asset Pipeline                                         |
-| `--skip-javascript`     | Skip JavaScript files                                       |
-| `--skip-hotwire`        | Skip Hotwire integration                                    |
-| `--skip-jbuilder`       | Skip jbuilder gem                                           |
-| `--skip-test`           | Skip test files                                             |
-| `--skip-system-test`    | Skip system test files                                      |
-| `--skip-bootsnap`       | Skip bootsnap gem                                           |
-
 ### `bin/rails server`
 
 The `bin/rails server` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
@@ -118,7 +125,7 @@ The `bin/rails server` command launches a web server named Puma which comes bund
 With no further work, `bin/rails server` will run our new shiny Rails app:
 
 ```bash
-$ cd commandsapp
+$ cd my_app
 $ bin/rails server
 => Booting Puma
 => Rails 7.0.0 application starting in development
@@ -321,7 +328,7 @@ about code. In unit testing, we take a little part of code, say a method of a mo
 and test its inputs and outputs. Unit tests are your friend. The sooner you make
 peace with the fact that your quality of life will drastically increase when you unit
 test your code, the better. Seriously. Please visit
-[the testing guide](https://guides.rubyonrails.org/testing.html) for an in-depth
+[the testing guide](testing.html) for an in-depth
 look at unit testing.
 
 Let's see the interface Rails created for us.
@@ -450,7 +457,7 @@ RubyGems version          2.7.3
 Rack version              2.0.4
 JavaScript Runtime        Node.js (V8)
 Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
-Application root          /home/foobar/commandsapp
+Application root          /home/foobar/my_app
 Environment               development
 Database adapter          sqlite3
 Database schema version   20180205173523

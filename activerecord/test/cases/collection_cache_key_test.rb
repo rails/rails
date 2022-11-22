@@ -254,6 +254,19 @@ module ActiveRecord
       end
     end
 
+    test "reset will reset cache_version" do
+      with_collection_cache_versioning do
+        developers = Developer.all
+
+        assert_equal Developer.all.cache_version, developers.cache_version
+
+        Developer.update_all(updated_at: Time.now.utc + 1.second)
+        developers.reset
+
+        assert_equal Developer.all.cache_version, developers.cache_version
+      end
+    end
+
     test "cache_key_with_version contains key and version regardless of collection_cache_versioning setting" do
       key_with_version_1 = Developer.all.cache_key_with_version
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, key_with_version_1)

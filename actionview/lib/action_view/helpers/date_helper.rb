@@ -888,7 +888,7 @@ module ActionView
         def month_names
           @month_names ||= begin
             month_names = @options[:use_month_names] || translated_month_names
-            month_names.unshift(nil) if month_names.size < 13
+            month_names = [nil, *month_names] if month_names.size < 13
             month_names
           end
         end

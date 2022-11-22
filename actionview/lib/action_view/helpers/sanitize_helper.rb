@@ -101,7 +101,7 @@ module ActionView
       #   strip_tags("> A quote from Smith & Wesson")
       #   # => &gt; A quote from Smith &amp; Wesson
       def strip_tags(html)
-        self.class.full_sanitizer.sanitize(html)
+        self.class.full_sanitizer.sanitize(html)&.html_safe
       end
 
       # Strips all link tags from +html+ leaving just the link text.
