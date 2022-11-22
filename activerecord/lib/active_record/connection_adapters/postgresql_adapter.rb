@@ -1032,7 +1032,8 @@ module ActiveRecord
 
         def can_perform_case_insensitive_comparison_for?(column)
           @case_insensitive_cache ||= {}
-          @case_insensitive_cache[column.sql_type] ||= begin
+          @case_insensitive_cache[column.sql_type] =
+            @case_insensitive_cache.fetch(column.sql_type) do
             sql = <<~SQL
               SELECT exists(
                 SELECT * FROM pg_proc
