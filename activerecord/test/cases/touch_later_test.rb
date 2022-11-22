@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "concurrent/atomic/cyclic_barrier"
 require "models/invoice"
 require "models/line_item"
 require "models/topic"
@@ -119,5 +120,102 @@ class TouchLaterTest < ActiveRecord::TestCase
     assert_not_equal nodes(:parent_a).reload.updated_at, previous_parent_updated_at
     assert_not_equal nodes(:grandparent).reload.updated_at, previous_grandparent_updated_at
     assert_not_equal trees(:root).reload.updated_at, previous_tree_updated_at
+  end
+
+  class FullCommitTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    fixtures :nodes, :trees
+
+    def self.run(*args)
+      super unless current_adapter?(:SQLite3Adapter)
+    end
+
+    module WaitForConcurrentCommit
+      attr_accessor :concurrent_thread
+
+      def before_committed!
+        super
+        concurrent_thread&.wait(1)
+        self.concurrent_thread = nil
+      end
+    end
+
+    class ConcurrentTree < ActiveRecord::Base
+      prepend WaitForConcurrentCommit
+      self.table_name = "trees"
+    end
+
+    class ConcurrentNode < ActiveRecord::Base
+      prepend WaitForConcurrentCommit
+      self.table_name = "nodes"
+
+      belongs_to :tree, class_name: ConcurrentTree.name, touch: true
+      belongs_to :parent, class_name: self.name, touch: true
+    end
+
+    def test_touch_callback_deadlocks_in_same_table
+      synchronization = Concurrent::CyclicBarrier.new(2)
+
+      assert_nothing_raised do
+        concurrent_transaction do
+          a = nodes(:parent_a)
+          b = nodes(:parent_b)
+
+          a.touch_later
+          a.concurrent_thread = synchronization
+          b.touch_later
+        end
+
+        concurrent_transaction do
+          a = nodes(:parent_a)
+          b = nodes(:parent_b)
+
+          b.touch_later
+          b.concurrent_thread = synchronization
+          a.touch_later
+        end
+
+        resolve_threads
+      end
+    end
+
+    def test_touch_callback_deadlocks_by_association_depth
+      synchronization = Concurrent::CyclicBarrier.new(2)
+
+      assert_nothing_raised do
+        concurrent_transaction do
+          nodes(:grandparent).update!(name: "Grandparent updated")
+          synchronization.wait(1)
+        end
+
+        concurrent_transaction do
+          node = nodes(:parent_a)
+          node.update!(name: "Parent A updated")
+          node.tree.concurrent_thread = synchronization
+        end
+
+        resolve_threads
+      end
+    end
+
+    private
+      def nodes(name)
+        super.becomes(ConcurrentNode)
+      end
+
+      def concurrent_transaction
+        @threads ||= []
+        @threads << Thread.new(name) do |name|
+          Thread.current.abort_on_exception = true
+          ActiveRecord::Base.transaction(requires_new: true) do
+            yield
+          end
+        end
+      end
+
+      def resolve_threads
+        @threads.each(&:join)
+      end
   end
 end
