@@ -7,7 +7,7 @@ module Mail
     end
 
     def recipients_addresses
-      to_addresses + cc_addresses + bcc_addresses + x_original_to_addresses
+      to_addresses + cc_addresses + bcc_addresses + x_original_to_addresses + x_forwarded_to_addresses
     end
 
     def to_addresses
@@ -24,6 +24,10 @@ module Mail
 
     def x_original_to_addresses
       Array(header[:x_original_to]).collect { |header| Mail::Address.new header.to_s }
+    end
+
+    def x_forwarded_to_addresses
+      Array(header[:x_forwarded_to]).collect { |header| Mail::Address.new header.to_s }
     end
   end
 end
