@@ -17,7 +17,7 @@ module ActionController
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
 
-    initializer "action_controller.deprecator" do |app|
+    initializer "action_controller.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_controller] = ActionController.deprecator
     end
 

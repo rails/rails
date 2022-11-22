@@ -73,7 +73,7 @@ module ActionView
       end
     end
 
-    initializer "action_view.deprecator" do |app|
+    initializer "action_view.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_view] = ActionView.deprecator
     end
 
