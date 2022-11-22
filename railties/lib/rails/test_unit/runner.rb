@@ -5,6 +5,7 @@ require "method_source"
 require "rake/file_list"
 require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
+require "rails/paths"
 
 module Rails
   module TestUnit
@@ -13,6 +14,14 @@ module Rails
       mattr_reader :filters, default: []
 
       class << self
+        def paths
+          @paths ||= begin
+            root = Rails::Paths::Root.new nil
+            root.add "test"
+            root
+          end
+        end
+
         def attach_before_load_options(opts)
           opts.on("--warnings", "-w", "Run with Ruby warnings enabled") { }
           opts.on("-e", "--environment ENV", "Run tests in the ENV environment") { }
@@ -79,12 +88,14 @@ module Rails
             end
           end
 
-          def default_test_glob
-            ENV["DEFAULT_TEST"] || "test/**/*_test.rb"
+          def default_test_globs
+            return ENV["DEFAULT_TEST"] if ENV["DEFAULT_TEST"]
+            paths["test"].map { |path| File.join(path, "**/*_test.rb") }
           end
 
-          def default_test_exclude_glob
-            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy}/**/*_test.rb"
+          def default_test_exclude_globs
+            return ENV["DEFAULT_TEST_EXCLUDE"] if ENV["DEFAULT_TEST_EXCLUDE"]
+            paths["test"].map { |path| File.join(path, "{system,dummy}/**/*_test.rb") }
           end
 
           def regexp_filter?(arg)
@@ -98,8 +109,8 @@ module Rails
           def list_tests(argv)
             patterns = extract_filters(argv)
 
-            tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
-            tests.exclude(default_test_exclude_glob) if patterns.empty?
+            tests = Rake::FileList[patterns.any? ? patterns : default_test_globs]
+            tests.exclude(default_test_exclude_globs) if patterns.empty?
             tests
           end
 
