@@ -106,7 +106,7 @@ module ActiveRecord
       end
     end
 
-    initializer "Check for cache versioning support" do
+    initializer "active_record.cache_versioning_support" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
           if app.config.active_record.cache_versioning && Rails.cache
