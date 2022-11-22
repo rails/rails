@@ -1,3 +1,15 @@
+*   Add `after_routes_loaded` hook to `Rails::Railtie::Configuration` for
+    engines to add a hook to be called after application routes have been
+    loaded.
+
+    ```ruby
+    MyEngine.config.after_routes_loaded do
+      # code that must happen after routes have been loaded
+    end
+    ```
+
+    *Chris Salzberg*
+
 *   Send 303 See Other status code back for the destroy action on newly generated
     scaffold controllers.
 

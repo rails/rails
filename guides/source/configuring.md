@@ -172,6 +172,16 @@ config.after_initialize do
 end
 ```
 
+### `config.after_routes_loaded`
+
+Takes a block which will be run after Rails has finished loading the application routes. This block will also be run whenever routes are reloaded.
+
+```ruby
+config.after_routes_loaded do
+  # Code that does something with Rails.application.routes
+end
+```
+
 #### `config.allow_concurrency`
 
 Controls whether requests should be handled concurrently. This should only
