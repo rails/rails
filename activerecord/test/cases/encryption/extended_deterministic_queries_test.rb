@@ -33,6 +33,11 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     assert EncryptedBook.find_by(name: "Dune")
   end
 
+  test "where(...).first_or_create works" do
+    EncryptedBook.where(name: "Dune").first_or_create
+    assert EncryptedBook.exists?(name: "Dune")
+  end
+
   test "exists?(...) works" do
     ActiveRecord::Encryption.without_encryption { EncryptedBook.create! name: "Dune" }
     assert EncryptedBook.exists?(name: "Dune")

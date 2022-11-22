@@ -51,7 +51,7 @@ class TransactionTest < ActiveRecord::TestCase
       assert_not connection.active?
       assert_not Topic.connection_pool.connections.include?(connection)
     ensure
-      ActiveRecord::Base.clear_all_connections!(:all)
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
 
     def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
@@ -77,7 +77,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       assert_equal "The Fifth Topic of the day", topic.reload.title
     ensure
-      ActiveRecord::Base.clear_all_connections!(:all)
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
   end
 
@@ -211,7 +211,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       transaction_with_shallow_return
     end
     assert committed
@@ -226,7 +226,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_deprecation_on_ruby_timeout_outside_inner_transaction
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       catch do |timeout|
         Topic.transaction do
           Topic.transaction(requires_new: true) do
@@ -279,7 +279,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_early_return_from_transaction
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       @first.with_lock do
         break
       end

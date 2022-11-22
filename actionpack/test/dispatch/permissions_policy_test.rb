@@ -41,11 +41,11 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_directives
-    assert_deprecated { @policy.speaker :self }
-    assert_deprecated { @policy.vibrate :self }
-    assert_deprecated { @policy.vr :self }
+    assert_deprecated(ActionDispatch.deprecator) { @policy.speaker :self }
+    assert_deprecated(ActionDispatch.deprecator) { @policy.vibrate :self }
+    assert_deprecated(ActionDispatch.deprecator) { @policy.vr :self }
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActionDispatch.deprecator) do
       assert_equal "speaker 'self'; vibrate 'self'; vr 'self'", @policy.build
     end
   end

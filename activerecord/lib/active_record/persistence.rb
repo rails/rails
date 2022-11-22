@@ -6,6 +6,7 @@ module ActiveRecord
   # = Active Record \Persistence
   module Persistence
     extend ActiveSupport::Concern
+    include QueryConstraints
 
     module ClassMethods
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -676,11 +677,7 @@ module ActiveRecord
     def destroy
       _raise_readonly_record_error if readonly?
       destroy_associations
-      @_trigger_destroy_callback = if persisted?
-        destroy_row > 0
-      else
-        true
-      end
+      @_trigger_destroy_callback = persisted? && destroy_row > 0
       @destroyed = true
       freeze
     end
@@ -838,7 +835,7 @@ module ActiveRecord
         verify_readonly_attribute(name) || name
       end
 
-      update_constraints = _primary_key_constraints_hash
+      update_constraints = _query_constraints_hash
       attributes = attributes.each_with_object({}) do |(k, v), h|
         h[k] = @attributes.write_cast_value(k, v)
         clear_attribute_change(k)
@@ -1044,9 +1041,17 @@ module ActiveRecord
 
     def _find_record(options)
       if options && options[:lock]
-        self.class.preload(strict_loaded_associations).lock(options[:lock]).find(id)
+        self.class.preload(strict_loaded_associations).lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
       else
-        self.class.preload(strict_loaded_associations).find(id)
+        self.class.preload(strict_loaded_associations).find_by!(_in_memory_query_constraints_hash)
+      end
+    end
+
+    def _in_memory_query_constraints_hash
+      return { @primary_key => id } unless self.class.query_constraints_list
+
+      self.class.query_constraints_list.index_with do |column_name|
+        attribute(column_name)
       end
     end
 
@@ -1055,8 +1060,12 @@ module ActiveRecord
         (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
     end
 
-    def _primary_key_constraints_hash
-      { @primary_key => id_in_database }
+    def _query_constraints_hash
+      return { @primary_key => id_in_database } unless self.class.query_constraints_list
+
+      self.class.query_constraints_list.index_with do |column_name|
+        attribute_in_database(column_name)
+      end
     end
 
     # A hook to be overridden by association modules.
@@ -1068,7 +1077,7 @@ module ActiveRecord
     end
 
     def _delete_row
-      self.class._delete_record(_primary_key_constraints_hash)
+      self.class._delete_record(_query_constraints_hash)
     end
 
     def _touch_row(attribute_names, time)
@@ -1084,7 +1093,7 @@ module ActiveRecord
     def _update_row(attribute_names, attempted_action = "update")
       self.class._update_record(
         attributes_with_values(attribute_names),
-        _primary_key_constraints_hash
+        _query_constraints_hash
       )
     end
 

@@ -143,22 +143,24 @@ module ActiveRecord
       end
     end
 
-    def initialize(message = nil)
-      super(message || detailed_migration_message)
+    def initialize(message = nil, pending_migrations: nil)
+      if pending_migrations.nil?
+        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
+      end
+
+      super(message || detailed_migration_message(pending_migrations))
     end
 
     private
-      def detailed_migration_message
+      def detailed_migration_message(pending_migrations)
         message = "Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate"
-        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env)
+        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env) && !(Rails.env.development? || Rails.env.test?)
         message += "\n\n"
-
-        pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
 
         message += "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}\n\n"
 
         pending_migrations.each do |pending_migration|
-          message += "#{pending_migration.basename}\n"
+          message += "#{pending_migration.filename}\n"
         end
 
         message
@@ -553,6 +555,9 @@ module ActiveRecord
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
+      def compatible_table_definition(t)
+        t
+      end
     end
 
     def self.inherited(subclass) # :nodoc:
@@ -598,7 +603,7 @@ module ActiveRecord
         @mutex.synchronize do
           @watcher ||= build_watcher do
             @needs_check = true
-            ActiveRecord::Migration.check_pending!(connection)
+            ActiveRecord::Migration.check_pending_migrations
             @needs_check = false
           end
 
@@ -614,12 +619,10 @@ module ActiveRecord
 
       private
         def build_watcher(&block)
-          paths = Array(connection.migration_context.migrations_paths)
+          current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+          all_configs = ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
+          paths = all_configs.flat_map { |config| config.migrations_paths || Migrator.migrations_paths }.uniq
           @file_watcher.new([], paths.index_with(["rb"]), &block)
-        end
-
-        def connection
-          ActiveRecord::Base.connection
         end
     end
 
@@ -633,30 +636,22 @@ module ActiveRecord
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
-        raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
+        if pending_migrations = connection.migration_context.pending_migrations
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
+        end
       end
 
       def load_schema_if_pending!
-        current_db_config = Base.connection_db_config
-        all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
-
-        needs_update = !all_configs.all? do |db_config|
-          Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
-        end
-
-        if needs_update
+        if any_schema_needs_update?
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
-            Base.clear_all_connections!
+            Base.connection_handler.clear_all_connections!(:all)
             system("bin/rails db:test:prepare")
           end
         end
 
-        # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_db_config)
-
-        check_pending!
+        check_pending_migrations
       end
 
       def maintain_test_schema! # :nodoc:
@@ -681,6 +676,42 @@ module ActiveRecord
       def disable_ddl_transaction!
         @disable_ddl_transaction = true
       end
+
+      def check_pending_migrations # :nodoc:
+        migrations = pending_migrations
+
+        if migrations.any?
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: migrations)
+        end
+      end
+
+      private
+        def any_schema_needs_update?
+          !db_configs_in_current_env.all? do |db_config|
+            Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
+          end
+        end
+
+        def pending_migrations
+          prev_db_config = Base.connection_db_config
+          pending_migrations = []
+
+          db_configs_in_current_env.each do |db_config|
+            conn = Base.establish_connection(db_config).connection
+            if pending = conn.migration_context.open.pending_migrations
+              pending_migrations << pending
+            end
+          end
+
+          pending_migrations.flatten
+        ensure
+          Base.establish_connection(prev_db_config)
+        end
+
+        def db_configs_in_current_env
+          current_environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+          ActiveRecord::Base.configurations.configs_for(env_name: current_environment)
+        end
     end
 
     def disable_ddl_transaction # :nodoc:
@@ -1085,7 +1116,7 @@ module ActiveRecord
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
       if schema_migration == SchemaMigration
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
           specific connection, instaniate MigrationContext with the connection's schema
@@ -1096,7 +1127,7 @@ module ActiveRecord
       end
 
       if internal_metadata == InternalMetadata
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
           specific connection, instaniate MigrationContext with the connection's internal

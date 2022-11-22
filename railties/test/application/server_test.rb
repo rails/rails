@@ -7,7 +7,6 @@ require "rails/commands/server/server_command"
 
 module ApplicationTests
   class ServerTest < ActiveSupport::TestCase
-    include ActiveSupport::Testing::Isolation
     include ConsoleHelpers
 
     def setup

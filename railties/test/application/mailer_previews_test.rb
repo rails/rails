@@ -262,7 +262,7 @@ module ApplicationTests
     test "mailer preview_path option is deprecated" do
       prev = ActionMailer::Base.preview_paths
       ActionMailer::Base.preview_paths = ["#{app_path}/lib/mailer/previews"]
-      assert_deprecated do
+      assert_deprecated(ActionMailer.deprecator) do
         assert_equal "#{app_path}/lib/mailer/previews", ActionMailer::Base.preview_path
       end
     ensure
@@ -271,7 +271,7 @@ module ApplicationTests
 
     test "mailer preview_path= option is deprecated" do
       prev = ActionMailer::Base.preview_paths
-      assert_deprecated do
+      assert_deprecated(ActionMailer.deprecator) do
         ActionMailer::Base.preview_path = "#{app_path}/lib/mailer/previews"
       end
       assert_equal ["#{app_path}/lib/mailer/previews"], ActionMailer::Base.preview_paths

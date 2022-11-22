@@ -83,11 +83,9 @@ $ rails new petstore --database=postgresql
 ...
 ```
 
-Let's see what it put in our database configuration:
+Let's see what it put in our `config/database.yml`:
 
-```bash
-$ cd petstore
-$ cat config/database.yml
+```yaml
 # PostgreSQL. Versions 9.3 and up are supported.
 #
 # Install the pg driver:
@@ -111,14 +109,13 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-..development:
+development:
   <<: *default
-  database: petstore_development.
+  database: petstore_development
 ...
 ```
 
-It generated some lines in our `database.yml` configuration corresponding
-to our choice of PostgreSQL for database.
+It generated a database configuration corresponding to our choice of PostgreSQL.
 
 Command Line Basics
 -------------------
@@ -413,7 +410,7 @@ Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
 
-#### The app and helper objects
+#### The `app` and `helper` Objects
 
 Inside the `bin/rails console` you have access to the `app` and `helper` instances.
 

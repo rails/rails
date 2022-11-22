@@ -221,11 +221,15 @@ module ActiveRecord
       #++
 
       # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil, async: false)
+      #
+      # Setting +allow_retry+ to true causes the db to reconnect and retry
+      # executing the SQL statement in case of a connection-related exception.
+      # This option should only be enabled for known idempotent queries.
+      def execute(sql, name = nil, async: false, allow_retry: false)
         sql = transform_query(sql)
         check_if_write_query(sql)
 
-        raw_execute(sql, name, async: async)
+        raw_execute(sql, name, async: async, allow_retry: allow_retry)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method

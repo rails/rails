@@ -248,7 +248,7 @@ render js: "alert('Hello Rails');"
 
 This will send the supplied string to the browser with a MIME type of `text/javascript`.
 
-#### Rendering raw body
+#### Rendering Raw Body
 
 You can send a raw content back to the browser, without setting any content
 type, by using the `:body` option to `render`:
@@ -264,7 +264,7 @@ time.
 NOTE: Unless overridden, your response returned from this render option will be
 `text/plain`, as that is the default content type of Action Dispatch response.
 
-#### Rendering raw file
+#### Rendering Raw File
 
 Rails can render a raw file from an absolute path. This is useful for
 conditionally rendering static files like error pages.
@@ -281,7 +281,7 @@ since an attacker could use this action to access security sensitive files in yo
 
 TIP: `send_file` is often a faster and better option if a layout isn't required.
 
-#### Rendering objects
+#### Rendering Objects
 
 Rails can render objects responding to `:render_in`.
 
@@ -755,7 +755,7 @@ end
 
 This would detect that there are no books with the specified ID, populate the `@books` instance variable with all the books in the model, and then directly render the `index.html.erb` template, returning it to the browser with a flash alert message to tell the user what happened.
 
-### Using `head` To Build Header-Only Responses
+### Using `head` to Build Header-Only Responses
 
 The [`head`][] method can be used to send responses with only headers to the browser. The `head` method accepts a number or symbol (see [reference table](#the-status-option)) representing an HTTP status code. The options argument is interpreted as a hash of header names and values. For example, you can return only an error header:
 

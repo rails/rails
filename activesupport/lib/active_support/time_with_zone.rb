@@ -42,7 +42,7 @@ module ActiveSupport
   class TimeWithZone
     # Report class name as 'Time' to thwart type checking.
     def self.name
-      ActiveSupport::Deprecation.warn(<<~EOM)
+      ActiveSupport.deprecator.warn(<<~EOM)
         ActiveSupport::TimeWithZone.name has been deprecated and
         from Rails 7.1 will use the default Ruby implementation.
         You can set `config.active_support.remove_deprecated_time_with_zone_name = true`
@@ -211,19 +211,19 @@ module ActiveSupport
     # Returns a string of the object's date and time.
     def to_s(format = NOT_SET)
       if format == :db
-        ActiveSupport::Deprecation.warn(
+        ActiveSupport.deprecator.warn(
           "TimeWithZone#to_s(:db) is deprecated. Please use TimeWithZone#to_fs(:db) instead."
         )
         utc.to_fs(format)
       elsif formatter = ::Time::DATE_FORMATS[format]
-        ActiveSupport::Deprecation.warn(
+        ActiveSupport.deprecator.warn(
           "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
         )
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       elsif format == NOT_SET
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
       else
-        ActiveSupport::Deprecation.warn(
+        ActiveSupport.deprecator.warn(
           "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
         )
         "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format

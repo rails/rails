@@ -457,10 +457,6 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
-            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
-                @connection.savepoint_errors_invalidate_transactions?
-              transaction.state.invalidate!
-            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end
@@ -487,7 +483,7 @@ module ActiveRecord
                 if !completed && transaction.written_indirectly
                   # This is the case that was missed in the 6.1 deprecation, so we have to
                   # do it now
-                  ActiveSupport::Deprecation.warn(<<~EOW)
+                  ActiveRecord.deprecator.warn(<<~EOW)
                     Using `return`, `break` or `throw` to exit a transaction block is
                     deprecated without replacement. If the `throw` came from
                     `Timeout.timeout(duration)`, pass an exception class as a second

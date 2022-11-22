@@ -165,7 +165,7 @@ module ActiveSupport
       end
 
       def children # :nodoc:
-        ActiveSupport::Deprecation.warn <<~EOM
+        ActiveSupport.deprecator.warn <<~EOM
           ActiveSupport::Notifications::Event#children is deprecated and will
           be removed in Rails 7.2.
         EOM
@@ -173,7 +173,7 @@ module ActiveSupport
       end
 
       def parent_of?(event) # :nodoc:
-        ActiveSupport::Deprecation.warn <<~EOM
+        ActiveSupport.deprecator.warn <<~EOM
           ActiveSupport::Notifications::Event#parent_of? is deprecated and will
           be removed in Rails 7.2.
         EOM

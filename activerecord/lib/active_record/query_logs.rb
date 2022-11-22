@@ -6,9 +6,20 @@ require "active_record/query_logs_formatter"
 module ActiveRecord
   # = Active Record Query Logs
   #
-  # Automatically tag SQL queries with runtime information.
+  # Automatically append comments to SQL queries with runtime information tags. This can be used to trace troublesome
+  # SQL statements back to the application code that generated these statements.
   #
-  # Default tags available for use:
+  # Query logs can be enabled via Rails configuration in <tt>config/application.rb</tt> or an initializer:
+  #
+  #     config.active_record.query_log_tags_enabled = true
+  #
+  # By default the name of the application, the name and action of the controller, or the name of the job are logged.
+  # The default format is {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/].
+  # The tags shown in a query comment can be configured via Rails configuration:
+  #
+  #     config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
+  #
+  # Active Record defines default tags available for use:
   #
   # * +application+
   # * +pid+
@@ -16,46 +27,38 @@ module ActiveRecord
   # * +db_host+
   # * +database+
   #
-  # _Action Controller and Active Job tags are also defined when used in Rails:_
+  # Action Controller adds default tags when loaded:
   #
   # * +controller+
   # * +action+
+  # * +namespaced_controller+
+  #
+  # Active Job adds default tags when loaded:
+  #
   # * +job+
   #
-  # The tags used in a query can be configured directly:
-  #
-  #     ActiveRecord::QueryLogs.tags = [ :application, :controller, :action, :job ]
-  #
-  # or via Rails configuration:
-  #
-  #     config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
-  #
-  # To add new comment tags, add a hash to the tags array containing the keys and values you
-  # want to add to the comment. Dynamic content can be created by setting a proc or lambda value in a hash,
-  # and can reference any value stored in the +context+ object.
+  # New comment tags can be defined by adding them in a +Hash+ to the tags +Array+. Tags can have dynamic content by
+  # setting a +Proc+ or lambda value in the +Hash+, and can reference any value stored by Rails in the +context+ object.
+  # ActiveSupport::CurrentAttributes can be used to store application values. Tags with +nil+ values are
+  # omitted from the query comment.
   #
   # Example:
   #
-  #    tags = [
-  #      :application,
-  #      {
-  #        custom_tag: ->(context) { context[:controller]&.controller_name },
-  #        custom_value: -> { Custom.value },
-  #      }
-  #    ]
-  #    ActiveRecord::QueryLogs.tags = tags
+  #     config.active_record.query_log_tags = [
+  #       :namespaced_controller,
+  #       :action,
+  #       :job,
+  #       {
+  #         request_id: ->(context) { context[:controller]&.request&.request_id },
+  #         job_id: ->(context) { context[:job]&.job_id },
+  #         tenant_id: -> { Current.tenant&.id },
+  #         static: "value",
+  #       },
+  #     ]
   #
-  # The QueryLogs +context+ can be manipulated via the +ActiveSupport::ExecutionContext.set+ method.
-  #
-  # Temporary updates limited to the execution of a block:
-  #
-  #    ActiveSupport::ExecutionContext.set(foo: Bar.new) do
-  #      posts = Post.all
-  #    end
-  #
-  # Direct updates to a context value:
-  #
-  #    ActiveSupport::ExecutionContext[:foo] = Bar.new
+  # By default the name of the application, the name and action of the controller, or the name of the job are logged
+  # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
+  # via {config.active_record.query_log_tags_format}[https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format]
   #
   # Tag comments can be prepended to the query:
   #
@@ -63,10 +66,6 @@ module ActiveRecord
   #
   # For applications where the content will not change during the lifetime of
   # the request or job execution, the tags can be cached for reuse in every query:
-  #
-  #    ActiveRecord::QueryLogs.cache_query_log_tags = true
-  #
-  # This option can be set during application configuration or in a Rails initializer:
   #
   #    config.active_record.cache_query_log_tags = true
   module QueryLogs
@@ -134,7 +133,7 @@ module ActiveRecord
         def tag_content
           context = ActiveSupport::ExecutionContext.to_h
 
-          tags.flat_map { |i| [*i] }.filter_map do |tag|
+          pairs = tags.flat_map { |i| [*i] }.filter_map do |tag|
             key, handler = tag
             handler ||= taggings[key]
 
@@ -149,9 +148,9 @@ module ActiveRecord
             else
               handler
             end
-
-            self.formatter.format(key, val) unless val.nil?
-          end.join(",")
+            [key, val] unless val.nil?
+          end
+          self.formatter.format(pairs)
         end
     end
   end

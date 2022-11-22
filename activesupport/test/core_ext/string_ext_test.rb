@@ -836,7 +836,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Adding an object not responding to `#to_str` to a safe string is deprecated" do
     string = @string.html_safe
-    assert_deprecated("Implicit conversion of #{@to_s_object.class} into String by ActiveSupport::SafeBuffer is deprecated") do
+    assert_deprecated("Implicit conversion of #{@to_s_object.class} into String by ActiveSupport::SafeBuffer is deprecated", ActiveSupport.deprecator) do
       string << @to_s_object
     end
     assert_equal "helloto_s", string

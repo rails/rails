@@ -204,7 +204,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
         get "route_one", to: "action_pack_assertions#nothing", as: :route_one
         get "route_two", to: "action_pack_assertions#nothing", id: "two", as: :route_two
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -231,7 +231,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         get "admin/inner_module", to: "admin/inner_module#index", as: :admin_inner_module
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -248,7 +248,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         get "/action_pack_assertions/:id", to: "action_pack_assertions#index", as: :top_level
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -267,7 +267,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
         # this controller exists in the admin namespace as well which is the only difference from previous test
         get "/user/:id", to: "user#index", as: :top_level
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end

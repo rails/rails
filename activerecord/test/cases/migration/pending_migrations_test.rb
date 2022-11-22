@@ -1,31 +1,26 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/hash/deep_merge"
 
 module ActiveRecord
   class Migration
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       class PendingMigrationsTest < ActiveRecord::TestCase
+        self.use_transactional_tests = false
+
         setup do
-          @migration_dir = Dir.mktmpdir("activerecord-migrations-")
+          @tmp_dir = Dir.mktmpdir("pending_migrations_test-")
 
-          file = ActiveRecord::Base.connection.raw_connection.filename
-          @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:", migrations_paths: @migration_dir
-          source_db = SQLite3::Database.new file
-          dest_db = ActiveRecord::Base.connection.raw_connection
-          backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
-          backup.step(-1)
-          backup.finish
-
-          ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
-
-          @app = Minitest::Mock.new
+          @original_configurations = ActiveRecord::Base.configurations
+          ActiveRecord::Base.configurations = base_config
+          ActiveRecord::Base.establish_connection(:primary)
         end
 
         teardown do
-          @conn.release_connection if @conn
-          ActiveRecord::Base.establish_connection :arunit
-          FileUtils.rm_rf(@migration_dir)
+          ActiveRecord::Base.configurations = @original_configurations
+          ActiveRecord::Base.establish_connection(:arunit)
+          FileUtils.rm_rf(@tmp_dir)
         end
 
         def run_migrations
@@ -33,9 +28,12 @@ module ActiveRecord
           capture(:stdout) { migrator.migrate }
         end
 
-        def create_migration(number, name)
+        def create_migration(number, name, database: :primary)
+          migration_dir = migrations_path_for(database)
+          FileUtils.mkdir_p(migration_dir)
+
           filename = "#{number}_#{name.underscore}.rb"
-          File.write(File.join(@migration_dir, filename), <<~RUBY)
+          File.write(File.join(migration_dir, filename), <<~RUBY)
             class #{name.classify} < ActiveRecord::Migration::Current
             end
           RUBY
@@ -43,63 +41,100 @@ module ActiveRecord
 
         def test_errors_if_pending
           create_migration "01", "create_foo"
-
-          assert_raises ActiveRecord::PendingMigrationError do
-            CheckPending.new(@app).call({})
-          end
-
-          # Continues failing
-          assert_raises ActiveRecord::PendingMigrationError do
-            CheckPending.new(@app).call({})
-          end
+          assert_pending_migrations("01_create_foo.rb")
         end
 
         def test_checks_if_supported
           run_migrations
-
-          check_pending = CheckPending.new(@app)
-
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
-
-          # With cached result
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
+          assert_no_pending_migrations
         end
 
         def test_okay_with_no_migrations
-          check_pending = CheckPending.new(@app)
-
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
-
-          # With cached result
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
+          assert_no_pending_migrations
         end
 
         # Regression test for https://github.com/rails/rails/pull/29759
         def test_understands_migrations_created_out_of_order
           # With a prior file before even initialization
           create_migration "05", "create_bar"
-          run_migrations
-
-          check_pending = CheckPending.new(@app)
-
-          @app.expect :call, nil, [{}]
-          check_pending.call({})
-          @app.verify
+          quietly { run_migrations }
+          assert_no_pending_migrations
 
           # It understands the new migration created at 01
           create_migration "01", "create_foo"
-          assert_raises ActiveRecord::PendingMigrationError do
-            check_pending.call({})
-          end
+          assert_pending_migrations("01_create_foo.rb")
         end
+
+        def test_with_multiple_database
+          create_migration "01", "create_bar", database: :primary
+          create_migration "02", "create_foo", database: :secondary
+          assert_pending_migrations("01_create_bar.rb", "02_create_foo.rb")
+
+          ActiveRecord::Base.establish_connection(:secondary)
+          quietly { run_migrations }
+
+          ActiveRecord::Base.establish_connection(:primary)
+          quietly { run_migrations }
+
+          assert_no_pending_migrations
+        end
+
+        def test_with_stdlib_logger
+          old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new(StringIO.new)
+          assert_nothing_raised { CheckPending.new(proc { }).call({}) }
+        ensure
+          ActiveRecord::Base.logger = old
+        end
+
+        private
+          def assert_pending_migrations(*expected_migrations)
+            2.times do
+              error = assert_raises ActiveRecord::PendingMigrationError do
+                CheckPending.new(proc { flunk }).call({})
+              end
+
+              assert_includes error.message, "Migrations are pending."
+              expected_migrations.each do |migration|
+                assert_includes error.message, migration
+              end
+            end
+          end
+
+          def assert_no_pending_migrations
+            app = Minitest::Mock.new
+            check_pending = CheckPending.new(app)
+
+            2.times do
+              app.expect :call, nil, [{}]
+              check_pending.call({})
+              app.verify
+            end
+          end
+
+          def database_path_for(database_name)
+            File.join(@tmp_dir, "#{database_name}.sqlite3")
+          end
+
+          def migrations_path_for(database_name)
+            File.join(@tmp_dir, "#{database_name}-migrations")
+          end
+
+          def base_config(additional_config = {})
+            {
+              ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
+                primary: {
+                  adapter: "sqlite3",
+                  database: database_path_for(:primary),
+                  migrations_paths: migrations_path_for(:primary),
+                },
+                secondary: {
+                  adapter: "sqlite3",
+                  database: database_path_for(:secondary),
+                  migrations_paths: migrations_path_for(:secondary),
+                },
+              }.deep_merge(additional_config)
+            }
+          end
       end
     end
   end

@@ -340,7 +340,7 @@ your job queue being able to hold jobs for that long.)
 
 [`config.action_mailbox.incinerate_after`]: configuring.html#config-action-mailbox-incinerate-after
 
-## Working with Action Mailbox in development
+## Working with Action Mailbox in Development
 
 It's helpful to be able to test incoming emails in development without actually
 sending and receiving real emails. To accomplish this, there's a conductor
@@ -348,7 +348,7 @@ controller mounted at `/rails/conductor/action_mailbox/inbound_emails`,
 which gives you an index of all the InboundEmails in the system, their
 state of processing, and a form to create a new InboundEmail as well.
 
-## Testing mailboxes
+## Testing Mailboxes
 
 Example:
 

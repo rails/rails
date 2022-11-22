@@ -11,13 +11,17 @@ module ActiveModel
     #     attribute :age, :integer
     #   end
     #
-    #   person = Person.new
-    #   person.age = "18"
+    # Values are cast using their +to_i+ method, except for blank strings, which
+    # are cast to +nil+. If a +to_i+ method is not defined or raises an error,
+    # the value will be cast to +nil+.
     #
+    #   person = Person.new
+    #
+    #   person.age = "18"
     #   person.age # => 18
     #
-    # Values are cast using their +to_i+ method, if it exists. If it does not
-    # exist, or if it raises an error, the value will be cast to +nil+:
+    #   person.age = ""
+    #   person.age # => nil
     #
     #   person.age = :not_an_integer
     #   person.age # => nil (because Symbol does not define #to_i)
@@ -36,7 +40,6 @@ module ActiveModel
     #     attribute :age, :integer, limit: 6
     #   end
     class Integer < Value
-      include SerializeCastValue
       include Helpers::Numeric
 
       # Column storage size in bytes.

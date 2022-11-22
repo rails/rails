@@ -10,6 +10,10 @@ module ActionCable
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
     config.action_cable.precompile_assets = true
 
+    initializer "action_cable.deprecator" do |app|
+      app.deprecators[:action_cable] = ActionCable.deprecator
+    end
+
     initializer "action_cable.helpers" do
       ActiveSupport.on_load(:action_view) do
         include ActionCable::Helpers::ActionCableHelper

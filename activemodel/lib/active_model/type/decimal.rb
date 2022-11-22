@@ -13,15 +13,24 @@ module ActiveModel
     #     attribute :weight, :decimal
     #   end
     #
-    #   bag = BagOfCoffee.new
-    #   bag.weight = "0.0001"
-    #
-    #   bag.weight # => 0.1e-3
-    #
     # Numeric instances are converted to BigDecimal instances. Any other objects
-    # are cast using their +to_d+ method, if it exists. If it does not exist,
-    # the object is converted to a string using +to_s+, which is then coerced to
-    # a BigDecimal using +to_d+.
+    # are cast using their +to_d+ method, except for blank strings, which are
+    # cast to +nil+. If a +to_d+ method is not defined, the object is converted
+    # to a string using +to_s+, which is then cast using +to_d+.
+    #
+    #   bag = BagOfCoffee.new
+    #
+    #   bag.weight = 0.01
+    #   bag.weight # => 0.1e-1
+    #
+    #   bag.weight = "0.01"
+    #   bag.weight # => 0.1e-1
+    #
+    #   bag.weight = ""
+    #   bag.weight # => nil
+    #
+    #   bag.weight = :arbitrary
+    #   bag.weight # => nil (the result of `.to_s.to_d`)
     #
     # Decimal precision defaults to 18, and can be customized when declaring an
     # attribute:
@@ -32,7 +41,6 @@ module ActiveModel
     #     attribute :weight, :decimal, precision: 24
     #   end
     class Decimal < Value
-      include SerializeCastValue
       include Helpers::Numeric
       BIGDECIMAL_PRECISION = 18
 

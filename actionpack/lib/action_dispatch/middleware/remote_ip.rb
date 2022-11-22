@@ -64,7 +64,7 @@ module ActionDispatch
       elsif custom_proxies.respond_to?(:any?)
         custom_proxies
       else
-        ActiveSupport::Deprecation.warn(<<~EOM)
+        ActionDispatch.deprecator.warn(<<~EOM)
           Setting config.action_dispatch.trusted_proxies to a single value has
           been deprecated. Please set this to an enumerable instead. For
           example, instead of:

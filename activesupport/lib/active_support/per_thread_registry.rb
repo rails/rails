@@ -40,7 +40,7 @@ module ActiveSupport
   # If the class has an initializer, it must accept no arguments.
   module PerThreadRegistry
     def self.extended(object)
-      ActiveSupport::Deprecation.warn(<<~MSG)
+      ActiveSupport.deprecator.warn(<<~MSG)
         ActiveSupport::PerThreadRegistry is deprecated and will be removed in Rails 7.1.
         Use `Module#thread_mattr_accessor` instead.
       MSG

@@ -34,7 +34,7 @@ module ActiveRecord
           Base.private_instance_methods -
           Base.superclass.instance_methods -
           Base.superclass.private_instance_methods +
-          %i[__id__ dup freeze hash object_id class clone]
+          %i[__id__ dup freeze frozen? hash object_id class clone]
         ).map { |m| -m.to_s }.to_set.freeze
       end
     end
@@ -310,37 +310,40 @@ module ActiveRecord
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 
-    # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-    # "2004-12-12" in a date column is cast to a date object, like Date.new(2004, 12, 12)). It raises
-    # <tt>ActiveModel::MissingAttributeError</tt> if the identified attribute is missing.
-    #
-    # Note: +:id+ is always present.
+    # Returns the value of the attribute identified by +attr_name+ after it has
+    # been type cast. (For information about specific type casting behavior, see
+    # the types under ActiveModel::Type.)
     #
     #   class Person < ActiveRecord::Base
     #     belongs_to :organization
     #   end
     #
-    #   person = Person.new(name: 'Francesco', age: '22')
-    #   person[:name] # => "Francesco"
-    #   person[:age]  # => 22
+    #   person = Person.new(name: "Francesco", date_of_birth: "2004-12-12")
+    #   person[:name]            # => "Francesco"
+    #   person[:date_of_birth]   # => Date.new(2004, 12, 12)
+    #   person[:organization_id] # => nil
     #
-    #   person = Person.select('id').first
-    #   person[:name]            # => ActiveModel::MissingAttributeError: missing attribute: name
+    # Raises ActiveModel::MissingAttributeError if the attribute is missing.
+    # Note, however, that the +id+ attribute will never be considered missing.
+    #
+    #   person = Person.select(:name).first
+    #   person[:name]            # => "Francesco"
+    #   person[:date_of_birth]   # => ActiveModel::MissingAttributeError: missing attribute: date_of_birth
     #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute: organization_id
+    #   person[:id]              # => nil
     def [](attr_name)
       read_attribute(attr_name) { |n| missing_attribute(n, caller) }
     end
 
-    # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-    # (Alias for the protected #write_attribute method).
+    # Updates the attribute identified by +attr_name+ using the specified
+    # +value+. The attribute value will be type cast upon being read.
     #
     #   class Person < ActiveRecord::Base
     #   end
     #
     #   person = Person.new
-    #   person[:age] = '22'
-    #   person[:age] # => 22
-    #   person[:age].class # => Integer
+    #   person[:date_of_birth] = "2004-12-12"
+    #   person[:date_of_birth] # => Date.new(2004, 12, 12)
     def []=(attr_name, value)
       write_attribute(attr_name, value)
     end
@@ -393,6 +396,7 @@ module ActiveRecord
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
           self.class.readonly_attribute?(name) ||
+            self.class.counter_cache_column?(name) ||
             column_for_attribute(name).virtual?
         end
       end

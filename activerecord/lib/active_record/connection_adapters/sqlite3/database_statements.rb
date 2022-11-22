@@ -20,14 +20,14 @@ module ActiveRecord
           SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
         end
 
-        def execute(sql, name = nil) # :nodoc:
+        def execute(sql, name = nil, allow_retry: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 
           log(sql, name) do
-            with_raw_connection do |conn|
+            with_raw_connection(allow_retry: allow_retry) do |conn|
               conn.execute(sql)
             end
           end

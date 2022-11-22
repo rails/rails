@@ -378,6 +378,7 @@ module ActiveRecord
       end
 
       def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
+        original_db_config = ActiveRecord::Base.connection_db_config
         db_config = resolve_configuration(configuration)
 
         file ||= schema_dump_path(db_config)
@@ -391,6 +392,8 @@ module ActiveRecord
         return false unless connection.internal_metadata.table_exists?
 
         connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+      ensure
+        ActiveRecord::Base.establish_connection(original_db_config)
       end
 
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
@@ -443,7 +446,7 @@ module ActiveRecord
           "structure.sql"
         end
       end
-      deprecate :schema_file_type
+      deprecate :schema_file_type, deprecator: ActiveRecord.deprecator
 
       def schema_dump_path(db_config, format = ActiveRecord.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]

@@ -127,7 +127,7 @@ module ActionView
       #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
-      #  And in another place:
+      # And in another place:
       #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Login', action: 'login' %></li>
@@ -143,7 +143,7 @@ module ActionView
       #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
-      #   <%#  Add some other content, or use a different template: %>
+      #   <%# Add some other content, or use a different template: %>
       #
       #   <% content_for :navigation, flush: true do %>
       #     <li><%= link_to 'Login', action: 'login' %></li>

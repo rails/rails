@@ -2,7 +2,7 @@
 
 module ActiveModel
   module Type
-    # Attribute type for time representation. It is registered under the
+    # Attribute type for time of day representation. It is registered under the
     # +:time+ key.
     #
     #   class Event
@@ -11,23 +11,19 @@ module ActiveModel
     #     attribute :start, :time
     #   end
     #
+    # String values are parsed using the ISO 8601 datetime format, but are
+    # normalized to have a date of 2000-01-01 and be in the UTC time zone.
+    #
     #   event = Event.new
-    #   event.start = "2022-02-18T13:15:00-05:00"
+    #   event.start = "2004-10-25T01:23:45-06:00"
     #
     #   event.start.class # => Time
-    #   event.start.year  # => 2022
-    #   event.start.month # => 2
-    #   event.start.day   # => 18
-    #   event.start.hour  # => 13
-    #   event.start.min   # => 15
-    #   event.start.sec   # => 0
-    #   event.start.zone  # => "EST"
+    #   event.start       # => 2000-01-01 07:23:45 UTC
     #
-    # String values are parsed using the ISO 8601 datetime format. Partial
-    # time-only formats are also accepted.
+    # Partial time-only formats are also accepted.
     #
-    #   event.start = "06:07:08+09:00"
-    #   event.start.utc # => 1999-12-31 21:07:08 UTC
+    #   event.start = "00:01:02+03:00"
+    #   event.start # => 1999-12-31 21:01:02 UTC
     #
     # The degree of sub-second precision can be customized when declaring an
     # attribute:
@@ -38,12 +34,11 @@ module ActiveModel
     #     attribute :start, :time, precision: 4
     #   end
     class Time < Value
-      include SerializeCastValue
       include Helpers::Timezone
-      include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 1 => 2000, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
       )
+      include Helpers::TimeValue
 
       def type
         :time
@@ -67,8 +62,6 @@ module ActiveModel
 
         super(value)
       end
-
-      alias :serialize_cast_value :serialize_time_value # :nodoc:
 
       private
         def cast_value(value)

@@ -302,7 +302,7 @@ module ActiveRecord
     # You can also use one or more strings, which will be used unchanged as SELECT fields.
     #
     #   Model.select('field AS field_one', 'other_field AS field_two')
-    #   # => [#<Model id: nil, field: "value", other_field: "value">]
+    #   # => [#<Model id: nil, field_one: "value", field_two: "value">]
     #
     # If an alias was specified, it will be accessible from the resulting objects:
     #
@@ -406,6 +406,7 @@ module ActiveRecord
     # Note that we're unscoping the entire select statement.
     def reselect(*args)
       check_if_method_has_arguments!(__callee__, args)
+      args = process_select_args(args)
       spawn.reselect!(*args)
     end
 
@@ -511,13 +512,16 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an order by a specific set of values. Depending on your
-    # adapter this will either use a CASE statement or a built-in function.
+    # Allows to specify an order by a specific set of values.
     #
     #   User.in_order_of(:id, [1, 5, 3])
     #   # SELECT "users".* FROM "users"
-    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
     #   #   WHERE "users"."id" IN (1, 5, 3)
+    #   #   ORDER BY CASE
+    #   #     WHEN "users"."id" = 1 THEN 1
+    #   #     WHEN "users"."id" = 5 THEN 2
+    #   #     WHEN "users"."id" = 3 THEN 3
+    #   #   END ASC
     #
     def in_order_of(column, values)
       klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
@@ -568,7 +572,8 @@ module ActiveRecord
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
-                                     :includes, :from, :readonly, :having, :optimizer_hints])
+                                     :includes, :eager_load, :preload, :from, :readonly,
+                                     :having, :optimizer_hints])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -1511,9 +1516,6 @@ module ActiveRecord
           end
         end
         result
-      end
-
-      class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
       end
 
       def build_join_buckets

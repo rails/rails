@@ -467,6 +467,22 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             @connection.validate_constraint :astronauts, "fancy_named_fk"
             assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
+
+          def test_schema_dumping_with_validate_false
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", validate: false$}, output
+          end
+
+          def test_schema_dumping_with_validate_true
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: true
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets"$}, output
+          end
         else
           # Foreign key should still be created, but should not be invalid
           def test_add_invalid_foreign_key

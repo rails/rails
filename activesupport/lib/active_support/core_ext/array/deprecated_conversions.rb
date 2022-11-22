@@ -5,7 +5,7 @@ class Array
   def to_s(format = NOT_SET) # :nodoc:
     case format
     when :db
-      ActiveSupport::Deprecation.warn(
+      ActiveSupport.deprecator.warn(
         "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_fs(#{format.inspect}) instead."
       )
       if empty?
@@ -16,7 +16,7 @@ class Array
     when NOT_SET
       to_default_s
     else
-      ActiveSupport::Deprecation.warn(
+      ActiveSupport.deprecator.warn(
         "Array#to_s(#{format.inspect}) is deprecated. Please use Array#to_fs(#{format.inspect}) instead."
       )
       to_default_s

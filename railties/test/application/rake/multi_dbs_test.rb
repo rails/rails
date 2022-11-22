@@ -821,6 +821,38 @@ module ApplicationTests
         assert_match(/You have 1 pending migration/, output)
       end
 
+      test "db:version works on all databases" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          primary_version = File.basename(Dir[File.join(app_path, "db", "migrate", "*.rb")].first).to_i
+          animals_version = File.basename(Dir[File.join(app_path, "db", "animals_migrate", "*.rb")].first).to_i
+
+          rails("db:migrate")
+          output = rails("db:version")
+
+          assert_match(/database: db\/development.sqlite3\nCurrent version: #{primary_version}/, output)
+          assert_match(/database: db\/development_animals.sqlite3\nCurrent version: #{animals_version}/, output)
+        end
+      end
+
+      test "db:version:namespace works" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          primary_version = File.basename(Dir[File.join(app_path, "db", "migrate", "*.rb")].first).to_i
+          animals_version = File.basename(Dir[File.join(app_path, "db", "animals_migrate", "*.rb")].first).to_i
+
+          rails("db:migrate")
+
+          output = rails("db:version:primary")
+          assert_match(/Current version: #{primary_version}/, output)
+
+          output = rails("db:version:animals")
+          assert_match(/Current version: #{animals_version}/, output)
+        end
+      end
+
       test "db:setup works on all databases" do
         require "#{app_path}/config/environment"
         db_setup
@@ -1225,6 +1257,49 @@ module ApplicationTests
             error = assert_raises("#{task} did not raise ActiveRecord::ProtectedEnvironmentError") { rails task }
             assert_match(/ActiveRecord::ProtectedEnvironmentError/, error.message)
           end
+        end
+      end
+
+      test "after schema is loaded test run on the correct connections" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: db/default.sqlite3
+              adapter: sqlite3
+            animals:
+              database: db/development_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+          test:
+            primary:
+              database: db/default_test.sqlite3
+              adapter: sqlite3
+            animals:
+              database: db/test_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+        YAML
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+
+          File.open("test/models/book_test.rb", "w") do |file|
+            file.write(<<~EOS)
+              require "test_helper"
+
+              class BookTest < ActiveSupport::TestCase
+                test "a book" do
+                  assert Book.first
+                end
+              end
+            EOS
+          end
+
+          rails "db:migrate"
+          rails "db:schema:dump"
+          output = rails "test"
+          assert_match(/1 runs, 1 assertions, 0 failures, 0 errors, 0 skips/, output)
         end
       end
     end

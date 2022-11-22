@@ -389,7 +389,7 @@ class RedirectTest < ActionController::TestCase
       set.draw do
         resources :workshops
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -411,7 +411,7 @@ class RedirectTest < ActionController::TestCase
           resources :workshops
         end
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -429,7 +429,7 @@ class RedirectTest < ActionController::TestCase
           resources :workshops
         end
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -476,7 +476,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end

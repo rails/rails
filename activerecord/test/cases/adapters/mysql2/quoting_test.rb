@@ -21,7 +21,7 @@ class Mysql2QuotingTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_quote_bound_duration
-    expected = assert_deprecated { @conn.quote_bound_value(42.seconds) }
+    expected = assert_deprecated(ActiveRecord.deprecator) { @conn.quote_bound_value(42.seconds) }
     assert_equal "'42'", expected
   end
 

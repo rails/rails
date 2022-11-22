@@ -69,6 +69,11 @@ module ActiveRecord
         end
       end
 
+      def initialize_dup(other) # :nodoc:
+        super
+        _clear_locking_column if locking_enabled?
+      end
+
       private
         def _create_record(attribute_names = self.attribute_names)
           if locking_enabled?
@@ -91,7 +96,7 @@ module ActiveRecord
             locking_column = self.class.locking_column
             lock_attribute_was = @attributes[locking_column]
 
-            update_constraints = _primary_key_constraints_hash
+            update_constraints = _query_constraints_hash
             update_constraints[locking_column] = _lock_value_for_database(locking_column)
 
             attribute_names = attribute_names.dup if attribute_names.frozen?
@@ -122,7 +127,7 @@ module ActiveRecord
 
           locking_column = self.class.locking_column
 
-          delete_constraints = _primary_key_constraints_hash
+          delete_constraints = _query_constraints_hash
           delete_constraints[locking_column] = _lock_value_for_database(locking_column)
 
           affected_rows = self.class._delete_record(delete_constraints)
@@ -140,6 +145,11 @@ module ActiveRecord
           else
             @attributes[locking_column].original_value_for_database
           end
+        end
+
+        def _clear_locking_column
+          self[self.class.locking_column] = nil
+          clear_attribute_change(self.class.locking_column)
         end
 
         module ClassMethods

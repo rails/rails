@@ -111,7 +111,7 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
   end
 
   def test_include_replicas_is_deprecated
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary", include_replicas: true)
 
       assert_equal "primary", db_config.name

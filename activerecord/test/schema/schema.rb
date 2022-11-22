@@ -17,6 +17,7 @@ ActiveRecord::Schema.define do
     t.string  :firm_name
     t.integer :credit_limit
     t.integer "a" * max_identifier_length
+    t.datetime :updated_at
   end
 
   create_table :admin_accounts, force: true do |t|
@@ -230,6 +231,14 @@ ActiveRecord::Schema.define do
     t.references :book1
     t.references :book2
     t.references :citation
+  end
+
+  create_table :clothing_items, force: true do |t|
+    t.string :clothing_type
+    t.string :color
+    t.text :description
+
+    t.index [:clothing_type, :color], unique: true
   end
 
   create_table :clubs, force: true do |t|
@@ -457,8 +466,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :entries, force: true do |t|
-    t.string  :entryable_type, null: false
-    t.integer :entryable_id, null: false
+    t.string   :entryable_type, null: false
+    t.integer  :entryable_id, null: false
+    t.integer  :account_id, null: false
+    t.datetime :updated_at
   end
 
   create_table :essays, force: true do |t|
@@ -664,7 +675,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :messages, force: true do |t|
-    t.string :subject
+    t.string   :subject
+    t.datetime :updated_at
   end
 
   create_table :minivans, force: true, id: false do |t|
@@ -1269,6 +1281,11 @@ ActiveRecord::Schema.define do
     t.integer :hotel_id
   end
 
+  create_table :recipients, force: true do |t|
+    t.integer  :message_id
+    t.string   :email_address
+  end
+
   create_table :records, force: true do |t|
   end
 
@@ -1316,6 +1333,11 @@ ActiveRecord::Schema.define do
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
     t.datetime :created_at
+  end
+
+  create_table :toooooooooooooooooooooooooooooooooo_long_table_names, force: true do |t|
+    t.bigint :toooooooo_long_a_id, null: false
+    t.bigint :toooooooo_long_b_id, null: false
   end
 end
 

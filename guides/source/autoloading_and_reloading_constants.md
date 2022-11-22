@@ -233,9 +233,9 @@ However, you cannot autoload from the autoload paths, which are managed by the `
 
 Why? Initializers only run once, when the application boots. If you reboot the server, they run again in a new process, but reloading does not reboot the server, and initializers don't run again. Let's see the two main use cases.
 
-### Use case 1: During boot, load reloadable code
+### Use Case 1: During Boot, Load Reloadable Code
 
-#### Autoload on boot and on each reload
+#### Autoload on Boot and on Each Reload
 
 Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
 
@@ -257,7 +257,7 @@ end
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
 
-#### Autoload on boot only
+#### Autoload on Boot Only
 
 Reloadable classes and modules can be autoloaded in `after_initialize` blocks too. These run on boot, but do not run again on reload. In some exceptional cases this may be what you want.
 
@@ -272,7 +272,7 @@ Rails.application.config.after_initialize do
 end
 ```
 
-### Use case 2: During boot, load code that remains cached
+### Use Case 2: During Boot, Load Code that Remains Cached
 
 Some configurations take a class or module object, and they store it in a place that is not reloaded.
 
@@ -309,7 +309,7 @@ Corollary: Those classes or modules **cannot be reloadable**.
 
 The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it.
 
-As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#config-autoload-once-paths) for details.
+As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](#config-autoload-once-paths) for details.
 
 Eager Loading
 -------------

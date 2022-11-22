@@ -243,7 +243,7 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+        GemfileEntry.new "puma", ">= 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def asset_pipeline_gemfile_entry
@@ -437,7 +437,7 @@ module Rails
         return if options[:skip_action_cable]
 
         comment = "Use Redis adapter to run Action Cable in production"
-        GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
+        GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
       end
 
       def bundle_command(command, env = {})

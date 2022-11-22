@@ -26,6 +26,7 @@
 require "active_support"
 require "active_support/rails"
 require "action_view/version"
+require "action_view/deprecator"
 
 module ActionView
   extend ActiveSupport::Autoload

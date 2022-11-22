@@ -125,6 +125,6 @@ class DeprecationTest < ActiveSupport::TestCase
     end
 
     def assert_not_silencing(deprecator)
-      assert_deprecated(/./, deprecator) { deprecator.warn }
+      assert_deprecated(deprecator) { deprecator.warn }
     end
 end

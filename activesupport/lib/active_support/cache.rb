@@ -196,7 +196,7 @@ module ActiveSupport
             else
               {}.tap do |pool_options|
                 if options[:pool_size]
-                  ActiveSupport::Deprecation.warn(<<~MSG)
+                  ActiveSupport.deprecator.warn(<<~MSG)
                     Using :pool_size is deprecated and will be removed in Rails 7.2.
                     Use `pool: { size: #{options[:pool_size].inspect} }` instead.
                   MSG
@@ -204,7 +204,7 @@ module ActiveSupport
                 end
 
                 if options[:pool_timeout]
-                  ActiveSupport::Deprecation.warn(<<~MSG)
+                  ActiveSupport.deprecator.warn(<<~MSG)
                     Using :pool_timeout is deprecated and will be removed in Rails 7.2.
                     Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
                   MSG

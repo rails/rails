@@ -21,8 +21,6 @@ module ActiveModel
     # All casting and serialization are performed in the same way as the
     # standard ActiveModel::Type::Integer type.
     class BigInteger < Integer
-      include SerializeCastValue
-
       def serialize_cast_value(value) # :nodoc:
         value
       end

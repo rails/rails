@@ -100,7 +100,8 @@ module ActiveRecord
     # catch those in your application code.
     #
     # One exception is the ActiveRecord::Rollback exception, which will trigger
-    # a ROLLBACK when raised, but not be re-raised by the transaction block.
+    # a ROLLBACK when raised, but not be re-raised by the transaction block. Any
+    # other exception will be re-raised.
     #
     # *Warning*: one should not catch ActiveRecord::StatementInvalid exceptions
     # inside a transaction block. ActiveRecord::StatementInvalid exceptions indicate that an

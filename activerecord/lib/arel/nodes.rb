@@ -63,6 +63,7 @@ require "arel/nodes/inner_join"
 require "arel/nodes/outer_join"
 require "arel/nodes/right_outer_join"
 require "arel/nodes/string_join"
+require "arel/nodes/leading_join"
 
 require "arel/nodes/comment"
 

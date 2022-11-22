@@ -19,7 +19,7 @@ require "support/connection"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActiveRecord.deprecator.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
@@ -29,6 +29,8 @@ ARTest.connect
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
+
+ActiveRecord.raise_on_assign_to_attr_readonly = true
 
 def current_adapter?(*types)
   types.any? do |type|

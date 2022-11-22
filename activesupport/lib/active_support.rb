@@ -26,6 +26,7 @@
 require "securerandom"
 require "active_support/dependencies/autoload"
 require "active_support/version"
+require "active_support/deprecator"
 require "active_support/logger"
 require "active_support/lazy_load_hooks"
 require "active_support/core_ext/date_and_time/compatibility"
@@ -114,7 +115,7 @@ module ActiveSupport
 
   def self.to_time_preserves_timezone=(value)
     unless value
-      ActiveSupport::Deprecation.warn(
+      ActiveSupport.deprecator.warn(
         "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
       )
     end

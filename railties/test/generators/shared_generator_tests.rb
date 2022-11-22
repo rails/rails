@@ -417,7 +417,12 @@ module SharedGeneratorTests
     end
 
     def assert_gem(name, constraint = nil)
-      constraint_pattern = /, #{Regexp.escape constraint}/ if constraint
+      constraint_pattern =
+        if constraint.is_a?(String)
+          /, #{Regexp.escape constraint}/
+        elsif constraint
+          /, #{constraint}/
+        end
       assert_file "Gemfile", %r/^\s*gem ["']#{name}["']#{constraint_pattern}/
     end
 

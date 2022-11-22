@@ -3,8 +3,6 @@
 module ActiveRecord
   module Type
     class Text < ActiveModel::Type::String # :nodoc:
-      include ActiveModel::Type::SerializeCastValue
-
       def type
         :text
       end

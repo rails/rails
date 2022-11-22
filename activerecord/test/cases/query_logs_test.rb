@@ -195,10 +195,10 @@ class QueryLogsTest < ActiveRecord::TestCase
 
     ActiveRecord::QueryLogs.tags = [
       :application,
-      { custom_proc: -> { "Joe's Crab Shack" } },
+      { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
     ]
 
-    assert_sql(%r{custom_proc='Joe\\'s Crab Shack'\*/}) do
+    assert_sql(%r{custom_proc='Joe%27s%20Shack',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7'\*/}) do
       Dashboard.first
     end
   end

@@ -180,7 +180,7 @@ module ActionView
           view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block).to_s
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)&.to_s
         end
       end
     rescue => e
@@ -415,7 +415,7 @@ module ActionView
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
         deprecated_locals = locals.grep(/\A@+/)
         if deprecated_locals.any?
-          ActiveSupport::Deprecation.warn(<<~MSG)
+          ActionView.deprecator.warn(<<~MSG)
             Passing instance variables to `render` is deprecated.
             In Rails 7.1, #{deprecated_locals.to_sentence} will be ignored.
           MSG

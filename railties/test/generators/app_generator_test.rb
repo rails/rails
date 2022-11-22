@@ -498,7 +498,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", '"~> 5.0"'
+    assert_gem "puma", /"\W+ \d/
   end
 
   def test_action_cable_redis_gems
@@ -825,7 +825,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_hotwire
-    run_generator [destination_root, "--no-skip-bundle"]
+    run_generator_and_bundler [destination_root]
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
@@ -848,7 +848,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_tailwind
-    run_generator [destination_root, "--css", "tailwind", "--no-skip-bundle"]
+    run_generator_and_bundler [destination_root, "--css=tailwind"]
     assert_gem "tailwindcss-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/tailwind/, content)
@@ -856,7 +856,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    run_generator [destination_root, "--css", "postcss", "--no-skip-bundle"]
+    run_generator_and_bundler [destination_root, "--css=postcss"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
   end
@@ -1068,6 +1068,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
+    def run_generator_and_bundler(args)
+      option_args, positional_args = args.partition { |arg| arg.start_with?("--") }
+      option_args << "--no-skip-bundle"
+      generator(positional_args, option_args)
+
+      # Stub `rails_gemfile_entry` so that Bundler resolves `gem "rails"` to the
+      # current repository instead of searching for an invalid version number
+      # (for a version that hasn't been released yet).
+      rails_gemfile_entry = Rails::Generators::AppBase::GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
+      generator.stub(:rails_gemfile_entry, -> { rails_gemfile_entry }) do
+        quietly { run_generator_instance }
+      end
+    end
+
     def run_app_update(app_root = destination_root)
       Dir.chdir(app_root) do
         gemfile_contents = File.read("Gemfile")

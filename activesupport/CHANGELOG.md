@@ -2,6 +2,135 @@
 
     *Martin Echtner*
 
+*   `ActiveSupport::CurrentAttributes.resets` now accepts a method name
+
+    The block API is still the recommended approach, but now both APIs are supported:
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      resets { Time.zone = nil }
+      resets :clear_time_zone
+    end
+    ```
+
+    *Alex Ghiculescu*
+
+*   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
+
+    Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork
+    process closed the read end, wrote to it, and then terminated (which
+    presumably closed the file descriptors on its end). The parent process
+    closed the write end, read from it, and returned, never closing the read
+    end.
+
+    This resulted in an accumulation of open file descriptors, which could
+    cause errors if the limit is reached.
+
+    *Sam Bostock*
+
+*   Fix `Time#change` and `Time#advance` for times around the end of Daylight
+    Saving Time.
+
+    Previously, when `Time#change` or `Time#advance` constructed a time inside
+    the final stretch of Daylight Saving Time (DST), the non-DST offset would
+    always be chosen for local times:
+
+    ```ruby
+    # DST ended just before 2021-11-07 2:00:00 AM in US/Eastern.
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    And the DST offset would always be chosen for times with a `TimeZone`
+    object:
+
+    ```ruby
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0400
+    ```
+
+    Now, `Time#change` and `Time#advance` will choose the offset that matches
+    the original time's offset when possible:
+
+    ```ruby
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0400
+
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    *Kevin Hall*, *Takayoshi Nishida*, and *Jonathan Hefner*
+
+*   Fix MemoryStore to preserve entries TTL when incrementing or decrementing
+
+    This is to be more consistent with how MemCachedStore and RedisCacheStore behaves.
+
+    *Jean Boussier*
+
+*   `Rails.error.handle` and `Rails.error.record` filter now by multiple error classes.
+
+    ```ruby
+    Rails.error.handle(IOError, ArgumentError) do
+      1 + '1' # raises TypeError
+    end
+    1 + 1 # TypeErrors are not IOErrors or ArgumentError, so this will *not* be handled
+    ```
+
+    *Martin Spickermann*
+
 *   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
 
     Previously they could return old implementations of reloadable classes that have been

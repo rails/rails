@@ -288,6 +288,7 @@ module Rails
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
+            active_record.raise_on_assign_to_attr_readonly = true
           end
 
           if respond_to?(:action_dispatch)
@@ -339,12 +340,12 @@ module Rails
       private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
 
       def enable_dependency_loading
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading
       end
 
       def enable_dependency_loading=(value)
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading = value
       end
 

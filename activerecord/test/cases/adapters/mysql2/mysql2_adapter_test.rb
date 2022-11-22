@@ -52,7 +52,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       end
     end.new
 
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
         fake_connection,
         ActiveRecord::Base.logger,
@@ -61,7 +61,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       )
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
         fake_connection,
         ActiveRecord::Base.logger,
@@ -84,7 +84,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       end
     end.new
 
-    adapter = ActiveSupport::Deprecation.silence do
+    adapter = ActiveRecord.deprecator.silence do
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
         fake_connection,
         ActiveRecord::Base.logger,
