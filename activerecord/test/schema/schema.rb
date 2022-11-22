@@ -236,6 +236,7 @@ ActiveRecord::Schema.define do
   create_table :clothing_items, force: true do |t|
     t.string :clothing_type
     t.string :color
+    t.string :type
     t.text :description
 
     t.index [:clothing_type, :color], unique: true

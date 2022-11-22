@@ -1048,8 +1048,6 @@ module ActiveRecord
     end
 
     def _in_memory_query_constraints_hash
-      return { @primary_key => id } unless self.class.query_constraints_list
-
       self.class.query_constraints_list.index_with do |column_name|
         attribute(column_name)
       end
@@ -1061,8 +1059,6 @@ module ActiveRecord
     end
 
     def _query_constraints_hash
-      return { @primary_key => id_in_database } unless self.class.query_constraints_list
-
       self.class.query_constraints_list.index_with do |column_name|
         attribute_in_database(column_name)
       end

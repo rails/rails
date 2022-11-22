@@ -4,10 +4,6 @@ module ActiveRecord
   module QueryConstraints
     extend ActiveSupport::Concern
 
-    included do
-      class_attribute :query_constraints_list, instance_writer: false
-    end
-
     module ClassMethods
       # Accepts a list of attribute names to be used in the WHERE clause
       # of SELECT / UPDATE / DELETE queries.
@@ -39,8 +35,24 @@ module ActiveRecord
       #   developer.reload
       #   # => SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
       def query_constraints(*columns_list)
-        self.query_constraints_list = columns_list.map(&:to_s)
+        @_query_constraints_list = columns_list.map(&:to_s)
       end
+
+      def query_constraints_list # :nodoc:
+        @_query_constraints_list ||= query_constraints_list_fallback
+      end
+
+      private
+        # This is a fallback method that is used to determine the query_constraints_list
+        # for cases when the model is not explicitly configured with query_constraints.
+        # For a base class, just use the primary key.
+        # For a child class, use the primary key unless primary key was overridden.
+        # If the child's primary key was not overridden, use the parent's query_constraints_list.
+        def query_constraints_list_fallback # :nodoc:
+          return Array(primary_key) if base_class? || primary_key != base_class.primary_key
+
+          base_class.query_constraints_list
+        end
     end
   end
 end
