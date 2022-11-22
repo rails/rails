@@ -1021,7 +1021,7 @@ module ActiveRecord
           return unless exception.is_a?(TransactionRollbackError)
           return unless savepoint_errors_invalidate_transactions?
 
-          current_transaction.state.invalidate! if current_transaction.open?
+          current_transaction.invalidate!
         end
 
         def retryable_query_error?(exception)

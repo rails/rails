@@ -83,11 +83,14 @@ module ActiveRecord
       def restartable?; false; end
       def dirty?; false; end
       def dirty!; end
+      def invalidate!; end
     end
 
     class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written, :written_indirectly
+
+      delegate :invalidate!, to: :@state
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -496,7 +499,7 @@ module ActiveRecord
                 begin
                   commit_transaction
                 rescue ActiveRecord::ConnectionFailed
-                  transaction.state.invalidate! unless transaction.state.completed?
+                  transaction.invalidate! unless transaction.state.completed?
                   raise
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?
