@@ -437,7 +437,8 @@ module ActiveRecord
           end
 
           klass
-        rescue NameError
+        rescue NameError => e
+          msg = [msg, "The original error was: #{e.message}"].join("\n")
           raise NameError, msg
         end
       end

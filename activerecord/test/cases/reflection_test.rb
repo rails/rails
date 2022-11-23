@@ -151,6 +151,13 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reflection_nameerror_includes_original_error
+    e = assert_raise(NameError) do
+      UserWithInvalidRelation.reflect_on_association(:class_does_not_exist).klass
+    end
+    assert e.message.include?("The original error was: uninitialized constant UserWithInvalidRelation::ClassDoesNotExist")
+  end
+
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
       :address, nil, { mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer

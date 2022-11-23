@@ -12,6 +12,8 @@ class UserWithInvalidRelation < ActiveRecord::Base
 
   has_many :user_infos_class_name, class_name: "UserInfoInvalid"
   has_many :infos_through_class_name, through: :user_infos_class_name, class_name: "InfoInvalid"
+
+  has_one :class_does_not_exist
 end
 
 class AccountInvalid; end
