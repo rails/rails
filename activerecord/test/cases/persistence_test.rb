@@ -427,6 +427,40 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("New Topic", topic_reloaded.title)
   end
 
+  def test_build
+    topic = Topic.build(title: "New Topic")
+    assert_equal "New Topic", topic.title
+    assert_not_predicate topic, :persisted?
+  end
+
+  def test_build_many
+    topics = Topic.build([{ title: "first" }, { title: "second" }])
+    assert_equal ["first", "second"], topics.map(&:title)
+    topics.each { |topic| assert_not_predicate topic, :persisted? }
+  end
+
+  def test_build_through_factory_with_block
+    topic = Topic.build("title" => "New Topic") do |t|
+      t.author_name = "David"
+    end
+    assert_equal("New Topic", topic.title)
+    assert_equal("David", topic.author_name)
+    assert_not_predicate topic, :persisted?
+  end
+
+  def test_build_many_through_factory_with_block
+    topics = Topic.build([{ "title" => "first" }, { "title" => "second" }]) do |t|
+      t.author_name = "David"
+    end
+    assert_equal 2, topics.size
+    topics.each { |topic| assert_not_predicate topic, :persisted? }
+    topic1, topic2 = topics
+    assert_equal "first", topic1.title
+    assert_equal "David", topic1.author_name
+    assert_equal "second", topic2.title
+    assert_equal "David", topic2.author_name
+  end
+
   def test_save_valid_record
     topic = Topic.new(title: "New Topic")
     assert topic.save!

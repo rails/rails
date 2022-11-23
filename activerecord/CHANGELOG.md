@@ -1,3 +1,11 @@
+*   Add a build persistence method
+
+    Provides a wrapper for `new`, to provide feature parity with `create`s
+    ability to create multiple records from an array of hashes, using the
+    same notation as the `build` method on associations.
+
+    *Sean Denny*
+
 *   Raise on assignment to readonly attributes
 
     ```ruby

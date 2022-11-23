@@ -58,6 +58,36 @@ module ActiveRecord
         end
       end
 
+      # Builds an object (or multiple objects) and returns either the built object or a list of built
+      # objects.
+      #
+      # The +attributes+ parameter can be either a Hash or an Array of Hashes. These Hashes describe the
+      # attributes on the objects that are to be built.
+      #
+      # ==== Examples
+      #   # Build a single new object
+      #   User.build(first_name: 'Jamie')
+      #
+      #   # Build an Array of new objects
+      #   User.build([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }])
+      #
+      #   # Build a single object and pass it into a block to set other attributes.
+      #   User.build(first_name: 'Jamie') do |u|
+      #     u.is_admin = false
+      #   end
+      #
+      #   # Building an Array of new objects using a block, where the block is executed for each object:
+      #   User.build([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }]) do |u|
+      #     u.is_admin = false
+      #   end
+      def build(attributes = nil, &block)
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| build(attr, &block) }
+        else
+          new(attributes, &block)
+        end
+      end
+
       # Inserts a single record into the database in a single SQL INSERT
       # statement. It does not instantiate any models nor does it trigger
       # Active Record callbacks or validations. Though passed values
