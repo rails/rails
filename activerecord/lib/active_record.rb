@@ -60,7 +60,6 @@ module ActiveRecord
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
-  autoload :QueryConstraints
   autoload :QueryLogs
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
