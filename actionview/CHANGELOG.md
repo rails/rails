@@ -1,6 +1,17 @@
+*   Choices of `select` can optionally contain html attributes as the last element
+    of the child arrays when using grouped/nested collections
+
+    ```erb
+    <%= form.select :foo, [["North America", [["United States","US"],["Canada","CA"]], { disabled: "disabled" }]] %>
+    # => <select><optgroup label="North America" disabled="disabled"><option value="US">United States</option><option value="CA">Canada</option></optgroup></select>
+    ```
+
+    *Chris Gunther*
+
 *   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument
 
-    This is to make the API more consistent with the `FormHelper` variants. You can now provide `checked` as a positional or keyword argument:
+    This is to make the API more consistent with the `FormHelper` variants. You can now
+    provide `checked` as a positional or keyword argument:
 
     ```erb
     = check_box_tag "admin", "1", false

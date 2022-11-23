@@ -590,6 +590,24 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_grouped_collection_as_nested_array_and_html_attributes
+    @post = Post.new
+
+    countries_by_continent = [
+      ["<Africa>", [["<South Africa>", "<sa>"], ["Somalia", "so"]], data: { foo: "bar" }],
+      ["Europe",   [["Denmark", "dk"], ["Ireland", "ie"]], disabled: "disabled"],
+    ]
+
+    assert_dom_equal(
+      [
+        '<select id="post_origin" name="post[origin]"><optgroup label="&lt;Africa&gt;" data-foo="bar"><option value="&lt;sa&gt;">&lt;South Africa&gt;</option>',
+        '<option value="so">Somalia</option></optgroup><optgroup label="Europe" disabled="disabled"><option value="dk">Denmark</option>',
+        '<option value="ie">Ireland</option></optgroup></select>',
+      ].join("\n"),
+      select("post", "origin", countries_by_continent)
+    )
+  end
+
   def test_select_with_boolean_method
     @post = Post.new
     @post.allow_comments = false
