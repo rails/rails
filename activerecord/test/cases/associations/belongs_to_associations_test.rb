@@ -414,7 +414,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
     assert_equal "Odegy", odegy_account.firm.name
 
-    assert_equal "ODEGY", odegy_account.reload_firm.name
+    assert_queries(1) { odegy_account.reload_firm }
+
+    assert_no_queries { odegy_account.firm }
+    assert_equal "ODEGY", odegy_account.firm.name
   end
 
   def test_reload_the_belonging_object_with_query_cache
@@ -439,6 +442,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { Account.find(odegy_account_id) }
   ensure
     ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  def test_resetting_the_association
+    odegy_account = accounts(:odegy_account)
+
+    assert_equal "Odegy", odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
+    assert_equal "Odegy", odegy_account.firm.name
+
+    assert_no_queries { odegy_account.reset_firm }
+    assert_queries(1) { odegy_account.firm }
+    assert_equal "ODEGY", odegy_account.firm.name
   end
 
   def test_natural_assignment_to_nil

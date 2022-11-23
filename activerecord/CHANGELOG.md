@@ -1,3 +1,10 @@
+*   `has_one` and `belongs_to` associations now define a `reset_association` method
+    on the owner model (where `association` is the name of the association). This
+    method unloads the cached associate record, if any, and causes the next access
+    to query it from the database.
+
+    *George Claghorn*
+
 *   Allow per attribute setting of YAML permitted classes (safe load) and unsafe load.
 
     *Carlos Palhares*
