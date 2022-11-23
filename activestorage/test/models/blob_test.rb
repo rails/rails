@@ -80,6 +80,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "create_and_upload raises for non-rewindable io" do
+    assert_raises(ArgumentError) do
+      ActiveStorage::Blob.create_and_upload!(io: file_fixture("racecar.jpg"), filename: "racecar.jpg")
+    end
+  end
+
   test "record touched after analyze" do
     user = User.create!(
       name: "Nate",
