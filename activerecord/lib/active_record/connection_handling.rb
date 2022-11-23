@@ -204,7 +204,7 @@ module ActiveRecord
 
     # Determine whether or not shard swapping is currently prohibited
     def shard_swapping_prohibited?
-      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] ||= false
     end
 
     # Prevent writing to the database regardless of role.
