@@ -1,3 +1,12 @@
+*   Add `ActiveRecord::Relation#increment_all` and `decrement_all` as a clearer
+    way to increment and decrement values on multiple records.
+
+    ```ruby
+    Post.active.increment_all(:score, 10)
+    ```
+
+    *Nikola Šantić*
+
 *   Raise on assignment to readonly attributes
 
     ```ruby

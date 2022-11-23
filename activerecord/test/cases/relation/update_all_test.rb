@@ -111,6 +111,24 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal 1, pets(:parrot).reload.integer
   end
 
+  def test_increment_all
+    assert_equal 2, posts(:welcome).legacy_comments_count
+    assert_equal 1, Post.where(id: posts(:welcome).id).increment_all(:legacy_comments_count, 2)
+    assert_equal 4, posts(:welcome).reload.legacy_comments_count
+  end
+
+  def test_increment_all_nil_attribute
+    assert_nil comments(:greetings).parent_id
+    assert_equal 1, Comment.where(id: comments(:greetings).id).increment_all(:parent_id, 2)
+    assert_equal 2, comments(:greetings).reload.parent_id
+  end
+
+  def test_decrement_all
+    assert_equal 2, posts(:welcome).legacy_comments_count
+    assert_equal 1, Post.where(id: posts(:welcome).id).decrement_all(:legacy_comments_count, 2)
+    assert_equal 0, posts(:welcome).reload.legacy_comments_count
+  end
+
   def test_touch_all_updates_records_timestamps
     david = developers(:david)
     david_previously_updated_at = david.updated_at
