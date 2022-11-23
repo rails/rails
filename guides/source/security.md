@@ -1336,6 +1336,39 @@ end
 
 [`Feature-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
 
+### Cross-Origin Resource Sharing
+
+Browsers restrict cross-origin HTTP requests initiated from scripts. If you
+want to run Rails as an API, and run a frontend app on a separate domain, you
+need to enable [Cross-Origin Resource
+Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) (CORS).
+
+You can use the [Rack CORS](https://github.com/cyu/rack-cors) middleware for
+handling CORS. If you've generated your application with the `--api` option,
+Rack CORS has probably already been configured and you can skip the following
+steps.
+
+To get started, add the rack-cors gem to your Gemfile:
+
+```ruby
+gem 'rack-cors'
+```
+
+Next, add an initializer to configure the middleware:
+
+```ruby
+# config/initializers/cors.rb
+Rails.application.config.middleware.insert_before 0, "Rack::Cors" do
+  allow do
+    origins 'example.com'
+
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+  end
+end
+```
+
 Environmental Security
 ----------------------
 
