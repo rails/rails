@@ -3538,6 +3538,36 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, @rendered
   end
 
+  def test_nested_fields_for_with_hash_with_indifferent_access_like_model_and_options
+    @author = HashWithIndifferentAccessBackedAuthor.new
+
+    form_for(@post) do |f|
+      concat f.fields_for(:author, @author, {}) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="hash backed author" />'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_nested_fields_for_with_hash_with_indifferent_access_like_model_without_options
+    @author = HashWithIndifferentAccessBackedAuthor.new
+
+    form_for(@post) do |f|
+      concat f.fields_for(:author, @author) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch")
+
+    assert_dom_equal expected, @rendered
+  end
+
   def test_fields_for
     @rendered = fields_for(:post, @post) do |f|
       concat f.text_field(:title)
