@@ -1,3 +1,7 @@
+*   Redis pub/sub adapter now automatically reconnects when Redis connection is lost.
+
+    *Vladimir Dementyev*
+
 *   The `connected()` callback can now take a `{reconnected}` parameter to differentiate
     connections from reconnections.
 
