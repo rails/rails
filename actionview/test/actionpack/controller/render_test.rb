@@ -769,8 +769,6 @@ class RenderTest < ActionController::TestCase
 
     @old_view_paths = ActionController::Base.view_paths
     ActionController::Base.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
-
-    @path_set_cache = ActionView::PathSet.class_variable_get(:@@cache)
   end
 
   def teardown
