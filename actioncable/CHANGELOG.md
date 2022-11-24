@@ -1,3 +1,21 @@
+*   Methods defined on ancestors of a channel, except for ones available on `ActionCable::Channel::Base`,
+    now considered to be an action
+
+    In the following case, the action `display` is now available for `BarChannel`.
+
+    ```ruby
+    class FooChannel < ApplicationCable::Channel
+      def display(data)
+        # ...
+      end
+    end
+
+    class BarChannel < FooChannel
+    end
+    ```
+
+    *Kouhei Yanagita*
+
 *   The `connected()` callback can now take a `{reconnected}` parameter to differentiate
     connections from reconnections.
 

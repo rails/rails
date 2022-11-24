@@ -19,6 +19,9 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     def chatters
       @last_action = [ :chatters ]
     end
+
+    def display
+    end
   end
 
   class ChatChannel < BasicChannel
@@ -179,7 +182,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   end
 
   test "actions available on Channel" do
-    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic error_action).to_set
+    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic error_action display).to_set
     assert_equal available_actions, ChatChannel.action_methods
   end
 

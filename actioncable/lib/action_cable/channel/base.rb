@@ -109,20 +109,25 @@ module ActionCable
         # A list of method names that should be considered actions. This
         # includes all public instance methods on a channel, less
         # any internal methods (defined on Base), adding back in
-        # any methods that are internal, but still exist on the class
-        # itself.
+        # any methods that are internal, but still exist on descendants of Base.
         #
         # ==== Returns
         # * <tt>Set</tt> - A set of all methods that should be considered actions.
         def action_methods
           @action_methods ||= begin
             # All public instance methods of this class, including ancestors
-            methods = (public_instance_methods(true) -
+            methods = public_instance_methods(true) -
               # Except for public instance methods of Base and its ancestors
-              ActionCable::Channel::Base.public_instance_methods(true) +
-              # Be sure to include shadowed public instance methods of this class
-              public_instance_methods(false)).uniq.map(&:to_s)
-            methods.to_set
+              ActionCable::Channel::Base.public_instance_methods(true)
+
+            # Be sure to include shadowed public instance methods of ancestors
+            # between this class and ActionCable::Channel::Base (ActionCable::Channel::Base is not included)
+            classes = ancestors.reject { |klass| ActionCable::Channel::Base <= klass }
+            classes.each do |klass|
+              methods += klass.public_instance_methods(false)
+            end
+
+            methods.to_set(&:to_s)
           end
         end
 
