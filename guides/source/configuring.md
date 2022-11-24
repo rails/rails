@@ -74,6 +74,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
 - [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
+- [`config.precompile_filter_parameters`](#config-precompile-filter-parameters): `true`
 
 #### Default Values for Target Version 7.0
 
@@ -386,6 +387,20 @@ config.logger      = ActiveSupport::TaggedLogging.new(mylogger)
 #### `config.middleware`
 
 Allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
+
+#### `config.precompile_filter_parameters`
+
+When `true`, will precompile [`config.filter_parameters`](#config-filter-parameters)
+using [`ActiveSupport::ParameterFilter.precompile_filters`][].
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
+[`ActiveSupport::ParameterFilter.precompile_filters`]: https://api.rubyonrails.org/classes/ActiveSupport/ParameterFilter.html#method-c-precompile_filters
 
 #### `config.public_file_server.enabled`
 
