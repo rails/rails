@@ -123,7 +123,20 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super
 
       if required
-        model.validates_presence_of reflection.name, message: :required
+        if ActiveRecord.belongs_to_required_validates_foreign_key
+          model.validates_presence_of reflection.name, message: :required
+        else
+          condition = lambda { |record|
+            foreign_key = reflection.foreign_key
+            foreign_type = reflection.foreign_type
+
+            record.read_attribute(foreign_key).nil? ||
+              record.attribute_changed?(foreign_key) ||
+              (reflection.polymorphic? && (record.read_attribute(foreign_type).nil? || record.attribute_changed?(foreign_type)))
+          }
+
+          model.validates_presence_of reflection.name, message: :required, if: condition
+        end
       end
     end
 

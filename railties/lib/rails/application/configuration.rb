@@ -289,6 +289,7 @@ module Rails
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
             active_record.raise_on_assign_to_attr_readonly = true
+            active_record.belongs_to_required_validates_foreign_key = false
           end
 
           if respond_to?(:action_dispatch)
