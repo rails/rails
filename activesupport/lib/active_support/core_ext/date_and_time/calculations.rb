@@ -68,9 +68,19 @@ module DateAndTime
       self < date_or_time
     end
 
+    # Returns true if the date/time falls before on on <tt>date_or_time</tt>.
+    def before_or_on?(date_or_time)
+      self <= date_or_time
+    end
+
     # Returns true if the date/time falls after <tt>date_or_time</tt>.
     def after?(date_or_time)
       self > date_or_time
+    end
+
+    # Returns true if the date/time falls after on on <tt>date_or_time</tt>.
+    def after_or_on?(date_or_time)
+      self >= date_or_time
     end
 
     # Returns a new date/time the specified number of days ago.

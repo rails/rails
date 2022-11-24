@@ -1,3 +1,31 @@
+*   `DateAndTime::Calculations` now includes `before_or_on?` and `after_or_on?`
+    calculation methods.
+
+    Human readable methods `before?` and `after?` already offer a natural syntax
+    for comparing Date and Time objects.
+
+    This adds two new methods that behave similarly and are analogous to `>=`
+    and `=<` comparisons.
+
+    ```ruby
+    birthday = Date.new(2022, 12, 25)
+    christmas_day = Date.new(2022, 12, 25)
+    new_years_day = Date.new(2023, 1, 1)
+
+    birthday.before_or_on?(christmas_day)
+    # => true
+    new_years_day.before_or_on?(christmas_day)
+    # => false
+
+    birthday.after_or_on?(new_years_day)
+    # => false
+    new_years_day.after_or_on?(christmas_day)
+    # => true
+    ```
+
+    *Connor McQuillan*
+
+
 *   `ActiveSupport::CurrentAttributes.resets` now accepts a method name
 
     The block API is still the recommended approach, but now both APIs are supported:
