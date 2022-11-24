@@ -11,6 +11,8 @@ module ActionView # :nodoc:
   class PathSet # :nodoc:
     include Enumerable
 
+    @@cache = Concurrent::Map.new
+
     attr_reader :paths
 
     delegate :[], :include?, :size, :each, to: :paths
@@ -67,7 +69,13 @@ module ActionView # :nodoc:
         paths.map do |path|
           case path
           when Pathname, String
-            FileSystemResolver.new path.to_s
+            resolver = ->(path) { FileSystemResolver.new(path) }
+
+            if ActionView::Resolver.caching?
+              @@cache.fetch_or_store(path.to_s, &resolver)
+            else
+              resolver[path.to_s]
+            end
           when Resolver
             path
           else

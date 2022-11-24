@@ -31,6 +31,7 @@ class TemplateDigestorTest < ActionView::TestCase
   def teardown
     Dir.chdir @cwd
     FileUtils.rm_r @tmp_dir
+    ActionView::PathSet.class_variable_set(:@@cache, Concurrent::Map.new)
   end
 
   def test_top_level_change_reflected

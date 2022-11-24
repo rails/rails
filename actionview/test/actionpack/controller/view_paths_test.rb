@@ -41,6 +41,7 @@ class ViewLoadPathsTest < ActionController::TestCase
 
   def teardown
     TestController.view_paths = @paths
+    ActionView::PathSet.class_variable_set(:@@cache, Concurrent::Map.new)
   end
 
   def expand(array)
