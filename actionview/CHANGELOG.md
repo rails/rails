@@ -1,3 +1,14 @@
+*   Allow binding a field to a different error message.
+    Following the example, suppose you have a validation on category,
+    you can decorate a field originally bound to category_id.
+
+    ```erb
+    <%= select("post", "category_id", [:a, :b], error_key: "category") %>
+    # => <div class="field_with_errors"><select name="post[category_id]" id="post_category_id"><option value="a">a</option>\n<option value="b">b</option></select></div>
+    ```
+
+    *Lázaro Nixon*
+
 *   Choices of `select` can optionally contain html attributes as the last element
     of the child arrays when using grouped/nested collections
 
