@@ -1,3 +1,21 @@
+*   Avoid validating `belongs_to` association if it has not changed.
+
+    Previously, when updating a record, Active Record will perform an extra query to check for the presence of
+    `belongs_to` associations (if the presence is configured to be mandatory), even if that attribute hasn't changed.
+
+    Currently, only `belongs_to`-related columns are checked for presence. It is possible to have orphaned records with
+    this approach. To avoid this problem, you need to use a foreign key.
+
+    This behavior can be controlled by configuration:
+
+    ```ruby
+    config.active_record.belongs_to_required_validates_foreign_key = false
+    ```
+
+    and will be disabled by default with `load_defaults 7.1`.
+
+    *fatkodima*
+
 *   `has_one` and `belongs_to` associations now define a `reset_association` method
     on the owner model (where `association` is the name of the association). This
     method unloads the cached associate record, if any, and causes the next access

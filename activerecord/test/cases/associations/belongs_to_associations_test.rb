@@ -1665,6 +1665,61 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not comment.author_changed?
     assert comment.author_previously_changed?
   end
+
+  class ShipRequired < ActiveRecord::Base
+    self.table_name = "ships"
+    belongs_to :developer, required: true
+  end
+
+  test "runs parent presence check if parent changed or nil" do
+    david = developers(:david)
+    jamis = developers(:jamis)
+
+    ship = ShipRequired.create!(name: "Medusa", developer: david)
+    assert_equal david, ship.developer
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(developer_id: jamis.id)
+    end
+
+    ship.update_column(:developer_id, nil)
+    ship.reload
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(developer_id: david.id)
+    end
+  end
+
+  test "skips parent presence check if parent has not changed" do
+    david = developers(:david)
+    ship = ShipRequired.create!(name: "Medusa", developer: david)
+    ship.reload # unload developer association
+
+    assert_queries(1) do # UPDATE only, no SELECT to check developer presence
+      ship.update!(name: "Leviathan")
+    end
+  end
+
+  test "runs parent presence check if parent has not changed and belongs_to_required_validates_foreign_key is set" do
+    original_value = ActiveRecord.belongs_to_required_validates_foreign_key
+    ActiveRecord.belongs_to_required_validates_foreign_key = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, required: true
+    end
+
+    david = developers(:david)
+    ship = model.create!(name: "Medusa", developer: david)
+    ship.reload # unload developer association
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(name: "Leviathan")
+    end
+  ensure
+    ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase

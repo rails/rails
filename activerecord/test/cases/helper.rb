@@ -31,6 +31,7 @@ ARTest.connect
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
 
 ActiveRecord.raise_on_assign_to_attr_readonly = true
+ActiveRecord.belongs_to_required_validates_foreign_key = false
 
 def current_adapter?(*types)
   types.any? do |type|

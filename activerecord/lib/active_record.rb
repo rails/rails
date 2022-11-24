@@ -271,6 +271,9 @@ module ActiveRecord
   singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
   self.raise_on_assign_to_attr_readonly = false
 
+  singleton_class.attr_accessor :belongs_to_required_validates_foreign_key
+  self.belongs_to_required_validates_foreign_key = true
+
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of
