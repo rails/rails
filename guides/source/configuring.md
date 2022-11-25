@@ -2789,7 +2789,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `add_view_paths`: Adds the directory `app/views` from the application, railties, and engines to the lookup path for view files for the application.
 
-* `load_environment_config`: Loads the `config/environments` file for the current environment.
+* `load_environment_config`: This initializer runs before `load_environment_hook`. Loads the `config/environments` file for the current environment.
 
 * `prepend_helpers_path`: Adds the directory `app/helpers` from the application, railties, and engines to the lookup path for helpers for the application.
 
