@@ -455,6 +455,21 @@ module ActiveRecord
         end
       end
 
+      def test_only_check_for_insensitive_comparison_capability_once
+        with_example_table "id SERIAL PRIMARY KEY, number INTEGER" do
+          number_klass = Class.new(ActiveRecord::Base) do
+            self.table_name = "ex"
+          end
+          attribute = number_klass.arel_table[:number]
+          assert_queries :any, ignore_none: true do
+            @connection.case_insensitive_comparison(attribute, "foo")
+          end
+          assert_no_queries do
+            @connection.case_insensitive_comparison(attribute, "foo")
+          end
+        end
+      end
+
       private
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
