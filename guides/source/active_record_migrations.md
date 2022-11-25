@@ -134,7 +134,7 @@ class AddPartNumberToProducts < ActiveRecord::Migration[7.1]
 end
 ```
 
-This generator can do much more than append a timestamp to the file name.
+This generator can do much more than prepend a timestamp to the file name.
 Based on naming conventions and additional (optional) arguments it can
 also start fleshing out the migration.
 
