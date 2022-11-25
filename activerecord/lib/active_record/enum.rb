@@ -111,6 +111,11 @@ module ActiveRecord
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
+  #
+  # If you want to disable the auto-generated methods on the model, you can do
+  # so by setting the +:instance_methods+ option to false:
+  #
+  #   enum :status, [ :active, :archived ], instance_methods: false
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
