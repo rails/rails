@@ -64,14 +64,14 @@ class User < ApplicationRecord
   before_validation :normalize_name, on: :create
 
   # :on takes an array as well
-  after_validation :set_location, on: [ :create, :update ]
+  after_validation :assign_location, on: [ :create, :update ]
 
   private
     def normalize_name
       self.name = name.downcase.titleize
     end
 
-    def set_location
+    def assign_location
       self.location = LocationService.query(self)
     end
 end
