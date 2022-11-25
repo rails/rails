@@ -1,5 +1,38 @@
 # frozen_string_literal: true
 
+module ActiveSupport
+  module CoreExt
+    module ERBUtil
+      # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.
+      # This method is not for public consumption! Seriously!
+      def html_escape(s) # :nodoc:
+        s = s.to_s
+        if s.html_safe?
+          s
+        else
+          super(ActiveSupport::Multibyte::Unicode.tidy_bytes(s))
+        end
+      end
+      alias :unwrapped_html_escape :html_escape # :nodoc:
+
+      # A utility method for escaping HTML tag characters.
+      # This method is also aliased as <tt>h</tt>.
+      #
+      #   puts html_escape('is a > 0 & a < 10?')
+      #   # => is a &gt; 0 &amp; a &lt; 10?
+      def html_escape(s) # rubocop:disable Lint/DuplicateMethods
+        unwrapped_html_escape(s).html_safe
+      end
+      alias h html_escape
+    end
+
+    module ERBUtilPrivate
+      include ERBUtil
+      private :unwrapped_html_escape, :html_escape, :h
+    end
+  end
+end
+
 class ERB
   module Util
     HTML_ESCAPE = { "&" => "&amp;",  ">" => "&gt;",   "<" => "&lt;", '"' => "&quot;", "'" => "&#39;" }
@@ -17,34 +50,8 @@ class ERB
     SAFE_XML_TAG_NAME_REGEXP = /\A[#{TAG_NAME_START_CODEPOINTS}][#{TAG_NAME_FOLLOWING_CODEPOINTS}]*\z/
     TAG_NAME_REPLACEMENT_CHAR = "_"
 
-    # A utility method for escaping HTML tag characters.
-    # This method is also aliased as <tt>h</tt>.
-    #
-    #   puts html_escape('is a > 0 & a < 10?')
-    #   # => is a &gt; 0 &amp; a &lt; 10?
-    def html_escape(s)
-      unwrapped_html_escape(s).html_safe
-    end
-
-    silence_redefinition_of_method :h
-    alias h html_escape
-
-    module_function :h
-
-    singleton_class.silence_redefinition_of_method :html_escape
-    module_function :html_escape
-
-    # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.
-    # This method is not for public consumption! Seriously!
-    def unwrapped_html_escape(s) # :nodoc:
-      s = s.to_s
-      if s.html_safe?
-        s
-      else
-        CGI.escapeHTML(ActiveSupport::Multibyte::Unicode.tidy_bytes(s))
-      end
-    end
-    module_function :unwrapped_html_escape
+    prepend ActiveSupport::CoreExt::ERBUtilPrivate
+    singleton_class.prepend ActiveSupport::CoreExt::ERBUtil
 
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
