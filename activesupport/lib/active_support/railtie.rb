@@ -88,9 +88,7 @@ module ActiveSupport
         end
 
         if disallowed_warnings = app.config.active_support.disallowed_deprecation_warnings
-          app.deprecators.each do |deprecator|
-            deprecator.disallowed_warnings = disallowed_warnings
-          end
+          app.deprecators.disallowed_warnings = disallowed_warnings
         end
       end
     end
