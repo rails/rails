@@ -17,8 +17,19 @@ module ActionView # :nodoc:
 
     delegate :[], :include?, :size, :each, to: :paths
 
+    def self.typecast(path)
+      case path
+      when Pathname, String
+        FileSystemResolver.new path.to_s
+      when Resolver
+        path
+      else
+        raise TypeError, "#{path.inspect} is not a valid path: must be a String, Pathname, or Resolver"
+      end
+    end
+
     def initialize(paths = [])
-      @paths = typecast(paths).freeze
+      @paths = paths.map(&self.class.method(:typecast)).freeze
     end
 
     def initialize_copy(other)
@@ -61,25 +72,6 @@ module ActionView # :nodoc:
         prefixes.each do |prefix|
           paths.each do |resolver|
             yield resolver, prefix
-          end
-        end
-      end
-
-      def typecast(paths)
-        paths.map do |path|
-          case path
-          when Pathname, String
-            resolver = ->(path) { FileSystemResolver.new(path) }
-
-            if ActionView::Resolver.caching?
-              @@cache.fetch_or_store(path.to_s, &resolver)
-            else
-              resolver[path.to_s]
-            end
-          when Resolver
-            path
-          else
-            raise TypeError, "#{path.inspect} is not a valid path: must be a String, Pathname, or Resolver"
           end
         end
       end

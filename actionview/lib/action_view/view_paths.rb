@@ -72,6 +72,7 @@ module ActionView
 
     # :stopdoc:
     @all_view_paths = {}
+    @@dynamic_view_paths = Concurrent::Map.new
 
     def self.get_view_paths(klass)
       @all_view_paths[klass] || get_view_paths(klass.superclass)
@@ -110,7 +111,7 @@ module ActionView
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def append_view_path(path)
-      lookup_context.append_view_paths(Array(path))
+      lookup_context.append_view_paths(_cached_view_path(path))
     end
 
     # Prepend a path to the list of view paths for the current LookupContext.
@@ -120,7 +121,19 @@ module ActionView
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)
-      lookup_context.prepend_view_paths(Array(path))
+      lookup_context.prepend_view_paths(_cached_view_path(path))
+    end
+
+    def _cached_view_path(path_or_paths)
+      Array(path_or_paths).map do |path|
+        typecast = ->(path) { PathSet.typecast(path) }
+
+        if ActionView::Resolver.caching?
+          @@dynamic_view_paths.fetch_or_store(path.to_s, &typecast)
+        else
+          typecast.call(path.to_s)
+        end
+      end
     end
   end
 end
