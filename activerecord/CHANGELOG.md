@@ -36,7 +36,7 @@
     config.active_record.belongs_to_required_validates_foreign_key = false
     ```
 
-    and will be disabled by default with `load_defaults 7.1`.
+    and will be disabled by default with `config.load_defaults 7.1`.
 
     *fatkodima*
 
