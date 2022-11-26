@@ -1,3 +1,7 @@
+*   Add details of cookie name and size to `CookieOverflow` exception.
+
+    *Andy Waite*
+
 *   Don't double log the `controller` or `action` when using `ActiveRecord::QueryLog`
 
     Previously if you set `config.active_record.query_log_tags` to an array that included
