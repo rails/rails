@@ -101,7 +101,7 @@
 
 # Set the maximum size for Rails log files.
 #
-# `load_defaults 7.1` does not set this value for environments other than
+# `config.load_defaults 7.1` does not set this value for environments other than
 # development and test.
 #
 # if Rails.env.development? || Rails.env.test?
