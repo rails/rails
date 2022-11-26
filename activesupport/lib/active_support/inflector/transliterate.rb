@@ -62,9 +62,11 @@ module ActiveSupport
     # Transliteration is restricted to UTF-8, US-ASCII, and GB18030 strings.
     # Other encodings will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
-      string = string.dup if string.frozen?
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
       raise ArgumentError, "Cannot transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
+
+      string = string.dup if string.frozen?
+      return string if string.ascii_only?
 
       input_encoding = string.encoding
 
