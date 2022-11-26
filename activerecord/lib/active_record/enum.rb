@@ -115,7 +115,9 @@ module ActiveRecord
   # If you want to disable the auto-generated methods on the model, you can do
   # so by setting the +:instance_methods+ option to false:
   #
-  #   enum :status, [ :active, :archived ], instance_methods: false
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ], instance_methods: false
+  #   end
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
@@ -261,12 +263,12 @@ module ActiveRecord
               define_method("#{value_method_name}!") { update!(name => value) }
             end
 
-            # scope :active, -> { where(status: 0) }
-            # scope :not_active, -> { where.not(status: 0) }
             if scopes
+              # scope :active, -> { where(status: 0) }
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(name => value) }
 
+              # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
             end
