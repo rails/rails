@@ -1,3 +1,21 @@
+*   Support proc and symbol for `NumericalityValidator`s `:in` option
+
+    ```ruby
+    validates_numericality_of :price, in: ->(o) { 0..o.max_price }
+    ```
+
+    or
+
+    ```ruby
+    validates_numericality_of :price, in: :price_range
+
+    def price_range
+      0..max_price
+    end
+    ```
+
+    *Thomas Sevestre*
+
 *   Custom attribute types that inherit from Active Model built-in types and do
     not override the `serialize` method will now benefit from an optimization
     when serializing attribute values for the database.

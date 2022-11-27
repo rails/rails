@@ -237,6 +237,21 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([1, 2, 3])
   end
 
+  def test_validates_numericality_with_in_and_proc_as_value
+    Topic.validates_numericality_of :approved, in: ->(o) { 1..3 }
+
+    assert_invalid_values([0, 4])
+    assert_valid_values([1, 2, 3])
+  end
+
+  def test_validates_numericality_with_in_and_symbol_as_value
+    Topic.define_method(:dynamic_range) { 1..3 }
+    Topic.validates_numericality_of :approved, in: :dynamic_range
+
+    assert_invalid_values([0, 4])
+    assert_valid_values([1, 2, 3])
+  end
+
   def test_validates_numericality_with_other_than_using_string_value
     Topic.validates_numericality_of :approved, other_than: 0
 

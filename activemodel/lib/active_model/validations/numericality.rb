@@ -27,8 +27,8 @@ module ActiveModel
         end
 
         options.slice(*RANGE_CHECKS.keys).each do |option, value|
-          unless value.is_a?(Range)
-            raise ArgumentError, ":#{option} must be a range"
+          unless value.is_a?(Range) || value.is_a?(Proc) || value.is_a?(Symbol)
+            raise ArgumentError, ":#{option} must be a range, a symbol or a proc"
           end
         end
       end
@@ -52,6 +52,7 @@ module ActiveModel
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           elsif RANGE_CHECKS.include?(option)
+            option_value = resolve_value(record, option_value)
             unless value.public_send(RANGE_CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
