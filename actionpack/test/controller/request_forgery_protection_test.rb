@@ -1241,9 +1241,14 @@ class CookieCsrfTokenStorageStrategyControllerTest < ActionController::TestCase
     assert_match "SameSite=Lax", @response.headers["Set-Cookie"]
   end
 
+  include CookieAssertions
+
   def test_csrf_token_cookie_is_http_only
     get :cookie
-    assert_match "HttpOnly", @response.headers["Set-Cookie"]
+
+    cookies = parse_set_cookies_headers(@response.headers["Set-Cookie"])
+    csrf_token_cookie = cookies["csrf_token"]
+    assert csrf_token_cookie["httponly"]
   end
 
   def test_csrf_token_cookie_is_permanent

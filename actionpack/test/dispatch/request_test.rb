@@ -643,33 +643,6 @@ class RequestParamsParsing < BaseRequestTest
   end
 end
 
-class RequestRewind < BaseRequestTest
-  test "body should be rewound" do
-    data = "rewind"
-    env = {
-      "rack.input" => StringIO.new(data),
-      "CONTENT_LENGTH" => data.length,
-      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
-    }
-
-    # Read the request body by parsing params.
-    request = stub_request(env)
-    request.request_parameters
-
-    # Should have rewound the body.
-    assert_equal 0, request.body.pos
-  end
-
-  test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
-    request = stub_request(
-      "rack.input" => StringIO.new("raw"),
-      "CONTENT_LENGTH" => 3
-    )
-    assert_equal "raw", request.raw_post
-    assert_equal "raw", request.env["rack.input"].read
-  end
-end
-
 class RequestProtocol < BaseRequestTest
   test "server software" do
     assert_equal "lighttpd", stub_request("SERVER_SOFTWARE" => "lighttpd/1.4.5").server_software
@@ -1129,19 +1102,24 @@ class RequestParameters < BaseRequestTest
     end
   end
 
-  test "parameters not accessible after rack parse error of invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo%81E=1")
-    assert_raises(ActionController::BadRequest) { request.parameters }
-  end
+  if Rack.release < "3.0.0"
+    # This value is underspecified.
+    # https://github.com/rack/rack/pull/2013
 
-  test "parameters containing an invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo=%81E")
-    assert_raises(ActionController::BadRequest) { request.parameters }
-  end
+    test "parameters not accessible after rack parse error of invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo%81E=1")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
 
-  test "parameters containing a deeply nested invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
-    assert_raises(ActionController::BadRequest) { request.parameters }
+    test "parameters containing an invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo=%81E")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
+
+    test "parameters containing a deeply nested invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
   end
 
   test "POST parameters containing invalid UTF8 character" do

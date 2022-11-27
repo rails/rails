@@ -13,7 +13,6 @@ module ActionController
 
       def test_header_merge
         header = @response.header.merge("Foo" => "Bar")
-        assert_kind_of(ActionController::Live::Response::Header, header)
         assert_not_equal header, @response.header
       end
 
@@ -24,8 +23,8 @@ module ActionController
           end
         end
 
-        header = r.new.header
-        assert_kind_of(ActionController::Live::Response::Header, header)
+        headers = r.create.headers
+        assert_equal "g", headers["omg"]
       end
 
       def test_parallel
@@ -98,11 +97,10 @@ module ActionController
 
         latch.wait
         assert_predicate @response.headers, :frozen?
-        e = assert_raises(ActionDispatch::IllegalStateError) do
+        assert_raises(FrozenError) do
           @response.headers["Content-Length"] = "zomg"
         end
 
-        assert_equal "header already sent", e.message
         @response.stream.close
         t.join
       end
@@ -112,10 +110,9 @@ module ActionController
         # we can add data until it's actually written, which happens on `each`
         @response.each { |x| }
 
-        e = assert_raises(ActionDispatch::IllegalStateError) do
+        assert_raises(FrozenError) do
           @response.headers["Content-Length"] = "zomg"
         end
-        assert_equal "header already sent", e.message
       end
     end
   end

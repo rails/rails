@@ -40,6 +40,7 @@ module ActionDispatch
 
   class IllegalStateError < StandardError
   end
+  deprecate_constant :IllegalStateError
 
   class MissingController < NameError
   end

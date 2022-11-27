@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rack/chunked"
+require "rack"
 
 module ActionController # :nodoc:
   # Allows views to be streamed back to the client as they are rendered.
