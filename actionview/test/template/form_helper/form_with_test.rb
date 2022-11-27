@@ -2469,6 +2469,30 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
+  def test_form_with_id
+    form_with(model: Post.new, id: "new_post") do |f|
+      concat f.button(form: f.id)
+    end
+
+    expected = whole_form("/posts", "new_post") do
+      '<button name="button" type="submit" form="new_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_with_id_having_html_id
+    form_with(model: Post.new, id: "new_post", html: { id: "html_new_post" }) do |f|
+      concat f.button(form: f.id)
+    end
+
+    expected = whole_form("/posts", "html_new_post") do
+      '<button name="button" type="submit" form="html_new_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
   private
     def hidden_fields(options = {})
       method = options[:method]
