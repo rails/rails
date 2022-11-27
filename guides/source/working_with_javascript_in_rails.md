@@ -294,5 +294,5 @@ This generates:
 In case of buttons the `data-turbo-confirm` attribute must be associated to the generated form as in this example:
 
 ```erb
-<%= button_to "Delete post', post, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } } %>
+<%= button_to "Delete post", post, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } } %>
 ```
