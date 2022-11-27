@@ -1,3 +1,12 @@
+*   Stop using `LOWER()` for case-insensitive queries on `citext` columns
+
+    Previously, `LOWER()` was added for e.g. uniqueness validations with
+    `case_sensitive: false`.
+    It wasn't mentioned in the documentation that the index without `LOWER()`
+    wouldn't be used in this case.
+
+    *Phil Pirozhkov*
+
 *   Extract `#sync_timezone_changes` method in AbstractMysqlAdapter to enable subclasses
     to sync database timezone changes without overriding `#raw_execute`.
 
