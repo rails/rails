@@ -72,16 +72,23 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def parse_cookie_from_header
-    cookie_matches = headers["Set-Cookie"].match(/#{SessionKey}=([^;]+)/)
-    cookie_matches && cookie_matches[1]
-  end
+  include CookieAssertions
 
-  def assert_session_cookie(cookie_string, contents)
-    assert_includes headers["Set-Cookie"], cookie_string
+  def assert_session_cookie(attributes_string, contents)
+    cookies = parse_set_cookies_headers(headers["Set-Cookie"])
 
-    session_value = parse_cookie_from_header
-    session_data = Encryptor.decrypt_and_verify(Rack::Utils.unescape(session_value)) rescue nil
+    if session_cookie = cookies[SessionKey]
+      if attributes_string
+        expected_attributes = parse_set_cookie_attributes(attributes_string)
+
+        expected_attributes.each do |key, value|
+          assert_equal value, session_cookie[key], "expected #{key} to be #{value.inspect}, but was #{session_cookie[key].inspect}"
+        end
+      end
+
+      session_value = session_cookie[:value]
+      session_data = Encryptor.decrypt_and_verify(Rack::Utils.unescape(session_value)) rescue nil
+    end
 
     assert_not_nil session_data, "session failed to decrypt"
     assert_equal session_data.slice(*contents.keys), contents
@@ -92,7 +99,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get "/set_session_value"
 
       assert_response :success
-      assert_session_cookie "path=/; HttpOnly", "foo" => "bar"
+      assert_session_cookie "path=/; HttpOnly", { "foo" => "bar" }
     end
   end
 
