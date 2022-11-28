@@ -36,6 +36,9 @@ gem "terser", ">= 1.1.4", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
+# Workaround until Ruby ships with cgi version 0.3.6 or higher.
+gem "cgi", ">= 0.3.6", require: false
+
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
