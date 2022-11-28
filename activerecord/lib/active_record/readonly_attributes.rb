@@ -28,21 +28,11 @@ module ActiveRecord
       #   post.title = "a different title" # raises ActiveRecord::ReadonlyAttributeError
       #   post.update(title: "a different title") # raises ActiveRecord::ReadonlyAttributeError
       def attr_readonly(*attributes)
-        new_attributes = attributes.map(&:to_s).reject { |a| _attr_readonly.include?(a) }
+        self._attr_readonly |= attributes.map(&:to_s)
 
         if ActiveRecord.raise_on_assign_to_attr_readonly
-          new_attributes.each do |attribute|
-            define_method("#{attribute}=") do |value|
-              raise ReadonlyAttributeError.new(attribute) unless new_record?
-
-              super(value)
-            end
-          end
-
           include(HasReadonlyAttributes)
         end
-
-        self._attr_readonly = Set.new(new_attributes) + _attr_readonly
       end
 
       # Returns an array of all the attributes that have been specified as readonly.
@@ -56,12 +46,14 @@ module ActiveRecord
     end
 
     module HasReadonlyAttributes # :nodoc:
-      def write_attribute(attr_name, value)
-        if !new_record? && self.class.readonly_attribute?(attr_name.to_s)
-          raise ReadonlyAttributeError.new(attr_name)
-        end
+      [:write_attribute, :_write_attribute].each do |name|
+        define_method(name) do |attr_name, value|
+          if !new_record? && self.class.readonly_attribute?(attr_name.to_s)
+            raise ReadonlyAttributeError.new(attr_name)
+          end
 
-        super
+          super(attr_name, value)
+        end
       end
     end
   end

@@ -455,7 +455,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ "name" ]), ReadonlyNameShip.readonly_attributes
+    assert_equal [ "name" ], ReadonlyNameShip.readonly_attributes
 
     s = ReadonlyNameShip.create(name: "unchangeable name")
     s.reload
