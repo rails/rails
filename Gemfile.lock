@@ -169,6 +169,7 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
+    cgi (0.3.6)
     childprocess (4.1.0)
     coffee-script (2.4.1)
       coffee-script-source
@@ -576,6 +577,7 @@ DEPENDENCIES
   blade
   bootsnap (>= 1.4.4)
   capybara (>= 3.26)
+  cgi (>= 0.3.6)
   connection_pool
   cssbundling-rails
   dalli (>= 3.0.1)
