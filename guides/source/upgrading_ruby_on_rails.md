@@ -297,6 +297,22 @@ Option `config.action_mailer.preview_path` is deprecated in favor of `config.act
 config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
+### Fix touching has_one associations
+
+The bugfix introduced in [#46410](https://github.com/rails/rails/pull/46410) might cause some apps to start raising `stack level too deep` with logs showing that an object is having its `updated_at` column updated an infinite amount of times.
+
+If you see this behavior, look for an association in the updated model where both it and its child have `touch: true` set. This will probably be a delegated type:
+
+```ruby
+class Profile < ActiveRecord::Base
+  delegated_type :profilable, types: %w[ doctor ], touch: true
+end
+
+class Doctor < ActiveRecord::Base
+  has_one :profile, as: :profilable, touch: true
+end
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
