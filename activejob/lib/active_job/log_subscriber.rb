@@ -5,6 +5,8 @@ require "active_support/log_subscriber"
 
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
     def enqueue(event)
       job = event.payload[:job]
       ex = event.payload[:exception_object]
@@ -57,7 +59,7 @@ module ActiveJob
       job = event.payload[:job]
       ex = event.payload[:exception_object]
       if ex
-        cleaned_backtrace = Rails.backtrace_cleaner.clean(ex.backtrace)
+        cleaned_backtrace = backtrace_cleaner.clean(ex.backtrace)
         error do
           "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(cleaned_backtrace).join("\n")
         end
