@@ -394,7 +394,7 @@ If you configured this setting after the environments configuration has been pro
 
 [`config.autoload_once_paths`]: configuring.html#config-autoload-once-paths
 
-### `ActionDispatch::Request#content_type` now returned Content-Type header as it is.
+### `ActionDispatch::Request#content_type` now returns Content-Type header as it is.
 
 Previously, `ActionDispatch::Request#content_type` returned value does NOT contain charset part.
 This behavior changed to returned Content-Type header containing charset part as it is.
