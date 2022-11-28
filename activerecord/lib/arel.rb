@@ -35,8 +35,12 @@ module Arel
   # Great caution should be taken to avoid SQL injection vulnerabilities.
   # This method should not be used with unsafe values such as request
   # parameters or model attributes.
-  def self.sql(raw_sql)
-    Arel::Nodes::SqlLiteral.new raw_sql
+  def self.sql(sql_string, *positional_binds, **named_binds)
+    if positional_binds.empty? && named_binds.empty?
+      Arel::Nodes::SqlLiteral.new sql_string
+    else
+      Arel::Nodes::BoundSqlLiteral.new sql_string, positional_binds, named_binds
+    end
   end
 
   def self.star # :nodoc:
