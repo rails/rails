@@ -314,6 +314,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_database_timezone_changes_synced_to_connection
+    with_timezone_config default: :local do
+      assert_changes(-> { @conn.raw_connection.query_options[:database_timezone] }, from: :utc, to: :local) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
   private
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
       super(@conn, "ex", definition, &block)
