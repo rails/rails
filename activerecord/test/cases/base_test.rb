@@ -66,6 +66,16 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+class ReadonlyTitleAbstractPost < ActiveRecord::Base
+  self.abstract_class = true
+
+  attr_readonly :title
+end
+
+class ReadonlyTitlePostWithAbstractParent < ReadonlyTitleAbstractPost
+  self.table_name = "posts"
+end
+
 previous_value, ActiveRecord.raise_on_assign_to_attr_readonly = ActiveRecord.raise_on_assign_to_attr_readonly, false
 
 class NonRaisingPost < Post
@@ -766,7 +776,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed via write_attribute", post.title
     assert_equal "changed via write_attribute", post.body
 
-
     post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
     assert_equal "changed via assign_attributes", post.title
     assert_equal "changed via assign_attributes", post.body
@@ -781,6 +790,14 @@ class BasicsTest < ActiveRecord::TestCase
     post = Post.find(post.id)
     assert_equal "changed via []=", post.title
     assert_equal "changed via []=", post.body
+  end
+
+  def test_readonly_attributes_in_abstract_class_descendant
+    assert_equal Set.new([ "title" ]), ReadonlyTitlePostWithAbstractParent.readonly_attributes
+
+    assert_nothing_raised do
+      ReadonlyTitlePostWithAbstractParent.new(title: "can change this until you save")
+    end
   end
 
   def test_readonly_attributes_when_configured_to_not_raise
