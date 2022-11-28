@@ -1443,6 +1443,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.id, client.client_of
   end
 
+  def test_should_set_foreign_key_on_save
+    client = Client.create! name: "fuu"
+    firm   = client.build_firm name: "baa"
+
+    firm.save
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_should_set_foreign_key_on_save!
+    client = Client.create! name: "fuu"
+    firm   = client.build_firm name: "baa"
+
+    firm.save!
+    assert_equal firm.id, client.client_of
+  end
+
   def test_self_referential_belongs_to_with_counter_cache_assigning_nil
     comment = Comment.create! post: posts(:thinking), body: "fuu"
     comment.parent = nil
