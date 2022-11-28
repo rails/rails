@@ -722,7 +722,7 @@ Here is the most straightforward test to check for XSS:
 This JavaScript code will simply display an alert box. The next examples do exactly the same, only in very uncommon places:
 
 ```html
-<img src=javascript:alert('Hello')>
+<img src="javascript:alert('Hello')">
 <table background="javascript:alert('Hello')">
 ```
 
