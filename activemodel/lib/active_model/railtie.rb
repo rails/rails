@@ -9,7 +9,7 @@ module ActiveModel
 
     config.active_model = ActiveSupport::OrderedOptions.new
 
-    initializer "active_model.deprecator" do |app|
+    initializer "active_model.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_model] = ActiveModel.deprecator
     end
 

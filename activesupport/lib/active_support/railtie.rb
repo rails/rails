@@ -10,7 +10,7 @@ module ActiveSupport
 
     config.eager_load_namespaces << ActiveSupport
 
-    initializer "active_support.deprecator" do |app|
+    initializer "active_support.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_support] = ActiveSupport.deprecator
     end
 

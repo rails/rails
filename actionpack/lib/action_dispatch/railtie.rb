@@ -41,7 +41,7 @@ module ActionDispatch
 
     config.eager_load_namespaces << ActionDispatch
 
-    initializer "action_dispatch.deprecator" do |app|
+    initializer "action_dispatch.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_dispatch] = ActionDispatch.deprecator
     end
 

@@ -10,7 +10,7 @@ module ActiveJob
     config.active_job.custom_serializers = []
     config.active_job.log_query_tags_around_perform = true
 
-    initializer "active_job.deprecator" do |app|
+    initializer "active_job.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_job] = ActiveJob.deprecator
     end
 

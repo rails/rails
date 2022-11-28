@@ -75,7 +75,7 @@ module ActiveRecord
       require "active_record/base"
     end
 
-    initializer "active_record.deprecator" do |app|
+    initializer "active_record.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_record] = ActiveRecord.deprecator
     end
 
