@@ -644,6 +644,36 @@ module Arel
         end
       end
 
+      describe "Nodes::BoundSqlLiteral" do
+        it "works with positional binds" do
+          node = Nodes::BoundSqlLiteral.new("id = ?", [1], {})
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "works with named binds" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { id: 1 })
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "works with mixed binds" do
+          node = Nodes::BoundSqlLiteral.new("id = ? AND name = :name", [1], { name: "Aaron" })
+          _(compile(node)).must_be_like %{
+            id = ? AND name = ?
+          }
+        end
+
+        it "works with array values" do
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?, ?)
+          }
+        end
+      end
+
       describe "TableAlias" do
         it "should use the underlying table for checking columns" do
           test = Table.new(:users).alias("zomgusers")[:id].eq "3"

@@ -752,6 +752,37 @@ module Arel # :nodoc: all
           collector << o.to_s
         end
 
+        def visit_Arel_Nodes_BoundSqlLiteral(o, collector)
+          bind_index = 0
+
+          o.sql_with_placeholders.scan(/\?|:(\w+)|([^?:]+|.)/) do
+            if $2
+              collector << $2
+            else
+              if $1
+                value = o.named_binds[$1.to_sym]
+              else
+                value = o.positional_binds[bind_index]
+                bind_index += 1
+              end
+
+              if Arel.arel_node?(value)
+                visit value, collector
+              elsif value.is_a?(Array)
+                if value.empty?
+                  collector << @connection.quote(nil)
+                else
+                  collector.add_binds(value, &bind_block)
+                end
+              else
+                collector.add_bind(value, &bind_block)
+              end
+            end
+          end
+
+          collector
+        end
+
         def visit_Integer(o, collector)
           collector << o.to_s
         end
