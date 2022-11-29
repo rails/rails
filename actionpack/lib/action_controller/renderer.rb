@@ -23,10 +23,7 @@ module ActionController
     attr_reader :controller
 
     DEFAULTS = {
-      http_host: "example.org",
-      https: false,
       method: "get",
-      script_name: "",
       input: ""
     }.freeze
 
@@ -46,7 +43,14 @@ module ActionController
         new_env[key] = value
       end
 
-      new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
+      if new_env["HTTP_HOST"]
+        new_env["HTTPS"] ||= "off"
+        new_env["SCRIPT_NAME"] ||= ""
+      end
+
+      if new_env["HTTPS"]
+        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
+      end
 
       new_env
     end
@@ -90,6 +94,13 @@ module ActionController
     # * +defaults+ - Default values for the Rack env. Entries are specified in
     #   the same format as +env+. +env+ will be merged on top of these values.
     #   +defaults+ will be retained when calling #new on a renderer instance.
+    #
+    # If no +http_host+ is specified, the env HTTP host will be derived from the
+    # routes' +default_url_options+. In this case, the +https+ boolean and the
+    # +script_name+ will also be derived from +default_url_options+ if they were
+    # not specified. Additionally, the +https+ boolean will fall back to
+    # +Rails.application.config.force_ssl+ if +default_url_options+ does not
+    # specify a +protocol+.
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
@@ -128,9 +139,7 @@ module ActionController
     #
     # Otherwise, a partial is rendered using the second parameter as the locals hash.
     def render(*args)
-      raise "missing controller" unless controller
-
-      request = ActionDispatch::Request.new(@env.dup)
+      request = ActionDispatch::Request.new(env_for_request)
       request.routes = controller._routes
 
       instance = controller.new
@@ -152,5 +161,13 @@ module ActionController
       DEFAULT_ENV = normalize_env(DEFAULTS).freeze # :nodoc:
 
       delegate :normalize_env, to: :class
+
+      def env_for_request
+        if @env.key?("HTTP_HOST") || controller._routes.nil?
+          @env.dup
+        else
+          controller._routes.default_env.merge(@env)
+        end
+      end
   end
 end
