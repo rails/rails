@@ -1,3 +1,8 @@
+*   Extract `#sync_timezone_changes` method in AbstractMysqlAdapter to enable subclasses
+    to sync database timezone changes without overriding `#raw_execute`.
+
+    *Adrianna Chang*, *Paarth Madan*
+
 *   Do not write additional new lines when dumping sql migration versions
 
     This change updates the `insert_versions_sql` function so that the database insert string containing the current database migration versions does not end with two additional new lines.

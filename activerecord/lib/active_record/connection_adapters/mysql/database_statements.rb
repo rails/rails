@@ -83,18 +83,8 @@ module ActiveRecord
         end
 
         private
-          def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
-            mark_transaction_written_if_write(sql)
-
-            log(sql, name, async: async) do
-              with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
-                # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-                # made since we established the connection
-                conn.query_options[:database_timezone] = default_timezone
-
-                conn.query(sql)
-              end
-            end
+          def sync_timezone_changes(raw_connection)
+            raw_connection.query_options[:database_timezone] = default_timezone
           end
 
           def execute_batch(statements, name = nil)
@@ -176,9 +166,7 @@ module ActiveRecord
 
             log(sql, name, binds, type_casted_binds, async: async) do
               with_raw_connection do |conn|
-                # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-                # made since we established the connection
-                conn.query_options[:database_timezone] = default_timezone
+                sync_timezone_changes(conn)
 
                 if cache_stmt
                   stmt = @statements[sql] ||= conn.prepare(sql)
