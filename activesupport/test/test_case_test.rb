@@ -28,6 +28,20 @@ class AssertionsTest < ActiveSupport::TestCase
     assert_equal "custom", e.message
   end
 
+  def test_assert_raises_with_match_pass
+    assert_raises(ArgumentError, match: /incorrect/i) do
+      raise ArgumentError, "Incorrect argument"
+    end
+  end
+
+  def test_assert_raises_with_match_fail
+    assert_raises(Minitest::Assertion, match: "Expected /incorrect/i to match \"Wrong argument\".") do
+      assert_raises(ArgumentError, match: /incorrect/i) do
+        raise ArgumentError, "Wrong argument"
+      end
+    end
+  end
+
   def test_assert_no_difference_pass
     assert_no_difference "@object.num" do
       # ...
