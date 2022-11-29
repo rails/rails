@@ -417,15 +417,15 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_associations_raise_with_name_error_if_associated_to_classes_that_do_not_exist
-    assert_raises NameError do
+    assert_raises ArgumentError do
       ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_one_class
     end
 
-    assert_raises NameError do
+    assert_raises ArgumentError do
       ModelAssociatedToClassesThatDoNotExist.new.non_existent_belongs_to_class
     end
 
-    assert_raises NameError do
+    assert_raises ArgumentError do
       ModelAssociatedToClassesThatDoNotExist.new.non_existent_has_many_classes
     end
   end

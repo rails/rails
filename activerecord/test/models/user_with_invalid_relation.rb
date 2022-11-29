@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 class UserWithInvalidRelation < ActiveRecord::Base
-  has_one :account_invalid
+  has_one :account_invalid_no_class_name_option
 
   has_one :account_class_name, class_name: "AccountInvalid"
+
+  has_one :class_name_provided_not_a_class, class_name: "NotAClass"
 
   has_many :user_info_invalid
   has_many :info_invalids, through: :user_info_invalid

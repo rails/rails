@@ -138,16 +138,51 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "PluralIrregular", reflection.class_name
   end
 
-  def test_reflection_klass_is_not_ar_subclass
-    [:account_invalid,
-     :account_class_name,
+  def test_reflection_klass_not_found_with_no_class_name_option
+    [:account_invalid_no_class_name_option,
      :info_invalids,
+    ].each do |rel|
+      expected = <<-MSG.squish
+        Rails couldn't find a valid model for the #{rel} association.
+        Use the :class_name option on the association declaration to tell Rails which model to use.
+      MSG
+
+      err = assert_raise(ArgumentError) do
+        UserWithInvalidRelation.reflect_on_association(rel).klass
+      end
+
+      assert_includes err.message, expected
+    end
+  end
+
+  def test_reflection_klass_not_found_with_pointer_to_non_existent_class_name
+    expected = <<-MSG.squish
+      Rails couldn't find a valid model for the class_name_provided_not_a_class association.
+      Ensure the class provided to :class_name exists and is an ActiveRecord::Base subclass.
+    MSG
+
+    err = assert_raise(ArgumentError) do
+      UserWithInvalidRelation.reflect_on_association(:class_name_provided_not_a_class).klass
+    end
+
+    assert_includes err.message, expected
+  end
+
+  def test_reflection_klass_requires_ar_subclass
+    [:account_class_name,
      :infos_class_name,
      :infos_through_class_name,
     ].each do |rel|
-      assert_raise(ArgumentError) do
+      expected = <<-MSG.squish
+        Rails couldn't find a valid model for the #{rel} association.
+        Ensure the class provided to :class_name exists and is an ActiveRecord::Base subclass.
+      MSG
+
+      err = assert_raise(ArgumentError) do
         UserWithInvalidRelation.reflect_on_association(rel).klass
       end
+
+      assert_includes err.message, expected
     end
   end
 
