@@ -362,9 +362,9 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts JOIN posts_with_tags ON posts_with_tags.id = posts.id
     #
-    # It is recommended to pass a query as `ActiveRecord::Relation`. If that is not possible
+    # It is recommended to pass a query as ActiveRecord::Relation. If that is not possible
     # and you have verified it is safe for the database, you can pass it as SQL literal
-    # using `Arel`.
+    # using +Arel+.
     #
     #   Post.with(popular_posts: Arel.sql("... complex sql to calculate posts popularity ..."))
     #
@@ -378,7 +378,7 @@ module ActiveRecord
     #     posts_with_tags: Post.where("tags_count > ?", 0)
     #   )
     #
-    # or chain multiple `.with` calls
+    # or chain multiple +.with+ calls
     #
     #   Post
     #     .with(posts_with_comments: Post.where("comments_count > ?", 0))

