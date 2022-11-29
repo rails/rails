@@ -7,6 +7,10 @@ require "models/comment"
 class UnsafeRawSqlTest < ActiveRecord::TestCase
   fixtures :posts, :comments
 
+  setup do
+    @escaped_posts = Post.connection.quote_table_name("posts")
+  end
+
   test "order: allows string column name" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
@@ -300,5 +304,32 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     end
 
     assert_match(/Dangerous query method \(method whose arguments are used as raw SQL\) called with non-attribute argument\(s\):/, e.message)
+  end
+
+  test "Arel#sql: works without binds" do
+    query = Post.where(Arel.sql("x = 1"))
+
+    # TODO: Why sql output contains "(" & ")" over here and not for the test cases below 🤔?
+    assert_equal "SELECT #{@escaped_posts}.* FROM #{@escaped_posts} WHERE (x = 1)", query.to_sql
+  end
+
+  # TODO: shall we extensively test that binds are working with different datatypes (ex: DateTime) 🧐?
+
+  test "Arel#sql: allows Array binds" do
+    query = Post.where(Arel.sql("x = ?", [1]))
+
+    assert_equal "SELECT #{@escaped_posts}.* FROM #{@escaped_posts} WHERE x = 1", query.to_sql
+  end
+
+  test "Arel#sql: allows Hash binds" do
+    query = Post.where(Arel.sql("x = :value_of_x", nil, **{ value_of_x: 1 }))
+
+    assert_equal "SELECT #{@escaped_posts}.* FROM #{@escaped_posts} WHERE x = 1", query.to_sql
+  end
+
+  test "Arel#sql: allows Array and Hash binds" do
+    query = Post.where(Arel.sql("x = :value_of_x AND y = ?", [2], **{ value_of_x: 1 }))
+
+    assert_equal "SELECT #{@escaped_posts}.* FROM #{@escaped_posts} WHERE x = 1 AND y = 2", query.to_sql
   end
 end
