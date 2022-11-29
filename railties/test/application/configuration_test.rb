@@ -1463,16 +1463,28 @@ module ApplicationTests
       assert_equal true, ActionController::Base.raise_on_open_redirects
     end
 
-    test "config.action_dispatch.show_exceptions is sent in env" do
+    test "config.action_dispatch.show_exceptions is true for all values except false" do
       make_basic_app do |application|
         application.config.action_dispatch.show_exceptions = true
       end
 
       class ::OmgController < ActionController::Base
         def index
-          render plain: request.env["action_dispatch.show_exceptions"]
+          render plain: request.show_exceptions?
         end
       end
+
+      get "/"
+      assert_equal "true", last_response.body
+
+      Rails.configuration.action_dispatch.show_exceptions = false
+      Rails.application.instance_variable_set(:@app_env_config, nil)
+
+      get "/"
+      assert_equal "false", last_response.body
+
+      Rails.configuration.action_dispatch.show_exceptions = nil
+      Rails.application.instance_variable_set(:@app_env_config, nil)
 
       get "/"
       assert_equal "true", last_response.body
