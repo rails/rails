@@ -478,7 +478,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_tag = Tag.new(name: "new")
 
     saved_post.tags << new_tag
-    assert new_tag.persisted? # consistent with habtm!
+    assert_predicate new_tag, :persisted? # consistent with habtm!
     assert_predicate saved_post, :persisted?
     assert_includes saved_post.tags, new_tag
 
