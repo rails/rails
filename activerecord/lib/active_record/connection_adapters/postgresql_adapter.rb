@@ -1031,7 +1031,10 @@ module ActiveRecord
         end
 
         def can_perform_case_insensitive_comparison_for?(column)
-          @case_insensitive_cache ||= {}
+          # NOTE: citext is an exception. It is possible to perform a
+          #       case-insensitive comparison using `LOWER()`, but it is
+          #       unnecessary, as `citext` is case-insensitive by definition.
+          @case_insensitive_cache ||= { "citext" => false }
           @case_insensitive_cache.fetch(column.sql_type) do
             @case_insensitive_cache[column.sql_type] = begin
               sql = <<~SQL
