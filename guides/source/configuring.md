@@ -106,7 +106,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.0`
 - [`config.active_support.executor_around_test_case`](#config-active-support-executor-around-test-case): `true`
 - [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
-- [`config.active_support.isolation_level`](#config-active-support-isolation-level): `:thread`
 - [`config.active_support.key_generator_hash_digest_class`](#config-active-support-key-generator-hash-digest-class): `OpenSSL::Digest::SHA256`
 
 #### Default Values for Target Version 6.1

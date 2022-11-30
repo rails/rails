@@ -239,7 +239,6 @@ module Rails
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
             active_support.cache_format_version = 7.0
             active_support.executor_around_test_case = true
-            active_support.isolation_level = :thread
           end
 
           if respond_to?(:action_mailer)
