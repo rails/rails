@@ -20,7 +20,7 @@ module ActionController
   #   PostsController.render :show, assigns: { post: Post.first }
   #
   class Renderer
-    attr_reader :defaults, :controller
+    attr_reader :controller
 
     DEFAULTS = {
       http_host: "example.org",
@@ -30,8 +30,29 @@ module ActionController
       input: ""
     }.freeze
 
+    def self.normalize_env(env) # :nodoc:
+      new_env = {}
+
+      env.each_pair do |key, value|
+        case key
+        when :https
+          value = value ? "on" : "off"
+        when :method
+          value = -value.upcase
+        end
+
+        key = RACK_KEY_TRANSLATION[key] || key.to_s
+
+        new_env[key] = value
+      end
+
+      new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
+
+      new_env
+    end
+
     # Creates a new renderer using the given controller class. See ::new.
-    def self.for(controller, env = {}, defaults = DEFAULTS.dup)
+    def self.for(controller, env = nil, defaults = DEFAULTS)
       new(controller, env, defaults)
     end
 
@@ -39,14 +60,14 @@ module ActionController
     #
     #   ApplicationController.renderer.new(method: "post")
     #
-    def new(env = {})
-      self.class.new controller, env, defaults
+    def new(env = nil)
+      self.class.new controller, env, @defaults
     end
 
     # Creates a new renderer using the same controller, but with the given
     # defaults merged on top of the previous defaults.
     def with_defaults(defaults)
-      self.class.new controller, @env, self.defaults.merge(defaults)
+      self.class.new controller, @env, @defaults.merge(defaults)
     end
 
     # Initializes a new Renderer.
@@ -72,7 +93,17 @@ module ActionController
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
-      @env = normalize_keys defaults, env
+      if env.blank? && @defaults == DEFAULTS
+        @env = DEFAULT_ENV
+      else
+        @env = normalize_env(@defaults)
+        @env.merge!(normalize_env(env)) unless env.blank?
+      end
+    end
+
+    def defaults
+      @defaults = @defaults.dup if @defaults.frozen?
+      @defaults
     end
 
     # Render templates with any options from ActionController::Base#render_to_string.
@@ -99,7 +130,7 @@ module ActionController
     def render(*args)
       raise "missing controller" unless controller
 
-      request = ActionDispatch::Request.new @env
+      request = ActionDispatch::Request.new(@env.dup)
       request.routes = controller._routes
 
       instance = controller.new
@@ -110,19 +141,6 @@ module ActionController
     alias_method :render_to_string, :render # :nodoc:
 
     private
-      def normalize_keys(defaults, env)
-        new_env = {}
-        env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
-
-        defaults.each_pair do |k, v|
-          key = rack_key_for(k)
-          new_env[key] = rack_value_for(k, v) unless new_env.key?(key)
-        end
-
-        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
-        new_env
-      end
-
       RACK_KEY_TRANSLATION = {
         http_host:   "HTTP_HOST",
         https:       "HTTPS",
@@ -131,19 +149,8 @@ module ActionController
         input:       "rack.input"
       }
 
-      def rack_key_for(key)
-        RACK_KEY_TRANSLATION[key] || key.to_s
-      end
+      DEFAULT_ENV = normalize_env(DEFAULTS).freeze # :nodoc:
 
-      def rack_value_for(key, value)
-        case key
-        when :https
-          value ? "on" : "off"
-        when :method
-          -value.upcase
-        else
-          value
-        end
-      end
+      delegate :normalize_env, to: :class
   end
 end
