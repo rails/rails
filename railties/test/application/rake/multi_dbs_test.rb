@@ -443,6 +443,9 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_create_and_drop_namespace db_config.name, db_config.database
+        ensure
+          # secondary databases might have been created by check_protected_environments task
+          rails("db:drop:all")
         end
       end
 

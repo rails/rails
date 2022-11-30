@@ -55,7 +55,17 @@ module ActiveRecord
     sqlite3:    :sqlite_tasks
   }
 
-  class DatabaseTasksUtilsTask < ActiveRecord::TestCase
+  class DatabaseTasksCheckProtectedEnvironmentsTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    def setup
+      recreate_metadata_tables
+    end
+
+    def teardown
+      recreate_metadata_tables
+    end
+
     def test_raises_an_error_when_called_with_protected_environment
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
@@ -70,12 +80,12 @@ module ActiveRecord
       ) do
         assert_not_includes protected_environments, current_env
         # Assert no error
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
         ActiveRecord::Base.protected_environments = [current_env]
 
         assert_raise(ActiveRecord::ProtectedEnvironmentError) do
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
         end
       end
     ensure
@@ -96,11 +106,11 @@ module ActiveRecord
       ) do
         assert_not_includes protected_environments, current_env
         # Assert no error
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
         ActiveRecord::Base.protected_environments = [current_env.to_sym]
         assert_raise(ActiveRecord::ProtectedEnvironmentError) do
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
         end
       end
     ensure
@@ -119,11 +129,88 @@ module ActiveRecord
       assert_not_predicate internal_metadata, :table_exists?
 
       assert_raises(ActiveRecord::NoEnvironmentInSchemaError) do
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
       end
     ensure
       schema_migration.delete_version("1")
       internal_metadata.create_table
+    end
+
+    private
+      def recreate_metadata_tables
+        schema_migration = ActiveRecord::Base.connection.schema_migration
+        schema_migration.drop_table
+        schema_migration.create_table
+
+        internal_metadata = ActiveRecord::Base.connection.internal_metadata
+        internal_metadata.drop_table
+        internal_metadata.create_table
+      end
+  end
+
+  if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+    class DatabaseTasksCheckProtectedEnvironmentsMultiDatabaseTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
+      def test_with_multiple_databases
+        env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        with_multi_db_configurations(env) do
+          protected_environments = ActiveRecord::Base.protected_environments
+          current_env = ActiveRecord::Base.connection.migration_context.current_environment
+          assert_equal current_env, env
+
+          ActiveRecord::Base.establish_connection(:primary)
+          ActiveRecord::Base.connection.internal_metadata.create_table_and_set_flags(current_env)
+
+          ActiveRecord::Base.establish_connection(:secondary)
+          ActiveRecord::Base.connection.internal_metadata.create_table_and_set_flags(current_env)
+
+          assert_not_includes protected_environments, current_env
+          # Assert not raises
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("test")
+
+          ActiveRecord::Base.establish_connection(:secondary)
+          connection = ActiveRecord::Base.connection
+          schema_migration = connection.schema_migration
+          schema_migration.create_table
+          schema_migration.create_version("1")
+
+          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("test")
+          end
+        ensure
+          ActiveRecord::Base.protected_environments = protected_environments
+        end
+      end
+
+      private
+        def with_multi_db_configurations(env)
+          old_configurations = ActiveRecord::Base.configurations
+          ActiveRecord::Base.configurations = {
+            env => {
+              primary: {
+                adapter: "sqlite3",
+                database: "test/fixtures/fixture_database.sqlite3",
+              },
+              secondary: {
+                adapter: "sqlite3",
+                database: "test/fixtures/fixture_database_2.sqlite3",
+              }
+            }
+          }
+
+          ActiveRecord::Base.establish_connection(:primary)
+          yield
+        ensure
+          [:primary, :secondary].each do |db|
+            ActiveRecord::Base.establish_connection(db)
+            ActiveRecord::Base.connection.schema_migration.drop_table
+            ActiveRecord::Base.connection.internal_metadata.drop_table
+          end
+          ActiveRecord::Base.configurations = old_configurations
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
     end
   end
 
