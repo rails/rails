@@ -1,3 +1,21 @@
+*   Error markup generation can now be disabled on a per-field basis.
+
+    Rails wraps form inputs in a `<div class="field_with_errors">` if
+    the associated active record field is invalid. This is not always
+    desirable, and can only be customized application-wide by setting
+    ActionView::Base.field_error_proc.
+
+    Now developers can opt out of the default behavior on a per-field
+    basis by passing `generate_error_markup: false` to form helpers, eg:
+
+    ```erb
+    <%= form_with(model: user) do |f|
+      <%= f.text_field(:name, generate_error_markup: false)
+    <% end %>
+    ```
+
+    *Cameron Dutro*
+
 *   Choices of `select` can optionally contain html attributes as the last element
     of the child arrays when using grouped/nested collections
 

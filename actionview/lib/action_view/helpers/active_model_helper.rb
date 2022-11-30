@@ -17,19 +17,26 @@ module ActionView
         end
       end
 
-      def content_tag(type, options, *)
-        select_markup_helper?(type) ? super : error_wrapping(super)
+      def content_tag(name, content_or_options_with_block = nil, options = nil, *)
+        if select_markup_helper?(type)
+          super
+        else
+          options = content_or_options_with_block if content_or_options_with_block.is_a?(Hash)
+          error_wrapping(options) { super }
+        end
       end
 
       def tag(type, options, *)
-        tag_generate_errors?(options) ? error_wrapping(super) : super
+        tag_generate_errors?(options) ? error_wrapping(options) { super } : super
       end
 
-      def error_wrapping(html_tag)
-        if object_has_errors?
-          @template_object.instance_exec(html_tag, self, &Base.field_error_proc)
+      def error_wrapping(options)
+        generate_error_markup = options.delete("generate_error_markup") { true }
+
+        if object_has_errors? && generate_error_markup
+          @template_object.instance_exec(yield, self, &Base.field_error_proc)
         else
-          html_tag
+          yield
         end
       end
 

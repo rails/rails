@@ -169,4 +169,11 @@ class ActiveModelHelperTest < ActionView::TestCase
   ensure
     ActionView::Base.field_error_proc = old_proc if old_proc
   end
+
+  def test_field_does_not_render_error_markup_if_option_is_passed
+    assert_dom_equal(
+      %(<input id="post_author_name" name="post[author_name]" type="text" value="" />),
+      text_field("post", "author_name", generate_error_markup: false)
+    )
+  end
 end
