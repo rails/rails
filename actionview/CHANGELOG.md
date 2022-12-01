@@ -1,4 +1,22 @@
-*   Datatime form helpers (`time_field`, `date_field`, `datetime_field`, `week_field`, `month_field`) now accept an instance of Time/Date/DateTime as `:value` option.
+*   `select` can now be called with a single hash containing options and some HTML options
+
+    Previously this would not work as expected:
+
+    ```erb
+    <%= select :post, :author, authors, required: true %>
+    ```
+
+    Instead you needed to do this:
+
+    ```erb
+    <%= select :post, :author, authors, {}, required: true %>
+    ```
+
+    Now, either form is accepted, for the following HTML attributes: `required`, `multiple`, `size`.
+
+    *Alex Ghiculescu*
+
+*   Datetime form helpers (`time_field`, `date_field`, `datetime_field`, `week_field`, `month_field`) now accept an instance of Time/Date/DateTime as `:value` option.
 
     Before:
     ```erb
