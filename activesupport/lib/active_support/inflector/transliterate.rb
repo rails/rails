@@ -65,8 +65,8 @@ module ActiveSupport
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
       raise ArgumentError, "Cannot transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
 
+      return string.dup if string.ascii_only?
       string = string.dup if string.frozen?
-      return string if string.ascii_only?
 
       input_encoding = string.encoding
 
