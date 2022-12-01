@@ -175,7 +175,7 @@ module ActiveRecord
         end
 
         if (active_connection = @thread_cached_conns[connection_cache_key(current_thread)])
-          active_connection.synchronized = lock_thread
+          active_connection.lock_thread = @lock_thread
         end
       end
 
@@ -357,7 +357,7 @@ module ActiveRecord
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
         connection = checkout_and_verify(acquire_connection(checkout_timeout))
-        connection.synchronized = @lock_thread
+        connection.lock_thread = @lock_thread
         connection
       end
 
@@ -375,6 +375,7 @@ module ActiveRecord
               conn.expire
             end
 
+            conn.lock_thread = nil
             @available.add conn
           end
         end
