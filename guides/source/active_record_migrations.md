@@ -375,11 +375,11 @@ create_table :users do |t|
 end
 ```
 
-Also you can pass the `:comment` option with any description for the table
-that will be stored in database itself and can be viewed with database administration
+Also, you can pass the `:comment` option with any description for the table
+that will be stored in the database itself and can be viewed with database administration
 tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to specify
 comments in migrations for applications with large databases as it helps people
-to understand data model and generate documentation.
+to understand the data model and generate documentation.
 Currently only the MySQL and PostgreSQL adapters support comments.
 
 [`create_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-create_table
