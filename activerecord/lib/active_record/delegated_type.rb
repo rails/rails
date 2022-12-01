@@ -36,6 +36,7 @@ module ActiveRecord
   #
   # Let's look at that entry/message/comment example using delegated types:
   #
+  #   # Model creation: rails g model Entry account:references creator:references entryable:references{polymorphic}
   #   # Schema: entries[ id, account_id, creator_id, created_at, updated_at, entryable_type, entryable_id ]
   #   class Entry < ApplicationRecord
   #     belongs_to :account
