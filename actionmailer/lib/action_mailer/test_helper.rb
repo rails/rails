@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/array/extract_options"
 require "active_job"
 
 module ActionMailer
@@ -153,6 +154,13 @@ module ActionMailer
     #     assert_enqueued_email_with ContactMailer.with(greeting: "Hello"), :welcome
     #   end
     #
+    #   def test_email_with_matchers
+    #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome,
+    #       params: ->(params) { /hello/i.match?(params[:greeting]) },
+    #       args: ->(args) { /cheers/i.match?(args[0]) }
+    #   end
+    #
     # If a block is passed, that block should cause the specified email
     # to be enqueued.
     #
@@ -176,17 +184,18 @@ module ActionMailer
         mailer = mailer.instance_variable_get(:@mailer)
       end
 
+      params, args = args, nil if args.is_a?(Hash)
+      args = Array(args) unless args.is_a?(Proc)
       queue ||= mailer.deliver_later_queue_name || ActiveJob::Base.default_queue_name
 
-      args = if args.is_a?(Hash)
-        [mailer.to_s, method.to_s, "deliver_now", params: args, args: []]
-      elsif params.present?
-        [mailer.to_s, method.to_s, "deliver_now", params: params, args: Array(args)]
-      else
-        [mailer.to_s, method.to_s, "deliver_now", args: Array(args)]
+      expected = ->(job_args) do
+        job_kwargs = job_args.extract_options!
+
+        [mailer.to_s, method.to_s, "deliver_now"] == job_args &&
+          params === job_kwargs[:params] && args === job_kwargs[:args]
       end
 
-      assert_enqueued_with(job: mailer.delivery_job, args: args, queue: queue.to_s, &block)
+      assert_enqueued_with(job: mailer.delivery_job, args: expected, queue: queue.to_s, &block)
     end
 
     # Asserts that no emails are enqueued for later delivery.

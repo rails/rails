@@ -1,3 +1,13 @@
+*   Accept procs for args and params in `assert_enqueued_email_with`
+
+    ```ruby
+    assert_enqueued_email_with DeliveryJob, params: -> p { p[:token] =~ /\w+/ } do
+      UserMailer.with(token: user.generate_token).email_verification.deliver_later
+    end
+    ```
+
+    *Max Chernyak*
+
 *   Added `*_deliver` callbacks to `ActionMailer::Base` that wrap mail message delivery.
 
     Example:
