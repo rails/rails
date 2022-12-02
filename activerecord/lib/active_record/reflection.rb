@@ -425,10 +425,14 @@ module ActiveRecord
 
         begin
           klass = active_record.send(:compute_type, name)
-        rescue NameError
-          message = "Missing model class #{name} for the #{active_record}##{self.name} association."
-          message += " You can specify a different model class with the :class_name option." unless options[:class_name]
-          raise NameError, message
+        rescue NameError => error
+          if error.name.match?(/(?:\A|::)#{name}\z/)
+            message = "Missing model class #{name} for the #{active_record}##{self.name} association."
+            message += " You can specify a different model class with the :class_name option." unless options[:class_name]
+            raise NameError.new(message, name)
+          else
+            raise
+          end
         end
 
         unless klass < ActiveRecord::Base
@@ -619,7 +623,9 @@ module ActiveRecord
 
             begin
               reflection = klass._reflect_on_association(inverse_name)
-            rescue NameError
+            rescue NameError => error
+              raise unless error.name.to_s == class_name
+
               # Give up: we couldn't compute the klass type so we won't be able
               # to find any associations either.
               reflection = false

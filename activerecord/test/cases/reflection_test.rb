@@ -143,6 +143,7 @@ class ReflectionTest < ActiveRecord::TestCase
       UserWithInvalidRelation.reflect_on_association(:not_a_class).klass
     end
 
+    assert_equal "NotAClass", error.name
     assert_match %r/missing/i, error.message
     assert_match "NotAClass", error.message
     assert_match "UserWithInvalidRelation#not_a_class", error.message
@@ -154,6 +155,7 @@ class ReflectionTest < ActiveRecord::TestCase
       UserWithInvalidRelation.reflect_on_association(:class_name_provided_not_a_class).klass
     end
 
+    assert_equal "NotAClass", error.name
     assert_match %r/missing/i, error.message
     assert_match %r/\bNotAClass\b/, error.message
     assert_match "UserWithInvalidRelation#class_name_provided_not_a_class", error.message
@@ -560,9 +562,39 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_name_error_from_incidental_code_is_not_converted_to_name_error_for_association
+    UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
+      reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+
+      error = assert_raises(NameError) do
+        reflection.klass
+      end
+
+      assert_equal :oops, error.name
+      assert_match "oops", error.message
+      assert_no_match "NotAClass", error.message
+      assert_no_match "not_a_class", error.message
+    end
+  end
+
   def test_automatic_inverse_suppresses_name_error_for_association
     reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
     assert_not reflection.dup.has_inverse? # dup to prevent global memoization
+  end
+
+  def test_automatic_inverse_does_not_suppress_name_error_from_incidental_code
+    UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
+      reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+
+      error = assert_raises(NameError) do
+        reflection.dup.has_inverse? # dup to prevent global memoization
+      end
+
+      assert_equal :oops, error.name
+      assert_match "oops", error.message
+      assert_no_match "NotAClass", error.message
+      assert_no_match "not_a_class", error.message
+    end
   end
 
   private
