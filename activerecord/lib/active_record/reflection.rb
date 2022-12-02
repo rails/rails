@@ -428,7 +428,7 @@ module ActiveRecord
         rescue NameError
           message = "Missing model class #{name} for the #{active_record}##{self.name} association."
           message += " You can specify a different model class with the :class_name option." unless options[:class_name]
-          raise ArgumentError, message
+          raise NameError, message
         end
 
         unless klass < ActiveRecord::Base

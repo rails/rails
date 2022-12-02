@@ -139,7 +139,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_not_found_with_no_class_name_option
-    error = assert_raise(ArgumentError) do
+    error = assert_raise(NameError) do
       UserWithInvalidRelation.reflect_on_association(:not_a_class).klass
     end
 
@@ -150,7 +150,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_not_found_with_pointer_to_non_existent_class_name
-    error = assert_raise(ArgumentError) do
+    error = assert_raise(NameError) do
       UserWithInvalidRelation.reflect_on_association(:class_name_provided_not_a_class).klass
     end
 
@@ -558,6 +558,11 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_nothing_raised do
       assert_equal Hotel.reflect_on_association("departments").name, :departments
     end
+  end
+
+  def test_automatic_inverse_suppresses_name_error_for_association
+    reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+    assert_not reflection.dup.has_inverse? # dup to prevent global memoization
   end
 
   private
