@@ -1,3 +1,7 @@
+*   Coerce `NO` or `no` to `false` in `ActiveModel::Type::Boolean`
+
+    *Dino Maric*
+
 *   Raise `NoMethodError` in `ActiveModel::Type::Value#as_json` to avoid unpredictable
     results.
 
