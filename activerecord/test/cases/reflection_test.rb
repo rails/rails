@@ -139,50 +139,40 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_klass_not_found_with_no_class_name_option
-    [:account_invalid_no_class_name_option,
-     :info_invalids,
-    ].each do |rel|
-      expected = <<-MSG.squish
-        Rails couldn't find a valid model for the #{rel} association.
-        Use the :class_name option on the association declaration to tell Rails which model to use.
-      MSG
-
-      err = assert_raise(ArgumentError) do
-        UserWithInvalidRelation.reflect_on_association(rel).klass
-      end
-
-      assert_includes err.message, expected
+    error = assert_raise(NameError) do
+      UserWithInvalidRelation.reflect_on_association(:not_a_class).klass
     end
+
+    assert_match %r/missing/i, error.message
+    assert_match "NotAClass", error.message
+    assert_match "UserWithInvalidRelation#not_a_class", error.message
+    assert_match ":class_name", error.message
   end
 
   def test_reflection_klass_not_found_with_pointer_to_non_existent_class_name
-    expected = <<-MSG.squish
-      Rails couldn't find a valid model for the class_name_provided_not_a_class association.
-      Ensure the class provided to :class_name exists and is an ActiveRecord::Base subclass.
-    MSG
-
-    err = assert_raise(ArgumentError) do
+    error = assert_raise(NameError) do
       UserWithInvalidRelation.reflect_on_association(:class_name_provided_not_a_class).klass
     end
 
-    assert_includes err.message, expected
+    assert_match %r/missing/i, error.message
+    assert_match %r/\bNotAClass\b/, error.message
+    assert_match "UserWithInvalidRelation#class_name_provided_not_a_class", error.message
+    assert_no_match ":class_name", error.message
   end
 
   def test_reflection_klass_requires_ar_subclass
-    [:account_class_name,
-     :infos_class_name,
-     :infos_through_class_name,
+    [ :account_invalid,          # has_one, without :class_name
+      :account_class_name,       # has_one, with :class_name
+      :info_invalids,            # has_many through, without :class_name
+      :infos_class_name,         # has_many through, with :class_name
+      :infos_through_class_name, # has_many through other :class_name, with :class_name
     ].each do |rel|
-      expected = <<-MSG.squish
-        Rails couldn't find a valid model for the #{rel} association.
-        Ensure the class provided to :class_name exists and is an ActiveRecord::Base subclass.
-      MSG
-
-      err = assert_raise(ArgumentError) do
+      error = assert_raise(ArgumentError) do
         UserWithInvalidRelation.reflect_on_association(rel).klass
       end
 
-      assert_includes err.message, expected
+      assert_match "not an ActiveRecord::Base subclass", error.message
+      assert_match "UserWithInvalidRelation##{rel}", error.message
     end
   end
 
@@ -568,6 +558,11 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_nothing_raised do
       assert_equal Hotel.reflect_on_association("departments").name, :departments
     end
+  end
+
+  def test_automatic_inverse_suppresses_name_error_for_association
+    reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+    assert_not reflection.dup.has_inverse? # dup to prevent global memoization
   end
 
   private
