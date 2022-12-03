@@ -143,11 +143,13 @@ module ActionView
             Regexp === p ? p.to_s : Regexp.escape(p)
           end.join("|")
 
+          regex = /(?<!&)(#{match})(?![^<]*?>)/i
+
           if block_given?
-            text.gsub(/(#{match})(?![^<]*?>)/i, &block)
+            text.gsub(regex, &block)
           else
             highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-            text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
+            text.gsub(regex, highlighter)
           end
         end.html_safe
       end

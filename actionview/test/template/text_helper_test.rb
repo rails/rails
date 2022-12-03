@@ -188,6 +188,11 @@ class TextHelperTest < ActionView::TestCase
       "This text is not changed because we supplied an empty phrase",
       highlight("This text is not changed because we supplied an empty phrase", nil)
     )
+
+    assert_equal(
+      "This text &amp; this one will not be marked",
+      highlight("This text & this one will not be marked", "amp")
+    )
   end
 
   def test_highlight_pending
