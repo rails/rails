@@ -30,7 +30,7 @@ module ActiveRecord
         if current_adapter?(:Mysql2Adapter)
           primary_keys.concat([":unsigned"])
         elsif current_adapter?(:SQLite3Adapter)
-          table_keys.concat([":rename"])
+          table_keys.concat([":rename", ":strict_table"])
         end
 
         "Unknown key: :#{key}. Valid keys are: #{(table_keys + primary_keys).join(", ")}"

@@ -70,6 +70,16 @@ module ActiveRecord
       #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
       class_attribute :strict_strings_by_default, default: false
 
+      ##
+      # :singleton-method:
+      # Configure the SQLite3Adapter to set strict typing mode for tables.
+      # See: https://sqlite.org/stricttables.html
+      #
+      # To enable strict tables, add the following to your application.rb file:
+      #
+      #   config.active_record.sqlite3_adapter_strict_tables = true
+      class_attribute :strict_tables, default: false
+
       NATIVE_DATABASE_TYPES = {
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },

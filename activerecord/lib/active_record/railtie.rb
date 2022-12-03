@@ -227,6 +227,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.sqlite3_adapter_strict_tables" do
+      config.after_initialize do
+        if config.active_record.sqlite3_adapter_strict_tables
+          ActiveSupport.on_load(:active_record_sqlite3adapter) do
+            self.strict_tables = true
+          end
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -255,6 +265,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :cache_query_log_tags,
           :sqlite3_production_warning,
           :sqlite3_adapter_strict_strings_by_default,
+          :sqlite3_adapter_strict_tables,
           :check_schema_cache_dump_version,
           :use_schema_cache_dump
         )

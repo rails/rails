@@ -2642,6 +2642,58 @@ module ApplicationTests
       assert_match(/no such column: non_existent/, error.message)
     end
 
+    test "SQLite3Adapter.strict_tables is false by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_tables
+    end
+
+    test "SQLite3Adapter.strict_tables can be configured via config.active_record.sqlite3_adapter_strict_tables" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.sqlite3_adapter_strict_tables = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_tables
+    end
+
+    test "SQLite3Adapter.strict_tables can be configured via config.active_record.sqlite3_adapter_strict_tables in an initializer" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.active_record.sqlite3_adapter_strict_tables = true
+      RUBY
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_tables
+
+      Post.connection.create_table :posts, strict_table: true do |t|
+        t.integer :dummy
+      end
+
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        Post.connection.exec_query("INSERT INTO posts (dummy) VALUES ('foo')")
+      end
+
+      assert_match(/cannot store TEXT value in INTEGER/, error.message)
+    end
+
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
       app "development"
 

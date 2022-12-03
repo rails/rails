@@ -1,3 +1,26 @@
+*   Add strict tables mode of SQLite and strict table optional.
+
+    Configures SQLite with a strict tables mode, then strict typing rules apply to tables.
+    See [SQLite documentation](https://sqlite.org/stricttables.html) for more details.
+
+    Enable only for specific tables in addition to strict table mode.
+
+    This behavior, you can enable it via:
+
+    ```ruby
+    # config/application.rb
+    config.active_record.sqlite3_adapter_strict_tables = true
+
+    # migration file
+    create_table :posts, strict_table: true do |t|
+      t.integer :word_count
+    end
+    ```
+
+    Fixes #45937.
+
+    *suzunedev*
+
 *   Stop using `LOWER()` for case-insensitive queries on `citext` columns
 
     Previously, `LOWER()` was added for e.g. uniqueness validations with

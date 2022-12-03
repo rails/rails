@@ -4,6 +4,13 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        attr_reader :strict_table
+
+        def initialize(conn, name, strict_table: false, **options)
+          @strict_table = strict_table
+          super(conn, name, **options)
+        end
+
         def references(*args, **options)
           super(*args, type: :integer, **options)
         end

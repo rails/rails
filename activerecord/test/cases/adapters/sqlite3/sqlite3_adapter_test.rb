@@ -689,6 +689,56 @@ module ActiveRecord
         end
       end
 
+      def test_strict_tables_is_true_and_strict_table_unspecified
+        original_strict_tables = SQLite3Adapter.strict_tables
+        SQLite3Adapter.strict_tables = true
+        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3")
+        conn.create_table :testings do |t|
+          t.integer :dummy
+        end
+
+        assert_nothing_raised do
+          conn.exec_query("INSERT INTO testings (dummy) VALUES ('foo')")
+        end
+
+      ensure
+        SQLite3Adapter.strict_tables = original_strict_tables
+      end
+
+      def test_strict_tables_is_true_and_strict_table_is_false
+        original_strict_tables = SQLite3Adapter.strict_tables
+        SQLite3Adapter.strict_tables = true
+        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3")
+        conn.create_table :testings, strict_table: false do |t|
+          t.integer :dummy
+        end
+
+        assert_nothing_raised do
+          conn.exec_query("INSERT INTO testings (dummy) VALUES ('foo')")
+        end
+
+      ensure
+        SQLite3Adapter.strict_tables = original_strict_tables
+      end
+
+      def test_strict_tables_is_true_and_strict_table_is_true
+        original_strict_tables = SQLite3Adapter.strict_tables
+        SQLite3Adapter.strict_tables = true
+        conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3")
+        conn.create_table :testings, strict_table: true do |t|
+          t.integer :dummy
+        end
+
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          conn.exec_query("INSERT INTO testings (dummy) VALUES ('foo')")
+        end
+
+        assert_match(/cannot store TEXT value in INTEGER/, error.message)
+
+      ensure
+        SQLite3Adapter.strict_tables = original_strict_tables
+      end
+
       private
         def assert_logged(logs)
           subscriber = SQLSubscriber.new

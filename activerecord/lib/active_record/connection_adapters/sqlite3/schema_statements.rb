@@ -121,7 +121,7 @@ module ActiveRecord
 
         private
           def valid_table_definition_options
-            super + [:rename]
+            super + [:rename, :strict_table]
           end
 
           def create_table_definition(name, **options)
