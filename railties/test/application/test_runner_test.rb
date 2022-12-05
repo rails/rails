@@ -376,7 +376,7 @@ module ApplicationTests
       end
     end
 
-    def test_more_than_one_line_filter
+    def test_more_than_one_line_filter_macro_syntax
       app_file "test/models/post_test.rb", <<-RUBY
         require "test_helper"
 
@@ -397,10 +397,83 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb:4:13").tap do |output|
-        assert_match "PostTest:FirstFilter", output
-        assert_match "PostTest:SecondFilter", output
-        assert_match "2 runs, 2 assertions", output
+      pos_cases = {
+        "first line of each test" => "test/models/post_test.rb:4:13",
+        "interior of tests" => "test/models/post_test.rb:5:14",
+        "last line of each test" => "test/models/post_test.rb:7:16"
+      }
+
+      pos_cases.each do |name, cmd|
+        output = run_test_command(cmd)
+        assert_match "PostTest:FirstFilter", output, "for #{cmd} (#{name})"
+        assert_match "PostTest:SecondFilter", output, "for #{cmd} (#{name})"
+        assert_match "2 runs, 2 assertions", output, "for #{cmd} (#{name})"
+      end
+
+      # one past the end of each test matches nothing
+      run_test_command("test/models/post_test.rb:8:17").tap do |output|
+        assert_match "0 runs, 0 assertions", output
+      end
+    end
+
+    def test_more_than_one_line_filter_test_method_syntax
+      app_file "test/models/post_test.rb", <<-RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          def test_first_filter
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          def test_second_filter
+            puts 'PostTest:SecondFilter'
+            assert true
+          end
+
+          def test_line_filter_does_not_run_this
+            assert true
+          end
+        end
+      RUBY
+
+      pos_cases = {
+        "first line of each test" => "test/models/post_test.rb:4:9",
+        "interior of tests" => "test/models/post_test.rb:5:10",
+        "last line of each test" => "test/models/post_test.rb:7:12"
+      }
+
+      pos_cases.each do |name, cmd|
+        output = run_test_command(cmd)
+        assert_match "PostTest:FirstFilter", output, "for #{cmd} (#{name})"
+        assert_match "PostTest:SecondFilter", output, "for #{cmd} (#{name})"
+        assert_match "2 runs, 2 assertions", output, "for #{cmd} (#{name})"
+      end
+
+      # one past the end of each test matches nothing
+      run_test_command("test/models/post_test.rb:8:13").tap do |output|
+        assert_match "0 runs, 0 assertions", output
+      end
+    end
+
+    def test_multiple_tests_on_same_line
+      app_file "test/models/account_test.rb", <<-RUBY
+        require "test_helper"
+
+        class AccountTest < ActiveSupport::TestCase
+          test "first" do puts :first; end; def test_second; puts :second; end
+          test "third" do
+            puts :third
+            assert false
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/account_test.rb:4").tap do |output|
+        assert_match "first", output
+        assert_match "second", output
+        assert_no_match "third", output
+        assert_match "2 runs, 0 assertions, 0 failures", output
       end
     end
 
