@@ -34,11 +34,15 @@ require "models/shipping_line"
 require "models/essay"
 require "models/member"
 require "models/membership"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
+
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers, :authors, :author_addresses, :author_favorites,
-           :comments, :posts
+           :comments, :posts, :sharded_blogs, :sharded_blog_posts, :sharded_comments
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -123,6 +127,43 @@ class AssociationsTest < ActiveRecord::TestCase
   def test_association_with_references
     firm = companies(:first_firm)
     assert_equal [:foo], firm.association_with_references.references_values
+  end
+
+  def test_belongs_to_a_model_with_composite_foreign_key_finds_associated_record
+    comment = sharded_comments(:great_comment_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    assert_equal(blog_post, comment.blog_post)
+  end
+
+  def test_belongs_to_a_model_with_composite_primary_key_uses_composite_pk_in_sql
+    comment = sharded_comments(:great_comment_blog_post_one)
+
+    sql = capture_sql do
+      comment.blog_post
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+  end
+
+  def test_has_many_association_with_composite_foreign_key_loads_records
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    comments = blog_post.comments.to_a
+    assert_includes(comments, sharded_comments(:wow_comment_blog_post_one))
+    assert_includes(comments, sharded_comments(:great_comment_blog_post_one))
+  end
+
+  def test_model_with_composite_query_constraints_has_many_association_sql
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      blog_post.comments.to_a
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
   end
 end
 
