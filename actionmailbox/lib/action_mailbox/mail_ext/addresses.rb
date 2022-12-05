@@ -3,7 +3,7 @@
 module Mail
   class Message
     def from_address
-      header[:from]&.address_list&.addresses&.first
+      address_list(header[:from])&.addresses&.first
     end
 
     def recipients_addresses
@@ -11,15 +11,15 @@ module Mail
     end
 
     def to_addresses
-      Array(header[:to]&.address_list&.addresses)
+      Array(address_list(header[:to])&.addresses)
     end
 
     def cc_addresses
-      Array(header[:cc]&.address_list&.addresses)
+      Array(address_list(header[:cc])&.addresses)
     end
 
     def bcc_addresses
-      Array(header[:bcc]&.address_list&.addresses)
+      Array(address_list(header[:bcc])&.addresses)
     end
 
     def x_original_to_addresses
@@ -29,5 +29,16 @@ module Mail
     def x_forwarded_to_addresses
       Array(header[:x_forwarded_to]).collect { |header| Mail::Address.new header.to_s }
     end
+
+    private
+      def address_list(obj)
+        if obj&.respond_to?(:element)
+          # Mail 2.8+
+          obj.element
+        else
+          # Mail <= 2.7.x
+          obj&.address_list
+        end
+      end
   end
 end
