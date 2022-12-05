@@ -31,7 +31,8 @@ module ActionMailer
 
       add_delivery_method :sendmail, Mail::Sendmail,
         location:  "/usr/sbin/sendmail",
-        arguments: "-i"
+        # See breaking change in the mail gem - https://github.com/mikel/mail/commit/7e1196bd29815a0901d7290c82a332c0959b163a
+        arguments: Gem::Version.new(Mail::VERSION.version) >= Gem::Version.new("2.8.0") ? %w[-i] : "-i"
 
       add_delivery_method :test, Mail::TestMailer
     end
@@ -46,7 +47,7 @@ module ActionMailer
       #
       #   add_delivery_method :sendmail, Mail::Sendmail,
       #     location:  '/usr/sbin/sendmail',
-      #     arguments: '-i'
+      #     arguments: %w[ -i ]
       def add_delivery_method(symbol, klass, default_options = {})
         class_attribute(:"#{symbol}_settings") unless respond_to?(:"#{symbol}_settings")
         public_send(:"#{symbol}_settings=", default_options)

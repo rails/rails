@@ -1910,7 +1910,7 @@ The default value depends on the `config.load_defaults` target version:
 Allows detailed configuration for the `sendmail` delivery method. It accepts a hash of options, which can include any of these options:
 
 * `:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.
-* `:arguments` - The command line arguments. Defaults to `-i`.
+* `:arguments` - The command line arguments. Defaults to `%w[ -i ]`.
 
 #### `config.action_mailer.raise_delivery_errors`
 
