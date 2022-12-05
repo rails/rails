@@ -123,7 +123,15 @@ module ActionController
           ActiveRecord::QueryLogs.taggings.merge!(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
-            namespaced_controller: ->(context) { context[:controller].class.name if context[:controller] }
+            namespaced_controller: ->(context) {
+              if context[:controller]
+                controller_class = context[:controller].class
+                # based on ActionController::Metal#controller_name, but does not demodulize
+                unless controller_class.anonymous?
+                  controller_class.name.delete_suffix("Controller").underscore
+                end
+              end
+            }
           )
         end
       end

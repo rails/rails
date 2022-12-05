@@ -1,3 +1,14 @@
+*   The `namespaced_controller` Query Log tag now matches the `controller` format
+
+    For example, a request processed by `NameSpaced::UsersController` will now log as:
+
+    ```
+    :controller # "users"
+    :namespaced_controller # "name_spaced/users"
+    ```
+
+    *Alex Ghiculescu*
+
 *   Return only unique ids from ActiveRecord::Calculations#ids
 
     Updated ActiveRecord::Calculations#ids to only return the unique ids of the base model

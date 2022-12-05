@@ -27,6 +27,14 @@ module ApplicationTests
         end
       RUBY
 
+      app_file "app/controllers/name_spaced/users_controller.rb", <<-RUBY
+        class NameSpaced::UsersController < ApplicationController
+          def index
+            render inline: ActiveRecord::QueryLogs.call("")
+          end
+        end
+      RUBY
+
       app_file "app/jobs/user_job.rb", <<-RUBY
         class UserJob < ActiveJob::Base
           def perform
@@ -42,6 +50,7 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get "/", to: "users#index"
+          get "/namespaced/users", to: "name_spaced/users#index"
         end
       RUBY
     end
@@ -136,7 +145,7 @@ module ApplicationTests
       get "/"
       comment = last_response.body.strip
 
-      assert_match(/\/\*action='index',namespaced_controller='UsersController',pid='\d+'\*\//, comment)
+      assert_match(/\/\*action='index',namespaced_controller='users',pid='\d+'\*\//, comment)
     end
 
     test "job perform method has tagging filters enabled by default" do
@@ -200,6 +209,37 @@ module ApplicationTests
       second_tags = UserJob.new.perform_now
 
       assert_not_equal first_tags, second_tags
+    end
+
+    test "controller and namespaced_controller are named correctly" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :namespaced_controller, :controller ]"
+
+      boot_app
+
+      get "/"
+      comment = last_response.body.strip
+      assert_equal %(/*action='index',controller='users',namespaced_controller='users'*/), comment
+
+      get "/namespaced/users"
+      comment = last_response.body.strip
+      assert_equal %(/*action='index',controller='users',namespaced_controller='name_spaced%2Fusers'*/), comment
+    end
+
+    test "controller and namespaced_controller are named correctly, legacy" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :namespaced_controller, :controller ]"
+      add_to_config "config.active_record.query_log_tags_format = :legacy"
+
+      boot_app
+
+      get "/"
+      comment = last_response.body.strip
+      assert_equal %(/*action:index,namespaced_controller:users,controller:users*/), comment
+
+      get "/namespaced/users"
+      comment = last_response.body.strip
+      assert_equal %(/*action:index,namespaced_controller:name_spaced/users,controller:users*/), comment
     end
 
     private
