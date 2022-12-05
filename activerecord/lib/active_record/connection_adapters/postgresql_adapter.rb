@@ -427,18 +427,30 @@ module ActiveRecord
         true
       end
 
+      def generate_advisory_lock_id
+        db_name_hash = Zlib.crc32(current_database)
+        schema_name_hash = Zlib.crc32(current_schema)
+        [db_name_hash, schema_name_hash].pack("L*").unpack("l*")
+      end
+
+      def valid_lock_id?(lock_id)
+        return false unless lock_id.is_a?(Array)
+
+        lock_id.count == 2 && lock_id.all? { |id| id.is_a?(Integer) && id.bit_length <= 31 }
+      end
+
+      ADVISORY_LOCK_ERROR_MSG = "PostgreSQL advisory lock should be an array of two signed 32 bit integers"
+
       def get_advisory_lock(lock_id) # :nodoc:
-        unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
-          raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
-        end
-        query_value("SELECT pg_try_advisory_lock(#{lock_id})")
+        raise(ArgumentError, ADVISORY_LOCK_ERROR_MSG) unless valid_lock_id?(lock_id)
+
+        query_value("SELECT pg_try_advisory_lock(#{lock_id[0]}, #{lock_id[1]})")
       end
 
       def release_advisory_lock(lock_id) # :nodoc:
-        unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
-          raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
-        end
-        query_value("SELECT pg_advisory_unlock(#{lock_id})")
+        raise(ArgumentError, ADVISORY_LOCK_ERROR_MSG) unless valid_lock_id?(lock_id)
+
+        query_value("SELECT pg_advisory_unlock(#{lock_id[0]}, #{lock_id[1]})")
       end
 
       def enable_extension(name, **)

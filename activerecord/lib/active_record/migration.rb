@@ -1513,8 +1513,7 @@ module ActiveRecord
 
       MIGRATOR_SALT = 2053462845
       def generate_migrator_advisory_lock_id
-        db_name_hash = Zlib.crc32(Base.connection.current_database)
-        MIGRATOR_SALT * db_name_hash
+        Base.connection.generate_advisory_lock_id
       end
   end
 end
