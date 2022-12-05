@@ -210,8 +210,12 @@ module ActionController
     end
 
     def set_response!(response) # :nodoc:
+      # Force `performed?` to return true:
+      @_response_body = true
       @_response = response
     end
+
+    alias :response= :set_response! # :nodoc:
 
     def set_request!(request) # :nodoc:
       @_request = request
