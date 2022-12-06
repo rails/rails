@@ -1410,8 +1410,8 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        connection = ActiveRecord::Base.connection
-        connection.internal_metadata[:environment] = connection.migration_context.current_environment
+
+        @internal_metadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
       end
 
       def ran?(migration)
