@@ -1,3 +1,9 @@
+*   Rails console now disables `IRB`'s autocompletion feature in production by default.
+
+    Setting `IRB_USE_AUTOCOMPLETE=true` can override this default.
+
+    *Stan Lo*
+
 *   Add `config.precompile_filter_parameters`, which enables precompilation of
     `config.filter_parameters` using `ActiveSupport::ParameterFilter.precompile_filters`.
     Precompilation can improve filtering performance, depending on the quantity
