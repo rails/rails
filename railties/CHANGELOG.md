@@ -1,7 +1,14 @@
+*   Rails console now disables `IRB`'s autocompletion feature in production by default.
+
+    Setting `IRB_USE_AUTOCOMPLETE=true` can override this default.
+
+    *Stan Lo*
+
 *   Send 303 See Other status code back for the destroy action on newly generated
     scaffold controllers.
 
     *Tony Drake*
+
 
 ## Rails 7.0.4 (September 09, 2022) ##
 
