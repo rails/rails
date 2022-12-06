@@ -154,6 +154,7 @@ module ActiveRecord
 
       def test_with_multiple_databases
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+
         with_multi_db_configurations(env) do
           protected_environments = ActiveRecord::Base.protected_environments
           current_env = ActiveRecord::Base.connection.migration_context.current_environment
@@ -167,7 +168,7 @@ module ActiveRecord
 
           assert_not_includes protected_environments, current_env
           # Assert not raises
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("test")
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!(env)
 
           ActiveRecord::Base.establish_connection(:secondary)
           connection = ActiveRecord::Base.connection
@@ -176,8 +177,9 @@ module ActiveRecord
           schema_migration.create_version("1")
 
           ActiveRecord::Base.protected_environments = [current_env.to_sym]
+
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
-            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("test")
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!(env)
           end
         ensure
           ActiveRecord::Base.protected_environments = protected_environments
