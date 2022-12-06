@@ -39,7 +39,7 @@ module Rails
       if @console == IRB
         IRB::WorkSpace.prepend(BacktraceCleaner)
 
-        if Rails.env == "production"
+        if Rails.env.production?
           ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
         end
       end
