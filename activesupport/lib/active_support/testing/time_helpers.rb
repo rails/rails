@@ -75,6 +75,11 @@ module ActiveSupport
       # stubbing +Time.now+, +Date.today+, and +DateTime.now+. The stubs are automatically removed
       # at the end of the test.
       #
+      # Note that the usec for the resulting time will be set to 0 to prevent rounding
+      # errors with external services, like MySQL (which will round instead of floor,
+      # leading to off-by-one-second errors), unless the <tt>with_usec</tt> argument
+      # is set to <tt>true</tt>.
+      #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel 1.day
       #   Time.current     # => Sun, 10 Nov 2013 15:34:49 EST -05:00
@@ -89,8 +94,8 @@ module ActiveSupport
       #     User.create.created_at # => Sun, 10 Nov 2013 15:34:49 EST -05:00
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
-      def travel(duration, &block)
-        travel_to Time.now + duration, &block
+      def travel(duration, with_usec: false, &block)
+        travel_to Time.now + duration, with_usec: with_usec, &block
       end
 
       # Changes current time to the given time by stubbing +Time.now+,
@@ -217,7 +222,7 @@ module ActiveSupport
       end
       alias_method :unfreeze_time, :travel_back
 
-      # Calls +travel_to+ with +Time.now+.
+      # Calls +travel_to+ with +Time.now+. Forwards optional <tt>with_usec</tt> argument.
       #
       #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   freeze_time
@@ -233,8 +238,8 @@ module ActiveSupport
       #     User.create.created_at # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   end
       #   Time.current # => Sun, 09 Jul 2017 15:34:50 EST -05:00
-      def freeze_time(&block)
-        travel_to Time.now, &block
+      def freeze_time(with_usec: false, &block)
+        travel_to Time.now, with_usec: with_usec, &block
       end
 
       private
