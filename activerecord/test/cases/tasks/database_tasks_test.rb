@@ -1197,7 +1197,7 @@ module ActiveRecord
     end
 
     def test_migrate_clears_schema_cache_afterward
-      assert_called(ActiveRecord::Base, :clear_cache!) do
+      assert_called(ActiveRecord::Base.connection.schema_cache, :clear!) do
         ActiveRecord::Tasks::DatabaseTasks.migrate
       end
     end
