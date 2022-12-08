@@ -1476,4 +1476,13 @@ class QueryConstraintsTest < ActiveRecord::TestCase
       assert_match(/WHERE .*#{column}/, sql)
     end
   end
+
+  def test_query_constraints_raises_an_error_when_no_columns_provided
+    assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        query_constraints
+      end
+    end
+  end
 end
