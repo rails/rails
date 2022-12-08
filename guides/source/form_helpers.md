@@ -870,10 +870,10 @@ Which will result in a `params` hash that looks like:
 ```
 
 All of the form inputs map to the `"person"` hash because we called `fields_for`
-on the `person_form` form builder. By specifying an `:index` option, we mapped
-the address inputs to `person[address][#{address.id}][city]` instead of
-`person[address][city]`. Thus we are able to determine which Address records
-should be modified when processing the `params` hash.
+on the `person_form` form builder. Also, by specifying `index: address.id`, we
+rendered the `name` attribute of each city input as `person[address][#{address.id}][city]`
+instead of `person[address][city]`. Thus we are able to determine which Address
+records should be modified when processing the `params` hash.
 
 You can pass other numbers or strings of significance via the `:index` option.
 You can even pass `nil`, which will produce an array parameter.
