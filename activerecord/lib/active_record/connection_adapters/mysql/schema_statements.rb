@@ -175,7 +175,41 @@ module ActiveRecord
             end
           end
 
+          def binary_column_default(table_name, field_name)
+            if match = create_table_info(table_name)&.match(/`#{field_name}` (?:.+) DEFAULT '((?:[^']+|'')*)'/)
+              match[1].gsub(/''|\\(.)/) do
+                case $&
+                when '\0'
+                  "\0"
+                when "\\'", "''"
+                  "'"
+                when '\"'
+                  "\""
+                when '\b'
+                  "\b"
+                when '\n'
+                  "\n"
+                when '\r'
+                  "\r"
+                when '\t'
+                  "\t"
+                when '\Z'
+                  "\x1a"
+                when '\\\\'
+                  "\\"
+                when '\%'
+                  "\\%"
+                when '\_'
+                  "\\_"
+                else
+                  $1
+                end
+              end
+            end
+          end
+
           def new_column_from_field(table_name, field)
+
             field_name = field.fetch(:Field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
             default, default_function = field[:Default], nil
@@ -189,6 +223,8 @@ module ActiveRecord
             elsif type_metadata.type == :text && default&.start_with?("'")
               # strip and unescape quotes
               default = default[1...-1].gsub("\\'", "'")
+            elsif type_metadata.type == :binary && default
+              default = binary_column_default(table_name, field_name)
             elsif default&.match?(/\A\d/)
               # Its a number so we can skip the query to check if it is a function
             elsif default && default_type(table_name, field_name) == :function

@@ -83,36 +83,50 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-  class DefaultBinaryTest < ActiveRecord::TestCase
-    class DefaultBinary < ActiveRecord::Base; end
+class DefaultBinaryTest < ActiveRecord::TestCase
+  class DefaultBinary < ActiveRecord::Base; end
 
-    setup do
-      @connection = ActiveRecord::Base.connection
-      @connection.create_table :default_binaries do |t|
-        t.binary :varbinary_col, null: false, limit: 64, default: "varbinary_default"
-        t.binary :varbinary_col_hex_looking, null: false, limit: 64, default: "0xDEADBEEF"
-      end
-      DefaultBinary.reset_column_information
+  self.use_transactional_tests = false
+
+  BLOB = (0..127).map(&:chr).join('')*2
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :default_binaries do |t|
+      t.binary :varbinary_col, null: false, limit: 64, default: "varbinary_default"
+      t.binary :varbinary_col_hex_looking, null: false, limit: 64, default: "0xDEADBEEF"
+      t.binary :varbinary_col_with_all_values, null: false, limit: 512, default: BLOB
+    end
+    if current_adapter?(:Mysql2Adapter)
+      @connection.execute("ALTER TABLE default_binaries ADD COLUMN binary_col binary(20) DEFAULT 'binary_default'")
     end
 
-    def test_default_varbinary_string
-      assert_equal "varbinary_default", DefaultBinary.new.varbinary_col
-    end
+    DefaultBinary.reset_column_information
 
-    if current_adapter?(:Mysql2Adapter) && !ActiveRecord::Base.connection.mariadb?
-      def test_default_binary_string
-        assert_equal "binary_default", DefaultBinary.new.binary_col
-      end
-    end
+    @binary = DefaultBinary.create!.reload
+  end
 
-    def test_default_varbinary_string_that_looks_like_hex
-      assert_equal "0xDEADBEEF", DefaultBinary.new.varbinary_col_hex_looking
-    end
+  def test_default_varbinary_string
+    assert_equal "varbinary_default", DefaultBinary.new.varbinary_col
+  end
 
-    teardown do
-      @connection.drop_table :default_binaries
+  if current_adapter?(:Mysql2Adapter)
+    def test_default_binary_string
+      assert_equal "binary_default\0\0\0\0\0\0", DefaultBinary.new.binary_col
     end
+  end
+
+  def test_default_varbinary_string_that_looks_like_hex
+    assert_equal "0xDEADBEEF", DefaultBinary.new.varbinary_col_hex_looking
+  end
+
+  def test_default_binary_with_all_values
+    assert_equal @binary.varbinary_col_with_all_values, DefaultBinary.new.varbinary_col_with_all_values
+    assert_equal BLOB, DefaultBinary.new.varbinary_col_with_all_values
+  end
+
+  teardown do
+    @connection.drop_table :default_binaries
   end
 end
 
