@@ -1062,6 +1062,39 @@ module ApplicationTests
       assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
+    def test_rake_test_runs_test_prepare
+      app_file "Rakefile", <<~RUBY, "a"
+        task :echo do
+          puts "echo"
+        end
+        Rake::Task["test:prepare"].enhance(["echo"])
+      RUBY
+      output = Dir.chdir(app_path) { `bin/rake test` }
+      assert_includes output, "echo"
+    end
+
+    def test_rake_test_all_runs_test_prepare
+      app_file "Rakefile", <<~RUBY, "a"
+        task :echo do
+          puts "echo"
+        end
+        Rake::Task["test:prepare"].enhance(["echo"])
+      RUBY
+      output = Dir.chdir(app_path) { `bin/rake test:all` }
+      assert_includes output, "echo"
+    end
+
+    def test_rake_test_db_runs_test_prepare
+      app_file "Rakefile", <<~RUBY, "a"
+        task :echo do
+          puts "echo"
+        end
+        Rake::Task["test:prepare"].enhance(["echo"])
+      RUBY
+      output = Dir.chdir(app_path) { `bin/rake test:db` }
+      assert_includes output, "echo"
+    end
+
     private
       def run_test_command(arguments = "test/unit/test_test.rb", **opts)
         rails "t", *Shellwords.split(arguments), allow_failure: true, **opts

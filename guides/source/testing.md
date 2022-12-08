@@ -462,6 +462,20 @@ Known extensions: rails, pride
     -p, --pride                      Pride. Show your testing pride!
 ```
 
+### Running tests in Continuous Integration (CI)
+
+In a CI environment there will typically be at least two steps you need to run. Rails provides
+comands for each step:
+
+1. Set up your database: `bin/rake db:test:prepare`
+2. Run your tests: `bin/rake test`
+
+Alternatively you could just call `bin/rake test:db`, which runs the above two commands.
+
+If you are using [System Tests](#system-testing), `bin/rake test` will not run them, since
+they can sometimes be quite slow. You could either add a third step that runs `bin/rake test:system`,
+or you could use use `bin/rake test:all` which runs all tests including system tests.
+
 Parallel Testing
 ----------------
 

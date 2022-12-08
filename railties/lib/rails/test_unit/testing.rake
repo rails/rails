@@ -7,7 +7,7 @@ require "rails/test_unit/runner"
 task default: :test
 
 desc "Runs all tests in test folder except system ones"
-task :test do
+task test: "test:prepare" do
   if ENV.key?("TEST")
     Rails::TestUnit::Runner.rake_run([ENV["TEST"]])
   else
