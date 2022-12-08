@@ -88,7 +88,7 @@ class DefaultBinaryTest < ActiveRecord::TestCase
 
   self.use_transactional_tests = false
 
-  BLOB = (0..127).map(&:chr).join('')*2
+  BLOB = (0..255).map(&:chr).join('')*2
 
   setup do
     @connection = ActiveRecord::Base.connection
