@@ -317,19 +317,10 @@ module ActionView
         end
       end
 
-      # Among other things, this method is responsible for properly setting
-      # the encoding of the compiled template.
-      #
-      # If the template engine handles encodings, we send the encoded
-      # String to the engine without further processing. This allows
-      # the template engine to support additional mechanisms for
-      # specifying the encoding. For instance, ERB supports <%# encoding: %>
-      #
-      # Otherwise, after we figure out the correct encoding, we then
-      # encode the source into <tt>Encoding.default_internal</tt>.
-      # In general, this means that templates will be UTF-8 inside of Rails,
-      # regardless of the original source encoding.
-      def compile(mod)
+      # This method compiles the source of the template. The compilation of templates
+      # involves setting strict_locals! if applicable, encoding the template, and setting
+      # frozen string literal.
+      def compiled_source
         strict_locals!
         source = encode!
         code = @handler.call(self, source)
@@ -364,12 +355,34 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
+        if Template.frozen_string_literal
+          "# frozen_string_literal: true\n#{source}"
+        else
+          source
+        end
+      end
+
+      # Among other things, this method is responsible for properly setting
+      # the encoding of the compiled template.
+      #
+      # If the template engine handles encodings, we send the encoded
+      # String to the engine without further processing. This allows
+      # the template engine to support additional mechanisms for
+      # specifying the encoding. For instance, ERB supports <%# encoding: %>
+      #
+      # Otherwise, after we figure out the correct encoding, we then
+      # encode the source into <tt>Encoding.default_internal</tt>.
+      # In general, this means that templates will be UTF-8 inside of Rails,
+      # regardless of the original source encoding.
+      def compile(mod)
+        offset = if Template.frozen_string_literal
+                   -1
+                 else
+                   0
+                 end
+
         begin
-          if Template.frozen_string_literal
-            mod.module_eval("# frozen_string_literal: true\n#{source}", identifier, -1)
-          else
-            mod.module_eval(source, identifier, 0)
-          end
+          mod.module_eval(compiled_source, identifier, offset)
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
