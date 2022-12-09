@@ -1118,7 +1118,7 @@ module ActiveRecord
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless use_foreign_keys?
-        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table)
+        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         options = foreign_key_options(from_table, to_table, options)
         at = create_alter_table from_table

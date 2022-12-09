@@ -185,6 +185,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           @connection.create_table "astronauts", force: true do |t|
             t.string :name
             t.references :rocket
+            t.references :favorite_rocket
           end
         end
 
@@ -231,6 +232,16 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal "rocket_id", fk.column
           assert_equal "id", fk.primary_key
           assert_equal "fk_rails_78146ddd2e", fk.name unless current_adapter?(:SQLite3Adapter)
+        end
+
+        def test_add_foreign_key_with_if_not_exists_to_already_referenced_table
+          @connection.add_foreign_key :astronauts, :rockets
+          @connection.add_foreign_key :astronauts, :rockets, column: "favorite_rocket_id", if_not_exists: true
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 2, foreign_keys.size
+          assert foreign_keys.all? { |fk| fk.to_table == "rockets" }
+          assert_equal ["favorite_rocket_id", "rocket_id"], foreign_keys.map(&:column).sort
         end
 
         def test_add_foreign_key_with_non_standard_primary_key
