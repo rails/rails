@@ -28,8 +28,8 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size
@@ -66,8 +66,8 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size
@@ -81,8 +81,8 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size
@@ -132,7 +132,7 @@ module ActiveRecord
       end
 
       def test_columns_for_existent_table
-        assert_equal 12, @cache.columns("posts").size
+        assert_equal 13, @cache.columns("posts").size
       end
 
       def test_columns_for_non_existent_table
@@ -142,7 +142,7 @@ module ActiveRecord
       end
 
       def test_columns_hash_for_existent_table
-        assert_equal 12, @cache.columns_hash("posts").size
+        assert_equal 13, @cache.columns_hash("posts").size
       end
 
       def test_columns_hash_for_non_existent_table
@@ -195,8 +195,8 @@ module ActiveRecord
         cache = Marshal.load(Marshal.dump(cache))
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size
@@ -217,8 +217,8 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size
@@ -244,8 +244,8 @@ module ActiveRecord
 
         # Assert a table in the cache
         assert cache.data_sources("posts"), "expected posts to be in the cached data_sources"
-        assert_equal 12, cache.columns("posts").size
-        assert_equal 12, cache.columns_hash("posts").size
+        assert_equal 13, cache.columns("posts").size
+        assert_equal 13, cache.columns_hash("posts").size
         assert cache.data_sources("posts")
         assert_equal "id", cache.primary_keys("posts")
         assert_equal 1, cache.indexes("posts").size
@@ -278,8 +278,8 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size
@@ -291,8 +291,8 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size

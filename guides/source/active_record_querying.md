@@ -470,6 +470,16 @@ Another example would be if you wanted multiple workers handling the same
 processing queue. You could have each worker handle 10000 records by setting the
 appropriate `:start` and `:finish` options on each worker.
 
+**`:cursor_column`**
+
+By default `find_each` sorts by the primary key, which might not always be appropriate (e.g. if your database uses UUID primary keys). `:cursor_column` can be passed to order the results by a column that its datatype has natural ordering.
+
+```ruby
+Customer.find_each(cursor_column: :version) do |customer|
+  NewsMailer.weekly(customer).deliver_now
+end
+```
+
 **`:error_on_ignore`**
 
 Overrides the application config to specify if an error should be raised when an
@@ -531,6 +541,16 @@ The `finish` option allows specifying the ending ID of the records to be retriev
 ```ruby
 Customer.find_in_batches(finish: 7000) do |customers|
   export.add_customers(customers)
+end
+```
+
+**`:cursor_column`**
+
+By default `find_in_batches` sorts by the primary key, which might not always be appropriate (e.g. if your database uses UUID primary keys). `:cursor_column` can be passed to order the results by a column that its datatype has natural ordering.
+
+```ruby
+Customer.find_in_batches(cursor_column: :version) do |customers|
+  customers.each { |customer| NewsMailer.weekly(customer).deliver_now }
 end
 ```
 

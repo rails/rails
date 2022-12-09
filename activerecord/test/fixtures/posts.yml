@@ -6,6 +6,7 @@ welcome:
   legacy_comments_count: 2
   tags_count: 1
   type: Post
+  version: 1
 
 thinking:
   id: 2
@@ -15,6 +16,7 @@ thinking:
   legacy_comments_count: 1
   tags_count: 1
   type: SpecialPost
+  version: 2
 
 authorless:
   id: 3
@@ -22,6 +24,7 @@ authorless:
   title: I don't have any comments
   body: I just don't want to
   type: Post
+  version: 3
 
 sti_comments:
   id: 4
@@ -30,6 +33,7 @@ sti_comments:
   body: hello
   legacy_comments_count: 5
   type: Post
+  version: 4
 
 sti_post_and_comments:
   id: 5
@@ -38,6 +42,7 @@ sti_post_and_comments:
   body: hello
   legacy_comments_count: 2
   type: StiPost
+  version: 5
 
 sti_habtm:
   id: 6
@@ -45,6 +50,7 @@ sti_habtm:
   title: habtm sti test
   body: hello
   type: Post
+  version: 6
 
 eager_other:
   id: 7
@@ -54,6 +60,7 @@ eager_other:
   type: Post
   legacy_comments_count: 1
   tags_count: 3
+  version: 7
 
 misc_by_bob:
   id: 8
@@ -62,6 +69,7 @@ misc_by_bob:
   body: hello
   type: Post
   tags_count: 1
+  version: 8
 
 misc_by_mary:
   id: 9
@@ -70,6 +78,7 @@ misc_by_mary:
   body: hullo
   type: Post
   tags_count: 1
+  version: 9
 
 other_by_bob:
   id: 10
@@ -78,6 +87,7 @@ other_by_bob:
   body: hello
   type: Post
   tags_count: 1
+  version: 10
 
 other_by_mary:
   id: 11
@@ -86,3 +96,4 @@ other_by_mary:
   body: hello
   type: Post
   tags_count: 1
+  version: 11

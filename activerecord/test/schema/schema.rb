@@ -900,6 +900,7 @@ ActiveRecord::Schema.define do
     t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
+    t.integer :version
   end
 
   create_table :postesques, force: true do |t|

@@ -164,6 +164,16 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_quote_batch_order_with_cursor_column
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.version"))} ASC/) do
+      Post.find_in_batches(batch_size: 1, cursor_column: :version) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
   def test_each_should_raise_if_order_is_invalid
     assert_raise(ArgumentError) do
       Post.select(:title).find_each(batch_size: 1, order: :invalid) { |post|
@@ -511,6 +521,16 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_quote_batch_order_with_cursor_column
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.version"))} ASC/) do
+      Post.in_batches(of: 1, cursor_column: :version) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
+      end
+    end
+  end
+
   def test_in_batches_enumerator_should_quote_batch_order_with_desc_order
     c = Post.connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
@@ -520,10 +540,28 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_enumerator_should_quote_batch_order_with_cursor_column
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.version"))} ASC/) do
+      relation = Post.in_batches(of: 1, cursor_column: :version).first
+      assert_kind_of ActiveRecord::Relation, relation
+      assert_kind_of Post, relation.first
+    end
+  end
+
   def test_in_batches_enumerator_each_record_should_quote_batch_order_with_desc_order
     c = Post.connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
       Post.in_batches(of: 1, order: :desc).each_record do |record|
+        assert_kind_of Post, record
+      end
+    end
+  end
+
+  def test_in_batches_enumerator_each_record_should_quote_batch_order_with_cursor_column
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.version"))} ASC/) do
+      Post.in_batches(of: 1, cursor_column: :version).each_record do |record|
         assert_kind_of Post, record
       end
     end

@@ -1,3 +1,11 @@
+*   Allow `cursor_column` in querying batches methods
+
+    Updated ActiveRecord::Batches#find_each, ActiveRecord::Batches#find_in_batches and
+    ActiveRecord::Batches#in_batches to receive `cursor_column`, the column to use for ordering.
+    By default the primary key is used.
+
+    *Alfonso Uceda*
+
 *   YAML columns use `YAML.safe_dump` is available.
 
     As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
