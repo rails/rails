@@ -1,3 +1,15 @@
+*   Add `Object#with` to set and restore public attributes around a block
+
+    ```ruby
+    client.timeout # => 5
+    client.with(timeout: 1) do
+      client.timeout # => 1
+    end
+    client.timeout # => 5
+    ```
+
+    *Jean Boussier*
+
 *   Remove deprecated support to generate incorrect RFC 4122 UUIDs when providing a namespace ID that is not one of the
     constants defined on `Digest::UUID`.
 
