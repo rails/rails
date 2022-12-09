@@ -157,20 +157,16 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
   def test_push_does_not_lose_additions_to_new_record
     josh = Author.new(name: "Josh")
-    new_post = Post.new(title: "New on Edge", body: "More cool stuff!")
-    josh.posts << new_post
+    josh.posts << Post.new(title: "New on Edge", body: "More cool stuff!")
     assert_predicate josh.posts, :loaded?
     assert_equal 1, josh.posts.size
-    assert_includes josh.posts, new_post
   end
 
   def test_append_behaves_like_push
     josh = Author.new(name: "Josh")
-    new_post = Post.new(title: "New on Edge", body: "More cool stuff!")
-    josh.posts.append new_post
+    josh.posts.append Post.new(title: "New on Edge", body: "More cool stuff!")
     assert_predicate josh.posts, :loaded?
     assert_equal 1, josh.posts.size
-    assert_includes josh.posts, new_post
   end
 
   def test_prepend_is_not_defined

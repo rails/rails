@@ -119,7 +119,7 @@ module ActiveRecord
       def concat(*records)
         records = records.flatten
         if owner.new_record?
-          loaded!
+          load_target
           concat_records(records)
         else
           transaction { concat_records(records) }
