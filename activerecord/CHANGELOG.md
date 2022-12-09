@@ -1,3 +1,19 @@
+*   Return only unique ids from ActiveRecord::Calculations#ids
+
+    Updated ActiveRecord::Calculations#ids to only return the unique ids of the base model
+    when using eager_load, preload and includes.
+
+    ```ruby
+    Post.find_by(id: 1).comments.count
+    # => 5
+    Post.includes(:comments).where(id: 1).pluck(:id)
+    # => [1, 1, 1, 1, 1]
+    Post.includes(:comments).where(id: 1).ids
+    # => [1]
+    ```
+
+    *Joshua Young*
+
 *   Stop using `LOWER()` for case-insensitive queries on `citext` columns
 
     Previously, `LOWER()` was added for e.g. uniqueness validations with
