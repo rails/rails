@@ -257,6 +257,19 @@ module ActiveRecord
   class RangeError < StatementInvalid
   end
 
+  # Raised when a statement produces an SQL warning.
+  class SQLWarning < ActiveRecordError
+    attr_reader :code, :level
+    attr_accessor :sql
+
+    def initialize(message = nil, code = nil, level = nil, sql = nil)
+      super(message)
+      @code = code
+      @level = level
+      @sql = sql
+    end
+  end
+
   # Raised when the number of placeholders in an SQL fragment passed to
   # {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where]
   # does not match the number of values supplied.

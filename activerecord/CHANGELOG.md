@@ -1,3 +1,22 @@
+*   Allow SQL warnings to be reported.
+
+    Active Record configs can be set to enable SQL warning reporting.
+
+    ```ruby
+    # Configure action to take when SQL query produces warning
+    config.active_record.db_warnings_action = :raise
+
+    # Configure allowlist of warnings that should always be ignored
+    config.active_record.db_warnings_ignore = [
+      /Invalid utf8mb4 character string/,
+      "An exact warning message",
+    ]
+    ```
+
+    This is supported for the MySQL and PostgreSQL adapters.
+
+    *Adrianna Chang*, *Paarth Madan*
+
 *   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`
 
     Example:
@@ -15,7 +34,6 @@
     Example: `enable_extension('heroku_ext.hstore')`
 
     *Leonardo Luarte*
-
 
 *   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
     argument, more closely matching their `Enumerable` equivalents.

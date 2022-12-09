@@ -48,9 +48,13 @@ module ActiveRecord
 
           with_raw_connection(allow_retry: allow_retry) do |conn|
             log(sql, name) do
-              conn.async_exec(sql)
+              result = conn.async_exec(sql)
+              handle_warnings(sql)
+              result
             end
           end
+        ensure
+          @notice_receiver_sql_warnings = []
         end
 
         def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
@@ -171,6 +175,21 @@ module ActiveRecord
 
           def suppress_composite_primary_key(pk)
             pk unless pk.is_a?(Array)
+          end
+
+          def handle_warnings(sql)
+            return if ActiveRecord.db_warnings_action.nil?
+
+            @notice_receiver_sql_warnings.each do |warning|
+              next if warning_ignored?(warning)
+
+              warning.sql = sql
+              ActiveRecord.db_warnings_action.call(warning)
+            end
+          end
+
+          def warning_ignored?(warning)
+            ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
           end
       end
     end

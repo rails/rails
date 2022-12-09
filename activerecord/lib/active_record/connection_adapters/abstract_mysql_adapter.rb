@@ -732,9 +732,28 @@ module ActiveRecord
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
               sync_timezone_changes(conn)
-              conn.query(sql)
+              result = conn.query(sql)
+              handle_warnings(sql)
+              result
             end
           end
+        end
+
+        def handle_warnings(sql)
+          return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+
+          @affected_rows_before_warnings = @raw_connection.affected_rows
+          result = @raw_connection.query("SHOW WARNINGS")
+          result.each do |level, code, message|
+            warning = SQLWarning.new(message, code, level, sql)
+            next if warning_ignored?(warning)
+
+            ActiveRecord.db_warnings_action.call(warning)
+          end
+        end
+
+        def warning_ignored?(warning)
+          warning.level == "Note" || super
         end
 
         # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
