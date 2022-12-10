@@ -327,6 +327,11 @@ module ActiveRecord
         return @async ? Promise::Complete.new(result) : result
       end
 
+      if has_include?(primary_key)
+        relation = apply_join_dependency.distinct
+        return relation.ids
+      end
+
       columns = arel_columns([primary_key])
       relation = spawn
       relation.select_values = columns
