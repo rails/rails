@@ -955,7 +955,7 @@ module ApplicationTests
               %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -975,11 +975,11 @@ module ApplicationTests
             <% if Rails.application.config.database %>
               database: <%= Rails.application.config.database %>
             <% else %>
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
             <% end %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
 
         YAML
@@ -998,12 +998,12 @@ module ApplicationTests
           development:
             <% 5.times do |i| %>
             shard_<%= i %>:
-              database: db/development_shard_<%= i %>.sqlite3
+              database: storage/development_shard_<%= i %>.sqlite3
               adapter: sqlite3
             <% end %>
         YAML
 
-        db_create_and_drop_namespace("shard_3", "db/development_shard_3.sqlite3")
+        db_create_and_drop_namespace("shard_3", "storage/development_shard_3.sqlite3")
       end
 
       test "schema generation when dump_schema_after_migration is true schema_dump is false" do
@@ -1137,10 +1137,10 @@ module ApplicationTests
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>db/default.sqlite3<% end %>
+              database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>storage/default.sqlite3<% end %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -1160,7 +1160,7 @@ module ApplicationTests
               <%= Rails.application.config.database ? 'database: storage/development.sqlite3' : 'database: storage/development.sqlite3' %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -1181,7 +1181,7 @@ module ApplicationTests
               custom_option: <%= ENV['CUSTOM_OPTION'] %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
@@ -1198,10 +1198,10 @@ module ApplicationTests
         app_file "config/database.yml", <<-YAML
           development:
             default:
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
         YAML
@@ -1214,10 +1214,10 @@ module ApplicationTests
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
               database_tasks: false
               schema_dump: true ### database_tasks should override all sub-settings
@@ -1268,18 +1268,18 @@ module ApplicationTests
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
           test:
             primary:
-              database: db/default_test.sqlite3
+              database: storage/default_test.sqlite3
               adapter: sqlite3
             animals:
-              database: db/test_animals.sqlite3
+              database: storage/test_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
         YAML
