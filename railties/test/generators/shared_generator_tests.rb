@@ -249,8 +249,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
 
     assert_file ".gitignore" do |content|
       assert_no_match(/\/storage\//, content)

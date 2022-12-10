@@ -406,7 +406,7 @@ module Rails
       end
 
       def create_storage_files
-        build(:storage) unless skip_active_storage?
+        build(:storage)
       end
 
       def delete_app_assets_if_api_option
