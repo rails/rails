@@ -204,13 +204,13 @@ module ActiveRecord
           development: {
             primary: {
               adapter: "sqlite3",
-              database: "test/db/development.sqlite3",
+              database: "test/storage/development.sqlite3",
             },
           },
           test: {
             primary: {
               adapter: "sqlite3",
-              database: "test/db/test.sqlite3",
+              database: "test/storage/test.sqlite3",
             },
           },
         }

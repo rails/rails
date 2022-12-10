@@ -418,7 +418,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         ActiveRecord::Base.establish_connection(
           {
             adapter: "sqlite3",
-            database: "test/db/test.sqlite3",
+            database: "test/storage/test.sqlite3",
             foreign_keys: false,
           }
         )

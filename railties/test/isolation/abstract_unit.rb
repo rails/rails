@@ -155,13 +155,13 @@ module TestHelpers
           timeout: 5000
         development:
           <<: *default
-          database: db/development.sqlite3
+          database: storage/development.sqlite3
         test:
           <<: *default
-          database: db/test.sqlite3
+          database: storage/test.sqlite3
         production:
           <<: *default
-          database: db/production.sqlite3
+          database: storage/production.sqlite3
       YAML
     end
 
@@ -176,10 +176,10 @@ module TestHelpers
         development:
           primary:
             <<: *default
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
           primary_readonly:
             <<: *default
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
             replica: true
           animals:
             <<: *default
@@ -193,10 +193,10 @@ module TestHelpers
         test:
           primary:
             <<: *default
-            database: db/test.sqlite3
+            database: storage/test.sqlite3
           primary_readonly:
             <<: *default
-            database: db/test.sqlite3
+            database: storage/test.sqlite3
             replica: true
           animals:
             <<: *default
@@ -210,10 +210,10 @@ module TestHelpers
         production:
           primary:
             <<: *default
-            database: db/production.sqlite3
+            database: storage/production.sqlite3
           primary_readonly:
             <<: *default
-            database: db/production.sqlite3
+            database: storage/production.sqlite3
             replica: true
           animals:
             <<: *default

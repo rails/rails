@@ -940,7 +940,7 @@ module ApplicationTests
         RUBY
 
         output = rails("db:seed")
-        assert_equal output, "db/development.sqlite3"
+        assert_equal output, "storage/development.sqlite3"
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env
@@ -961,11 +961,11 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do
@@ -986,11 +986,11 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing ERB in database keys" do
@@ -1146,18 +1146,18 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML with single-line ERB" do
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
+              <%= Rails.application.config.database ? 'database: storage/development.sqlite3' : 'database: storage/development.sqlite3' %>
               adapter: sqlite3
             animals:
               database: db/development_animals.sqlite3
@@ -1166,18 +1166,18 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML which contains a key's value as an ERB statement" do
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: <%= Rails.application.config.database ? 'db/development.sqlite3' : 'db/development.sqlite3' %>
+              database: <%= Rails.application.config.database ? 'storage/development.sqlite3' : 'storage/development.sqlite3' %>
               custom_option: <%= ENV['CUSTOM_OPTION'] %>
               adapter: sqlite3
             animals:
@@ -1187,11 +1187,11 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "when there is no primary config, the first is chosen as the default" do
