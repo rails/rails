@@ -834,8 +834,8 @@ module ApplicationTests
           rails("db:migrate")
           output = rails("db:version")
 
-          assert_match(/database: db\/development.sqlite3\nCurrent version: #{primary_version}/, output)
-          assert_match(/database: db\/development_animals.sqlite3\nCurrent version: #{animals_version}/, output)
+          assert_match(/database: storage\/development.sqlite3\nCurrent version: #{primary_version}/, output)
+          assert_match(/database: storage\/development_animals.sqlite3\nCurrent version: #{animals_version}/, output)
         end
       end
 
