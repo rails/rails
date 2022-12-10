@@ -183,11 +183,11 @@ module TestHelpers
             replica: true
           animals:
             <<: *default
-            database: db/development_animals.sqlite3
+            database: storage/development_animals.sqlite3
             migrations_paths: db/animals_migrate
           animals_readonly:
             <<: *default
-            database: db/development_animals.sqlite3
+            database: storage/development_animals.sqlite3
             migrations_paths: db/animals_migrate
             replica: true
         test:
@@ -200,11 +200,11 @@ module TestHelpers
             replica: true
           animals:
             <<: *default
-            database: db/test_animals.sqlite3
+            database: storage/test_animals.sqlite3
             migrations_paths: db/animals_migrate
           animals_readonly:
             <<: *default
-            database: db/test_animals.sqlite3
+            database: storage/test_animals.sqlite3
             migrations_paths: db/animals_migrate
             replica: true
         production:
@@ -217,11 +217,11 @@ module TestHelpers
             replica: true
           animals:
             <<: *default
-            database: db/production_animals.sqlite3
+            database: storage/production_animals.sqlite3
             migrations_paths: db/animals_migrate
           animals_readonly:
             <<: *default
-            database: db/production_animals.sqlite3
+            database: storage/production_animals.sqlite3
             migrations_paths: db/animals_migrate
             replica: true
       YAML
