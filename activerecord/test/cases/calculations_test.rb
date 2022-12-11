@@ -937,6 +937,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.where(id: scoped_ids).ids.sort
   end
 
+  def test_ids_on_relation
+    company = Company.first
+    contract = company.contracts.create!
+    assert_equal [contract.id], company.contracts.ids
+  end
+
   def test_ids_on_loaded_relation
     loaded_companies = Company.all.load
     company_ids = Company.all.map(&:id)
@@ -968,6 +974,20 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_ids_with_join
+    company = Company.first
+    company.contracts.create!
+    assert_equal [company.id], Company.joins(:contracts).where("contracts.id" => company.contracts.first).ids
+  end
+
+  def test_ids_with_polymorphic_relation_join
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal [part.id], ShipPart.joins(:trinkets).ids
+    assert_async_equal [part.id], ShipPart.joins(:trinkets).async_ids
+  end
+
   def test_ids_with_eager_load
     company = Company.first
     5.times { company.contracts.create! }
@@ -986,11 +1006,36 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.all.map(&:id).sort, Company.all.includes(:contracts).ids.sort
   end
 
-  def test_ids_with_scope_and_includes
+  def test_ids_with_includes_and_scope
     scoped_ids = [1, 2]
     company = Company.where(id: scoped_ids).first
     5.times { company.contracts.create! }
-    assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.where(id: scoped_ids).includes(:contracts).ids.sort
+    assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.includes(:contracts).where(id: scoped_ids).ids.sort
+  end
+
+  def test_ids_with_includes_and_table_scope
+    company = Company.first
+    company.contracts.create!
+    assert_equal [company.id], Company.includes(:contracts).where("contracts.id" => company.contracts.first).ids
+  end
+
+  def test_ids_on_loaded_relation_with_includes_and_table_scope
+    company = Company.first
+    company.contracts.create!
+    loaded_companies = Company.includes(:contracts).where("contracts.id" => company.contracts.first).load
+    assert_queries(0) do
+      assert_equal [company.id], loaded_companies.ids
+    end
+  end
+
+  def test_ids_with_includes_limit_and_empty_result
+    assert_equal [], Topic.includes(:replies).limit(0).ids
+    assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").ids
+  end
+
+  def test_ids_with_includes_offset
+    assert_equal [5], Topic.includes(:replies).order(:id).offset(4).ids
+    assert_equal [], Topic.includes(:replies).order(:id).offset(5).ids
   end
 
   def test_pluck_with_includes_limit_and_empty_result
@@ -1495,6 +1540,20 @@ class CalculationsTest < ActiveRecord::TestCase
       assert_queries(2) do
         Account.all.skip_query_cache!.pluck(:credit_limit)
         Account.all.skip_query_cache!.pluck(:credit_limit)
+      end
+    end
+  end
+
+  test "#skip_query_cache! for #ids" do
+    Account.cache do
+      assert_queries(1) do
+        Account.ids
+        Account.ids
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.ids
+        Account.all.skip_query_cache!.ids
       end
     end
   end
