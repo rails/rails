@@ -14,6 +14,8 @@ module ActiveSupport
 <% unless options[:skip_active_record] -%>
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
+    # To use seed data (db/seeds.rb) as an alternative to fixtures, instead use:
+    # Rails.application.load_seed
 
 <% end -%>
     # Add more helper methods to be used by all tests here...
