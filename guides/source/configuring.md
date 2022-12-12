@@ -2772,7 +2772,7 @@ Here's the section of the default configuration file (`config/database.yml`) wit
 ```yaml
 development:
   adapter: sqlite3
-  database: db/development.sqlite3
+  database: storage/development.sqlite3
   pool: 5
   timeout: 5000
 ```
@@ -2844,7 +2844,7 @@ If you choose to use SQLite3 and are using JRuby, your `config/database.yml` wil
 ```yaml
 development:
   adapter: jdbcsqlite3
-  database: db/development.sqlite3
+  database: storage/development.sqlite3
 ```
 
 #### Configuring a MySQL or MariaDB Database for JRuby Platform
@@ -3198,7 +3198,7 @@ Active Record database connections are managed by `ActiveRecord::ConnectionAdapt
 ```ruby
 development:
   adapter: sqlite3
-  database: db/development.sqlite3
+  database: storage/development.sqlite3
   pool: 5
   timeout: 5000
 ```

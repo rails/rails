@@ -697,7 +697,7 @@
     ```yaml
     development:
         <<: *default
-        database: db/development.sqlite3
+        database: storage/development.sqlite3
         foreign_keys: false
     ```
 
