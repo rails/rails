@@ -34,7 +34,7 @@ module ActionView
       end
 
       def error_message
-        object.errors[@method_name]
+        object.errors[error_key]
       end
 
       private
@@ -48,6 +48,10 @@ module ActionView
 
         def tag_generate_errors?(options)
           options["type"] != "hidden"
+        end
+
+        def error_key
+          @options[:error_key] || @method_name
         end
     end
   end

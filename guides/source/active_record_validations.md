@@ -1404,7 +1404,8 @@ Assuming we have a model that's been saved in an instance variable named
 
 Furthermore, if you use the Rails form helpers to generate your forms, when
 a validation error occurs on a field, it will generate an extra `<div>` around
-the entry.
+the entry. Additionally you can use the option `error_key` to bind the field
+to a different error message.
 
 ```html
 <div class="field_with_errors">

@@ -6,7 +6,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   tests ActionView::Helpers::ActiveModelHelper
 
   silence_warnings do
-    Post = Struct.new(:author_name, :body, :category, :published, :updated_at) do
+    Post = Struct.new(:author_name, :body, :category, :category_id, :published, :updated_at) do
       include ActiveModel::Conversion
       include ActiveModel::Validations
 
@@ -153,6 +153,13 @@ class ActiveModelHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<input id="post_author_name" name="post[author_name]" type="hidden" value="" autocomplete="off" />),
       hidden_field("post", "author_name")
+    )
+  end
+
+  def test_field_with_error_key
+    assert_dom_equal(
+      %(<div class="field_with_errors"><select name="post[category_id]" id="post_category_id"><option value="a">a</option>\n<option value="b">b</option></select></div>),
+      select("post", "category_id", [:a, :b], error_key: "category")
     )
   end
 
