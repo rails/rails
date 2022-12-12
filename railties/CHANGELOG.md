@@ -1,4 +1,4 @@
-*   Always generate the storage/ directory with rails new to ensure there's a stable place to 
+*   Always generate the storage/ directory with rails new to ensure there's a stable place to
     put permanent files, and a single mount point for containers to map. Then default sqlite3 databases
     to live there instead of db/, which is only meant for configuration, not data.
 
