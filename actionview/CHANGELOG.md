@@ -1,3 +1,17 @@
+*   Datatime form helpers (`time_field`, `date_field`, `datetime_field`, `week_field`, `month_field`) now accept an instance of Time/Date/DateTime as `:value` option.
+
+    Before:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current.strftime("%Y-%m-%dT%T") %>
+    ```
+
+    After:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current %>
+    ```
+
+    *Andrey Samsonov*
+
 *   Choices of `select` can optionally contain html attributes as the last element
     of the child arrays when using grouped/nested collections
 

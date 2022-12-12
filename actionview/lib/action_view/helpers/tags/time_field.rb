@@ -10,7 +10,7 @@ module ActionView
         end
 
         private
-          def format_date(value)
+          def format_datetime(value)
             if @include_seconds
               value&.strftime("%T.%L")
             else
