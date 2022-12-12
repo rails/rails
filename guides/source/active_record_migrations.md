@@ -624,6 +624,7 @@ actions automatically. Below are some of the actions that `change` supports:
 * `enable_extension`
 * [`remove_check_constraint`][] (must supply a constraint expression)
 * [`remove_column`][] (must supply a type)
+* [`remove_columns`][] (must supply a `:type` option)
 * [`remove_foreign_key`][] (must supply a second table)
 * [`remove_index`][]
 * [`remove_reference`][]
@@ -632,8 +633,8 @@ actions automatically. Below are some of the actions that `change` supports:
 * [`rename_index`][]
 * [`rename_table`][]
 
-[`change_table`][] is also reversible, as long as the block does not call `change`,
-`change_default` or `remove`.
+[`change_table`][] is also reversible, as long as the block only calls
+reversible operations like the ones listed above.
 
 `remove_column` is reversible if you supply the column type as the third
 argument. Provide the original column options too, otherwise Rails can't
@@ -659,6 +660,7 @@ or write the `up` and `down` methods instead of using the `change` method.
 [`remove_reference`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_reference
 [`remove_timestamps`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_timestamps
 [`rename_column`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_column
+[`remove_columns`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_columns
 [`rename_index`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_index
 [`rename_table`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-rename_table
 
