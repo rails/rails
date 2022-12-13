@@ -173,7 +173,7 @@ module ActiveRecord
         if @run_commit_callbacks
           ite = unique_records
 
-          instances_to_run_callbacks_on = ite.each_with_object({}) do |record, candidates|
+          instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
             candidates[record] = record
           end
 
