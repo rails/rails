@@ -628,7 +628,7 @@ DEPENDENCIES
   sneakers
   sprockets-export
   sprockets-rails (>= 2.0.0)
-  sqlite3 (~> 1.4)
+  sqlite3 (~> 1.4, < 1.5)
   stackprof
   stimulus-rails
   sucker_punch
