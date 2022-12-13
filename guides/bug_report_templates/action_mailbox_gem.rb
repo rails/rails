@@ -9,7 +9,7 @@ gemfile(true) do
 
   # Activate the gem you are reporting the issue against.
   gem "rails", "~> 7.0.0"
-  gem "sqlite3"
+  gem "sqlite3", "< 1.5"
 end
 
 require "active_record/railtie"
