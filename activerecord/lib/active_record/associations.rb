@@ -349,13 +349,32 @@ module ActiveRecord
       #
       # The project class now has the following methods (and more) to ease the traversal and
       # manipulation of its relationships:
-      # * <tt>Project#portfolio</tt>, <tt>Project#portfolio=(portfolio)</tt>, <tt>Project#reload_portfolio</tt>
-      # * <tt>Project#project_manager</tt>, <tt>Project#project_manager=(project_manager)</tt>, <tt>Project#reload_project_manager</tt>
-      # * <tt>Project#milestones.empty?</tt>, <tt>Project#milestones.size</tt>, <tt>Project#milestones</tt>, <tt>Project#milestones<<(milestone)</tt>,
-      #   <tt>Project#milestones.delete(milestone)</tt>, <tt>Project#milestones.destroy(milestone)</tt>, <tt>Project#milestones.find(milestone_id)</tt>,
-      #   <tt>Project#milestones.build</tt>, <tt>Project#milestones.create</tt>
-      # * <tt>Project#categories.empty?</tt>, <tt>Project#categories.size</tt>, <tt>Project#categories</tt>, <tt>Project#categories<<(category1)</tt>,
-      #   <tt>Project#categories.delete(category1)</tt>, <tt>Project#categories.destroy(category1)</tt>
+      #
+      #   project = Project.first
+      #   project.portfolio
+      #   project.portfolio = Portfolio.first
+      #   project.reload_portfolio
+      #
+      #   project.project_manager
+      #   project.project_manager = ProjectManager.first
+      #   project.reload_project_manager
+      #
+      #   project.milestones.empty?
+      #   project.milestones.size
+      #   project.milestones
+      #   project.milestones << Milestone.first
+      #   project.milestones.delete(Milestone.first)
+      #   project.milestones.destroy(Milestone.first)
+      #   project.milestones.find(Milestone.first.id)
+      #   project.milestones.build
+      #   project.milestones.create
+      #
+      #   project.categories.empty?
+      #   project.categories.size
+      #   project.categories
+      #   project.categories << Category.first
+      #   project.categories.delete(category1)
+      #   project.categories.destroy(category1)
       #
       # === A word of warning
       #
@@ -1303,23 +1322,32 @@ module ActiveRecord
         #
         # === Example
         #
-        # A <tt>Firm</tt> class declares <tt>has_many :clients</tt>, which will add:
-        # * <tt>Firm#clients</tt> (similar to <tt>Client.where(firm_id: id)</tt>)
-        # * <tt>Firm#clients<<</tt>
-        # * <tt>Firm#clients.delete</tt>
-        # * <tt>Firm#clients.destroy</tt>
-        # * <tt>Firm#clients=</tt>
-        # * <tt>Firm#client_ids</tt>
-        # * <tt>Firm#client_ids=</tt>
-        # * <tt>Firm#clients.clear</tt>
-        # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
-        # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
-        # * <tt>Firm#clients.find</tt> (similar to <tt>Client.where(firm_id: id).find(id)</tt>)
-        # * <tt>Firm#clients.exists?(name: 'ACME')</tt> (similar to <tt>Client.exists?(name: 'ACME', firm_id: firm.id)</tt>)
-        # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new(firm_id: id)</tt>)
-        # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new(firm_id: id); c.save; c</tt>)
-        # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new(firm_id: id); c.save!</tt>)
-        # * <tt>Firm#clients.reload</tt>
+        #   class Firm < ActiveRecord::Base
+        #     has_many :clients
+        #   end
+        #
+        # Declaring <tt>has_many :clients</tt> adds the following methods (and more):
+        #
+        #   firm = Firm.find(2)
+        #   client = Client.find(6)
+        #
+        #   firm.clients                       # similar to Client.where(firm_id: 2)
+        #   firm.clients << client
+        #   firm.clients.delete(client)
+        #   firm.clients.destroy(client)
+        #   firm.clients = [client]
+        #   firm.client_ids
+        #   firm.client_ids = [6]
+        #   firm.clients.clear
+        #   firm.clients.empty?                # similar to firm.clients.size == 0
+        #   firm.clients.size                  # similar to Client.count "firm_id = 2"
+        #   firm.clients.find                  # similar to Client.where(firm_id: 2).find(6)
+        #   firm.clients.exists?(name: 'ACME') # similar to Client.exists?(name: 'ACME', firm_id: 2)
+        #   firm.clients.build                 # similar to Client.new(firm_id: 2)
+        #   firm.clients.create                # similar to Client.create(firm_id: 2)
+        #   firm.clients.create!               # similar to Client.create!(firm_id: 2)
+        #   firm.clients.reload
+        #
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
@@ -1506,14 +1534,22 @@ module ActiveRecord
         #
         # === Example
         #
-        # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
-        # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.where(account_id: id).first</tt>)
-        # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
-        # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new(account_id: id)</tt>)
-        # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save; b</tt>)
-        # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save!; b</tt>)
-        # * <tt>Account#reload_beneficiary</tt>
-        # * <tt>Account#reset_beneficiary</tt>
+        #   class Account < ActiveRecord::Base
+        #     has_one :beneficiary
+        #   end
+        #
+        # Declaring <tt>has_one :beneficiary</tt> adds the following methods (and more):
+        #
+        #   account = Account.find(5)
+        #   beneficiary = Beneficiary.find(8)
+        #
+        #   account.beneficiary               # similar to Beneficiary.find_by(account_id: 5)
+        #   account.beneficiary = beneficiary # similar to beneficiary.update(account_id: 5)
+        #   account.build_beneficiary         # similar to Beneficiary.new(account_id: 5)
+        #   account.create_beneficiary        # similar to Beneficiary.create(account_id: 5)
+        #   account.create_beneficiary!       # similar to Beneficiary.create!(account_id: 5)
+        #   account.reload_beneficiary
+        #   account.reset_beneficiary
         #
         # === Scopes
         #
@@ -1682,16 +1718,24 @@ module ActiveRecord
         #
         # === Example
         #
-        # A Post class declares <tt>belongs_to :author</tt>, which will add:
-        # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
-        # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
-        # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
-        # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
-        # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
-        # * <tt>Post#reload_author</tt>
-        # * <tt>Post#reset_author</tt>
-        # * <tt>Post#author_changed?</tt>
-        # * <tt>Post#author_previously_changed?</tt>
+        #   class Post < ActiveRecord::Base
+        #     belongs_to :author
+        #   end
+        #
+        # Declaring <tt>belongs_to :author</tt> adds the following methods (and more):
+        #
+        #   post = Post.find(7)
+        #   author = Author.find(19)
+        #
+        #   post.author           # similar to Author.find(post.author_id)
+        #   post.author = author  # similar to post.author_id = author.id
+        #   post.build_author     # similar to post.author = Author.new
+        #   post.create_author    # similar to post.author = Author.new; post.author.save; post.author
+        #   post.create_author!   # similar to post.author = Author.new; post.author.save!; post.author
+        #   post.reload_author
+        #   post.reset_author
+        #   post.author_changed?
+        #   post.author_previously_changed?
         #
         # === Scopes
         #
@@ -1888,22 +1932,31 @@ module ActiveRecord
         #
         # === Example
         #
-        # A Developer class declares <tt>has_and_belongs_to_many :projects</tt>, which will add:
-        # * <tt>Developer#projects</tt>
-        # * <tt>Developer#projects<<</tt>
-        # * <tt>Developer#projects.delete</tt>
-        # * <tt>Developer#projects.destroy</tt>
-        # * <tt>Developer#projects=</tt>
-        # * <tt>Developer#project_ids</tt>
-        # * <tt>Developer#project_ids=</tt>
-        # * <tt>Developer#projects.clear</tt>
-        # * <tt>Developer#projects.empty?</tt>
-        # * <tt>Developer#projects.size</tt>
-        # * <tt>Developer#projects.find(id)</tt>
-        # * <tt>Developer#projects.exists?(...)</tt>
-        # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new(developer_id: id)</tt>)
-        # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new(developer_id: id); c.save; c</tt>)
-        # * <tt>Developer#projects.reload</tt>
+        #   class Developer < ActiveRecord::Base
+        #     has_and_belongs_to_many :projects
+        #   end
+        #
+        # Declaring <tt>has_and_belongs_to_many :projects</tt> adds the following methods (and more):
+        #
+        #   developer = Developer.find(11)
+        #   project   = Project.find(9)
+        #
+        #   developer.projects
+        #   developer.projects << project
+        #   developer.projects.delete(project)
+        #   developer.projects.destroy(project)
+        #   developer.projects = [project]
+        #   developer.project_ids
+        #   developer.project_ids = [9]
+        #   developer.projects.clear
+        #   developer.projects.empty?
+        #   developer.projects.size
+        #   developer.projects.find(9)
+        #   developer.projects.exists?(9)
+        #   developer.projects.build  # similar to Project.new(developer_id: 11)
+        #   developer.projects.create # similar to Project.create(developer_id: 11)
+        #   developer.projects.reload
+        #
         # The declaration may include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
