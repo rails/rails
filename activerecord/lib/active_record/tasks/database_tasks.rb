@@ -384,7 +384,7 @@ module ActiveRecord
 
         check_schema_file(file) if file
 
-        with_temporary_connection(db_config) do
+        with_temporary_pool(db_config) do
           if schema_up_to_date?(db_config, format, file)
             truncate_tables(db_config)
           else
