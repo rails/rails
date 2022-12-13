@@ -5,6 +5,8 @@ require "active_support/core_ext/hash/slice"
 module ActiveSupport
   module Messages
     class RotationCoordinator # :nodoc:
+      attr_accessor :transitional
+
       def initialize(&secret_generator)
         raise ArgumentError, "A secret generator block is required" unless secret_generator
         @secret_generator = secret_generator
@@ -63,7 +65,14 @@ module ActiveSupport
 
         def build_with_rotations(salt)
           raise "No options have been configured" if @rotate_options.empty?
-          @rotate_options.map { |options| build(salt, **options, on_rotation: @on_rotation) }.reduce(&:fall_back_to)
+
+          if transitional
+            rotate_options = [@rotate_options[1], @rotate_options[0], *@rotate_options[2..]].compact
+          else
+            rotate_options = @rotate_options
+          end
+
+          rotate_options.map { |options| build(salt, **options, on_rotation: @on_rotation) }.reduce(&:fall_back_to)
         end
 
         def build(salt, secret_generator:, secret_generator_options:, **options)

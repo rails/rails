@@ -5,6 +5,29 @@ require "active_support/messages/rotation_coordinator"
 module ActiveSupport
   class MessageVerifiers < Messages::RotationCoordinator
     ##
+    # :attr_accessor: transitional
+    #
+    # If true, the first two rotation option sets are swapped when building
+    # message verifiers. For example, with the following configuration, message
+    # verifiers will generate messages using <tt>serializer: Marshal, url_safe: true</tt>,
+    # and will able to verify messages that were generated using any of the
+    # three option sets:
+    #
+    #   verifiers = ActiveSupport::MessageVerifiers.new { ... }
+    #   verifiers.rotate(serializer: JSON, url_safe: true)
+    #   verifiers.rotate(serializer: Marshal, url_safe: true)
+    #   verifiers.rotate(serializer: Marshal, url_safe: false)
+    #   verifiers.transitional = true
+    #
+    # This can be useful when performing a rolling deploy of an application,
+    # wherein servers that have not yet been updated must still be able to
+    # verify messages from updated servers. In such a scenario, first perform a
+    # rolling deploy with the new rotation (e.g. <tt>serializer: JSON, url_safe: true</tt>)
+    # as the first rotation and <tt>transitional = true</tt>. Then, after all
+    # servers have been updated, perform a second rolling deploy with
+    # <tt>transitional = false</tt>.
+
+    ##
     # :method: initialize
     # :call-seq: initialize(&secret_generator)
     #
