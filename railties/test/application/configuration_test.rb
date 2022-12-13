@@ -782,13 +782,13 @@ module ApplicationTests
       assert_equal key.length, other_key.length
     end
 
-    test "application verifier can build different verifiers" do
+    test "Rails.application.message_verifiers can build different message verifiers" do
       make_basic_app do |application|
         application.config.session_store :disabled
       end
 
-      default_verifier = app.message_verifier(:sensitive_value)
-      text_verifier = app.message_verifier(:text)
+      default_verifier = app.message_verifiers[:sensitive_value]
+      text_verifier = app.message_verifiers[:text]
 
       message = text_verifier.generate("some_value")
 
@@ -797,17 +797,50 @@ module ApplicationTests
         default_verifier.verify(message)
       end
 
+      assert_equal default_verifier.object_id, app.message_verifiers[:sensitive_value].object_id
       assert_equal default_verifier.object_id, app.message_verifier(:sensitive_value).object_id
       assert_not_equal default_verifier.object_id, text_verifier.object_id
+    end
+
+    test "config.rotate_message_verifiers can be set to a range to configure message_verifiers" do
+      add_to_config <<~RUBY
+        config.rotate_message_verifiers = ("0.0"...)
+      RUBY
+
+      app "production"
+
+      assert_equal "0.0"..., app.config.rotate_message_verifiers
+
+      message = app.message_verifiers[:salt].generate("message")
+      assert_equal "message", app.message_verifiers[:salt].verify(message)
+    end
+
+    test "config.rotate_message_verifiers can be set to false to disable message_verifiers preconfiguration" do
+      add_to_config <<~RUBY
+        config.rotate_message_verifiers = false
+        message_verifiers.rotate(digest: "MD5")
+      RUBY
+
+      app "production"
+
+      assert_equal false, app.config.rotate_message_verifiers
+
+      message = app.message_verifiers[:salt].generate("message")
+      md5_verifier = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("salt"), digest: "MD5")
+      assert_equal "message", md5_verifier.verify(message)
+    end
+
+    test "config.rotate_message_verifiers defaults to using Rails 7.0 rotation options" do
+      app "production"
+
+      assert_equal "7.0".."7.0", app.config.rotate_message_verifiers
     end
 
     test "Rails.application.message_verifiers.rotate supports :secret_key_base option" do
       old_secret_key_base = "old secret_key_base"
 
       add_to_config <<~RUBY
-        config.before_initialize do |app|
-          app.message_verifiers.rotate(secret_key_base: #{old_secret_key_base.inspect})
-        end
+        message_verifiers.rotate(secret_key_base: #{old_secret_key_base.inspect})
       RUBY
 
       app "production"
