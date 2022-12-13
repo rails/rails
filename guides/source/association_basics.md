@@ -927,10 +927,10 @@ Does the same as `create_association` above, but raises `ActiveRecord::RecordInv
 The `association_changed?` method returns true if a new associated object has been assigned and the foreign key will be updated in the next save.
 
 ```ruby
-@book.author # => #<Book author_number: 123, author_name: "John Doe">
+@book.author # => #<Author author_number: 123, author_name: "John Doe">
 @book.author_changed? # => false
 
-@book.author = Author.second # => #<Book author_number: 456, author_name: "Jane Smith">
+@book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
 @book.author_changed? # => true
 
 @book.save!
@@ -942,10 +942,10 @@ The `association_changed?` method returns true if a new associated object has be
 The `association_previously_changed?` method returns true if the previous save updated the association to reference a new associate object.
 
 ```ruby
-@book.author # => #<Book author_number: 123, author_name: "John Doe">
+@book.author # => #<Author author_number: 123, author_name: "John Doe">
 @book.author_previously_changed? # => false
 
-@book.author = Author.second # => #<Book author_number: 456, author_name: "Jane Smith">
+@book.author = Author.second # => #<Author author_number: 456, author_name: "Jane Smith">
 @book.save!
 @book.author_previously_changed? # => true
 ```
