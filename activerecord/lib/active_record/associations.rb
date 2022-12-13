@@ -610,6 +610,7 @@ module ActiveRecord
       #     def log_after_remove(record)
       #       # ...
       #     end
+      #   end
       #
       # It's possible to stack callbacks by passing them as an array. Example:
       #
