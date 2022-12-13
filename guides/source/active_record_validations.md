@@ -1230,9 +1230,9 @@ irb> person.errors[:name]
 
 ### `errors.where` and Error Object
 
-Sometimes we may need more information about each error beside its message. Each error is encapsulated as an `ActiveModel::Error` object, and [`where`][] method is the most common way of access.
+Sometimes we may need more information about each error besides its message. Each error is encapsulated as an `ActiveModel::Error` object, and the [`where`][] method is the most common way of access.
 
-`where` returns an array of error objects, filtered by various degree of conditions.
+`where` returns an array of error objects filtered by various degrees of conditions.
 
 ```ruby
 class Person < ApplicationRecord
