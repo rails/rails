@@ -68,7 +68,7 @@ module ActiveSupport
       # The default parallelization method is to fork processes. If you'd like to
       # use threads instead you can pass <tt>with: :threads</tt> to the +parallelize+
       # method. Note the threaded parallelization does not create multiple
-      # database and will not work with system tests at this time.
+      # databases and will not work with system tests at this time.
       #
       #   parallelize(workers: :number_of_processors, with: :threads)
       #
@@ -81,8 +81,6 @@ module ActiveSupport
       def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
         workers = Concurrent.physical_processor_count if workers == :number_of_processors
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
-
-        return if workers <= 1
 
         Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
       end

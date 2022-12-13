@@ -53,7 +53,7 @@ module ActiveSupport
         end
 
         def should_parallelize?
-          ENV["PARALLEL_WORKERS"] || tests_count > threshold
+          size > 1 && (ENV["PARALLEL_WORKERS"] || tests_count > threshold)
         end
 
         def tests_count
