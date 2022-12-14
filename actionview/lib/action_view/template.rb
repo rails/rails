@@ -122,6 +122,8 @@ module ActionView
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :virtual_path
 
+    NONE = Object.new
+
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
       @identifier        = identifier
@@ -139,6 +141,7 @@ module ActionView
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
+      @strict_locals     = NONE
     end
 
     # The locals this template has been or will be compiled for, or nil if this
@@ -177,10 +180,10 @@ module ActionView
       instrument_render_template do
         compile!(view)
         if buffer
-          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
+          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)&.to_s
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)&.to_s
         end
       end
     rescue => e
@@ -256,20 +259,20 @@ module ActionView
     # and extracting any arguments declared in the format
     # locals: (message:, label: "My Message")
     def strict_locals!
-      self.source.sub!(STRICT_LOCALS_REGEX, "")
-      @strict_locals = $1
+      if @strict_locals == NONE
+        self.source.sub!(STRICT_LOCALS_REGEX, "")
+        @strict_locals = $1
 
-      return if @strict_locals.nil? # Magic comment not found
+        return if @strict_locals.nil? # Magic comment not found
 
-      @strict_locals = "**nil" if @strict_locals.blank?
+        @strict_locals = "**nil" if @strict_locals.blank?
+      end
+
+      @strict_locals
     end
 
     def strict_locals?
-      if defined?(@strict_locals)
-        @strict_locals
-      else
-        STRICT_LOCALS_REGEX === self.source
-      end
+      strict_locals!
     end
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
@@ -321,20 +324,19 @@ module ActionView
       # involves setting strict_locals! if applicable, encoding the template, and setting
       # frozen string literal.
       def compiled_source
-        strict_locals!
+        set_strict_locals = strict_locals!
         source = encode!
         code = @handler.call(self, source)
 
         method_arguments =
-          if @strict_locals
-            "output_buffer, #{@strict_locals}"
+          if set_strict_locals
+            "output_buffer, #{set_strict_locals}"
           else
             "local_assigns, output_buffer"
           end
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
-        @original_source = source
         source = +<<-end_src
           def #{method_name}(#{method_arguments})
             @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
@@ -381,10 +383,10 @@ module ActionView
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
           # the result into the template, but missing an end parenthesis.
-          raise SyntaxErrorInTemplate.new(self, @original_source)
+          raise SyntaxErrorInTemplate.new(self, encode!)
         end
 
-        return unless @strict_locals
+        return unless strict_locals?
 
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
@@ -423,7 +425,7 @@ module ActionView
       end
 
       def locals_code
-        return "" if @strict_locals
+        return "" if strict_locals?
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
