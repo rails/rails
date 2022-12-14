@@ -728,9 +728,9 @@ module ApplicationTests
         end
       RUBY
 
-      output = run_test_command(file_name)
+      output = run_test_command(file_name, allow_failure: false)
 
-      assert_match(/Finished in.*2 runs, 2 assertions/m, output)
+      assert_match(/Finished in.*2 runs, 2 assertions, 0 failures, 0 errors, 0 skips/m, output)
       assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
       assert_no_match "create_table(:users)", output
     end
@@ -738,17 +738,8 @@ module ApplicationTests
     def test_parallelization_is_disabled_when_number_of_tests_is_below_threshold
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
-      file_name = create_parallel_processes_test_file
-
-      app_file "db/schema.rb", <<-RUBY
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :users do |t|
-            t.string :name
-          end
-        end
-      RUBY
-
-      output = run_test_command(file_name)
+      file_name = create_parallel_blank_test_file
+      output = run_test_command(file_name, allow_failure: false)
 
       assert_match %r{Running \d+ tests in a single process}, output
       assert_no_match %r{Running \d+ tests in parallel using \d+ processes}, output
@@ -760,18 +751,25 @@ module ApplicationTests
 
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
-      file_name = app_file "test/unit/parallel_test.rb", <<-RUBY
-        require "test_helper"
+      file_name = create_parallel_blank_test_file
+      output = run_test_command(file_name, allow_failure: false)
 
-        class ParallelTest < ActiveSupport::TestCase
-          def test_verify_test_order
-          end
-        end
-      RUBY
+      assert_match %r{Running \d+ tests in parallel using 5 processes}, output
+    ensure
+      ENV["PARALLEL_WORKERS"] = @old
+    end
 
-      output = run_test_command(file_name)
+    def test_parallel_is_disabled_when_PARALLEL_WORKERS_is_set_to_1
+      @old = ENV["PARALLEL_WORKERS"]
+      ENV["PARALLEL_WORKERS"] = "1"
 
-      assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
+
+      file_name = create_parallel_blank_test_file
+      output = run_test_command(file_name, allow_failure: false)
+
+      assert_no_match %r{Running \d+ tests in a single process}, output
+      assert_no_match %r{Running \d+ tests in parallel using \d+ processes}, output
     ensure
       ENV["PARALLEL_WORKERS"] = @old
     end
@@ -807,9 +805,9 @@ module ApplicationTests
         end
       RUBY
 
-      output = run_test_command(file_name)
+      output = run_test_command(file_name, allow_failure: false)
 
-      assert_match(/Finished in.*2 runs, 2 assertions/m, output)
+      assert_match(/Finished in.*2 runs, 2 assertions, 0 failures, 0 errors, 0 skips/m, output)
       assert_no_match "create_table(:users)", output
     end
 
@@ -1221,6 +1219,16 @@ module ApplicationTests
             def test_truth
               puts "#{name.camelize}Test" if #{print}
               assert #{pass}, 'wups!'
+            end
+          end
+        RUBY
+      end
+
+      def create_parallel_blank_test_file
+        app_file "test/unit/parallel_test.rb", <<-RUBY
+          require "test_helper"
+          class ParallelTest < ActiveSupport::TestCase
+            def test_verify_test_order
             end
           end
         RUBY
