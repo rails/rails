@@ -625,7 +625,7 @@ DEPENDENCIES
   selenium-webdriver (>= 4.0.0)
   sequel
   sidekiq
-  sneakers
+  sneakers (< 2.12.0)
   sprockets-export
   sprockets-rails (>= 2.0.0)
   sqlite3 (~> 1.4, < 1.5)
