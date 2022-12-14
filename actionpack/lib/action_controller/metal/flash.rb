@@ -7,7 +7,10 @@ module ActionController # :nodoc:
     included do
       class_attribute :_flash_types, instance_accessor: false, default: []
 
-      delegate :flash, to: :request
+      def flash
+        request.flash
+      end
+
       add_flash_types(:alert, :notice)
     end
 

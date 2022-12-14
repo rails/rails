@@ -154,20 +154,41 @@ module ActionController
     # The ActionDispatch::Response instance for the current response.
     attr_internal :response
 
-    delegate :session, to: "@_request"
+    def session
+      @_request.session
+    end
 
     ##
     # Delegates to ActionDispatch::Response#headers.
     delegate :headers, to: "@_response"
 
-    delegate :status=, :location=, :content_type=,
-             :status, :location, :content_type, :media_type, to: "@_response"
+    delegate :location=, :location, to: "@_response"
 
     def initialize
       @_request = nil
       @_response = nil
       @_routes = nil
       super
+    end
+
+    def status
+      @_response.status
+    end
+
+    def status=(s)
+      @_response.status = s
+    end
+
+    def content_type
+      @_response.content_type
+    end
+
+    def content_type=(c)
+      @_response.content_type = c
+    end
+
+    def media_type
+      @_response.media_type
     end
 
     def params

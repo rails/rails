@@ -142,14 +142,6 @@ module ActionController
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     ##
-    # :method: as_json
-    #
-    # :call-seq:
-    #   as_json(options=nil)
-    #
-    # Returns a hash that can be used as the JSON representation for the parameters.
-
-    ##
     # :method: each_key
     #
     # :call-seq:
@@ -157,6 +149,9 @@ module ActionController
     #
     # Calls block once for each key in the parameters, passing the key.
     # If no block is given, an enumerator is returned instead.
+    def each_key(&blk)
+      @parameters.each_key(&blk)
+    end
 
     ##
     # :method: empty?
@@ -165,6 +160,28 @@ module ActionController
     #   empty?()
     #
     # Returns true if the parameters have no key/value pairs.
+    def empty?
+      @parameters.empty?
+    end
+
+    ##
+    # :method: keys
+    #
+    # :call-seq:
+    #   keys()
+    #
+    # Returns a new array of the keys of the parameters.
+    def keys
+      @parameters.keys
+    end
+
+    ##
+    # :method: as_json
+    #
+    # :call-seq:
+    #   as_json(options=nil)
+    #
+    # Returns a hash that can be used as the JSON representation for the parameters.
 
     ##
     # :method: exclude?
@@ -207,14 +224,6 @@ module ActionController
     # Returns true if the given key is present in the parameters.
 
     ##
-    # :method: keys
-    #
-    # :call-seq:
-    #   keys()
-    #
-    # Returns a new array of the keys of the parameters.
-
-    ##
     # :method: to_s
     #
     # :call-seq:
@@ -222,8 +231,7 @@ module ActionController
     #
     # Returns the content of the parameters as a string.
 
-    delegate :keys, :key?, :has_key?, :member?, :empty?, :exclude?, :include?,
-      :as_json, :to_s, :each_key, to: :@parameters
+    delegate :key?, :has_key?, :member?, :exclude?, :include?, :as_json, :to_s, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'

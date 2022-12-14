@@ -13,7 +13,13 @@ module ActionView
         :session, :cookies, :response, :headers, :flash, :action_name,
         :controller_name, :controller_path]
 
-      delegate(*CONTROLLER_DELEGATES, to: :controller)
+      CONTROLLER_DELEGATES.each do |meth|
+        eval <<~DEF
+          def #{meth}
+            controller.#{meth}
+          end
+        DEF
+      end
 
       def assign_controller(controller)
         if @_controller = controller
