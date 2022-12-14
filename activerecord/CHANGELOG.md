@@ -1,3 +1,8 @@
+*   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
+    argument, more closely matching their `Enumerable` equivalents.
+
+    *George Claghorn*
+
 *   Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
 
     A normalization is applied when the attribute is assigned or updated, and
