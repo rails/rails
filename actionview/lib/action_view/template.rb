@@ -256,8 +256,14 @@ module ActionView
     end
 
     # This method is responsible for marking a template as having strict locals
-    # and extracting any arguments declared in the format
-    # locals: (message:, label: "My Message")
+    # which means the template can only accept the locals defined in a magic
+    # comment. For example, if your template acceps that locals +title+ and
+    # +comment_count+, add the following to your template file:
+    #
+    #   <%# locals: (title: "Default title", comment_count: 0) %>
+    #
+    # Strict locals are useful for validating template arguments and for
+    # specifying defaults.
     def strict_locals!
       if @strict_locals == NONE
         self.source.sub!(STRICT_LOCALS_REGEX, "")
@@ -271,6 +277,7 @@ module ActionView
       @strict_locals
     end
 
+    # Returns whether a template is using strict locals.
     def strict_locals?
       strict_locals!
     end
