@@ -1437,6 +1437,27 @@ module ApplicationTests
       assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading = true }
     end
 
+    test "ActionController::Base::renderer uses Rails.application.default_url_options and config.force_ssl" do
+      add_to_config <<~RUBY
+        config.force_ssl = true
+
+        Rails.application.default_url_options = {
+          host: "foo.example.com",
+          port: 9001,
+          script_name: "/bar",
+        }
+
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      posts_url = ApplicationController.renderer.render(inline: "<%= posts_url %>")
+      assert_equal "https://foo.example.com:9001/bar/posts", posts_url
+    end
+
     test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
       app "development"
 

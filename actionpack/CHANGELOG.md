@@ -1,3 +1,25 @@
+*   When a host is not specified for an `ActionController::Renderer`'s env,
+    the host and related options will now be derived from the routes'
+    `default_url_options` and `ActionDispatch::Http::URL.secure_protocol`.
+
+    This means that for an application with a configuration like:
+
+      ```ruby
+      Rails.application.default_url_options = { host: "rubyonrails.org" }
+      Rails.application.config.force_ssl = true
+      ```
+
+    rendering a URL like:
+
+      ```ruby
+      ApplicationController.renderer.render inline: "<%= blog_url %>"
+      ```
+
+    will now return `"https://rubyonrails.org/blog"` instead of
+    `"http://example.org/blog"`.
+
+    *Jonathan Hefner*
+
 *   Add details of cookie name and size to `CookieOverflow` exception.
 
     *Andy Waite*
