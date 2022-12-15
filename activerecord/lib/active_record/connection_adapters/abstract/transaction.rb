@@ -171,14 +171,18 @@ module ActiveRecord
         return unless records
 
         if @run_commit_callbacks
-          ite = unique_records
+          if ActiveRecord.before_committed_on_all_records
+            ite = unique_records
 
-          instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
-            candidates[record] = record
-          end
+            instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
+              candidates[record] = record
+            end
 
-          run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
-            record.before_committed! if should_run_callbacks
+            run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
+              record.before_committed! if should_run_callbacks
+            end
+          else
+            records.uniq.each(&:before_committed!)
           end
         end
       end

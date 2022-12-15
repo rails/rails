@@ -123,7 +123,31 @@ class TouchLaterTest < ActiveRecord::TestCase
     assert_not_equal trees(:root).reload.updated_at, previous_tree_updated_at
   end
 
-  def test_touching_through_nested_attributes
+  def test_touching_through_nested_attributes_without_before_committed_on_all_records
+    original = ActiveRecord.before_committed_on_all_records
+    ActiveRecord.before_committed_on_all_records = false
+
+    time = Time.now.utc - 25.days
+
+    owner = owners(:blackbeard)
+
+    owner.touch(time: time)
+
+    assert_equal time.to_i, owner.reload.updated_at.to_i
+
+    owner.update pets_attributes: { "0" => { id: "1", name: "Alfred" } }
+
+    # The second copy of the record is not touched, so the owner's updated_at
+    # remains the same.
+    assert_equal time.to_i, owner.reload.updated_at.to_i
+  ensure
+    ActiveRecord.before_committed_on_all_records = original
+  end
+
+  def test_touching_through_nested_attributes_with_before_committed_on_all_records
+    original = ActiveRecord.before_committed_on_all_records
+    ActiveRecord.before_committed_on_all_records = true
+
     time = Time.now.utc - 25.days
 
     owner = owners(:blackbeard)
@@ -135,5 +159,7 @@ class TouchLaterTest < ActiveRecord::TestCase
     owner.update pets_attributes: { "0" => { id: "1", name: "Alfred" } }
 
     assert_not_equal time.to_i, owner.reload.updated_at.to_i
+  ensure
+    ActiveRecord.before_committed_on_all_records = original
   end
 end
