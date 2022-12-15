@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   gem "rails", github: "rails/rails", branch: "main"
-  gem "sqlite3", "< 1.5"
+  gem "sqlite3"
 end
 
 require "active_record/railtie"
