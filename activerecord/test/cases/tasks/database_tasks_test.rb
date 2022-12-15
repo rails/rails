@@ -460,6 +460,8 @@ module ActiveRecord
 
     private
       def with_stubbed_configurations_establish_connection(&block)
+        old_env = ENV["RAILS_ENV"]
+        ENV["RAILS_ENV"] = "development"
         old_configurations = ActiveRecord::Base.configurations
         ActiveRecord::Base.configurations = @configurations
 
@@ -468,6 +470,7 @@ module ActiveRecord
         ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
       ensure
         ActiveRecord::Base.configurations = old_configurations
+        ENV["RAILS_ENV"] = old_env
       end
   end
 

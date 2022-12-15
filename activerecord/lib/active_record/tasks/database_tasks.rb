@@ -98,7 +98,13 @@ module ActiveRecord
       end
 
       def env
-        @env ||= Rails.env
+        @env ||= begin
+                   if defined?(Rails.env)
+                     Rails.env
+                   else
+                     ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+                   end
+                 end
       end
 
       def name
@@ -122,11 +128,9 @@ module ActiveRecord
       end
 
       def create_all
-        db_config = migration_connection.pool.db_config
-
         each_local_configuration { |db_config| create(db_config) }
 
-        migration_class.establish_connection(db_config)
+        migration_class.establish_connection(env.to_sym)
       end
 
       def setup_initial_database_yaml
@@ -174,25 +178,25 @@ module ActiveRecord
         seed = false
 
         each_current_configuration(env) do |db_config|
-          migration_class.establish_connection(db_config)
-
-          begin
-            database_initialized = migration_connection.schema_migration.table_exists?
-          rescue ActiveRecord::NoDatabaseError
-            create(db_config)
-            retry
-          end
-
-          unless database_initialized
-            if File.exist?(schema_dump_path(db_config))
-              load_schema(db_config, ActiveRecord.schema_format, nil)
+          with_temporary_pool(db_config) do
+            begin
+              database_initialized = migration_connection.schema_migration.table_exists?
+            rescue ActiveRecord::NoDatabaseError
+              create(db_config)
+              retry
             end
 
-            seed = true
-          end
+            unless database_initialized
+              if File.exist?(schema_dump_path(db_config))
+                load_schema(db_config, ActiveRecord.schema_format, nil)
+              end
 
-          migrate
-          dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+              seed = true
+            end
+
+            migrate
+            dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+          end
         end
 
         load_seed if seed
