@@ -1,3 +1,12 @@
+*   Hide changes to before_committed! callback behaviour behind flag.
+
+    In #46525, behavior around before_committed! callbacks was changed so that callbacks
+    would run on every enrolled record in a transaction, not just the first copy of a record.
+    This change in behavior is now controlled by a configuration option,
+    `config.active_record.before_committed_on_all_records`. It will be enabled by default on Rails 7.1.
+
+    *Adrianna Chang*
+
 *   The `namespaced_controller` Query Log tag now matches the `controller` format
 
     For example, a request processed by `NameSpaced::UsersController` will now log as:
