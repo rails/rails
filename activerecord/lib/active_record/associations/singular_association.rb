@@ -59,8 +59,9 @@ module ActiveRecord
             saved = record.save
             set_new_record(record)
             raise RecordInvalid.new(record) if !saved && raise_error
-            record
+            raise Rollback if !saved
           end
+          target
         end
     end
   end

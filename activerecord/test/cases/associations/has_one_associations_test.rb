@@ -308,6 +308,19 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.reload.account
   end
 
+  def test_create_association_should_not_delete_if_not_saved
+    firm = Firm.create(name: "GlobalMegaCorp")
+    account = firm.create_account(credit_limit: 1000)
+    assert_no_difference "Account.count" do
+      firm.create_account
+
+      assert_raise ActiveRecord::RecordInvalid do
+        firm.create_account!
+      end
+    end
+    assert_equal account, firm.reload.account
+  end
+
   def test_clearing_an_association_clears_the_associations_inverse
     author = Author.create(name: "Jimmy Tolkien")
     post = author.create_post(title: "The silly medallion", body: "")
@@ -528,15 +541,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_ship, pirate.ship
     assert_predicate new_ship, :new_record?
     assert_nil orig_ship.pirate_id
-    assert_not orig_ship.changed? # check it was saved
+    assert_predicate orig_ship, :changed? # check it was not saved
   end
 
   def test_create_association_replaces_existing_with_dependent_option
     pirate = pirates(:blackbeard).becomes(DestructivePirate)
     orig_ship = pirate.dependent_ship
 
-    new_ship = pirate.create_dependent_ship
-    assert_predicate new_ship, :new_record?
+    new_ship = pirate.create_dependent_ship(name: "Planet Caravan")
+    assert_predicate new_ship, :persisted?
     assert_predicate orig_ship, :destroyed?
   end
 
