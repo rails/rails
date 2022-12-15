@@ -225,8 +225,8 @@ module Enumerable
   #   [1, "", nil, 2, " ", [], {}, false, true].compact_blank
   #   # =>  [1, 2, true]
   #
-  #   Set.new([nil, "", 1, 2])
-  #   # => [2, 1] (or [1, 2])
+  #   Set.new([nil, "", 1, false]).compact_blank
+  #   # => [1]
   #
   # When called on a +Hash+, returns a new +Hash+ without the blank values.
   #
