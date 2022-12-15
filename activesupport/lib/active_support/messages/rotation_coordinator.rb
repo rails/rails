@@ -16,22 +16,18 @@ module ActiveSupport
       end
 
       def [](salt)
-        @codecs[salt] ||= build_with_rotations(salt.to_s)
+        @codecs[salt] ||= build_with_rotations(salt)
       end
 
       def []=(salt, codec)
         @codecs[salt] = codec
       end
 
-      def rotate(**options)
+      def rotate(**options, &block)
+        raise ArgumentError, "Options cannot be specified when using a block" if block && !options.empty?
         changing_configuration!
 
-        options[:secret_generator] ||= @secret_generator
-        secret_generator_kwargs = options[:secret_generator].parameters.
-          filter_map { |type, name| name if type == :key || type == :keyreq }
-        options[:secret_generator_options] = options.extract!(*secret_generator_kwargs)
-
-        @rotate_options << options
+        @rotate_options << (block || options)
 
         self
       end
@@ -63,16 +59,30 @@ module ActiveSupport
           end
         end
 
+        def normalize_options(options)
+          options = options.dup
+
+          options[:secret_generator] ||= @secret_generator
+
+          secret_generator_kwargs = options[:secret_generator].parameters.
+            filter_map { |type, name| name if type == :key || type == :keyreq }
+          options[:secret_generator_options] = options.extract!(*secret_generator_kwargs)
+
+          options[:on_rotation] = @on_rotation
+
+          options
+        end
+
         def build_with_rotations(salt)
-          raise "No options have been configured" if @rotate_options.empty?
+          rotate_options = @rotate_options.map { |options| options.is_a?(Proc) ? options.(salt) : options }
+          transitional = self.transitional && rotate_options.first
+          rotate_options.compact!
+          rotate_options[0..1] = rotate_options[0..1].reverse if transitional
+          rotate_options = rotate_options.map { |options| normalize_options(options) }.uniq
 
-          if transitional
-            rotate_options = [@rotate_options[1], @rotate_options[0], *@rotate_options[2..]].compact
-          else
-            rotate_options = @rotate_options
-          end
+          raise "No options have been configured for #{salt}" if rotate_options.empty?
 
-          rotate_options.map { |options| build(salt, **options, on_rotation: @on_rotation) }.reduce(&:fall_back_to)
+          rotate_options.map { |options| build(salt.to_s, **options) }.reduce(&:fall_back_to)
         end
 
         def build(salt, secret_generator:, secret_generator_options:, **options)
