@@ -1046,7 +1046,7 @@ module ActiveRecord
       self.class.connection.clear_query_cache
 
       fresh_object = if apply_scoping?(options)
-        _find_record(options)
+        _find_record((options || {}).merge(all_queries: true))
       else
         self.class.unscoped { _find_record(options) }
       end
@@ -1120,10 +1120,13 @@ module ActiveRecord
     end
 
     def _find_record(options)
+      all_queries = options ? options[:all_queries] : nil
+      base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
+
       if options && options[:lock]
-        self.class.preload(strict_loaded_associations).lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
+        base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
       else
-        self.class.preload(strict_loaded_associations).find_by!(_in_memory_query_constraints_hash)
+        base.find_by!(_in_memory_query_constraints_hash)
       end
     end
 

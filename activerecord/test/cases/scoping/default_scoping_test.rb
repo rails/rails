@@ -225,6 +225,15 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, reload_sql)
   end
 
+  def test_default_scope_with_all_queries_runs_on_reload_but_default_scope_without_all_queries_does_not
+    Mentor.create!
+    dev = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries.create!(name: "Eileen")
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+    assert_match(/firm_id/, reload_sql)
+  end
+
   def test_nilable_default_scope_with_all_queries_runs_on_reload
     dev = DeveloperWithDefaultNilableFirmScopeAllQueries.create!(name: "Nikita")
     reload_sql = capture_sql { dev.reload }.first
