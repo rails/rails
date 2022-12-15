@@ -590,7 +590,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rack-test (< 2)
   rails!
-  rake (>= 11.1)
+  rake (>= 13)
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
   redis-namespace!

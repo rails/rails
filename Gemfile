@@ -12,7 +12,7 @@ gem "minitest", "~> 5.15.0"
 gem "cgi", ">= 0.3.6", require: false
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 11.1"
+gem "rake", ">= 13"
 
 gem "capybara", ">= 3.26"
 gem "selenium-webdriver", "< 4.2"
