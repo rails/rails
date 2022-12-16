@@ -111,9 +111,11 @@ module ActionController # :nodoc:
       #     protect_from_forgery except: :index
       #   end
       #
-      # You can disable forgery protection on controller by skipping the verification before_action:
+      # You can disable forgery protection on a controller using skip_forgery_protection:
       #
-      #   skip_before_action :verify_authenticity_token
+      #   class BarController < ApplicationController
+      #     skip_forgery_protection
+      #   end
       #
       # Valid Options:
       #
