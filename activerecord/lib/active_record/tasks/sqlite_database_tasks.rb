@@ -20,9 +20,7 @@ module ActiveRecord
       end
 
       def drop
-        require "pathname"
-        path = Pathname.new(db_config.database)
-        file = path.absolute? ? path.to_s : File.join(root, path)
+        file = File.absolute_path? db_config.database ? db_config.database : File.join(root, db_config.database)
 
         FileUtils.rm(file)
       rescue Errno::ENOENT => error
