@@ -62,6 +62,7 @@ module ActionDispatch
         request.formats
       rescue ActionDispatch::Http::MimeNegotiation::InvalidType
         request.set_header "HTTP_ACCEPT", "text/html"
+        request.set_header 'CONTENT_TYPE', 'text/html'
       end
 
       def pass_response(status)
