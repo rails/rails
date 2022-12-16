@@ -159,7 +159,7 @@ module ActionDispatch
 
         # If every single IP option is in the trusted list, return the IP
         # that's furthest away
-        ips.detect {|ip| @proxies.none? {|p| p === ip } } || (@proxies.none? {|p| p === remote_addr} && remote_addr) || ips.last || remote_addr
+        ips.detect { |ip| @proxies.none? { |p| p === ip } } || (@proxies.none? { |p| p === remote_addr } && remote_addr) || ips.last || remote_addr
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for
