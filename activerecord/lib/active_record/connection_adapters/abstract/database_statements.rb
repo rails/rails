@@ -431,7 +431,7 @@ module ActiveRecord
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
         fixture_inserts = build_fixture_statements(fixture_set)
-        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
+        table_deletes = build_truncate_statements(tables_to_delete)
         statements = table_deletes + fixture_inserts
 
         with_multi_statements do
