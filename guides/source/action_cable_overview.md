@@ -282,7 +282,7 @@ class ChatChannel < ApplicationCable::Channel
   def send_welcome_message
     broadcast_to(...)
   end
-  
+
   def track_subscription
     # ...
   end

@@ -288,7 +288,7 @@ user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
-This is most useful when updating several attributes at once. 
+This is most useful when updating several attributes at once.
 
 If you'd like to update several records in bulk without callbacks or
 validations, you can update the database directly using `update_all`:

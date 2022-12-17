@@ -1,7 +1,7 @@
 *   Add ENV["SECRET_KEY_BASE_DUMMY"] for starting production environment with a generated secret base key,
     which can be used to run tasks like `assets:precompile` without making the RAILS_MASTER_KEY available
     to the build process.
-    
+
     Dockerfile layer example:
 
     ```
