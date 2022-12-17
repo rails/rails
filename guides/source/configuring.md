@@ -442,6 +442,20 @@ Enables or disables reloading of classes only when tracked files change. By defa
 
 Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
 
+#### `config.rotate_message_verifiers`
+
+The range of Rails versions from which to derive rotation options for
+[`Rails.application.message_verifiers`][]. Defaults to `"7.0".."7.0"`.
+
+To prevent `Rails.application.message_verifiers` from being preconfigured, set
+`config.rotate_message_verifiers` to `false`. This will allow you to completely
+customize the rotations using [`rotate`][ActiveSupport::MessageVerifiers#rotate].
+Note, however, that you must do so before `Rails.application.message_verifiers`
+is used to build any message verifiers; otherwise, an error will be raised.
+
+[`Rails.application.message_verifiers`]: https://api.rubyonrails.org/classes/Rails/Application.html#method-i-message_verifiers
+[ActiveSupport::MessageVerifiers#rotate]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifiers.html#method-i-rotate
+
 #### `config.secret_key_base`
 
 The fallback for specifying the input secret for an application's key generator.

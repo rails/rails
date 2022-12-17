@@ -1,3 +1,19 @@
+*   Add `config.rotate_message_verifiers`, which controls the range of rotated
+    defaults for `Rails.application.message_verifiers`.
+
+    For example, setting `config.rotate_message_verifiers` to `"7.0".."7.2"`
+    would first rotate any default options that were added in Rails 7.2, then
+    rotate any default options from Rails 7.1, and lastly rotate any default
+    options from Rails 7.0.
+
+    `config.rotate_message_verifiers` may also be set to false to leave
+    `Rails.application.message_verifiers` unconfigured.  In that case, the user
+    is expected to configure `Rails.application.message_verifiers` (e.g. in an
+    initializer) before it is used to create any message verifiers; otherwise,
+    an error will be raised.
+
+    *Jonathan Hefner*
+
 *   Show descriptions for all commands in Rails help
 
     When calling `rails help` most commands missed their description. We now

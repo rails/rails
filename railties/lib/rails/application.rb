@@ -166,37 +166,42 @@ module Rails
 
     # Returns a message verifier factory (ActiveSupport::MessageVerifiers). This
     # factory can be used as a central point to configure and create message
-    # verifiers (ActiveSupport::MessageVerifier) for your application.
+    # verifier (ActiveSupport::MessageVerifier) instances for your application.
     #
-    # By default, message verifiers created by this factory will generate
-    # messages using the default ActiveSupport::MessageVerifier options. You can
-    # override these options with a combination of
-    # ActiveSupport::MessageVerifiers#clear_rotations and
-    # ActiveSupport::MessageVerifiers#rotate. However, this must be done prior
-    # to building any message verifier instances. For example, in a
-    # +before_initialize+ block:
+    # By default, message verifiers created by this factory will be configured
+    # according to +config.rotate_message_verifiers+, which specifies a range of
+    # Rails versions from which to derive rotation options. For example,
+    # <tt>config.rotate_message_verifiers = "7.0".."7.2"</tt> will first rotate
+    # any default options from Rails 7.2, then rotate any default options from
+    # Rails 7.1, and lastly rotate any default options from Rails 7.0. The
+    # message verifiers will generate messages using the most recent default
+    # options, and will be able to verify messages that were generated using the
+    # default options of any of the specified versions.
     #
-    #   # Use `url_safe: true` when generating messages
-    #   config.before_initialize do |app|
-    #     app.message_verifiers.clear_rotations
-    #     app.message_verifiers.rotate(url_safe: true)
-    #   end
+    # To prevent the factory from being preconfigured, set
+    # <tt>config.rotate_message_verifiers = false</tt>. This will allow you to
+    # completely customize the rotations using ActiveSupport::MessageVerifiers#rotate.
+    # Note, however, that you must do so before the factory is used to build any
+    # message verifiers; otherwise, an error will be raised.
     #
-    # Message verifiers created by this factory will always use a secret derived
-    # from #secret_key_base when generating messages. +clear_rotations+ will not
-    # affect this behavior. However, older +secret_key_base+ values can be
-    # rotated for verifying messages:
+    # Regardless of +config.rotate_message_verifiers+, the factory will use a
+    # secret derived from #secret_key_base. To override the +secret_key_base+
+    # used for a rotation, specify a +:secret_key_base+ option:
     #
-    #   # Fall back to old `secret_key_base` when verifying messages
-    #   config.before_initialize do |app|
-    #     app.message_verifiers.rotate(secret_key_base: "old secret_key_base")
-    #   end
+    #   app.message_verifiers.rotate(secret_key_base: "old secret_key_base")
     #
     def message_verifiers
-      @message_verifiers ||=
-        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
+      @message_verifiers ||= begin
+        verifiers = ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
           key_generator(secret_key_base).generate_key(salt)
-        end.rotate_defaults
+        end
+
+        range = config.rotate_message_verifiers || nil
+
+        verifiers.rotate_defaults if range&.cover?("7.0")
+
+        verifiers
+      end
     end
 
     # Returns a message verifier object.
