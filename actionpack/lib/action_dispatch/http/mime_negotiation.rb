@@ -81,7 +81,7 @@ module ActionDispatch
           v = if params_readable?
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
-            accepts
+            accepts.dup
           elsif extension_format = format_from_path_extension
             [extension_format]
           elsif xhr?
@@ -90,7 +90,7 @@ module ActionDispatch
             [Mime[:html]]
           end
 
-          v = v.select do |format|
+          v.select! do |format|
             format.symbol || format.ref == "*/*"
           end
 
