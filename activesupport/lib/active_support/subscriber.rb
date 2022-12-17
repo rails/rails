@@ -131,12 +131,12 @@ module ActiveSupport
     end
 
     def call(event)
-      method = event.name[0, event.name.index('.')]
+      method = event.name[0, event.name.index(".")]
       send(method, event)
     end
 
     def publish_event(event) # :nodoc:
-      method = event.name[0, event.name.index('.')]
+      method = event.name[0, event.name.index(".")]
       send(method, event)
     end
   end
