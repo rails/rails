@@ -1,0 +1,24 @@
+# Make sure it matches the Ruby version in .ruby-version and Gemfile
+FROM ruby:<%= Gem.ruby_version %>
+
+# Install libvips for Active Storage preview support
+RUN apt-get update -qq && apt-get install -y build-essential libvips
+
+WORKDIR /rails
+
+ENV RAILS_LOG_TO_STDOUT="1" \
+    RAILS_SERVE_STATIC_FILES="true" \
+    RAILS_ENV="production" \
+    BUNDLE_WITHOUT="development:test"
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+COPY . .
+
+# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+
+# Entry point starts app on 0.0.0.0:3000
+ENTRYPOINT ["rails", "server"]
+EXPOSE 3000

@@ -70,6 +70,11 @@ module Rails
       template "gitattributes", ".gitattributes"
     end
 
+    def dockerfiles
+      template "Dockerfile"
+      template "dockerignore", ".dockerignore"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -314,6 +319,10 @@ module Rails
         unless options[:skip_git]
           build(:gitignore)
           build(:gitattributes)
+        end
+
+        unless options[:skip_docker]
+          build(:dockerfiles)
         end
 
         build(:gemfile)
