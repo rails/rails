@@ -465,6 +465,8 @@ module Rails
     # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
     # production as part of a build step that otherwise does not need access to the production secrets.
     #
+    # Dockerfile example: <tt>RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile</tt>.
+    #
     # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
     # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
