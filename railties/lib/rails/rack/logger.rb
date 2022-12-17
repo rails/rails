@@ -34,9 +34,15 @@ module Rails
           handle.start
 
           logger.info { started_request_message(request) }
-          status, headers, body = @app.call(env)
+          status, headers, body = response = @app.call(env)
           body = ::Rack::BodyProxy.new(body, &handle.method(:finish))
-          [status, headers, body]
+
+          if response.frozen?
+            [status, headers, body]
+          else
+            response[2] = body
+            response
+          end
         rescue Exception
           handle.finish
           raise

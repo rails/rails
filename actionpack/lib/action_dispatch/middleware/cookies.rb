@@ -699,7 +699,7 @@ module ActionDispatch
     def call(env)
       request = ActionDispatch::Request.new env
 
-      status, headers, body = @app.call(env)
+      _, headers, _ = response = @app.call(env)
 
       if request.have_cookie_jar?
         cookie_jar = request.cookie_jar
@@ -711,7 +711,7 @@ module ActionDispatch
         end
       end
 
-      [status, headers, body]
+      response
     end
   end
 end
