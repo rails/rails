@@ -762,6 +762,20 @@ module ApplicationTests
       assert_match(/Missing `secret_key_base`./, error.message)
     end
 
+    test "dont raise in production when dummy secret_key_base is used" do
+      ENV["SECRET_KEY_BASE_DUMMY"] = "1"
+
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+      RUBY
+
+      assert_nothing_raised do
+        app "production"
+      end
+    ensure
+      ENV["SECRET_KEY_BASE_DUMMY"] = nil
+    end
+
     test "raise when secret_key_base is not a type of string" do
       add_to_config <<-RUBY
         Rails.application.credentials.secret_key_base = 123
