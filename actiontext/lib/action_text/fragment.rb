@@ -37,7 +37,8 @@ module ActionText
     def replace(selector)
       update do |source|
         source.css(selector).each do |node|
-          node.replace(yield(node).to_s)
+          replacement_node = yield(node)
+          node.replace(replacement_node.to_s) if node != replacement_node
         end
       end
     end
