@@ -185,7 +185,9 @@ module Rails
     def credentials_diff_enroll
       return if options[:skip_decrypted_diffs] || options[:skip_git] || options[:dummy_app] || options[:pretend]
 
-      rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      @generator.shell.mute do
+        rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      end
     end
 
     def database_yml
