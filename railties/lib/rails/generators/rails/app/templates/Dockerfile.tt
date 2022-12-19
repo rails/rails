@@ -1,13 +1,10 @@
 # Make sure it matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
-<% if using_node? -%>
-ARG NODE_MAJOR_VERSION=19
-
-<% end -%>
 FROM ruby:$RUBY_VERSION
 
 <% if using_node? -%>
 # Install JavaScript dependencies and libvips for Active Storage
+ARG NODE_MAJOR_VERSION=19
 RUN curl -sL https://deb.nodesource.com/setup_$NODE_MAJOR_VERSION.x | bash -
 RUN apt-get update -qq && \
     apt-get install -y build-essential libvips nodejs && \
