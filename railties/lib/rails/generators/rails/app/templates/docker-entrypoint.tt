@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Used by the Dockerfile to start the application with a prepared database
+
+# Create new or migrate existing database
+./bin/rails db:prepare
+
+# Start the server
+exec ./bin/rails server "$@"
