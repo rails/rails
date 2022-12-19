@@ -73,6 +73,35 @@ module ActiveSupport
     # If any options match the kwargs of the operative secret generator, those
     # options will be passed to the secret generator instead of to the message
     # verifier.
+    #
+    # For fine-grained per-salt rotations, a block form is supported. The block
+    # will receive the salt, and should return an appropriate options Hash. The
+    # block may also return +nil+ to indicate that the rotation does not apply
+    # to the given salt. For example:
+    #
+    #   verifiers = ActiveSupport::MessageVerifiers.new { ... }
+    #
+    #   verifiers.rotate do |salt|
+    #     case salt
+    #     when :foo
+    #       { serializer: JSON, url_safe: true }
+    #     when :bar
+    #       { serializer: Marshal, url_safe: true }
+    #     end
+    #   end
+    #
+    #   verifiers.rotate(serializer: Marshal, url_safe: false)
+    #
+    #   # Uses `serializer: JSON, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: false`.
+    #   verifiers[:foo]
+    #
+    #   # Uses `serializer: Marshal, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: false`.
+    #   verifiers[:bar]
+    #
+    #   # Uses `serializer: Marshal, url_safe: false`.
+    #   verifiers[:baz]
 
     ##
     # :method: rotate_defaults

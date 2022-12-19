@@ -60,7 +60,9 @@ module ActiveSupport
 
     ##
     # :method: rotate
-    # :call-seq: rotate(**options)
+    # :call-seq:
+    #   rotate(**options)
+    #   rotate(&block)
     #
     # Adds +options+ to the list of option sets. Messages will be encrypted
     # using the first set in the list. When decrypting, however, each set will
@@ -75,6 +77,35 @@ module ActiveSupport
     # If any options match the kwargs of the operative secret generator, those
     # options will be passed to the secret generator instead of to the message
     # encryptor.
+    #
+    # For fine-grained per-salt rotations, a block form is supported. The block
+    # will receive the salt, and should return an appropriate options Hash. The
+    # block may also return +nil+ to indicate that the rotation does not apply
+    # to the given salt. For example:
+    #
+    #   encryptors = ActiveSupport::MessageEncryptors.new { ... }
+    #
+    #   encryptors.rotate do |salt|
+    #     case salt
+    #     when :foo
+    #       { serializer: JSON, url_safe: true }
+    #     when :bar
+    #       { serializer: Marshal, url_safe: true }
+    #     end
+    #   end
+    #
+    #   encryptors.rotate(serializer: Marshal, url_safe: false)
+    #
+    #   # Uses `serializer: JSON, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: false`.
+    #   encryptors[:foo]
+    #
+    #   # Uses `serializer: Marshal, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: false`.
+    #   encryptors[:bar]
+    #
+    #   # Uses `serializer: Marshal, url_safe: false`.
+    #   encryptors[:baz]
 
     ##
     # :method: rotate_defaults
