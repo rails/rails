@@ -26,6 +26,6 @@ COPY . .
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
-# Entry point starts app on 0.0.0.0:3000
-ENTRYPOINT ["rails", "server"]
+# Entrypoint prepares database and starts app on 0.0.0.0:3000
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 EXPOSE 3000
