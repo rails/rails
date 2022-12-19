@@ -1300,15 +1300,34 @@ up performance but adds a risk of data loss if the database crashes. It is
 highly recommended that you do not enable this in a production environment.
 Defaults to `false` in all environments.
 
+To enable this for tests:
+
+```ruby
+# config/environments/test.rb
+
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.create_unlogged_tables = true
+end
+```
+
 #### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
 
 Controls what native type the Active Record PostgreSQL adapter should use when you call `datetime` in
 a migration or schema. It takes a symbol which must correspond to one of the
 configured `NATIVE_DATABASE_TYPES`. The default is `:timestamp`, meaning
 `t.datetime` in a migration will create a "timestamp without time zone" column.
-To use "timestamp with time zone", change this to `:timestamptz` in an
-initializer. You should run `bin/rails db:migrate` to rebuild your schema.rb
-if you change this.
+
+To use "timestamp with time zone":
+
+```ruby
+# config/application.rb
+
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.datetime_type = :timestamptz
+end
+```
+
+You should run `bin/rails db:migrate` to rebuild your schema.rb if you change this.
 
 #### `ActiveRecord::SchemaDumper.ignore_tables`
 
