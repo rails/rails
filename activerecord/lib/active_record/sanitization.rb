@@ -8,6 +8,9 @@ module ActiveRecord
       # Accepts an array or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a WHERE clause.
       #
+      # The result depends on the database flavor, may not preserve provided
+      # value types and may even result in invalid queries.
+      #
       #   sanitize_sql_for_conditions(["name=? and group_id=?", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id=4"
       #
