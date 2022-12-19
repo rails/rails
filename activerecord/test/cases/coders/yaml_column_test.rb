@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
+require "models/topic"
 
 module ActiveRecord
   module Coders
@@ -142,6 +144,17 @@ module ActiveRecord
         assert_raises(Psych::DisallowedClass) do
           coder.load(missing_class_yaml)
         end
+      end
+
+      def test_serialized_hash_nested_attributes
+        Author.accepts_nested_attributes_for :topics
+        Topic.serialize :content, Hash
+
+        author = Author.new name: 'Pen', topics_attributes: [{content: {test: 1}}]
+        assert_equal Hash, author.topics[0].content.class
+        assert_equal({'test' => 1}, author.topics[0].content)
+
+        Topic.serialize :content
       end
     end
   end
