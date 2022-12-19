@@ -31,6 +31,11 @@ ENV PATH="/bundle/ruby/3.1.0/bin:${PATH}"
 # Copy application code
 COPY . .
 
+<% if depend_on_bootsnap? -%>
+# Precompile bootsnap code for faster boot times
+RUN bundle exec bootsnap precompile --gemfile app/ lib/
+
+<% end -%>
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
