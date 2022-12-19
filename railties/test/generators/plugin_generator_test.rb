@@ -613,6 +613,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/README.md"
     assert_no_file "test/dummy/config/master.key"
     assert_no_file "test/dummy/config/credentials.yml.enc"
+    assert_no_file "test/dummy/Dockerfile"
+    assert_no_file "test/dummy/.dockerignore"
     assert_no_directory "test/dummy/lib/tasks"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"

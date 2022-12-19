@@ -1017,6 +1017,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_skip_docker
+    run_generator [destination_root, "--skip-docker"]
+
+    assert_no_file ".dockerignore"
+    assert_no_file "Dockerfile"
+    assert_no_file "bin/docker-entrypoint"
+  end
+
   def test_system_tests_directory_generated
     run_generator
 

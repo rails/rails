@@ -351,9 +351,8 @@ module Rails
       remove_task :update_active_storage
 
       def create_dockerfiles
-        unless options[:skip_docker]
-          build(:dockerfiles)
-        end
+        return if options[:skip_docker] || options[:dummy_app]
+        build(:dockerfiles)
       end
 
       def create_config_files
