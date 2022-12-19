@@ -18,9 +18,11 @@ ENV RAILS_LOG_TO_STDOUT="1" \
     RAILS_ENV="production" \
     BUNDLE_WITHOUT="development:test"
 
+# Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
+# Copy application code
 COPY . .
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
