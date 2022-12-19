@@ -110,9 +110,11 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     def default_files
       %w(.gitignore
         .ruby-version
+        .dockerignore
         README.md
         Gemfile
         Rakefile
+        Dockerfile
         config.ru
         app/channels
         app/controllers
@@ -121,6 +123,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
+        bin/docker-entrypoint
         bin/rails
         bin/rake
         bin/setup
