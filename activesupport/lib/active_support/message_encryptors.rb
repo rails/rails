@@ -5,6 +5,29 @@ require "active_support/messages/rotation_coordinator"
 module ActiveSupport
   class MessageEncryptors < Messages::RotationCoordinator
     ##
+    # :attr_accessor: transitional
+    #
+    # If true, the first two rotation option sets are swapped when building
+    # message encryptors. For example, with the following configuration, message
+    # encryptors will encrypt messages using <tt>serializer: Marshal, url_safe: true</tt>,
+    # and will able to decrypt messages that were encrypted using any of the
+    # three option sets:
+    #
+    #   encryptors = ActiveSupport::MessageEncryptors.new { ... }
+    #   encryptors.rotate(serializer: JSON, url_safe: true)
+    #   encryptors.rotate(serializer: Marshal, url_safe: true)
+    #   encryptors.rotate(serializer: Marshal, url_safe: false)
+    #   encryptors.transitional = true
+    #
+    # This can be useful when performing a rolling deploy of an application,
+    # wherein servers that have not yet been updated must still be able to
+    # decrypt messages from updated servers. In such a scenario, first perform a
+    # rolling deploy with the new rotation (e.g. <tt>serializer: JSON, url_safe: true</tt>)
+    # as the first rotation and <tt>transitional = true</tt>. Then, after all
+    # servers have been updated, perform a second rolling deploy with
+    # <tt>transitional = false</tt>.
+
+    ##
     # :method: initialize
     # :call-seq: initialize(&secret_generator)
     #

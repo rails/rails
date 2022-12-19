@@ -34,6 +34,37 @@ module RotationCoordinatorTests
       assert_nil roundtrip("message", codec, obsolete_codec)
     end
 
+    test "#transitional swaps the first two rotations when enabled" do
+      coordinator = make_coordinator.rotate(digest: "SHA1")
+      coordinator.rotate(digest: "MD5")
+      coordinator.rotate(digest: "MD4")
+      coordinator.transitional = true
+
+      codec = coordinator["salt"]
+      sha1_codec = (make_coordinator.rotate(digest: "SHA1"))["salt"]
+      md5_codec = (make_coordinator.rotate(digest: "MD5"))["salt"]
+      md4_codec = (make_coordinator.rotate(digest: "MD4"))["salt"]
+
+      assert_equal "message", roundtrip("message", codec, md5_codec)
+      assert_nil roundtrip("message", codec, sha1_codec)
+
+      assert_equal "message", roundtrip("message", sha1_codec, codec)
+      assert_equal "message", roundtrip("message", md5_codec, codec)
+      assert_equal "message", roundtrip("message", md4_codec, codec)
+    end
+
+    test "#transitional works with a single rotation" do
+      @coordinator.transitional = true
+
+      assert_nothing_raised do
+        codec = @coordinator["salt"]
+        assert_equal "message", roundtrip("message", codec)
+
+        different_codec = (make_coordinator.rotate(digest: "MD5"))["salt"]
+        assert_nil roundtrip("message", different_codec, codec)
+      end
+    end
+
     test "can clear rotations" do
       @coordinator.clear_rotations.rotate(digest: "MD5")
       codec = @coordinator["salt"]
