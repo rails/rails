@@ -41,7 +41,6 @@ module ActiveSupport
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
-  autoload :ExecutionContext
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :ErrorReporter
@@ -64,6 +63,7 @@ module ActiveSupport
     autoload :Configurable
     autoload :Deprecation
     autoload :Digest
+    autoload :ExecutionContext
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
