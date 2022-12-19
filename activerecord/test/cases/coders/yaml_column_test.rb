@@ -150,9 +150,9 @@ module ActiveRecord
         Author.accepts_nested_attributes_for :topics
         Topic.serialize :content, Hash
 
-        author = Author.new name: 'Pen', topics_attributes: [{content: {test: 1}}]
+        author = Author.new name: "Pen", topics_attributes: [{ content: { test: 1 } }]
         assert_equal Hash, author.topics[0].content.class
-        assert_equal({'test' => 1}, author.topics[0].content)
+        assert_equal({ "test" => 1 }, author.topics[0].content)
 
         Topic.serialize :content
       end
