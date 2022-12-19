@@ -37,6 +37,9 @@ module Rails
         class_option :skip_git,            type: :boolean, aliases: "-G", default: nil,
                                            desc: "Skip git init, .gitignore and .gitattributes"
 
+        class_option :skip_docker,         type: :boolean, default: nil,
+                                           desc: "Skip Dockerfile, .dockerignore and bin/docker-entrypoint"
+
         class_option :skip_keeps,          type: :boolean, default: nil,
                                            desc: "Skip source control .keep files"
 

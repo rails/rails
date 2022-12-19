@@ -7,10 +7,12 @@ require "generators/shared_generator_tests"
 DEFAULT_APP_FILES = %w(
   .gitattributes
   .gitignore
+  .dockerignore
   .ruby-version
   README.md
   Gemfile
   Rakefile
+  Dockerfile
   config.ru
   app/assets/config/manifest.js
   app/assets/images
@@ -34,6 +36,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/application.html.erb
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
+  bin/docker-entrypoint
   bin/rails
   bin/rake
   bin/setup
@@ -1002,6 +1005,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file ".gitignore" do |content|
+      assert_match(/config\/master\.key/, content)
+    end
+  end
+
+  def test_dockerignore
+    run_generator
+
+    assert_file ".dockerignore" do |content|
       assert_match(/config\/master\.key/, content)
     end
   end
