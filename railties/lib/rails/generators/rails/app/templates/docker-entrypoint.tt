@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# Used by the Dockerfile to start the application with a prepared database
-
 if [ $# -eq 0 ]; then
   # Create new or migrate existing database
   ./bin/rails db:prepare
