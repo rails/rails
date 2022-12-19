@@ -132,6 +132,13 @@ module SharedGeneratorTests
     assert_no_file("app/models/concerns/.keep")
   end
 
+  def test_skip_docker
+    run_generator [destination_root, "--skip-docker", "--full"]
+    assert_no_file(".dockerignore")
+    assert_no_file("Dockerfile")
+    assert_no_file("bin/docker-entrypoint")
+  end
+
   def test_default_frameworks_are_required_when_others_are_removed
     run_generator [
       destination_root,
