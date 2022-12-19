@@ -4,11 +4,16 @@ FROM ruby:<%= Gem.ruby_version %>
 <% if using_node? -%>
 # Install JavaScript dependencies and libvips for Active Storage
 RUN curl -sL https://deb.nodesource.com/setup_19.x | bash -
-RUN apt-get update -qq && apt-get install -y build-essential libvips nodejs && npm install -g yarn
+RUN apt-get update -qq && \
+    apt-get install -y build-essential libvips nodejs && \
+    rm -rf /var/lib/apt/lists/* && \
+    npm install -g yarn
 
 <% elsif !skip_active_storage? -%>
 # Install libvips for Active Storage preview support
-RUN apt-get update -qq && apt-get install -y build-essential libvips
+RUN apt-get update -qq && \
+    apt-get install -y build-essential libvips && \
+    rm -rf /var/lib/apt/lists/*
 
 <% end -%>
 WORKDIR /rails
