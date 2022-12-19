@@ -1,9 +1,16 @@
 # Make sure it matches the Ruby version in .ruby-version and Gemfile
 FROM ruby:<%= Gem.ruby_version %>
 
+<% if using_node? -%>
+# Install JavaScript dependencies and libvips for Active Storage
+RUN curl -sL https://deb.nodesource.com/setup_19.x | bash -
+RUN apt-get update -qq && apt-get install -y build-essential libvips nodejs && npm install -g yarn
+
+<% elsif !skip_active_storage? -%>
 # Install libvips for Active Storage preview support
 RUN apt-get update -qq && apt-get install -y build-essential libvips
 
+<% end -%>
 WORKDIR /rails
 
 ENV RAILS_LOG_TO_STDOUT="1" \
