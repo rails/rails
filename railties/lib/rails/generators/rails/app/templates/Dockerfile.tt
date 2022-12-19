@@ -26,6 +26,7 @@ ENV RAILS_LOG_TO_STDOUT="1" \
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
+ENV PATH="/bundle/ruby/3.1.0/bin:${PATH}"
 
 # Copy application code
 COPY . .
