@@ -1,9 +1,14 @@
 # Make sure it matches the Ruby version in .ruby-version and Gemfile
-FROM ruby:<%= Gem.ruby_version %>
+ARG RUBY_VERSION=<%= Gem.ruby_version %>
+<% if using_node? -%>
+ARG NODE_MAJOR_VERSION=19
+
+<% end -%>
+FROM ruby:$RUBY_VERSION
 
 <% if using_node? -%>
 # Install JavaScript dependencies and libvips for Active Storage
-RUN curl -sL https://deb.nodesource.com/setup_19.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_$NODE_MAJOR_VERSION.x | bash -
 RUN apt-get update -qq && \
     apt-get install -y build-essential libvips nodejs && \
     rm -rf /var/lib/apt/lists/* && \
@@ -26,7 +31,6 @@ ENV RAILS_LOG_TO_STDOUT="1" \
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
-ENV PATH="/bundle/ruby/3.1.0/bin:${PATH}"
 
 # Copy application code
 COPY . .
