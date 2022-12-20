@@ -640,6 +640,12 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
+      # Skip +ActiveSupport::Cache::Strategy::LocalCache::Middleware+,
+      # in specific cache store implementation execute operation.
+      def bypass_local_cache(&block)
+        block.call
+      end
+
       private
         def default_coder
           Coders[Cache.format_version]

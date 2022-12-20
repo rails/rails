@@ -66,7 +66,7 @@ module LocalCacheBehavior
       @cache.write(key, value)
       assert_equal value, @cache.read(key)
 
-      @cache.send(:bypass_local_cache) { @cache.write(key, other_value) }
+      @cache.bypass_local_cache { @cache.write(key, other_value) }
       assert_equal value, @cache.read(key)
 
       @cache.cleanup
@@ -109,7 +109,7 @@ module LocalCacheBehavior
     value = SecureRandom.alphanumeric
     @cache.with_local_cache do
       assert_nil @cache.read(key)
-      @cache.send(:bypass_local_cache) { @cache.write(key, value) }
+      @cache.bypass_local_cache { @cache.write(key, value) }
       assert_nil @cache.read(key)
     end
   end

@@ -112,6 +112,10 @@ module ActiveSupport
           value
         end
 
+        def bypass_local_cache(&block) # :nodoc:
+          use_temporary_local_cache(nil, &block)
+        end
+
         private
           def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
@@ -173,10 +177,6 @@ module ActiveSupport
 
           def local_cache
             LocalCacheRegistry.cache_for(local_cache_key)
-          end
-
-          def bypass_local_cache(&block)
-            use_temporary_local_cache(nil, &block)
           end
 
           def use_temporary_local_cache(temporary_cache)
