@@ -49,8 +49,8 @@ module Rails
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           middleware.use ::Rails::Rack::Logger, config.log_tags
-          middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
-          middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
+          middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app, show_exceptions: config.action_dispatch.show_exceptions
+          middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format, show_exceptions: config.action_dispatch.show_exceptions
 
           if config.consider_all_requests_local
             middleware.use ::ActionDispatch::ActionableExceptions

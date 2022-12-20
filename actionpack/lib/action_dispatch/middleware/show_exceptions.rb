@@ -16,16 +16,17 @@ module ActionDispatch
   # If any exception happens inside the exceptions app, this middleware
   # catches the exceptions and returns a failsafe response.
   class ShowExceptions
-    def initialize(app, exceptions_app)
+    def initialize(app, exceptions_app, show_exceptions: true)
       @app = app
       @exceptions_app = exceptions_app
+      @show_exceptions = show_exceptions != false
     end
 
     def call(env)
       request = ActionDispatch::Request.new env
       @app.call(env)
     rescue Exception => exception
-      if request.show_exceptions?
+      if @show_exceptions
         render_exception(request, exception)
       else
         raise exception

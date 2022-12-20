@@ -16,11 +16,12 @@ module ActionDispatch
       interceptors << interceptor
     end
 
-    def initialize(app, routes_app = nil, response_format = :default, interceptors = self.class.interceptors)
+    def initialize(app, routes_app = nil, response_format = :default, interceptors = self.class.interceptors, show_exceptions: true)
       @app             = app
       @routes_app      = routes_app
       @response_format = response_format
       @interceptors    = interceptors
+      @show_exceptions = show_exceptions != false
     end
 
     def call(env)
@@ -38,7 +39,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 
       invoke_interceptors(request, exception, wrapper)
-      raise exception unless request.show_exceptions?
+      raise exception unless @show_exception
       render_exception(request, exception, wrapper)
     end
 
