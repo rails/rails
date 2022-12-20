@@ -359,9 +359,10 @@ In this example, we still want `app/models/shapes/circle.rb` to define `Circle`,
 ```ruby
 # config/initializers/preload_stis.rb
 
+shapes = "#{Rails.root}/app/models/shapes"
+Rails.autoloaders.main.collapse(shapes) # Not a namespace.
+
 unless Rails.application.config.eager_load
-  shapes = "#{Rails.root}/app/models/shapes"
-  Rails.autoloaders.main.collapse(shapes) # Not a namespace.
   Rails.application.config.to_prepare do
     Rails.autoloaders.main.eager_load_dir(shapes)
   end
