@@ -949,8 +949,7 @@ directly from the client to the cloud.
     Using the npm package:
 
     ```js
-    import * as ActiveStorage from "@rails/activestorage"
-    ActiveStorage.start()
+    import "@rails/activestorage"
     ```
 
 2. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
