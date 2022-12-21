@@ -13,6 +13,8 @@ module ActiveSupport
     LOCAL_ENVIRONMENTS = %w[ development test ]
 
     def initialize(env)
+      raise(ArgumentError, "'local' is a reserved environment name") if env == "local"
+
       super(env)
 
       DEFAULT_ENVIRONMENTS.each do |default|
