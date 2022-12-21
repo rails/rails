@@ -56,6 +56,7 @@ module ActiveRecord
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
   autoload :NestedAttributes
+  autoload :Normalization
   autoload :NoTouching
   autoload :Persistence
   autoload :QueryCache

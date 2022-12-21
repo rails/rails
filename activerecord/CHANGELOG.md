@@ -1,3 +1,29 @@
+*   Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
+
+    A normalization is applied when the attribute is assigned or updated, and
+    the normalized value will be persisted to the database.  The normalization
+    is also applied to the corresponding keyword argument of finder methods.
+    This allows a record to be created and later queried using unnormalized
+    values.  For example:
+
+      ```ruby
+      class User < ActiveRecord::Base
+        normalizes :email, with: -> email { email.strip.downcase }
+      end
+
+      user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
+      user.email                  # => "cruise-control@example.com"
+
+      user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
+      user.email                  # => "cruise-control@example.com"
+      user.email_before_type_cast # => "cruise-control@example.com"
+
+      User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
+      User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
+      ```
+
+    *Jonathan Hefner*
+
 *   Hide changes to before_committed! callback behaviour behind flag.
 
     In #46525, behavior around before_committed! callbacks was changed so that callbacks
