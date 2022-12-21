@@ -22,11 +22,6 @@ gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 <% end -%>
-<% unless skip_sprockets? || options.minimal? -%>
-
-# Use Sass to process CSS
-# gem "sassc-rails"
-<% end -%>
 <% unless skip_active_storage? -%>
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
