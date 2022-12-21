@@ -1,3 +1,7 @@
+*   Add `Rails.env.local?` shorthand for `Rails.env.development? || Rails.env.test?`.
+
+    *DHH*
+
 *   `ActiveSupport::Testing::TimeHelpers` now accepts named `with_usec` argument
     to `freeze_time`, `travel`, and `travel_to` methods. Passing true prevents
     truncating the destination time with `change(usec: 0)`.
