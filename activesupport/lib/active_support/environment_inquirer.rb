@@ -4,7 +4,9 @@ require "active_support/string_inquirer"
 
 module ActiveSupport
   class EnvironmentInquirer < StringInquirer # :nodoc:
-    DEFAULT_ENVIRONMENTS = ["development", "test", "production"]
+    # Optimization for the three default environments, so this inquirer doesn't need to rely on
+    # the slower delegation through method_missing that StringInquirer would normally entail.
+    DEFAULT_ENVIRONMENTS = %w[ development test production ]
     def initialize(env)
       super(env)
 
