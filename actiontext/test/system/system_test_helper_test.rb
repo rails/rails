@@ -3,6 +3,14 @@
 require "application_system_test_case"
 
 class ActionText::SystemTestHelperTest < ApplicationSystemTestCase
+  test "filling in a rich-text area focuses the trix-editor" do
+    visit new_message_url
+
+    fill_in_rich_text_area "message_content", with: "Hello world!"
+
+    assert_selector(:rich_text_area, "message[content]", &:focused?)
+  end
+
   test "filling in a rich-text area by ID" do
     visit new_message_url
     assert_selector "trix-editor#message_content"

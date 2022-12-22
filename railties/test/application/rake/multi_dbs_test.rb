@@ -834,8 +834,8 @@ module ApplicationTests
           rails("db:migrate")
           output = rails("db:version")
 
-          assert_match(/database: db\/development.sqlite3\nCurrent version: #{primary_version}/, output)
-          assert_match(/database: db\/development_animals.sqlite3\nCurrent version: #{animals_version}/, output)
+          assert_match(/database: storage\/development.sqlite3\nCurrent version: #{primary_version}/, output)
+          assert_match(/database: storage\/development_animals.sqlite3\nCurrent version: #{animals_version}/, output)
         end
       end
 
@@ -940,7 +940,7 @@ module ApplicationTests
         RUBY
 
         output = rails("db:seed")
-        assert_equal output, "db/development.sqlite3"
+        assert_equal output, "storage/development.sqlite3"
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env
@@ -955,17 +955,17 @@ module ApplicationTests
               %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do
@@ -975,22 +975,22 @@ module ApplicationTests
             <% if Rails.application.config.database %>
               database: <%= Rails.application.config.database %>
             <% else %>
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
             <% end %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
 
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing ERB in database keys" do
@@ -998,12 +998,12 @@ module ApplicationTests
           development:
             <% 5.times do |i| %>
             shard_<%= i %>:
-              database: db/development_shard_<%= i %>.sqlite3
+              database: storage/development_shard_<%= i %>.sqlite3
               adapter: sqlite3
             <% end %>
         YAML
 
-        db_create_and_drop_namespace("shard_3", "db/development_shard_3.sqlite3")
+        db_create_and_drop_namespace("shard_3", "storage/development_shard_3.sqlite3")
       end
 
       test "schema generation when dump_schema_after_migration is true schema_dump is false" do
@@ -1137,71 +1137,71 @@ module ApplicationTests
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>db/default.sqlite3<% end %>
+              database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>storage/default.sqlite3<% end %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML with single-line ERB" do
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
+              <%= Rails.application.config.database ? 'database: storage/development.sqlite3' : 'database: storage/development.sqlite3' %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "db:create and db:drop don't raise errors when loading YAML which contains a key's value as an ERB statement" do
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: <%= Rails.application.config.database ? 'db/development.sqlite3' : 'db/development.sqlite3' %>
+              database: <%= Rails.application.config.database ? 'storage/development.sqlite3' : 'storage/development.sqlite3' %>
               custom_option: <%= ENV['CUSTOM_OPTION'] %>
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+        db_create_and_drop_namespace("primary", "storage/development.sqlite3")
       end
 
       test "when there is no primary config, the first is chosen as the default" do
         app_file "config/database.yml", <<-YAML
           development:
             default:
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
         YAML
@@ -1214,10 +1214,10 @@ module ApplicationTests
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
               database_tasks: false
               schema_dump: true ### database_tasks should override all sub-settings
@@ -1268,18 +1268,18 @@ module ApplicationTests
         app_file "config/database.yml", <<-YAML
           development:
             primary:
-              database: db/default.sqlite3
+              database: storage/default.sqlite3
               adapter: sqlite3
             animals:
-              database: db/development_animals.sqlite3
+              database: storage/development_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
           test:
             primary:
-              database: db/default_test.sqlite3
+              database: storage/default_test.sqlite3
               adapter: sqlite3
             animals:
-              database: db/test_animals.sqlite3
+              database: storage/test_animals.sqlite3
               adapter: sqlite3
               migrations_paths: db/animals_migrate
         YAML

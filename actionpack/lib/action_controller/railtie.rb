@@ -116,13 +116,22 @@ module ActionController
         app.config.action_controller.log_query_tags_around_actions
 
       if query_logs_tags_enabled
-        app.config.active_record.query_log_tags |= [:controller, :action]
+        app.config.active_record.query_log_tags |= [:controller] unless app.config.active_record.query_log_tags.include?(:namespaced_controller)
+        app.config.active_record.query_log_tags |= [:action]
 
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings.merge!(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
-            namespaced_controller: ->(context) { context[:controller].class.name if context[:controller] }
+            namespaced_controller: ->(context) {
+              if context[:controller]
+                controller_class = context[:controller].class
+                # based on ActionController::Metal#controller_name, but does not demodulize
+                unless controller_class.anonymous?
+                  controller_class.name.delete_suffix("Controller").underscore
+                end
+              end
+            }
           )
         end
       end

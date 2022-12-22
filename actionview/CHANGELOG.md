@@ -1,3 +1,35 @@
+*   `select` can now be called with a single hash containing options and some HTML options
+
+    Previously this would not work as expected:
+
+    ```erb
+    <%= select :post, :author, authors, required: true %>
+    ```
+
+    Instead you needed to do this:
+
+    ```erb
+    <%= select :post, :author, authors, {}, required: true %>
+    ```
+
+    Now, either form is accepted, for the following HTML attributes: `required`, `multiple`, `size`.
+
+    *Alex Ghiculescu*
+
+*   Datetime form helpers (`time_field`, `date_field`, `datetime_field`, `week_field`, `month_field`) now accept an instance of Time/Date/DateTime as `:value` option.
+
+    Before:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current.strftime("%Y-%m-%dT%T") %>
+    ```
+
+    After:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current %>
+    ```
+
+    *Andrey Samsonov*
+
 *   Choices of `select` can optionally contain html attributes as the last element
     of the child arrays when using grouped/nested collections
 

@@ -64,9 +64,10 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
+- [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
+- [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
-- [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
@@ -352,7 +353,7 @@ Sets the path where your app's JavaScript lives relative to the `app` directory.
 
 #### `config.log_file_size`
 
-Defines the maximum size of the Rails log file. Defaults to 100 MB in development and test, and unlimited in all other environments.
+Defines the maximum size of the Rails log file in bytes. Defaults to `104_857_600` (100 MiB) in development and test, and unlimited in all other environments.
 
 #### `config.log_formatter`
 
@@ -1006,6 +1007,17 @@ The options are `:schema_search_path` (the default) which dumps any schemas list
 `:all` which always dumps all schemas regardless of the `schema_search_path`,
 or a string of comma separated schemas.
 
+#### `config.active_record.before_committed_on_all_records`
+
+Enable before_committed! callbacks on all enrolled records in a transaction.
+The previous behavior was to only run the callbacks on the first copy of a record
+if there were multiple copies of the same record enrolled in the transaction.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
 #### `config.active_record.belongs_to_required_by_default`
 
 Is a boolean value and controls whether a record fails validation if
@@ -1288,15 +1300,34 @@ up performance but adds a risk of data loss if the database crashes. It is
 highly recommended that you do not enable this in a production environment.
 Defaults to `false` in all environments.
 
+To enable this for tests:
+
+```ruby
+# config/environments/test.rb
+
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.create_unlogged_tables = true
+end
+```
+
 #### `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
 
 Controls what native type the Active Record PostgreSQL adapter should use when you call `datetime` in
 a migration or schema. It takes a symbol which must correspond to one of the
 configured `NATIVE_DATABASE_TYPES`. The default is `:timestamp`, meaning
 `t.datetime` in a migration will create a "timestamp without time zone" column.
-To use "timestamp with time zone", change this to `:timestamptz` in an
-initializer. You should run `bin/rails db:migrate` to rebuild your schema.rb
-if you change this.
+
+To use "timestamp with time zone":
+
+```ruby
+# config/application.rb
+
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.datetime_type = :timestamptz
+end
+```
+
+You should run `bin/rails db:migrate` to rebuild your schema.rb if you change this.
 
 #### `ActiveRecord::SchemaDumper.ignore_tables`
 
@@ -1910,7 +1941,7 @@ The default value depends on the `config.load_defaults` target version:
 Allows detailed configuration for the `sendmail` delivery method. It accepts a hash of options, which can include any of these options:
 
 * `:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.
-* `:arguments` - The command line arguments. Defaults to `-i`.
+* `:arguments` - The command line arguments. Defaults to `%w[ -i ]`.
 
 #### `config.action_mailer.raise_delivery_errors`
 
@@ -2772,7 +2803,7 @@ Here's the section of the default configuration file (`config/database.yml`) wit
 ```yaml
 development:
   adapter: sqlite3
-  database: db/development.sqlite3
+  database: storage/development.sqlite3
   pool: 5
   timeout: 5000
 ```
@@ -2844,7 +2875,7 @@ If you choose to use SQLite3 and are using JRuby, your `config/database.yml` wil
 ```yaml
 development:
   adapter: jdbcsqlite3
-  database: db/development.sqlite3
+  database: storage/development.sqlite3
 ```
 
 #### Configuring a MySQL or MariaDB Database for JRuby Platform
@@ -3198,7 +3229,7 @@ Active Record database connections are managed by `ActiveRecord::ConnectionAdapt
 ```ruby
 development:
   adapter: sqlite3
-  database: db/development.sqlite3
+  database: storage/development.sqlite3
   pool: 5
   timeout: 5000
 ```

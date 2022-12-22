@@ -20,6 +20,72 @@
     Fixes #45937.
 
     *suzunedev*
+*   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
+    argument, more closely matching their `Enumerable` equivalents.
+
+    *George Claghorn*
+
+*   Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
+
+    A normalization is applied when the attribute is assigned or updated, and
+    the normalized value will be persisted to the database.  The normalization
+    is also applied to the corresponding keyword argument of finder methods.
+    This allows a record to be created and later queried using unnormalized
+    values.  For example:
+
+      ```ruby
+      class User < ActiveRecord::Base
+        normalizes :email, with: -> email { email.strip.downcase }
+      end
+
+      user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
+      user.email                  # => "cruise-control@example.com"
+
+      user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
+      user.email                  # => "cruise-control@example.com"
+      user.email_before_type_cast # => "cruise-control@example.com"
+
+      User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
+      User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
+      ```
+
+    *Jonathan Hefner*
+
+*   Hide changes to before_committed! callback behaviour behind flag.
+
+    In #46525, behavior around before_committed! callbacks was changed so that callbacks
+    would run on every enrolled record in a transaction, not just the first copy of a record.
+    This change in behavior is now controlled by a configuration option,
+    `config.active_record.before_committed_on_all_records`. It will be enabled by default on Rails 7.1.
+
+    *Adrianna Chang*
+
+*   The `namespaced_controller` Query Log tag now matches the `controller` format
+
+    For example, a request processed by `NameSpaced::UsersController` will now log as:
+
+    ```
+    :controller # "users"
+    :namespaced_controller # "name_spaced/users"
+    ```
+
+    *Alex Ghiculescu*
+
+*   Return only unique ids from ActiveRecord::Calculations#ids
+
+    Updated ActiveRecord::Calculations#ids to only return the unique ids of the base model
+    when using eager_load, preload and includes.
+
+    ```ruby
+    Post.find_by(id: 1).comments.count
+    # => 5
+    Post.includes(:comments).where(id: 1).pluck(:id)
+    # => [1, 1, 1, 1, 1]
+    Post.includes(:comments).where(id: 1).ids
+    # => [1]
+    ```
+
+    *Joshua Young*
 
 *   Stop using `LOWER()` for case-insensitive queries on `citext` columns
 
@@ -704,7 +770,7 @@
     ```yaml
     development:
         <<: *default
-        database: db/development.sqlite3
+        database: storage/development.sqlite3
         foreign_keys: false
     ```
 

@@ -171,8 +171,10 @@ module Mime
 
       def parse(accept_header)
         if !accept_header.include?(",")
-          accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
-          return [] unless accept_header
+          if (index = accept_header.index(PARAMETER_SEPARATOR_REGEXP))
+            accept_header = accept_header[0, index]
+          end
+          return [] if accept_header.blank?
           parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
         else
           list, index = [], 0

@@ -237,11 +237,14 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
   test "running edit after enrolling in diffing sets diff driver" do
     run_diff_command(enroll: true)
-    run_edit_command
+
+    assert_match %r/git diff driver/i, run_edit_command
 
     Dir.chdir(app_path) do
       assert_equal "bin/rails credentials:diff", `git config --get 'diff.rails_credentials.textconv'`.strip
     end
+
+    assert_no_match %r/git diff driver/i, run_edit_command
   end
 
   test "diff from git diff left file" do

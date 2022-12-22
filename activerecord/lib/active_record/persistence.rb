@@ -456,13 +456,14 @@ module ActiveRecord
       end
 
       # Accepts a list of attribute names to be used in the WHERE clause
-      # of SELECT / UPDATE / DELETE queries.
+      # of SELECT / UPDATE / DELETE queries and in the ORDER BY clause for `#first` and `#last` finder methods.
       #
       #   class Developer < ActiveRecord::Base
       #     query_constraints :company_id, :id
       #   end
       #
       #   developer = Developer.first
+      #   SELECT "developers".* FROM "developers" ORDER BY "developers"."company_id" ASC, "developers"."id" ASC LIMIT 1
       #   developer.inspect # => #<Developer id: 1, company_id: 1, ...>
       #
       #   developer.update!(name: "Nikita")
@@ -485,6 +486,8 @@ module ActiveRecord
       #   developer.reload
       #   # => SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
       def query_constraints(*columns_list)
+        raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
+
         @_query_constraints_list = columns_list.map(&:to_s)
       end
 
@@ -1043,7 +1046,7 @@ module ActiveRecord
       self.class.connection.clear_query_cache
 
       fresh_object = if apply_scoping?(options)
-        _find_record(options)
+        _find_record((options || {}).merge(all_queries: true))
       else
         self.class.unscoped { _find_record(options) }
       end
@@ -1117,10 +1120,13 @@ module ActiveRecord
     end
 
     def _find_record(options)
+      all_queries = options ? options[:all_queries] : nil
+      base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
+
       if options && options[:lock]
-        self.class.preload(strict_loaded_associations).lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
+        base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
       else
-        self.class.preload(strict_loaded_associations).find_by!(_in_memory_query_constraints_hash)
+        base.find_by!(_in_memory_query_constraints_hash)
       end
     end
 

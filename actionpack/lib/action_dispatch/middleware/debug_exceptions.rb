@@ -24,7 +24,6 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
       if headers["X-Cascade"] == "pass"
@@ -34,6 +33,7 @@ module ActionDispatch
 
       response
     rescue Exception => exception
+      request = ActionDispatch::Request.new env
       backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 

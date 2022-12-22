@@ -762,6 +762,20 @@ module ApplicationTests
       assert_match(/Missing `secret_key_base`./, error.message)
     end
 
+    test "dont raise in production when dummy secret_key_base is used" do
+      ENV["SECRET_KEY_BASE_DUMMY"] = "1"
+
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+      RUBY
+
+      assert_nothing_raised do
+        app "production"
+      end
+    ensure
+      ENV["SECRET_KEY_BASE_DUMMY"] = nil
+    end
+
     test "raise when secret_key_base is not a type of string" do
       add_to_config <<-RUBY
         Rails.application.credentials.secret_key_base = 123
@@ -1435,6 +1449,27 @@ module ApplicationTests
 
       assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading }
       assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading = true }
+    end
+
+    test "ActionController::Base::renderer uses Rails.application.default_url_options and config.force_ssl" do
+      add_to_config <<~RUBY
+        config.force_ssl = true
+
+        Rails.application.default_url_options = {
+          host: "foo.example.com",
+          port: 9001,
+          script_name: "/bar",
+        }
+
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      posts_url = ApplicationController.renderer.render(inline: "<%= posts_url %>")
+      assert_equal "https://foo.example.com:9001/bar/posts", posts_url
     end
 
     test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do

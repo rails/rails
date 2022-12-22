@@ -64,7 +64,7 @@ module Rails
 
             assert_file("config/database.yml") do |content|
               assert_match "adapter: sqlite3", content
-              assert_match "db/development.sqlite3", content
+              assert_match "storage/development.sqlite3", content
             end
 
             assert_file("Gemfile") do |content|

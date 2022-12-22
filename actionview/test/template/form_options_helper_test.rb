@@ -873,52 +873,56 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_select_with_array
     @continent = Continent.new
     @continent.countries = ["Africa", "Europe"]
-    assert_dom_equal(
-      %(<select name="continent[countries]" id="continent_countries"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>),
-      select("continent", "countries", %W(Africa Europe America), { multiple: true })
-    )
+
+    expected_with_hidden_field_and_multiple = %(<input name="continent[countries][]" type="hidden" value="" autocomplete="off"/><select name="continent[countries][]" id="continent_countries" multiple="multiple"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>)
+    expected_without_hidden_field = %(<select name="continent[countries]" id="continent_countries"><option selected="selected" value="Africa">Africa</option>\n<option selected="selected" value="Europe">Europe</option>\n<option value="America">America</option></select>)
+
+    assert_dom_equal(expected_with_hidden_field_and_multiple, select("continent", "countries", %W(Africa Europe America), { multiple: true }))
+    assert_dom_equal(expected_with_hidden_field_and_multiple, select("continent", "countries", %W(Africa Europe America), multiple: true))
+    assert_dom_equal(expected_with_hidden_field_and_multiple, select("continent", "countries", %W(Africa Europe America), {}, { multiple: true }))
+    assert_dom_equal(expected_without_hidden_field, select("continent", "countries", %W(Africa Europe America)))
   end
 
   def test_required_select
-    assert_dom_equal(
-      %(<select id="post_category" name="post[category]" required="required"><option value="" label=" "></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
-      select("post", "category", %w(abe mus hest), {}, { required: true })
-    )
+    expected = %(<select id="post_category" name="post[category]" required="required"><option value="" label=" "></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
+
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), {}, { required: true }))
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), required: true))
   end
 
   def test_required_select_with_include_blank_prompt
-    assert_dom_equal(
-      %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
-      select("post", "category", %w(abe mus hest), { include_blank: "Select one" }, { required: true })
-    )
+    expected = %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
+
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), { include_blank: "Select one" }, { required: true }))
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), include_blank: "Select one", required: true))
   end
 
   def test_required_select_with_prompt
-    assert_dom_equal(
-      %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
-      select("post", "category", %w(abe mus hest), { prompt: "Select one" }, { required: true })
-    )
+    expected = %(<select id="post_category" name="post[category]" required="required"><option value="">Select one</option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
+
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), { prompt: "Select one" }, { required: true }))
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), prompt: "Select one", required: true))
   end
 
   def test_required_select_display_size_equals_to_one
-    assert_dom_equal(
-      %(<select id="post_category" name="post[category]" required="required" size="1"><option value="" label=" "></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
-      select("post", "category", %w(abe mus hest), {}, { required: true, size: 1 })
-    )
+    expected = %(<select id="post_category" name="post[category]" required="required" size="1"><option value="" label=" "></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
+
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), {}, { required: true, size: 1 }))
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), required: true, size: 1))
   end
 
   def test_required_select_with_display_size_bigger_than_one
-    assert_dom_equal(
-      %(<select id="post_category" name="post[category]" required="required" size="2"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
-      select("post", "category", %w(abe mus hest), {}, { required: true, size: 2 })
-    )
+    expected = %(<select id="post_category" name="post[category]" required="required" size="2"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
+
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), {}, { required: true, size: 2 }))
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), required: true, size: 2))
   end
 
   def test_required_select_with_multiple_option
-    assert_dom_equal(
-      %(<input name="post[category][]" type="hidden" value="" autocomplete="off"/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
-      select("post", "category", %w(abe mus hest), {}, { required: true, multiple: true })
-    )
+    expected = %(<input name="post[category][]" type="hidden" value="" autocomplete="off"/><select id="post_category" multiple="multiple" name="post[category][]" required="required"><option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>)
+
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), {}, { required: true, multiple: true }))
+    assert_dom_equal(expected, select("post", "category", %w(abe mus hest), required: true, multiple: true))
   end
 
   def test_select_with_integer

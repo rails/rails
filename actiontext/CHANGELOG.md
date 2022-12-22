@@ -1,3 +1,17 @@
+*   Action Text attachment URLs rendered in a background job (a la Turbo
+    Streams) now use `Rails.application.default_url_options` and
+    `Rails.application.config.force_ssl` instead of `http://example.org`.
+
+    *Jonathan Hefner*
+
+*   Focus rich-text editor after calling `fill_in_rich_text_area`
+
+    *Sean Doyle*
+
+*   Support `strict_loading:` option for `has_rich_text` declaration
+
+    *Sean Doyle*
+
 *   Update ContentAttachment so that it can encapsulate arbitrary HTML content in a document.
 
     *Jamis Buck*

@@ -375,6 +375,7 @@ module ActionDispatch
         @disable_clear_and_finalize = false
         @finalized                  = false
         @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
+        @default_env                = nil
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -404,6 +405,25 @@ module ActionDispatch
         request_class.new env
       end
       private :make_request
+
+      def default_env
+        if default_url_options != @default_env&.[]("action_dispatch.routes.default_url_options")
+          url_options = default_url_options.dup.freeze
+          uri = URI(ActionDispatch::Http::URL.full_url_for(host: "example.org", **url_options))
+
+          @default_env = {
+            "action_dispatch.routes" => self,
+            "action_dispatch.routes.default_url_options" => url_options,
+            "HTTPS" => uri.scheme == "https" ? "on" : "off",
+            "rack.url_scheme" => uri.scheme,
+            "HTTP_HOST" => uri.port == uri.default_port ? uri.host : "#{uri.host}:#{uri.port}",
+            "SCRIPT_NAME" => uri.path.chomp("/"),
+            "rack.input" => "",
+          }.freeze
+        end
+
+        @default_env
+      end
 
       def draw(&block)
         clear! unless @disable_clear_and_finalize

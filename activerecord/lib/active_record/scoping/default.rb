@@ -170,8 +170,8 @@ module ActiveRecord
           # If all_queries is nil, only execute on select and insert queries.
           #
           # If all_queries is true, check if the default_scope object has
-          # all_queries set, then execute on all queries; select, insert, update
-          # and delete.
+          # all_queries set, then execute on all queries; select, insert, update,
+          # delete, and reload.
           def execute_scope?(all_queries, default_scope_obj)
             all_queries.nil? || all_queries && default_scope_obj.all_queries
           end

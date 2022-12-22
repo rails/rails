@@ -1,3 +1,62 @@
+*   Add Docker files by default to new apps: Dockerfile, .dockerignore, bin/docker-entrypoint.
+    These files can be skipped with `--skip-docker`. They're intended as a starting point for
+    a production deploy of the application. Not intended for development (see Docked Rails for that).
+
+    Example:
+
+    ```
+    docker build -t app .
+    docker volume create app-storage
+    docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
+    ```
+
+    You can also start a console or a runner from this image:
+
+    ```
+    docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
+    ```
+
+    To create a multi-platform image on Apple Silicon to deploy on AMD or Intel and push to Docker Hub for user/app:
+
+    ```
+    docker login -u <user>
+    docker buildx create --use
+    docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
+    ```
+
+    *DHH*
+
+*   Add ENV["SECRET_KEY_BASE_DUMMY"] for starting production environment with a generated secret base key,
+    which can be used to run tasks like `assets:precompile` without making the RAILS_MASTER_KEY available
+    to the build process.
+
+    Dockerfile layer example:
+
+    ```
+    RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+    ```
+
+    *DHH*
+
+*   Show descriptions for all commands in Rails help
+
+    When calling `rails help` most commands missed their description. We now
+    show the same descriptions as shown in `rails -T`.
+
+    *Petrik de Heus*
+
+*   Always generate the storage/ directory with rails new to ensure there's a stable place to
+    put permanent files, and a single mount point for containers to map. Then default sqlite3 databases
+    to live there instead of db/, which is only meant for configuration, not data.
+
+    *DHH*
+
+*   Rails console now disables `IRB`'s autocompletion feature in production by default.
+
+    Setting `IRB_USE_AUTOCOMPLETE=true` can override this default.
+
+    *Stan Lo*
+
 *   Add `config.precompile_filter_parameters`, which enables precompilation of
     `config.filter_parameters` using `ActiveSupport::ParameterFilter.precompile_filters`.
     Precompilation can improve filtering performance, depending on the quantity

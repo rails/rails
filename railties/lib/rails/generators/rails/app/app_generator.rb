@@ -70,6 +70,14 @@ module Rails
       template "gitattributes", ".gitattributes"
     end
 
+    def dockerfiles
+      template "Dockerfile"
+      template "dockerignore", ".dockerignore"
+
+      template "docker-entrypoint", "bin/docker-entrypoint"
+      chmod "bin/docker-entrypoint", 0755 & ~File.umask, verbose: false
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -179,13 +187,15 @@ module Rails
       return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/credentials/credentials_generator"
-      Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file
+      Rails::Generators::CredentialsGenerator.new([], quiet: true).add_credentials_file
     end
 
     def credentials_diff_enroll
       return if options[:skip_decrypted_diffs] || options[:skip_git] || options[:dummy_app] || options[:pretend]
 
-      rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      @generator.shell.mute do
+        rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      end
     end
 
     def database_yml
@@ -340,6 +350,11 @@ module Rails
       end
       remove_task :update_active_storage
 
+      def create_dockerfiles
+        return if options[:skip_docker] || options[:dummy_app]
+        build(:dockerfiles)
+      end
+
       def create_config_files
         build(:config)
       end
@@ -406,7 +421,7 @@ module Rails
       end
 
       def create_storage_files
-        build(:storage) unless skip_active_storage?
+        build(:storage)
       end
 
       def delete_app_assets_if_api_option

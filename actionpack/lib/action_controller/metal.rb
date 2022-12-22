@@ -187,10 +187,13 @@ module ActionController
 
     def response_body=(body)
       body = [body] unless body.nil? || body.respond_to?(:each)
-      response.reset_body!
-      return unless body
-      response.body = body
-      super
+
+      if body
+        response.body = body
+        super
+      else
+        response.reset_body!
+      end
     end
 
     # Tests if render or redirect has already happened.

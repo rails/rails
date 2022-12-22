@@ -171,6 +171,24 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_on_build_is_ignored
+    developer = Developer.first
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs.build(message: message)
+    end
+  end
+
+  def test_strict_loading_on_writer_is_ignored
+    developer = Developer.first
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs = [AuditLog.new(message: "message")]
+    end
+  end
+
   def test_strict_loading_with_new_record_on_concat_is_ignored
     developer = Developer.new(id: Developer.first.id)
     developer.strict_loading!
@@ -186,6 +204,15 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       developer.audit_logs.build(message: "message")
+    end
+  end
+
+  def test_strict_loading_with_new_record_on_writer_is_ignored
+    developer = Developer.new(id: Developer.first.id)
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs = [AuditLog.new(message: "message")]
     end
   end
 

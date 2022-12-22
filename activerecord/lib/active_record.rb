@@ -56,6 +56,7 @@ module ActiveRecord
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
   autoload :NestedAttributes
+  autoload :Normalization
   autoload :NoTouching
   autoload :Persistence
   autoload :QueryCache
@@ -273,6 +274,9 @@ module ActiveRecord
 
   singleton_class.attr_accessor :belongs_to_required_validates_foreign_key
   self.belongs_to_required_validates_foreign_key = true
+
+  singleton_class.attr_accessor :before_committed_on_all_records
+  self.before_committed_on_all_records = false
 
   ##
   # :singleton-method:

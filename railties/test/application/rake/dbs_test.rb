@@ -59,17 +59,17 @@ module ApplicationTests
         File.write("#{app_path}/config/database.yml", <<~YAML)
           test:
             adapter: sqlite3
-            database: db/test.sqlite3
+            database: storage/test.sqlite3
 
           development:
             adapter: sqlite3
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
         YAML
 
         with_rails_env "development" do
           db_create_and_drop database_url_db_name do
-            assert_not File.exist?("#{app_path}/db/test.sqlite3")
-            assert_not File.exist?("#{app_path}/db/development.sqlite3")
+            assert_not File.exist?("#{app_path}/storage/test.sqlite3")
+            assert_not File.exist?("#{app_path}/storage/development.sqlite3")
           end
         end
       end
@@ -84,18 +84,18 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading YAML with alias ERB" do
         app_file "config/database.yml", <<-YAML
           sqlite: &sqlite
             adapter: sqlite3
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
 
           development:
             <<: *<%= ENV["DB"] || "sqlite" %>
@@ -103,11 +103,11 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading YAML with multiline ERB" do
@@ -121,17 +121,17 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading ERB accessing nested configurations" do
         app_file "config/database.yml", <<-YAML
           development:
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
             adapter: sqlite3
             other: <%= Rails.application.config.other.value %>
         YAML
@@ -142,7 +142,7 @@ module ApplicationTests
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do
@@ -158,11 +158,11 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
@@ -174,44 +174,44 @@ module ApplicationTests
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading YAML with single-line ERB" do
         app_file "config/database.yml", <<-YAML
           development:
-            <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
+            <%= Rails.application.config.database ? 'database: storage/development.sqlite3' : 'database: storage/development.sqlite3' %>
             adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       test "db:create and db:drop don't raise errors when loading YAML which contains a key's value as an ERB statement" do
         app_file "config/database.yml", <<-YAML
           development:
-            database: <%= Rails.application.config.database ? 'db/development.sqlite3' : 'db/development.sqlite3' %>
+            database: <%= Rails.application.config.database ? 'storage/development.sqlite3' : 'storage/development.sqlite3' %>
             custom_option: <%= ENV['CUSTOM_OPTION'] %>
             adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.database = "storage/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+        db_create_and_drop("storage/development.sqlite3", environment_loaded: false)
       end
 
       def with_database_existing
@@ -430,7 +430,7 @@ module ApplicationTests
                 statement_timeout: 1000
             development:
               <<: *default
-              database: db/development.sqlite3
+              database: storage/development.sqlite3
               schema_cache_path: db/special_schema_cache.yml
             YAML
           end
@@ -464,7 +464,7 @@ module ApplicationTests
             development:
               some_entry:
                 <<: *default
-                database: db/development.sqlite3
+                database: storage/development.sqlite3
               another_entry:
                 <<: *default
                 database: db/another_entry_development.sqlite3

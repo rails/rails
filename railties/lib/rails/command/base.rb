@@ -92,7 +92,7 @@ module Rails
         end
 
         def printing_commands
-          namespaced_commands
+          namespaced_commands.map { |command| [command, ""] }
         end
 
         def executable(subcommand = nil)

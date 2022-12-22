@@ -204,7 +204,7 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
-  def test_time_helper_travel_to_with_usec_true
+  def test_time_helper_with_usec_true
     Time.stub(:now, Time.now) do
       duration_usec = 0.1.seconds
       expected_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
@@ -214,10 +214,23 @@ class TimeTravelTest < ActiveSupport::TestCase
 
         assert_equal expected_time.to_f, Time.now.to_f
 
+        travel 0.5, with_usec: true
+
+        assert_equal((expected_time + 0.5).to_f, Time.now.to_f)
+
         travel_back
       end
     ensure
       travel_back
+    end
+  end
+
+  def test_time_helper_freeze_time_with_usec_true
+    # repeatedly test in case Time.now happened to actually be 0 usec
+    assert 9.times.any? do
+      freeze_time(with_usec: true) do
+        Time.now.usec != 0
+      end
     end
   end
 

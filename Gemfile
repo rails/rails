@@ -10,7 +10,7 @@ else
 end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 11.1"
+gem "rake", ">= 13"
 
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
@@ -48,7 +48,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.4.0"
+  gem "sdoc", ">= 2.5.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"

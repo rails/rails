@@ -174,22 +174,6 @@ module SharedGeneratorTests
     end
   end
 
-  def test_gitignore_when_sqlite3
-    run_generator
-
-    assert_file ".gitignore" do |content|
-      assert_match(/sqlite3/, content)
-    end
-  end
-
-  def test_gitignore_when_non_sqlite3_db
-    run_generator([destination_root, "-d", "mysql"])
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/sqlite/i, content)
-    end
-  end
-
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_directory "#{application_path}/db/"
@@ -201,9 +185,6 @@ module SharedGeneratorTests
     end
     assert_file "#{application_path}/bin/setup" do |setup_content|
       assert_no_match(/db:prepare/, setup_content)
-    end
-    assert_file ".gitignore" do |content|
-      assert_no_match(/sqlite/i, content)
     end
   end
 
@@ -225,10 +206,6 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/storage.yml"
     assert_directory "#{application_path}/storage"
     assert_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_if_skip_active_storage_is_given
@@ -249,12 +226,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
@@ -275,12 +246,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_if_skip_action_mailer_is_given

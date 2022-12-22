@@ -1,11 +1,34 @@
+*   When a host is not specified for an `ActionController::Renderer`'s env,
+    the host and related options will now be derived from the routes'
+    `default_url_options` and `ActionDispatch::Http::URL.secure_protocol`.
+
+    This means that for an application with a configuration like:
+
+      ```ruby
+      Rails.application.default_url_options = { host: "rubyonrails.org" }
+      Rails.application.config.force_ssl = true
+      ```
+
+    rendering a URL like:
+
+      ```ruby
+      ApplicationController.renderer.render inline: "<%= blog_url %>"
+      ```
+
+    will now return `"https://rubyonrails.org/blog"` instead of
+    `"http://example.org/blog"`.
+
+    *Jonathan Hefner*
+
 *   Add details of cookie name and size to `CookieOverflow` exception.
 
     *Andy Waite*
 
-*   Don't double log the `controller` or `action` when using `ActiveRecord::QueryLog`
+*   Don't double log the `controller`, `action`, or `namespaced_controller` when using `ActiveRecord::QueryLog`
 
     Previously if you set `config.active_record.query_log_tags` to an array that included
-    `:controller` or `:action`, that item would get logged twice. This bug has been fixed.
+    `:controller`, `:namespaced_controller`, or `:action`, that item would get logged twice.
+    This bug has been fixed.
 
     *Alex Ghiculescu*
 

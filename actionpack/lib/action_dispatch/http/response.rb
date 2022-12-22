@@ -126,6 +126,7 @@ module ActionDispatch # :nodoc:
         @response.commit!
         @buf.push string
       end
+      alias_method :<<, :write
 
       def each(&block)
         if @str_body
