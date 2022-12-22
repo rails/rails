@@ -252,7 +252,9 @@ module ActiveModel
   module Naming
     def self.extended(base) # :nodoc:
       base.silence_redefinition_of_method :model_name
-      base.delegate :model_name, to: :class
+      base.define_method(:model_name) {
+        self.class.model_name
+      }
     end
 
     # Returns an ActiveModel::Name object for module. It can be

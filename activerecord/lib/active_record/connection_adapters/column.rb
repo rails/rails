@@ -9,7 +9,7 @@ module ActiveRecord
 
       attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment
 
-      delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
+      delegate :precision, :scale, :limit, :type, to: :sql_type_metadata, allow_nil: true
 
       # Instantiates a new column in the table.
       #
@@ -25,6 +25,10 @@ module ActiveRecord
         @default_function = default_function
         @collation = collation
         @comment = comment
+      end
+
+      def sql_type
+        sql_type_metadata&.sql_type
       end
 
       def has_default?

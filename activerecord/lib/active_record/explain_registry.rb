@@ -10,7 +10,11 @@ module ActiveRecord
   # returns the collected queries local to the current thread.
   class ExplainRegistry # :nodoc:
     class << self
-      delegate :reset, :collect, :collect=, :collect?, :queries, to: :instance
+      delegate :reset, :collect, :collect=, :queries, to: :instance
+
+      def collect?
+        instance.collect?
+      end
 
       private
         def instance
