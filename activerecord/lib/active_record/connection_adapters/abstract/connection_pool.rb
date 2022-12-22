@@ -113,7 +113,7 @@ module ActiveRecord
       attr_accessor :automatic_reconnect, :checkout_timeout
       attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard
 
-      delegate :schema_cache, :schema_cache=, to: :pool_config
+      delegate :schema_cache=, to: :pool_config
 
       # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
       # object which describes database connection information (e.g. adapter,
@@ -165,6 +165,10 @@ module ActiveRecord
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
+      end
+
+      def schema_cache
+        pool_config.schema_cache
       end
 
       def lock_thread=(lock_thread)
