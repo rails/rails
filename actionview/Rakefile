@@ -92,8 +92,8 @@ end
 namespace :ujs do
   desc "Starts the test server"
   task :server do
-    spawn("bundle exec rackup test/ujs/config.ru -p 4567 -s puma")
-    system("npm test -- --no-single-run --browsers Chrome")
+    spawn("bundle", "exec", "rackup", "test/ujs/config.ru", "-p", "4567", "-s", "puma")
+    system("npm", "test", "--", "--no-single-run", "--browsers", "Chrome")
   end
 end
 
