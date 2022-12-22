@@ -280,20 +280,20 @@ module ActiveRecord
     end
 
     # Returns true if there are no records.
-    def none?
-      return super if block_given?
+    def none?(*args)
+      return super if args.present? || block_given?
       empty?
     end
 
     # Returns true if there are any records.
-    def any?
-      return super if block_given?
+    def any?(*args)
+      return super if args.present? || block_given?
       !empty?
     end
 
     # Returns true if there is exactly one record.
-    def one?
-      return super if block_given?
+    def one?(*args)
+      return super if args.present? || block_given?
       return records.one? if loaded?
       limited_count == 1
     end
