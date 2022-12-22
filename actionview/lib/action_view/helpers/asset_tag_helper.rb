@@ -59,6 +59,7 @@ module ActionView
       #   when it is set to true.
       # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
       #   you have Content Security Policy enabled.
+      # * <tt>:defer</tt>  - When set to true, prevents adding preload links to header
       #
       # ==== Examples
       #
