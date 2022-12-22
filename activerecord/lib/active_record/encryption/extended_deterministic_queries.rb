@@ -44,12 +44,12 @@ module ActiveRecord
             return args if owner.deterministic_encrypted_attributes&.empty?
 
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
-              options = options.dup
+              options = options.stringify_keys
               args[0] = options
 
               owner.deterministic_encrypted_attributes&.each do |attribute_name|
                 type = owner.type_for_attribute(attribute_name)
-                if !type.previous_types.empty? && value = options[attribute_name]
+                if !type.previous_types.empty? && value = options[attribute_name.to_s]
                   options[attribute_name] = process_encrypted_query_argument(value, check_for_additional_values, type)
                 end
               end

@@ -25,6 +25,11 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     assert EncryptedBookWithDowncaseName.find_by(name: "DUNE")
   end
 
+  test "Works well with string attribute names" do
+    UnencryptedBook.create! "name" => "Dune"
+    assert EncryptedBook.find_by("name" => "Dune")
+  end
+
   test "find_or_create works" do
     EncryptedBook.find_or_create_by!(name: "Dune")
     assert EncryptedBook.find_by(name: "Dune")
