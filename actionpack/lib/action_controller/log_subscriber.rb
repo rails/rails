@@ -33,8 +33,8 @@ module ActionController
 
         additions << "Allocations: #{event.allocations}"
 
-        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
-        message << " (#{additions.join(" | ")})"
+        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms" \
+                   " (#{additions.join(" | ")})"
         message << "\n\n" if defined?(Rails.env) && Rails.env.development?
 
         message
