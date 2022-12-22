@@ -419,13 +419,13 @@ module Rails
       def dockerfile_node_version
         using_node? and `node --version`[/\d+\.\d+\.\d+/]
       rescue
-        'lts'
+        "lts"
       end
 
       def dockerfile_yarn_version
         using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
       rescue
-        'latest'
+        "latest"
       end
 
       # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
