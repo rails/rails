@@ -304,6 +304,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-active-storage"]
 
     assert_no_gem "image_processing"
+
+    assert_file "Dockerfile" do |content|
+      assert_no_match(/libvips/, content)
+    end
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
@@ -763,6 +767,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_equal 1, webpacker_called, "`javascript:install:webpack` expected to be called once, but was called #{webpacker_called} times."
     assert_gem "jsbundling-rails"
+
+    assert_file "Dockerfile" do |content|
+      assert_match(/yarn/, content)
+    end
   end
 
   def test_esbuild_option
@@ -1014,6 +1022,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file ".dockerignore" do |content|
       assert_match(/config\/master\.key/, content)
+    end
+  end
+
+  def test_dockerfile
+    run_generator
+
+    assert_file "Dockerfile" do |content|
+      assert_match(/libvips/, content)
+      assert_no_match(/yarn/, content)
     end
   end
 
