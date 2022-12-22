@@ -160,13 +160,18 @@ module ActionDispatch
   #   to <tt>:all</tt>. To support multiple domains, provide an array, and
   #   the first domain matching <tt>request.host</tt> will be used. Make
   #   sure to specify the <tt>:domain</tt> option with <tt>:all</tt> or
-  #   <tt>Array</tt> again when deleting cookies.
+  #   <tt>Array</tt> again when deleting cookies. For more flexibility you
+  #   can set the domain on a per-request basis by specifying <tt>:domain</tt>
+  #   with a proc.
   #
   #     domain: nil  # Does not set cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
   #                  # domain and subdomains.
   #     domain: %w(.example.com .example.org) # Allow the cookie
   #                                           # for concrete domain names.
+  #     domain: proc { Tenant.current.cookie_domain } # Set cookie domain dynamically
+  #     domain: proc { |req| ".sub.#{req.host}" }     # Set cookie domain dynamically based on request
+  #
   #
   # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, this option can be used to explicitly
   #   set the TLD length when using a short (<= 3 character) domain that is being interpreted as part of a TLD.
@@ -472,6 +477,8 @@ module ActionDispatch
               domain = domain.delete_prefix(".")
               request.host == domain || request.host.end_with?(".#{domain}")
             end
+          elsif options[:domain].respond_to?(:call)
+            options[:domain] = options[:domain].call(request)
           end
         end
     end

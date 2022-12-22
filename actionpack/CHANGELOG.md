@@ -1,3 +1,7 @@
+*   Allow cookie options[:domain] to accept a proc to set the cookie domain on a more flexible per-request basis
+
+    *RobL*
+
 *   When a host is not specified for an `ActionController::Renderer`'s env,
     the host and related options will now be derived from the routes'
     `default_url_options` and `ActionDispatch::Http::URL.secure_protocol`.
