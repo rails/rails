@@ -307,7 +307,7 @@ GEM
       railties (>= 6.0.0)
     json (2.6.1)
     jwt (2.3.0)
-    libxml-ruby (3.2.1)
+    libxml-ruby (3.2.4)
     listen (3.7.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
