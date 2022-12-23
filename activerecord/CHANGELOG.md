@@ -1,3 +1,7 @@
+*   `ActiveRecord::Scoping`’s `.scope` class method accepts an `:extend` option, to add behaviour to the scoped `Relation` object via one or more modules.
+
+    *bodacious*
+
 *   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
     argument, more closely matching their `Enumerable` equivalents.
 

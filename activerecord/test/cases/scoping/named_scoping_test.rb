@@ -626,4 +626,80 @@ class NamedScopingTest < ActiveRecord::TestCase
       assert_equal Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
   end
+
+  def test_scope_with_extending_block
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    klass.scope :with_extending_block, -> { } do
+      def works?
+        true
+      end
+    end
+
+    assert_predicate klass.with_extending_block, :works?
+  end
+
+  def test_scope_with_one_extending_module
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    extending_module = Module.new do
+      def works?
+        true
+      end
+    end
+    klass.scope :with_extra_method_in_module, -> { }, extend: extending_module
+
+    assert_predicate klass.with_extra_method_in_module, :works?
+  end
+
+  def test_scope_with_many_extending_modules
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    extending_module_1 = Module.new do
+      def works_1?
+        true
+      end
+    end
+    extending_module_2 = Module.new do
+      def works_2?
+        true
+      end
+    end
+    klass.scope :with_extra_methods_in_modules, -> { },
+      extend: [extending_module_1, extending_module_2]
+
+    assert_predicate klass.with_extra_methods_in_modules, :works_1?
+    assert_predicate klass.with_extra_methods_in_modules, :works_2?
+  end
+
+  def test_scope_with_extend_option_and_block
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    extending_module = Module.new do
+      def extend_works?
+        true
+      end
+    end
+    klass.scope :with_both_extend_and_block, -> { }, extend: extending_module do
+      def block_works?
+        true
+      end
+    end
+
+    assert_predicate klass.with_both_extend_and_block, :extend_works?
+    assert_predicate klass.with_both_extend_and_block, :block_works?
+  end
+
+  def test_methods_from_scope_block_dont_leak_into_model
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    klass.scope :with_block, -> { } do
+      def works?
+        true
+      end
+    end
+
+    assert_respond_to klass.with_block, :works?
+    assert_not_respond_to klass, :works?
+  end
 end

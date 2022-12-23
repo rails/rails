@@ -59,8 +59,21 @@ module ActiveRecord
         # object, which is composable with other scopes.
         # If it returns +nil+ or +false+, an
         # {all}[rdoc-ref:Scoping::Named::ClassMethods#all] scope is returned instead.
+        # [name]
+        #   Specifies the name of the class method that will be defined by this macro.
+        # [body]
+        #   A callable object (e.g. A Proc or block). Defines the methods and parameters
+        #   that define the behaviour of the scope.
+        # [:extend]
+        #   Specifies a module or array of modules that will be extended into the Relation
+        #   object returned. Useful for defining method that should only apply to scoped
+        #   results; especially when they should be shared between multiple scopes or models.
+        # [block]
+        #   Specifies a block containing methods that will be extended into the Relation
+        #   object returned. Useful for defining method that should only apply to scoped
+        #   results.
         #
-        # A \scope represents a narrowing of a database query, such as
+        # A scope represents a narrowing of a database query, such as
         # <tt>where(color: :red).select('shirts.*').includes(:washing_instructions)</tt>.
         #
         #   class Shirt < ActiveRecord::Base
@@ -122,6 +135,16 @@ module ActiveRecord
         #     end
         #   end
         #
+        # \...or using the <tt>:extend</tt> option:
+        #   module FreeProduct
+        #     def dom_id
+        #       "free_product"
+        #     end
+        #   end
+        #   class Shirt < ActiveRecord::Base
+        #     scope :free, -> { where(price_cents: 0) }, extend: FreeProduct
+        #   end
+        #
         # Scopes can also be used while creating/building a record.
         #
         #   class Article < ActiveRecord::Base
@@ -151,7 +174,8 @@ module ActiveRecord
         #
         #   Article.published.featured.latest_article
         #   Article.featured.titles
-        def scope(name, body, &block)
+        #
+        def scope(name, body, extend: [], &block)
           unless body.respond_to?(:call)
             raise ArgumentError, "The scope body needs to be callable."
           end
@@ -168,18 +192,19 @@ module ActiveRecord
               "an instance method with the same name."
           end
 
-          extension = Module.new(&block) if block
+          extensions = Array(extend)
+          extensions << Module.new(&block) if block
 
           if body.respond_to?(:to_proc)
             singleton_class.define_method(name) do |*args|
               scope = all._exec_scope(*args, &body)
-              scope = scope.extending(extension) if extension
+              scope = scope.extending(extensions) if extensions.any?
               scope
             end
           else
             singleton_class.define_method(name) do |*args|
               scope = body.call(*args) || all
-              scope = scope.extending(extension) if extension
+              scope = scope.extending(extensions) if extensions.any?
               scope
             end
           end
