@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
+require "models/author_encrypted"
 require "models/book_encrypted"
 
 class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord::EncryptionTestCase
@@ -28,6 +29,22 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
   test "Works well with string attribute names" do
     UnencryptedBook.create! "name" => "Dune"
     assert EncryptedBook.find_by("name" => "Dune")
+  end
+
+  test "Works well with joins on unencrypted attribute" do
+    author = ActiveRecord::Encryption.without_encryption { EncryptedAuthorWithDeterministicName.create!(name: "Robert A. Heinlein") }
+    book   = UnencryptedBookWithAuthor.create!(name: "The Moon Is a Harsh Mistress", author: author)
+
+    assert_includes UnencryptedBookWithAuthor.by_authors_name(author.name), book
+    assert_includes UnencryptedBookWithAuthor.by_author_name(author.name), book
+  end
+
+  test "Works well with joins on encrypted attribute" do
+    author = EncryptedAuthorWithDeterministicName.create!(name: "Robert A. Heinlein")
+    book   = UnencryptedBookWithAuthor.create!(name: "The Moon Is a Harsh Mistress", author: author)
+
+    assert_includes UnencryptedBookWithAuthor.by_authors_name(author.name), book
+    assert_includes UnencryptedBookWithAuthor.by_author_name(author.name), book
   end
 
   test "find_or_create works" do

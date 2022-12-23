@@ -4,6 +4,13 @@ class UnencryptedBook < ActiveRecord::Base
   self.table_name = "encrypted_books"
 end
 
+class UnencryptedBookWithAuthor < UnencryptedBook
+  belongs_to :author, class_name: "EncryptedAuthorWithDeterministicName"
+
+  scope :by_authors_name, -> name { joins(:author).where(authors: { name: name }) }
+  scope :by_author_name, -> name { joins(:author).where(author: { name: name }) }
+end
+
 class EncryptedBook < ActiveRecord::Base
   self.table_name = "encrypted_books"
 

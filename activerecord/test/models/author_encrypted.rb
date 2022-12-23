@@ -14,3 +14,9 @@ class EncryptedAuthorWithKey < Author
 
   encrypts :name, key: "some secret key!"
 end
+
+class EncryptedAuthorWithDeterministicName < Author
+  self.table_name = "authors"
+
+  encrypts :name, deterministic: true
+end

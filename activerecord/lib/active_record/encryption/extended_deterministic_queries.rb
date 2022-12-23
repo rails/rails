@@ -23,7 +23,7 @@ module ActiveRecord
     # some prepared statements caching. That's why we need to intercept +ActiveRecord::Base+ as soon
     # as it's invoked (so that the proper prepared statement is cached).
     #
-    # When modifying this file run performance tests in +test/performance/extended_deterministic_queries_performance_test.rb+ to
+    # When modifying this file run performance tests in +test/cases/encryption/performance/extended_deterministic_queries_performance_test.rb+ to
     #   make sure performance overhead is acceptable.
     #
     # We will extend this to support previous "encryption context" versions in future iterations
@@ -51,6 +51,22 @@ module ActiveRecord
                 type = owner.type_for_attribute(attribute_name)
                 if !type.previous_types.empty? && value = options[attribute_name.to_s]
                   options[attribute_name] = process_encrypted_query_argument(value, check_for_additional_values, type)
+                end
+              end
+
+              if owner.respond_to?(:joins_values)
+                owner.joins_values.each do |join_value|
+                  next unless join_value.is_a?(Symbol)
+
+                  assoc = owner.reflect_on_association(join_value)
+                  next if assoc.nil? || assoc.polymorphic?
+
+                  case
+                  when value = options[assoc.table_name.to_s]
+                    options[assoc.table_name.to_s], * = process_arguments(assoc.klass, [value], true)
+                  when value = options[assoc.name.to_s]
+                    options[assoc.name.to_s], * = process_arguments(assoc.klass, [value], true)
+                  end
                 end
               end
             end
