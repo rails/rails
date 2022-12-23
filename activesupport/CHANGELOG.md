@@ -1,3 +1,7 @@
+*   Add `Rails.env.remote?` shorthand for `Rails.env.production?`.
+
+    *loqimean*
+
 *   Add `Rails.env.local?` shorthand for `Rails.env.development? || Rails.env.test?`.
 
     *DHH*
