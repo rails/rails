@@ -280,7 +280,7 @@ module Rails
           self.add_autoload_paths_to_load_path = false
           self.precompile_filter_parameters = true
 
-          if Rails.env.development? || Rails.env.test?
+          if Rails.env.local?
             self.log_file_size = 100 * 1024 * 1024
           end
 
