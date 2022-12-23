@@ -1,3 +1,11 @@
+*   Support attaching files with remote URLs from background jobs
+
+    Generate `#{name}_url` and `#{name}_urls` accessors (for `has_one_attached`
+    and `has_many_attached`, respectively), then enqueue
+    `ActiveStorage::AttachRemoteFileJob` jobs for each in an `after_save` callback.
+
+    *Sean Doyle*
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`

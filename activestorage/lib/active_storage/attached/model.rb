@@ -96,6 +96,9 @@ module ActiveStorage
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
+
+          attr_accessor :#{name}_url
+
           def #{name}
             @active_storage_attached ||= {}
             @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::One.new("#{name}", self)
@@ -123,6 +126,16 @@ module ActiveStorage
         }
 
         after_save { attachment_changes[name.to_s]&.save }
+
+        instance_eval <<-CODE, __FILE__, __LINE__ + 1
+          after_save do
+            if #{name}_url.present?
+              ActiveStorage::AttachRemoteFileJob.perform_later(self, :#{name}, #{name}_url)
+            end
+
+            self.#{name}_url = nil
+          end
+        CODE
 
         after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
 
@@ -181,6 +194,9 @@ module ActiveStorage
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
+
+          attr_accessor :#{name}_urls
+
           def #{name}
             @active_storage_attached ||= {}
             @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::Many.new("#{name}", self)
@@ -210,6 +226,16 @@ module ActiveStorage
         }
 
         after_save { attachment_changes[name.to_s]&.save }
+
+        instance_eval <<-CODE, __FILE__, __LINE__ + 1
+          after_save do
+            Array(#{name}_urls).compact_blank.each do |#{name}_url|
+              ActiveStorage::AttachRemoteFileJob.perform_later(self, :#{name}, #{name}_url)
+            end
+
+            self.#{name}_urls = nil
+          end
+        CODE
 
         after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
 
