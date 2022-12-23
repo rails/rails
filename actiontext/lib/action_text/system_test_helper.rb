@@ -30,11 +30,7 @@ module ActionText
     #   # <trix-editor input="trix_input_1"></trix-editor>
     #   fill_in_rich_text_area "message[content]", with: "Hello <em>world!</em>"
     def fill_in_rich_text_area(locator = nil, with:)
-      javascript = <<~JS
-        this.editor.loadHTML(arguments[0])
-        this.editor.focus()
-      JS
-      find(:rich_text_area, locator).execute_script(javascript, with.to_s)
+      find(:rich_text_area, locator).execute_script("this.editor.loadHTML(arguments[0])", with.to_s)
     end
   end
 end
