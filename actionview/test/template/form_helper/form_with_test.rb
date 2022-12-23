@@ -2469,25 +2469,37 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
-  def test_form_with_id
-    form_with(model: Post.new, id: "new_post") do |f|
-      concat f.button(form: f.id)
+  def test_form_with_with_id_option
+    form_with(model: Post.new, id: "new_special_post") do |form|
+      concat form.button(form: form.id)
     end
 
-    expected = whole_form("/posts", "new_post") do
-      '<button name="button" type="submit" form="new_post">Create Post</button>'
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
     end
 
     assert_dom_equal expected, @rendered
   end
 
-  def test_form_with_id_having_html_id
-    form_with(model: Post.new, id: "new_post", html: { id: "html_new_post" }) do |f|
-      concat f.button(form: f.id)
+  def test_form_with_with_id_option_nested_in_html
+    form_with(model: Post.new, html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
     end
 
-    expected = whole_form("/posts", "html_new_post") do
-      '<button name="button" type="submit" form="html_new_post">Create Post</button>'
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_with_with_competing_id_option_nested_in_html
+    form_with(model: Post.new, id: "ignored", html: { id: "new_special_post" }) do |form|
+      concat form.button(form: form.id)
+    end
+
+    expected = whole_form("/posts", "new_special_post") do
+      '<button name="button" type="submit" form="new_special_post">Create Post</button>'
     end
 
     assert_dom_equal expected, @rendered
