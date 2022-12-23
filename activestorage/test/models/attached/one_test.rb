@@ -3,6 +3,7 @@
 require "test_helper"
 require "database/setup"
 require "active_support/testing/method_call_assertions"
+require "webmock/minitest"
 
 class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -66,6 +67,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching a new blob from a Hash to an existing record" do
     @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
+  test "attaching a new blob from a URI to an existing record" do
+    uri = URI.parse("https://example.com/racecar.jpg")
+    stub_request(:get, uri).to_return(body: file_fixture("racecar.jpg"))
+
+    @user.avatar.attach uri
+
+    assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
   test "attaching a new blob from a Hash to an existing record passes record" do

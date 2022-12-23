@@ -32,7 +32,7 @@ module ActiveStorage
         blob.upload_without_unfurling(attachable.fetch(:io))
       when File
         blob.upload_without_unfurling(attachable)
-      when Pathname
+      when Pathname, URI
         blob.upload_without_unfurling(attachable.open)
       when ActiveStorage::Blob
       when String
@@ -101,7 +101,7 @@ module ActiveStorage
             record: record,
             service_name: attachment_service_name
           )
-        when Pathname
+        when Pathname, URI
           ActiveStorage::Blob.build_after_unfurling(
             io: attachable.open,
             filename: File.basename(attachable),

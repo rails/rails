@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require "webmock/minitest"
 
 class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -74,6 +75,15 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.save!
     assert_equal "funky.jpg", @user.highlights.reload.first.filename.to_s
     assert_equal "town.jpg", @user.highlights.second.filename.to_s
+  end
+
+  test "attaching a new blob from a URI to an existing record" do
+    uri = URI.parse("https://example.com/racecar.jpg")
+    stub_request(:get, uri).to_return(body: file_fixture("racecar.jpg"))
+
+    @user.highlights.attach uri
+
+    assert_equal ["racecar.jpg"], @user.highlights.map { |attached| attached.filename.to_s }
   end
 
   test "attaching new blobs from Hashes to an existing, changed record" do
