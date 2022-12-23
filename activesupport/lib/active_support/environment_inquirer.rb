@@ -12,8 +12,12 @@ module ActiveSupport
     # Environments that'll respond true for #local?
     LOCAL_ENVIRONMENTS = %w[ development test ]
 
+    # Environments that'll respond true for #remote?
+    REMOTE_ENVIRONMENTS = %w[ production staging ]
+
     def initialize(env)
       raise(ArgumentError, "'local' is a reserved environment name") if env == "local"
+      raise(ArgumentError, "'remote' is a reserved environment name") if env == "remote"
 
       super(env)
 
@@ -29,6 +33,11 @@ module ActiveSupport
     # Returns true if we're in the development or test environment.
     def local?
       in? LOCAL_ENVIRONMENTS
+    end
+
+    # Returns true if we're in the production or staging
+    def remote?
+      in? REMOTE_ENVIRONMENTS
     end
   end
 end
