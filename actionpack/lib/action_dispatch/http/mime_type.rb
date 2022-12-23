@@ -175,7 +175,7 @@ module Mime
             accept_header = accept_header[0, index]
           end
           return [] if accept_header.blank?
-          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
+          parse_trailing_star(accept_header) || Array(Mime::Type.lookup(accept_header))
         else
           list, index = [], 0
           accept_header.split(",").each do |header|
