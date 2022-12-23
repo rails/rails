@@ -48,8 +48,9 @@ module ActiveRecord
               args[0] = options
 
               owner.deterministic_encrypted_attributes&.each do |attribute_name|
+                attribute_name = attribute_name.to_s
                 type = owner.type_for_attribute(attribute_name)
-                if !type.previous_types.empty? && value = options[attribute_name.to_s]
+                if !type.previous_types.empty? && value = options[attribute_name]
                   options[attribute_name] = process_encrypted_query_argument(value, check_for_additional_values, type)
                 end
               end
