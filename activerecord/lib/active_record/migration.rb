@@ -154,7 +154,7 @@ module ActiveRecord
     private
       def detailed_migration_message(pending_migrations)
         message = "Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate"
-        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env) && !(Rails.env.development? || Rails.env.test?)
+        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env) && !Rails.env.local?
         message += "\n\n"
 
         message += "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}\n\n"

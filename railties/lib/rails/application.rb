@@ -471,7 +471,7 @@ module Rails
     # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.development? || Rails.env.test? || ENV["SECRET_KEY_BASE_DUMMY"]
+      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
         secrets.secret_key_base ||= generate_development_secret
       else
         validate_secret_key_base(

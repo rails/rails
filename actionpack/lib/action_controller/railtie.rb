@@ -42,7 +42,7 @@ module ActionController
         action_on_unpermitted_parameters = options.action_on_unpermitted_parameters
 
         if action_on_unpermitted_parameters.nil?
-          action_on_unpermitted_parameters = (Rails.env.test? || Rails.env.development?) ? :log : false
+          action_on_unpermitted_parameters = Rails.env.local? ? :log : false
         end
 
         ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
