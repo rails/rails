@@ -32,7 +32,7 @@ module ActiveSupport
       in? LOCAL_ENVIRONMENTS
     end
 
-    # Returns true if we are in the production or staging environment etc.
+    # Returns true if we aren't in development or test.
     def remote?
       !local?
     end
