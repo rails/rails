@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      BUNDLE_WITHOUT: default doc job cable storage ujs test db
+      BUNDLE_ONLY: rubocop
 
     steps:
     - uses: actions/checkout@v3
