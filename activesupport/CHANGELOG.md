@@ -1,4 +1,4 @@
-*   Add `Rails.env.remote?` shorthand for `Rails.env.production?`.
+*   Add `Rails.env.remote?` shorthand for `Rails.env.production?` or something another that you use on remote.
 
     *loqimean*
 
