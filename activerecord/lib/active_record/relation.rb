@@ -241,8 +241,8 @@ module ActiveRecord
     #
     # Please see further details in the
     # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
-    def explain
-      exec_explain(collecting_queries_for_explain { exec_queries })
+    def explain(*options)
+      exec_explain(collecting_queries_for_explain { exec_queries }, options)
     end
 
     # Converts relation objects to Array.

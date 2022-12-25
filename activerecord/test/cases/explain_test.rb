@@ -17,7 +17,7 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_relation_explain
       message = Car.where(name: "honda").explain
-      assert_match(/^EXPLAIN for:/, message)
+      assert_match(/^EXPLAIN/, message)
     end
 
     def test_collecting_queries_for_explain
@@ -41,7 +41,7 @@ if ActiveRecord::Base.connection.supports_explain?
       queries = sqls.zip(binds)
 
       stub_explain_for_query_plans do
-        expected = sqls.map { |sql| "EXPLAIN for: #{sql}\nquery plan #{sql}" }.join("\n")
+        expected = sqls.map { |sql| "#{expected_explain_clause} #{sql}\nquery plan #{sql}" }.join("\n")
         assert_equal expected, base.exec_explain(queries)
       end
     end
@@ -53,10 +53,10 @@ if ActiveRecord::Base.connection.supports_explain?
 
       stub_explain_for_query_plans(["query plan foo\n", "query plan bar\n"]) do
         expected = <<~SQL
-          EXPLAIN for: #{sqls[0]} [["wadus", 1]]
+          #{expected_explain_clause} #{sqls[0]} [["wadus", 1]]
           query plan foo
 
-          EXPLAIN for: #{sqls[1]} [["chaflan", 2]]
+          #{expected_explain_clause} #{sqls[1]} [["chaflan", 2]]
           query plan bar
         SQL
         assert_equal expected, base.exec_explain(queries)
@@ -72,6 +72,14 @@ if ActiveRecord::Base.connection.supports_explain?
 
       def bind_param(name, value)
         ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
+      end
+
+      def expected_explain_clause
+        if connection.respond_to?(:build_explain_clause)
+          connection.build_explain_clause
+        else
+          "EXPLAIN for:"
+        end
       end
   end
 end
