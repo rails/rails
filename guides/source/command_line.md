@@ -49,6 +49,7 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | Argument                | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
 | `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
+| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint    |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
 | `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
