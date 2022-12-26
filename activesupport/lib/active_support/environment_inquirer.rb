@@ -20,6 +20,8 @@ module ActiveSupport
       DEFAULT_ENVIRONMENTS.each do |default|
         instance_variable_set :"@#{default}", env == default
       end
+
+      @local = in? LOCAL_ENVIRONMENTS
     end
 
     DEFAULT_ENVIRONMENTS.each do |env|
@@ -28,7 +30,7 @@ module ActiveSupport
 
     # Returns true if we're in the development or test environment.
     def local?
-      in? LOCAL_ENVIRONMENTS
+      @local
     end
   end
 end
