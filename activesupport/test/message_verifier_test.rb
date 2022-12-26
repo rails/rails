@@ -4,7 +4,6 @@ require_relative "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
-require_relative "metadata/shared_metadata_tests"
 
 class MessageVerifierTest < ActiveSupport::TestCase
   class JSONSerializer
@@ -288,92 +287,4 @@ class DefaultJsonSerializerMessageVerifierTest < JsonSerializeAndNoFallbackMessa
   def teardown
     ActiveSupport::MessageVerifier.default_message_verifier_serializer = @default_verifier
   end
-end
-
-class MessageVerifierMetadataTest < ActiveSupport::TestCase
-  include SharedMessageMetadataTests
-
-  setup do
-    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", **verifier_options)
-  end
-
-  def test_verify_raises_when_purpose_differs
-    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
-      @verifier.verify(generate(data, purpose: "payment"), purpose: "shipping")
-    end
-  end
-
-  def test_verify_with_use_standard_json_time_format_as_false
-    format_before = ActiveSupport.use_standard_json_time_format
-    ActiveSupport.use_standard_json_time_format = false
-    assert_equal "My Name", @verifier.verify(generate("My Name"))
-  ensure
-    ActiveSupport.use_standard_json_time_format = format_before
-  end
-
-  def test_verify_raises_when_expired
-    signed_message = generate(data, expires_in: 1.month)
-
-    travel 2.months
-    assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
-      @verifier.verify(signed_message)
-    end
-  end
-
-  private
-    def generate(message, **options)
-      @verifier.generate(message, **options)
-    end
-
-    def parse(message, **options)
-      @verifier.verified(message, **options)
-    end
-
-    def verifier_options
-      Hash.new
-    end
-end
-
-class MessageVerifierMetadataMarshalTest < MessageVerifierMetadataTest
-  private
-    def verifier_options
-      { serializer: Marshal }
-    end
-end
-
-class MessageVerifierMetadataJsonWithMarshalFallbackTest < MessageVerifierMetadataTest
-  private
-    def verifier_options
-      { serializer: ActiveSupport::JsonWithMarshalFallback }
-    end
-end
-
-class MessageVerifierMetadataJsonTest < MessageVerifierMetadataTest
-  private
-    def verifier_options
-      { serializer: JSON }
-    end
-end
-
-
-class MessageVerifierMetadataCustomJSONTest < MessageVerifierMetadataTest
-  private
-    def verifier_options
-      { serializer: MessageVerifierTest::JSONSerializer.new }
-    end
-end
-
-class MessageEncryptorMetadataNullSerializerTest < MessageVerifierMetadataTest
-  private
-    def data
-      "string message"
-    end
-
-    def null_serializing?
-      true
-    end
-
-    def verifier_options
-      { serializer: ActiveSupport::MessageEncryptor::NullSerializer }
-    end
 end
