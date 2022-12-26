@@ -19,23 +19,22 @@ A short rundown of some of the major features:
 
 * Automated mapping between classes and tables, attributes and columns.
 
-   class Product < ActiveRecord::Base
-   end
+    class Product < ActiveRecord::Base
+    end
+
+  The Product class is automatically mapped to the table named "products",
+  which might look like this:
+
+    CREATE TABLE products (
+      id bigint NOT NULL auto_increment,
+      name varchar(255),
+      PRIMARY KEY  (id)
+    );
+
+  This would also define the following accessors: <tt>Product#name</tt> and
+  <tt>Product#name=(new_name)</tt>.
 
   {Learn more}[link:classes/ActiveRecord/Base.html]
-
-The Product class is automatically mapped to the table named "products",
-which might look like this:
-
-   CREATE TABLE products (
-     id bigint NOT NULL auto_increment,
-     name varchar(255),
-     PRIMARY KEY  (id)
-   );
-
-This would also define the following accessors: <tt>Product#name</tt> and
-<tt>Product#name=(new_name)</tt>.
-
 
 * Associations between objects defined by simple class methods.
 
