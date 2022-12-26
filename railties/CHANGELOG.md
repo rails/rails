@@ -1,3 +1,7 @@
+*   Bump `required_rubygems_version` to 3.3.13 or higher
+
+    *Yasuo Honda*
+
 *   Add Docker files by default to new apps: Dockerfile, .dockerignore, bin/docker-entrypoint.
     These files can be skipped with `--skip-docker`. They're intended as a starting point for
     a production deploy of the application. Not intended for development (see Docked Rails for that).
