@@ -85,6 +85,7 @@ module ActiveSupport
   #
   #   crypt.rotate old_secret, cipher: "aes-256-cbc"
   class MessageEncryptor
+    include Messages::Metadata
     prepend Messages::Rotator::Encryptor
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
@@ -221,13 +222,7 @@ module ActiveSupport
     end
 
     private
-      def serialize(value)
-        @serializer.dump(value)
-      end
-
-      def deserialize(value)
-        @serializer.load(value)
-      end
+      attr_reader :serializer
 
       def encode(data)
         @url_safe ? ::Base64.urlsafe_encode64(data, padding: false) : ::Base64.strict_encode64(data)
@@ -246,7 +241,7 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(serialize(value), **metadata_options))
+        encrypted_data = cipher.update(serialize_with_metadata(value, **metadata_options))
         encrypted_data << cipher.final
 
         parts = [encrypted_data, iv]
@@ -275,8 +270,7 @@ module ActiveSupport
         decrypted_data = cipher.update(encrypted_data)
         decrypted_data << cipher.final
 
-        message = Messages::Metadata.verify(decrypted_data, purpose)
-        deserialize(message) if message
+        deserialize_with_metadata(decrypted_data, purpose: purpose)
       rescue OpenSSLCipherError, TypeError, ArgumentError, ::JSON::ParserError
         raise InvalidMessage
       end

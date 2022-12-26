@@ -2195,6 +2195,21 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 5.2                   | `true`               |
 
+#### `config.active_support.use_message_serializer_for_metadata`
+
+When `true`, enables a performance optimization that serializes message data and
+metadata together. This changes the message format, so messages serialized this
+way cannot be read by older (< 7.1) versions of Rails. However, messages that
+use the old format can still be read, regardless of whether this optimization is
+enabled.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
 #### `config.active_support.cache_format_version`
 
 Specifies which version of the cache serializer to use. Possible values are `6.1` and `7.0`.

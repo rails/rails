@@ -306,6 +306,7 @@ module Rails
           if respond_to?(:active_support)
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
+            active_support.use_message_serializer_for_metadata = true
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
