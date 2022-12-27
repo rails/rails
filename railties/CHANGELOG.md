@@ -1,3 +1,11 @@
+*   Split rails commands USAGE into commands inside/outside an application
+
+    Some commands require an application working directory and some commands
+    should be called outside an working directory. By splitting these
+    commands into different sections the USAGE becomes a bit clearer.
+
+    *Petrik de Heus*
+
 *   Bump `required_rubygems_version` to 3.3.13 or higher
 
     *Yasuo Honda*
