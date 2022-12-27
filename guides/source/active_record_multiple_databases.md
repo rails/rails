@@ -319,8 +319,27 @@ parameters it's based on. Let's say you want to use a cookie instead of a sessio
 decide when to swap connections. You can write your own class:
 
 ```ruby
-class MyCookieResolver
-  # code for your cookie class
+class MyCookieResolver << ActiveRecord::Middleware::DatabaseSelector::Resolver
+  def self.call(request)
+    new(request.cookies)
+  end
+
+  def initialize(cookies)
+    @cookies = cookies
+  end
+
+  attr_reader :cookies
+
+  def last_write_timestamp
+    self.class.convert_timestamp_to_time(cookies[:last_write])
+  end
+
+  def update_last_write_timestamp
+    cookies[:last_write] = self.class.convert_time_to_timestamp(Time.now)
+  end
+
+  def save(response)
+  end
 end
 ```
 
