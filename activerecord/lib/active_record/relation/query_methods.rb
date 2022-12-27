@@ -1602,7 +1602,13 @@ module ActiveRecord
         result = []
         associations.each do |association|
           case association
-          when Hash, Symbol, Array
+          when Symbol
+            if with_values.any? { |hash| hash.key?(association) }
+              yield build_with_join_node(association)
+            else
+              result << association
+            end
+          when Hash, Array
             result << association
           when ActiveRecord::Associations::JoinDependency
             stashed_joins&.<< association
@@ -1719,6 +1725,14 @@ module ActiveRecord
             end
           Arel::Nodes::TableAlias.new(expression, name)
         end
+      end
+
+      def build_with_join_node(name)
+        with_table = Arel::Table.new(name)
+
+        table.join(with_table).on(
+          with_table[klass.model_name.to_s.foreign_key].eq(table[klass.primary_key])
+        ).join_sources.first
       end
 
       def arel_columns(columns)
