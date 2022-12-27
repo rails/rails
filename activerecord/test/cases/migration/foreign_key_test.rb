@@ -184,7 +184,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           @connection.create_table "astronauts", force: true do |t|
             t.string :name
-            t.references :rocket
+            t.references :rocket, type: :bigint
             t.references :favorite_rocket
           end
         end
@@ -763,6 +763,17 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             @connection.add_foreign_key :astronauts, :rockets, if_not_exists: true
           end
         end
+
+        def test_add_foreign_key_preserves_existing_column_types
+          assert_no_changes -> { column_for(:astronauts, :rocket_id).bigint? }, from: true do
+            @connection.add_foreign_key :astronauts, :rockets
+          end
+        end
+
+        private
+          def column_for(table_name, column_name)
+            @connection.columns(table_name).find { |column| column.name == column_name.to_s }
+          end
       end
     end
   end
