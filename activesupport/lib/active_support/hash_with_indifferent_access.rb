@@ -337,16 +337,26 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_values!(&block) }
     end
 
-    def transform_keys(*args, &block)
-      return to_enum(:transform_keys) unless block_given?
-      dup.tap { |hash| hash.transform_keys!(*args, &block) }
+    NOT_GIVEN = Object.new # :nodoc:
+
+    def transform_keys(hash = NOT_GIVEN, &block)
+      return to_enum(:transform_keys) if NOT_GIVEN.equal?(hash) && !block_given?
+      dup.tap { |h| h.transform_keys!(hash, &block) }
     end
 
-    def transform_keys!
-      return enum_for(:transform_keys!) { size } unless block_given?
-      keys.each do |key|
-        self[yield(key)] = delete(key)
+    def transform_keys!(hash = NOT_GIVEN, &block)
+      return to_enum(:transform_keys!) if NOT_GIVEN.equal?(hash) && !block_given?
+
+      if hash.nil?
+        super
+      elsif NOT_GIVEN.equal?(hash)
+        keys.each { |key| self[yield(key)] = delete(key) }
+      elsif block_given?
+        keys.each { |key| self[hash[key] || yield(key)] = delete(key) }
+      else
+        keys.each { |key| self[hash[key] || key] = delete(key) }
       end
+
       self
     end
 
