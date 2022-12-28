@@ -332,7 +332,8 @@ QUnit.test('a[data-remote][data-disable-with] re-enables when `ajax:error` event
       setTimeout(function() {
         assert.enabledState(link, 'Click me')
         done()
-      }, 30)    })
+      }, 30)
+    })
     .triggerNative('click')
 })
 
