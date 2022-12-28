@@ -58,7 +58,9 @@ namespace :test do
 
         sleep 0.2
       end
-      system(Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)], "npm", "test")
+      # Decode the obfuscate environment variables
+      decoded_environment_variables = Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)]
+      system(decoded_environment_variables, "npm", "test")
       status = $?.exitstatus
     ensure
       Process.kill("KILL", -pid) if pid
