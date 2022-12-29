@@ -42,8 +42,8 @@ module ActiveSupport
     end
 
     private
-    def parse_message_for_trace
-      __getobj__.to_s.split("\n")
-    end
+      def parse_message_for_trace
+        __getobj__.to_s.split("\n")
+      end
   end
 end
