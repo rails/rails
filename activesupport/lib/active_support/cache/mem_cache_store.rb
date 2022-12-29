@@ -36,7 +36,7 @@ module ActiveSupport
       prepend Strategy::LocalCache
 
       module DupLocalCache
-        class DupLocalStore < DelegateClass(Strategy::LocalCache::LocalStore)
+        DupLocalStore = DelegateClass(Strategy::LocalCache::LocalStore) do
           def write_entry(_key, entry)
             if entry.is_a?(Entry)
               entry.dup_value!
