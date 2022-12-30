@@ -247,6 +247,18 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_equal "script-src 'self' https:; style-src 'self' https:", @policy.build
   end
 
+  def test_add_directives
+    @policy.script_src :self
+    @policy.add_script_src :https
+    assert_equal "script-src 'self' https:", @policy.build
+  end
+
+  def test_remove_directives
+    @policy.script_src :self, :https
+    @policy.remove_script_src :https
+    assert_equal "script-src 'self'", @policy.build
+  end
+
   def test_dynamic_directives
     request = ActionDispatch::Request.new("HTTP_HOST" => "www.example.com")
     controller = Struct.new(:request).new(request)

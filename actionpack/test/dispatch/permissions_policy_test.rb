@@ -32,6 +32,18 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
     assert_equal "geolocation 'self' https://example.com; usb 'none' https://example.com", @policy.build
   end
 
+  def test_add_directives
+    @policy.geolocation :self
+    @policy.add_geolocation "https://example.com"
+    assert_equal "geolocation 'self' https://example.com", @policy.build
+  end
+
+  def test_remove_directives
+    @policy.geolocation :self, "https://example.com"
+    @policy.remove_geolocation "https://example.com"
+    assert_equal "geolocation 'self'", @policy.build
+  end
+
   def test_invalid_directive_source
     exception = assert_raises(ArgumentError) do
       @policy.geolocation [:non_existent]

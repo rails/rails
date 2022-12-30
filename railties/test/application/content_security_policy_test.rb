@@ -182,6 +182,70 @@ module ApplicationTests
       assert_policy "default-src https://example.com"
     end
 
+    test "add directives to content security policy in a controller" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          content_security_policy do |p|
+            p.add_script_src "https://example.com"
+          end
+
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+          p.script_src :self
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:; script-src 'self' https://example.com"
+    end
+
+    test "remove directives to content security policy in a controller" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          content_security_policy do |p|
+            p.remove_script_src "https://example.com"
+          end
+
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+          p.script_src 'https://example.com'
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:"
+    end
+
     test "override content security policy to report only in a controller" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
