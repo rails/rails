@@ -57,7 +57,7 @@ class ActiveRecord::Encryption::StoragePerformanceTest < ActiveRecord::Encryptio
 
       assert\
         overload_factor <= overload_less_than,
-        "Expecting an storage overload of #{overload_less_than} at most for #{size} bytes, but got #{overload_factor} instead"
+        "Expecting a storage overload of #{overload_less_than} at most for #{size} bytes, but got #{overload_factor} instead"
     end
 
     def encryptor
