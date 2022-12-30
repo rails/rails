@@ -111,7 +111,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       self.table_name = "accounts"
       self.belongs_to_required_by_default = false
 
-      belongs_to :company
+      belongs_to :firm
 
       def self.name
         "FirstModel"
@@ -122,7 +122,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       self.table_name = "accounts"
       self.belongs_to_required_by_default = true
 
-      belongs_to :company
+      belongs_to :firm
 
       def self.name
         "SecondModel"
@@ -131,6 +131,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate model1, :valid?
     assert_not_predicate model2, :valid?
+    assert_equal({ firm: [{ error: :blank }], firm_id: [{ error: :blank }] }, model2.errors.details)
   end
 
   def test_optional_relation
@@ -140,7 +141,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     model = Class.new(ActiveRecord::Base) do
       self.table_name = "accounts"
       def self.name; "Temp"; end
-      belongs_to :company, optional: true
+      belongs_to :firm, optional: true
     end
 
     account = model.new
@@ -156,12 +157,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     model = Class.new(ActiveRecord::Base) do
       self.table_name = "accounts"
       def self.name; "Temp"; end
-      belongs_to :company, optional: false
+      belongs_to :firm, optional: false
     end
 
     account = model.new
     assert_not_predicate account, :valid?
-    assert_equal [{ error: :blank }], account.errors.details[:company]
+    assert_equal({ firm: [{ error: :blank }], firm_id: [{ error: :blank }] }, account.errors.details)
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end
@@ -173,12 +174,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     model = Class.new(ActiveRecord::Base) do
       self.table_name = "accounts"
       def self.name; "Temp"; end
-      belongs_to :company
+      belongs_to :firm
     end
 
     account = model.new
     assert_not_predicate account, :valid?
-    assert_equal [{ error: :blank }], account.errors.details[:company]
+    assert_equal({ firm: [{ error: :blank }], firm_id: [{ error: :blank }] }, account.errors.details)
   ensure
     ActiveRecord::Base.belongs_to_required_by_default = original_value
   end

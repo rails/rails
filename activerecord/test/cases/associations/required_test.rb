@@ -47,7 +47,7 @@ class RequiredAssociationsTest < ActiveRecord::TestCase
 
     record = model.new
     assert_not record.save
-    assert_equal ["Parent must exist"], record.errors.full_messages
+    assert_equal({ parent: [{ error: :blank }], parent_id: [{ error: :blank }] }, record.errors.details)
 
     record.parent = Parent.new
     assert record.save
@@ -64,7 +64,7 @@ class RequiredAssociationsTest < ActiveRecord::TestCase
 
     record = model.new
     assert_not record.save
-    assert_equal ["Parent must exist"], record.errors.full_messages
+    assert_equal({ parent: [{ error: :blank }], parent_id: [{ error: :blank }] }, record.errors.details)
 
     record.parent = Parent.new
     assert record.save
@@ -113,7 +113,7 @@ class RequiredAssociationsTest < ActiveRecord::TestCase
     end
 
     record = model.create
-    assert_equal ["Parent must exist"], record.errors.full_messages
+    assert_equal({ parent: [{ error: :blank }], parent_id: [{ error: :blank }] }, record.errors.details)
   end
 
   private

@@ -1,3 +1,8 @@
+*   By default, `belongs_to` will now validate the presence of the foreign key
+    field in addition to the association.
+
+    *Jon Dufresne*
+
 *   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`
 
     Example:

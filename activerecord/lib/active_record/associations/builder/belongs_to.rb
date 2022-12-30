@@ -137,6 +137,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
           model.validates_presence_of reflection.name, message: :required, if: condition
         end
+
+        association_is_new = lambda { |record|
+          record.association_cached?(reflection.name) &&
+            record.send(reflection.name)&.new_record?
+        }
+        model.validates_presence_of reflection.foreign_key, message: :required, unless: association_is_new
       end
     end
 
