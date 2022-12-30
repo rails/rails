@@ -258,9 +258,12 @@ module ActionDispatch
           "REQUEST_URI"    => path,
           "HTTP_HOST"      => host,
           "REMOTE_ADDR"    => remote_addr,
-          "CONTENT_TYPE"   => request_encoder.content_type,
           "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
+
+        if request_encoder.content_type
+          request_env["CONTENT_TYPE"] = request_encoder.content_type
+        end
 
         wrapped_headers = Http::Headers.from_hash({})
         wrapped_headers.merge!(headers) if headers
