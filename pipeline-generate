@@ -24,7 +24,7 @@ ARTIFACTS_PLUGIN = "artifacts#v1.2.0"
 REPO_ROOT = Pathname.new(ARGV.shift || File.expand_path("../..", __FILE__))
 
 REPO_ROOT.join("rails.gemspec").read =~ /required_ruby_version[^0-9]+([0-9]+\.[0-9]+)/
-RUBY_MINORS = %w(2.4 2.5 2.6 2.7 3.0 3.1).map { |v| Gem::Version.new(v) }
+RUBY_MINORS = %w(2.4 2.5 2.6 2.7 3.0 3.1 3.2).map { |v| Gem::Version.new(v) }
 MIN_RUBY = Gem::Version.new($1 || "2.0")
 
 RAILS_VERSION = Gem::Version.new(File.read(REPO_ROOT.join("RAILS_VERSION")))
