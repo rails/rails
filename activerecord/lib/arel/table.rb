@@ -14,7 +14,14 @@ module Arel # :nodoc: all
     alias :table_name :name
 
     def initialize(name, as: nil, klass: nil, type_caster: klass&.type_caster)
-      @name = name.to_s
+      @name =
+        case name
+        when Symbol then name.to_s
+        when Nodes::Node then Arel.sql(name.to_sql)
+        else
+          name
+        end
+
       @klass = klass
       @type_caster = type_caster
 
