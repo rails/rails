@@ -8,6 +8,7 @@ require "active_support/testing/stream"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
+require_relative "../support/adapter_helper"
 
 module ActiveRecord
   # = Active Record Test Case
@@ -18,6 +19,8 @@ module ActiveRecord
     include ActiveSupport::Testing::Stream
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
+    include AdapterHelper
+    extend AdapterHelper
 
     self.fixture_path = FIXTURES_ROOT
     self.use_instantiated_fixtures = false
