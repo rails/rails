@@ -33,7 +33,7 @@ module ActionController
       end
     end
 
-    # Sets the +etag+, +last_modified+, or both on the response and renders a
+    # Sets the +etag+, +last_modified+, or both on the response, and renders a
     # <tt>304 Not Modified</tt> response if the request is already fresh.
     #
     # === Parameters:
@@ -55,9 +55,9 @@ module ActionController
     # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
     #   response. Subsequent requests that set If-Modified-Since may return a
     #   304 Not Modified response if last_modified <= If-Modified-Since.
-    # * <tt>:public</tt> By default the Cache-Control header is private, set this to
+    # * <tt>:public</tt> By default the Cache-Control header is private. Set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
-    # * <tt>:cache_control</tt> When given will overwrite an existing Cache-Control header.
+    # * <tt>:cache_control</tt> When given, will overwrite an existing Cache-Control header.
     #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
@@ -73,9 +73,9 @@ module ActionController
     #   end
     #
     # This will render the show template if the request isn't sending a matching ETag or
-    # If-Modified-Since header and just a <tt>304 Not Modified</tt> response if there's a match.
+    # If-Modified-Since header, and just a <tt>304 Not Modified</tt> response if there's a match.
     #
-    # You can also just pass a record. In this case +last_modified+ will be set
+    # You can also just pass a record. In this case, +last_modified+ will be set
     # by calling +updated_at+ and +etag+ by passing the object itself.
     #
     #   def show
@@ -84,7 +84,7 @@ module ActionController
     #   end
     #
     # You can also pass an object that responds to +maximum+, such as a
-    # collection of active records. In this case +last_modified+ will be set by
+    # collection of active records. In this case, +last_modified+ will be set by
     # calling <tt>maximum(:updated_at)</tt> on the collection (the timestamp of the
     # most recently updated record) and the +etag+ by passing the object itself.
     #
@@ -107,7 +107,7 @@ module ActionController
     #     fresh_when(@article, public: true, cache_control: { no_cache: true })
     #   end
     #
-    # This will set in the response Cache-Control = public, no-cache.
+    # This will set in the response Cache-Control: public, no-cache.
     #
     # When rendering a different template than the default controller/action
     # style, you can indicate which digest to include in the ETag:
@@ -137,7 +137,7 @@ module ActionController
     # Sets the +etag+ and/or +last_modified+ on the response and checks it against
     # the client request. If the request doesn't match the options provided, the
     # request is considered stale and should be generated from scratch. Otherwise,
-    # it's fresh and we don't need to generate anything and a reply of <tt>304 Not Modified</tt> is sent.
+    # it's fresh, and we don't need to generate anything, and a reply of <tt>304 Not Modified</tt> is sent.
     #
     # === Parameters:
     #
@@ -158,9 +158,9 @@ module ActionController
     # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
     #   response. Subsequent requests that set If-Modified-Since may return a
     #   304 Not Modified response if last_modified <= If-Modified-Since.
-    # * <tt>:public</tt> By default the Cache-Control header is private, set this to
+    # * <tt>:public</tt> By default the Cache-Control header is private. Set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
-    # * <tt>:cache_control</tt> When given will overwrite an existing Cache-Control header.
+    # * <tt>:cache_control</tt> When given, will overwrite an existing Cache-Control header.
     #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
@@ -181,7 +181,7 @@ module ActionController
     #     end
     #   end
     #
-    # You can also just pass a record. In this case +last_modified+ will be set
+    # You can also just pass a record. In this case, +last_modified+ will be set
     # by calling +updated_at+ and +etag+ by passing the object itself.
     #
     #   def show
@@ -196,7 +196,7 @@ module ActionController
     #   end
     #
     # You can also pass an object that responds to +maximum+, such as a
-    # collection of active records. In this case +last_modified+ will be set by
+    # collection of active records. In this case, +last_modified+ will be set by
     # calling <tt>maximum(:updated_at)</tt> on the collection (the timestamp of the
     # most recently updated record) and the +etag+ by passing the object itself.
     #
@@ -237,7 +237,7 @@ module ActionController
     #     end
     #   end
     #
-    # This will set in the response Cache-Control = public, no-cache.
+    # This will set in the response Cache-Control: public, no-cache.
     #
     # When rendering a different template than the default controller/action
     # style, you can indicate which digest to include in the ETag:
@@ -261,13 +261,13 @@ module ActionController
     # This method will overwrite an existing Cache-Control header.
     # See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     #
-    # HTTP Cache-Control Extensions for Stale Content. See https://tools.ietf.org/html/rfc5861
+    # HTTP Cache-Control Extensions for Stale Content. See https://tools.ietf.org/html/rfc5861.
     # It helps to cache an asset and serve it while is being revalidated and/or returning with an error.
     #
     #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds
     #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds, stale_if_error: 5.minutes
     #
-    # HTTP Cache-Control Extensions other values: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+    # HTTP Cache-Control Extensions other values: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control.
     # Any additional key-value pairs are concatenated onto the Cache-Control header in the response:
     #
     #   expires_in 3.hours, public: true, "s-maxage": 3.hours, "no-transform": true

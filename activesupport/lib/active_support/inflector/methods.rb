@@ -206,8 +206,8 @@ module ActiveSupport
     end
 
     # Creates a class name from a plural table name like Rails does for table
-    # names to models. Note that this returns a string and not a Class (To
-    # convert to an actual class follow +classify+ with #constantize).
+    # names to models. Note that this returns a string and not a Class. (To
+    # convert to an actual class follow +classify+ with #constantize.)
     #
     #   classify('ham_and_eggs') # => "HamAndEgg"
     #   classify('posts')        # => "Post"

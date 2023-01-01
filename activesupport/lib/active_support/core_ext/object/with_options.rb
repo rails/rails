@@ -83,11 +83,11 @@ class Object
   #     end
   #   end
   #
-  #   # styled.link_to "I'm red", "/"
-  #   # #=> <a href="/" style="color: red;">I'm red</a>
+  #   styled.link_to "I'm red", "/"
+  #   # => <a href="/" style="color: red;">I'm red</a>
   #
-  #   # styled.button_tag "I'm red too!"
-  #   # #=> <button style="color: red;">I'm red too!</button>
+  #   styled.button_tag "I'm red too!"
+  #   # => <button style="color: red;">I'm red too!</button>
   #
   def with_options(options, &block)
     option_merger = ActiveSupport::OptionMerger.new(self, options)

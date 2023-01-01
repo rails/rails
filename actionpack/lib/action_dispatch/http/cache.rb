@@ -112,12 +112,12 @@ module ActionDispatch
 
         def etag?; etag; end
 
-        # True if an ETag is set and it's a weak validator (preceded with W/)
+        # True if an ETag is set, and it's a weak validator (preceded with W/).
         def weak_etag?
           etag? && etag.start_with?('W/"')
         end
 
-        # True if an ETag is set and it isn't a weak validator (not preceded with W/)
+        # True if an ETag is set, and it isn't a weak validator (not preceded with W/).
         def strong_etag?
           etag? && !weak_etag?
         end
