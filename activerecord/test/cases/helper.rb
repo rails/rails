@@ -27,27 +27,6 @@ QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
 ActiveRecord.raise_on_assign_to_attr_readonly = true
 ActiveRecord.belongs_to_required_validates_foreign_key = false
 
-def load_schema
-  # silence verbose schema loading
-  original_stdout = $stdout
-  $stdout = StringIO.new
-
-  adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
-  adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
-
-  load SCHEMA_ROOT + "/schema.rb"
-
-  if File.exist?(adapter_specific_schema_file)
-    load adapter_specific_schema_file
-  end
-
-  ActiveRecord::FixtureSet.reset_cache
-ensure
-  $stdout = original_stdout
-end
-
-load_schema
-
 class SQLSubscriber
   attr_reader :logged
   attr_reader :payloads
