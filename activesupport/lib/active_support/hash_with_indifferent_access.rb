@@ -330,9 +330,9 @@ module ActiveSupport
       dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
-    def transform_values(*args, &block)
+    def transform_values(&block)
       return to_enum(:transform_values) unless block_given?
-      dup.tap { |hash| hash.transform_values!(*args, &block) }
+      dup.tap { |hash| hash.transform_values!(&block) }
     end
 
     def transform_keys(*args, &block)
