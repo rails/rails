@@ -1218,8 +1218,8 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter)
-  class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
+class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
+  if current_adapter?(:PostgreSQLAdapter)
     def test_add_and_remove_index
       connection = Person.connection
       connection.create_schema("my_schema")

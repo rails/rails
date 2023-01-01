@@ -666,8 +666,8 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-unless in_memory_db?
-  class PessimisticLockingTest < ActiveRecord::TestCase
+class PessimisticLockingTest < ActiveRecord::TestCase
+  unless in_memory_db?
     self.use_transactional_tests = false
     fixtures :people, :readers
 

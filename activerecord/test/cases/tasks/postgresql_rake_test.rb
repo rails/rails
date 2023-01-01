@@ -3,9 +3,9 @@
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 
-if current_adapter?(:PostgreSQLAdapter)
-  module ActiveRecord
-    class PostgreSQLDBCreateTest < ActiveRecord::TestCase
+module ActiveRecord
+  class PostgreSQLDBCreateTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
       def setup
         @connection    = Class.new { def create_database(*); end }.new
         @configuration = {
@@ -134,8 +134,10 @@ if current_adapter?(:PostgreSQLAdapter)
           end
         end
     end
+  end
 
-    class PostgreSQLDBDropTest < ActiveRecord::TestCase
+  class PostgreSQLDBDropTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
       def setup
         @connection    = Class.new { def drop_database(*); end }.new
         @configuration = {
@@ -193,8 +195,10 @@ if current_adapter?(:PostgreSQLAdapter)
           end
         end
     end
+  end
 
-    class PostgreSQLPurgeTest < ActiveRecord::TestCase
+  class PostgreSQLPurgeTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
       def setup
         @connection = Class.new do
           def create_database(*); end
@@ -277,8 +281,10 @@ if current_adapter?(:PostgreSQLAdapter)
           ActiveRecord::Base.stub(:connection, @connection, &block)
         end
     end
+  end
 
-    class PostgreSQLDBCharsetTest < ActiveRecord::TestCase
+  class PostgreSQLDBCharsetTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
       def setup
         @connection = Class.new do
           def create_database(*); end
@@ -298,8 +304,10 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
     end
+  end
 
-    class PostgreSQLDBCollationTest < ActiveRecord::TestCase
+  class PostgreSQLDBCollationTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
       def setup
         @connection    = Class.new { def collation; end }.new
         @configuration = {
@@ -316,8 +324,10 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
     end
+  end
 
-    class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
+  class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
       def setup
         @configuration = {
           "adapter"  => "postgresql",
@@ -495,8 +505,10 @@ if current_adapter?(:PostgreSQLAdapter)
           ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
         end
     end
+  end
 
-    class PostgreSQLStructureLoadTest < ActiveRecord::TestCase
+  class PostgreSQLStructureLoadTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
       def setup
         @configuration = {
           "adapter"  => "postgresql",
