@@ -480,13 +480,20 @@ module Rails
       end
     end
 
-    # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
-    # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
-    # +config/master.key+.
-    # If specific credentials file exists for current environment, it takes precedence, thus for +production+
-    # environment look first for +config/credentials/production.yml.enc+ with master key taken
-    # from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading +config/credentials/production.key+.
-    # Default behavior can be overwritten by setting +config.credentials.content_path+ and +config.credentials.key_path+.
+    # Returns an ActiveSupport::EncryptedConfiguration instance for the
+    # credentials file specified by +config.credentials.content_path+.
+    #
+    # By default, +config.credentials.content_path+ will point to either
+    # <tt>config/credentials/#{environment}.yml.enc</tt> for the current
+    # environment (for example, +config/credentials/production.yml.enc+ for the
+    # +production+ environment), or +config/credentials.yml.enc+ if that file
+    # does not exist.
+    #
+    # The encryption key is taken from either <tt>ENV["RAILS_MASTER_KEY"]</tt>,
+    # or from the file specified by +config.credentials.key_path+. By default,
+    # +config.credentials.key_path+ will point to either
+    # <tt>config/credentials/#{environment}.key</tt> for the current
+    # environment, or +config/master.key+ if that file does not exist.
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
