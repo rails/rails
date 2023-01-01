@@ -8,6 +8,8 @@ require "active_support/testing/stream"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
+require_relative "../support/config"
+require_relative "../support/connection"
 require_relative "../support/adapter_helper"
 
 module ActiveRecord
@@ -220,6 +222,9 @@ module ActiveRecord
         end
       end
     end
+
+    # Connect to the database
+    ARTest.connect
   end
 
   class PostgreSQLTestCase < TestCase

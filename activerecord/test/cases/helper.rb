@@ -11,9 +11,6 @@ require "active_support/logger"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/kernel/singleton_class"
 
-require "support/config"
-require "support/connection"
-
 # TODO: Move all these random hacks into the ARTest namespace and into the support/ dir
 
 Thread.abort_on_exception = true
@@ -23,9 +20,6 @@ ActiveRecord.deprecator.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
-
-# Connect to the database
-ARTest.connect
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
