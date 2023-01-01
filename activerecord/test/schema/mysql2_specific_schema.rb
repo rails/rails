@@ -21,7 +21,7 @@ ActiveRecord::Schema.define do
     t.datetime :fixed_time, default: "2004-01-01 00:00:00"
     t.column :char1, "char(1)", default: "Y"
     t.string :char2, limit: 50, default: "a varchar field"
-    if supports_default_expression?
+    if ActiveRecord::TestCase.supports_default_expression?
       t.binary :uuid, limit: 36, default: -> { "(uuid())" }
     end
   end

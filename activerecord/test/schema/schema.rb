@@ -199,7 +199,7 @@ ActiveRecord::Schema.define do
   create_table :carriers, force: true
 
   create_table :carts, force: true, primary_key: [:shop_id, :id] do |t|
-    if current_adapter?(:Mysql2Adapter)
+    if ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter)
       t.bigint :id, index: true, auto_increment: true, null: false
     else
       t.bigint :id, index: true, null: false
@@ -263,7 +263,7 @@ ActiveRecord::Schema.define do
     t.integer :post_id, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
       t.string  :body, null: false, limit: 4000
     else
       t.text    :body, null: false
@@ -731,7 +731,7 @@ ActiveRecord::Schema.define do
     t.float   :temperature
     t.decimal :decimal_number_big_precision, precision: 20
     # Oracle/SQLServer supports precision up to 38
-    if current_adapter?(:OracleAdapter, :SQLServerAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, precision: 38, scale: 0
     else
       t.decimal :atoms_in_universe, precision: 55, scale: 0
@@ -870,7 +870,7 @@ ActiveRecord::Schema.define do
     t.string :title, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
       t.string  :body, null: false, limit: 4000
     else
       t.text    :body, null: false
@@ -1107,7 +1107,7 @@ ActiveRecord::Schema.define do
     t.date     :last_read
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
       t.string   :content, limit: 4000
       t.string   :important, limit: 4000
     else
