@@ -93,81 +93,6 @@ end
   end
 end
 
-def with_env_tz(new_tz = "US/Eastern")
-  old_tz, ENV["TZ"] = ENV["TZ"], new_tz
-  yield
-ensure
-  old_tz ? ENV["TZ"] = old_tz : ENV.delete("TZ")
-end
-
-def with_timezone_config(cfg)
-  verify_default_timezone_config
-
-  old_default_zone = ActiveRecord.default_timezone
-  old_awareness = ActiveRecord::Base.time_zone_aware_attributes
-  old_aware_types = ActiveRecord::Base.time_zone_aware_types
-  old_zone = Time.zone
-
-  if cfg.has_key?(:default)
-    ActiveRecord.default_timezone = cfg[:default]
-  end
-  if cfg.has_key?(:aware_attributes)
-    ActiveRecord::Base.time_zone_aware_attributes = cfg[:aware_attributes]
-  end
-  if cfg.has_key?(:aware_types)
-    ActiveRecord::Base.time_zone_aware_types = cfg[:aware_types]
-  end
-  if cfg.has_key?(:zone)
-    Time.zone = cfg[:zone]
-  end
-  yield
-ensure
-  ActiveRecord.default_timezone = old_default_zone
-  ActiveRecord::Base.time_zone_aware_attributes = old_awareness
-  ActiveRecord::Base.time_zone_aware_types = old_aware_types
-  Time.zone = old_zone
-end
-
-# This method makes sure that tests don't leak global state related to time zones.
-EXPECTED_ZONE = nil
-EXPECTED_DEFAULT_TIMEZONE = :utc
-EXPECTED_AWARE_TYPES = [:datetime, :time]
-EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
-def verify_default_timezone_config
-  if Time.zone != EXPECTED_ZONE
-    $stderr.puts <<-MSG
-\n#{self}
-    Global state `Time.zone` was leaked.
-      Expected: #{EXPECTED_ZONE}
-      Got: #{Time.zone}
-    MSG
-  end
-  if ActiveRecord.default_timezone != EXPECTED_DEFAULT_TIMEZONE
-    $stderr.puts <<-MSG
-\n#{self}
-    Global state `ActiveRecord.default_timezone` was leaked.
-      Expected: #{EXPECTED_DEFAULT_TIMEZONE}
-      Got: #{ActiveRecord.default_timezone}
-    MSG
-  end
-  if ActiveRecord::Base.time_zone_aware_attributes != EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES
-    $stderr.puts <<-MSG
-\n#{self}
-    Global state `ActiveRecord::Base.time_zone_aware_attributes` was leaked.
-      Expected: #{EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES}
-      Got: #{ActiveRecord::Base.time_zone_aware_attributes}
-    MSG
-  end
-  if ActiveRecord::Base.time_zone_aware_types != EXPECTED_AWARE_TYPES
-    $stderr.puts <<-MSG
-\n#{self}
-    Global state `ActiveRecord::Base.time_zone_aware_types` was leaked.
-      Expected: #{EXPECTED_AWARE_TYPES}
-      Got: #{ActiveRecord::Base.time_zone_aware_types}
-    MSG
-  end
-end
-
 def enable_extension!(extension, connection)
   return false unless connection.supports_extensions?
   return connection.reconnect! if connection.extension_enabled?(extension)
@@ -183,16 +108,6 @@ def disable_extension!(extension, connection)
 
   connection.disable_extension(extension, force: :cascade)
   connection.reconnect!
-end
-
-def clean_up_connection_handler
-  handler = ActiveRecord::Base.connection_handler
-  handler.instance_variable_get(:@connection_name_to_pool_manager).each do |owner, pool_manager|
-    pool_manager.role_names.each do |role_name|
-      next if role_name == ActiveRecord::Base.default_role
-      pool_manager.remove_role(role_name)
-    end
-  end
 end
 
 def load_schema
