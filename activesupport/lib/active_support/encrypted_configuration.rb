@@ -26,10 +26,11 @@ module ActiveSupport
         env_key: env_key, raise_if_missing_key: raise_if_missing_key
     end
 
-    # Allow a config to be started without a file present
+    # Reads the file and returns the decrypted content. See EncryptedFile#read.
     def read
       super
     rescue ActiveSupport::EncryptedFile::MissingContentError
+      # Allow a config to be started without a file present
       ""
     end
 
