@@ -22,7 +22,7 @@ class ValidPeopleHaveLastNames < ActiveRecord::Migration::Current
 end
 
 class BigNumber < ActiveRecord::Base
-  unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+  unless ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, :integer
   end
   attribute :my_house_population, :integer
@@ -393,7 +393,7 @@ class MigrationTest < ActiveRecord::TestCase
     migration_a = Class.new(ActiveRecord::Migration::Current) {
       def version; 100 end
       def migrate(x)
-        type = current_adapter?(:PostgreSQLAdapter) ? :char : :blob
+        type = ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter) ? :char : :blob
         add_column "people", "last_name", type
       end
     }.new
@@ -401,7 +401,7 @@ class MigrationTest < ActiveRecord::TestCase
     migration_b = Class.new(ActiveRecord::Migration::Current) {
       def version; 101 end
       def migrate(x)
-        type = current_adapter?(:PostgreSQLAdapter) ? :char : :blob
+        type = ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter) ? :char : :blob
         add_column "people", "last_name", type, if_not_exists: true
       end
     }.new
@@ -1218,8 +1218,8 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter)
-  class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
+class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
+  if current_adapter?(:PostgreSQLAdapter)
     def test_add_and_remove_index
       connection = Person.connection
       connection.create_schema("my_schema")

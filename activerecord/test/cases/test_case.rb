@@ -8,6 +8,10 @@ require "active_support/testing/stream"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
+require_relative "../support/config"
+require_relative "../support/connection"
+require_relative "../support/adapter_helper"
+require_relative "../support/load_schema_helper"
 
 module ActiveRecord
   # = Active Record Test Case
@@ -18,6 +22,10 @@ module ActiveRecord
     include ActiveSupport::Testing::Stream
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
+    include AdapterHelper
+    extend AdapterHelper
+    include LoadSchemaHelper
+    extend LoadSchemaHelper
 
     self.fixture_path = FIXTURES_ROOT
     self.use_instantiated_fixtures = false
@@ -217,6 +225,11 @@ module ActiveRecord
         end
       end
     end
+
+    # Connect to the database
+    ARTest.connect
+    # Load database schema
+    load_schema
   end
 
   class PostgreSQLTestCase < TestCase

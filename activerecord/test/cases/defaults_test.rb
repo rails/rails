@@ -83,8 +83,8 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-  class DefaultBinaryTest < ActiveRecord::TestCase
+class DefaultBinaryTest < ActiveRecord::TestCase
+  if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
     class DefaultBinary < ActiveRecord::Base; end
 
     setup do
@@ -116,8 +116,8 @@ if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
   end
 end
 
-if supports_text_column_with_default?
-  class DefaultTextTest < ActiveRecord::TestCase
+class DefaultTextTest < ActiveRecord::TestCase
+  if supports_text_column_with_default?
     class DefaultText < ActiveRecord::Base; end
 
     setup do
@@ -143,8 +143,8 @@ if supports_text_column_with_default?
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter)
-  class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
+class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
+  if current_adapter?(:PostgreSQLAdapter)
     include SchemaDumpingHelper
 
     test "schema dump includes default expression" do
@@ -164,8 +164,8 @@ if current_adapter?(:PostgreSQLAdapter)
   end
 end
 
-if current_adapter?(:Mysql2Adapter)
-  class MysqlDefaultExpressionTest < ActiveRecord::TestCase
+class MysqlDefaultExpressionTest < ActiveRecord::TestCase
+  if current_adapter?(:Mysql2Adapter)
     include SchemaDumpingHelper
 
     if supports_default_expression?
@@ -212,8 +212,10 @@ if current_adapter?(:Mysql2Adapter)
       end
     end
   end
+end
 
-  class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
+class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
+  if current_adapter?(:Mysql2Adapter)
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional tests mode, this will
     # cause Active Record to create a new savepoint. However, since MySQL doesn't
@@ -298,8 +300,8 @@ if current_adapter?(:Mysql2Adapter)
   end
 end
 
-if current_adapter?(:SQLite3Adapter)
-  class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+  if current_adapter?(:SQLite3Adapter)
     include SchemaDumpingHelper
 
     test "schema dump includes default expression" do

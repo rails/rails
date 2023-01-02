@@ -714,39 +714,41 @@ class DefaultScopingTest < ActiveRecord::TestCase
 end
 
 class DefaultScopingWithThreadTest < ActiveRecord::TestCase
-  self.use_transactional_tests = false
+  unless in_memory_db?
+    self.use_transactional_tests = false
 
-  def test_default_scoping_with_threads
-    2.times do
-      Thread.new {
-        assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
-        DeveloperOrderedBySalary.connection.close
-      }.join
+    def test_default_scoping_with_threads
+      2.times do
+        Thread.new {
+          assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
+          DeveloperOrderedBySalary.connection.close
+        }.join
+      end
+    end
+
+    def test_default_scope_is_threadsafe
+      2.times { ThreadsafeDeveloper.unscoped.create! }
+
+      threads = []
+      assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
+
+      barrier_1 = Concurrent::CyclicBarrier.new(2)
+      barrier_2 = Concurrent::CyclicBarrier.new(2)
+
+      threads << Thread.new do
+        Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
+        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+        ThreadsafeDeveloper.connection.close
+      end
+      threads << Thread.new do
+        Thread.current[:default_scope_delay] = -> { barrier_2.wait }
+        barrier_1.wait
+        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+        ThreadsafeDeveloper.connection.close
+      end
+      threads.each(&:join)
+    ensure
+      ThreadsafeDeveloper.unscoped.destroy_all
     end
   end
-
-  def test_default_scope_is_threadsafe
-    2.times { ThreadsafeDeveloper.unscoped.create! }
-
-    threads = []
-    assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
-
-    barrier_1 = Concurrent::CyclicBarrier.new(2)
-    barrier_2 = Concurrent::CyclicBarrier.new(2)
-
-    threads << Thread.new do
-      Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
-      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-      ThreadsafeDeveloper.connection.close
-    end
-    threads << Thread.new do
-      Thread.current[:default_scope_delay] = -> { barrier_2.wait }
-      barrier_1.wait
-      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-      ThreadsafeDeveloper.connection.close
-    end
-    threads.each(&:join)
-  ensure
-    ThreadsafeDeveloper.unscoped.destroy_all
-  end
-end unless in_memory_db?
+end

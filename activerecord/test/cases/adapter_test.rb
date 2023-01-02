@@ -475,8 +475,8 @@ module ActiveRecord
       end
   end
 
-  unless in_memory_db?
-    class AdapterConnectionTest < ActiveRecord::TestCase
+  class AdapterConnectionTest < ActiveRecord::TestCase
+    unless in_memory_db?
       self.use_transactional_tests = false
 
       fixtures :posts, :authors, :author_addresses

@@ -156,10 +156,9 @@ if ActiveRecord::Base.connection.supports_views?
     end
   end
 
-  # SQLite does not support CREATE, INSERT, and DELETE for VIEW
-  if current_adapter?(:Mysql2Adapter, :SQLServerAdapter, :PostgreSQLAdapter)
-
-    class UpdateableViewTest < ActiveRecord::TestCase
+  class UpdateableViewTest < ActiveRecord::TestCase
+    # SQLite does not support CREATE, INSERT, and DELETE for VIEW
+    if current_adapter?(:Mysql2Adapter, :SQLServerAdapter, :PostgreSQLAdapter)
       self.use_transactional_tests = false
       fixtures :books
 
@@ -203,8 +202,8 @@ if ActiveRecord::Base.connection.supports_views?
           book.reload
         end
       end
-    end
-  end # end of `if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :SQLServerAdapter)`
+    end # end of `if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :SQLServerAdapter)`
+  end
 end # end of `if ActiveRecord::Base.connection.supports_views?`
 
 if ActiveRecord::Base.connection.supports_materialized_views?

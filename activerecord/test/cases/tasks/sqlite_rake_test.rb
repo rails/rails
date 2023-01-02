@@ -4,9 +4,9 @@ require "cases/helper"
 require "active_record/tasks/database_tasks"
 require "pathname"
 
-if current_adapter?(:SQLite3Adapter)
-  module ActiveRecord
-    class SqliteDBCreateTest < ActiveRecord::TestCase
+module ActiveRecord
+  class SqliteDBCreateTest < ActiveRecord::TestCase
+    if current_adapter?(:SQLite3Adapter)
       def setup
         @database      = "db_create.sqlite3"
         @configuration = {
