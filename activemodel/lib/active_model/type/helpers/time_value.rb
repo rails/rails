@@ -74,7 +74,9 @@ module ActiveModel
               return unless ISO_DATETIME.match?(string)
 
               if is_utc?
-                ::Time.new(string, in: "UTC")
+                # XXX: Wrapping the Time object with Time.at because Time.new with `in:` in Ruby 3.2.0 used to return an invalid Time object
+                # see: https://bugs.ruby-lang.org/issues/19292
+                ::Time.at(::Time.new(string, in: "UTC"))
               else
                 ::Time.new(string)
               end
