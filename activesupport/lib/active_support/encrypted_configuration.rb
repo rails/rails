@@ -60,6 +60,14 @@ module ActiveSupport
       deserialize(read)
     end
 
+    # Returns the decrypted content as a Hash with symbolized keys.
+    #
+    #   my_config = ActiveSupport::EncryptedConfiguration.new(...)
+    #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
+    #
+    #   my_config.config
+    #   # => { some_secret: 123, some_namespace: { another_secret: 789 } }
+    #
     def config
       @config ||= deserialize(read).deep_symbolize_keys
     end
