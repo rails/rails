@@ -23,6 +23,19 @@ module ActiveSupport
         assert !object, message
       end
 
+      # Asserts that a block raises one of <tt>exp</tt>. This is an enhancement of the
+      # standard Minitest assertion method with the ability to test error messages.
+      #
+      #   assert_raises(ArgumentError, match: /incorrect param/i) do
+      #     perform_service(param: 'exception')
+      #   end
+      #
+      def assert_raises(*exp, match: nil, &block)
+        error = super(*exp, &block)
+        assert_match(match, error.message) if match
+        error
+      end
+
       # Assertion that the block should not raise an exception.
       #
       # Passes if evaluated code in the yielded block raises no exception.

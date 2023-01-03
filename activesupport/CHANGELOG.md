@@ -1,3 +1,22 @@
+*   Add ability to match exception messages to `assert_raises` assertion
+
+    Instead of this
+    ```ruby
+    error = assert_raises(ArgumentError) do
+      perform_service(param: 'exception')
+    end
+    assert_match(/incorrect param/i, error.message)
+    ```
+
+    you can now write this
+    ```ruby
+    assert_raises(ArgumentError, match: /incorrect param/i) do
+      perform_service(param: 'exception')
+    end
+    ```
+
+    *fatkodima*
+
 *   Add `Rails.env.local?` shorthand for `Rails.env.development? || Rails.env.test?`.
 
     *DHH*
