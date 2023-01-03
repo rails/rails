@@ -28,6 +28,15 @@ module RailsGuides
       documents.reject { |document| document["work_in_progress"] }
     end
 
+    def all_images
+      base_path = File.expand_path("../assets", __dir__)
+      images_path = File.join(base_path, "images/**/*")
+      @all_images = Dir.glob(images_path).reject { |f| File.directory?(f) }.map { |item|
+        item.delete_prefix "#{base_path}/"
+      }
+      @all_images
+    end
+
     def docs_for_menu(position = nil)
       if position.nil?
         documents_by_section
