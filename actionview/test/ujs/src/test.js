@@ -1,4 +1,4 @@
-import "../public/test/attach-bindings"
+import "./attach-bindings"
 
 import Rails from '../../../app/javascript/rails-ujs/index'
 
