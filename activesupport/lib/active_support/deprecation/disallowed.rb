@@ -12,8 +12,8 @@ module ActiveSupport
       # deprecations as disallowed.
       #
       # Deprecations matching a substring or regular expression will be handled
-      # using the configured +ActiveSupport::Deprecation.disallowed_behavior+
-      # rather than +ActiveSupport::Deprecation.behavior+.
+      # using the configured Behavior#disallowed_behavior rather than
+      # Behavior#behavior.
       attr_writer :disallowed_warnings
 
       # Returns the configured criteria used to identify deprecation messages
