@@ -56,12 +56,12 @@ module ActiveRecord
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
   autoload :NestedAttributes
-  autoload :Normalization
   autoload :NoTouching
+  autoload :Normalization
   autoload :Persistence
   autoload :QueryCache
-  autoload :Querying
   autoload :QueryLogs
+  autoload :Querying
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -96,10 +96,10 @@ module ActiveRecord
     autoload :AutosaveAssociation
     autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
-    autoload :Promise
     autoload :FutureResult
     autoload :LegacyYamlAdapter
     autoload :NullRelation
+    autoload :Promise
     autoload :Relation
     autoload :Result
     autoload :StatementCache
@@ -107,13 +107,13 @@ module ActiveRecord
     autoload :Type
 
     autoload_under "relation" do
-      autoload :QueryMethods
-      autoload :FinderMethods
-      autoload :Calculations
-      autoload :PredicateBuilder
-      autoload :SpawnMethods
       autoload :Batches
+      autoload :Calculations
       autoload :Delegation
+      autoload :FinderMethods
+      autoload :PredicateBuilder
+      autoload :QueryMethods
+      autoload :SpawnMethods
     end
   end
 
