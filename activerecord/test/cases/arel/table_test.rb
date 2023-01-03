@@ -186,10 +186,6 @@ module Arel
       _(@relation.name).must_equal "users"
     end
 
-    it "should have a table name" do
-      _(@relation.table_name).must_equal "users"
-    end
-
     describe "[]" do
       describe "when given a Symbol" do
         it "manufactures an attribute if the symbol names an attribute within the relation" do
