@@ -1,3 +1,11 @@
+*   Allow raising an error when a callback's only/unless symbols aren't existing methods.
+
+    When `before_action :callback, only: :action_name` is declared on a controller that doesn't respond to `action_name`, raise an exception at request time. This is a safety measure to ensure that typos or forgetfulness don't prevent a crucial callback from being run when it should.
+
+    For new applications, raising an error for undefined actions is turned on by default. If you do not want to opt-in to this behavior set `config.action_pack.raise_on_missing_callback_actions` to `false` in your application configuration. See #43487 for more details.
+
+    *Jess Bees*
+
 *   Allow cookie options[:domain] to accept a proc to set the cookie domain on a more flexible per-request basis
 
     *RobL*
