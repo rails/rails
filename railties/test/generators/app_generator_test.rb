@@ -748,6 +748,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".gitattributes" do |content|
       assert_no_match(/yarn\.lock/, content)
     end
+
+    assert_no_file ".node-version"
   end
 
   def test_webpack_option
@@ -770,6 +772,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Dockerfile" do |content|
       assert_match(/yarn/, content)
+    end
+
+    assert_file ".node-version" do |content|
+      if ENV["NODE_VERSION"]
+        assert_match(/#{ENV["NODE_VERSION"]}/, content)
+      else
+        assert_match(/\d+\.\d+\.\d+/, content)
+      end
     end
   end
 
