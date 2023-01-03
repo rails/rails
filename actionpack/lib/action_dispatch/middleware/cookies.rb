@@ -95,7 +95,7 @@ module ActionDispatch
   # Read and write data to cookies through ActionController::Base#cookies.
   #
   # When reading cookie data, the data is read from the HTTP request header, Cookie.
-  # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
+  # When writing cookie data, the data is sent out in the HTTP response header, +Set-Cookie+.
   #
   # Examples of writing:
   #

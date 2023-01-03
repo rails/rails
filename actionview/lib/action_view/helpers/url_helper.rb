@@ -495,7 +495,7 @@ module ActionView
       # * <tt>:body</tt> - Preset the body of the email.
       # * <tt>:cc</tt> - Carbon Copy additional recipients on the email.
       # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
-      # * <tt>:reply_to</tt> - Preset the Reply-To field of the email.
+      # * <tt>:reply_to</tt> - Preset the +Reply-To+ field of the email.
       #
       # ==== Obfuscation
       # Prior to Rails 4.0, +mail_to+ provided options for encoding the address
