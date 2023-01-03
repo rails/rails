@@ -1,3 +1,5 @@
+// Karma configuration for running the UJS tests
+
 const config = {
   browsers: ["ChromeHeadless"],
   frameworks: ["qunit"],

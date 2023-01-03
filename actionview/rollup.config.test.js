@@ -1,3 +1,5 @@
+// Rollup configuration for compiling the UJS tests
+
 import commonjs from "@rollup/plugin-commonjs"
 import resolve from "@rollup/plugin-node-resolve"
 
