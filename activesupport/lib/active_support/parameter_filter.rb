@@ -4,32 +4,36 @@ require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/array/extract"
 
 module ActiveSupport
-  # +ParameterFilter+ allows you to specify keys for sensitive data from
-  # hash-like object and replace corresponding value. Filtering only certain
-  # sub-keys from a hash is possible by using the dot notation:
-  # 'credit_card.number'. If a proc is given, each key and value of a hash and
-  # all sub-hashes are passed to it, where the value or the key can be replaced
-  # using String#replace or similar methods.
+  # +ParameterFilter+ replaces values in a <tt>Hash</tt>-like object if their
+  # keys match one of the specified filters.
   #
+  # Matching based on nested keys is possible by using dot notation, e.g.
+  # <tt>"credit_card.number"</tt>.
+  #
+  # If a proc is given as a filter, each key and value of the <tt>Hash</tt>-like
+  # and of any nested <tt>Hash</tt>es will be passed to it. The value or key can
+  # then be mutated as desired using methods such as <tt>String#replace</tt>.
+  #
+  #   # Replaces values with "[FILTERED]" for keys that match /password/i.
   #   ActiveSupport::ParameterFilter.new([:password])
-  #   => replaces the value to all keys matching /password/i with "[FILTERED]"
   #
+  #   # Replaces values with "[FILTERED]" for keys that match /foo|bar/i.
   #   ActiveSupport::ParameterFilter.new([:foo, "bar"])
-  #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
   #
-  #   ActiveSupport::ParameterFilter.new([/\Apin\z/i, /\Apin_/i])
-  #   => replaces the value for the exact (case-insensitive) key 'pin' and all
-  #   (case-insensitive) keys beginning with 'pin_', with "[FILTERED]".
-  #   Does not match keys with 'pin' as a substring, such as 'shipping_id'.
+  #   # Replaces values for the exact key "pin" and for keys that begin with
+  #   # "pin_". Does not match keys that otherwise include "pin" as a
+  #   # substring, such as "shipping_id".
+  #   ActiveSupport::ParameterFilter.new([/\Apin\z/, /\Apin_/])
   #
+  #   # Replaces the value for :code in `{ credit_card: { code: "xxxx" } }`.
+  #   # Does not change `{ file: { code: "xxxx" } }`.
   #   ActiveSupport::ParameterFilter.new(["credit_card.code"])
-  #   => replaces { credit_card: {code: "xxxx"} } with "[FILTERED]", does not
-  #   change { file: { code: "xxxx"} }
   #
+  #   # Reverses values for keys that match /secret/i.
   #   ActiveSupport::ParameterFilter.new([-> (k, v) do
   #     v.reverse! if /secret/i.match?(k)
   #   end])
-  #   => reverses the value to all keys matching /secret/i
+  #
   class ParameterFilter
     FILTERED = "[FILTERED]" # :nodoc:
 
