@@ -99,6 +99,30 @@ module ApplicationTests
       assert_not_includes comment, "controller:users"
     end
 
+    test "controller tags are not doubled up if already configured" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :job, :controller, :pid ]"
+
+      boot_app
+
+      get "/"
+      comment = last_response.body.strip
+
+      assert_match(/\/\*action:index,controller:users,pid:\d+\*\//, comment)
+    end
+
+    test "namespace controller tags are not doubled up if already configured" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :job, :namespaced_controller, :pid ]"
+
+      boot_app
+
+      get "/"
+      comment = last_response.body.strip
+
+      assert_match(/\/\*action:index,namespaced_controller:UsersController,pid:\d+\*\//, comment)
+    end
+
     test "job perform method has tagging filters enabled by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
 
@@ -118,6 +142,17 @@ module ApplicationTests
       comment = UserJob.new.perform_now
 
       assert_not_includes comment, "UserJob"
+    end
+
+    test "job tags are not doubled up if already configured" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :job, :controller, :pid ]"
+
+      boot_app
+
+      comment = UserJob.new.perform_now
+
+      assert_match(/\/\*job:UserJob,pid:\d+\*\//, comment)
     end
 
     test "query cache is cleared between requests" do
