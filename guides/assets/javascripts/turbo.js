@@ -1,6 +1,6 @@
 /*
   Turbo 7.2.0
-  Copyright © 2022 37signals LLC
+  Copyright © 2022-2023 37signals LLC
   https://cdn.jsdelivr.net/npm/@hotwired/turbo@7.2.0/dist/turbo.es2017-umd.js
 */
 
