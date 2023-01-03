@@ -13,7 +13,7 @@ module ActionController # :nodoc:
     end
 
     module ClassMethods
-      # Overrides parts of the globally configured Content-Security-Policy
+      # Overrides parts of the globally configured +Content-Security-Policy+
       # header:
       #
       #   class PostsController < ApplicationController
@@ -31,7 +31,7 @@ module ActionController # :nodoc:
       #     end
       #   end
       #
-      # Pass +false+ to remove the Content-Security-Policy header:
+      # Pass +false+ to remove the +Content-Security-Policy+ header:
       #
       #   class PostsController < ApplicationController
       #     content_security_policy false, only: :index
@@ -50,14 +50,14 @@ module ActionController # :nodoc:
         end
       end
 
-      # Overrides the globally configured Content-Security-Policy-Report-Only
+      # Overrides the globally configured +Content-Security-Policy-Report-Only+
       # header:
       #
       #   class PostsController < ApplicationController
       #     content_security_policy_report_only only: :index
       #   end
       #
-      # Pass +false+ to remove the Content-Security-Policy-Report-Only header:
+      # Pass +false+ to remove the +Content-Security-Policy-Report-Only+ header:
       #
       #   class PostsController < ApplicationController
       #     content_security_policy_report_only false, only: :index

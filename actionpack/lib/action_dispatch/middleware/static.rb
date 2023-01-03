@@ -24,7 +24,7 @@ module ActionDispatch
     end
   end
 
-  # This endpoint serves static files from disk using Rack::File.
+  # This endpoint serves static files from disk using +Rack::File+.
   #
   # URL paths are matched with static files according to expected
   # conventions: +path+, +path+.html, +path+/index.html.
@@ -33,13 +33,13 @@ module ActionDispatch
   # and gzip (.gz) files are supported. If +path+.br exists, this
   # endpoint returns that file with a <tt>Content-Encoding: br</tt> header.
   #
-  # If no matching file is found, this endpoint responds 404 Not Found.
+  # If no matching file is found, this endpoint responds <tt>404 Not Found</tt>.
   #
   # Pass the +root+ directory to search for matching files, an optional
   # <tt>index: "index"</tt> to change the default +path+/index.html, and optional
   # additional response headers.
   class FileHandler
-    # Accept-Encoding value -> file extension
+    # +Accept-Encoding+ value -> file extension
     PRECOMPRESSED = {
       "br" => ".br",
       "gzip" => ".gz",

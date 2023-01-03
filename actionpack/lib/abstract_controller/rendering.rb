@@ -51,7 +51,7 @@ module AbstractController
     def render_to_body(options = {})
     end
 
-    # Returns Content-Type of rendered content.
+    # Returns +Content-Type+ of rendered content.
     def rendered_format
       Mime[:text]
     end

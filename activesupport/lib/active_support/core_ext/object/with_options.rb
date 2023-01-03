@@ -64,7 +64,7 @@ class Object
   #
   # Hence the inherited default for +if+ key is ignored.
   #
-  # NOTE: You cannot call class methods implicitly inside of with_options.
+  # NOTE: You cannot call class methods implicitly inside of +with_options+.
   # You can access these methods using the class name instead:
   #
   #   class Phone < ActiveRecord::Base

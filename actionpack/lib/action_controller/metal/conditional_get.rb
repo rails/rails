@@ -41,23 +41,23 @@ module ActionController
     # * <tt>:etag</tt> Sets a "weak" ETag validator on the response. See the
     #   +:weak_etag+ option.
     # * <tt>:weak_etag</tt> Sets a "weak" ETag validator on the response.
-    #   Requests that set If-None-Match header may return a 304 Not Modified
+    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
     #   response if it matches the ETag exactly. A weak ETag indicates semantic
     #   equivalence, not byte-for-byte equality, so they're good for caching
     #   HTML pages in browser caches. They can't be used for responses that
-    #   must be byte-identical, like serving Range requests within a PDF file.
+    #   must be byte-identical, like serving +Range+ requests within a PDF file.
     # * <tt>:strong_etag</tt> Sets a "strong" ETag validator on the response.
-    #   Requests that set If-None-Match header may return a 304 Not Modified
+    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
     #   response if it matches the ETag exactly. A strong ETag implies exact
     #   equality: the response must match byte for byte. This is necessary for
-    #   doing Range requests within a large video or PDF file, for example, or
+    #   doing +Range+ requests within a large video or PDF file, for example, or
     #   for compatibility with some CDNs that don't support weak ETags.
     # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
-    #   response. Subsequent requests that set If-Modified-Since may return a
-    #   304 Not Modified response if last_modified <= If-Modified-Since.
-    # * <tt>:public</tt> By default the Cache-Control header is private. Set this to
+    #   response. Subsequent requests that set +If-Modified-Since+ may return a
+    #   <tt>304 Not Modified</tt> response if +last_modified+ <= +If-Modified-Since+.
+    # * <tt>:public</tt> By default the +Cache-Control+ header is private. Set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
-    # * <tt>:cache_control</tt> When given, will overwrite an existing Cache-Control header.
+    # * <tt>:cache_control</tt> When given, will overwrite an existing +Cache-Control+ header.
     #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
@@ -73,7 +73,7 @@ module ActionController
     #   end
     #
     # This will render the show template if the request isn't sending a matching ETag or
-    # If-Modified-Since header, and just a <tt>304 Not Modified</tt> response if there's a match.
+    # +If-Modified-Since+ header, and just a <tt>304 Not Modified</tt> response if there's a match.
     #
     # You can also just pass a record. In this case, +last_modified+ will be set
     # by calling +updated_at+ and +etag+ by passing the object itself.
@@ -100,14 +100,14 @@ module ActionController
     #     fresh_when(@article, public: true)
     #   end
     #
-    # When overwriting Cache-Control header:
+    # When overwriting +Cache-Control+ header:
     #
     #   def show
     #     @article = Article.find(params[:id])
     #     fresh_when(@article, public: true, cache_control: { no_cache: true })
     #   end
     #
-    # This will set in the response Cache-Control: public, no-cache.
+    # This will set in the response <tt>Cache-Control: public, no-cache</tt>.
     #
     # When rendering a different template than the default controller/action
     # style, you can indicate which digest to include in the ETag:
@@ -144,23 +144,23 @@ module ActionController
     # * <tt>:etag</tt> Sets a "weak" ETag validator on the response. See the
     #   +:weak_etag+ option.
     # * <tt>:weak_etag</tt> Sets a "weak" ETag validator on the response.
-    #   Requests that set If-None-Match header may return a 304 Not Modified
+    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
     #   response if it matches the ETag exactly. A weak ETag indicates semantic
     #   equivalence, not byte-for-byte equality, so they're good for caching
     #   HTML pages in browser caches. They can't be used for responses that
-    #   must be byte-identical, like serving Range requests within a PDF file.
+    #   must be byte-identical, like serving +Range+ requests within a PDF file.
     # * <tt>:strong_etag</tt> Sets a "strong" ETag validator on the response.
-    #   Requests that set If-None-Match header may return a 304 Not Modified
+    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
     #   response if it matches the ETag exactly. A strong ETag implies exact
     #   equality: the response must match byte for byte. This is necessary for
-    #   doing Range requests within a large video or PDF file, for example, or
+    #   doing +Range+ requests within a large video or PDF file, for example, or
     #   for compatibility with some CDNs that don't support weak ETags.
     # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
-    #   response. Subsequent requests that set If-Modified-Since may return a
-    #   304 Not Modified response if last_modified <= If-Modified-Since.
-    # * <tt>:public</tt> By default the Cache-Control header is private. Set this to
+    #   response. Subsequent requests that set +If-Modified-Since+ may return a
+    #   <tt>304 Not Modified</tt> response if last_modified <= +If-Modified-Since+.
+    # * <tt>:public</tt> By default the +Cache-Control+ header is private. Set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
-    # * <tt>:cache_control</tt> When given, will overwrite an existing Cache-Control header.
+    # * <tt>:cache_control</tt> When given, will overwrite an existing +Cache-Control+ header.
     #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
@@ -224,7 +224,7 @@ module ActionController
     #     end
     #   end
     #
-    # When overwriting Cache-Control header:
+    # When overwriting +Cache-Control+ header:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -237,7 +237,7 @@ module ActionController
     #     end
     #   end
     #
-    # This will set in the response Cache-Control: public, no-cache.
+    # This will set in the response <tt>Cache-Control: public, no-cache</tt>.
     #
     # When rendering a different template than the default controller/action
     # style, you can indicate which digest to include in the ETag:
@@ -251,28 +251,28 @@ module ActionController
       !request.fresh?(response)
     end
 
-    # Sets an HTTP 1.1 Cache-Control header. Defaults to issuing a +private+
+    # Sets an HTTP 1.1 +Cache-Control+ header. Defaults to issuing a +private+
     # instruction, so that intermediate caches must not cache the response.
     #
     #   expires_in 20.minutes
     #   expires_in 3.hours, public: true
     #   expires_in 3.hours, public: true, must_revalidate: true
     #
-    # This method will overwrite an existing Cache-Control header.
+    # This method will overwrite an existing +Cache-Control+ header.
     # See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     #
-    # HTTP Cache-Control Extensions for Stale Content. See https://tools.ietf.org/html/rfc5861.
+    # HTTP +Cache-Control+ Extensions for Stale Content. See https://tools.ietf.org/html/rfc5861.
     # It helps to cache an asset and serve it while is being revalidated and/or returning with an error.
     #
     #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds
     #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds, stale_if_error: 5.minutes
     #
-    # HTTP Cache-Control Extensions other values: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control.
-    # Any additional key-value pairs are concatenated onto the Cache-Control header in the response:
+    # HTTP +Cache-Control+ Extensions other values: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control.
+    # Any additional key-value pairs are concatenated onto the +Cache-Control+ header in the response:
     #
     #   expires_in 3.hours, public: true, "s-maxage": 3.hours, "no-transform": true
     #
-    # The method will also ensure an HTTP Date header for client compatibility.
+    # The method will also ensure an HTTP +Date+ header for client compatibility.
     def expires_in(seconds, options = {})
       response.cache_control.delete(:no_store)
       response.cache_control.merge!(
@@ -288,7 +288,7 @@ module ActionController
       response.date = Time.now unless response.date?
     end
 
-    # Sets an HTTP 1.1 Cache-Control header of <tt>no-cache</tt>. This means the
+    # Sets an HTTP 1.1 +Cache-Control+ header of <tt>no-cache</tt>. This means the
     # resource will be marked as stale, so clients must always revalidate.
     # Intermediate/browser caches may still store the asset.
     def expires_now
@@ -311,7 +311,7 @@ module ActionController
                       public: public)
     end
 
-    # Sets an HTTP 1.1 Cache-Control header of <tt>no-store</tt>. This means the
+    # Sets an HTTP 1.1 +Cache-Control+ header of <tt>no-store</tt>. This means the
     # resource may not be stored in any cache.
     def no_store
       response.cache_control.replace(no_store: true)
