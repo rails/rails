@@ -145,42 +145,16 @@ module ActionController
       head :not_modified if request.fresh?(response)
     end
 
-    # Sets the +etag+ and/or +last_modified+ on the response and checks it against
-    # the client request. If the request doesn't match the options provided, the
-    # request is considered stale and should be generated from scratch. Otherwise,
-    # it's fresh, and we don't need to generate anything, and a reply of <tt>304 Not Modified</tt> is sent.
+    # Sets the +etag+ and/or +last_modified+ on the response and checks them
+    # against the request. If the request doesn't match the provided options, it
+    # is considered stale, and the response should be rendered from scratch.
+    # Otherwise, it is fresh, and a <tt>304 Not Modified</tt> is sent.
     #
-    # === Parameters:
+    # ==== Options
     #
-    # * <tt>:etag</tt> Sets a "weak" ETag validator on the response. See the
-    #   +:weak_etag+ option.
-    # * <tt>:weak_etag</tt> Sets a "weak" ETag validator on the response.
-    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
-    #   response if it matches the ETag exactly. A weak ETag indicates semantic
-    #   equivalence, not byte-for-byte equality, so they're good for caching
-    #   HTML pages in browser caches. They can't be used for responses that
-    #   must be byte-identical, like serving +Range+ requests within a PDF file.
-    # * <tt>:strong_etag</tt> Sets a "strong" ETag validator on the response.
-    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
-    #   response if it matches the ETag exactly. A strong ETag implies exact
-    #   equality: the response must match byte for byte. This is necessary for
-    #   doing +Range+ requests within a large video or PDF file, for example, or
-    #   for compatibility with some CDNs that don't support weak ETags.
-    # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
-    #   response. Subsequent requests that set +If-Modified-Since+ may return a
-    #   <tt>304 Not Modified</tt> response if last_modified <= +If-Modified-Since+.
-    # * <tt>:public</tt> By default the +Cache-Control+ header is private. Set this to
-    #   +true+ if you want your application to be cacheable by other devices (proxy caches).
-    # * <tt>:cache_control</tt> When given, will overwrite an existing +Cache-Control+ header.
-    #   For a list of +Cache-Control+ directives, see the {article on
-    #   MDN}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control].
-    # * <tt>:template</tt> By default, the template digest for the current
-    #   controller/action is included in ETags. If the action renders a
-    #   different template, you can include its digest instead. If the action
-    #   doesn't render a template at all, you can pass <tt>template: false</tt>
-    #   to skip any attempt to check for a template digest.
+    # See #fresh_when for supported options.
     #
-    # === Example:
+    # ==== Examples
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -193,8 +167,7 @@ module ActionController
     #     end
     #   end
     #
-    # You can also just pass a record. In this case, +last_modified+ will be set
-    # by calling +updated_at+ and +etag+ by passing the object itself.
+    # You can also just pass a record:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -207,10 +180,11 @@ module ActionController
     #     end
     #   end
     #
+    # +etag+ will be set to the record, and +last_modified+ will be set to the
+    # record's +updated_at+.
+    #
     # You can also pass an object that responds to +maximum+, such as a
-    # collection of active records. In this case, +last_modified+ will be set by
-    # calling <tt>maximum(:updated_at)</tt> on the collection (the timestamp of the
-    # most recently updated record) and the +etag+ by passing the object itself.
+    # collection of records:
     #
     #   def index
     #     @articles = Article.all
@@ -223,20 +197,12 @@ module ActionController
     #     end
     #   end
     #
-    # When passing a record or a collection, you can still set the public header:
+    # In this case, +etag+ will be set to the collection, and +last_modified+
+    # will be set to <tt>maximum(:updated_at)</tt> (the timestamp of the most
+    # recently updated record).
     #
-    #   def show
-    #     @article = Article.find(params[:id])
-    #
-    #     if stale?(@article, public: true)
-    #       @statistics = @article.really_expensive_call
-    #       respond_to do |format|
-    #         # all the supported formats
-    #       end
-    #     end
-    #   end
-    #
-    # When overwriting +Cache-Control+ header:
+    # When passing a record or a collection, you can still specify other
+    # options, such as +:public+ and +:cache_control+:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -249,13 +215,13 @@ module ActionController
     #     end
     #   end
     #
-    # This will set in the response <tt>Cache-Control: public, no-cache</tt>.
+    # The above will set <tt>Cache-Control: public, no-cache</tt> in the response.
     #
-    # When rendering a different template than the default controller/action
-    # style, you can indicate which digest to include in the ETag:
+    # When rendering a different template than the controller/action's default
+    # template, you can indicate which digest to include in the ETag:
     #
     #   def show
-    #     super if stale? @article, template: 'widgets/show'
+    #     super if stale?(@article, template: "widgets/show")
     #   end
     #
     def stale?(object = nil, **freshness_kwargs)
