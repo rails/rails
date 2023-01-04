@@ -23,33 +23,34 @@ module ActiveSupport
         assert !object, message
       end
 
-      # Asserts that a block raises one of +exp+. This is an enhancement of the
-      # standard Minitest assertion method with the ability to test error
-      # messages.
-      #
-      #   assert_raises(ArgumentError, match: /incorrect param/i) do
-      #     perform_service(param: 'exception')
-      #   end
-      #
-      def assert_raises(*exp, match: nil, &block)
-        error = super(*exp, &block)
-        assert_match(match, error.message) if match
-        error
-      end
-      # test/unit backwards compatibility method
-      alias :assert_raise :assert_raises unless defined?(::Test::Unit)
+      unless defined?(Test::Unit::Assertions)
+        # Asserts that a block raises one of +exp+. This is an enhancement of the
+        # standard Minitest assertion method with the ability to test error
+        # messages.
+        #
+        #   assert_raises(ArgumentError, match: /incorrect param/i) do
+        #     perform_service(param: 'exception')
+        #   end
+        #
+        def assert_raises(*exp, match: nil, &block)
+          error = super(*exp, &block)
+          assert_match(match, error.message) if match
+          error
+        end
+        alias :assert_raise :assert_raises
 
-      # Assertion that the block should not raise an exception.
-      #
-      # Passes if evaluated code in the yielded block raises no exception.
-      #
-      #   assert_nothing_raised do
-      #     perform_service(param: 'no_exception')
-      #   end
-      def assert_nothing_raised
-        yield.tap { assert(true) }
-      rescue => error
-        raise Minitest::UnexpectedError.new(error)
+        # Assertion that the block should not raise an exception.
+        #
+        # Passes if evaluated code in the yielded block raises no exception.
+        #
+        #   assert_nothing_raised do
+        #     perform_service(param: 'no_exception')
+        #   end
+        def assert_nothing_raised
+          yield.tap { assert(true) }
+        rescue => error
+          raise Minitest::UnexpectedError.new(error)
+        end
       end
 
       # Test numeric difference between the return value of an expression as a
