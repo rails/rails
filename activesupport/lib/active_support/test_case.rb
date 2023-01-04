@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"
 require "active_support/testing/assertions"
@@ -17,8 +16,24 @@ require "active_support/testing/parallelize_executor"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
-  class TestCase < ::Minitest::Test
-    Assertion = Minitest::Assertion
+  base = \
+    begin
+      require "minitest"
+      ::Minitest::Test
+    rescue LoadError
+      require "test/unit"
+      ::Test::Unit::TestCase
+    end
+  class TestCase < base
+    if superclass.name == "Minitest::Test"
+      Assertion = Minitest::Assertion
+      Assertions = Minitest::Assertions
+      UnexpectedError = Minitest::UnexpectedError
+    elsif superclass.name == "Test::Unit::TestCase"
+      Assertion = ::Test::Unit::AssertionFailedError
+      Assertions = ::Test::Unit::Assertions
+      UnexpectedError = Test::Unit::AssertionFailedError
+    end
 
     class << self
       # Sets the order in which test cases are run.
