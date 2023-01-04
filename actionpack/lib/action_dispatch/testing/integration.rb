@@ -89,7 +89,7 @@ module ActionDispatch
     class Session
       DEFAULT_HOST = "www.example.com"
 
-      include Minitest::Assertions
+      include ActiveSupport::TestCase::Assertions
       include TestProcess, RequestHelpers, Assertions
 
       delegate :status, :status_message, :headers, :body, :redirect?, to: :response, allow_nil: true
