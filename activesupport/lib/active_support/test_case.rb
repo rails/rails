@@ -81,7 +81,9 @@ module ActiveSupport
         workers = Concurrent.physical_processor_count if workers == :number_of_processors
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
 
-        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
+        if defined?(Minitest)
+          Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
+        end
       end
 
       # Set up hook for parallel testing. This can be used if you have multiple
