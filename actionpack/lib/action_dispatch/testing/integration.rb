@@ -3,7 +3,7 @@
 require "stringio"
 require "uri"
 require "rack/test"
-require "minitest"
+require "active_support/test_case"
 
 require "action_dispatch/testing/request_encoder"
 
