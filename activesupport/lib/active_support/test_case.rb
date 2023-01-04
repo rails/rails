@@ -157,6 +157,13 @@ module ActiveSupport
 
     alias_method :method_name, :name
 
+    include Module.new {
+      def before_setup
+      end
+      def after_teardown
+      end
+    }
+
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
@@ -166,6 +173,18 @@ module ActiveSupport
     include ActiveSupport::Testing::TimeHelpers
     include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
+
+    if defined?(::Test::Unit)
+      method(:setup).super_method.call(before: :prepend)
+      def before_setup
+        super if method(__method__).super_method
+      end
+
+      method(:teardown).super_method.call(after: :append)
+      def after_teardown
+        super if method(__method__).super_method
+      end
+    end
 
     # test/unit backwards compatibility methods
     unless defined?(::Test::Unit)
