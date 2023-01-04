@@ -23,7 +23,7 @@ module ActiveRecord
       # Note that this sanitization method is not schema-aware, hence won't do any type casting
       # and will directly use the database adapter's +quote+ method.
       # For MySQL specifically this means that numeric parameters will be quoted as strings
-      # to prevent query manimupation attacks.
+      # to prevent query manipulation attacks.
       #
       #   sanitize_sql_for_conditions(["role = ?", 0])
       #   # => "role = '0'"
@@ -55,7 +55,7 @@ module ActiveRecord
       # Note that this sanitization method is not schema-aware, hence won't do any type casting
       # and will directly use the database adapter's +quote+ method.
       # For MySQL specifically this means that numeric parameters will be quoted as strings
-      # to prevent query manimupation attacks.
+      # to prevent query manipulation attacks.
       #
       #   sanitize_sql_for_assignment(["role = ?", 0])
       #   # => "role = '0'"
@@ -145,7 +145,7 @@ module ActiveRecord
       # Note that this sanitization method is not schema-aware, hence won't do any type casting
       # and will directly use the database adapter's +quote+ method.
       # For MySQL specifically this means that numeric parameters will be quoted as strings
-      # to prevent query manimupation attacks.
+      # to prevent query manipulation attacks.
       #
       #   sanitize_sql_array(["role = ?", 0])
       #   # => "role = '0'"
