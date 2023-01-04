@@ -55,16 +55,16 @@ module ActionController # :nodoc:
       #
       #   send_file '/path/to/404.html', type: 'text/html; charset=utf-8', disposition: 'inline', status: 404
       #
-      # Read about the other <tt>Content-*</tt> HTTP headers if you'd like to
-      # provide the user with more information (such as +Content-Description+) in
-      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11.
+      # You can use other <tt>Content-*</tt> HTTP headers to provide additional
+      # information to the client. See MDN for a
+      # {list of HTTP headers}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers].
       #
       # Also be aware that the document may be cached by proxies and browsers.
       # The +Pragma+ and +Cache-Control+ headers declare how the file may be cached
       # by intermediaries. They default to require clients to validate with
       # the server before releasing cached responses. See
       # https://www.mnot.net/cache_docs/ for an overview of web caching and
-      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
+      # {RFC 9111}[https://www.rfc-editor.org/rfc/rfc9111.html#name-cache-control]
       # for the +Cache-Control+ header spec.
       def send_file(path, options = {}) # :doc:
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)
