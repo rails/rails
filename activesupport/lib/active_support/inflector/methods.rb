@@ -236,7 +236,7 @@ module ActiveSupport
     def demodulize(path)
       path = path.to_s
       if i = path.rindex("::")
-        path[(i + 2)..-1]
+        path[(i + 2), path.length]
       else
         path
       end
