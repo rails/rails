@@ -36,7 +36,8 @@ module ActiveSupport
         assert_match(match, error.message) if match
         error
       end
-      alias :assert_raise :assert_raises
+      # test/unit backwards compatibility method
+      alias :assert_raise :assert_raises unless defined?(::Test::Unit)
 
       # Assertion that the block should not raise an exception.
       #
