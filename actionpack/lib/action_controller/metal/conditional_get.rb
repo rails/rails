@@ -58,7 +58,8 @@ module ActionController
     # * <tt>:public</tt> By default the +Cache-Control+ header is private. Set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:cache_control</tt> When given, will overwrite an existing +Cache-Control+ header.
-    #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
+    #   For a list of +Cache-Control+ directives, see the {article on
+    #   MDN}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control].
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -161,7 +162,8 @@ module ActionController
     # * <tt>:public</tt> By default the +Cache-Control+ header is private. Set this to
     #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:cache_control</tt> When given, will overwrite an existing +Cache-Control+ header.
-    #   See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
+    #   For a list of +Cache-Control+ directives, see the {article on
+    #   MDN}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control].
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -259,7 +261,6 @@ module ActionController
     #   expires_in 3.hours, public: true, must_revalidate: true
     #
     # This method will overwrite an existing +Cache-Control+ header.
-    # See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     #
     # HTTP +Cache-Control+ Extensions for Stale Content. See https://tools.ietf.org/html/rfc5861.
     # It helps to cache an asset and serve it while is being revalidated and/or returning with an error.

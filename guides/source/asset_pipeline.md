@@ -975,9 +975,7 @@ such as `X-Cache` or for any additional headers they may add.
 
 ##### CDNs and the Cache-Control Header
 
-The [cache control
-header](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
-specification that describes how a request can be cached. When no CDN is used, a
+The [`Cache-Control`][] header describes how a request can be cached. When no CDN is used, a
 browser will use this information to cache contents. This is very helpful for
 assets that are not modified so that a browser does not need to re-download a
 website's CSS or JavaScript on every request. Generally we want our Rails server
@@ -998,6 +996,8 @@ asset for up to a year. Since most CDNs also cache headers of the request, this
 `Cache-Control` will be passed along to all future browsers seeking this asset.
 The browser then knows that it can store this asset for a very long time before
 needing to re-request it.
+
+[`Cache-Control`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
 
 ##### CDNs and URL-based Cache Invalidation
 
