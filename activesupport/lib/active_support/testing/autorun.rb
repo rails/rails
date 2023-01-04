@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
-require "minitest"
+begin
+  require "minitest"
 
-Minitest.autorun
+  Minitest.autorun
+rescue LoadError
+end
