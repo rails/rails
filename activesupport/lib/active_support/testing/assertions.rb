@@ -266,7 +266,7 @@ module ActiveSupport
       private
         def _assert_nothing_raised_or_warn(assertion, &block)
           assert_nothing_raised(&block)
-        rescue Minitest::UnexpectedError => e
+        rescue ActiveSupport::TestCase::UnexpectedError => e
           if tagged_logger && tagged_logger.warn?
             warning = <<~MSG
               #{self.class} - #{name}: #{e.error.class} raised.
