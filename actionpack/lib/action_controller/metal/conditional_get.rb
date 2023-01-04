@@ -229,27 +229,48 @@ module ActionController
       !request.fresh?(response)
     end
 
-    # Sets an HTTP 1.1 +Cache-Control+ header. Defaults to issuing a +private+
-    # instruction, so that intermediate caches must not cache the response.
+    # Sets the +Cache-Control+ header, overwriting existing directives. This
+    # method will also ensure an HTTP +Date+ header for client compatibility.
     #
-    #   expires_in 20.minutes
-    #   expires_in 3.hours, public: true
-    #   expires_in 3.hours, public: true, must_revalidate: true
+    # Defaults to issuing the +private+ directive, so that intermediate caches
+    # must not cache the response.
     #
-    # This method will overwrite an existing +Cache-Control+ header.
+    # ==== Options
     #
-    # HTTP +Cache-Control+ Extensions for Stale Content. See https://tools.ietf.org/html/rfc5861.
-    # It helps to cache an asset and serve it while is being revalidated and/or returning with an error.
+    # [+:public+]
+    #   If true, replaces the default +private+ directive with the +public+
+    #   directive.
+    # [+:must_revalidate+]
+    #   If true, adds the +must-revalidate+ directive.
+    # [+:stale_while_revalidate+]
+    #   Sets the value of the +stale-while-revalidate+ directive.
+    # [+:stale_if_error+]
+    #   Sets the value of the +stale-if-error+ directive.
     #
-    #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds
-    #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds, stale_if_error: 5.minutes
+    # Any additional key-value pairs are concatenated as directives. For a list
+    # of supported +Cache-Control+ directives, see the {article on
+    # MDN}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control].
     #
-    # HTTP +Cache-Control+ Extensions other values: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control.
-    # Any additional key-value pairs are concatenated onto the +Cache-Control+ header in the response:
+    # ==== Examples
     #
-    #   expires_in 3.hours, public: true, "s-maxage": 3.hours, "no-transform": true
+    #   expires_in 10.minutes
+    #   # => Cache-Control: max-age=600, private
     #
-    # The method will also ensure an HTTP +Date+ header for client compatibility.
+    #   expires_in 10.minutes, public: true
+    #   # => Cache-Control: max-age=600, public
+    #
+    #   expires_in 10.minutes, public: true, must_revalidate: true
+    #   # => Cache-Control: max-age=600, public, must-revalidate
+    #
+    #   expires_in 1.hour, stale_while_revalidate: 60.seconds
+    #   # => Cache-Control: max-age=3600, private, stale-while-revalidate=60
+    #
+    #   expires_in 1.hour, stale_if_error: 5.minutes
+    #   # => Cache-Control: max-age=3600, private, stale-if-error=300
+    #
+    #   expires_in 1.hour, public: true, "s-maxage": 3.hours, "no-transform": true
+    #   # => Cache-Control: max-age=3600, public, s-maxage=10800, no-transform=true
+    #
     def expires_in(seconds, options = {})
       response.cache_control.delete(:no_store)
       response.cache_control.merge!(
