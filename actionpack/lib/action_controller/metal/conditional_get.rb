@@ -36,84 +36,94 @@ module ActionController
     # Sets the +etag+, +last_modified+, or both on the response, and renders a
     # <tt>304 Not Modified</tt> response if the request is already fresh.
     #
-    # === Parameters:
+    # ==== Options
     #
-    # * <tt>:etag</tt> Sets a "weak" ETag validator on the response. See the
-    #   +:weak_etag+ option.
-    # * <tt>:weak_etag</tt> Sets a "weak" ETag validator on the response.
-    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
-    #   response if it matches the ETag exactly. A weak ETag indicates semantic
-    #   equivalence, not byte-for-byte equality, so they're good for caching
-    #   HTML pages in browser caches. They can't be used for responses that
-    #   must be byte-identical, like serving +Range+ requests within a PDF file.
-    # * <tt>:strong_etag</tt> Sets a "strong" ETag validator on the response.
-    #   Requests that set +If-None-Match+ header may return a <tt>304 Not Modified</tt>
-    #   response if it matches the ETag exactly. A strong ETag implies exact
-    #   equality: the response must match byte for byte. This is necessary for
-    #   doing +Range+ requests within a large video or PDF file, for example, or
-    #   for compatibility with some CDNs that don't support weak ETags.
-    # * <tt>:last_modified</tt> Sets a "weak" last-update validator on the
-    #   response. Subsequent requests that set +If-Modified-Since+ may return a
-    #   <tt>304 Not Modified</tt> response if +last_modified+ <= +If-Modified-Since+.
-    # * <tt>:public</tt> By default the +Cache-Control+ header is private. Set this to
-    #   +true+ if you want your application to be cacheable by other devices (proxy caches).
-    # * <tt>:cache_control</tt> When given, will overwrite an existing +Cache-Control+ header.
-    #   For a list of +Cache-Control+ directives, see the {article on
+    # [+:etag+]
+    #   Sets a "weak" ETag validator on the response. See the +:weak_etag+ option.
+    # [+:weak_etag+]
+    #   Sets a "weak" ETag validator on the response. Requests that specify an
+    #   +If-None-Match+ header may receive a <tt>304 Not Modified</tt> response
+    #   if the ETag matches exactly.
+    #
+    #   A weak ETag indicates semantic equivalence, not byte-for-byte equality,
+    #   so they're good for caching HTML pages in browser caches. They can't be
+    #   used for responses that must be byte-identical, like serving +Range+
+    #   requests within a PDF file.
+    # [+:strong_etag+]
+    #   Sets a "strong" ETag validator on the response. Requests that specify an
+    #   +If-None-Match+ header may receive a <tt>304 Not Modified</tt> response
+    #   if the ETag matches exactly.
+    #
+    #   A strong ETag implies exact equality -- the response must match byte for
+    #   byte. This is necessary for serving +Range+ requests within a large
+    #   video or PDF file, for example, or for compatibility with some CDNs that
+    #   don't support weak ETags.
+    # [+:last_modified+]
+    #   Sets a "weak" last-update validator on the response. Subsequent requests
+    #   that specify an +If-Modified-Since+ header may receive a <tt>304 Not Modified</tt>
+    #   response if +last_modified+ <= +If-Modified-Since+.
+    # [+:public+]
+    #   By default the +Cache-Control+ header is private. Set this option to
+    #   +true+ if you want your application to be cacheable by other devices,
+    #   such as proxy caches.
+    # [+:cache_control+]
+    #   When given, will overwrite an existing +Cache-Control+ header. For a
+    #   list of +Cache-Control+ directives, see the {article on
     #   MDN}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control].
-    # * <tt>:template</tt> By default, the template digest for the current
-    #   controller/action is included in ETags. If the action renders a
-    #   different template, you can include its digest instead. If the action
-    #   doesn't render a template at all, you can pass <tt>template: false</tt>
-    #   to skip any attempt to check for a template digest.
+    # [+:template+]
+    #   By default, the template digest for the current controller/action is
+    #   included in ETags. If the action renders a different template, you can
+    #   include its digest instead. If the action doesn't render a template at
+    #   all, you can pass <tt>template: false</tt> to skip any attempt to check
+    #   for a template digest.
     #
-    # === Example:
+    # ==== Examples
     #
     #   def show
     #     @article = Article.find(params[:id])
     #     fresh_when(etag: @article, last_modified: @article.updated_at, public: true)
     #   end
     #
-    # This will render the show template if the request isn't sending a matching ETag or
-    # +If-Modified-Since+ header, and just a <tt>304 Not Modified</tt> response if there's a match.
+    # This will send a <tt>304 Not Modified</tt> response if the request
+    # specifies a matching ETag and +If-Modified-Since+ header. Otherwise, it
+    # will render the +show+ template.
     #
-    # You can also just pass a record. In this case, +last_modified+ will be set
-    # by calling +updated_at+ and +etag+ by passing the object itself.
+    # You can also just pass a record:
     #
     #   def show
     #     @article = Article.find(params[:id])
     #     fresh_when(@article)
     #   end
     #
+    # +etag+ will be set to the record, and +last_modified+ will be set to the
+    # record's +updated_at+.
+    #
     # You can also pass an object that responds to +maximum+, such as a
-    # collection of active records. In this case, +last_modified+ will be set by
-    # calling <tt>maximum(:updated_at)</tt> on the collection (the timestamp of the
-    # most recently updated record) and the +etag+ by passing the object itself.
+    # collection of records:
     #
     #   def index
     #     @articles = Article.all
     #     fresh_when(@articles)
     #   end
     #
-    # When passing a record or a collection, you can still set the public header:
+    # In this case, +etag+ will be set to the collection, and +last_modified+
+    # will be set to <tt>maximum(:updated_at)</tt> (the timestamp of the most
+    # recently updated record).
     #
-    #   def show
-    #     @article = Article.find(params[:id])
-    #     fresh_when(@article, public: true)
-    #   end
-    #
-    # When overwriting +Cache-Control+ header:
+    # When passing a record or a collection, you can still specify other
+    # options, such as +:public+ and +:cache_control+:
     #
     #   def show
     #     @article = Article.find(params[:id])
     #     fresh_when(@article, public: true, cache_control: { no_cache: true })
     #   end
     #
-    # This will set in the response <tt>Cache-Control: public, no-cache</tt>.
+    # The above will set <tt>Cache-Control: public, no-cache</tt> in the response.
     #
-    # When rendering a different template than the default controller/action
-    # style, you can indicate which digest to include in the ETag:
+    # When rendering a different template than the controller/action's default
+    # template, you can indicate which digest to include in the ETag:
     #
-    #   before_action { fresh_when @article, template: 'widgets/show' }
+    #   before_action { fresh_when @article, template: "widgets/show" }
     #
     def fresh_when(object = nil, etag: nil, weak_etag: nil, strong_etag: nil, last_modified: nil, public: false, cache_control: {}, template: nil)
       response.cache_control.delete(:no_store)
