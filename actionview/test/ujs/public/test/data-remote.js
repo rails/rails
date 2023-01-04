@@ -1,4 +1,4 @@
-(function() {
+import $ from 'jquery'
 
 function buildSelect(attrs) {
   attrs = $.extend({
@@ -574,5 +574,3 @@ QUnit.test('inputs inside disabled fieldset are not submitted on remote forms', 
     })
     .triggerNative('submit')
 })
-
-})()

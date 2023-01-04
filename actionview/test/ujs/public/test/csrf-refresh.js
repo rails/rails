@@ -1,4 +1,4 @@
-(function() {
+import $ from 'jquery'
 
 QUnit.module('csrf-refresh', {})
 
@@ -15,9 +15,7 @@ QUnit.test('refresh all csrf tokens', function(assert) {
     .append(form)
 
   $.rails.refreshCSRFTokens()
-  currentToken = $('#qunit-fixture #authenticity_token').val()
+  var currentToken = $('#qunit-fixture #authenticity_token').val()
 
   assert.equal(currentToken, correctToken)
 })
-
-})()

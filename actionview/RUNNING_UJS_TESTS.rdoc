@@ -1,8 +1,9 @@
 == Running UJS tests
 
-Ensure that you can build the project by running:
+Run the tests in headless mode by running:
+
+   rake test:ujs
+
+To run the tests in a browser, start the Rails UJS server by running:
+
    rake ujs:server
-
-Then run the web tests by visiting the following URL in your browser:
-
-   http://localhost:4567

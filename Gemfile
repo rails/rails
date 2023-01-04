@@ -112,7 +112,6 @@ end
 
 # Action View
 group :view do
-  gem "blade", require: false, platforms: [:ruby]
   gem "sprockets-export", require: false
 end
 
