@@ -99,7 +99,6 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
     assert_match %r/foo: bar: bad/, run_edit_command
   end
 
-
   test "show encrypted file with custom key" do
     run_edit_command(key: "config/tokens.key")
 

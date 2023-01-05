@@ -455,7 +455,6 @@
 
     *Eileen M. Uchitelle*
 
-
 *   Allow ActiveRecord::QueryMethods#select to receive hash values.
 
     Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.
@@ -1204,6 +1203,5 @@
     ```
 
     *Jonathan Hefner*
-
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activerecord/CHANGELOG.md) for previous changes.

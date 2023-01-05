@@ -28,7 +28,6 @@ available in the
 [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-0-to-rails-4-1)
 guide.
 
-
 Major Features
 --------------
 
@@ -245,7 +244,6 @@ unless they use `xhr`. Upgrade your tests to be explicit about expecting
 XmlHttpRequests. Instead of `post :create, format: :js`, switch to the explicit
 `xhr :post, :create, format: :js`.
 
-
 Railties
 --------
 
@@ -296,7 +294,6 @@ for detailed changes.
 * Introduce `Rails.gem_version` as a convenience method to return
   `Gem::Version.new(Rails.version)`, suggesting a more reliable way to perform
   version comparison. ([Pull Request](https://github.com/rails/rails/pull/14103))
-
 
 Action Pack
 -----------
@@ -362,7 +359,6 @@ for detailed changes.
   :body`. ([Pull Request](https://github.com/rails/rails/pull/14062) /
   [More Details](upgrading_ruby_on_rails.html#rendering-content-from-string))
 
-
 Action Mailer
 -------------
 
@@ -377,7 +373,6 @@ for detailed changes.
 
 * Instrument the generation of Action Mailer messages. The time it takes to
   generate a message is written to the log. ([Pull Request](https://github.com/rails/rails/pull/12556))
-
 
 Active Record
 -------------
@@ -587,14 +582,12 @@ for detailed changes.
   `:from` and/or `:to` a given
   value. ([Pull Request](https://github.com/rails/rails/pull/13131))
 
-
 Active Support
 --------------
 
 Please refer to the
 [Changelog](https://github.com/rails/rails/blob/4-1-stable/activesupport/CHANGELOG.md)
 for detailed changes.
-
 
 ### Removals
 
@@ -721,7 +714,6 @@ for detailed changes.
 
 * Added `Object#presence_in` to simplify adding values to a permitted list.
   ([Commit](https://github.com/rails/rails/commit/4edca106daacc5a159289eae255207d160f22396))
-
 
 Credits
 -------

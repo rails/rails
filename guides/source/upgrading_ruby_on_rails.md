@@ -1290,7 +1290,6 @@ a `fallback_location` option which will be used in case the `HTTP_REFERER` is mi
 redirect_back(fallback_location: root_path)
 ```
 
-
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 

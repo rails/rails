@@ -1409,7 +1409,6 @@ LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id GROUP BY customers
 Which means: "return all customers with their count of reviews, whether or not they
 have any reviews at all"
 
-
 Eager Loading Associations
 --------------------------
 
@@ -1520,7 +1519,6 @@ This is because it is ambiguous whether they should appear on the parent record,
 With `preload`, Active Record loads each specified association using one query per association.
 
 Revisiting the N + 1 queries problem, we could rewrite `Book.limit(10)` to preload authors:
-
 
 ```ruby
 books = Book.preload(:author).limit(10)
@@ -2423,7 +2421,6 @@ EXPLAIN for: SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1
 +------+---------+------+------+-------------+
 | NULL | NULL    | NULL |    1 | Using where |
 +------+---------+------+------+-------------+
-
 
 1 row in set (0.00 sec)
 ```

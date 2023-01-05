@@ -1722,7 +1722,6 @@ $ bin/rails db:migrate
 
 To choose the status for the existing articles and comments you can add a default value to the generated migration files by adding the `default: "public"` option and launch the migrations again. You can also call in a rails console `Article.update_all(status: "public")` and `Comment.update_all(status: "public")`.
 
-
 TIP: To learn more about migrations, see [Active Record Migrations](
 active_record_migrations.html).
 
@@ -1846,7 +1845,6 @@ end
 ```
 
 Now, we can remove the duplicated logic from each model and instead include our new `Visible` module:
-
 
 In `app/models/article.rb`:
 
@@ -2082,7 +2080,6 @@ Security, especially in web applications, is a broad and detailed area. Security
 in your Rails application is covered in more depth in
 the [Ruby on Rails Security Guide](security.html).
 
-
 What's Next?
 ------------
 
@@ -2095,7 +2092,6 @@ resources:
 
 * The [Ruby on Rails Guides](index.html)
 * The [Ruby on Rails mailing list](https://discuss.rubyonrails.org/c/rubyonrails-talk)
-
 
 Configuration Gotchas
 ---------------------

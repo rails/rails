@@ -1001,10 +1001,8 @@ HTTP/1.1 302 Found [First standard 302 response]
 Date: Tue, 12 Apr 2005 22:09:07 GMT
 Location:Content-Type: text/html
 
-
 HTTP/1.1 200 OK [Second New response created by attacker begins]
 Content-Type: text/html
-
 
 &lt;html&gt;&lt;font color=red&gt;hey&lt;/font&gt;&lt;/html&gt; [Arbitrary malicious input is
 Keep-Alive: timeout=15, max=100         shown as the redirected page]

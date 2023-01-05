@@ -48,7 +48,6 @@ attributes:
   created_at: 2008-09-05 22:55:47
 attributes_cache: {}
 
-
 Title: Rails debugging guide
 ```
 
@@ -860,7 +859,6 @@ by Evan Weaver.
 ### Find a Memory Leak
 
 There is an excellent article about detecting and fixing memory leaks at Derailed, [which you can read here](https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory).
-
 
 Plugins for Debugging
 ---------------------

@@ -141,7 +141,6 @@ module ActiveStorage
         uri_for(key).to_s
       end
 
-
       def uri_for(key)
         client.generate_uri("#{container}/#{key}")
       end

@@ -102,7 +102,6 @@ Error:
 CoreExtTest#test_to_squawk_prepends_the_word_squawk:
 NoMethodError: undefined method `to_squawk' for "Hello World":String
 
-
 bin/test /path/to/yaffle/test/core_ext_test.rb:4
 
 .
@@ -227,7 +226,6 @@ Error:
 ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
 NameError: uninitialized constant ActsAsYaffleTest::Wickwall
 
-
 bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:8
 
 E
@@ -236,10 +234,7 @@ Error:
 ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
 NameError: uninitialized constant ActsAsYaffleTest::Hickwall
 
-
 bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:4
-
-
 
 Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
 
@@ -321,7 +316,6 @@ Error:
 ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
 NoMethodError: undefined method `yaffle_text_field' for #<Class:0x0055974ebbe9d8>
 
-
 bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:4
 
 E
@@ -329,7 +323,6 @@ E
 Error:
 ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
 NoMethodError: undefined method `yaffle_text_field' for #<Class:0x0055974eb8cfc8>
-
 
 bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:8
 

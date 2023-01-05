@@ -23,7 +23,6 @@ class BouncingMailbox < ActionMailbox::Base
   end
 end
 
-
 class ActionMailbox::Base::StateTest < ActiveSupport::TestCase
   setup do
     $processed = false

@@ -28,7 +28,6 @@ To install Rails 3:
 $ gem install rails
 ```
 
-
 Upgrading to Rails 3
 --------------------
 
@@ -121,13 +120,11 @@ With the merge of Merb and Rails, one of the big jobs was to remove the tight co
 
 More information: - [The Great Decoupling](http://yehudakatz.com/2009/07/19/rails-3-the-great-decoupling/)
 
-
 ### Active Model Abstraction
 
 Part of decoupling the core components was extracting all ties to Active Record from Action Pack. This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
 
 More information: - [Make Any Ruby Object Feel Like ActiveRecord](http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/)
-
 
 ### Controller Abstraction
 
@@ -135,13 +132,11 @@ Another big part of decoupling the core components was creating a base superclas
 
 More Information: - [Rails Edge Architecture](http://yehudakatz.com/2009/06/11/rails-edge-architecture/)
 
-
 ### Arel Integration
 
 [Arel](https://github.com/brynary/arel) (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails. Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
 
 More information: - [Why I wrote Arel](https://web.archive.org/web/20120718093140/http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/)
-
 
 ### Mail Extraction
 
@@ -149,14 +144,12 @@ Action Mailer ever since its beginnings has had monkey patches, pre parsers and 
 
 More information: - [New Action Mailer API in Rails 3](http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3)
 
-
 Documentation
 -------------
 
 The documentation in the Rails tree is being updated with all the API changes, additionally, the [Rails Edge Guides](https://edgeguides.rubyonrails.org/) are being updated one by one to reflect the changes in Rails 3.0. The guides at [guides.rubyonrails.org](https://guides.rubyonrails.org/) however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
 
 More Information: - [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
-
 
 Internationalization
 --------------------
@@ -169,7 +162,6 @@ A large amount of work has been done with I18n support in Rails 3, including the
 * Labels with I18n also now work by just passing the attribute name.
 
 More Information: - [Rails 3 I18n changes](http://blog.plataformatec.com.br/2010/02/rails-3-i18n-changes/)
-
 
 Railties
 --------
@@ -220,7 +212,6 @@ Action Pack
 
 There have been significant internal and external changes in Action Pack.
 
-
 ### Abstract Controller
 
 Abstract Controller pulls out the generic parts of Action Controller into a reusable module that any library can use to render templates, render partials, helpers, translations, logging, any part of the request response cycle. This abstraction allowed `ActionMailer::Base` to now just inherit from `AbstractController` and just wrap the Rails DSL onto the Mail gem.
@@ -230,7 +221,6 @@ It also provided an opportunity to clean up Action Controller, abstracting out w
 Note however that Abstract Controller is not a user facing API, you will not run into it in your day to day use of Rails.
 
 More Information: - [Rails Edge Architecture](http://yehudakatz.com/2009/06/11/rails-edge-architecture/)
-
 
 ### Action Controller
 
@@ -251,7 +241,6 @@ More Information:
 
 * [Render Options in Rails 3](https://blog.engineyard.com/2010/render-options-in-rails-3)
 * [Three reasons to love ActionController::Responder](https://weblog.rubyonrails.org/2009/8/31/three-reasons-love-responder)
-
 
 ### Action Dispatch
 
@@ -301,7 +290,6 @@ More Information:
 * [The Rails 3 Router: Rack it Up](http://yehudakatz.com/2009/12/26/the-rails-3-router-rack-it-up/)
 * [Revamped Routes in Rails 3](https://medium.com/fusion-of-thoughts/revamped-routes-in-rails-3-b6d00654e5b0)
 * [Generic Actions in Rails 3](http://yehudakatz.com/2009/12/20/generic-actions-in-rails-3/)
-
 
 ### Action View
 
@@ -353,13 +341,11 @@ Active Model
 
 Active Model is new in Rails 3.0. It provides an abstraction layer for any ORM libraries to use to interact with Rails by implementing an Active Model interface.
 
-
 ### ORM Abstraction and Action Pack Interface
 
 Part of decoupling the core components was extracting all ties to Active Record from Action Pack. This has now been completed. All new ORM plugins now just need to implement Active Model interfaces to work seamlessly with Action Pack.
 
 More Information: - [Make Any Ruby Object Feel Like ActiveRecord](http://yehudakatz.com/2010/01/10/activemodel-make-any-ruby-object-feel-like-activerecord/)
-
 
 ### Validations
 
@@ -418,12 +404,10 @@ More Information:
 * [Sexy Validation in Rails 3](http://thelucid.com/2010/01/08/sexy-validation-in-edge-rails-rails-3/)
 * [Rails 3 Validations Explained](http://lindsaar.net/2010/1/31/validates_rails_3_awesome_is_true)
 
-
 Active Record
 -------------
 
 Active Record received a lot of attention in Rails 3.0, including abstraction into Active Model, a full update to the Query interface using Arel, validation updates, and many enhancements and fixes. All of the Rails 2.x API will be usable through a compatibility layer that will be supported until version 3.1.
-
 
 ### Query Interface
 
@@ -450,12 +434,10 @@ More Information:
 * [Active Record Query Interface](http://m.onkey.org/2010/1/22/active-record-query-interface)
 * [Let your SQL Growl in Rails 3](http://hasmanyquestions.wordpress.com/2010/01/17/let-your-sql-growl-in-rails-3/)
 
-
 ### Enhancements
 
 * Added `:destroyed?` to Active Record objects.
 * Added `:inverse_of` to Active Record associations allowing you to pull the instance of an already loaded association without hitting the database.
-
 
 ### Patches and Deprecations
 
@@ -480,7 +462,6 @@ As well as the following deprecations:
 * `ActiveRecord::Base.colorize_logging` and `config.active_record.colorize_logging` are deprecated in favor of `Rails::LogSubscriber.colorize_logging` or `config.colorize_logging`
 
 NOTE: While an implementation of State Machine has been in Active Record edge for some months now, it has been removed from the Rails 3.0 release.
-
 
 Active Resource
 ---------------
@@ -512,7 +493,6 @@ Deprecations:
 
 * `save(false)` is deprecated, in favor of `save(:validate => false)`.
 * Ruby 1.9.2: `URI.parse` and `.decode` are deprecated and are no longer used in the library.
-
 
 Active Support
 --------------
@@ -571,7 +551,6 @@ The following methods have been removed because they are no longer used in the f
 * `Class#remove_class`
 * `Regexp#number_of_captures`, `Regexp.unoptionalize`, `Regexp.optionalize`, `Regexp#number_of_captures`
 
-
 Action Mailer
 -------------
 
@@ -602,7 +581,6 @@ More Information:
 
 * [New Action Mailer API in Rails 3](http://lindsaar.net/2010/1/26/new-actionmailer-api-in-rails-3)
 * [New Mail Gem for Ruby](http://lindsaar.net/2010/1/23/mail-gem-version-2-released)
-
 
 Credits
 -------

@@ -13,7 +13,6 @@ class TestParserTest < ActiveSupport::TestCase
         def test_method
           assert true
 
-
         end
 
         def test_oneline; assert true; end

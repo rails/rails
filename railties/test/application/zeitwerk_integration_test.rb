@@ -56,7 +56,6 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert RESTfulController
   end
 
-
   test "the once autoloader can autoload from initializers" do
     app_file "extras0/x.rb", "X = 0"
     app_file "extras1/y.rb", "Y = 0"

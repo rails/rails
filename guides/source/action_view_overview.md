@@ -46,7 +46,6 @@ There is a naming convention for views in Rails. Typically, the views share thei
 For example, the index controller action of the `articles_controller.rb` will use the `index.html.erb` view file in the `app/views/articles` directory.
 The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide, you will find more detailed documentation about each of these three components.
 
-
 Templates, Partials, and Layouts
 -------------------------------
 

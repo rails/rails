@@ -34,13 +34,11 @@ Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/actionpack
 
-
 == License
 
 Action Pack is released under the MIT license:
 
 * https://opensource.org/licenses/MIT
-
 
 == Support
 

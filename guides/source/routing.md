@@ -1333,7 +1333,6 @@ You can use the normal routing DSL inside the `admin.rb` routing file, but you *
 
 Having multiple routing files makes discoverability and understandability harder. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
 
-
 Inspecting and Testing Routes
 -----------------------------
 

@@ -23,7 +23,6 @@ class UnusedHasManyAsync < ActiveRecord::Base
   self.destroy_association_async_job = nil
 end
 
-
 class DestroyAssociationAsyncJobTest < ActiveRecord::TestCase
   test "destroy_association_async_job requires valid job class" do
     error = assert_raises NameError do

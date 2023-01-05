@@ -520,7 +520,6 @@ When building a model with a foreign key that will reference this UUID, treat
 rails generate model Case device_id:uuid
 ```
 
-
 Generated Columns
 -----------------
 

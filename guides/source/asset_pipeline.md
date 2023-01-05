@@ -146,7 +146,6 @@ More reading:
 
 [`config.assets.digest`]: configuring.html#config-assets-digest
 
-
 How to Use the Asset Pipeline
 -----------------------------
 
@@ -513,7 +512,6 @@ you called your JavaScript file `app/assets/javascripts/projects.erb.coffee`
 then it would be processed with the CoffeeScript interpreter first, which
 wouldn't understand ERB and therefore you would run into problems.
 
-
 In Development
 --------------
 
@@ -876,8 +874,6 @@ staging copy of your site easier:
 ```ruby
 config.asset_host = ENV['CDN_HOST']
 ```
-
-
 
 NOTE: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
 .fictional-cdn.com` for this to work.

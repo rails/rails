@@ -166,10 +166,7 @@ Failure:
 ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/models/article_test.rb:6]:
 Expected true to be nil or false
 
-
 rails test test/models/article_test.rb:6
-
-
 
 Finished in 0.023918s, 41.8090 runs/s, 41.8090 assertions/s.
 
@@ -249,10 +246,7 @@ ArticleTest#test_should_report_error:
 NameError: undefined local variable or method 'some_undefined_variable' for #<ArticleTest:0x007fee3aa71798>
     test/models/article_test.rb:11:in 'block in <class:ArticleTest>'
 
-
 rails test test/models/article_test.rb:9
-
-
 
 Finished in 0.040609s, 49.2500 runs/s, 24.6250 assertions/s.
 
@@ -763,7 +757,6 @@ To get multiple fixtures at once, you can pass in a list of fixture names. For e
 users(:david, :steve)
 ```
 
-
 Model Testing
 -------------
 
@@ -1160,7 +1153,6 @@ Finally we can assert that our response was successful and our new article is re
 
 We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editing comments. Integration tests are a great place to experiment with all kinds of use cases for our applications.
 
-
 Functional Tests for Your Controllers
 -------------------------------------
 
@@ -1324,7 +1316,6 @@ You also have access to three instance variables in your functional tests, after
 * `@controller` - The controller processing the request
 * `@request` - The request object
 * `@response` - The response object
-
 
 ```ruby
 class ArticlesControllerTest < ActionDispatch::IntegrationTest

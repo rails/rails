@@ -28,7 +28,6 @@ to upgrade to Rails 4.2. A list of things to watch out for when upgrading is
 available in the guide [Upgrading Ruby on
 Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2).
 
-
 Major Features
 --------------
 
@@ -158,7 +157,6 @@ See the API documentation on
 and
 [remove_foreign_key](https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
 for a full description.
-
 
 Incompatibilities
 -----------------
@@ -337,7 +335,6 @@ Expected 0 to be >= 1.
 
 See the [Rails Dom Testing](https://github.com/rails/rails-dom-testing/tree/8798b9349fb9540ad8cb9a0ce6cb88d1384a210b) documentation for more on `assert_select`.
 
-
 Railties
 --------
 
@@ -435,7 +432,6 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Introduced `Rails.gem_version` as a convenience method to return
     `Gem::Version.new(Rails.version)`.
     ([Pull Request](https://github.com/rails/rails/pull/14101))
-
 
 Action Pack
 -----------
@@ -597,7 +593,6 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Placeholder I18n follows the same convention as `label` I18n.
     ([Pull Request](https://github.com/rails/rails/pull/16438))
 
-
 Action Mailer
 -------------
 
@@ -624,7 +619,6 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Added the `show_previews` configuration option for enabling mailer previews
     outside of the development environment.
     ([Pull Request](https://github.com/rails/rails/pull/15970))
-
 
 Active Record
 -------------

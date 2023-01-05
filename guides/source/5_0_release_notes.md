@@ -32,7 +32,6 @@ available in the
 [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-2-to-rails-5-0)
 guide.
 
-
 Major Features
 --------------
 
@@ -155,7 +154,6 @@ tracking is performed.
 See its
 [documentation](https://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html)
 for a detailed write up.
-
 
 ### Test Runner
 
@@ -539,7 +537,6 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
     whether your templates should perform caching or not.
     ([Pull Request](https://github.com/rails/rails/pull/22825))
 
-
 Active Record
 -------------
 
@@ -674,7 +671,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Added an option `end` to `find_in_batches` that complements the `start`
     parameter to specify where to stop batch processing.
     ([Pull Request](https://github.com/rails/rails/pull/12257))
-
 
 ### Notable changes
 
@@ -986,7 +982,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Deprecated `Module.local_constants` in favor of `Module.constants(false)`.
     ([Pull Request](https://github.com/rails/rails/pull/23936))
-
 
 ### Notable changes
 

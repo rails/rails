@@ -18,7 +18,6 @@ module ActionMailbox
         self.class.name.remove(/\AActionMailbox::Ingresses::/, /::InboundEmailsController\z/).underscore.to_sym
       end
 
-
       def authenticate_by_password
         if password.present?
           http_basic_authenticate_or_request_with name: "actionmailbox", password: password, realm: "Action Mailbox"

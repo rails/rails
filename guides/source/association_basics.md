@@ -1668,7 +1668,6 @@ When you declare a `has_many` association, the declaring class automatically gai
 * [`collection.create!(attributes = {})`][`collection.create!`]
 * [`collection.reload`][]
 
-
 In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
 ```ruby

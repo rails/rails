@@ -75,7 +75,6 @@ module FailureSafetyBehavior
       other_key => SecureRandom.alphanumeric
     )
 
-
     emulating_unavailability do |cache|
       fetched = cache.fetch_multi(key, other_key) { |k| "unavailable" }
       assert_equal Hash[key => "unavailable", other_key => "unavailable"], fetched

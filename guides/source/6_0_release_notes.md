@@ -421,7 +421,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Remove deprecated `expand_hash_conditions_for_aggregates`.
     ([Commit](https://github.com/rails/rails/commit/27b252d6a85e300c7236d034d55ec8e44f57a83e))
 
-
 ### Deprecations
 
 *   Deprecate mismatched case-sensitivity collation comparisons for uniqueness validator.

@@ -16,5 +16,3 @@ Examples:
     `bin/rails generate mailer notifications sign_up forgot_password invoice`
 
     creates a notifications mailer with sign_up, forgot_password, and invoice actions.
-
-

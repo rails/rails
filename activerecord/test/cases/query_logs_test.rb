@@ -189,7 +189,6 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
-
   def test_sqlcommenter_format_value
     ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
 
@@ -215,7 +214,6 @@ class QueryLogsTest < ActiveRecord::TestCase
       Dashboard.first
     end
   end
-
 
   def test_custom_proc_context_tags
     ActiveSupport::ExecutionContext[:foo] = "bar"

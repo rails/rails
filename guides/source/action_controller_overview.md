@@ -38,7 +38,6 @@ Following this convention will allow you to use the default route generators (e.
 
 NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
-
 Methods and Actions
 -------------------
 
@@ -434,7 +433,6 @@ NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate 
 [`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
 [`ActionDispatch::Session::MemCacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/MemCacheStore.html
 [activerecord-session_store]: https://github.com/rails/activerecord-session_store
-
 
 ### Accessing the Session
 

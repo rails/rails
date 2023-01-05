@@ -92,7 +92,6 @@ https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
 
 Please don't link to `edgeapi.rubyonrails.org` manually.
 
-
 API Documentation Guidelines
 ----------------------------
 

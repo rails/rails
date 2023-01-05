@@ -53,7 +53,6 @@ MyJob.set(wait: 1.week).perform_later(record) # Enqueue a job to be performed 1 
 
 That's it!
 
-
 ## GlobalID support
 
 Active Job supports [GlobalID serialization](https://github.com/rails/globalid/) for parameters. This makes it possible
@@ -82,7 +81,6 @@ end
 This works with any class that mixes in GlobalID::Identification, which
 by default has been mixed into Active Record classes.
 
-
 ## Supported queuing systems
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
@@ -94,7 +92,6 @@ encourage library authors to provide an ActiveJob adapter as part of
 their gem, or as a stand-alone gem. For discussion about this see the
 following PRs: [23311](https://github.com/rails/rails/issues/23311#issuecomment-176275718),
 [21406](https://github.com/rails/rails/pull/21406#issuecomment-138813484), and [#32285](https://github.com/rails/rails/pull/32285).
-
 
 ## Download and installation
 
@@ -108,13 +105,11 @@ Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/activejob
 
-
 ## License
 
 Active Job is released under the MIT license:
 
 * https://opensource.org/licenses/MIT
-
 
 ## Support
 

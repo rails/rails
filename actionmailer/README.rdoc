@@ -107,7 +107,6 @@ The Base class has the full list of configuration options. Here's an example:
     authentication: :plain                 # :plain, :login or :cram_md5
   }
 
-
 == Download and installation
 
 The latest version of Action Mailer can be installed with RubyGems:
@@ -118,13 +117,11 @@ Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/actionmailer
 
-
 == License
 
 Action Mailer is released under the MIT license:
 
 * https://opensource.org/licenses/MIT
-
 
 == Support
 

@@ -674,7 +674,6 @@ module ActiveRecord
         end
       end
 
-
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!

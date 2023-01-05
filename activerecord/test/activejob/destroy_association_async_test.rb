@@ -158,7 +158,6 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
-
   test "enqueues has_one to be deleted with custom primary key" do
     child = DlKeyedHasOne.create!
     parent = DestroyAsyncParent.create!
@@ -173,7 +172,6 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     DlKeyedHasOne.delete_all
     DestroyAsyncParent.delete_all
   end
-
 
   test "has_many" do
     essay = EssayDestroyAsync.create!(name: "Der be treasure")

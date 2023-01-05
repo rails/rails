@@ -31,7 +31,6 @@ module ActiveSupport
         (@i18n_option_names ||= I18n::RESERVED_KEYS.to_set).include?(name)
       end
 
-
       def html_safe_translation(translation)
         if translation.respond_to?(:map)
           translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }

@@ -38,7 +38,6 @@ module ActionMailbox
         JSON.parse params.require(:mandrill_events)
       end
 
-
       def authenticate
         head :unauthorized unless authenticated?
       end

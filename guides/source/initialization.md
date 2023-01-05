@@ -433,7 +433,6 @@ require_relative "config/environment"
 run Rails.application
 ```
 
-
 The `Rack::Builder.parse_file` method here takes the content from this `config.ru` file and parses it using this code:
 
 ```ruby

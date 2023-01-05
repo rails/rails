@@ -105,7 +105,6 @@ class ActiveStorage::Preview
       image.variant(variation).processed
     end
 
-
     def previewer
       previewer_class.new(blob)
     end

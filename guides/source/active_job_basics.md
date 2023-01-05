@@ -23,7 +23,6 @@ of queuing backends. These jobs can be everything from regularly scheduled
 clean-ups, to billing charges, to mailings. Anything that can be chopped up
 into small units of work and run in parallel, really.
 
-
 The Purpose of Active Job
 -----------------------------
 
@@ -37,7 +36,6 @@ your jobs.
 NOTE: Rails by default comes with an asynchronous queuing implementation that
 runs jobs with an in-process thread pool. Jobs will run asynchronously, but any
 jobs in the queue will be dropped upon restart.
-
 
 Creating a Job
 --------------
@@ -380,7 +378,6 @@ likely end, causing the in-process thread pool to be deleted, before any/all
 of the `.deliver_later` emails are processed. To avoid this problem, use
 `.deliver_now` or run a persistent queue in development.
 
-
 Internationalization
 --------------------
 
@@ -392,7 +389,6 @@ I18n.locale = :eo
 
 UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
 ```
-
 
 Supported Types for Arguments
 ----------------------------

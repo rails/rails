@@ -1195,7 +1195,6 @@ end
 Please check the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoloading-and-engines)
 guide for more information about autoloading and engines.
 
-
 ### Overriding Views
 
 When Rails looks for a view to render, it will first look in the `app/views`

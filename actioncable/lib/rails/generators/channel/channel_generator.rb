@@ -82,7 +82,6 @@ pin_all_from "app/javascript/channels", under: "channels"
           RUBY
         end
 
-
         def file_name
           @_file_name ||= super.sub(/_channel\z/i, "")
         end

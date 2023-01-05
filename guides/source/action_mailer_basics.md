@@ -599,7 +599,6 @@ By using the full URL, your links will now work in your emails.
 If you did not configure the `:host` option globally make sure to pass it to
 `url_for`.
 
-
 ```erb
 <%= url_for(host: 'example.com',
             controller: 'welcome',

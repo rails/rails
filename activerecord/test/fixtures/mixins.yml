@@ -26,4 +26,3 @@ tree_<%= set[0] %>:
   root_id: 42
 
 <% end %>
-

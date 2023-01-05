@@ -232,7 +232,6 @@ behavior out of the box:
 
   {Learn more}[link:classes/ActiveModel/Validator.html]
 
-
 == Download and installation
 
 The latest version of Active Model can be installed with RubyGems:
@@ -243,13 +242,11 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 * https://github.com/rails/rails/tree/main/activemodel
 
-
 == License
 
 Active Model is released under the MIT license:
 
 * https://opensource.org/licenses/MIT
-
 
 == Support
 

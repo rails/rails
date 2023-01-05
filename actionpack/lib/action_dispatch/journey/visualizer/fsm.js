@@ -156,4 +156,3 @@ function match(input) {
 
   return false;
 }
-

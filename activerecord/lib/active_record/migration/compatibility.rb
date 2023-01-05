@@ -54,7 +54,6 @@ module ActiveRecord
           super
         end
 
-
         def create_table(table_name, **options)
           options[:_uses_legacy_table_name] = true
           options[:_skip_validate_options] = true

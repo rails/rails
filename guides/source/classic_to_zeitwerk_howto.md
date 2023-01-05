@@ -25,7 +25,6 @@ From the very beginning, and up to Rails 5, Rails used an autoloader implemented
 
 Starting with Rails 6, Rails ships with a new and better way to autoload, which delegates to the [Zeitwerk](https://github.com/fxn/zeitwerk) gem. This is `zeitwerk` mode. By default, applications loading the 6.0 and 6.1 framework defaults run in `zeitwerk` mode, and this is the only mode available in Rails 7.
 
-
 Why Switch from `classic` to `zeitwerk`?
 ----------------------------------------
 
@@ -45,7 +44,6 @@ Zeitwerk was designed to be as compatible with the classic autoloader as possibl
 This guide will help you change the autoloader with confidence.
 
 If for whatever reason you find a situation you don't know how to resolve, don't hesitate to [open an issue in `rails/rails`](https://github.com/rails/rails/issues/new) and tag [`@fxn`](https://github.com/fxn).
-
 
 How to Activate `zeitwerk` Mode
 -------------------------------
@@ -82,7 +80,6 @@ In Rails 7 there is only `zeitwerk` mode, you do not need to do anything to enab
 
 Indeed, in Rails 7 the setter `config.autoloader=` does not even exist. If `config/application.rb` uses it, please delete the line.
 
-
 How to Verify The Application Runs in `zeitwerk` Mode?
 ------------------------------------------------------
 
@@ -93,7 +90,6 @@ bin/rails runner 'p Rails.autoloaders.zeitwerk_enabled?'
 ```
 
 If that prints `true`, `zeitwerk` mode is enabled.
-
 
 Does my Application Comply with Zeitwerk Conventions?
 -----------------------------------------------------
@@ -402,7 +398,6 @@ This has no performance penalty.
 ### Bootsnap
 
 Please make sure to depend on at least Bootsnap 1.4.4.
-
 
 Check Zeitwerk Compliance in the Test Suite
 -------------------------------------------

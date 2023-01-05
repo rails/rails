@@ -107,7 +107,6 @@ img {
   max-width: 100%;
 }
 
-
 /* Structure and Layout
 --------------------------------------- */
 
@@ -298,7 +297,6 @@ body {
 }
 :where(body[dir="ltr"]) #subCol { right: 0; margin-right: 1em; }
 :where(body[dir="rtl"]) #subCol { left: 0; margin-left: 1em; }
-
 
 @media screen and (max-width: 800px) {
   #subCol {

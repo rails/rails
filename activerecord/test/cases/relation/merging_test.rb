@@ -109,7 +109,6 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]))
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
 
-
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
     assert_equal [mary], david_and_mary.and(mary_and_bob)
