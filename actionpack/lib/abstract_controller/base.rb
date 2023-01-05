@@ -164,7 +164,7 @@ module AbstractController
 
       process_action(action_name, *args)
     end
-    ruby2_keywords(:process)
+    ruby2_keywords(:process) if respond_to?(:ruby2_keywords, true)
 
     # Delegates to the class' ::controller_path
     def controller_path
@@ -225,9 +225,13 @@ module AbstractController
       #
       # Notice that the first argument is the method to be dispatched
       # which is *not* necessarily the same as the action name.
-      def process_action(...)
-        send_action(...)
+      all_args = RUBY_VERSION < "2.7" ? "method_name, *args" : "..."
+
+      class_eval <<-RUBY
+      def process_action(#{all_args})
+        send_action(#{all_args})
       end
+      RUBY
 
       # Actually call the method associated with the action. Override
       # this method if you wish to change how action methods are called,

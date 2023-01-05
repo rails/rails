@@ -34,12 +34,16 @@ module ActionView
     end
 
     # Override process to set up I18n proxy.
-    def process(...) # :nodoc:
+    all_args = RUBY_VERSION < "2.7" ? "*" : "..."
+
+    class_eval <<-RUBY
+    def process(#{all_args}) # :nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
       super
     ensure
       I18n.config = old_config
     end
+    RUBY
 
     module ClassMethods
       def _routes

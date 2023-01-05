@@ -37,11 +37,15 @@ module AbstractController
 
     # Override <tt>AbstractController::Base#process_action</tt> to run the
     # <tt>process_action</tt> callbacks around the normal behavior.
-    def process_action(...)
+    all_args = RUBY_VERSION < "2.7" ? "*" : "..."
+
+    class_eval <<-RUBY
+    def process_action(#{all_args})
       run_callbacks(:process_action) do
         super
       end
     end
+    RUBY
 
     module ClassMethods
       # If +:only+ or +:except+ are used, convert the options into the
