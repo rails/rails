@@ -107,22 +107,21 @@ module ActionDispatch
       has_header? key
     end
 
-    # List of HTTP request methods from the following RFCs:
-    # Hypertext Transfer Protocol -- HTTP/1.1 (https://www.ietf.org/rfc/rfc2616.txt)
-    # HTTP Extensions for Distributed Authoring -- WEBDAV (https://www.ietf.org/rfc/rfc2518.txt)
-    # Versioning Extensions to WebDAV (https://www.ietf.org/rfc/rfc3253.txt)
-    # Ordered Collections Protocol (WebDAV) (https://www.ietf.org/rfc/rfc3648.txt)
-    # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (https://www.ietf.org/rfc/rfc3744.txt)
-    # Web Distributed Authoring and Versioning (WebDAV) SEARCH (https://www.ietf.org/rfc/rfc5323.txt)
-    # Calendar Extensions to WebDAV (https://www.ietf.org/rfc/rfc4791.txt)
-    # PATCH Method for HTTP (https://www.ietf.org/rfc/rfc5789.txt)
+    # HTTP methods from {RFC 2616: Hypertext Transfer Protocol -- HTTP/1.1}[https://www.ietf.org/rfc/rfc2616.txt]
     RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
+    # HTTP methods from {RFC 2518: HTTP Extensions for Distributed Authoring -- WEBDAV}[https://www.ietf.org/rfc/rfc2518.txt]
     RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
+    # HTTP methods from {RFC 3253: Versioning Extensions to WebDAV}[https://www.ietf.org/rfc/rfc3253.txt]
     RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
+    # HTTP methods from {RFC 3648: WebDAV Ordered Collections Protocol}[https://www.ietf.org/rfc/rfc3648.txt]
     RFC3648 = %w(ORDERPATCH)
+    # HTTP methods from {RFC 3744: WebDAV Access Control Protocol}[https://www.ietf.org/rfc/rfc3744.txt]
     RFC3744 = %w(ACL)
+    # HTTP methods from {RFC 5323: WebDAV SEARCH}[https://www.ietf.org/rfc/rfc5323.txt]
     RFC5323 = %w(SEARCH)
+    # HTTP methods from {RFC 4791: Calendaring Extensions to WebDAV}[https://www.ietf.org/rfc/rfc4791.txt]
     RFC4791 = %w(MKCALENDAR)
+    # HTTP methods from {RFC 5789: PATCH Method for HTTP}[https://www.ietf.org/rfc/rfc5789.txt]
     RFC5789 = %w(PATCH)
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
