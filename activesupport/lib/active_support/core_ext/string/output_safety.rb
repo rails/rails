@@ -100,7 +100,7 @@ module ActiveSupport # :nodoc:
       dup.concat(other)
     end
 
-    def *(*)
+    def *(_)
       new_string = super
       new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
