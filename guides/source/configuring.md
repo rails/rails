@@ -2284,7 +2284,7 @@ The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| 7.0                   | `false`              |
+| (original)            | `false`              |
 | 7.1                   | `true`               |
 
 ### Configuring Active Job
