@@ -952,7 +952,7 @@ module ActiveRecord
       def index_name(table_name, options) # :nodoc:
         if Hash === options
           if options[:column]
-            "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+            "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"[0, index_name_length]
           elsif options[:name]
             options[:name]
           else

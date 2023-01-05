@@ -81,6 +81,12 @@ module ActiveRecord
         connection.add_index(table_name, "foo", name: good_index_name)
       end
 
+      def test_add_index_generates_valid_index_name
+        assert_nothing_raised do
+          connection.add_index(table_name, connection.index_name_length.times.map { "col#{_1}" })
+        end
+      end
+
       def test_add_index_which_already_exists_does_not_raise_error_with_option
         connection.add_index(table_name, "foo")
 
