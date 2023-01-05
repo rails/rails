@@ -167,7 +167,7 @@ module ActiveRecord
         raise NotImplementedError, "connected_to_many can only be called on ActiveRecord::Base."
       end
 
-      prevent_writes = true if role == ActiveRecord.reading_role
+      prevent_writes = true unless role == ActiveRecord.writing_role
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
       yield
@@ -183,7 +183,7 @@ module ActiveRecord
     # It is not recommended to use this method in a request since it
     # does not yield to a block like +connected_to+.
     def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
-      prevent_writes = true if role == ActiveRecord.reading_role
+      prevent_writes = true unless role == ActiveRecord.writing_role
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
     end
@@ -348,7 +348,7 @@ module ActiveRecord
       end
 
       def with_role_and_shard(role, shard, prevent_writes)
-        prevent_writes = true if role == ActiveRecord.reading_role
+        prevent_writes = true unless role == ActiveRecord.writing_role
 
         append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
         return_value = yield
