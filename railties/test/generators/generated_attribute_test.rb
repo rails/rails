@@ -196,4 +196,323 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
     assert_not_predicate att, :required?
   end
+
+  def test_parse_attribute_with_one_option_and_no_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "title:string{null:false}"
+    )
+    assert_equal "title", att.name
+    assert_equal :string, att.type
+    assert_equal({ null: false }, att.attr_options)
+    assert_equal false, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_options_and_no_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "tags:string{array,default:[],null:false}"
+    )
+    assert_equal "tags", att.name
+    assert_equal :string, att.type
+    assert_equal({ array: true, default: [], null: false }, att.attr_options)
+    assert_equal false, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_nested_option_and_no_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users}}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" } }, att.attr_options)
+    assert_equal false, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_no_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users},polymorphic:{default:User}}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal false, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_option_and_plain_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "title:string{null:false}:index"
+    )
+    assert_equal "title", att.name
+    assert_equal :string, att.type
+    assert_equal({ null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_options_and_plain_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "tags:string{array,default:[],null:false}:index"
+    )
+    assert_equal "tags", att.name
+    assert_equal :string, att.type
+    assert_equal({ array: true, default: [], null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_nested_option_and_plain_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users}}:index"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_plain_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users},polymorphic:{default:User}}:index"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({}, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_option_and_unique_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "title:string{null:false}:uniq"
+    )
+    assert_equal "title", att.name
+    assert_equal :string, att.type
+    assert_equal({ null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_options_and_unique_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "tags:string{array,default:[],null:false}:uniq"
+    )
+    assert_equal "tags", att.name
+    assert_equal :string, att.type
+    assert_equal({ array: true, default: [], null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_nested_option_and_unique_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users}}:uniq"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_unique_index
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users},polymorphic:{default:User}}:uniq"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_option_and_unique_index_with_one_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "title:string{null:false}:uniq{name:by_title}"
+    )
+    assert_equal "title", att.name
+    assert_equal :string, att.type
+    assert_equal({ null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, name: "by_title" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_options_and_unique_index_with_one_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "tags:string{array,default:[],null:false}:uniq{algorithm:concurrently}"
+    )
+    assert_equal "tags", att.name
+    assert_equal :string, att.type
+    assert_equal({ array: true, default: [], null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, algorithm: "concurrently" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_nested_option_and_unique_index_with_one_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users}}:uniq{where:active}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, where: "active" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_unique_index_with_one_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users},polymorphic:{default:User}}:uniq{using:btree}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, using: "btree" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_option_and_plain_index_with_multiple_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "title:string{null:false}:index{unique,name:by_title}"
+    )
+    assert_equal "title", att.name
+    assert_equal :string, att.type
+    assert_equal({ null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, name: "by_title" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_options_and_plain_index_with_multiple_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "tags:string{array,default:[],null:false}:index{unique,algorithm:concurrently}"
+    )
+    assert_equal "tags", att.name
+    assert_equal :string, att.type
+    assert_equal({ array: true, default: [], null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, algorithm: "concurrently" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_nested_option_and_plain_index_with_multiple_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users}}:index{unique,where:active}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, where: "active" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_plain_index_with_multiple_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users},polymorphic:{default:User}}:index{unique,using:btree}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ unique: true, using: "btree" }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_option_and_plain_index_with_one_nested_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "title:string{null:false}:index{length:{title:10}}"
+    )
+    assert_equal "title", att.name
+    assert_equal :string, att.type
+    assert_equal({ null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ length: { title: 10 } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_options_and_plain_index_with_one_nested_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "tags:string{array,default:[],null:false}:index{order:{title:desc}}"
+    )
+    assert_equal "tags", att.name
+    assert_equal :string, att.type
+    assert_equal({ array: true, default: [], null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ order: { title: "desc" } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_nested_option_and_plain_index_with_one_nested_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users}}:index{using:gist,opclass:{owner_id:gist_trgm_ops}}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ using: "gist", opclass: { owner_id: "gist_trgm_ops" } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_plain_index_with_one_nested_option
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users},polymorphic:{default:User}}:index{length:{owner_type:10}}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ length: { owner_type: 10 } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_option_and_plain_index_with_multiple_nested_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "title:string{null:false}:index{length:{title:10},order:{title:asc}}"
+    )
+    assert_equal "title", att.name
+    assert_equal :string, att.type
+    assert_equal({ null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ length: { title: 10 }, order: { title: "asc" } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_options_and_plain_index_with_multiple_nested_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "tags:string{array,default:[],null:false}:index{order:{title:desc},length:{title:15}}"
+    )
+    assert_equal "tags", att.name
+    assert_equal :string, att.type
+    assert_equal({ array: true, default: [], null: false }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ order: { title: "desc" }, length: { title: 15 } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_one_nested_option_and_plain_index_with_multiple_nested_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users}}:index{using:gist,opclass:{owner_id:gist_trgm_ops},length:{owner_type:10}}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ using: "gist", opclass: { owner_id: "gist_trgm_ops" }, length: { owner_type: 10 } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_plain_index_with_multiple_nested_options
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key:{table_name:users},polymorphic:{default:User}}:index{length:{owner_type:10},order:{owner_id:desc}}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ length: { owner_type: 10 }, order: { owner_id: "desc" } }, att.index_options)
+  end
+
+  def test_parse_attribute_with_multiple_nested_options_and_plain_index_with_multiple_nested_options_with_spaces
+    att = Rails::Generators::GeneratedAttribute.parse(
+      "owner:references{foreign_key: {table_name: users}, polymorphic: {default: User}}:index{length: {owner_type: 10}, order: {owner_id: desc}}"
+    )
+    assert_equal "owner", att.name
+    assert_equal :references, att.type
+    assert_equal({ foreign_key: { table_name: "users" }, polymorphic: { default: "User" } }, att.attr_options)
+    assert_equal true, att.has_index?
+    assert_equal({ length: { owner_type: 10 }, order: { owner_id: "desc" } }, att.index_options)
+  end
 end

@@ -1,3 +1,19 @@
+*   Allow column definitions passed to migration-producing generators (migration, model, resource, scaffold)
+    to accept key-value options for both the field and an index. Spaces are also now allowed in the column definition.
+
+    Examples:
+
+    ```
+    title:string{null:false}
+    description:text{default: 'hello, world!'}
+    tags:text{array, null: false, default: []}
+    owner:references{foreign_key:{table_name:users}}
+    title:string{null: false}:uniq{name: by_title}
+    title:string:index{length:{title:15}}
+    ```
+
+    *Stephen Margheim*
+
 *   Bump `required_rubygems_version` to 3.3.13 or higher
 
     *Yasuo Honda*
