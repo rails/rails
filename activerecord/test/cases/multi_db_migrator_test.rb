@@ -197,26 +197,13 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   end
 
   def test_internal_metadata_stores_environment
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env     = ActiveRecord::Base.connection.pool.db_config.env_name
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration_b, @internal_metadata_b)
 
     migrator.up
     assert_equal current_env, @internal_metadata_b[:environment]
-
-    original_rails_env  = ENV["RAILS_ENV"]
-    original_rack_env   = ENV["RACK_ENV"]
-    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-
-    assert_not_equal current_env, new_env
-
-    sleep 1 # mysql by default does not store fractional seconds in the database
-    migrator.up
-    assert_equal new_env, @internal_metadata_b[:environment]
   ensure
-    ENV["RAILS_ENV"] = original_rails_env
-    ENV["RACK_ENV"]  = original_rack_env
     migrator.down if migrator
   end
 
