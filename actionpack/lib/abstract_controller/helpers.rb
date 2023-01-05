@@ -61,6 +61,8 @@ module AbstractController
       #   class ApplicationController < ActionController::Base
       #     helper_method :current_user, :logged_in?
       #
+      #     private
+      #
       #     def current_user
       #       @current_user ||= User.find_by(id: session[:user])
       #     end
