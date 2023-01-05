@@ -13,7 +13,9 @@ module Rails
 
       def build_stack
         ActionDispatch::MiddlewareStack.new do |middleware|
-          middleware.use ::ActionDispatch::HostAuthorization, config.hosts, **config.host_authorization
+          unless config.hosts.empty?
+            middleware.use ::ActionDispatch::HostAuthorization, config.hosts, **config.host_authorization
+          end
 
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, **config.ssl_options,
