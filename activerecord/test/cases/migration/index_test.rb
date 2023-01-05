@@ -83,7 +83,7 @@ module ActiveRecord
 
       def test_add_index_generates_valid_index_name
         assert_nothing_raised do
-          connection.add_index(table_name, connection.index_name_length.times.map { "col#{_1}" })
+          connection.add_index(table_name, 3.times.map { "really_long_column_name_#{_1}" })
         end
       end
 
