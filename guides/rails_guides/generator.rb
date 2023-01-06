@@ -145,15 +145,10 @@ module RailsGuides
           [@source_dir],
           edge:     @edge,
           version:  @version,
-<<<<<<< HEAD
-          mobi:     "kindle/#{mobi}",
-          language: @language
-=======
           epub:     "epub/#{epub_filename}",
           language: @language,
           direction: @direction,
           uuid:      SecureRandom.uuid
->>>>>>> 914ac17156 (Merge pull request #45539 from geongeorge/feature/updates-guide-generation-epub)
         )
         view.extend(Helpers)
 
