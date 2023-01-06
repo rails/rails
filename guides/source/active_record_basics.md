@@ -357,8 +357,10 @@ Callbacks
 Active Record callbacks allow you to attach code to certain events in the
 life-cycle of your models. This enables you to add behavior to your models by
 transparently executing code when those events occur, like when you create a new
-record, update it, destroy it, and so on. You can learn more about callbacks in
-the [Active Record Callbacks guide](active_record_callbacks.html).
+record, update it, destroy it, and so on.
+
+You can learn more about callbacks in the [Active Record Callbacks
+guide](active_record_callbacks.html).
 
 Migrations
 ----------
@@ -389,5 +391,7 @@ provides rollback features. To actually create the table, you'd run `bin/rails d
 and to roll it back, `bin/rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,
-PostgreSQL, Oracle, and others. You can learn more about migrations in the
-[Active Record Migrations guide](active_record_migrations.html).
+PostgreSQL, Oracle, and others.
+
+You can learn more about migrations in the [Active Record Migrations
+guide](active_record_migrations.html).
