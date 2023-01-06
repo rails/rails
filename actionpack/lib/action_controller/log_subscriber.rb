@@ -31,7 +31,7 @@ module ActionController
           status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
         end
 
-        additions << "Allocations: " << event.allocations
+        additions << "Allocations: #{event.allocations}"
 
         message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms" \
                    " (#{additions.join(" | ")})"
