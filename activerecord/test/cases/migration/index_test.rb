@@ -15,9 +15,9 @@ module ActiveRecord
         connection.create_table table_name do |t|
           t.column :foo, :string, limit: 100
           t.column :bar, :string, limit: 100
+          t.column :really_long_column_name_0, :string, limit: 100
           t.column :really_long_column_name_1, :string, limit: 100
           t.column :really_long_column_name_2, :string, limit: 100
-          t.column :really_long_column_name_3, :string, limit: 100
 
           t.string :first_name
           t.string :last_name, limit: 100
