@@ -228,7 +228,12 @@ module ActionDispatch
         end
 
         def spot(exc)
-          location = super
+          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location)
+            location = @template.spot(__getobj__)
+          else
+            location = super
+          end
+
           if location
             @template.translate_location(__getobj__, location)
           end
