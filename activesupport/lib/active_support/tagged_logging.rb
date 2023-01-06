@@ -29,7 +29,7 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, "#{tags_text}#{msg}")
+        super(severity, timestamp, progname, tags_text.concat(msg))
       end
 
       def tagged(*tags)
