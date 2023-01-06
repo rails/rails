@@ -46,20 +46,17 @@ There is a naming convention for views in Rails. Typically, the views share thei
 For example, the index controller action of the `articles_controller.rb` will use the `index.html.erb` view file in the `app/views/articles` directory.
 The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide, you will find more detailed documentation about each of these three components.
 
-
-Templates, Partials, and Layouts
--------------------------------
-
 As mentioned, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
 Below is a brief overview of each of them.
 
-### Templates
+Templates
+---------
 
 Action View templates can be written in several ways. If the template file has a `.erb` extension then it uses a mixture of ERB (Embedded Ruby) and HTML. If the template file has a `.builder` extension then the `Builder::XmlMarkup` library is used.
 
 Rails supports multiple template systems and uses a file extension to distinguish amongst them. For example, an HTML file using the ERB template system will have `.html.erb` as a file extension.
 
-#### ERB
+### ERB
 
 Within an ERB template, Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` tags are used to execute Ruby code that does not return anything, such as conditions, loops, or blocks, and the `<%= %>` tags are used when you want output.
 
@@ -81,7 +78,7 @@ Hi, Mr. <% puts "Frodo" %>
 
 To suppress leading and trailing whitespaces, you can use `<%-` `-%>` interchangeably with `<%` and `%>`.
 
-#### Builder
+### Builder
 
 Builder templates are a more programmatic alternative to ERB. They are especially useful for generating XML content. An XmlMarkup object named `xml` is automatically made available to templates with a `.builder` extension.
 
@@ -146,7 +143,7 @@ xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
 end
 ```
 
-#### Jbuilder
+### Jbuilder
 
 [Jbuilder](https://github.com/rails/jbuilder) is a gem that's
 maintained by the Rails team and included in the default Rails `Gemfile`.
@@ -180,15 +177,16 @@ would produce:
 See the [Jbuilder documentation](https://github.com/rails/jbuilder#jbuilder) for
 more examples and information.
 
-#### Template Caching
+### Template Caching
 
 By default, Rails will compile each template to a method to render it. In the development environment, when you alter a template, Rails will check the file's modification time and recompile it.
 
-### Partials
+Partials
+--------
 
 Partial templates - usually just called "partials" - are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and also reuse them throughout your templates.
 
-#### Naming Partials
+### Rendering Partials
 
 To render a partial as part of a view, you use the `render` method within the view:
 
@@ -204,7 +202,7 @@ This will render a file named `_menu.html.erb` at that point within the view tha
 
 That code will pull in the partial from `app/views/shared/_menu.html.erb`.
 
-#### Using Partials to Simplify Views
+### Using Partials to Simplify Views
 
 One way to use partials is to treat them as the equivalent of subroutines; a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looks like this:
 
@@ -223,7 +221,7 @@ One way to use partials is to treat them as the equivalent of subroutines; a way
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
-#### `render` without `partial` and `locals` Options
+### `render` without `partial` and `locals` Options
 
 In the above example, `render` takes 2 options: `partial` and `locals`. But if
 these are the only options you want to pass, you can skip using these options.
@@ -239,7 +237,7 @@ You can also do:
 <%= render "product", product: @product %>
 ```
 
-#### The `as` and `object` Options
+### The `as` and `object` Options
 
 By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
 
@@ -280,7 +278,7 @@ This is equivalent to
 <%= render partial: "product", locals: { item: @item } %>
 ```
 
-#### Rendering Collections
+### Rendering Collections
 
 Commonly, a template will need to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
 
@@ -308,7 +306,7 @@ You can use a shorthand syntax for rendering collections. Assuming `@products` i
 
 Rails determines the name of the partial to use by looking at the model name in the collection, `Product` in this case. In fact, you can even render a collection made up of instances of different models using this shorthand, and Rails will choose the proper partial for each member of the collection.
 
-#### Spacer Templates
+### Spacer Templates
 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 
@@ -318,7 +316,7 @@ You can also specify a second partial to be rendered between instances of the ma
 
 Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
 
-#### Strict Locals
+### Strict Locals
 
 By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
 
@@ -340,12 +338,12 @@ Or `locals` can be disabled entirely:
 <%# locals: () %>
 ```
 
-### Layouts
+Layouts
+-------
 
 Layouts can be used to render a common view template around the results of Rails controller actions. Typically, a Rails application will have a couple of layouts that pages will be rendered within. For example, a site might have one layout for a logged in user and another for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. You would expect each layout to have a different look and feel. You can read about layouts in more detail in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
-Partial Layouts
----------------
+### Partial Layouts
 
 Partials can have their own layouts applied to them. These layouts are different from those applied to a controller action, but they work in a similar fashion.
 
