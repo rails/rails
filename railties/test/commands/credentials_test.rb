@@ -190,6 +190,16 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match %r/foo: bar/, run_show_command(environment: "prod")
   end
 
+  test "show and edit commands respect key_path and content_path config" do
+    remove_file "config/master.key"
+    app_file "config/custom_key_path.key", ActiveSupport::EncryptedFile.generate_key
+    add_to_config "config.credentials.key_path = 'config/custom_key_path.key'"
+    add_to_config "config.credentials.content_path = 'config/custom_content_path.yml.enc'"
+
+    write_credentials("foo: bar")
+    assert_match %r/foo: bar/, run_show_command
+  end
+
 
   test "diff enroll diffing" do
     FileUtils.rm(app_path(".gitattributes"))

@@ -110,18 +110,19 @@ module Rails
 
         def missing_credentials_message
           if !credentials.key?
-            "Missing '#{key_path}' to decrypt credentials. See `#{executable(:help)}`"
+            friendly_key_path = key_path.sub(/^#{Rails.application.root}\//, "")
+            "Missing '#{friendly_key_path}' to decrypt credentials. See `#{executable(:help)}`"
           else
             "File '#{content_path}' does not exist. Use `#{executable(:edit)}` to change that."
           end
         end
 
         def content_path
-          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
+          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : Rails.application.config.credentials.content_path
         end
 
         def key_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
+          options[:environment] ? "config/credentials/#{options[:environment]}.key" : Rails.application.config.credentials.key_path
         end
 
         def extract_environment_from_path(path)
