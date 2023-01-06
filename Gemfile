@@ -31,6 +31,9 @@ gem "json", ">= 2.0.0"
 # Lock rack-test to v1 until #45467 is fixed
 gem "rack-test", "< 2"
 
+# Workaround until Ruby ships with cgi version 0.3.6 or higher.
+gem "cgi", ">= 0.3.6", require: false
+
 gem "rubocop", ">= 0.47", require: false
 gem "rubocop-performance", require: false
 gem "rubocop-rails", require: false
