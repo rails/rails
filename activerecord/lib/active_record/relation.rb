@@ -406,12 +406,16 @@ module ActiveRecord
       already_in_scope? ? yield : _scoping(self) { yield }
     end
 
-    def _exec_scope(*args, &block) # :nodoc:
+    all_args = RUBY_VERSION < "2.7" ? "*args, &block" : "..."
+
+    class_eval <<-RUBY
+    def _exec_scope(#{all_args}) # :nodoc:
       @delegate_to_klass = true
-      _scoping(nil) { instance_exec(*args, &block) || self }
+      _scoping(nil) { instance_exec(#{all_args}) || self }
     ensure
       @delegate_to_klass = false
     end
+    RUBY
 
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not

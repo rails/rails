@@ -20,10 +20,14 @@ module ActionMailer #:nodoc:
     end
 
     private
-      def process(*)
-        handle_exceptions do
-          super
-        end
+      all_args = RUBY_VERSION < "2.7" ? "*" : "..."
+
+      class_eval <<-RUBY
+    def process(#{all_args})
+      handle_exceptions do
+        super
       end
+    end
+      RUBY
   end
 end
