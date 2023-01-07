@@ -280,7 +280,7 @@ module ActiveSupport
     #   foreign_key('Message', false) # => "messageid"
     #   foreign_key('Admin::Post')    # => "post_id"
     def foreign_key(class_name, separate_class_name_and_id_with_underscore = true)
-      underscore(demodulize(class_name)) + (separate_class_name_and_id_with_underscore ? "_id" : "id")
+      underscore(demodulize(class_name)) << (separate_class_name_and_id_with_underscore ? "_id" : "id")
     end
 
     # Tries to find a constant with the name specified in the argument string.
