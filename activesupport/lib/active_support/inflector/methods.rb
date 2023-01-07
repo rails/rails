@@ -163,7 +163,14 @@ module ActiveSupport
     #   upcase_first('w')                 # => "W"
     #   upcase_first('')                  # => ""
     def upcase_first(string)
-      string.length > 0 ? string[0].upcase.concat(string[1..-1]) : ""
+      case string.length
+      when 0
+        ""
+      when 1
+        string.upcase
+      else
+        string[0].upcase.concat(string[1..-1])
+      end
     end
 
     # Converts the first character in the string to lowercase.
@@ -172,7 +179,14 @@ module ActiveSupport
     #   downcase_first('I')                          # => "i"
     #   downcase_first('')                           # => ""
     def downcase_first(string)
-      string.length > 0 ? string[0].downcase.concat(string[1..-1]) : ""
+      case string.length
+      when 0
+        ""
+      when 1
+        string.downcase
+      else
+        string[0].downcase.concat(string[1..-1])
+      end
     end
 
     # Capitalizes all the words and replaces some characters in the string to
