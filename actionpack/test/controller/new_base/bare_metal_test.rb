@@ -56,7 +56,7 @@ module BareMetalTest
       assert_equal "text/html", controller.response.headers["content-type"]
     end
 
-    test "can assign rack response array as part of the controller execution" do
+    test "can assign rack response object as part of the controller execution" do
       controller = BareController.new
       controller.set_request!(ActionDispatch::Request.empty)
       controller.rack_response_object
