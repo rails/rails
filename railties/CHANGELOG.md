@@ -1,3 +1,14 @@
+*   Raise an exception when a `before_action`'s "only" or "except" filter
+    options reference an action that doesn't exist. This will be enabled by
+    default but can be overridden via config.
+
+    ```
+    # config/environments/production.rb
+    config.action_controller.raise_on_missing_callback_actions = false
+    ```
+
+    *Jess Bees*
+
 *   Use physical processor count as the default Puma worker count in production.
     This can be overridden by setting `ENV["WEB_CONCURRENCY"]` or editing the
     generated "config/puma.rb" directly.
