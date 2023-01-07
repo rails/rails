@@ -8,6 +8,14 @@ module BareMetalTest
     def index
       self.response_body = "Hello world"
     end
+
+    def rack_response_array
+      self.response = [200, {"content-type" => "text/html"}, ["Hello world"]]
+    end
+
+    def rack_response_object
+      self.response = Rack::Response.new("Hello world", 200, {"content-type" => "text/html"})
+    end
   end
 
   class BareTest < ActiveSupport::TestCase
@@ -32,7 +40,31 @@ module BareMetalTest
       controller.set_request!(ActionDispatch::Request.empty)
       controller.set_response!(BareController.make_response!(controller.request))
       controller.index
+
+      assert controller.performed?
       assert_equal ["Hello world"], controller.response_body
+    end
+
+    test "can assign rack response array as part of the controller execution" do
+      controller = BareController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.rack_response_array
+
+      assert controller.performed?
+      assert_equal ["Hello world"], controller.response_body
+      assert_equal 200, controller.response.status
+      assert_equal "text/html", controller.response.headers["content-type"]
+    end
+
+    test "can assign rack response array as part of the controller execution" do
+      controller = BareController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.rack_response_object
+
+      assert controller.performed?
+      assert_equal ["Hello world"], controller.response_body
+      assert_equal 200, controller.response.status
+      assert_equal "text/html", controller.response.headers["content-type"]
     end
 
     test "connect a request to controller instance without dispatch" do
