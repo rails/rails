@@ -7,9 +7,9 @@ module ActiveSupport
     module Assertions
       UNTRACKED = Object.new # :nodoc:
 
-      # Asserts that an expression is not truthy. Passes if <tt>object</tt> is
-      # +nil+ or +false+. "Truthy" means "considered true in a conditional"
-      # like <tt>if foo</tt>.
+      # Asserts that an expression is not truthy. Passes if +object+ is +nil+ or
+      # +false+. "Truthy" means "considered true in a conditional" like <tt>if
+      # foo</tt>.
       #
       #   assert_not nil    # => true
       #   assert_not false  # => true
@@ -23,8 +23,9 @@ module ActiveSupport
         assert !object, message
       end
 
-      # Asserts that a block raises one of <tt>exp</tt>. This is an enhancement of the
-      # standard Minitest assertion method with the ability to test error messages.
+      # Asserts that a block raises one of +exp+. This is an enhancement of the
+      # standard Minitest assertion method with the ability to test error
+      # messages.
       #
       #   assert_raises(ArgumentError, match: /incorrect param/i) do
       #     perform_service(param: 'exception')
@@ -63,7 +64,7 @@ module ActiveSupport
       #   end
       #
       # An arbitrary positive or negative difference can be specified.
-      # The default is <tt>1</tt>.
+      # The default is +1+.
       #
       #   assert_difference 'Article.count', -1 do
       #     post :delete, params: { id: ... }
