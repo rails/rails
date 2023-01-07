@@ -1,3 +1,9 @@
+*   Use physical processor count as the default Puma worker count in production.
+    This can be overridden by setting `ENV["WEB_CONCURRENCY"]` or editing the
+    generated "config/puma.rb" directly.
+
+    *DHH*
+
 *   Bump `required_rubygems_version` from 1.8.11 to 3.3.13 or higher in order to
     support pre-release versions of Ruby when generating a new Rails app
     Gemfile.
