@@ -13,7 +13,7 @@ module Rails
 
       def build_stack
         ActionDispatch::MiddlewareStack.new do |middleware|
-          unless config.hosts.empty?
+          unless config.hosts.nil? || config.hosts.empty?
             middleware.use ::ActionDispatch::HostAuthorization, config.hosts, **config.host_authorization
           end
 

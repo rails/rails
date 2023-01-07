@@ -154,6 +154,13 @@ module ApplicationTests
       assert_not_includes middleware, "ActionDispatch::HostAuthorization"
     end
 
+    test "ActionDispatch::HostAuthorization is not included if hosts is set to nil" do
+      add_to_config "config.hosts = nil"
+      boot!
+
+      assert_not_includes middleware, "ActionDispatch::HostAuthorization"
+    end
+
     test "Rack::Cache is not included by default" do
       boot!
 
