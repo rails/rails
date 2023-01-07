@@ -63,7 +63,6 @@ module ActiveRecord
       #    Post.where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
-      #    # WHERE "authors"."id" IS NOT NULL
       #
       # Additionally, multiple relations can be combined. This will return posts
       # associated to both an author and any comments:
@@ -72,12 +71,10 @@ module ActiveRecord
       #    # SELECT "posts".* FROM "posts"
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
-          reflection = scope_association_reflection(association)
+          scope_association_reflection(association)
           @scope.joins!(association)
-          self.not(association => { reflection.association_primary_key => nil })
         end
 
         @scope
@@ -816,7 +813,6 @@ module ActiveRecord
     #    Post.where.associated(:author)
     #    # SELECT "posts".* FROM "posts"
     #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
-    #    # WHERE "authors"."id" IS NOT NULL
     #
     # Chaining with WhereChain#missing:
     #
