@@ -55,7 +55,7 @@ module ActionDispatch # :nodoc:
       private
         def html_response?(headers)
           if content_type = headers[CONTENT_TYPE]
-            /html/.match?(content_type)
+            content_type.include?("html")
           end
         end
 
