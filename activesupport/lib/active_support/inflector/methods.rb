@@ -169,7 +169,7 @@ module ActiveSupport
       when 1
         string.upcase
       else
-        string[0].upcase.concat(string[1..-1])
+        string[0].upcase.concat(string[1, string.length])
       end
     end
 
@@ -185,7 +185,7 @@ module ActiveSupport
       when 1
         string.downcase
       else
-        string[0].downcase.concat(string[1..-1])
+        string[0].downcase.concat(string[1, string.length])
       end
     end
 
