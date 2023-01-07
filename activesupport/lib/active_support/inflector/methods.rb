@@ -147,9 +147,9 @@ module ActiveSupport
       end
 
       if capitalize
-        result.sub!(/\A\w/) do |match|
-          match.upcase!
-          match
+        first = result[0]
+        if first.upcase!
+          result[0] = first
         end
       end
 
