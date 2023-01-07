@@ -2742,3 +2742,153 @@ will run a query like:
 ```sql
 SELECT "vehicles".* FROM "vehicles" WHERE "vehicles"."type" IN ('Car')
 ```
+
+Delegated Types
+----------------
+
+[`Single Table Inheritance (STI)`](#single-table-inheritance-sti) works best when there is little difference between subclasses and their attributes, but includes all attributes of all subclasses you need to create a single table.
+
+The disadvantage of this approach is that it results in bloat to that table. Since it will even include attributes specific to a subclass that aren't used by anything else.
+
+In the following example, there are two Active Record models that inherit from the same "Entry" class which includes the `subject` attribute.
+
+```ruby
+# Schema: entries[ id, type, subject, created_at, updated_at]
+class Entry < ApplicationRecord
+end
+
+class Comment < Entry
+end
+
+class Message < Entry
+end
+```
+
+Delegated types solves this problem, via `delegated_type`.
+
+In order to use delegated types, we have to model our data in a particular way. The requirements are as follows:
+
+* There is a superclass that stores shared attributes among all subclasses in it's table.
+* Each subclass must inherit from the super class, and will have a separate table for any additional attributes specific to it.
+
+This eliminates the need to define attributes in a single table that are unintentionally shared among all subclasses.
+
+In order to apply this to our example above, we need to regenerate our models.
+First, let's generate the base `Entry` model which will act as our superclass:
+
+```bash
+$ bin/rails generate model entry entryable_type:string entryable_id:integer
+```
+
+Then, we will generate new `Message` and `Comment` models for delegation:
+
+```bash
+$ bin/rails generate model message subject:string body:string
+$ bin/rails generate model comment content:string
+```
+
+After running the generators, we should end up with models that look like this:
+
+```ruby
+# Schema: entries[ id, entryable_type, entryable_id, created_at, updated_at ]
+class Entry < ApplicationRecord
+end
+
+# Schema: messages[ id, subject, body, created_at, updated_at ]
+class Message < ApplicationRecord
+end
+
+# Schema: comments[ id, content, created_at, updated_at ]
+class Comment < ApplicationRecord
+end
+```
+
+### Declare `delegated_type`
+
+First, declare a `delegated_type` in the superclass `Entry`.
+
+```ruby
+class Entry < ApplicationRecord
+  delegated_type :entryable, types: %w[ Message Comment ], dependent: :destroy
+end
+```
+
+The `entryable` parameter specifies the field to use for delegation, and include the types `Message` and `Comment` as the delegate classes.
+
+The `Entry` class has `entryable_type` and `entryable_id` fields. This is the field with the `_type`, `_id` suffixes added to the name `entryable` in the `delegated_type` definition.
+`entryable_type` stores the subclass name of the delegatee, and `entryable_id` stores the record id of the delegatee subclass.
+
+Next, we must define a module to implement those delegated types, by declaring the `as: :entryable` parameter to the `has_one` association.
+
+```ruby
+module Entryable
+  extend ActiveSupport::Concern
+
+  included do
+    has_one :entry, as: :entryable, touch: true
+  end
+end
+```
+
+And then include the created module in your subclass.
+
+```ruby
+class Message < ApplicationRecord
+  include Entryable
+end
+
+class Comment < ApplicationRecord
+  include Entryable
+end
+```
+
+With this definition complete, our `Entry` delegator now provides the following methods:
+
+```ruby
+Entry#entryable_class # => Message or Comment
+Entry#entryable_name  # => "message" or "comment"
+Entry.messages        # => Entry.where(entryable_type: "Message")
+Entry#message?        # => true when entryable_type == "Message"
+Entry#message         # => returns the message record, when entryable_type == "Message", otherwise nil
+Entry#message_id      # => returns entryable_id, when entryable_type == "Message", otherwise nil
+Entry.comments        # => Entry.where(entryable_type: "Comment")
+Entry#comment?        # => true when entryable_type == "Comment"
+Entry#comment         # => returns the comment record, when entryable_type == "Comment", otherwise nil
+Entry#comment_id      # => returns entryable_id, when entryable_type == "Comment", otherwise nil
+```
+
+### Object creation
+
+When creating a new `Entry` object, we can specify the `entryable` subclass at the same time.
+
+```ruby
+Entry.create! entryable: Message.new(subject: "hello!")
+```
+
+### Adding further delegation
+
+We can expand our `Entry` delegator and enhance further by defining `delegates` and use polymorphism to the subclasses.
+For example, to delegate the `title` method from `Entry` to it's subclasses:
+
+```ruby
+class Entry < ApplicationRecord
+  delegated_type :entryable, types: %w[ Message Comment ]
+  delegates :title, to: :entryable
+end
+
+class Message < ApplicationRecord
+  include Entryable
+
+  def title
+    subject
+  end
+end
+
+class Comment < ApplicationRecord
+  include Entryable
+
+  def title
+    content.truncate(20)
+  end
+end
+```
