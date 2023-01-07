@@ -1,4 +1,6 @@
-*   Bump `required_rubygems_version` to 3.3.13 or higher
+*   Bump `required_rubygems_version` from 1.8.11 to 3.3.13 or higher in order to
+    support pre-release versions of Ruby when generating a new Rails app
+    Gemfile.
 
     *Yasuo Honda*
 
