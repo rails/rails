@@ -878,8 +878,8 @@ will return instead a maximum of 5 customers beginning with the 31st. The SQL lo
 SELECT * FROM customers LIMIT 5 OFFSET 30
 ```
 
-Group
------
+Grouping
+--------
 
 To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the [`group`][] method.
 
@@ -918,8 +918,7 @@ GROUP BY status
 
 [`count`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-count
 
-Having
-------
+### HAVING Conditions
 
 SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the [`having`][] method to the find.
 
