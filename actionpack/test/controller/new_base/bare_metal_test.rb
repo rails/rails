@@ -51,9 +51,9 @@ module BareMetalTest
       controller.rack_response_array
 
       assert controller.performed?
-      assert_equal ["Hello world"], controller.response_body
-      assert_equal 200, controller.response.status
-      assert_equal "text/html", controller.response.headers["content-type"]
+      assert_equal true, controller.response_body
+      assert_equal 200, controller.response[0]
+      assert_equal "text/html", controller.response[1]["content-type"]
     end
 
     test "can assign rack response object as part of the controller execution" do
@@ -62,7 +62,7 @@ module BareMetalTest
       controller.rack_response_object
 
       assert controller.performed?
-      assert_equal ["Hello world"], controller.response_body
+      assert_equal true, controller.response_body
       assert_equal 200, controller.response.status
       assert_equal "text/html", controller.response.headers["content-type"]
     end

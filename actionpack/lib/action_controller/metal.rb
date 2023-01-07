@@ -211,11 +211,14 @@ module ActionController
 
     def set_response!(response) # :nodoc:
       # Force `performed?` to return true:
-      @_response_body = true
       @_response = response
     end
 
-    alias :response= :set_response! # :nodoc:
+    # Assign the response and mark it as committed. No further processing will occur.
+    def response=(response)
+      set_response!(response)
+      @_response_body = true
+    end
 
     def set_request!(request) # :nodoc:
       @_request = request
