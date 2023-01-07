@@ -116,9 +116,10 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_difference", &block)
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
-          error  = "#{code.inspect} didn't change by #{diff}"
+          actual = exp.call
+          error  = "#{code.inspect} didn't change by #{diff}, but by #{actual - before_value}"
           error  = "#{message}.\n#{error}" if message
-          assert_equal(before_value + diff, exp.call, error)
+          assert_equal(before_value + diff, actual, error)
         end
 
         retval
