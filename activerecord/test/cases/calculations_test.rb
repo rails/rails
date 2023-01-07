@@ -658,6 +658,14 @@ class CalculationsTest < ActiveRecord::TestCase
     [1, 6, 2, 9].each { |firm_id| assert_includes c.keys, firm_id }
   end
 
+  def test_should_count_field_in_joined_table_with_group_by_when_tables_share_column_names
+    assert Company.columns_hash.key?("status")
+    assert Account.columns_hash.key?("status")
+
+    counts = Company.joins(:account).group("accounts.status").count
+    assert_equal({ "active" => 2, "trial" => 2, "suspended" => 1 }, counts)
+  end
+
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
     expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 3, 7 => 1 }
     assert_equal expected, Post.joins(:comments).group(:post_id).count
@@ -817,9 +825,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_without_column_names
     if current_adapter?(:OracleAdapter)
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil, "active"]], Company.order(:id).limit(1).pluck
     else
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]], Company.order(:id).limit(1).pluck
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
     end
   end
 

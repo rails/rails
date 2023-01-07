@@ -16,6 +16,7 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit
+    t.string :status
     t.integer "a" * max_identifier_length
     t.datetime :updated_at
   end
@@ -296,6 +297,7 @@ ActiveRecord::Schema.define do
     t.bigint :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
+    t.integer :status, default: 0
     t.index [:name, :rating], order: :desc
     t.index [:name, :description], length: 10
     t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
