@@ -132,6 +132,7 @@ module ActiveSupport
     #
     def humanize(lower_case_and_underscored_word, capitalize: true, keep_id_suffix: false)
       result = lower_case_and_underscored_word.to_s.dup
+      return result if result.empty?
 
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
