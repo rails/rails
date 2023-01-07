@@ -10,11 +10,11 @@ module BareMetalTest
     end
 
     def rack_response_array
-      self.response = [200, {"content-type" => "text/html"}, ["Hello world"]]
+      self.response = [200, { "content-type" => "text/html" }, ["Hello world"]]
     end
 
     def rack_response_object
-      self.response = Rack::Response.new("Hello world", 200, {"content-type" => "text/html"})
+      self.response = Rack::Response.new("Hello world", 200, { "content-type" => "text/html" })
     end
   end
 
