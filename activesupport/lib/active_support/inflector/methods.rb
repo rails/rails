@@ -232,7 +232,10 @@ module ActiveSupport
     #   classify('calculus')     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, "")))
+      table_name = table_name.to_s
+      dot_idx = table_name.index(".")
+      table_name = table_name[dot_idx + 1, table_name.length] if dot_idx && dot_idx > 0
+      camelize(singularize(table_name))
     end
 
     # Replaces underscores with dashes in the string.
