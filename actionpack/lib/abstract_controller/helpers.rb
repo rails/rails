@@ -118,14 +118,13 @@ module AbstractController
       #     helper_method :current_user, :logged_in?
       #
       #     private
+      #       def current_user
+      #         @current_user ||= User.find_by(id: session[:user])
+      #       end
       #
-      #     def current_user
-      #       @current_user ||= User.find_by(id: session[:user])
-      #     end
-      #
-      #     def logged_in?
-      #       current_user != nil
-      #     end
+      #       def logged_in?
+      #         current_user != nil
+      #       end
       #   end
       #
       # In a view:
