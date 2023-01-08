@@ -210,13 +210,14 @@ module ActionController
     end
 
     def set_response!(response) # :nodoc:
-      # Force `performed?` to return true:
       @_response = response
     end
 
     # Assign the response and mark it as committed. No further processing will occur.
     def response=(response)
       set_response!(response)
+
+      # Force `performed?` to return true:
       @_response_body = true
     end
 
