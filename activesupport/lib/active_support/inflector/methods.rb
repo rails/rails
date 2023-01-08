@@ -70,6 +70,8 @@ module ActiveSupport
       # String#camelize takes a symbol (:upper or :lower), so here we also support :lower to keep the methods consistent.
       if !uppercase_first_letter || uppercase_first_letter == :lower
         string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
+      elsif string.match?(/\A[a-z\d]*\z/)
+        return inflections.acronyms[string] || string.capitalize
       else
         string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       end

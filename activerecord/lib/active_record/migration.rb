@@ -1427,7 +1427,7 @@ module ActiveRecord
       def record_environment
         return if down?
 
-        @internal_metadata[:environment] = connection.migration_context.current_environment
+        @internal_metadata[:environment] = connection.pool.db_config.env_name
       end
 
       def ran?(migration)

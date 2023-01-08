@@ -54,7 +54,7 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "\"@object.num\" didn't change by 0, but by 1.\nExpected: 0\n  Actual: 1", error.message
   end
 
   def test_assert_no_difference_with_message_fail
@@ -63,7 +63,7 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0, but by 1.\nExpected: 0\n  Actual: 1", error.message
   end
 
   def test_assert_no_difference_with_multiple_expressions_pass
@@ -157,7 +157,17 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0, but by 1.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_difference_message_includes_change
+    error = assert_raises Minitest::Assertion do
+      assert_difference "@object.num", +5 do
+        @object.increment
+        @object.increment
+      end
+    end
+    assert_equal "\"@object.num\" didn't change by 5, but by 2.\nExpected: 5\n  Actual: 2", error.message
   end
 
   def test_hash_of_lambda_expressions

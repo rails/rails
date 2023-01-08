@@ -29,7 +29,11 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, "#{tags_text}#{msg}")
+        if t = tags_text
+          super(severity, timestamp, progname, t.concat(msg))
+        else
+          super(severity, timestamp, progname, msg)
+        end
       end
 
       def tagged(*tags)
@@ -68,7 +72,7 @@ module ActiveSupport
       def tags_text
         tags = current_tags
         if tags.one?
-          "[#{tags[0]}] "
+          +"[#{tags[0]}] "
         elsif tags.any?
           tags.collect { |tag| "[#{tag}] " }.join
         end

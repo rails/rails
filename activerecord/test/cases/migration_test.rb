@@ -689,32 +689,17 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_internal_metadata_stores_environment
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env     = env_name(@internal_metadata.connection)
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration, @internal_metadata)
 
     migrator.up
     assert_equal current_env, @internal_metadata[:environment]
-
-    original_rails_env  = ENV["RAILS_ENV"]
-    original_rack_env   = ENV["RACK_ENV"]
-    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-
-    assert_not_equal current_env, new_env
-
-    sleep 1 # mysql by default does not store fractional seconds in the database
-    migrator.up
-    assert_equal new_env, @internal_metadata[:environment]
-  ensure
-    ENV["RAILS_ENV"] = original_rails_env
-    ENV["RACK_ENV"]  = original_rack_env
-    migrator.up
   end
 
   def test_internal_metadata_stores_environment_when_migration_fails
     @internal_metadata.delete_all_entries
-    current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env = env_name(@internal_metadata.connection)
 
     migration = Class.new(ActiveRecord::Migration::Current) {
       def version; 101 end
@@ -732,7 +717,7 @@ class MigrationTest < ActiveRecord::TestCase
     @internal_metadata.delete_all_entries
     @internal_metadata[:foo] = "bar"
 
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    current_env     = env_name(@internal_metadata.connection)
     migrations_path = MIGRATIONS_ROOT + "/valid"
 
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration, @internal_metadata)
@@ -1183,6 +1168,10 @@ class MigrationTest < ActiveRecord::TestCase
 
       test_terminated.count_down
       other_process.join
+    end
+
+    def env_name(connection)
+      connection.pool.db_config.env_name
     end
 end
 

@@ -293,7 +293,7 @@ module Mime
     end
 
     def html?
-      (symbol == :html) || /html/.match?(@string)
+      (symbol == :html) || @string.include?("html")
     end
 
     def all?; false; end

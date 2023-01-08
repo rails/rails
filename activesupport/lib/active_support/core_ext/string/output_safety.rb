@@ -88,11 +88,11 @@ module ActiveSupport # :nodoc:
       super(implicit_html_escape_interpolated_argument(value))
     end
 
-    def []=(*args)
-      if args.length == 3
-        super(args[0], args[1], implicit_html_escape_interpolated_argument(args[2]))
+    def []=(arg1, arg2, arg3 = nil)
+      if arg3
+        super(arg1, arg2, implicit_html_escape_interpolated_argument(arg3))
       else
-        super(args[0], implicit_html_escape_interpolated_argument(args[1]))
+        super(arg1, implicit_html_escape_interpolated_argument(arg2))
       end
     end
 

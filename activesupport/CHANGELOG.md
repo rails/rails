@@ -1,3 +1,25 @@
+*   `assert_difference` message now includes what changed.
+
+    This makes it easier to debug non-obvious failures.
+
+    Before:
+
+    ```
+    "User.count" didn't change by 32.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    After:
+
+    ```
+    "User.count" didn't change by 32, but by 0.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    *Alex Ghiculescu*
+
 *   Add ability to match exception messages to `assert_raises` assertion
 
     Instead of this

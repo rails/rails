@@ -680,10 +680,10 @@ If you use the cookie session store, this would apply to the `session` and
 
 [`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
-Rendering XML and JSON Data
----------------------------
+Rendering
+---------
 
-ActionController makes it extremely easy to render `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
+ActionController makes it extremely easy to render `HTML`, `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -699,6 +699,9 @@ end
 ```
 
 You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
+
+You can learn more about rendering in the [Layouts and Rendering
+Guide](layouts_and_rendering.html).
 
 Filters
 -------

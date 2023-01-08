@@ -72,15 +72,17 @@ module ActiveRecord
 
     class SqliteDBDropTest < ActiveRecord::TestCase
       def setup
+        @root          = "/rails/root"
         @database      = "db_create.sqlite3"
+        @database_root = File.join(@root, @database)
         @configuration = {
           "adapter"  => "sqlite3",
           "database" => @database
         }
-        @path = Class.new do
-          def to_s; "/absolute/path" end
-          def absolute?; true end
-        end.new
+        @configuration_root = {
+          "adapter"  => "sqlite3",
+          "database" => @database_root
+        }
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -90,45 +92,33 @@ module ActiveRecord
         $stdout, $stderr = @original_stdout, @original_stderr
       end
 
-      def test_creates_path_from_database
-        assert_called_with(Pathname, :new, [@database], returns: @path) do
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
+      def test_checks_db_dir_is_absolute
+        assert_called_with(File, :absolute_path?, [@database], returns: false) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
         end
       end
 
       def test_removes_file_with_absolute_path
-        Pathname.stub(:new, @path) do
-          assert_called_with(FileUtils, :rm, ["/absolute/path"]) do
-            ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
-          end
+        assert_called_with(FileUtils, :rm, [@database_root]) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration_root, @root
         end
       end
 
       def test_generates_absolute_path_with_given_root
-        Pathname.stub(:new, @path) do
-          @path.stub(:absolute?, false) do
-            assert_called_with(File, :join, ["/rails/root", @path],
-              returns: "/former/relative/path"
-            ) do
-              ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
-            end
-          end
+        assert_called_with(File, :join, [@root, @database], returns: "#{@root}/#{@database}") do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
         end
       end
 
       def test_removes_file_with_relative_path
-        File.stub(:join, "/former/relative/path") do
-          @path.stub(:absolute?, false) do
-            assert_called_with(FileUtils, :rm, ["/former/relative/path"]) do
-              ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
-            end
-          end
+        assert_called_with(FileUtils, :rm, [@database_root]) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
         end
       end
 
       def test_when_db_dropped_successfully_outputs_info_to_stdout
         FileUtils.stub(:rm, nil) do
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
 
           assert_equal "Dropped database '#{@database}'\n", $stdout.string
         end

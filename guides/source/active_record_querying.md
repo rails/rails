@@ -878,8 +878,8 @@ will return instead a maximum of 5 customers beginning with the 31st. The SQL lo
 SELECT * FROM customers LIMIT 5 OFFSET 30
 ```
 
-Group
------
+Grouping
+--------
 
 To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the [`group`][] method.
 
@@ -918,8 +918,7 @@ GROUP BY status
 
 [`count`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-count
 
-Having
-------
+### HAVING Conditions
 
 SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the [`having`][] method to the find.
 
@@ -1408,6 +1407,43 @@ LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id GROUP BY customers
 
 Which means: "return all customers with their count of reviews, whether or not they
 have any reviews at all"
+
+### `where.associated` and `where.missing`
+
+The `associated` and `missing` query methods let you select a set of records
+based on the presence or absence of an association.
+
+To use `where.associated`:
+
+```ruby
+Customer.where.associated(:reviews)
+```
+
+Produces:
+
+```sql
+SELECT customers.* FROM customers
+INNER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.customer_id IS NOT NULL
+```
+
+Which means "return all customers that have made at least one review".
+
+To use `where.missing`:
+
+```ruby
+Customer.where.missing(:reviews)
+```
+
+Produces:
+
+```sql
+SELECT customers.* FROM customers
+LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.customer_id IS NULL
+```
+
+Which means "return all customers that have not made any reviews".
 
 
 Eager Loading Associations
