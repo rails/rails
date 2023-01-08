@@ -446,4 +446,4 @@ The Author class now has methods to add and remove books to an author, and much
 more.
 
 You can learn more about associations in the [Active Record Associations
-guide](associations_basics.html).
+guide](association_basics.html).
