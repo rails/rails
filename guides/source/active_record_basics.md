@@ -339,12 +339,11 @@ into the database. There are several methods that you can use to check your
 models and validate that an attribute value is not empty, is unique and not
 already in the database, follows a specific format, and many more.
 
-Validation is a very important issue to consider when persisting to the database, so
-the methods `save` and `update` take it into account when
-running: they return `false` when validation fails and they don't actually
-perform any operations on the database. All of these have a bang counterpart (that
-is, `save!` and `update!`), which are stricter in that
-they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
+Methods like `save`, `create` and `update` validate a model before persisting
+it to the database. When a model is invalid these methods return `false` and no
+database operations are performed. All of these methods have a bang counterpart
+(that is, `save!`, `create!` and `update!`), which are stricter in that they
+raise an `ActiveRecord::RecordInvalid` exception when validation fails.
 A quick example to illustrate:
 
 ```ruby
