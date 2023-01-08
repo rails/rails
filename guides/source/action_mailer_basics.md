@@ -726,11 +726,10 @@ class InvitationsMailer < ApplicationMailer
   end
 
   private
-
-  def set_inviter_and_invitee
-    @inviter = params[:inviter]
-    @invitee = params[:invitee]
-  end
+    def set_inviter_and_invitee
+      @inviter = params[:inviter]
+      @invitee = params[:invitee]
+    end
 end
 ```
 
