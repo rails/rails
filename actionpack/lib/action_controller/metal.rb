@@ -186,9 +186,8 @@ module ActionController
     end
 
     def response_body=(body)
-      body = [body] unless body.nil? || body.respond_to?(:each) || body.respond_to?(:call)
-
       if body
+        body = [body] if body.is_a?(String)
         response.body = body
         super
       else
