@@ -1551,7 +1551,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attribute_names
-    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "metadata"]
+    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "status", "metadata"]
     assert_equal expected, Company.attribute_names
   end
 
