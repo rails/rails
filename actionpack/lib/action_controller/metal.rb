@@ -210,6 +210,11 @@ module ActionController
     end
 
     def set_response!(response) # :nodoc:
+      if @_response
+        _, _, body = @_response
+        body.close if body.respond_to?(:close)
+      end
+
       @_response = response
     end
 
