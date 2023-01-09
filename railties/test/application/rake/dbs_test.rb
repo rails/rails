@@ -477,6 +477,25 @@ module ApplicationTests
         db_schema_cache_dump
       end
 
+      test "db:schema:cache:dump dumps virtual columns" do
+        Dir.chdir(app_path) do
+          use_postgresql(database_name: "railties_db")
+          rails "db:drop", "db:create"
+
+          rails "runner", <<~RUBY
+            ActiveRecord::Base.connection.create_table(:books) do |t|
+              t.integer :pages
+              t.virtual :pages_plus_1, type: :integer, as: "pages + 1", stored: true
+            end
+          RUBY
+
+          rails "db:schema:cache:dump"
+
+          virtual_column_exists = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')[2].virtual?").strip
+          assert_equal "true", virtual_column_exists
+        end
+      end
+
       def db_fixtures_load(expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
