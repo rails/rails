@@ -3,16 +3,16 @@ ARG RUBY_VERSION=<%= Gem.ruby_version %>
 FROM ruby:$RUBY_VERSION
 
 <% if using_node? -%>
-# Install JavaScript dependencies and libvips for Active Storage
-ARG NODE_MAJOR_VERSION=19
-RUN curl -sL https://deb.nodesource.com/setup_$NODE_MAJOR_VERSION.x | bash -
-RUN apt-get update -qq && \
-    apt-get install -y build-essential libvips nodejs && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man && \
-    npm install -g yarn
+# Install JavaScript dependencies
+ARG NODE_VERSION=<%= dockerfile_node_version %>
+ARG YARN_VERSION=<%= dockerfile_yarn_version %>
+ENV VOLTA_HOME="/root/.volta" \
+    PATH="$VOLTA_HOME/bin:/usr/local/bin:$PATH"
+RUN curl https://get.volta.sh | bash && \
+    volta install node@$NODE_VERSION yarn@$YARN_VERSION
 
-<% elsif !skip_active_storage? -%>
+<% end -%>
+<% if !skip_active_storage? -%>
 # Install libvips for Active Storage preview support
 RUN apt-get update -qq && \
     apt-get install -y build-essential libvips && \

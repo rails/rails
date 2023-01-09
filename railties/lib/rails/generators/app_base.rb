@@ -416,6 +416,18 @@ module Rails
         options[:javascript] && options[:javascript] != "importmap"
       end
 
+      def dockerfile_node_version
+        using_node? and `node --version`[/\d+\.\d+\.\d+/]
+      rescue
+        "lts"
+      end
+
+      def dockerfile_yarn_version
+        using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
+      rescue
+        "latest"
+      end
+
       # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
       # if one such processor has been specified.
       def adjusted_javascript_option
