@@ -1,3 +1,7 @@
+*   Only use HostAuthorization middleware if `config.hosts` is not empty
+
+    *Hartley McGuire*
+
 *   Raise an exception when a `before_action`'s "only" or "except" filter
     options reference an action that doesn't exist. This will be enabled by
     default but can be overridden via config.
