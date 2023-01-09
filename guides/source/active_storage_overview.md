@@ -54,15 +54,17 @@ WARNING: Before you install and use third-party software, make sure you understa
 ## Setup
 
 Active Storage uses three tables in your application’s database named
-`active_storage_blobs`, `active_storage_variant_records`
-and `active_storage_attachments`. After creating a new
-application (or upgrading your application to Rails 5.2), run
-`bin/rails active_storage:install` to generate a migration that creates these
-tables. Use `bin/rails db:migrate` to run the migration.
+`active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
+Run `bin/rails active_storage:install` to generate a migration that creates
+these tables. Use `bin/rails db:migrate` to run the migration.
 
-WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
+| Table      | Purpose |
+| ------------------- | ----- |
+| `active_storage_blobs` | Stores data about uploaded files, such as filename and content type. |
+| `active_storage_attachments` | A polymorphic join table that [connects your models to blobs](#attaching-files-to-records). If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name. |
+| `active_storage_variant_records` | If [variant tracking](#attaching-files-to-records) is enabled, stores records for each variant that has been generated. |
 
-WARNING: If you are using UUIDs instead of integers as the primary key on your models you will need to change the column type of `active_storage_attachments.record_id` and `active_storage_variant_records.id` in the generated migration accordingly. This can be skipped if you set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
+WARNING: If you are using UUIDs instead of integers as the primary key on your models, you should set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -346,12 +348,12 @@ gcs: &gcs
 
 private_gcs:
   <<: *gcs
-  credentials: <%= Rails.root.join("path/to/private_keyfile.json") %>
+  credentials: <%= Rails.root.join("path/to/private_key.json") %>
   bucket: ""
 
 public_gcs:
   <<: *gcs
-  credentials: <%= Rails.root.join("path/to/public_keyfile.json") %>
+  credentials: <%= Rails.root.join("path/to/public_key.json") %>
   bucket: ""
   public: true
 ```
