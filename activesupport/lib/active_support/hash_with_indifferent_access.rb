@@ -247,7 +247,8 @@ module ActiveSupport
     #   hash.fetch_values('a', 'c') { |key| 'z' } # => ["x", "z"]
     #   hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
     def fetch_values(*indices, &block)
-      super(*indices.map { |key| convert_key(key) }, &block)
+      indices.map! { |key| convert_key(key) }
+      super
     end
 
     # Returns a shallow copy of the hash.
