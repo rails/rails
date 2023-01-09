@@ -1424,7 +1424,7 @@ Produces:
 ```sql
 SELECT customers.* FROM customers
 INNER JOIN reviews ON reviews.customer_id = customers.id
-WHERE reviews.customer_id IS NOT NULL
+WHERE reviews.id IS NOT NULL
 ```
 
 Which means "return all customers that have made at least one review".
@@ -1440,7 +1440,7 @@ Produces:
 ```sql
 SELECT customers.* FROM customers
 LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
-WHERE reviews.customer_id IS NULL
+WHERE reviews.id IS NULL
 ```
 
 Which means "return all customers that have not made any reviews".
