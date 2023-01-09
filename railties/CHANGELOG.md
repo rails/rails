@@ -1,3 +1,9 @@
+*   Add Rails::HealthController#show and map it to /up for newly generated applications.
+    Load balancers and uptime monitors all need a basic endpoint to tell whether the app is up.
+    This is a good starting point that'll work in many situations.
+
+    *DHH*
+
 *   Only use HostAuthorization middleware if `config.hosts` is not empty
 
     *Hartley McGuire*
