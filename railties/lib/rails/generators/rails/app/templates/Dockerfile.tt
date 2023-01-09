@@ -6,10 +6,10 @@ FROM ruby:$RUBY_VERSION
 # Install JavaScript dependencies
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
-RUN curl https://get.volta.sh | bash
-ENV VOLTA_HOME /root/.volta
-ENV PATH $VOLTA_HOME/bin:/usr/local/bin:$PATH
-RUN volta install node@$NODE_VERSION yarn@$YARN_VERSION
+ENV VOLTA_HOME="/root/.volta" \
+    PATH="$VOLTA_HOME/bin:/usr/local/bin:$PATH"
+RUN curl https://get.volta.sh | bash && \
+    volta install node@$NODE_VERSION yarn@$YARN_VERSION
 
 <% end -%>
 <% if !skip_active_storage? -%>
