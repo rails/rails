@@ -218,11 +218,11 @@ module ActiveSupport
     #   hash.default                   # => nil
     #   hash.default('foo')            # => 'foo'
     #   hash.default(:foo)             # => 'foo'
-    def default(*args)
-      if args.length == 1
-        super(convert_key(args[0]))
+    def default(key = (no_key = true))
+      if no_key
+        super()
       else
-        super(*args.map { |arg| convert_key(arg) })
+        super(convert_key(key))
       end
     end
 
