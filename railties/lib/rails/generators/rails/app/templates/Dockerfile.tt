@@ -33,12 +33,6 @@ ENV RAILS_LOG_TO_STDOUT="1" \
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
-<% if using_node? -%>
-# install node modules
-COPY yarn.* ./
-RUN yarn install
-
-<% end -%>
 # Copy application code
 COPY . .
 
