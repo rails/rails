@@ -1039,8 +1039,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Dockerfile" do |content|
+      assert_match(/assets:precompile/, content)
       assert_match(/libvips/, content)
       assert_no_match(/yarn/, content)
+    end
+  end
+
+  def test_api
+    run_generator [destination_root, "--api"]
+
+    assert_file "Dockerfile" do |content|
+      assert_no_match(/assets:precompile/, content)
     end
   end
 
