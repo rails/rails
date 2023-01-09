@@ -45,6 +45,25 @@ module ActiveModel
       extend  HelperMethods
       include HelperMethods
 
+      ##
+      # :method: validation_context
+      # Returns the context when running validations.
+      #
+      # This is useful when running validations except a certain context (opposite to the +on+ option).
+      #
+      #   class Person
+      #     include ActiveModel::Validations
+      #
+      #     attr_accessor :name
+      #     validates :name, presence: true, if: -> { validation_context != :custom }
+      #   end
+      #
+      #   person = Person.new
+      #   person.valid?          #=> false
+      #   person.valid?(:new)    #=> false
+      #   person.valid?(:custom) #=> true
+
+      ##
       attr_accessor :validation_context
       private :validation_context=
       define_callbacks :validate, scope: :name

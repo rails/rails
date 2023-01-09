@@ -10,7 +10,8 @@ require "concurrent/map"
 module ActionView
   # = Action View Resolver
   class Resolver
-    Path = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("ActionView::Resolver::Path", "ActionView::TemplatePath", ActionView.deprecator)
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+    deprecate_constant "Path", "ActionView::TemplatePath", deprecator: ActionView.deprecator
 
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)

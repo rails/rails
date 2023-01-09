@@ -1,3 +1,7 @@
+*   Redis pub/sub adapter now automatically reconnects when Redis connection is lost.
+
+    *Vladimir Dementyev*
+
 *   The `connected()` callback can now take a `{reconnected}` parameter to differentiate
     connections from reconnections.
 
@@ -34,7 +38,7 @@
 
     *Vladimir Dementyev*
 
-*   Added command callbacks to `ActionCable::Base::Connection`.
+*   Added command callbacks to `ActionCable::Connection::Base`.
 
     Now you can define `before_command`, `after_command`, and `around_command` to be invoked before, after or around any command received by a client respectively.
 

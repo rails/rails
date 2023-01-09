@@ -4,6 +4,7 @@ require "set"
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
+require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
@@ -155,7 +156,7 @@ module ActiveRecord
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
         @statements = build_statement_pool
-        @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+        self.lock_thread = nil
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
           @config.fetch(:prepared_statements) { default_prepared_statements }
@@ -169,6 +170,24 @@ module ActiveRecord
 
         @raw_connection_dirty = false
         @verified = false
+      end
+
+      THREAD_LOCK = ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+      private_constant :THREAD_LOCK
+
+      FIBER_LOCK = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+      private_constant :FIBER_LOCK
+
+      def lock_thread=(lock_thread) # :nodoc:
+        @lock =
+        case lock_thread
+        when Thread
+          THREAD_LOCK
+        when Fiber
+          FIBER_LOCK
+        else
+          ActiveSupport::Concurrency::NullLock
+        end
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -1012,7 +1031,7 @@ module ActiveRecord
           return unless exception.is_a?(TransactionRollbackError)
           return unless savepoint_errors_invalidate_transactions?
 
-          current_transaction.state.invalidate! if current_transaction
+          current_transaction.invalidate!
         end
 
         def retryable_query_error?(exception)

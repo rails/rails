@@ -232,6 +232,16 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_cookie_with_domain_proc
+      cookies[:user_name] = { value: "braindeaf", domain: proc { ".sub.www.nextangle.com" } }
+      head :ok
+    end
+
+    def set_cookie_with_domain_proc_with_request
+      cookies[:user_name] = { value: "braindeaf", domain: proc { |req| ".sub.#{req.host}" } }
+      head :ok
+    end
+
     def delete_cookie_with_domain
       cookies.delete(:user_name, domain: :all)
       head :ok
@@ -852,9 +862,10 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_raise_data_overflow
-    assert_raise(ActionDispatch::Cookies::CookieOverflow) do
+    error = assert_raise(ActionDispatch::Cookies::CookieOverflow) do
       get :raise_data_overflow
     end
+    assert_equal "foo cookie overflowed with size 5522 bytes", error.message
   end
 
   def test_tampered_cookies
@@ -1219,6 +1230,18 @@ class CookiesTest < ActionController::TestCase
     get :set_cookie_with_domains
     assert_response :success
     assert_cookie_header "user_name=rizwanreza; domain=.example3.com; path=/; SameSite=Lax"
+  end
+
+  def test_cookie_with_domain_proc
+    get :set_cookie_with_domain_proc
+    assert_response :success
+    assert_cookie_header "user_name=braindeaf; domain=.sub.www.nextangle.com; path=/; SameSite=Lax"
+  end
+
+  def test_cookie_with_domain_proc_with_request
+    get :set_cookie_with_domain_proc_with_request
+    assert_response :success
+    assert_cookie_header "user_name=braindeaf; domain=.sub.www.nextangle.com; path=/; SameSite=Lax"
   end
 
   def test_deleting_cookie_with_several_preset_domains_using_one_of_these_domains

@@ -13,7 +13,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
 
   def test_v3_uuids_with_rfc4122_namespaced_uuids_enabled
     with_use_rfc4122_namespaced_uuids_set do
-      assert_not_deprecated do
+      assert_not_deprecated(ActiveSupport.deprecator) do
         assert_equal "3d813cbb-47fb-32ba-91df-831e1593ac29", Digest::UUID.uuid_v3("6BA7B810-9DAD-11D1-80B4-00C04FD430C8", "www.widgets.com")
         assert_equal "3d813cbb-47fb-32ba-91df-831e1593ac29", Digest::UUID.uuid_v3("6ba7b810-9dad-11d1-80b4-00c04fd430c8", "www.widgets.com")
         assert_equal "3d813cbb-47fb-32ba-91df-831e1593ac29", Digest::UUID.uuid_v3(Digest::UUID::DNS_NAMESPACE, "www.widgets.com")
@@ -46,7 +46,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "fe5a52d1-703f-3326-b919-2d96003288f3", Digest::UUID.uuid_v3("6ba7b810-9dad-11d1-80b4-00c04fd430c8", "www.widgets.com")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "3d813cbb-47fb-32ba-91df-831e1593ac29", Digest::UUID.uuid_v3(Digest::UUID::DNS_NAMESPACE, "www.widgets.com")
     end
 
@@ -58,7 +58,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "2676127a-9073-36e3-b9db-14bc16b7c083", Digest::UUID.uuid_v3("6ba7b811-9dad-11d1-80b4-00c04fd430c8", "http://www.widgets.com")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "86df55fb-428e-3843-8583-ba3c05f290bc", Digest::UUID.uuid_v3(Digest::UUID::URL_NAMESPACE, "http://www.widgets.com")
     end
 
@@ -70,7 +70,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "719357e1-54f1-3930-8113-a1faffde48fa", Digest::UUID.uuid_v3("6ba7b812-9dad-11d1-80b4-00c04fd430c8", "1.2.3")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "8c29ab0e-a2dc-3482-b5eb-20cb2e2387a1", Digest::UUID.uuid_v3(Digest::UUID::OID_NAMESPACE, "1.2.3")
     end
 
@@ -82,7 +82,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "32560c4a-c9f1-3974-9c1c-5e52761e091f", Digest::UUID.uuid_v3("6ba7b814-9dad-11d1-80b4-00c04fd430c8", "cn=John Doe, ou=People, o=Acme, Inc., c=US")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "ee49149d-53a4-304a-890b-468229f6afc3", Digest::UUID.uuid_v3(Digest::UUID::X500_NAMESPACE, "cn=John Doe, ou=People, o=Acme, Inc., c=US")
     end
 
@@ -93,7 +93,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
 
   def test_v5_uuids_with_rfc4122_namespaced_uuids_enabled
     with_use_rfc4122_namespaced_uuids_set do
-      assert_not_deprecated do
+      assert_not_deprecated(ActiveSupport.deprecator) do
         assert_equal "21f7f8de-8051-5b89-8680-0195ef798b6a", Digest::UUID.uuid_v5("6BA7B810-9DAD-11D1-80B4-00C04FD430C8", "www.widgets.com")
         assert_equal "21f7f8de-8051-5b89-8680-0195ef798b6a", Digest::UUID.uuid_v5("6ba7b810-9dad-11d1-80b4-00c04fd430c8", "www.widgets.com")
         assert_equal "21f7f8de-8051-5b89-8680-0195ef798b6a", Digest::UUID.uuid_v5(Digest::UUID::DNS_NAMESPACE, "www.widgets.com")
@@ -126,7 +126,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "027963ef-431c-5670-ab2c-820168da74e9", Digest::UUID.uuid_v5("6ba7b810-9dad-11d1-80b4-00c04fd430c8", "www.widgets.com")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "21f7f8de-8051-5b89-8680-0195ef798b6a", Digest::UUID.uuid_v5(Digest::UUID::DNS_NAMESPACE, "www.widgets.com")
     end
 
@@ -138,7 +138,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "d8e1e518-2337-58e5-bf52-6c563631db90", Digest::UUID.uuid_v5("6ba7b811-9dad-11d1-80b4-00c04fd430c8", "http://www.widgets.com")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "4e570fd8-186d-5a74-90f0-4d28e34673a1", Digest::UUID.uuid_v5(Digest::UUID::URL_NAMESPACE, "http://www.widgets.com")
     end
 
@@ -150,7 +150,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "b9b86653-48bb-5059-861a-2c72974b5c8d", Digest::UUID.uuid_v5("6ba7b812-9dad-11d1-80b4-00c04fd430c8", "1.2.3")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "42d5e23b-3a02-5135-85c6-52d1102f1f00", Digest::UUID.uuid_v5(Digest::UUID::OID_NAMESPACE, "1.2.3")
     end
 
@@ -162,7 +162,7 @@ class DigestUUIDExt < ActiveSupport::TestCase
       assert_equal "e84a8a4e-a5c7-55b8-ad09-020c0b5662a7", Digest::UUID.uuid_v5("6ba7b814-9dad-11d1-80b4-00c04fd430c8", "cn=John Doe, ou=People, o=Acme, Inc., c=US")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       assert_equal "fd5b2ddf-bcfe-58b6-90d6-db50f74db527", Digest::UUID.uuid_v5(Digest::UUID::X500_NAMESPACE, "cn=John Doe, ou=People, o=Acme, Inc., c=US")
     end
 

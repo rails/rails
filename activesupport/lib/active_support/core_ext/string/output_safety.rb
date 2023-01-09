@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "erb"
-require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/erb/util"
 require "active_support/multibyte/unicode"
 
@@ -90,11 +88,11 @@ module ActiveSupport # :nodoc:
       super(implicit_html_escape_interpolated_argument(value))
     end
 
-    def []=(*args)
-      if args.length == 3
-        super(args[0], args[1], implicit_html_escape_interpolated_argument(args[2]))
+    def []=(arg1, arg2, arg3 = nil)
+      if arg3
+        super(arg1, arg2, implicit_html_escape_interpolated_argument(arg3))
       else
-        super(args[0], implicit_html_escape_interpolated_argument(args[1]))
+        super(arg1, implicit_html_escape_interpolated_argument(arg2))
       end
     end
 
@@ -102,7 +100,7 @@ module ActiveSupport # :nodoc:
       dup.concat(other)
     end
 
-    def *(*)
+    def *(_)
       new_string = super
       new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)

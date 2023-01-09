@@ -222,8 +222,8 @@ module ActiveRecord
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if role and/or is the current connected role and/or
-    # current connected shard. If no shard is passed the default will be
+    # Returns true if role is the current connected role and/or
+    # current connected shard. If no shard is passed, the default will be
     # used.
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
@@ -272,7 +272,7 @@ module ActiveRecord
     #
     #  ActiveRecord::Base.connection_db_config
     #    #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-    #      @name="primary", @config={pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}>
+    #      @name="primary", @config={pool: 5, timeout: 5000, database: "storage/development.sqlite3", adapter: "sqlite3"}>
     #
     # Use only for reading.
     def connection_db_config

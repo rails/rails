@@ -219,7 +219,11 @@ module ActiveSupport
     #   hash.default('foo')            # => 'foo'
     #   hash.default(:foo)             # => 'foo'
     def default(*args)
-      super(*args.map { |arg| convert_key(arg) })
+      if args.length == 1
+        super(convert_key(args[0]))
+      else
+        super(*args.map { |arg| convert_key(arg) })
+      end
     end
 
     # Returns an array of the values at the specified indices:
@@ -326,9 +330,9 @@ module ActiveSupport
       dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
-    def transform_values(*args, &block)
+    def transform_values(&block)
       return to_enum(:transform_values) unless block_given?
-      dup.tap { |hash| hash.transform_values!(*args, &block) }
+      dup.tap { |hash| hash.transform_values!(&block) }
     end
 
     def transform_keys(*args, &block)

@@ -3,6 +3,7 @@
 require "rake/testtask"
 require "fileutils"
 require "open3"
+require "base64"
 
 desc "Default Task"
 task default: :test
@@ -38,15 +39,6 @@ namespace :test do
       listen_host = "localhost"
       listen_port = "4567"
 
-      runner_command = %w(ruby ../ci/qunit-selenium-runner.rb)
-      if ENV["SELENIUM_DRIVER_URL"]
-        require "socket"
-        runner_command += %W(http://#{Socket.gethostname}:#{listen_port}/ #{ENV["SELENIUM_DRIVER_URL"]})
-        listen_host = "0.0.0.0"
-      else
-        runner_command += %W(http://localhost:#{listen_port}/)
-      end
-
       Dir.mkdir("log")
       pid = File.open("log/test.log", "w") do |f|
         spawn(*%W(rackup test/ujs/config.ru -o #{listen_host} -p #{listen_port} -s puma), out: f, err: f, pgroup: true)
@@ -66,8 +58,9 @@ namespace :test do
 
         sleep 0.2
       end
-
-      system(*runner_command)
+      # Decode the obfuscate environment variables
+      decoded_environment_variables = Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)]
+      system(decoded_environment_variables, "npm", "test")
       status = $?.exitstatus
     ensure
       Process.kill("KILL", -pid) if pid
@@ -101,7 +94,8 @@ end
 namespace :ujs do
   desc "Starts the test server"
   task :server do
-    system "bundle exec rackup test/ujs/config.ru -p 4567 -s puma"
+    spawn("bundle", "exec", "rackup", "test/ujs/config.ru", "-p", "4567", "-s", "puma")
+    system("npm", "test", "--", "--no-single-run", "--browsers", "Chrome")
   end
 end
 

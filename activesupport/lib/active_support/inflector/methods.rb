@@ -70,6 +70,8 @@ module ActiveSupport
       # String#camelize takes a symbol (:upper or :lower), so here we also support :lower to keep the methods consistent.
       if !uppercase_first_letter || uppercase_first_letter == :lower
         string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
+      elsif string.match?(/\A[a-z\d]*\z/)
+        return inflections.acronyms[string] || string.capitalize
       else
         string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       end
@@ -204,8 +206,8 @@ module ActiveSupport
     end
 
     # Creates a class name from a plural table name like Rails does for table
-    # names to models. Note that this returns a string and not a Class (To
-    # convert to an actual class follow +classify+ with #constantize).
+    # names to models. Note that this returns a string and not a Class. (To
+    # convert to an actual class follow +classify+ with #constantize.)
     #
     #   classify('ham_and_eggs') # => "HamAndEgg"
     #   classify('posts')        # => "Post"
@@ -236,7 +238,7 @@ module ActiveSupport
     def demodulize(path)
       path = path.to_s
       if i = path.rindex("::")
-        path[(i + 2)..-1]
+        path[(i + 2), path.length]
       else
         path
       end
@@ -369,8 +371,8 @@ module ActiveSupport
       # If passed an optional +locale+ parameter, the uncountables will be
       # found for that locale.
       #
-      #  apply_inflections('post', inflections.plurals, :en)    # => "posts"
-      #  apply_inflections('posts', inflections.singulars, :en) # => "post"
+      #   apply_inflections('post', inflections.plurals, :en)    # => "posts"
+      #   apply_inflections('posts', inflections.singulars, :en) # => "post"
       def apply_inflections(word, rules, locale = :en)
         result = word.to_s.dup
 

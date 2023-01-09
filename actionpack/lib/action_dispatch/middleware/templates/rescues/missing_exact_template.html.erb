@@ -10,8 +10,8 @@
       <strong>NOTE:</strong> Rails usually expects a controller action to render a view template with the same name.
     </p>
     <p>
-      For example, a <code>BooksController#index</code> action defined in <code>app/controllers/books_controller.rb</code> should have a corresponding view template 
-      in a file named <code>app/views/books/index.html.erb</code>.
+      For example, a <code><%= @exception.controller %>#<%= @exception.action_name %></code> action defined in <code>app/controllers/<%= @exception.controller.controller_path %>_controller.rb</code> should have a corresponding view template
+      in a file named <code>app/views/<%= @exception.controller.controller_name %>/<%= @exception.action_name %>.html.erb</code>.
     </p>
     <p>
       However, if this controller is an API endpoint responding with 204 (No Content), which does not require a view template because it doesn't serve an HTML response, then this error will occur when trying to access it with a browser. In this particular scenario, you can ignore this error.

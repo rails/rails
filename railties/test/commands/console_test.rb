@@ -58,6 +58,45 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_equal IRB, Rails::Console.new(app).console
   end
 
+  def test_console_disables_IRB_auto_completion_in_production
+    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
+    ENV["IRB_USE_AUTOCOMPLETE"] = nil
+
+    with_rack_env "production" do
+      app = build_app(nil)
+      assert_equal IRB, Rails::Console.new(app).console
+      assert_equal "false", ENV["IRB_USE_AUTOCOMPLETE"]
+    end
+  ensure
+    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
+  end
+
+  def test_console_accepts_override_on_IRB_auto_completion_flag
+    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
+    ENV["IRB_USE_AUTOCOMPLETE"] = "true"
+
+    with_rack_env "production" do
+      app = build_app(nil)
+      assert_equal IRB, Rails::Console.new(app).console
+      assert_equal "true", ENV["IRB_USE_AUTOCOMPLETE"]
+    end
+  ensure
+    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
+  end
+
+  def test_console_doesnt_disable_IRB_auto_completion_in_non_production
+    original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
+    ENV["IRB_USE_AUTOCOMPLETE"] = nil
+
+    with_rails_env nil do
+      app = build_app(nil)
+      assert_equal IRB, Rails::Console.new(app).console
+      assert_nil ENV["IRB_USE_AUTOCOMPLETE"]
+    end
+  ensure
+    ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
+  end
+
   def test_default_environment_with_no_rails_env
     with_rails_env nil do
       start

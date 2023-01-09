@@ -19,7 +19,7 @@ module ActionText
       #{root}/app/models
     )
 
-    initializer "action_text.deprecator" do |app|
+    initializer "action_text.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_text] = ActionText.deprecator
     end
 

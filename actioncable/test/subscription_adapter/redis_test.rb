@@ -15,6 +15,55 @@ class RedisAdapterTest < ActionCable::TestCase
       end
     end
   end
+
+  def test_reconnections
+    subscribe_as_queue("channel") do |queue|
+      subscribe_as_queue("other channel") do |queue_2|
+        @tx_adapter.broadcast("channel", "hello world")
+
+        assert_equal "hello world", queue.pop
+
+        drop_pubsub_connections
+        wait_pubsub_connection(redis_conn, "channel")
+
+        @tx_adapter.broadcast("channel", "hallo welt")
+
+        assert_equal "hallo welt", queue.pop
+
+        drop_pubsub_connections
+        wait_pubsub_connection(redis_conn, "channel")
+        wait_pubsub_connection(redis_conn, "other channel")
+
+        @tx_adapter.broadcast("channel", "hola mundo")
+        @tx_adapter.broadcast("other channel", "other message")
+
+        assert_equal "hola mundo", queue.pop
+        assert_equal "other message", queue_2.pop
+      end
+    end
+  end
+
+  private
+    def redis_conn
+      @redis_conn ||= ::Redis.new(cable_config.except(:adapter))
+    end
+
+    def drop_pubsub_connections
+      # Emulate connection failure by dropping all connections
+      redis_conn.client("kill", "type", "pubsub")
+    end
+
+    def wait_pubsub_connection(redis_conn, channel, timeout: 2)
+      wait = timeout
+      loop do
+        break if redis_conn.pubsub("numsub", channel).last > 0
+
+        sleep 0.1
+        wait -= 0.1
+
+        raise "Timed out to subscribe to #{channel}" if wait <= 0
+      end
+    end
 end
 
 class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest

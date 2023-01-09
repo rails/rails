@@ -61,7 +61,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       )
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
         fake_connection,
         ActiveRecord::Base.logger,
@@ -311,6 +311,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
         @conn.execute("SELECT 1")
       }
+    end
+  end
+
+  def test_database_timezone_changes_synced_to_connection
+    with_timezone_config default: :local do
+      assert_changes(-> { @conn.raw_connection.query_options[:database_timezone] }, from: :utc, to: :local) do
+        @conn.execute("SELECT 1")
+      end
     end
   end
 

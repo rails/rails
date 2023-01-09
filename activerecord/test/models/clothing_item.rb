@@ -3,3 +3,6 @@
 class ClothingItem < ActiveRecord::Base
   query_constraints :clothing_type, :color
 end
+
+class ClothingItem::Used < ClothingItem
+end

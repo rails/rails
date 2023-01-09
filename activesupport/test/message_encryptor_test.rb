@@ -4,7 +4,6 @@ require_relative "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
-require_relative "metadata/shared_metadata_tests"
 
 class MessageEncryptorTest < ActiveSupport::TestCase
   class JSONSerializer
@@ -403,45 +402,4 @@ class MessageEncryptorWithHybridSerializerAndWithoutMarshalDumpTest < MessageEnc
     ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization     = @default_use_marshal_serialization
     super
   end
-end
-
-class MessageEncryptorMetadataTest < ActiveSupport::TestCase
-  include SharedMessageMetadataTests
-
-  setup do
-    @secret    = SecureRandom.random_bytes(32)
-    @encryptor = ActiveSupport::MessageEncryptor.new(@secret, **encryptor_options)
-  end
-
-  private
-    def generate(message, **options)
-      @encryptor.encrypt_and_sign(message, **options)
-    end
-
-    def parse(data, **options)
-      @encryptor.decrypt_and_verify(data, **options)
-    end
-
-    def encryptor_options; {} end
-end
-
-class MessageEncryptorMetadataMarshalTest < MessageEncryptorMetadataTest
-  private
-    def encryptor_options
-      { serializer: Marshal }
-    end
-end
-
-class MessageEncryptorMetadataJSONTest < MessageEncryptorMetadataTest
-  private
-    def encryptor_options
-      { serializer: MessageEncryptorTest::JSONSerializer.new }
-    end
-end
-
-class MessageEncryptorMetadataJsonWithMarshalFallbackTest < MessageEncryptorMetadataTest
-  private
-    def encryptor_options
-      { serializer: ActiveSupport::JsonWithMarshalFallback }
-    end
 end

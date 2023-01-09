@@ -95,7 +95,7 @@ module ActionDispatch
   # Read and write data to cookies through ActionController::Base#cookies.
   #
   # When reading cookie data, the data is read from the HTTP request header, Cookie.
-  # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
+  # When writing cookie data, the data is sent out in the HTTP response header, +Set-Cookie+.
   #
   # Examples of writing:
   #
@@ -160,13 +160,18 @@ module ActionDispatch
   #   to <tt>:all</tt>. To support multiple domains, provide an array, and
   #   the first domain matching <tt>request.host</tt> will be used. Make
   #   sure to specify the <tt>:domain</tt> option with <tt>:all</tt> or
-  #   <tt>Array</tt> again when deleting cookies.
+  #   <tt>Array</tt> again when deleting cookies. For more flexibility you
+  #   can set the domain on a per-request basis by specifying <tt>:domain</tt>
+  #   with a proc.
   #
   #     domain: nil  # Does not set cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
   #                  # domain and subdomains.
   #     domain: %w(.example.com .example.org) # Allow the cookie
   #                                           # for concrete domain names.
+  #     domain: proc { Tenant.current.cookie_domain } # Set cookie domain dynamically
+  #     domain: proc { |req| ".sub.#{req.host}" }     # Set cookie domain dynamically based on request
+  #
   #
   # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, this option can be used to explicitly
   #   set the TLD length when using a short (<= 3 character) domain that is being interpreted as part of a TLD.
@@ -472,6 +477,8 @@ module ActionDispatch
               domain = domain.delete_prefix(".")
               request.host == domain || request.host.end_with?(".#{domain}")
             end
+          elsif options[:domain].respond_to?(:call)
+            options[:domain] = options[:domain].call(request)
           end
         end
     end
@@ -632,7 +639,9 @@ module ActionDispatch
         def commit(name, options)
           options[:value] = @verifier.generate(serialize(options[:value]), **cookie_metadata(name, options))
 
-          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
+          if options[:value].bytesize > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
+          end
         end
     end
 
@@ -684,7 +693,9 @@ module ActionDispatch
         def commit(name, options)
           options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), **cookie_metadata(name, options))
 
-          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
+          if options[:value].bytesize > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
+          end
         end
     end
 
@@ -695,7 +706,7 @@ module ActionDispatch
     def call(env)
       request = ActionDispatch::Request.new env
 
-      status, headers, body = @app.call(env)
+      _, headers, _ = response = @app.call(env)
 
       if request.have_cookie_jar?
         cookie_jar = request.cookie_jar
@@ -707,7 +718,7 @@ module ActionDispatch
         end
       end
 
-      [status, headers, body]
+      response
     end
   end
 end

@@ -134,6 +134,33 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
   end
 
+  test "replace certain nodes" do
+    html = <<~HTML
+      <div>
+        <p>replace me</p>
+        <p>ignore me</p>
+      </div>
+    HTML
+
+    expected_html = <<~HTML
+      <div>
+        <p>replaced</p>
+        <p>ignore me</p>
+      </div>
+    HTML
+
+    content = content_from_html(html)
+    replaced_fragment = content.fragment.replace("p") do |node|
+      if node.text =~ /replace me/
+        "<p>replaced</p>"
+      else
+        node
+      end
+    end
+
+    assert_equal expected_html.strip, replaced_fragment.to_html
+  end
+
   private
     def content_from_html(html)
       ActionText::Content.new(html).tap do |content|

@@ -1,7 +1,50 @@
-*   Don't double log the `controller` or `action` when using `ActiveRecord::QueryLog`
+*   Only use HostAuthorization middleware if `config.hosts` is not empty
+
+    *Hartley McGuire*
+
+*   Allow raising an error when a callback's only/unless symbols aren't existing methods.
+
+    When `before_action :callback, only: :action_name` is declared on a controller that doesn't respond to `action_name`, raise an exception at request time. This is a safety measure to ensure that typos or forgetfulness don't prevent a crucial callback from being run when it should.
+
+    For new applications, raising an error for undefined actions is turned on by default. If you do not want to opt-in to this behavior set `config.action_pack.raise_on_missing_callback_actions` to `false` in your application configuration. See #43487 for more details.
+
+    *Jess Bees*
+
+*   Allow cookie options[:domain] to accept a proc to set the cookie domain on a more flexible per-request basis
+
+    *RobL*
+
+*   When a host is not specified for an `ActionController::Renderer`'s env,
+    the host and related options will now be derived from the routes'
+    `default_url_options` and `ActionDispatch::Http::URL.secure_protocol`.
+
+    This means that for an application with a configuration like:
+
+      ```ruby
+      Rails.application.default_url_options = { host: "rubyonrails.org" }
+      Rails.application.config.force_ssl = true
+      ```
+
+    rendering a URL like:
+
+      ```ruby
+      ApplicationController.renderer.render inline: "<%= blog_url %>"
+      ```
+
+    will now return `"https://rubyonrails.org/blog"` instead of
+    `"http://example.org/blog"`.
+
+    *Jonathan Hefner*
+
+*   Add details of cookie name and size to `CookieOverflow` exception.
+
+    *Andy Waite*
+
+*   Don't double log the `controller`, `action`, or `namespaced_controller` when using `ActiveRecord::QueryLog`
 
     Previously if you set `config.active_record.query_log_tags` to an array that included
-    `:controller` or `:action`, that item would get logged twice. This bug has been fixed.
+    `:controller`, `:namespaced_controller`, or `:action`, that item would get logged twice.
+    This bug has been fixed.
 
     *Alex Ghiculescu*
 

@@ -317,12 +317,38 @@ module ActiveRecord
       async.pick(*column_names)
     end
 
-    # Pluck all the ID's for the relation using the table's primary key
+    # Returns the base model's ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.person_id = people.id
     def ids
-      pluck primary_key
+      if loaded?
+        result = records.pluck(primary_key)
+        return @async ? Promise::Complete.new(result) : result
+      end
+
+      if has_include?(primary_key)
+        relation = apply_join_dependency.distinct
+        return relation.ids
+      end
+
+      columns = arel_columns([primary_key])
+      relation = spawn
+      relation.select_values = columns
+      result = if relation.where_clause.contradiction?
+        ActiveRecord::Result.empty
+      else
+        skip_query_cache_if_necessary do
+          klass.connection.select_all(relation, "#{klass.name} Ids", async: @async)
+        end
+      end
+
+      result.then { |result| type_cast_pluck_values(result, columns) }
+    end
+
+    # Same as <tt>#ids</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    def async_ids
+      async.ids
     end
 
     private
@@ -465,9 +491,10 @@ module ActiveRecord
           end
 
           key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
-            types[aliaz] = type_for(col_name) do
-              calculated_data.column_types.fetch(aliaz, Type.default_value)
-            end
+            types[aliaz] = col_name.try(:type_caster) ||
+              type_for(col_name) do
+                calculated_data.column_types.fetch(aliaz, Type.default_value)
+              end
           end
 
           hash_rows = calculated_data.cast_values(key_types).map! do |row|

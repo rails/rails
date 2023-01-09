@@ -193,7 +193,7 @@ class Module
     method_def = []
     method_names = []
 
-    methods.map do |method|
+    methods.each do |method|
       method_name = prefix ? "#{method_prefix}#{method}" : method
       method_names << method_name.to_sym
 

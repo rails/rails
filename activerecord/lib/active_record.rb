@@ -57,11 +57,11 @@ module ActiveRecord
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
+  autoload :Normalization
   autoload :Persistence
   autoload :QueryCache
-  autoload :Querying
-  autoload :QueryConstraints
   autoload :QueryLogs
+  autoload :Querying
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -96,10 +96,10 @@ module ActiveRecord
     autoload :AutosaveAssociation
     autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
-    autoload :Promise
     autoload :FutureResult
     autoload :LegacyYamlAdapter
     autoload :NullRelation
+    autoload :Promise
     autoload :Relation
     autoload :Result
     autoload :StatementCache
@@ -107,13 +107,13 @@ module ActiveRecord
     autoload :Type
 
     autoload_under "relation" do
-      autoload :QueryMethods
-      autoload :FinderMethods
-      autoload :Calculations
-      autoload :PredicateBuilder
-      autoload :SpawnMethods
       autoload :Batches
+      autoload :Calculations
       autoload :Delegation
+      autoload :FinderMethods
+      autoload :PredicateBuilder
+      autoload :QueryMethods
+      autoload :SpawnMethods
     end
   end
 
@@ -268,6 +268,15 @@ module ActiveRecord
 
   singleton_class.attr_accessor :maintain_test_schema
   self.maintain_test_schema = nil
+
+  singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
+  self.raise_on_assign_to_attr_readonly = false
+
+  singleton_class.attr_accessor :belongs_to_required_validates_foreign_key
+  self.belongs_to_required_validates_foreign_key = true
+
+  singleton_class.attr_accessor :before_committed_on_all_records
+  self.before_committed_on_all_records = false
 
   ##
   # :singleton-method:

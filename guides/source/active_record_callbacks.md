@@ -502,9 +502,9 @@ class User < ApplicationRecord
   after_update_commit :log_user_saved_to_db
 
   private
-  def log_user_saved_to_db
-    puts 'User was saved to database'
-  end
+    def log_user_saved_to_db
+      puts 'User was saved to database'
+    end
 end
 ```
 
@@ -524,9 +524,9 @@ class User < ApplicationRecord
   after_save_commit :log_user_saved_to_db
 
   private
-  def log_user_saved_to_db
-    puts 'User was saved to database'
-  end
+    def log_user_saved_to_db
+      puts 'User was saved to database'
+    end
 end
 ```
 

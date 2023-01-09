@@ -66,7 +66,7 @@ module ActiveSupport
     # Executes all blocks registered to +name+ via on_load, using +base+ as the
     # evaluation context.
     #
-    #  ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
+    #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
     #
     # In the case of the above example, it will execute all hooks registered
     # for +:active_record+ within the class +ActiveRecord::Base+.

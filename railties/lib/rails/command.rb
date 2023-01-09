@@ -3,6 +3,7 @@
 require "active_support"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/blank"
+require "rails/deprecator"
 
 require "thor"
 
@@ -85,8 +86,10 @@ module Rails
         end
       end
 
-      def print_commands # :nodoc:
-        commands.each { |command| puts("  #{command}") }
+      def printing_commands # :nodoc:
+        lookup!
+
+        (subclasses - hidden_commands).flat_map(&:printing_commands)
       end
 
       private

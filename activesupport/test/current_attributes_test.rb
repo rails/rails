@@ -17,9 +17,10 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     before_reset { Session.previous = person&.id }
 
     resets do
-      Time.zone = "UTC"
       Session.current = nil
     end
+
+    resets :clear_time_zone
 
     def account=(account)
       super
@@ -52,6 +53,11 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     def intro
       "#{person.name}, in #{time_zone}"
     end
+
+    private
+      def clear_time_zone
+        Time.zone = "UTC"
+      end
   end
 
   class Session < ActiveSupport::CurrentAttributes

@@ -30,7 +30,7 @@ From the controller's point of view, there are three ways to create an HTTP resp
 * Call [`redirect_to`][] to send an HTTP redirect status code to the browser
 * Call [`head`][] to create a response consisting solely of HTTP headers to send back to the browser
 
-[controller.render]: https://api.rubyonrails.org/classes/ActionController/Renderer.html#method-i-render
+[controller.render]: https://api.rubyonrails.org/classes/ActionController/Rendering.html#method-i-render
 [`redirect_to`]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
 [`head`]: https://api.rubyonrails.org/classes/ActionController/Head.html#method-i-head
 
@@ -105,7 +105,7 @@ NOTE: The actual rendering is done by nested classes of the module [`ActionView:
 
 ### Using `render`
 
-In most cases, the [`ActionController::Renderer#render`][controller.render] method does the heavy lifting of rendering your application's content for use by a browser. There are a variety of ways to customize the behavior of `render`. You can render the default view for a Rails template, or a specific template, or a file, or inline code, or nothing at all. You can render text, JSON, or XML. You can specify the content type or HTTP status of the rendered response as well.
+In most cases, the controller's [`render`][controller.render] method does the heavy lifting of rendering your application's content for use by a browser. There are a variety of ways to customize the behavior of `render`. You can render the default view for a Rails template, or a specific template, or a file, or inline code, or nothing at all. You can render text, JSON, or XML. You can specify the content type or HTTP status of the rendered response as well.
 
 TIP: If you want to see the exact results of a call to `render` without needing to inspect it in a browser, you can call `render_to_string`. This method takes exactly the same options as `render`, but it returns a string instead of sending a response back to the browser.
 

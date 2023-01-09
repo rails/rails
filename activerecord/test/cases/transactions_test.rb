@@ -279,7 +279,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_early_return_from_transaction
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       @first.with_lock do
         break
       end
@@ -1346,8 +1346,8 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
-  class ConcurrentTransactionTest < TransactionTest
+class ConcurrentTransactionTest < TransactionTest
+  if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread

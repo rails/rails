@@ -12,7 +12,7 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
-                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
+                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
                     :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
@@ -278,8 +278,9 @@ module Rails
           load_defaults "7.0"
 
           self.add_autoload_paths_to_load_path = false
+          self.precompile_filter_parameters = true
 
-          if Rails.env.development? || Rails.env.test?
+          if Rails.env.local?
             self.log_file_size = 100 * 1024 * 1024
           end
 
@@ -288,6 +289,9 @@ module Rails
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
+            active_record.raise_on_assign_to_attr_readonly = true
+            active_record.belongs_to_required_validates_foreign_key = false
+            active_record.before_committed_on_all_records = true
           end
 
           if respond_to?(:action_dispatch)
@@ -339,12 +343,12 @@ module Rails
       private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
 
       def enable_dependency_loading
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading
       end
 
       def enable_dependency_loading=(value)
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading = value
       end
 

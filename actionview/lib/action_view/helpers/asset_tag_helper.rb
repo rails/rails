@@ -41,7 +41,7 @@ module ActionView
       # When the Asset Pipeline is enabled, you can pass the name of your manifest as
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
       #
-      # If the server supports Early Hints header links for these assets will be
+      # If the server supports Early Hints, header links for these assets will be
       # automatically pushed.
       #
       # ==== Options
@@ -130,7 +130,7 @@ module ActionView
       # set <tt>extname: false</tt> in the options.
       # You can modify the link attributes by passing a hash as the last argument.
       #
-      # If the server supports Early Hints header links for these assets will be
+      # If the server supports Early Hints, header links for these assets will be
       # automatically pushed.
       #
       # ==== Options

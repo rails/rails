@@ -36,6 +36,8 @@ module ActiveRecord
     config.active_record.query_log_tags = [ :application ]
     config.active_record.query_log_tags_format = :legacy
     config.active_record.cache_query_log_tags = false
+    config.active_record.raise_on_assign_to_attr_readonly = false
+    config.active_record.belongs_to_required_validates_foreign_key = true
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -73,7 +75,7 @@ module ActiveRecord
       require "active_record/base"
     end
 
-    initializer "active_record.deprecator" do |app|
+    initializer "active_record.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_record] = ActiveRecord.deprecator
     end
 
@@ -105,7 +107,7 @@ module ActiveRecord
       end
     end
 
-    initializer "Check for cache versioning support" do
+    initializer "active_record.cache_versioning_support" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
           if app.config.active_record.cache_versioning && Rails.cache
@@ -377,10 +379,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       # Filtered params
-      ActiveSupport.on_load(:action_controller, run_once: true) do
-        if ActiveRecord::Encryption.config.add_to_filter_parameters
-          ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
-        end
+      if ActiveRecord::Encryption.config.add_to_filter_parameters
+        ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
       end
     end
 

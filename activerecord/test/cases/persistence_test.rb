@@ -2,6 +2,8 @@
 
 require "cases/helper"
 require "models/aircraft"
+require "models/dashboard"
+require "models/clothing_item"
 require "models/post"
 require "models/comment"
 require "models/author"
@@ -19,7 +21,6 @@ require "models/person"
 require "models/ship"
 require "models/admin"
 require "models/admin/user"
-require "models/clothing_item"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -424,6 +425,40 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.save
     topic_reloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic_reloaded.title)
+  end
+
+  def test_build
+    topic = Topic.build(title: "New Topic")
+    assert_equal "New Topic", topic.title
+    assert_not_predicate topic, :persisted?
+  end
+
+  def test_build_many
+    topics = Topic.build([{ title: "first" }, { title: "second" }])
+    assert_equal ["first", "second"], topics.map(&:title)
+    topics.each { |topic| assert_not_predicate topic, :persisted? }
+  end
+
+  def test_build_through_factory_with_block
+    topic = Topic.build("title" => "New Topic") do |t|
+      t.author_name = "David"
+    end
+    assert_equal("New Topic", topic.title)
+    assert_equal("David", topic.author_name)
+    assert_not_predicate topic, :persisted?
+  end
+
+  def test_build_many_through_factory_with_block
+    topics = Topic.build([{ "title" => "first" }, { "title" => "second" }]) do |t|
+      t.author_name = "David"
+    end
+    assert_equal 2, topics.size
+    topics.each { |topic| assert_not_predicate topic, :persisted? }
+    topic1, topic2 = topics
+    assert_equal "first", topic1.title
+    assert_equal "David", topic1.author_name
+    assert_equal "second", topic2.title
+    assert_equal "David", topic2.author_name
   end
 
   def test_save_valid_record
@@ -1394,5 +1429,69 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_match(/WHERE .*color/, sql)
 
     assert_equal("blue", ClothingItem.find_by(id: clothing_item.id).color)
+  end
+end
+
+class QueryConstraintsTest < ActiveRecord::TestCase
+  fixtures :clothing_items, :dashboards, :topics, :posts
+
+  def test_primary_key_stays_the_same
+    assert_equal("id", ClothingItem.primary_key)
+  end
+
+  def test_query_constraints_list_is_an_empty_array_if_primary_key_is_nil
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers_projects"
+    end
+
+    assert_nil klass.primary_key
+    assert_empty klass.query_constraints_list
+  end
+
+  def test_query_constraints_uses_primary_key_by_default
+    post = posts(:welcome)
+    assert_uses_query_constraints_on_reload(post, "id")
+  end
+
+  def test_query_constraints_uses_manually_configured_primary_key
+    dashboard = dashboards(:cool_first)
+    assert_uses_query_constraints_on_reload(dashboard, "dashboard_id")
+  end
+
+  def test_child_overriden_primary_key_is_used_as_query_constraint
+    topic = topics(:first)
+    assert_uses_query_constraints_on_reload(topic, "id")
+
+    title_pk_topic = topic.becomes(TitlePrimaryKeyTopic)
+    title_pk_topic.author_name = "Nikita"
+
+    sql = capture_sql { title_pk_topic.save }.first
+    assert_match(/WHERE .*title/, sql)
+  end
+
+  def test_child_keeps_parents_query_constraints
+    clothing_item = clothing_items(:green_t_shirt)
+    assert_uses_query_constraints_on_reload(clothing_item, ["clothing_type", "color"])
+
+    used_clothing_item = clothing_items(:used_blue_jeans)
+    assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
+  end
+
+  def assert_uses_query_constraints_on_reload(object, columns)
+    flunk("columns argument must not be empty") if columns.blank?
+
+    sql = capture_sql { object.reload }.first
+    Array(columns).each do |column|
+      assert_match(/WHERE .*#{column}/, sql)
+    end
+  end
+
+  def test_query_constraints_raises_an_error_when_no_columns_provided
+    assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        query_constraints
+      end
+    end
   end
 end

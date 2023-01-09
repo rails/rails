@@ -250,10 +250,9 @@ class ChatChannel < ApplicationCable::Channel
   rescue_from 'MyError', with: :deliver_error_message
 
   private
-
-  def deliver_error_message(e)
-    broadcast_to(...)
-  end
+    def deliver_error_message(e)
+      broadcast_to(...)
+    end
 end
 ```
 
@@ -278,14 +277,13 @@ class ChatChannel < ApplicationCable::Channel
   after_subscribe :track_subscription
 
   private
+    def send_welcome_message
+      broadcast_to(...)
+    end
 
-  def send_welcome_message
-    broadcast_to(...)
-  end
-  
-  def track_subscription
-    # ...
-  end
+    def track_subscription
+      # ...
+    end
 end
 ```
 
@@ -876,6 +874,10 @@ For a full list of all configuration options, see the
 
 ## Running Standalone Cable Servers
 
+Action Cable can either run as part of your Rails application, or as
+a standalone server. In development, running as part of your Rails app
+is generally fine, but in production you should run it as a standalone.
+
 ### In App
 
 Action Cable can run alongside your Rails application. For example, to
@@ -890,7 +892,7 @@ end
 ```
 
 You can use `ActionCable.createConsumer()` to connect to the cable
-server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
+server if [`action_cable_meta_tag`][] is invoked in the layout. Otherwise, a path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create, and for every worker your server
@@ -898,6 +900,7 @@ spawns, you will also have a new instance of Action Cable, but the Redis or
 PostgreSQL adapter keeps messages synced across connections.
 
 [`config.action_cable.mount_path`]: configuring.html#config-action-cable-mount-path
+[`action_cable_meta_tag`]: https://api.rubyonrails.org/classes/ActionCable/Helpers/ActionCableHelper.html#method-i-action_cable_meta_tag
 
 ### Standalone
 
@@ -913,14 +916,24 @@ Rails.application.eager_load!
 run ActionCable.server
 ```
 
-Then you start the server using a binstub in `bin/cable` ala:
+Then to start the server:
 
 ```
-#!/bin/bash
 bundle exec puma -p 28080 cable/config.ru
 ```
 
-The above will start a cable server on port 28080.
+This starts a cable server on port 28080. To tell Rails to use this
+server, update your config:
+
+```ruby
+# config/environments/development.rb
+Rails.application.configure do
+  config.action_cable.mount_path = nil
+  config.action_cable.url = "ws://localhost:28080" # use wss:// in production
+end
+```
+
+Finally, ensure you have [configured the consumer correctly](#consumer-configuration).
 
 ### Notes
 

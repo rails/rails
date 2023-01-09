@@ -277,6 +277,12 @@ INFO. Additional keys may be added by the caller.
 | `:location` | URL to redirect to            |
 | `:request`  | The `ActionDispatch::Request` |
 
+#### request.action_dispatch
+
+| Key         | Value                         |
+| ----------- | ----------------------------- |
+| `:request`  | The `ActionDispatch::Request` |
+
 ### Action View
 
 #### render_template.action_view

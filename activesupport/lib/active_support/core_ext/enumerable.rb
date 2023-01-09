@@ -55,12 +55,12 @@ module Enumerable
 
   # Calculates a sum from the elements.
   #
-  #  payments.sum { |p| p.price * p.tax_rate }
-  #  payments.sum(&:price)
+  #   payments.sum { |p| p.price * p.tax_rate }
+  #   payments.sum(&:price)
   #
   # The latter is a shortcut for:
   #
-  #  payments.inject(0) { |sum, p| sum + p.price }
+  #   payments.inject(0) { |sum, p| sum + p.price }
   #
   # It can also calculate the sum without the use of a block.
   #
@@ -144,8 +144,8 @@ module Enumerable
   def many?
     cnt = 0
     if block_given?
-      any? do |element|
-        cnt += 1 if yield element
+      any? do |element, *args|
+        cnt += 1 if yield element, *args
         cnt > 1
       end
     else
@@ -225,8 +225,8 @@ module Enumerable
   #   [1, "", nil, 2, " ", [], {}, false, true].compact_blank
   #   # =>  [1, 2, true]
   #
-  #   Set.new([nil, "", 1, 2])
-  #   # => [2, 1] (or [1, 2])
+  #   Set.new([nil, "", 1, false]).compact_blank
+  #   # => [1]
   #
   # When called on a +Hash+, returns a new +Hash+ without the blank values.
   #

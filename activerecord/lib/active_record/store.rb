@@ -70,7 +70,7 @@ module ActiveRecord
   #
   # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
   #
-  #   User.stored_attributes[:settings] # [:color, :homepage, :two_factor_auth, :login_retry]
+  #   User.stored_attributes[:settings] # => [:color, :homepage, :two_factor_auth, :login_retry]
   #
   # == Overwriting default accessors
   #

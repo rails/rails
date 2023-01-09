@@ -166,6 +166,7 @@ module Rails
           # some sort of reloaders dependency support, to be added.
           require_unload_lock!
           reloader.execute
+          ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
       end
 

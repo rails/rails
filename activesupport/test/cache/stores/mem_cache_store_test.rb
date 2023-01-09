@@ -45,7 +45,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def lookup_store(*addresses, **options)
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false }.merge(options))
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false, socket_timeout: 60 }.merge(options))
     (@_stores ||= []) << cache
     cache
   end
@@ -179,7 +179,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache = lookup_store(raw: true, namespace: nil)
 
     Time.stub(:now, Time.now) do
-      assert_called_with client(cache), :set, ["key_with_expires_at", "bar", 30 * 60], namespace: nil, pool: false, raw: true, compress_threshold: 1024, expires_in: 1800.0 do
+      assert_called_with client(cache), :set, ["key_with_expires_at", "bar", 30 * 60], namespace: nil, pool: false, raw: true, compress_threshold: 1024, expires_in: 1800.0, socket_timeout: 60 do
         cache.write("key_with_expires_at", "bar", expires_at: 30.minutes.from_now)
       end
     end
@@ -265,7 +265,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_unless_exist_expires_when_configured
     cache = lookup_store(namespace: nil)
 
-    assert_called_with client(cache), :add, ["foo", Object, 1], namespace: nil, pool: false, compress_threshold: 1024, expires_in: 1, unless_exist: true do
+    assert_called_with client(cache), :add, ["foo", Object, 1], namespace: nil, pool: false, compress_threshold: 1024, expires_in: 1, socket_timeout: 60, unless_exist: true do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
   end

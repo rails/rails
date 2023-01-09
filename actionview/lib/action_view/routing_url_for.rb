@@ -6,14 +6,14 @@ module ActionView
   module RoutingUrlFor
     # Returns the URL for the set of +options+ provided. This takes the
     # same options as +url_for+ in Action Controller (see the
-    # documentation for <tt>ActionController::Base#url_for</tt>). Note that by default
-    # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative "/controller/action"
-    # instead of the fully qualified URL like "http://example.com/controller/action".
+    # documentation for ActionDispatch::Routing::UrlFor#url_for). Note that by default
+    # <tt>:only_path</tt> is <tt>true</tt> so you'll get the relative <tt>"/controller/action"</tt>
+    # instead of the fully qualified URL like <tt>"http://example.com/controller/action"</tt>.
     #
     # ==== Options
     # * <tt>:anchor</tt> - Specifies the anchor name to be appended to the path.
     # * <tt>:only_path</tt> - If true, returns the relative URL (omitting the protocol, host name, and port) (<tt>true</tt> by default unless <tt>:host</tt> is specified).
-    # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2005/". Note that this
+    # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in <tt>"/archive/2005/"</tt>. Note that this
     #   is currently not recommended since it breaks caching.
     # * <tt>:host</tt> - Overrides the default (current) host if provided.
     # * <tt>:protocol</tt> - Overrides the default (current) protocol if provided.

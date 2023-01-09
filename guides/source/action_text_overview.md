@@ -145,7 +145,7 @@ GlobalID](https://github.com/rails/globalid#signed-global-ids).
 Action Text renders embedded `<action-text-attachment>` elements by resolving
 their `sgid` attribute into an instance. Once resolved, that instance is passed
 along to
-[`render`](https://edgeapi.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render).
+[`render`](https://api.rubyonrails.org/classes/ActionView/Helpers/RenderingHelper.html#method-i-render).
 The resulting HTML is embedded as a descendant of the `<action-text-attachment>`
 element.
 

@@ -2000,6 +2000,22 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
+  def test_nested_fields_with_hash_with_indifferent_access_like_model
+    @author = HashWithIndifferentAccessBackedAuthor.new
+
+    form_with(model: @post) do |f|
+      concat f.fields(:author, model: @author) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form("/posts/123", method: "patch") do
+      '<input name="post[author_attributes][name]" type="text" value="hash backed author" id="post_author_attributes_name" />'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
   def test_fields
     @rendered = fields(:post, model: @post) do |f|
       concat f.text_field(:title)

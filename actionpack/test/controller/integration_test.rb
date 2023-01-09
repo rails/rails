@@ -165,6 +165,24 @@ class IntegrationTestTest < ActiveSupport::TestCase
   end
 end
 
+class RackLintIntegrationTest < ActionDispatch::IntegrationTest
+  test "integration test follows rack SPEC" do
+    with_routing do |set|
+      set.draw do
+        get "/", to: ->(_) { [200, {}, [""]] }
+      end
+
+      @app = self.class.build_app(set) do |middleware|
+        middleware.unshift Rack::Lint
+      end
+
+      get "/"
+
+      assert_equal 200, status
+    end
+  end
+end
+
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest

@@ -1011,6 +1011,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert_equal "<b>oo", string
     assert_predicate string, :html_safe?
+
+    string = "foo".html_safe
+    string[0, 2] = "<b>".html_safe
+
+    assert_equal "<b>o", string
+    assert_predicate string, :html_safe?
   end
 
   test "Replacing index of safe with unsafe yields escaped safe" do
@@ -1018,6 +1024,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string[0] = "<b>"
 
     assert_equal "&lt;b&gt;oo", string
+    assert_predicate string, :html_safe?
+
+    string = "foo".html_safe
+    string[1, 1] = "<b>"
+
+    assert_equal "f&lt;b&gt;o", string
     assert_predicate string, :html_safe?
   end
 

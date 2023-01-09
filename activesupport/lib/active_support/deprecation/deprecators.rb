@@ -69,6 +69,14 @@ module ActiveSupport
         set_option(:disallowed_behavior, disallowed_behavior)
       end
 
+      # Sets the disallowed deprecation warnings for all deprecators in this
+      # collection.
+      #
+      # See ActiveSupport::Deprecation::Disallowed#disallowed_warnings=.
+      def disallowed_warnings=(disallowed_warnings)
+        set_option(:disallowed_warnings, disallowed_warnings)
+      end
+
       # Silences all deprecators in this collection for the duration of the
       # given block.
       #

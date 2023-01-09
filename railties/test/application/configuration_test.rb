@@ -521,6 +521,7 @@ module ApplicationTests
     end
 
     test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
+      remove_from_config '.*config\.load_defaults.*\n'
       app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
       RUBY
@@ -528,6 +529,46 @@ module ApplicationTests
       app "development"
 
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
+      filters = [/foo/, :bar, "baz.qux"]
+
+      add_to_config <<~RUBY
+        config.filter_parameters += #{filters.inspect}
+        config.precompile_filter_parameters = true
+      RUBY
+
+      app "development"
+
+      assert_equal ActiveSupport::ParameterFilter.precompile_filters(filters), Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "filter_parameters is not precompiled when config.precompile_filter_parameters is false" do
+      filters = [/foo/, :bar, "baz.qux"]
+
+      add_to_config <<~RUBY
+        config.filter_parameters += #{filters.inspect}
+        config.precompile_filter_parameters = false
+      RUBY
+
+      app "development"
+
+      assert_equal filters, Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "config.precompile_filter_parameters is true by default for new apps" do
+      app "development"
+
+      assert Rails.application.config.precompile_filter_parameters
+    end
+
+    test "config.precompile_filter_parameters is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_not Rails.application.config.precompile_filter_parameters
     end
 
     test "config.to_prepare is forwarded to ActionDispatch" do
@@ -719,6 +760,20 @@ module ApplicationTests
         app "production"
       end
       assert_match(/Missing `secret_key_base`./, error.message)
+    end
+
+    test "dont raise in production when dummy secret_key_base is used" do
+      ENV["SECRET_KEY_BASE_DUMMY"] = "1"
+
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+      RUBY
+
+      assert_nothing_raised do
+        app "production"
+      end
+    ensure
+      ENV["SECRET_KEY_BASE_DUMMY"] = nil
     end
 
     test "raise when secret_key_base is not a type of string" do
@@ -1392,8 +1447,29 @@ module ApplicationTests
     test "config.enable_dependency_loading is deprecated" do
       app "development"
 
-      assert_deprecated { Rails.application.config.enable_dependency_loading }
-      assert_deprecated { Rails.application.config.enable_dependency_loading = true }
+      assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading }
+      assert_deprecated(Rails.deprecator) { Rails.application.config.enable_dependency_loading = true }
+    end
+
+    test "ActionController::Base::renderer uses Rails.application.default_url_options and config.force_ssl" do
+      add_to_config <<~RUBY
+        config.force_ssl = true
+
+        Rails.application.default_url_options = {
+          host: "foo.example.com",
+          port: 9001,
+          script_name: "/bar",
+        }
+
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      posts_url = ApplicationController.renderer.render(inline: "<%= posts_url %>")
+      assert_equal "https://foo.example.com:9001/bar/posts", posts_url
     end
 
     test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
@@ -3399,6 +3475,44 @@ module ApplicationTests
       assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
     end
 
+    test "encrypted attributes are added to record's filter_attributes by default" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+      RUBY
+
+      app "production"
+
+      assert_includes Post.filter_attributes, :content
+      assert_not_includes ActiveRecord::Base.filter_attributes, :content
+    end
+
+    test "encrypted attributes are not added to record filter_attributes if disabled" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+          encrypts :content
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+
+        config.active_record.encryption.add_to_filter_parameters = false
+      RUBY
+
+      app "production"
+
+      assert_not_includes Post.filter_attributes, :content
+      assert_not_includes ActiveRecord::Base.filter_attributes, :content
+    end
+
     test "ActiveStorage.routes_prefix can be configured via config.active_storage.routes_prefix" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -3902,6 +4016,7 @@ module ApplicationTests
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
       assert_equal ActiveStorage.deprecator, Rails.application.deprecators[:active_storage]
       assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
+      assert_equal Rails.deprecator, Rails.application.deprecators[:rails]
     end
 
     test "can entirely opt out of deprecation warnings" do

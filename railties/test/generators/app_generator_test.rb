@@ -7,10 +7,12 @@ require "generators/shared_generator_tests"
 DEFAULT_APP_FILES = %w(
   .gitattributes
   .gitignore
+  .dockerignore
   .ruby-version
   README.md
   Gemfile
   Rakefile
+  Dockerfile
   config.ru
   app/assets/config/manifest.js
   app/assets/images
@@ -34,6 +36,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/application.html.erb
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
+  bin/docker-entrypoint
   bin/rails
   bin/rake
   bin/setup
@@ -825,7 +828,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_hotwire
-    run_generator [destination_root, "--no-skip-bundle"]
+    run_generator_and_bundler [destination_root]
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
@@ -848,7 +851,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_asset_pipeline_tailwind
-    run_generator [destination_root, "--css", "tailwind", "--no-skip-bundle"]
+    run_generator_and_bundler [destination_root, "--css=tailwind"]
     assert_gem "tailwindcss-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/tailwind/, content)
@@ -856,7 +859,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_css_option_with_cssbundling_gem
-    run_generator [destination_root, "--css", "postcss", "--no-skip-bundle"]
+    run_generator_and_bundler [destination_root, "--css=postcss"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
   end
@@ -1006,6 +1009,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dockerignore
+    run_generator
+
+    assert_file ".dockerignore" do |content|
+      assert_match(/config\/master\.key/, content)
+    end
+  end
+
+  def test_skip_docker
+    run_generator [destination_root, "--skip-docker"]
+
+    assert_no_file ".dockerignore"
+    assert_no_file "Dockerfile"
+    assert_no_file "bin/docker-entrypoint"
+  end
+
   def test_system_tests_directory_generated
     run_generator
 
@@ -1068,6 +1087,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
+    def run_generator_and_bundler(args)
+      option_args, positional_args = args.partition { |arg| arg.start_with?("--") }
+      option_args << "--no-skip-bundle"
+      generator(positional_args, option_args)
+
+      # Stub `rails_gemfile_entry` so that Bundler resolves `gem "rails"` to the
+      # current repository instead of searching for an invalid version number
+      # (for a version that hasn't been released yet).
+      rails_gemfile_entry = Rails::Generators::AppBase::GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
+      generator.stub(:rails_gemfile_entry, -> { rails_gemfile_entry }) do
+        quietly { run_generator_instance }
+      end
+    end
+
     def run_app_update(app_root = destination_root)
       Dir.chdir(app_root) do
         gemfile_contents = File.read("Gemfile")

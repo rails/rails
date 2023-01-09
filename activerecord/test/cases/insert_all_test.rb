@@ -431,8 +431,8 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
     Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
 
-    assert_equal Time.now.year, Book.find(101).updated_at.year
-    assert_equal Time.now.year, Book.find(101).updated_on.year
+    assert_equal Time.now.utc.year, Book.find(101).updated_at.year
+    assert_equal Time.now.utc.year, Book.find(101).updated_on.year
   end
 
   def test_upsert_all_respects_updated_at_precision_when_touched_implicitly
@@ -476,10 +476,10 @@ class InsertAllTest < ActiveRecord::TestCase
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
 
       ship = Ship.find(101)
-      assert_equal Time.new.year, ship.created_at.year
-      assert_equal Time.new.year, ship.created_on.year
-      assert_equal Time.new.year, ship.updated_at.year
-      assert_equal Time.new.year, ship.updated_on.year
+      assert_equal Time.new.utc.year, ship.created_at.year
+      assert_equal Time.new.utc.year, ship.created_on.year
+      assert_equal Time.new.utc.year, ship.updated_at.year
+      assert_equal Time.new.utc.year, ship.updated_on.year
     end
   end
 
@@ -518,10 +518,10 @@ class InsertAllTest < ActiveRecord::TestCase
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: true
 
       ship = Ship.find(101)
-      assert_equal Time.now.year, ship.created_at.year
-      assert_equal Time.now.year, ship.created_on.year
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.created_at.year
+      assert_equal Time.now.utc.year, ship.created_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 
@@ -548,8 +548,8 @@ class InsertAllTest < ActiveRecord::TestCase
       ship = Ship.find(101)
       assert_equal 2016, ship.created_at.year
       assert_equal 2016, ship.created_on.year
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 
@@ -596,8 +596,8 @@ class InsertAllTest < ActiveRecord::TestCase
       ship = Ship.find(101)
       assert_nil ship.created_at
       assert_nil ship.created_on
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 

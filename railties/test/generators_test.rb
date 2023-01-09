@@ -255,8 +255,8 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_behaviour_aliases_behavior
-    assert_deprecated do
-      assert_same Rails::Generators::Testing::Behavior, Rails::Generators::Testing::Behaviour.itself
+    assert_deprecated(Rails.deprecator) do
+      assert_same Rails::Generators::Testing::Behavior, Rails::Generators::Testing::Behaviour
     end
   end
 end

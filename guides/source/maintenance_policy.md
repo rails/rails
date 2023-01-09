@@ -9,7 +9,7 @@ follows, all versions, except for security releases, in `X.Y.Z`, format.
 
 --------------------------------------------------------------------------------
 
-Versioning 
+Versioning
 ------------
 
 Rails follows a shifted version of [semver](https://semver.org/):

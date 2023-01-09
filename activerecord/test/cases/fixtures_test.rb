@@ -1510,8 +1510,8 @@ class PrimaryKeyErrorTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:SQLite3Adapter) && !in_memory_db?
-  class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
+class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
+  if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     include ActiveRecord::TestFixtures
 
     fixtures :dogs

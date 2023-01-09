@@ -23,13 +23,16 @@ require "models/car"
 require "models/tyre"
 require "models/subscriber"
 require "models/non_primary_key"
+require "models/clothing_item"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
 class FinderTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects,
+    :posts, :comments, :accounts, :authors, :author_addresses, :customers,
+    :categories, :categorizations, :cars, :clothing_items
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -1033,6 +1036,33 @@ class FinderTest < ActiveRecord::TestCase
     NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 
+  def test_implicit_order_column_reorders_query_constraints
+    c = ClothingItem.connection
+    ClothingItem.implicit_order_column = "color"
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  ensure
+    ClothingItem.implicit_order_column = nil
+  end
+
+  def test_implicit_order_column_prepends_query_constraints
+    c = ClothingItem.connection
+    ClothingItem.implicit_order_column = "description"
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
+
+    assert_sql(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  ensure
+    ClothingItem.implicit_order_column = nil
+  end
+
   def test_take_and_first_and_last_with_integer_should_return_an_array
     assert_kind_of Array, Topic.take(5)
     assert_kind_of Array, Topic.first(5)
@@ -1728,6 +1758,26 @@ class FinderTest < ActiveRecord::TestCase
         Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
         Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
       end
+    end
+  end
+
+  test "#last for a model with composite query constraints" do
+    c = ClothingItem.connection
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.last
+    end
+  end
+
+  test "#first for a model with composite query constraints" do
+    c = ClothingItem.connection
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
     end
   end
 

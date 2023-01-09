@@ -10,11 +10,11 @@ else
 end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 11.1"
+gem "rake", ">= 13"
 
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
-gem "capybara", ">= 3.26"
+gem "capybara", ">= 3.38"
 gem "selenium-webdriver", ">= 4.0.0"
 
 gem "rack-cache", "~> 1.2"
@@ -36,6 +36,9 @@ gem "terser", ">= 1.1.4", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
+# Workaround until Ruby ships with cgi version 0.3.6 or higher.
+gem "cgi", ">= 0.3.6", require: false
+
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
@@ -45,7 +48,7 @@ group :rubocop do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.4.0"
+  gem "sdoc", ">= 2.5.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
@@ -105,12 +108,6 @@ gem "webmock"
 
 group :ujs do
   gem "webdrivers"
-end
-
-# Action View
-group :view do
-  gem "blade", require: false, platforms: [:ruby]
-  gem "sprockets-export", require: false
 end
 
 # Add your own local bundler stuff.

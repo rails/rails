@@ -362,9 +362,9 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts JOIN posts_with_tags ON posts_with_tags.id = posts.id
     #
-    # It is recommended to pass a query as `ActiveRecord::Relation`. If that is not possible
+    # It is recommended to pass a query as ActiveRecord::Relation. If that is not possible
     # and you have verified it is safe for the database, you can pass it as SQL literal
-    # using `Arel`.
+    # using +Arel+.
     #
     #   Post.with(popular_posts: Arel.sql("... complex sql to calculate posts popularity ..."))
     #
@@ -378,7 +378,7 @@ module ActiveRecord
     #     posts_with_tags: Post.where("tags_count > ?", 0)
     #   )
     #
-    # or chain multiple `.with` calls
+    # or chain multiple +.with+ calls
     #
     #   Post
     #     .with(posts_with_comments: Post.where("comments_count > ?", 0))
@@ -512,13 +512,16 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an order by a specific set of values. Depending on your
-    # adapter this will either use a CASE statement or a built-in function.
+    # Allows to specify an order by a specific set of values.
     #
     #   User.in_order_of(:id, [1, 5, 3])
     #   # SELECT "users".* FROM "users"
-    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
     #   #   WHERE "users"."id" IN (1, 5, 3)
+    #   #   ORDER BY CASE
+    #   #     WHEN "users"."id" = 1 THEN 1
+    #   #     WHEN "users"."id" = 5 THEN 2
+    #   #     WHEN "users"."id" = 3 THEN 3
+    #   #   END ASC
     #
     def in_order_of(column, values)
       klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
@@ -569,7 +572,8 @@ module ActiveRecord
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
-                                     :includes, :from, :readonly, :having, :optimizer_hints])
+                                     :includes, :eager_load, :preload, :from, :readonly,
+                                     :having, :optimizer_hints])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -1512,9 +1516,6 @@ module ActiveRecord
           end
         end
         result
-      end
-
-      class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
       end
 
       def build_join_buckets

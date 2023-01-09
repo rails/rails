@@ -44,17 +44,23 @@ module ActiveModel
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "failed comparison").
       # * <tt>:greater_than</tt> - Specifies the value must be greater than the
-      #   supplied value.
+      #   supplied value. The default error message for this option is _"must be
+      #   greater than %{count}"_.
       # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be
-      #   greater than or equal to the supplied value.
+      #   greater than or equal to the supplied value. The default error message
+      #   for this option is _"must be greater than or equal to %{count}"_.
       # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied
-      #   value.
+      #   value. The default error message for this option is _"must be equal to
+      #   %{count}"_.
       # * <tt>:less_than</tt> - Specifies the value must be less than the
-      #   supplied value.
+      #   supplied value. The default error message for this option is _"must be
+      #   less than %{count}"_.
       # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less
-      #   than or equal to the supplied value.
+      #   than or equal to the supplied value. The default error message for
+      #   this option is _"must be less than or equal to %{count}"_.
       # * <tt>:other_than</tt> - Specifies the value must not be equal to the
-      #   supplied value.
+      #   supplied value. The default error message for this option is _"must be
+      #   other than %{count}"_.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .

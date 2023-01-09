@@ -1,3 +1,67 @@
+*   `assert_difference` message now includes what changed.
+
+    This makes it easier to debug non-obvious failures.
+
+    Before:
+
+    ```
+    "User.count" didn't change by 32.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    After:
+
+    ```
+    "User.count" didn't change by 32, but by 0.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    *Alex Ghiculescu*
+
+*   Add ability to match exception messages to `assert_raises` assertion
+
+    Instead of this
+    ```ruby
+    error = assert_raises(ArgumentError) do
+      perform_service(param: 'exception')
+    end
+    assert_match(/incorrect param/i, error.message)
+    ```
+
+    you can now write this
+    ```ruby
+    assert_raises(ArgumentError, match: /incorrect param/i) do
+      perform_service(param: 'exception')
+    end
+    ```
+
+    *fatkodima*
+
+*   Add `Rails.env.local?` shorthand for `Rails.env.development? || Rails.env.test?`.
+
+    *DHH*
+
+*   `ActiveSupport::Testing::TimeHelpers` now accepts named `with_usec` argument
+    to `freeze_time`, `travel`, and `travel_to` methods. Passing true prevents
+    truncating the destination time with `change(usec: 0)`.
+
+    *KevSlashNull*, and *serprex*
+
+*   `ActiveSupport::CurrentAttributes.resets` now accepts a method name
+
+    The block API is still the recommended approach, but now both APIs are supported:
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      resets { Time.zone = nil }
+      resets :clear_time_zone
+    end
+    ```
+
+    *Alex Ghiculescu*
+
 *   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
 
     Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork

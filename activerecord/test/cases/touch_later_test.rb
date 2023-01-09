@@ -6,9 +6,11 @@ require "models/line_item"
 require "models/topic"
 require "models/node"
 require "models/tree"
+require "models/owner"
+require "models/pet"
 
 class TouchLaterTest < ActiveRecord::TestCase
-  fixtures :nodes, :trees
+  fixtures :nodes, :trees, :owners, :pets
 
   def test_touch_later_raise_if_non_persisted
     invoice = Invoice.new
@@ -119,5 +121,45 @@ class TouchLaterTest < ActiveRecord::TestCase
     assert_not_equal nodes(:parent_a).reload.updated_at, previous_parent_updated_at
     assert_not_equal nodes(:grandparent).reload.updated_at, previous_grandparent_updated_at
     assert_not_equal trees(:root).reload.updated_at, previous_tree_updated_at
+  end
+
+  def test_touching_through_nested_attributes_without_before_committed_on_all_records
+    original = ActiveRecord.before_committed_on_all_records
+    ActiveRecord.before_committed_on_all_records = false
+
+    time = Time.now.utc - 25.days
+
+    owner = owners(:blackbeard)
+
+    owner.touch(time: time)
+
+    assert_equal time.to_i, owner.reload.updated_at.to_i
+
+    owner.update pets_attributes: { "0" => { id: "1", name: "Alfred" } }
+
+    # The second copy of the record is not touched, so the owner's updated_at
+    # remains the same.
+    assert_equal time.to_i, owner.reload.updated_at.to_i
+  ensure
+    ActiveRecord.before_committed_on_all_records = original
+  end
+
+  def test_touching_through_nested_attributes_with_before_committed_on_all_records
+    original = ActiveRecord.before_committed_on_all_records
+    ActiveRecord.before_committed_on_all_records = true
+
+    time = Time.now.utc - 25.days
+
+    owner = owners(:blackbeard)
+
+    owner.touch(time: time)
+
+    assert_equal time.to_i, owner.reload.updated_at.to_i
+
+    owner.update pets_attributes: { "0" => { id: "1", name: "Alfred" } }
+
+    assert_not_equal time.to_i, owner.reload.updated_at.to_i
+  ensure
+    ActiveRecord.before_committed_on_all_records = original
   end
 end

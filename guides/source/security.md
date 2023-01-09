@@ -722,7 +722,7 @@ Here is the most straightforward test to check for XSS:
 This JavaScript code will simply display an alert box. The next examples do exactly the same, only in very uncommon places:
 
 ```html
-<img src=javascript:alert('Hello')>
+<img src="javascript:alert('Hello')">
 <table background="javascript:alert('Hello')">
 ```
 
@@ -750,7 +750,7 @@ You can mitigate these attacks (in the obvious way) by adding the **httpOnly** f
 
 ##### Defacement
 
-With web page defacement an attacker can do a lot of things, for example, present false information or lure the victim on the attackers website to steal the cookie, login credentials, or other sensitive data. The most popular way is to include code from external sources by iframes:
+With web page defacement an attacker can do a lot of things, for example, present false information or lure the victim on the attacker's website to steal the cookie, login credentials, or other sensitive data. The most popular way is to include code from external sources by iframes:
 
 ```html
 <iframe name="StatPage" src="http://58.xx.xxx.xxx" width=5 height=5 style="display:none"></iframe>
@@ -1073,11 +1073,13 @@ application returns these headers for every HTTP response.
 
 #### `X-Frame-Options`
 
-This header indicates if a browser can render the page in a `<frame>`,
+The [`X-Frame-Options`][] header indicates if a browser can render the page in a `<frame>`,
 `<iframe>`, `<embed>` or `<object>` tag. This header is set to `SAMEORIGIN` by
 default to allow framing on the same domain only. Set it to `DENY` to deny
 framing at all, or remove this header completely if you want to allow framing on
 all domains.
+
+[`X-Frame-Options`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 
 #### `X-XSS-Protection`
 
@@ -1087,8 +1089,10 @@ header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to
 
 #### `X-Content-Type-Options`
 
-This header is set to `nosniff` in Rails by default. It stops the browser from
-guessing the MIME type of a file.
+The [`X-Content-Type-Options`][] header is set to `nosniff` in Rails by default.
+It stops the browser from guessing the MIME type of a file.
+
+[`X-Content-Type-Options`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
 
 #### `X-Permitted-Cross-Domain-Policies`
 
@@ -1097,10 +1101,12 @@ PDF clients from embedding your page on other domains.
 
 #### `Referrer-Policy`
 
-This header is set to `strict-origin-when-cross-origin` in Rails by default.
+The [`Referrer-Policy`][] header is set to `strict-origin-when-cross-origin` in Rails by default.
 For cross-origin requests, this only sends the origin in the Referer header. This
 prevents leaks of private data that may be accessible from other parts of the
 full URL, such as the path and query string.
+
+[`Referrer-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
 
 #### Configuring the Default Headers
 
@@ -1131,10 +1137,8 @@ config.action_dispatch.default_headers.clear
 
 ### `Strict-Transport-Security` Header
 
-The HTTP
-[`Strict-Transport-Security`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)
-(HTST) response header makes sure the browser automatically upgrades to HTTPS
-for current and future connections.
+The HTTP [`Strict-Transport-Security`][] (HTST) response header makes sure the
+browser automatically upgrades to HTTPS for current and future connections.
 
 The header is added to the response when enabling the `force_ssl` option:
 
@@ -1142,12 +1146,13 @@ The header is added to the response when enabling the `force_ssl` option:
   config.force_ssl = true
 ```
 
+[`Strict-Transport-Security`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+
 ### `Content-Security-Policy` Header
 
 To help protect against XSS and injection attacks, it is recommended to define a
-[`Content-Security-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
-response header for your application. Rails provides a DSL that allows you to
-configure the header.
+[`Content-Security-Policy`][] response header for your application. Rails
+provides a DSL that allows you to configure the header.
 
 Define the security policy in the appropriate initializer:
 
@@ -1195,11 +1200,11 @@ class PostsController < ApplicationController
 end
 ```
 
+[`Content-Security-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+
 #### Reporting Violations
 
-Enable the
-[`report-uri`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
-directive to report violations to the specified URI:
+Enable the [`report-uri`][] directive to report violations to the specified URI:
 
 ```ruby
 Rails.application.config.content_security_policy do |policy|
@@ -1208,8 +1213,7 @@ end
 ```
 
 When migrating legacy content, you might want to report violations without
-enforcing the policy. Set the
-[`Content-Security-Policy-Report-Only`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+enforcing the policy. Set the [`Content-Security-Policy-Report-Only`][]
 response header to only report violations:
 
 ```ruby
@@ -1223,6 +1227,9 @@ class PostsController < ApplicationController
   content_security_policy_report_only only: :index
 end
 ```
+
+[`Content-Security-Policy-Report-Only`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
+[`report-uri`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri
 
 #### Adding a Nonce
 
@@ -1243,7 +1250,7 @@ Rails.application.config.content_security_policy_nonce_generator = -> request { 
 There are a few tradeoffs to consider when configuring the nonce generator.
 Using `SecureRandom.base64(16)` is a good default value, because it will
 generate a new random nonce for each request. However, this method is
-incompatible with [Conditional GET caching](caching_with_rails.html#conditional-get-caching)
+incompatible with [conditional GET caching](caching_with_rails.html#conditional-get-support)
 because new nonces will result in new ETag values for every request. An
 alternative to per-request random nonces would be to use the session id:
 
@@ -1299,8 +1306,7 @@ yet supported by all browsers. To avoid having to rename this
 middleware in the future, we use the new name for the middleware but
 keep the old header name and implementation for now.
 
-To allow or block the use of browser features, you can define a
-[`Feature-Policy`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
+To allow or block the use of browser features, you can define a [`Feature-Policy`][]
 response header for your application. Rails provides a DSL that allows you to
 configure the header.
 
@@ -1324,6 +1330,41 @@ The globally configured policy can be overridden on a per-resource basis:
 class PagesController < ApplicationController
   permissions_policy do |policy|
     policy.geolocation "https://example.com"
+  end
+end
+```
+
+[`Feature-Policy`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
+
+### Cross-Origin Resource Sharing
+
+Browsers restrict cross-origin HTTP requests initiated from scripts. If you
+want to run Rails as an API, and run a frontend app on a separate domain, you
+need to enable [Cross-Origin Resource
+Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) (CORS).
+
+You can use the [Rack CORS](https://github.com/cyu/rack-cors) middleware for
+handling CORS. If you've generated your application with the `--api` option,
+Rack CORS has probably already been configured and you can skip the following
+steps.
+
+To get started, add the rack-cors gem to your Gemfile:
+
+```ruby
+gem 'rack-cors'
+```
+
+Next, add an initializer to configure the middleware:
+
+```ruby
+# config/initializers/cors.rb
+Rails.application.config.middleware.insert_before 0, "Rack::Cors" do
+  allow do
+    origins 'example.com'
+
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
   end
 end
 ```

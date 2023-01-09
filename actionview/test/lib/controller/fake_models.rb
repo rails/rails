@@ -164,6 +164,17 @@ class HashBackedAuthor < Hash
   end
 end
 
+class HashWithIndifferentAccessBackedAuthor < HashWithIndifferentAccess
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+
+  def persisted?; false; end
+
+  def name
+    "hash backed author"
+  end
+end
+
 module Blog
   def self.use_relative_model_naming?
     true

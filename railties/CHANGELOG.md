@@ -1,3 +1,111 @@
+*   Only use HostAuthorization middleware if `config.hosts` is not empty
+
+    *Hartley McGuire*
+
+*   Raise an exception when a `before_action`'s "only" or "except" filter
+    options reference an action that doesn't exist. This will be enabled by
+    default but can be overridden via config.
+
+    ```
+    # config/environments/production.rb
+    config.action_controller.raise_on_missing_callback_actions = false
+    ```
+
+    *Jess Bees*
+
+*   Use physical processor count as the default Puma worker count in production.
+    This can be overridden by setting `ENV["WEB_CONCURRENCY"]` or editing the
+    generated "config/puma.rb" directly.
+
+    *DHH*
+
+*   Bump `required_rubygems_version` from 1.8.11 to 3.3.13 or higher in order to
+    support pre-release versions of Ruby when generating a new Rails app
+    Gemfile.
+
+    *Yasuo Honda*
+
+*   Add Docker files by default to new apps: Dockerfile, .dockerignore, bin/docker-entrypoint.
+    These files can be skipped with `--skip-docker`. They're intended as a starting point for
+    a production deploy of the application. Not intended for development (see Docked Rails for that).
+
+    Example:
+
+    ```
+    docker build -t app .
+    docker volume create app-storage
+    docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
+    ```
+
+    You can also start a console or a runner from this image:
+
+    ```
+    docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
+    ```
+
+    To create a multi-platform image on Apple Silicon to deploy on AMD or Intel and push to Docker Hub for user/app:
+
+    ```
+    docker login -u <user>
+    docker buildx create --use
+    docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
+    ```
+
+    *DHH*
+
+*   Add ENV["SECRET_KEY_BASE_DUMMY"] for starting production environment with a generated secret base key,
+    which can be used to run tasks like `assets:precompile` without making the RAILS_MASTER_KEY available
+    to the build process.
+
+    Dockerfile layer example:
+
+    ```
+    RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+    ```
+
+    *DHH*
+
+*   Show descriptions for all commands in Rails help
+
+    When calling `rails help` most commands missed their description. We now
+    show the same descriptions as shown in `rails -T`.
+
+    *Petrik de Heus*
+
+*   Always generate the storage/ directory with rails new to ensure there's a stable place to
+    put permanent files, and a single mount point for containers to map. Then default sqlite3 databases
+    to live there instead of db/, which is only meant for configuration, not data.
+
+    *DHH*
+
+*   Rails console now disables `IRB`'s autocompletion feature in production by default.
+
+    Setting `IRB_USE_AUTOCOMPLETE=true` can override this default.
+
+    *Stan Lo*
+
+*   Add `config.precompile_filter_parameters`, which enables precompilation of
+    `config.filter_parameters` using `ActiveSupport::ParameterFilter.precompile_filters`.
+    Precompilation can improve filtering performance, depending on the quantity
+    and types of filters.
+
+    `config.precompile_filter_parameters` defaults to `true` for
+    `config.load_defaults 7.1` and above.
+
+    *Jonathan Hefner*
+
+*   Add `after_routes_loaded` hook to `Rails::Railtie::Configuration` for
+    engines to add a hook to be called after application routes have been
+    loaded.
+
+    ```ruby
+    MyEngine.config.after_routes_loaded do
+      # code that must happen after routes have been loaded
+    end
+    ```
+
+    *Chris Salzberg*
+
 *   Send 303 See Other status code back for the destroy action on newly generated
     scaffold controllers.
 

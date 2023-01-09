@@ -3,8 +3,8 @@
 require "cases/helper"
 require "models/post"
 
-if supports_optimizer_hints?
-  class Mysql2OptimizerHintsTest < ActiveRecord::Mysql2TestCase
+class Mysql2OptimizerHintsTest < ActiveRecord::Mysql2TestCase
+  if supports_optimizer_hints?
     fixtures :posts
 
     def test_optimizer_hints

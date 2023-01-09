@@ -731,9 +731,15 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+              sync_timezone_changes(conn)
               conn.query(sql)
             end
           end
+        end
+
+        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
+        # made since we established the connection
+        def sync_timezone_changes(raw_connection)
         end
 
         def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)

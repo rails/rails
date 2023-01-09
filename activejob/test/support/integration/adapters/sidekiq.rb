@@ -54,7 +54,7 @@ module SidekiqJobsManager
 
       require "sidekiq/cli"
       require "sidekiq/launcher"
-      if Sidekiq::MAJOR >= 7
+      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("7")
         config = Sidekiq.default_configuration
         config.queues = ["integration_tests"]
         config.concurrency = 1

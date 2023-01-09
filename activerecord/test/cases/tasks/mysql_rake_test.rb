@@ -3,9 +3,9 @@
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 
-if current_adapter?(:Mysql2Adapter)
-  module ActiveRecord
-    class MysqlDBCreateTest < ActiveRecord::TestCase
+module ActiveRecord
+  class MysqlDBCreateTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @connection = Class.new do
           def create_database(*); end
@@ -95,8 +95,10 @@ if current_adapter?(:Mysql2Adapter)
           end
         end
     end
+  end
 
-    class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
+  class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @error         = Mysql2::Error.new("Invalid permissions")
         @configuration = {
@@ -121,8 +123,10 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
     end
+  end
 
-    class MySQLDBDropTest < ActiveRecord::TestCase
+  class MySQLDBDropTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def drop_database(name); end }.new
         @configuration = {
@@ -174,8 +178,10 @@ if current_adapter?(:Mysql2Adapter)
           end
         end
     end
+  end
 
-    class MySQLPurgeTest < ActiveRecord::TestCase
+  class MySQLPurgeTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def recreate_database(*); end }.new
         @configuration = {
@@ -226,8 +232,10 @@ if current_adapter?(:Mysql2Adapter)
           end
         end
     end
+  end
 
-    class MysqlDBCharsetTest < ActiveRecord::TestCase
+  class MysqlDBCharsetTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def charset; end }.new
         @configuration = {
@@ -244,8 +252,10 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
     end
+  end
 
-    class MysqlDBCollationTest < ActiveRecord::TestCase
+  class MysqlDBCollationTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @connection    = Class.new { def collation; end }.new
         @configuration = {
@@ -262,8 +272,10 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
     end
+  end
 
-    class MySQLStructureDumpTest < ActiveRecord::TestCase
+  class MySQLStructureDumpTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @configuration = {
           "adapter"  => "mysql2",
@@ -384,8 +396,10 @@ if current_adapter?(:Mysql2Adapter)
           ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
         end
     end
+  end
 
-    class MySQLStructureLoadTest < ActiveRecord::TestCase
+  class MySQLStructureLoadTest < ActiveRecord::TestCase
+    if current_adapter?(:Mysql2Adapter)
       def setup
         @configuration = {
           "adapter"  => "mysql2",
