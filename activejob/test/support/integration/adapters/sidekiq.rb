@@ -63,6 +63,13 @@ module SidekiqJobsManager
           timeout: 1,
           poll_interval_average: 1
         )
+      elsif Sidekiq.respond_to?(:[]=)
+        # Sidekiq 6.5
+        config = Sidekiq
+        config[:queues] = ["integration_tests"]
+        config[:environment] = "test"
+        config[:concurrency] = 1
+        config[:timeout] = 1
       else
         config = {
           queues: ["integration_tests"],
@@ -116,7 +123,7 @@ module SidekiqJobsManager
   end
 
   def set_logger(logger)
-    if Sidekiq::MAJOR >= 7
+    if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("7")
       Sidekiq.default_configuration.logger = logger
     else
       Sidekiq.logger = logger
