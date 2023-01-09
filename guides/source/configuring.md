@@ -2207,6 +2207,10 @@ Is set to `false` to disable the ability to silence logging in a block. The defa
 
 Specifies the logger to use within cache store operations.
 
+#### `ActiveSupport::Deprecation.silenced`
+
+Is set to `true` to stop output all deprecation warnings. The default is `false`.
+
 #### `ActiveSupport.to_time_preserves_timezone`
 
 Specifies whether `to_time` methods preserve the UTC offset of their receivers. If `false`, `to_time` methods will convert to the local system UTC offset instead.
