@@ -233,7 +233,8 @@ module ActiveSupport
     #   hash[:b] = 'y'
     #   hash.values_at('a', 'b') # => ["x", "y"]
     def values_at(*keys)
-      super(*keys.map { |key| convert_key(key) })
+      keys.map! { |key| convert_key(key) }
+      super
     end
 
     # Returns an array of the values at the specified indices, but also
