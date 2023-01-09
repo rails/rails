@@ -11,8 +11,12 @@ gem "minitest", "~> 5.15.0"
 # Workaround until Ruby ships with cgi version 0.3.6 or higher.
 gem "cgi", ">= 0.3.6", require: false
 
-# We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 13"
+if RUBY_VERSION > "2.6"
+  # We need a newish Rake since Active Job sets its test tasks' descriptions.
+  gem "rake", ">= 13"
+else
+  gem "rake", ">= 11.1"
+end
 
 gem "capybara", ">= 3.26"
 gem "selenium-webdriver", "< 4.2"
@@ -175,7 +179,24 @@ end
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
 
-if RUBY_VERSION <= "3.0"
+if RUBY_VERSION < "2.6"
+  # mail 2.8.0 defines net-smtp, net-imap, and net-pop as dependencies. All of
+  # these gems depend on the net-protocol gem. There's an issue in Ruby <= 2.7
+  # where the built in net-http uses require_relative to load built in
+  # net-protocol.
+  #
+  # To prevent warnings from net-protocol being loaded from two different
+  # places, we add net-http as an extra gem dependency so that the built in
+  # net-http is never required (so that built in net-protocol is never
+  # required).
+  #
+  # However, this workaround is impossible on Ruby 2.5 as net-http 0.1.0 has a
+  # minimum ruby version of 2.6.0. So to prevent redefinition warnings, we can
+  # lock mail so that the gem version of net-protocol is never required.
+  gem "mail", "< 2.8.0"
+
+  gem "strscan"
+elsif RUBY_VERSION <= "3.0"
   gem "net-http", require: false
 end
 
