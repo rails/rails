@@ -703,6 +703,25 @@ module ApplicationTests
         end
       end
 
+      test "db:prepare loads schema, runs pending migrations, and updates schema" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          output = rails("db:prepare")
+
+          assert_match(/CreateBooks: migrated/, output)
+          assert_match(/create_table "books"/, File.read("db/schema.rb"))
+
+          tables = rails("runner", "p ActiveRecord::Base.connection.tables.sort").strip
+          assert_equal('["ar_internal_metadata", "books", "schema_migrations"]', tables)
+
+          test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+          development_environment = lambda { rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+
+          assert_equal "development", development_environment.call
+          assert_equal "test", test_environment.call
+        end
+      end
+
       test "db:prepare does not touch schema when dumping is disabled" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
