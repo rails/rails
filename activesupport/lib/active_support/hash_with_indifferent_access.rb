@@ -305,7 +305,7 @@ module ActiveSupport
     #   hash.except(:a, "b") # => {c: 10}.with_indifferent_access
     #   hash                 # => { a: "x", b: "y", c: 10 }.with_indifferent_access
     def except(*keys)
-      slice(*self.keys - keys.map { |key| convert_key(key) })
+      dup.except!(*keys)
     end
     alias_method :without, :except
 
