@@ -130,6 +130,19 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "rails/health in production" do
+      app("production")
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "up" => "rails/health#show"
+        end
+      RUBY
+
+      get "/up"
+      assert_equal 200, last_response.status
+    end
+
     test "simple controller" do
       simple_controller
 
