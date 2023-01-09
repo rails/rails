@@ -282,12 +282,12 @@ module ActiveRecord
       end
 
       def migrate_status(exit_on_migrations_needed = true)
-        unless ActiveRecord::Base.connection.schema_migration.table_exists?
-          Kernel.abort "Schema migrations table does not exist yet." # Will abort with rc of 1
+        unless migration_connection.schema_migration.table_exists?
+          Kernel.abort "Schema migrations table does not exist yet."
         end
 
         migrations_needed = false
-        migrations = ActiveRecord::Base.connection.migration_context.migrations_status.map do |status, version, name|
+        migrations = migration_connection.migration_context.migrations_status.map do |status, version, name|
           migrations_needed = true if status == "down"
 
           "#{status.center(8)}  #{version.ljust(14)}  #{name}"
@@ -296,7 +296,7 @@ module ActiveRecord
         header = "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
         divider_length = [header.length, migrations.max_by(&:length).length].max
 
-        puts "\ndatabase: #{ActiveRecord::Base.connection_db_config.database}\n\n"
+        puts "\ndatabase: #{migration_connection.pool.db_config.database}\n\n"
         puts header
         puts "-" * divider_length
         puts migrations.join("\n")
