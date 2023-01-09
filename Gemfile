@@ -19,7 +19,7 @@ else
 end
 
 gem "capybara", ">= 3.26"
-gem "selenium-webdriver", "< 4.2"
+gem "selenium-webdriver", ">= 4.0.0.alpha7", "< 4.2"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
