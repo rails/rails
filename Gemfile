@@ -6,11 +6,15 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-# We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 11.1"
+if RUBY_VERSION > "2.6"
+  # We need a newish Rake since Active Job sets its test tasks' descriptions.
+  gem "rake", ">= 13"
+else
+  gem "rake", ">= 11.1"
+end
 
 gem "capybara", ">= 2.15"
-gem "selenium-webdriver", "< 4.2"
+gem "selenium-webdriver", ">= 4.0.0.alpha7", "< 4.2"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
