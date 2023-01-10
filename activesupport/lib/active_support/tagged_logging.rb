@@ -30,7 +30,7 @@ module ActiveSupport
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
         if t = tags_text
-          super(severity, timestamp, progname, t.concat(msg))
+          super(severity, timestamp, progname, t.concat(msg.to_s))
         else
           super(severity, timestamp, progname, msg)
         end
