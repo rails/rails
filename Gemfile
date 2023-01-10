@@ -110,12 +110,6 @@ group :ujs do
   gem "webdrivers"
 end
 
-# Action View
-group :view do
-  gem "blade", require: false, platforms: [:ruby]
-  gem "sprockets-export", require: false
-end
-
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile

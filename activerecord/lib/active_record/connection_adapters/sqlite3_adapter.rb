@@ -527,7 +527,8 @@ module ActiveRecord
                 default = type.deserialize(column.default)
               end
 
-              @definition.column(column_name, column.type,
+              column_type = column.bigint? ? :bigint : column.type
+              @definition.column(column_name, column_type,
                 limit: column.limit, default: default,
                 precision: column.precision, scale: column.scale,
                 null: column.null, collation: column.collation,

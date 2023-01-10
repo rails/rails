@@ -310,7 +310,7 @@ The contents of the block, and therefore the string interpolation, are only
 evaluated if debug is enabled. This performance savings are only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
-INFO: This section was written by [Jon Cairns at a StackOverflow answer](https://stackoverflow.com/questions/16546730/logging-in-rails-is-there-any-performance-hit/16546935#16546935)
+INFO: This section was written by [Jon Cairns at a Stack Overflow answer](https://stackoverflow.com/questions/16546730/logging-in-rails-is-there-any-performance-hit/16546935#16546935)
 and it is licensed under [cc by-sa 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 Debugging with the `debug` Gem

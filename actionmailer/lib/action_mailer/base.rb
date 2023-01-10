@@ -722,7 +722,7 @@ module ActionMailer
     #  mail.attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
     #
     # If you do this, then Mail will take the file name and work out the mime type.
-    # It will also set the Content-Type, Content-Disposition, Content-Transfer-Encoding
+    # It will also set the +Content-Type+, +Content-Disposition+, and +Content-Transfer-Encoding+,
     # and encode the contents of the attachment in Base64.
     #
     # You can also specify overrides if you want by passing a hash instead of a string:
@@ -783,7 +783,7 @@ module ActionMailer
     #   or an array of addresses.
     # * +:bcc+ - Who you would like to Blind-Carbon-Copy on this email, can be a string of
     #   addresses, or an array of addresses.
-    # * +:reply_to+ - Who to set the Reply-To header of the email to.
+    # * +:reply_to+ - Who to set the +Reply-To+ header of the email to.
     # * +:date+ - The date to say the email was sent on.
     #
     # You can set default values for any of the above headers (except +:date+)

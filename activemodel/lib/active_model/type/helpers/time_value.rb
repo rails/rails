@@ -69,20 +69,36 @@ module ActiveModel
             \z
           /x
 
-          def fast_string_to_time(string)
-            return unless ISO_DATETIME =~ string
+          if RUBY_VERSION >= "3.2"
+            def fast_string_to_time(string)
+              return unless ISO_DATETIME.match?(string)
 
-            usec = $7.to_i
-            usec_len = $7&.length
-            if usec_len&.< 6
-              usec *= 10**(6 - usec_len)
+              if is_utc?
+                # XXX: Wrapping the Time object with Time.at because Time.new with `in:` in Ruby 3.2.0 used to return an invalid Time object
+                # see: https://bugs.ruby-lang.org/issues/19292
+                ::Time.at(::Time.new(string, in: "UTC"))
+              else
+                ::Time.new(string)
+              end
+            rescue ArgumentError
+              nil
             end
+          else
+            def fast_string_to_time(string)
+              return unless ISO_DATETIME =~ string
 
-            if $8
-              offset = $8 == "Z" ? 0 : $8.to_i * 3600 + $9.to_i * 60
+              usec = $7.to_i
+              usec_len = $7&.length
+              if usec_len&.< 6
+                usec *= 10**(6 - usec_len)
+              end
+
+              if $8
+                offset = $8 == "Z" ? 0 : $8.to_i * 3600 + $9.to_i * 60
+              end
+
+              new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec, offset)
             end
-
-            new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec, offset)
           end
       end
     end

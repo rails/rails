@@ -17,7 +17,7 @@ module ActionController
     #   return head(:bad_request) unless valid_request?
     #   render
     #
-    # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list of valid +status+ symbols.
+    # See +Rack::Utils::SYMBOL_TO_STATUS_CODE+ for a full list of valid +status+ symbols.
     def head(status, options = nil)
       if status.is_a?(Hash)
         raise ArgumentError, "#{status.inspect} is not a valid value for `status`."

@@ -848,7 +848,7 @@ To set up your CDN you have to have your application running in production on
 the internet at a publicly available URL, for example `example.com`. Next
 you'll need to sign up for a CDN service from a cloud hosting provider. When you
 do this you need to configure the "origin" of the CDN to point back at your
-website `example.com`, check your provider for documentation on configuring the
+website `example.com`. Check your provider for documentation on configuring the
 origin server.
 
 The CDN you provisioned should give you a custom subdomain for your application
@@ -912,16 +912,16 @@ option your asset helper, which overwrites value set in
 
 A CDN works by caching content. If the CDN has stale or bad content, then it is
 hurting rather than helping your application. The purpose of this section is to
-describe general caching behavior of most CDNs, your specific provider may
+describe general caching behavior of most CDNs. Your specific provider may
 behave slightly differently.
 
 ##### CDN Request Caching
 
-While a CDN is described as being good for caching assets, in reality caches the
+While a CDN is described as being good for caching assets, it actually caches the
 entire request. This includes the body of the asset as well as any headers. The
-most important one being `Cache-Control` which tells the CDN (and web browsers)
+most important one being `Cache-Control`, which tells the CDN (and web browsers)
 how to cache contents. This means that if someone requests an asset that does
-not exist `/assets/i-dont-exist.png` and your Rails application returns a 404,
+not exist, such as `/assets/i-dont-exist.png`, and your Rails application returns a 404,
 then your CDN will likely cache the 404 page if a valid `Cache-Control` header
 is present.
 
@@ -946,7 +946,7 @@ Content-Length: 126560
 Via: 1.1 vegur
 ```
 
-Versus the CDN copy.
+Versus the CDN copy:
 
 ```bash
 $ curl -I http://mycdnsubdomain.fictional-cdn.com/application-
@@ -975,16 +975,14 @@ such as `X-Cache` or for any additional headers they may add.
 
 ##### CDNs and the Cache-Control Header
 
-The [cache control
-header](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
-specification that describes how a request can be cached. When no CDN is used, a
+The [`Cache-Control`][] header describes how a request can be cached. When no CDN is used, a
 browser will use this information to cache contents. This is very helpful for
 assets that are not modified so that a browser does not need to re-download a
 website's CSS or JavaScript on every request. Generally we want our Rails server
-to tell our CDN (and browser) that the asset is "public", that means any cache
+to tell our CDN (and browser) that the asset is "public". That means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
-value is set to seconds with a maximum possible value of `31536000` which is one
+value is set to seconds with a maximum possible value of `31536000`, which is one
 year. You can do this in your Rails application by setting
 
 ```ruby
@@ -995,9 +993,11 @@ config.public_file_server.headers = {
 
 Now when your application serves an asset in production, the CDN will store the
 asset for up to a year. Since most CDNs also cache headers of the request, this
-`Cache-Control` will be passed along to all future browsers seeking this asset,
-the browser then knows that it can store this asset for a very long time before
+`Cache-Control` will be passed along to all future browsers seeking this asset.
+The browser then knows that it can store this asset for a very long time before
 needing to re-request it.
+
+[`Cache-Control`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
 
 ##### CDNs and URL-based Cache Invalidation
 

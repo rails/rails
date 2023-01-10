@@ -84,6 +84,10 @@ end
 
 ActiveRecord.raise_on_assign_to_attr_readonly = previous_value
 
+class ReadonlyAuthorPost < Post
+  attr_readonly :author_id
+end
+
 class Weird < ActiveRecord::Base; end
 
 class LintTest < ActiveRecord::TestCase
@@ -844,6 +848,33 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed via []=", post.body
   end
 
+  def test_readonly_attributes_on_belongs_to_association
+    assert_equal [ "author_id" ], ReadonlyAuthorPost.readonly_attributes
+
+    author1 = Author.create!(name: "Alex")
+    author2 = Author.create!(name: "Not Alex")
+
+    post_with_reload = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    post_with_reload.reload
+    post_with_reload.update(title: "Hello", body: "world")
+    assert_equal author1, post_with_reload.author
+
+    post_with_reload2 = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    post_with_reload2.reload
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post_with_reload2.update(author: author2)
+    end
+
+    post_without_reload = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    post_without_reload.update(title: "Hello", body: "world")
+    assert_equal author1, post_without_reload.author
+
+    post_without_reload2 = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post_without_reload2.update(author: author2)
+    end
+  end
+
   def test_unicode_column_name
     Weird.reset_column_information
     weird = Weird.create(なまえ: "たこ焼き仮面")
@@ -1520,7 +1551,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attribute_names
-    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "metadata"]
+    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "status", "metadata"]
     assert_equal expected, Company.attribute_names
   end
 

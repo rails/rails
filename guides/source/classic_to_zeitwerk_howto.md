@@ -155,7 +155,7 @@ This is the most common kind of discrepancy you may find, it has to do with acro
 
 The classic autoloader is able to autoload `VAT` because its input is the name of the missing constant, `VAT`, invokes `underscore` on it, which yields `vat`, and looks for a file called `vat.rb`. It works.
 
-The input of the new autoloader is the file system. Give the file `vat.rb`, Zeitwerk invokes `camelize` on `vat`, which yields `Vat`, and expects the file to define the constant `Vat`. That is what the error message says.
+The input of the new autoloader is the file system. Given the file `vat.rb`, Zeitwerk invokes `camelize` on `vat`, which yields `Vat`, and expects the file to define the constant `Vat`. That is what the error message says.
 
 Fixing this is easy, you only need to tell the inflector about this acronym:
 

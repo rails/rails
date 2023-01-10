@@ -207,8 +207,8 @@ module ActiveRecord
         ensure
           [:primary, :secondary].each do |db|
             ActiveRecord::Base.establish_connection(db)
-            ActiveRecord::Base.connection.schema_migration.drop_table
-            ActiveRecord::Base.connection.internal_metadata.drop_table
+            ActiveRecord::Base.connection.schema_migration.delete_all_versions
+            ActiveRecord::Base.connection.internal_metadata.delete_all_entries
           end
           ActiveRecord::Base.configurations = old_configurations
           ActiveRecord::Base.establish_connection(:arunit)

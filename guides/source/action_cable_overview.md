@@ -250,10 +250,9 @@ class ChatChannel < ApplicationCable::Channel
   rescue_from 'MyError', with: :deliver_error_message
 
   private
-
-  def deliver_error_message(e)
-    broadcast_to(...)
-  end
+    def deliver_error_message(e)
+      broadcast_to(...)
+    end
 end
 ```
 
@@ -278,14 +277,13 @@ class ChatChannel < ApplicationCable::Channel
   after_subscribe :track_subscription
 
   private
+    def send_welcome_message
+      broadcast_to(...)
+    end
 
-  def send_welcome_message
-    broadcast_to(...)
-  end
-
-  def track_subscription
-    # ...
-  end
+    def track_subscription
+      # ...
+    end
 end
 ```
 

@@ -878,8 +878,8 @@ will return instead a maximum of 5 customers beginning with the 31st. The SQL lo
 SELECT * FROM customers LIMIT 5 OFFSET 30
 ```
 
-Group
------
+Grouping
+--------
 
 To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the [`group`][] method.
 
@@ -918,8 +918,7 @@ GROUP BY status
 
 [`count`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-count
 
-Having
-------
+### HAVING Conditions
 
 SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the [`having`][] method to the find.
 
@@ -1409,6 +1408,43 @@ LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id GROUP BY customers
 Which means: "return all customers with their count of reviews, whether or not they
 have any reviews at all"
 
+### `where.associated` and `where.missing`
+
+The `associated` and `missing` query methods let you select a set of records
+based on the presence or absence of an association.
+
+To use `where.associated`:
+
+```ruby
+Customer.where.associated(:reviews)
+```
+
+Produces:
+
+```sql
+SELECT customers.* FROM customers
+INNER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.id IS NOT NULL
+```
+
+Which means "return all customers that have made at least one review".
+
+To use `where.missing`:
+
+```ruby
+Customer.where.missing(:reviews)
+```
+
+Produces:
+
+```sql
+SELECT customers.* FROM customers
+LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
+WHERE reviews.id IS NULL
+```
+
+Which means "return all customers that have not made any reviews".
+
 
 Eager Loading Associations
 --------------------------
@@ -1439,7 +1475,7 @@ The methods are:
 * [`preload`][]
 * [`eager_load`][]
 
-### includes
+### `includes`
 
 With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
@@ -1515,7 +1551,7 @@ returned.
 NOTE: If an association is eager loaded as part of a join, any fields from a custom select clause will not be present on the loaded models.
 This is because it is ambiguous whether they should appear on the parent record, or the child.
 
-### preload
+### `preload`
 
 With `preload`, Active Record loads each specified association using one query per association.
 
@@ -1540,7 +1576,7 @@ SELECT authors.* FROM authors
 
 NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
 
-### eager_load
+### `eager_load`
 
 With `eager_load`, Active Record loads all specified associations using a `LEFT OUTER JOIN`.
 
@@ -2279,14 +2315,14 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
 
 assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
 
-### Count
+### `count`
 
 If you want to see how many records are in your model's table you could call `Customer.count` and that will return the number.
 If you want to be more specific and find all the customers with a title present in the database you can use `Customer.count(:title)`.
 
 For options, please see the parent section, [Calculations](#calculations).
 
-### Average
+### `average`
 
 If you want to see the average of a certain number in one of your tables you can call the [`average`][] method on the class that relates to the table. This method call will look something like this:
 
@@ -2300,7 +2336,7 @@ For options, please see the parent section, [Calculations](#calculations).
 
 [`average`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-average
 
-### Minimum
+### `minimum`
 
 If you want to find the minimum value of a field in your table you can call the [`minimum`][] method on the class that relates to the table. This method call will look something like this:
 
@@ -2312,7 +2348,7 @@ For options, please see the parent section, [Calculations](#calculations).
 
 [`minimum`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-minimum
 
-### Maximum
+### `maximum`
 
 If you want to find the maximum value of a field in your table you can call the [`maximum`][] method on the class that relates to the table. This method call will look something like this:
 
@@ -2324,7 +2360,7 @@ For options, please see the parent section, [Calculations](#calculations).
 
 [`maximum`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-maximum
 
-### Sum
+### `sum`
 
 If you want to find the sum of a field for all records in your table you can call the [`sum`][] method on the class that relates to the table. This method call will look something like this:
 

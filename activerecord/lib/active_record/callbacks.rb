@@ -224,14 +224,13 @@ module ActiveRecord
   #     after_save :do_something_else
   #
   #     private
+  #       def log_children
+  #         # Child processing
+  #       end
   #
-  #     def log_children
-  #       # Child processing
-  #     end
-  #
-  #     def do_something_else
-  #       # Something else
-  #     end
+  #       def do_something_else
+  #         # Something else
+  #       end
   #   end
   #
   # In this case the +log_children+ is executed before +do_something_else+.
@@ -249,14 +248,13 @@ module ActiveRecord
   #     after_commit :do_something_else
   #
   #     private
+  #       def log_children
+  #         # Child processing
+  #       end
   #
-  #     def log_children
-  #       # Child processing
-  #     end
-  #
-  #     def do_something_else
-  #       # Something else
-  #     end
+  #       def do_something_else
+  #         # Something else
+  #       end
   #   end
   #
   # In this case the +do_something_else+ is executed before +log_children+.

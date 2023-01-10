@@ -501,7 +501,7 @@ module ActiveRecord
 
             if association.updated?
               association_id = record.public_send(reflection.options[:primary_key] || :id)
-              self[reflection.foreign_key] = association_id
+              self[reflection.foreign_key] = association_id unless self[reflection.foreign_key] == association_id
               association.loaded!
             end
 

@@ -1,6 +1,13 @@
 *   `ActiveRecord::Scoping`’s `.scope` class method accepts an `:extend` option, to add behaviour to the scoped `Relation` object via one or more modules.
 
     *bodacious*
+    
+*   PostgreSQL adapter method `enable_extension` now allows parameter to be `[schema_name.]<extension_name>`
+    if the extension must be installed on another schema.
+
+    Example: `enable_extension('heroku_ext.hstore')`
+
+    *Leonardo Luarte*
 
 *   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
     argument, more closely matching their `Enumerable` equivalents.

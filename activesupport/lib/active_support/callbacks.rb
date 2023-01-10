@@ -721,7 +721,7 @@ module ActiveSupport
         # This is used internally to append, prepend and skip callbacks to the
         # CallbackChain.
         def __update_callbacks(name) # :nodoc:
-          ([self] + self.descendants).reverse_each do |target|
+          self.descendants.prepend(self).reverse_each do |target|
             chain = target.get_callbacks name
             yield target, chain.dup
           end

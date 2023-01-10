@@ -32,8 +32,8 @@ module ActionDispatch
           end
         end
 
-        # Check response freshness (Last-Modified and ETag) against request
-        # If-Modified-Since and If-None-Match conditions. If both headers are
+        # Check response freshness (+Last-Modified+ and ETag) against request
+        # +If-Modified-Since+ and +If-None-Match+ conditions. If both headers are
         # supplied, both must match, or the request is not considered fresh.
         def fresh?(response)
           last_modified = if_modified_since
@@ -81,8 +81,8 @@ module ActionDispatch
 
         # This method sets a weak ETag validator on the response so browsers
         # and proxies may cache the response, keyed on the ETag. On subsequent
-        # requests, the If-None-Match header is set to the cached ETag. If it
-        # matches the current ETag, we can return a 304 Not Modified response
+        # requests, the +If-None-Match+ header is set to the cached ETag. If it
+        # matches the current ETag, we can return a <tt>304 Not Modified</tt> response
         # with no body, letting the browser or proxy know that their cache is
         # current. Big savings in request time and network bandwidth.
         #
@@ -92,7 +92,7 @@ module ActionDispatch
         # is viewing.
         #
         # Strong ETags are considered byte-for-byte identical. They allow a
-        # browser or proxy cache to support Range requests, useful for paging
+        # browser or proxy cache to support +Range+ requests, useful for paging
         # through a PDF file or scrubbing through a video. Some CDNs only
         # support strong ETags and will ignore weak ETags entirely.
         #
@@ -112,12 +112,12 @@ module ActionDispatch
 
         def etag?; etag; end
 
-        # True if an ETag is set and it's a weak validator (preceded with W/)
+        # True if an ETag is set, and it's a weak validator (preceded with <tt>W/</tt>).
         def weak_etag?
           etag? && etag.start_with?('W/"')
         end
 
-        # True if an ETag is set and it isn't a weak validator (not preceded with W/)
+        # True if an ETag is set, and it isn't a weak validator (not preceded with <tt>W/</tt>).
         def strong_etag?
           etag? && !weak_etag?
         end

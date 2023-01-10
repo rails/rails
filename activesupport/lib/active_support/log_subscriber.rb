@@ -181,7 +181,7 @@ module ActiveSupport
       if options.is_a?(TrueClass) || options.is_a?(FalseClass)
         ActiveSupport.deprecator.warn(<<~MSG.squish)
           Bolding log text with a positional boolean is deprecated and will be removed
-          in Rails 7.2. Use an option hash instead (eg. `color(:red, "my text", bold: true)`).
+          in Rails 7.2. Use an option hash instead (eg. `color("my text", :red, bold: true)`).
         MSG
         options = { bold: options }
       end

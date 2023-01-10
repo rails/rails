@@ -8,10 +8,10 @@ This guide covers encrypting your database information using Active Record.
 After reading this guide, you will know:
 
 * How to set up database encryption with Active Record.
-* How to migrate unencrypted data
-* How to make different encryption schemes coexist
-* How to use the API
-* How to configure the library and how to extend it
+* How to migrate unencrypted data.
+* How to make different encryption schemes coexist.
+* How to use the API.
+* How to configure the library and how to extend it.
 
 --------------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ NOTE: You can disable deterministic encryption by omitting a `deterministic_key`
 
 ### Action Text
 
-You can encrypt action text attributes by passing `encrypted: true` in their declaration.
+You can encrypt Action Text attributes by passing `encrypted: true` in their declaration.
 
 ```ruby
 class Message < ApplicationRecord
@@ -119,7 +119,7 @@ class Message < ApplicationRecord
 end
 ```
 
-NOTE: Passing individual encryption options to action text attributes is not supported yet. It will use non-deterministic encryption with the global encryption options configured.
+NOTE: Passing individual encryption options to Action Text attributes is not supported yet. It will use non-deterministic encryption with the global encryption options configured.
 
 ### Fixtures
 
@@ -133,7 +133,7 @@ When enabled, all the encryptable attributes will be encrypted according to the 
 
 #### Action Text Fixtures
 
-To encrypt action text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
+To encrypt Action Text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
 
 ### Supported Types
 
@@ -179,7 +179,7 @@ end
 
 To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
 
-* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error
+* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
 * Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
 
 **This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.

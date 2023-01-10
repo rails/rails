@@ -430,7 +430,7 @@ module ActionController # :nodoc:
       #
       # * Is it a GET or HEAD request? GETs should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
-      # * Does the X-CSRF-Token header match the form_authenticity_token?
+      # * Does the +X-CSRF-Token+ header match the form_authenticity_token?
       def verified_request? # :doc:
         !protect_against_forgery? || request.get? || request.head? ||
           (valid_request_origin? && any_authenticity_token_valid?)

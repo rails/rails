@@ -12,7 +12,7 @@ module Rails
           formatted_rake_tasks
         end
 
-        def perform(task, args, config)
+        def perform(task, args, config, optional: false)
           require_rake
 
           Rake.with_application do |rake|
@@ -21,11 +21,19 @@ module Rails
             if Rails.respond_to?(:root)
               rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
             end
-            rake.standard_exception_handling { rake.top_level }
+            rake.standard_exception_handling { rake.top_level } unless optional && !task_exists?(rake, task)
           end
         end
 
         private
+          def task_exists?(rake, task)
+            name, _args = rake.parse_task_string(task)
+            rake[name]
+            true
+          rescue Exception
+            false
+          end
+
           def rake_tasks
             require_rake
 

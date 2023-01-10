@@ -218,11 +218,11 @@ module ActiveSupport
     #   hash.default                   # => nil
     #   hash.default('foo')            # => 'foo'
     #   hash.default(:foo)             # => 'foo'
-    def default(*args)
-      if args.length == 1
-        super(convert_key(args[0]))
+    def default(key = (no_key = true))
+      if no_key
+        super()
       else
-        super(*args.map { |arg| convert_key(arg) })
+        super(convert_key(key))
       end
     end
 
@@ -233,7 +233,8 @@ module ActiveSupport
     #   hash[:b] = 'y'
     #   hash.values_at('a', 'b') # => ["x", "y"]
     def values_at(*keys)
-      super(*keys.map { |key| convert_key(key) })
+      keys.map! { |key| convert_key(key) }
+      super
     end
 
     # Returns an array of the values at the specified indices, but also
@@ -246,7 +247,8 @@ module ActiveSupport
     #   hash.fetch_values('a', 'c') { |key| 'z' } # => ["x", "z"]
     #   hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
     def fetch_values(*indices, &block)
-      super(*indices.map { |key| convert_key(key) }, &block)
+      indices.map! { |key| convert_key(key) }
+      super
     end
 
     # Returns a shallow copy of the hash.
@@ -305,7 +307,7 @@ module ActiveSupport
     #   hash.except(:a, "b") # => {c: 10}.with_indifferent_access
     #   hash                 # => { a: "x", b: "y", c: 10 }.with_indifferent_access
     def except(*keys)
-      slice(*self.keys - keys.map { |key| convert_key(key) })
+      dup.except!(*keys)
     end
     alias_method :without, :except
 

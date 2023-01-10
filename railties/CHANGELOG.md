@@ -1,4 +1,33 @@
-*   Bump `required_rubygems_version` to 3.3.13 or higher
+*   Add Rails::HealthController#show and map it to /up for newly generated applications.
+    Load balancers and uptime monitors all need a basic endpoint to tell whether the app is up.
+    This is a good starting point that'll work in many situations.
+
+    *DHH*
+
+*   Only use HostAuthorization middleware if `config.hosts` is not empty
+
+    *Hartley McGuire*
+
+*   Raise an exception when a `before_action`'s "only" or "except" filter
+    options reference an action that doesn't exist. This will be enabled by
+    default but can be overridden via config.
+
+    ```
+    # config/environments/production.rb
+    config.action_controller.raise_on_missing_callback_actions = false
+    ```
+
+    *Jess Bees*
+
+*   Use physical processor count as the default Puma worker count in production.
+    This can be overridden by setting `ENV["WEB_CONCURRENCY"]` or editing the
+    generated "config/puma.rb" directly.
+
+    *DHH*
+
+*   Bump `required_rubygems_version` from 1.8.11 to 3.3.13 or higher in order to
+    support pre-release versions of Ruby when generating a new Rails app
+    Gemfile.
 
     *Yasuo Honda*
 
@@ -436,5 +465,14 @@
     support Internet Explorer this header should not be a default one.
 
     *Harun Sabljaković*
+
+*   Add .node-version files for Rails apps that use Node.js
+
+    Node version managers that make use of this file:
+      https://github.com/shadowspawn/node-version-usage#node-version-file-usage
+
+    The generated Dockerfile will use the same node version.
+
+    *Sam Ruby*
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md) for previous changes.

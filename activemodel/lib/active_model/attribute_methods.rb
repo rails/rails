@@ -49,18 +49,17 @@ module ActiveModel
   #     end
   #
   #     private
+  #       def attribute_contrived?(attr)
+  #         true
+  #       end
   #
-  #     def attribute_contrived?(attr)
-  #       true
-  #     end
+  #       def clear_attribute(attr)
+  #         send("#{attr}=", nil)
+  #       end
   #
-  #     def clear_attribute(attr)
-  #       send("#{attr}=", nil)
-  #     end
-  #
-  #     def reset_attribute_to_default!(attr)
-  #       send("#{attr}=", 'Default Name')
-  #     end
+  #       def reset_attribute_to_default!(attr)
+  #         send("#{attr}=", 'Default Name')
+  #       end
   #   end
   module AttributeMethods
     extend ActiveSupport::Concern
@@ -95,10 +94,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
-      #     end
+      #       def clear_attribute(attr)
+      #         send("#{attr}=", nil)
+      #       end
       #   end
       #
       #   person = Person.new
@@ -131,10 +129,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -167,10 +164,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def reset_attribute_to_default!(attr)
-      #       send("#{attr}=", 'Default Name')
-      #     end
+      #       def reset_attribute_to_default!(attr)
+      #         send("#{attr}=", 'Default Name')
+      #       end
       #   end
       #
       #   person = Person.new
@@ -194,10 +190,9 @@ module ActiveModel
       #     alias_attribute :nickname, :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -268,10 +263,9 @@ module ActiveModel
       #     define_attribute_methods :name, :age, :address
       #
       #     private
-      #
-      #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
-      #     end
+      #       def clear_attribute(attr)
+      #         send("#{attr}=", nil)
+      #       end
       #   end
       def define_attribute_methods(*attr_names)
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
@@ -298,10 +292,9 @@ module ActiveModel
       #     define_attribute_method :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -337,10 +330,9 @@ module ActiveModel
       #     define_attribute_method :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new

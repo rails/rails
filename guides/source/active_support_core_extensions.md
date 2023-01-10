@@ -3460,22 +3460,6 @@ date.advance(months: 2, days: -2) # => Wed, 04 Aug 2010
 
 Note in the previous example that increments may be negative.
 
-To perform the computation the method first increments years, then months, then weeks, and finally days. This order is important towards the end of months. Say for example we are at the end of February of 2010, and we want to move one month and one day forward.
-
-The method `advance` advances first one month, and then one day, the result is:
-
-```ruby
-Date.new(2010, 2, 28).advance(months: 1, days: 1)
-# => Sun, 29 Mar 2010
-```
-
-While if it did it the other way around the result would be different:
-
-```ruby
-Date.new(2010, 2, 28).advance(days: 1).advance(months: 1)
-# => Thu, 01 Apr 2010
-```
-
 NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 [Date#advance]: https://api.rubyonrails.org/classes/Date.html#method-i-advance

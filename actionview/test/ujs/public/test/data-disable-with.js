@@ -1,3 +1,5 @@
+import $ from 'jquery'
+
 QUnit.module('data-disable-with', {
   beforeEach: function() {
     $('#qunit-fixture').append($('<form />', {
@@ -326,12 +328,13 @@ QUnit.test('a[data-remote][data-disable-with] re-enables when `ajax:error` event
     .bindNative('ajax:beforeSend', function() {
       assert.disabledState(link, 'clicking...')
     })
+    .bindNative('ajax:complete', function() {
+      setTimeout(function() {
+        assert.enabledState(link, 'Click me')
+        done()
+      }, 30)
+    })
     .triggerNative('click')
-
-  setTimeout(function() {
-    assert.enabledState(link, 'Click me')
-    done()
-  }, 30)
 })
 
 QUnit.test('form[data-remote] input|button|textarea[data-disable-with] does not disable when `ajax:beforeSend` event is cancelled', function(assert) {
@@ -454,10 +457,11 @@ QUnit.test('button[data-remote][data-disable-with] re-enables when `ajax:error` 
     .bindNative('ajax:send', function() {
       assert.disabledState(button, 'clicking...')
     })
+    .bindNative('ajax:complete', function() {
+      setTimeout(function() {
+        assert.enabledState(button, 'Click me')
+        done()
+      }, 30)
+    })
     .triggerNative('click')
-
-  setTimeout(function() {
-    assert.enabledState(button, 'Click me')
-    done()
-  }, 30)
 })

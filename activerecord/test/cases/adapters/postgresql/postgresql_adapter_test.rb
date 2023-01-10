@@ -335,6 +335,20 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_not_distinct_nulls
+        skip if ActiveRecord::Base.connection.database_version < 15_00_00
+
+        with_example_table do
+          @connection.execute(<<~SQL)
+            CREATE UNIQUE INDEX index_ex_on_data ON ex (data) NULLS NOT DISTINCT WHERE number > 0
+          SQL
+
+          index = @connection.indexes(:ex).first
+          assert_equal true, index.unique
+          assert_match("number", index.where)
+        end
+      end
+
       def test_columns_for_distinct_zero_orders
         assert_equal "posts.id",
           @connection.columns_for_distinct("posts.id", [])

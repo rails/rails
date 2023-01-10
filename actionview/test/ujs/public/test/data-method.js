@@ -1,4 +1,4 @@
-(function() {
+import $ from 'jquery'
 
 QUnit.module('data-method', {
   beforeEach: function() {
@@ -89,5 +89,3 @@ QUnit.test('link with "data-method" and cross origin', function(assert) {
 
   assert.notEqual(data.authenticity_token, 'cf50faa3fe97702ca1ae')
 })
-
-})()
