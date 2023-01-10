@@ -457,6 +457,46 @@ module Rails
         binfixups
       end
 
+      def dockerfile_packages
+        # start with the essentials
+        packages = %w(build-essential git)
+
+        # add databases: sqlite3, postgres, mysql
+        packages += %w(pkg-config libpq-dev default-libmysqlclient-dev)
+
+        # add redis in case Action Cable, caching, or sidekiq are added later
+        packages << "redis"
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
+
+        # node support, including support for building native modules
+        if using_node?
+          packages += %w(curl node-gyp) # pkg-config already listed above
+
+          # module build process depends on Python, and debian changed
+          # how python is installed with the bullseye release.  Below
+          # is based on debian release included with the Ruby images on
+          # Dockerhub.
+          case Gem.ruby_version
+          when /^2.7/
+            bullseye = ruby_version >= "2.7.4"
+          when /^3.0/
+            bullseye = ruby_version >= "3.0.2"
+          else
+            bullseye = true
+          end
+
+          if bullseye
+            packages << "python-is-python3"
+          else
+            packages << "python"
+          end
+        end
+
+        packages.sort
+      end
+
       # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
       # if one such processor has been specified.
       def adjusted_javascript_option
