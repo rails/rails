@@ -212,6 +212,8 @@ module ActiveRecord
           end
           ActiveRecord::Base.configurations = old_configurations
           ActiveRecord::Base.establish_connection(:arunit)
+          ActiveRecord::Base.connection.schema_migration.create_table
+          ActiveRecord::Base.connection.internal_metadata.create_table
         end
     end
   end
