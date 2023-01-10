@@ -240,4 +240,9 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     assert_respond_to tagged_logger.formatter, :tagged
     assert_respond_to tagged_logger.formatter, :crozz_method
   end
+
+  test "accepts non-String objects" do
+    @logger.tagged("tag") { @logger.info [1, 2, 3] }
+    assert_equal "[tag] [1, 2, 3]\n", @output.string
+  end
 end
