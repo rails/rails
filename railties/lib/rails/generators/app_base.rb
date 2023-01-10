@@ -430,7 +430,7 @@ module Rails
 
       def dockerfile_binfile_fixups
         # binfiles may have OS specific paths to ruby.  Normalize them.
-        shebangs = Dir['bin/*'].map {|file| IO.read(file).lines.first}.join
+        shebangs = Dir["bin/*"].map { |file| IO.read(file).lines.first }.join
         rubies = shebangs.scan(%r{#!/usr/bin/env (ruby.*)}).flatten.uniq
 
         binfixups = (rubies - %w(ruby)).map do |ruby|
@@ -443,14 +443,14 @@ module Rails
         # line endings.  This avoids adding unnecessary fixups if
         # none are required, but prepares for the need to do the
         # fix line endings if other fixups are required.
-        has_cr = Dir['bin/*'].any? {|file| IO.read(file) =~ /\r/}
-        if has_cr or (Gem.win_platform? and not binfixups.empty?)
+        has_cr = Dir["bin/*"].any? { |file| IO.read(file).include? "\r" }
+        if has_cr || (Gem.win_platform? && !binfixups.empty?)
           binfixups.unshift 'sed -i "s/\r$//g" bin/*'
         end
 
         # Windows file systems may not have the concept of executable.
         # In such cases, fix up during the build.
-        unless Dir['bin/*'].all? {|file| File.executable? file}
+        unless Dir["bin/*"].all? { |file| File.executable? file }
           binfixups.unshift "chmod +x bin/*"
         end
 
