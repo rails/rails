@@ -676,6 +676,10 @@ class NamedScopingTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base)
     klass.table_name = "topics"
     extending_module = Module.new do
+      def block_works?
+        false
+      end
+      
       def extend_works?
         true
       end
