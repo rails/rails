@@ -29,56 +29,86 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        if t = tags_text
-          super(severity, timestamp, progname, t.concat(msg.to_s))
-        else
-          super(severity, timestamp, progname, msg)
-        end
+        super(severity, timestamp, progname, tag_stack.format_message(msg))
       end
 
       def tagged(*tags)
-        new_tags = push_tags(*tags)
+        pushed_count = tag_stack.push_tags(tags).size
         yield self
       ensure
-        pop_tags(new_tags.size)
+        pop_tags(pushed_count)
       end
 
       def push_tags(*tags)
-        tags.flatten!
-        tags.reject!(&:blank?)
-        current_tags.concat tags
-        tags
+        tag_stack.push_tags(tags)
       end
 
-      def pop_tags(size = 1)
-        current_tags.pop size
+      def pop_tags(count = 1)
+        tag_stack.pop_tags(count)
       end
 
       def clear_tags!
-        current_tags.clear
+        tag_stack.clear
+      end
+
+      def tag_stack
+        # We use our object ID here to avoid conflicting with other instances
+        @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}"
+        IsolatedExecutionState[@thread_key] ||= TagStack.new
       end
 
       def current_tags
-        # We use our object ID here to avoid conflicting with other instances
-        thread_key = @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}"
-        IsolatedExecutionState[thread_key] ||= []
+        tag_stack.tags
       end
 
       def tags_text
-        tags = current_tags
-        if tags.one?
-          +"[#{tags[0]}] "
-        elsif tags.any?
-          tags.collect { |tag| "[#{tag}] " }.join
+        tag_stack.format_message("")
+      end
+    end
+
+    class TagStack # :nodoc:
+      attr_reader :tags
+
+      def initialize
+        @tags = []
+        @tags_string = nil
+      end
+
+      def push_tags(tags)
+        @tags_string = nil
+        tags.flatten!
+        tags.reject!(&:blank?)
+        @tags.concat(tags)
+        tags
+      end
+
+      def pop_tags(count)
+        @tags_string = nil
+        @tags.pop(count)
+      end
+
+      def clear
+        @tags_string = nil
+        @tags.clear
+      end
+
+      def format_message(message)
+        if @tags.empty?
+          message
+        elsif @tags.size == 1
+          "[#{@tags[0]}] #{message}"
+        else
+          @tags_string ||= "[#{@tags.join("] [")}] "
+          "#{@tags_string}#{message}"
         end
       end
     end
 
     module LocalTagStorage # :nodoc:
-      attr_accessor :current_tags
+      attr_accessor :tag_stack
 
       def self.extended(base)
-        base.current_tags = []
+        base.tag_stack = TagStack.new
       end
     end
 
