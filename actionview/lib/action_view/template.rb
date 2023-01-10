@@ -160,6 +160,7 @@ module ActionView
       if handler.respond_to?(:translate_location)
         handler.translate_location(spot, backtrace_location, source)
       else
+        raise ArgumentError, "is spot ever called?"
         spot
       end
     end
