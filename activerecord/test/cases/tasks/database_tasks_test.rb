@@ -1142,7 +1142,7 @@ module ActiveRecord
         assert_match(/down    001             Valid people have last names/, output)
         assert_match(/down    002             We need reminders/, output)
         assert_match(/down    003             Innocent jointable/, output)
-        @schema_migration.drop_table
+        @schema_migration.delete_all_versions
       end
 
       private

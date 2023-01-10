@@ -10,17 +10,14 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = false
     @connection = ActiveRecord::Base.connection
     @schema_migration = @connection.schema_migration
-    @schema_migration.drop_table
-    @internal_metadata = @connection.internal_metadata
+    @schema_migration.delete_all_versions
   end
 
   teardown do
     @connection.drop_table :fruits rescue nil
-    @connection.drop_table :nep_fruits rescue nil
-    @connection.drop_table :nep_schema_migrations rescue nil
     @connection.drop_table :has_timestamps rescue nil
     @connection.drop_table :multiple_indexes rescue nil
-    @schema_migration.delete_all_versions rescue nil
+    @schema_migration.delete_all_versions
     ActiveRecord::Migration.verbose = @original_verbose
   end
 
@@ -29,12 +26,10 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
     assert_equal "version", @schema_migration.primary_key
 
-    @schema_migration.create_table
     assert_difference "@schema_migration.count", 1 do
       @schema_migration.create_version(12)
     end
   ensure
-    @schema_migration.drop_table
     ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
   end
 
@@ -80,6 +75,9 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert_equal 7, @connection.migration_context.current_version
   ensure
     ActiveRecord::Base.table_name_prefix = old_table_name_prefix
+    @connection.drop_table :nep_fruits
+    @connection.drop_table :nep_schema_migrations
+    @schema_migration.create_table
   end
 
   def test_schema_raises_an_error_for_invalid_column_type

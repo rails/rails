@@ -24,7 +24,7 @@ module ActiveRecord
       end
 
       teardown do
-        @schema_migration.drop_table
+        @schema_migration.delete_all_versions
       end
 
       def test_migration_should_be_run_without_logger
