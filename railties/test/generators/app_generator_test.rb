@@ -772,6 +772,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Dockerfile" do |content|
       assert_match(/yarn/, content)
+      assert_match(/node-gyp/, content)
     end
 
     assert_file ".node-version" do |content|
@@ -1042,6 +1043,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/assets:precompile/, content)
       assert_match(/libvips/, content)
       assert_no_match(/yarn/, content)
+      assert_no_match(/node-gyp/, content)
     end
   end
 

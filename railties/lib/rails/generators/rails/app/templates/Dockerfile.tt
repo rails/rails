@@ -1,23 +1,21 @@
 # Make sure it matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
-FROM ruby:$RUBY_VERSION
+FROM ruby:$RUBY_VERSION-slim
+
+# Install packages need to build gems<%= using_node? ? " and node modules" : "" %>
+RUN apt-get update -qq && \
+    apt-get install -y <%= dockerfile_packages.join(" ") %> && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man
 
 <% if using_node? -%>
 # Install JavaScript dependencies
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
 ENV VOLTA_HOME="/root/.volta" \
-    PATH="$VOLTA_HOME/bin:/usr/local/bin:$PATH"
+    PATH="/root/.volta/bin:$PATH"
 RUN curl https://get.volta.sh | bash && \
     volta install node@$NODE_VERSION yarn@$YARN_VERSION
-
-<% end -%>
-<% if !skip_active_storage? -%>
-# Install libvips for Active Storage preview support
-RUN apt-get update -qq && \
-    apt-get install -y build-essential libvips && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man
 
 <% end -%>
 # Rails app lives here
