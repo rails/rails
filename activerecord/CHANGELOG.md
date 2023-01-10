@@ -1,3 +1,9 @@
+*   Multiple `Arel::Nodes::SqlLiteral` nodes can now be added together to
+    form `Arel::Nodes::Fragments` nodes. This allows joining several pieces
+    of SQL.
+
+    *Matthew Draper*, *Ole Friis*
+
 *   `ActiveRecord::Base#signed_id` raises if called on a new record
 
     Previously it would return an ID that was not usable, since it was based on `id = nil`.
