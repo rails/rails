@@ -204,13 +204,14 @@ Car = Struct.new(:color)
 
 class Plane
   attr_reader :to_key
-  delegate :model_name, to: :class
 
   class << self
     def model_name
       OpenStruct.new param_key: "airplane"
     end
   end
+
+  delegate :model_name, to: :class
 
   def save
     @to_key = [1]

@@ -210,9 +210,9 @@ module ActionView
       class_attribute :_layout_conditions, instance_accessor: false, default: {}
 
       _write_layout_method
-    end
 
-    delegate :_layout_conditions, to: :class
+      delegate :_layout_conditions, to: :class
+    end
 
     module ClassMethods
       def inherited(klass) # :nodoc:

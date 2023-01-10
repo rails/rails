@@ -1,3 +1,25 @@
+*   `delegate` now defines method with proper arity when delegating to a Class.
+    With this change, it defines faster method (3.5x faster with no argument).
+    However, in order to gain this benefit, the delegation target method has to
+    be defined before declaring the delegation.
+
+    ```ruby
+    # This defines 3.5 times faster method than before
+    class C
+      def self.x() end
+      delegate :x, to: :class
+    end
+
+    class C
+      # This works but silently falls back to old behavior because
+      # `delegate` cannot find the definition of `x`
+      delegate :x, to: :class
+      def self.x() end
+    end
+    ```
+
+    *Akira Matsuda*
+
 *   `assert_difference` message now includes what changed.
 
     This makes it easier to debug non-obvious failures.
