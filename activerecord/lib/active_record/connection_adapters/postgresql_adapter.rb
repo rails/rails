@@ -442,9 +442,11 @@ module ActiveRecord
       end
 
       def enable_extension(name, **)
-        exec_query("CREATE EXTENSION IF NOT EXISTS \"#{name}\"").tap {
-          reload_type_map
-        }
+        schema, name = name.to_s.split(".").values_at(-2, -1)
+        sql = +"CREATE EXTENSION IF NOT EXISTS \"#{name}\""
+        sql << " SCHEMA #{schema}" if schema
+
+        exec_query(sql).tap { reload_type_map }
       end
 
       # Removes an extension from the database.
