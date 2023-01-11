@@ -1,31 +1,30 @@
 # Make sure it matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
-FROM ruby:$RUBY_VERSION-slim
+FROM ruby:$RUBY_VERSION-slim as base
+
+# Rails app lives here
+WORKDIR /rails
+
+# Set production environment
+ENV RAILS_ENV="production" \
+    BUNDLE_WITHOUT="development"
+
+FROM base as build
 
 # Install packages need to build gems<%= using_node? ? " and node modules" : "" %>
 RUN apt-get update -qq && \
-    apt-get install -y <%= dockerfile_packages.join(" ") %> && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man
+    apt-get install -y <%= dockerfile_packages.join(" ") %>
 
 <% if using_node? -%>
 # Install JavaScript dependencies
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
-ENV VOLTA_HOME="/root/.volta" \
-    PATH="/root/.volta/bin:$PATH"
+ENV VOLTA_HOME="/usr/local"
 RUN curl https://get.volta.sh | bash && \
     volta install node@$NODE_VERSION yarn@$YARN_VERSION
 
 <% end -%>
-# Rails app lives here
-WORKDIR /rails
 
-# Set production environment
-ENV RAILS_LOG_TO_STDOUT="1" \
-    RAILS_SERVE_STATIC_FILES="true" \
-    RAILS_ENV="production" \
-    BUNDLE_WITHOUT="development"
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
@@ -49,6 +48,18 @@ RUN bundle exec bootsnap precompile --gemfile app/ lib/
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 <% end -%>
+
+FROM base
+
+# copy built artifacts: libraries, gems, application
+COPY --from=build /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build /rails /rails
+
+# Deployment options
+ENV RAILS_LOG_TO_STDOUT="1" \
+    RAILS_SERVE_STATIC_FILES="true"
+
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
