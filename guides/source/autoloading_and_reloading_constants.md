@@ -313,6 +313,30 @@ The easiest way to refer to those classes or modules during boot is to have them
 
 As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](#config-autoload-once-paths) for details.
 
+### Use Case 3: Configure Application Classes for Engines
+
+Let's suppose an engine works with the application class that models users, and requires users to configure said class:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = User # DO NOT DO THIS
+end
+```
+
+On reload, `config.user_model` would be pointing to a stale object, because the reloaded `User` class would not be reset in the engine configuration. Therefore, edits to `User` would be missed by the engine.
+
+In order to play well with reloadable application code, the engine instead needs users to configure the _name_ of that class:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = 'User' # OK
+end
+```
+
+Then, whenever the engine needs the user model class object at run time, just `config.user_model.constantize`.
+
 Eager Loading
 -------------
 
