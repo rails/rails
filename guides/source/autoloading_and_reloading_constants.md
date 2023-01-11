@@ -231,13 +231,15 @@ While booting, applications can autoload from the autoload once paths, which are
 
 However, you cannot autoload from the autoload paths, which are managed by the `main` autoloader. This applies to code in `config/initializers` as well as application or engines initializers.
 
-Why? Initializers only run once, when the application boots. If you reboot the server, they run again in a new process, but reloading does not reboot the server, and initializers don't run again. Let's see the two main use cases.
+Why? Initializers only run once, when the application boots. They do not run again on reloads. If the application used a reloadable class in an initializer, and the class was edited, on reload changes would not be reflected in whatever the initializer did. Therefore, referring to reloadable constants during initialization is disallowed.
+
+Let's see what to do instead.
 
 ### Use Case 1: During Boot, Load Reloadable Code
 
 #### Autoload on Boot and on Each Reload
 
-Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
+Let's imagine `ApiGateway` is a reloadable class and you need to configure its endpoint while the application boots:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
