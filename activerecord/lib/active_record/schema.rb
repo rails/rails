@@ -54,8 +54,8 @@ module ActiveRecord
       def define(info, &block) # :nodoc:
         instance_eval(&block)
 
+        connection.schema_migration.create_table
         if info[:version].present?
-          connection.schema_migration.create_table
           connection.assume_migrated_upto_version(info[:version])
         end
 

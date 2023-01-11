@@ -140,12 +140,14 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_detection_without_schema_migration_table
-    ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
+    @schema_migration.drop_table
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
     migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration, @internal_metadata)
 
     assert_equal true, migrator.needs_migration?
+  ensure
+    @schema_migration.create_table
   end
 
   def test_any_migrations
