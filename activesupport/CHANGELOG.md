@@ -1,3 +1,8 @@
+*   `HashWithIndifferentAccess#transform_keys` now takes a Hash argument, just
+    as Ruby's `Hash#transform_keys` does.
+
+    *Akira Matsuda*
+
 *   `delegate` now defines method with proper arity when delegating to a Class.
     With this change, it defines faster method (3.5x faster with no argument).
     However, in order to gain this benefit, the delegation target method has to
