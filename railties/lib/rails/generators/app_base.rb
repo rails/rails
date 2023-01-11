@@ -157,9 +157,9 @@ module Rails
         )
 
         deduction_order.each do |name|
-          reasons = option_reasons[name]&.select(&active).presence
-          active[name] ||= reasons if reasons
-          irrevocable << name if reasons&.any?(irrevocable)
+          active_reasons = option_reasons[name].to_a.select(&active)
+          active[name] ||= active_reasons if active_reasons.any?
+          irrevocable << name if active_reasons.any?(irrevocable)
         end
 
         revoked = options.select { |name, value| value == false }.keys.to_set - irrevocable
@@ -169,8 +169,9 @@ module Rails
         revoked -= meta_options
 
         active.filter_map do |name, reasons|
-          reasons -= revoked.to_a
-          [name, reasons] unless revoked.include?(name) || reasons.empty?
+          unless revoked.include?(name) || reasons.all?(revoked)
+            [name, reasons - revoked.to_a]
+          end
         end.to_h
       end
 
@@ -181,6 +182,24 @@ module Rails
         skip_javascript:     [:skip_hotwire],
       }
 
+      # ==== Options
+      #
+      # [+:meta_options+]
+      #   A list of generator options which only serve to trigger other options.
+      #   These options should have no other effects, and will be treated
+      #   transparently when revoking other options.
+      #
+      #   For example: --minimal implies both --skip-active-job and
+      #   --skip-active-storage. Also, --skip-active-job by itself implies
+      #   --skip-active-storage. If --skip-active-job is explicitly
+      #   specified, --no-skip-active-storage should raise an error. But, if
+      #   only --minimal is specified, --no-skip-active-storage should "undo"
+      #   the implied --skip-active-job. This can be accomplished by passing
+      #   <tt>meta_options: [:minimal]</tt>.
+      #
+      #   In contrast, --api is not a meta option because it does other things
+      #   besides implying options such as --skip-asset-pipeline. (And so --api
+      #   with --no-skip-asset-pipeline should raise an error.)
       def imply_options(option_implications = OPTION_IMPLICATIONS, meta_options: [])
         option_reasons = {}
         option_implications.each do |reason, implications|
