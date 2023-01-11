@@ -465,7 +465,8 @@ module TestHelpers
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
-    def use_postgresql(multi_db: false, database_name: "railties_#{Process.pid}")
+    def use_postgresql(multi_db: false)
+      database_name = "railties_#{Process.pid}"
       if multi_db
         File.open("#{app_path}/config/database.yml", "w") do |f|
           f.puts <<-YAML
@@ -497,6 +498,7 @@ module TestHelpers
           YAML
         end
       end
+      database_name
     end
   end
 
