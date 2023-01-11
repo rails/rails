@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # Make sure it matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
 FROM ruby:$RUBY_VERSION-slim as base
@@ -54,7 +52,7 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 # Final stage for app image
 FROM base
 
-# copy built artifacts: libraries, gems, application
+# Copy built artifacts: libraries, gems, application
 COPY --from=build /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
