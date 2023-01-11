@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # Make sure it matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
 FROM ruby:$RUBY_VERSION-slim as base
@@ -9,6 +11,8 @@ WORKDIR /rails
 ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development"
 
+
+# Throw-away build stage to reduce size of final image
 FROM base as build
 
 # Install packages need to build gems<%= using_node? ? " and node modules" : "" %>
@@ -24,8 +28,6 @@ RUN curl https://get.volta.sh | bash && \
     volta install node@$NODE_VERSION yarn@$YARN_VERSION
 
 <% end -%>
-
-
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
@@ -49,6 +51,7 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 <% end -%>
 
+# Final stage for app image
 FROM base
 
 # copy built artifacts: libraries, gems, application
