@@ -57,7 +57,7 @@
     docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
     ```
 
-    *DHH*
+    *DHH, Sam Ruby*
 
 *   Add ENV["SECRET_KEY_BASE_DUMMY"] for starting production environment with a generated secret base key,
     which can be used to run tasks like `assets:precompile` without making the RAILS_MASTER_KEY available
