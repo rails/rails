@@ -479,7 +479,7 @@ module ApplicationTests
 
       test "db:schema:cache:dump dumps virtual columns" do
         Dir.chdir(app_path) do
-          use_postgresql(database_name: "railties_db")
+          use_postgresql
           rails "db:drop", "db:create"
 
           rails "runner", <<~RUBY
@@ -773,12 +773,12 @@ module ApplicationTests
 
       test "db:prepare creates test database if it does not exist" do
         Dir.chdir(app_path) do
-          use_postgresql(database_name: "railties_db")
+          db_name = use_postgresql
           rails "db:drop", "db:create"
-          rails "runner", "ActiveRecord::Base.connection.drop_database(:railties_db_test)"
+          rails "runner", "ActiveRecord::Base.connection.drop_database(:#{db_name}_test)"
 
           output = rails("db:prepare")
-          assert_match(%r{Created database 'railties_db_test'}, output)
+          assert_match(%r{Created database '#{db_name}_test'}, output)
         end
       ensure
         rails "db:drop" rescue nil
