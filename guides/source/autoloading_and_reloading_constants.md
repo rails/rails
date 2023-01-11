@@ -331,7 +331,7 @@ In order to play well with reloadable application code, the engine instead needs
 ```ruby
 # config/initializers/my_engine.rb
 MyEngine.configure do |config|
-  config.user_model = 'User' # OK
+  config.user_model = "User" # OK
 end
 ```
 
