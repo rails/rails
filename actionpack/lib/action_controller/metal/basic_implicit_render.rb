@@ -3,7 +3,9 @@
 module ActionController
   module BasicImplicitRender # :nodoc:
     def send_action(method, *args)
-      super.tap { default_render unless performed? }
+      ret = super
+      default_render unless performed?
+      ret
     end
 
     def default_render
