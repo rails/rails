@@ -22,8 +22,15 @@ module ActiveRecord::Associations
       def set_owner_attributes(record)
         return if options[:through]
 
-        key = owner._read_attribute(reflection.join_foreign_key)
-        record._write_attribute(reflection.join_primary_key, key)
+        primary_key_attribute_names = Array(reflection.join_primary_key)
+        foreign_key_attribute_names = Array(reflection.join_foreign_key)
+
+        primary_key_foreign_key_pairs = primary_key_attribute_names.zip(foreign_key_attribute_names)
+
+        primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
+          value = owner._read_attribute(foreign_key)
+          record._write_attribute(primary_key, value)
+        end
 
         if reflection.type
           record._write_attribute(reflection.type, owner.class.polymorphic_name)

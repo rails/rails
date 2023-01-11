@@ -119,10 +119,13 @@ module ActiveRecord
         end
 
         def replace_keys(record, force: false)
-          target_key = record ? record._read_attribute(primary_key(record.class)) : nil
+          target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
+          reflection_fk = Array(reflection.foreign_key)
 
-          if force || owner._read_attribute(reflection.foreign_key) != target_key
-            owner[reflection.foreign_key] = target_key
+          if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
+            reflection_fk.zip(target_key_values).each do |key, value|
+              owner[key] = value
+            end
           end
         end
 
