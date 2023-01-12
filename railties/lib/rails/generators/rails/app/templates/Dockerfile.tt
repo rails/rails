@@ -9,6 +9,8 @@ WORKDIR /rails
 ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development"
 
+
+# Throw-away build stage to reduce size of final image
 FROM base as build
 
 # Install packages need to build gems<%= using_node? ? " and node modules" : "" %>
@@ -24,8 +26,6 @@ RUN curl https://get.volta.sh | bash && \
     volta install node@$NODE_VERSION yarn@$YARN_VERSION
 
 <% end -%>
-
-
 # Install application gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
@@ -49,9 +49,10 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 <% end -%>
 
+# Final stage for app image
 FROM base
 
-# copy built artifacts: libraries, gems, application
+# Copy built artifacts: libraries, gems, application
 COPY --from=build /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
