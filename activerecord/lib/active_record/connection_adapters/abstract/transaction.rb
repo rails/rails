@@ -83,6 +83,7 @@ module ActiveRecord
       def restartable?; false; end
       def dirty?; false; end
       def dirty!; end
+      def invalidated?; false; end
       def invalidate!; end
     end
 
@@ -90,7 +91,7 @@ module ActiveRecord
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written, :written_indirectly
 
-      delegate :invalidate!, to: :@state
+      delegate :invalidate!, :invalidated?, to: :@state
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
