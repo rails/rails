@@ -663,7 +663,6 @@ class MigrationTest < ActiveRecord::TestCase
     migrator = ActiveRecord::MigrationContext.new(migrations_path, ActiveRecord::Base.connection.schema_migration)
     migrator.up
 
-    assert_equal "arunit", ActiveRecord::InternalMetadata[:environment]
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
   end
 
