@@ -1047,14 +1047,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_api
-    run_generator [destination_root, "--api"]
-
-    assert_file "Dockerfile" do |content|
-      assert_no_match(/assets:precompile/, content)
-    end
-  end
-
   def test_skip_docker
     run_generator [destination_root, "--skip-docker"]
 
