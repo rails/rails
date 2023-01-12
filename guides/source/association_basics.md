@@ -2679,6 +2679,19 @@ Extensions can refer to the internals of the association proxy using these three
 * `proxy_association.reflection` returns the reflection object that describes the association.
 * `proxy_association.target` returns the associated object for `belongs_to` or `has_one`, or the collection of associated objects for `has_many` or `has_and_belongs_to_many`.
 
+### Association Scoping using the Association Owner
+
+The owner of the association can be passed as a single argument to the scope
+block in situations where you need even more control over the association
+scope. However, as a caveat, preloading the association will no longer be
+possible.
+
+```ruby
+class Supplier < ApplicationRecord
+  has_one :account, ->(supplier) { where active: supplier.active? }
+end
+```
+
 Single Table Inheritance (STI)
 ------------------------------
 

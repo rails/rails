@@ -800,7 +800,7 @@ if ActiveRecord::Base.connection.savepoint_errors_invalidate_transactions?
       rescue ActiveRecord::Deadlocked => error
         flunk("Rescuing wrong error") unless error.message == "made-up deadlock"
 
-        @invalidated = connection.current_transaction.state.invalidated?
+        @invalidated = connection.current_transaction.invalidated?
       end
 
       # asserting outside of the transaction to make sure we actually reach the end of the test
