@@ -1,3 +1,18 @@
+*   Show relevant commands when calling help
+
+    When running `rails -h` or just `rails` outside a Rails application,
+    Rails outputs all options for running the `rails new` command. This can be
+    confusing to users when they probably want to see the common Rails commands.
+
+    Instead, we should always show the common commands when running `rails -h`
+    inside or outside a Rails application.
+
+    As the relevant commands inside a Rails application differ from the
+    commands outside an application, the help USAGE file has been split to
+    show the most relevant commands for the context.
+
+    *Petrik de Heus*
+
 *   Add Rails::HealthController#show and map it to /up for newly generated applications.
     Load balancers and uptime monitors all need a basic endpoint to tell whether the app is up.
     This is a good starting point that'll work in many situations.
