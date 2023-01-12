@@ -46,14 +46,20 @@ module ActiveRecord
     end
 
     module HasReadonlyAttributes # :nodoc:
-      [:write_attribute, :_write_attribute].each do |name|
-        define_method(name) do |attr_name, value|
-          if !new_record? && self.class.readonly_attribute?(attr_name.to_s)
-            raise ReadonlyAttributeError.new(attr_name)
-          end
-
-          super(attr_name, value)
+      def write_attribute(attr_name, value)
+        if !new_record? && self.class.readonly_attribute?(attr_name.to_s)
+          raise ReadonlyAttributeError.new(attr_name)
         end
+
+        super
+      end
+
+      def _write_attribute(attr_name, value)
+        if !new_record? && self.class.readonly_attribute?(attr_name.to_s)
+          raise ReadonlyAttributeError.new(attr_name)
+        end
+
+        super
       end
     end
   end
