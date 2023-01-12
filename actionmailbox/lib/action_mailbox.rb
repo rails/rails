@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "action_mailbox/version"
 require "action_mailbox/deprecator"
 require "action_mailbox/mail_ext"
 

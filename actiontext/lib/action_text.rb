@@ -3,6 +3,7 @@
 require "active_support"
 require "active_support/rails"
 
+require "action_text/version"
 require "action_text/deprecator"
 
 require "nokogiri"
