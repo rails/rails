@@ -234,30 +234,16 @@ module ActiveRecord
   #   end
   #
   # In this case the +log_children+ is executed before +do_something_else+.
-  # The same applies to all non-transactional callbacks.
+  # This applies to all non-transactional callbacks, and to +before_commit+.
   #
-  # As seen below, in case there are multiple transactional callbacks the order
-  # is reversed.
+  # For transactional +after_+ callbacks (+after_commit+, +after_rollback+, etc), the order
+  # can be set via configuration.
   #
-  # For example:
+  #   config.active_record.run_after_transaction_callbacks_in_order_defined = false
   #
-  #   class Topic < ActiveRecord::Base
-  #     has_many :children
-  #
-  #     after_commit :log_children
-  #     after_commit :do_something_else
-  #
-  #     private
-  #       def log_children
-  #         # Child processing
-  #       end
-  #
-  #       def do_something_else
-  #         # Something else
-  #       end
-  #   end
-  #
-  # In this case the +do_something_else+ is executed before +log_children+.
+  # If +true+ (the default from Rails 7.1), callbacks are executed in the order they
+  # are defined, just like the example above. If +false+, the order is reversed, so
+  # +do_something_else+ is executed before +log_children+.
   #
   # == \Transactions
   #

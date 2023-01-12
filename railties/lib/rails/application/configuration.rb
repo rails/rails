@@ -284,6 +284,7 @@ module Rails
             active_record.default_column_serializer = nil
             active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
             active_record.marshalling_format_version = 7.1
+            active_record.run_after_transaction_callbacks_in_order_defined = true
           end
 
           if respond_to?(:action_dispatch)

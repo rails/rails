@@ -4346,6 +4346,31 @@ module ApplicationTests
       end
     end
 
+    test "run_after_transaction_callbacks_in_order_defined is true in new apps" do
+      app "development"
+
+      assert_equal true, ActiveRecord.run_after_transaction_callbacks_in_order_defined
+    end
+
+    test "run_after_transaction_callbacks_in_order_defined is false in upgrading apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal false, ActiveRecord.run_after_transaction_callbacks_in_order_defined
+    end
+
+    test "run_after_transaction_callbacks_in_order_defined can be set via framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveRecord.run_after_transaction_callbacks_in_order_defined
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
