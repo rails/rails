@@ -195,7 +195,7 @@ module Rails
     end
 
     def credentials_diff_enroll
-      return if options[:skip_decrypted_diffs] || options[:skip_git] || options[:dummy_app] || options[:pretend]
+      return if options[:skip_decrypted_diffs] || options[:dummy_app] || options[:pretend]
 
       @generator.shell.mute do
         rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
@@ -282,11 +282,9 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: nil, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: nil, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
-      def initialize(*args)
-        super
-
-        imply_options({
-          **OPTION_IMPLICATIONS,
+      OPTION_IMPLICATIONS = # :nodoc:
+        AppBase::OPTION_IMPLICATIONS.merge(
+          skip_git: [:skip_decrypted_diffs],
           minimal: [
             :skip_action_cable,
             :skip_action_mailbox,
@@ -305,7 +303,16 @@ module Rails
             :skip_asset_pipeline,
             :skip_javascript,
           ],
-        }, meta_options: [:minimal])
+        ) do |option, implications, more_implications|
+          implications + more_implications
+        end
+
+      META_OPTIONS = [:minimal] # :nodoc:
+
+      def initialize(*args)
+        super
+
+        imply_options(OPTION_IMPLICATIONS, meta_options: META_OPTIONS)
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
