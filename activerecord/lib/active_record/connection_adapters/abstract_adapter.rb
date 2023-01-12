@@ -1036,7 +1036,7 @@ module ActiveRecord
 
         def retryable_query_error?(exception)
           # We definitely can't retry if we were inside an invalidated transaction.
-          return false if current_transaction.state.invalidated?
+          return false if current_transaction.invalidated?
 
           exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
         end
