@@ -239,6 +239,11 @@ Lint/UselessAssignment:
 Lint/DeprecatedClassMethods:
   Enabled: true
 
+Style/EvalWithLocation:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
+
 Style/ParenthesesAroundCondition:
   Enabled: true
 
