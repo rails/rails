@@ -24,6 +24,7 @@ module ApplicationTests
           get "/engine_route" => "application_generating#engine_route"
           get "/engine_route_in_view" => "application_generating#engine_route_in_view"
           get "/weblog_engine_route" => "application_generating#weblog_engine_route"
+          get "/weblog_through_metric_engine_route" => "application_generating#weblog_through_metric_engine_route"
           get "/weblog_engine_route_in_view" => "application_generating#weblog_engine_route_in_view"
           get "/url_for_engine_route" => "application_generating#url_for_engine_route"
           get "/polymorphic_route" => "application_generating#polymorphic_route"
@@ -173,6 +174,13 @@ module ApplicationTests
             render plain: weblog.weblogs_path
           end
 
+          def weblog_through_metric_engine_route
+            # trigger definition of route helper
+            weblog.weblogs_path
+
+            render plain: metrics.respond_to?(:weblogs_path)
+          end
+
           def weblog_engine_route_in_view
             render inline: "<%= weblog.weblogs_path %>"
           end
@@ -285,6 +293,11 @@ module ApplicationTests
 
       get "/weblog_engine_route_in_view"
       assert_equal "/weblog", last_response.body
+    end
+
+    test "route helpers from weblog are not accessible through metrics engine" do
+      get "/weblog_through_metric_engine_route"
+      assert_equal "false", last_response.body
     end
   end
 end
