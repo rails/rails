@@ -66,9 +66,10 @@ module Rails
         end
       end
 
-      def looks_like_a_file_path?(code_or_file)
-        code_or_file.ends_with?(".rb")
-      end
+      private
+        def looks_like_a_file_path?(code_or_file)
+          code_or_file.ends_with?(".rb")
+        end
     end
   end
 end
