@@ -32,6 +32,12 @@ RUN curl https://get.volta.sh | bash && \
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
+<% if using_node? -%>
+# Install node modules
+COPY package.json yarn.lock ./
+RUN yarn install
+
+<% end -%>
 # Copy application code
 COPY . .
 
