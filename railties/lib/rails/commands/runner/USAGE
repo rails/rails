@@ -9,12 +9,13 @@ Run the Ruby file located at `path/to/filename.rb` after loading the app:
   <%= executable %> path/to/filename.rb
 
 Run the Ruby script read from stdin after loading the app:
+
   <%= executable %> -
 
-<% unless Gem.win_platform? %>
+<% unless Gem.win_platform? -%>
 You can also use the runner command as a shebang line for your executables:
 
   #!/usr/bin/env <%= File.expand_path(executable) %>
 
   Product.all.each { |p| p.price *= 2 ; p.save! }
-<% end %>
+<% end -%>
