@@ -298,7 +298,7 @@ end
 ```irb
 irb> article = Article.create
 irb> article.status
-=> "draft" # default status from PostgreSQL, as defined in migration
+=> "draft" # default status from PostgreSQL, as defined in migration above
 
 irb> article.status_published!
 irb> article.status
