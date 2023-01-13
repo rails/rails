@@ -476,7 +476,7 @@ module Rails
         binfixups
       end
 
-      def dockerfile_packages
+      def dockerfile_build_packages
         # start with the essentials
         packages = %w(build-essential git)
 
@@ -512,6 +512,19 @@ module Rails
             packages << "python"
           end
         end
+
+        packages.sort
+      end
+
+      def dockerfile_deploy_packages
+        # start with databases: sqlite3, postgres, mysql
+        packages = %w(libsqlite3-0 postgresql-client default-mysql-client)
+
+        # add redis in case Action Cable, caching, or sidekiq are added later
+        packages << "redis"
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
 
         packages.sort
       end
