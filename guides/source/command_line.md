@@ -137,6 +137,9 @@ You can get a list of rails commands available to you, which will often depend o
 
 ```bash
 $ rails --help
+Usage:
+  bin/rails COMMAND [options]
+
 You must specify a command. The most common commands are:
 
   generate     Generate new code (short-cut alias: "g")
