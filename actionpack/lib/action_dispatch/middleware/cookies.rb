@@ -557,6 +557,8 @@ module ActionDispatch
     class JsonSerializer # :nodoc:
       def self.load(value)
         ActiveSupport::JSON.decode(value)
+      rescue JSON::ParserError
+        nil
       end
 
       def self.dump(value)
@@ -686,7 +688,7 @@ module ActionDispatch
           deserialize(name) do |rotate|
             @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
           end
-        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature, JSON::ParserError
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
 

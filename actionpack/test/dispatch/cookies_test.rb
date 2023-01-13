@@ -733,6 +733,24 @@ class CookiesTest < ActionController::TestCase
     assert_nil @response.cookies["user_id"]
   end
 
+  def test_signed_cookie_using_json_serializer_will_drop_marshal_dumped_value
+    @request.env["action_dispatch.cookies_serializer"] = :json
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+
+    marshal_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal).generate("bar")
+
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape marshal_value}"
+
+    get :get_signed_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_nil cookies.signed[:foo]
+    assert_nil @response.cookies["foo"]
+  end
+
   def test_accessing_nonexistent_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existent_attribute]
