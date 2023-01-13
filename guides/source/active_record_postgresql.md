@@ -278,8 +278,8 @@ The above migrations are both reversible, but you can define separate `#up` and 
 ```ruby
 def down
   drop_table :articles
-  # OR: remove_column :articles, :status
 
+  # OR: remove_column :articles, :status
   drop_enum :article_status
 end
 ```
