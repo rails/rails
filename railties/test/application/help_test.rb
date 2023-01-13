@@ -19,6 +19,7 @@ class HelpTest < ActiveSupport::TestCase
     assert_match "  generate     Generate new code (short-cut alias: \"g\")", output
     assert_match "In addition to those commands", output
     assert_match(/^about(\s+)List versions of all Rails frameworks/, output)
+    assert_match(/^test:models(\s+)Run tests in test\/models/, output)
     assert_match(/^routes(\s+)Lists all the defined routes/, output)
     assert_no_match(/^generate/, output)
     assert_no_match(/^console/, output)
