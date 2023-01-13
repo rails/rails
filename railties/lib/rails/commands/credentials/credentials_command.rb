@@ -24,6 +24,7 @@ module Rails
         end
       end
 
+      desc "edit", "Opens the decrypted credentials in `$EDITOR` for editing"
       def edit
         extract_environment_option_from_argument(default_environment: nil)
         require_application!
@@ -36,6 +37,7 @@ module Rails
         change_credentials_in_system_editor
       end
 
+      desc "show", "Shows the decrypted credentials"
       def show
         extract_environment_option_from_argument(default_environment: nil)
         require_application!
@@ -49,6 +51,7 @@ module Rails
       option :disenroll, type: :boolean, default: false,
         desc: "Disenrolls project from credentials file diffing"
 
+      desc "diff", "Enrolls/disenrolls in decrypted diffs of credentials using git"
       def diff(content_path = nil)
         if @content_path = content_path
           extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))

@@ -20,6 +20,7 @@ module Rails
         end
       end
 
+      desc "routes", "Lists all the defined routes"
       def perform(*)
         require_application_and_environment!
         require "action_dispatch/routing/inspector"

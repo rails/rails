@@ -11,6 +11,7 @@ module Rails
         end
       end
 
+      desc "cache", "Toggles development mode caching on/off"
       def cache
         Rails::DevCaching.enable_by_file
       end

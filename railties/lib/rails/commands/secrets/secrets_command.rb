@@ -17,10 +17,12 @@ module Rails
         end
       end
 
+      desc "setup", "Deprecated in favor of credentials -- run `bin/rails credentials:help`"
       def setup
         deprecate_in_favor_of_credentials_and_exit
       end
 
+      desc "edit", "Opens the secrets in `$EDITOR` for editing"
       def edit
         require_application_and_environment!
 
@@ -38,6 +40,7 @@ module Rails
         end
       end
 
+      desc "edit", "Shows the decrypted secrets"
       def show
         say Rails::Secrets.read
       end
