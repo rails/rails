@@ -544,7 +544,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   %w( references includes preload eager_load group order reorder reselect unscope
-      joins left_joins left_outer_joins optimizer_hints annotate ).each do |method|
+      joins left_joins left_outer_joins optimizer_hints annotate regroup ).each do |method|
     class_eval <<~RUBY
       def test_no_arguments_to_#{method}_raise_errors
         error = assert_raises(ArgumentError) { Topic.#{method}() }

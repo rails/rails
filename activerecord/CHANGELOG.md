@@ -1,3 +1,14 @@
+*   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`
+
+    Example:
+
+    ```ruby
+    Post.group(:title).regroup(:author)
+    # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`author`
+    ```
+
+    *Danielius Visockas*
+
 *   PostgreSQL adapter method `enable_extension` now allows parameter to be `[schema_name.]<extension_name>`
     if the extension must be installed on another schema.
 
