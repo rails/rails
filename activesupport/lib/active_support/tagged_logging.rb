@@ -37,12 +37,7 @@ module ActiveSupport
       end
 
       def tagged(*tags)
-        new_tags = if tags.length == 1
-          current_tags << tags[0] unless tags[0].blank?
-          tags
-        else
-          push_tags(*tags)
-        end
+        new_tags = push_tags(*tags)
         yield self
       ensure
         pop_tags(new_tags.size)
