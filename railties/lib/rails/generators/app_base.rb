@@ -279,17 +279,40 @@ module Rails
         end
       end
 
+      def required_railties
+        @required_railties ||= {
+          "active_model/railtie"      => true,
+          "active_job/railtie"        => !options[:skip_active_job],
+          "active_record/railtie"     => !options[:skip_active_record],
+          "active_storage/engine"     => !options[:skip_active_storage],
+          "action_controller/railtie" => true,
+          "action_mailer/railtie"     => !options[:skip_action_mailer],
+          "action_mailbox/engine"     => !options[:skip_action_mailbox],
+          "action_text/engine"        => !options[:skip_action_text],
+          "action_view/railtie"       => true,
+          "action_cable/engine"       => !options[:skip_action_cable],
+          "rails/test_unit/railtie"   => !options[:skip_test],
+        }
+      end
+
       def include_all_railties? # :doc:
-        options.values_at(
-          :skip_action_cable,
-          :skip_action_mailbox,
-          :skip_action_mailer,
-          :skip_action_text,
-          :skip_active_job,
-          :skip_active_record,
-          :skip_active_storage,
-          :skip_test,
-        ).none?
+        required_railties.values.all?
+      end
+
+      def rails_require_statement
+        if include_all_railties?
+          %(require "rails/all")
+        else
+          require_statements = required_railties.map do |railtie, required|
+            %(#{"# " if !required}require "#{railtie}")
+          end
+
+          <<~RUBY.strip
+            require "rails"
+            # Pick the frameworks you want:
+            #{require_statements.join("\n")}
+          RUBY
+        end
       end
 
       def comment_if(value) # :doc:
