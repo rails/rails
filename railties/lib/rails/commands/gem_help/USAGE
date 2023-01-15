@@ -1,3 +1,6 @@
+Usage:
+  rails COMMAND [options]
+
 You must specify a command:
 
   new          Create a new Rails application. "rails new my_app" creates a
