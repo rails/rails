@@ -86,7 +86,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.wrap_parameters_by_default`](#config-action-controller-wrap-parameters-by-default): `true`
 - [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Download-Options" => "noopen", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
-- [`config.action_dispatch.return_only_request_media_type_on_content_type`](#config-action-dispatch-return-only-request-media-type-on-content-type): `false`
 - [`config.action_mailer.smtp_timeout`](#config-action-mailer-smtp-timeout): `5`
 - [`config.action_view.apply_stylesheet_media_default`](#config-action-view-apply-stylesheet-media-default): `false`
 - [`config.action_view.button_to_generates_button_tag`](#config-action-view-button-to-generates-button-tag): `true`
@@ -1775,18 +1774,6 @@ config.action_dispatch.rescue_responses = {
 ```
 
 Any exceptions that are not configured will be mapped to 500 Internal Server Error.
-
-#### `config.action_dispatch.return_only_request_media_type_on_content_type`
-
-Change the return value of `ActionDispatch::Request#content_type` to the
-Content-Type header without modification.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.0                   | `false`              |
 
 #### `config.action_dispatch.cookies_same_site_protection`
 

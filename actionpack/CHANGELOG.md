@@ -1,3 +1,11 @@
+*   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated behavior on `Request#content_type`.
+
+    *Rafael Mendonça França*
+
 *   Change `ActionController::Instrumentation` to pass `filtered_path` instead of `fullpath` in the event payload to filter sensitive query params
 
     ```ruby

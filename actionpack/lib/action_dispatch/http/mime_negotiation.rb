@@ -16,7 +16,20 @@ module ActionDispatch
 
       included do
         mattr_accessor :ignore_accept_header, default: false
-        cattr_accessor :return_only_media_type_on_content_type, default: false
+
+        def return_only_media_type_on_content_type=(value)
+          ActionDispatch.deprecator.warn(
+            "`config.action_dispatch.return_only_request_media_type_on_content_type` is deprecated and will" \
+              " be removed in Rails 7.2."
+          )
+        end
+
+        def return_only_media_type_on_content_type
+          ActionDispatch.deprecator.warn(
+            "`config.action_dispatch.return_only_request_media_type_on_content_type` is deprecated and will" \
+            " be removed in Rails 7.2."
+          )
+        end
       end
 
       # The MIME type of the HTTP request, such as Mime[:xml].
@@ -30,19 +43,6 @@ module ActionDispatch
           set_header k, v
         rescue ::Mime::Type::InvalidMimeType => e
           raise InvalidType, e.message
-        end
-      end
-
-      def content_type
-        if self.class.return_only_media_type_on_content_type
-          ActionDispatch.deprecator.warn(
-            "Rails 7.1 will return Content-Type header without modification." \
-            " If you want just the MIME type, please use `#media_type` instead."
-          )
-
-          content_mime_type&.to_s
-        else
-          super
         end
       end
 

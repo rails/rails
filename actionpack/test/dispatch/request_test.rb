@@ -1041,27 +1041,6 @@ class RequestMimeType < BaseRequestTest
     assert_equal("application/xml; charset=UTF-8", request.content_type)
   end
 
-  test "content type with the old behavior" do
-    original = ActionDispatch::Request.return_only_media_type_on_content_type
-    ActionDispatch::Request.return_only_media_type_on_content_type = true
-
-    request = stub_request("CONTENT_TYPE" => "application/xml; charset=UTF-8")
-
-    assert_equal(Mime[:xml], request.content_mime_type)
-    assert_equal("application/xml", request.media_type)
-    assert_deprecated(ActionDispatch.deprecator) do
-      assert_nil(request.content_charset)
-    end
-    assert_deprecated(ActionDispatch.deprecator) do
-      assert_equal({}, request.media_type_params)
-    end
-    assert_deprecated(ActionDispatch.deprecator) do
-      assert_equal("application/xml", request.content_type)
-    end
-  ensure
-    ActionDispatch::Request.return_only_media_type_on_content_type = original
-  end
-
   test "user agent" do
     assert_equal "TestAgent", stub_request("HTTP_USER_AGENT" => "TestAgent").user_agent
   end

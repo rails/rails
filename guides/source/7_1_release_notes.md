@@ -50,7 +50,11 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated behavior on `Request#content_type`
+
 ### Deprecations
+
+*   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
 
 *   Deprecate `AbstractController::Helpers::MissingHelperError`
 

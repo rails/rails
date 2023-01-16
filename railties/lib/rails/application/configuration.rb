@@ -226,7 +226,6 @@ module Rails
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
-            action_dispatch.return_only_request_media_type_on_content_type = false
             action_dispatch.cookies_serializer = :json
           end
 
