@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Base` config accessors.
+
+    *Rafael Mendonça França*
+
 *   Remove the `:include_replicas` argument from `configs_for`. Use `:include_hidden` argument instead.
 
     *Eileen M. Uchitelle*
@@ -138,7 +142,7 @@
 
     *Matthew Draper*, *Ole Friis*
 
-*   `ActiveRecord::Base#signed_id` raises if called on a new record
+*   `ActiveRecord::Base#signed_id` raises if called on a new record.
 
     Previously it would return an ID that was not usable, since it was based on `id = nil`.
 
