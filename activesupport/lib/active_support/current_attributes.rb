@@ -98,6 +98,11 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       def attribute(*names)
+        invalid_attribute_names = names.map(&:to_sym) & [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all]
+        if invalid_attribute_names.any?
+          raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
+        end
+
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|
