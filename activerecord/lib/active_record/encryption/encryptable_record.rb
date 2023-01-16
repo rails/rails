@@ -11,6 +11,10 @@ module ActiveRecord
         class_attribute :encrypted_attributes
 
         validate :cant_modify_encrypted_attributes_when_frozen, if: -> { has_encrypted_attributes? && ActiveRecord::Encryption.context.frozen_encryption? }
+
+        after_load_schema do
+          add_length_validation_for_encrypted_columns if ActiveRecord::Encryption.config.validate_column_size
+        end
       end
 
       class_methods do
@@ -117,12 +121,6 @@ module ActiveRecord
                 super(value)
               end
             end)
-          end
-
-          def load_schema!
-            super
-
-            add_length_validation_for_encrypted_columns if ActiveRecord::Encryption.config.validate_column_size
           end
 
           def add_length_validation_for_encrypted_columns

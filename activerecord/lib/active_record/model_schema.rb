@@ -170,6 +170,9 @@ module ActiveRecord
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
+      class_attribute :__before_load_schema_callbacks, instance_writer: false, default: []
+      class_attribute :__after_load_schema_callbacks, instance_writer: false, default: []
+
       initialize_load_schema_monitor
     end
 
@@ -431,6 +434,34 @@ module ActiveRecord
         @attribute_types ||= Hash.new(Type.default_value)
       end
 
+      ##
+      # :method: before_load_schema
+      #
+      # :call-seq: before_load_schema(*args, &block)
+      #
+      # Registers a callback to be called on the record class before the schema is loaded successfully. See
+      # ActiveRecord::ModelSchema for more information.
+      def before_load_schema(*, &block)
+        if block.nil?
+          fail NotImplementedError, "before_load_schema expects a block. It does not supports args"
+        end
+        __before_load_schema_callbacks << [self, block]
+      end
+
+      ##
+      # :method: after_load_schema
+      #
+      # :call-seq: after_load_schema(*args, &block)
+      #
+      # Registers a callback to be called on the record class after the schema is loaded successfully. See
+      # ActiveRecord::ModelSchema for more information.
+      def after_load_schema(*, &block)
+        if block.nil?
+          fail NotImplementedError, "after_load_schema expects a block. It does not supports args"
+        end
+        __after_load_schema_callbacks << [self, block]
+      end
+
       def yaml_encoder # :nodoc:
         @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
@@ -564,7 +595,9 @@ module ActiveRecord
           @load_schema_monitor.synchronize do
             return if defined?(@columns_hash) && @columns_hash
 
-            load_schema!
+            _run_load_schema_callbacks do
+              load_schema!
+            end
 
             @schema_loaded = true
           rescue
@@ -593,6 +626,27 @@ module ActiveRecord
           end
 
           super
+        end
+
+        # = Active Record Schema \Callbacks
+        #
+        # There are two callbacks which runs at the record class level.
+        #
+        # * (-) <tt>before_load_schema</tt>
+        # * (-) <tt>after_load_schema</tt>
+        def _run_load_schema_callbacks # :nodoc:
+          @_load_schema_callback_already_called ||= false
+          __before_load_schema_callbacks.each do |(callback_context, block)|
+            callback_context.instance_exec(&block)
+          end
+          yield
+          __after_load_schema_callbacks.each do |(callback_context, block)|
+            callback_context.instance_exec(&block)
+          end
+          return if @_load_schema_callback_already_called
+          @_load_schema_callback_already_called = true
+        ensure
+          @_load_schema_callback_already_called = false
         end
 
         def reload_schema_from_cache
