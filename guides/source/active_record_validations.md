@@ -1269,10 +1269,8 @@ class Person < ApplicationRecord
 end
 ```
 
-Custom validator classes are conventionally stored in `app/validators` (e.g. 
-`EmailValidator` would be auto-loaded if stored in 
-`app/validators/email_validator.rb`). As shown in the example, you can also 
-combine standard validations with your own custom validators.
+As shown in the example, you can also combine standard validations with your
+own custom validators.
 
 [`ActiveModel::EachValidator`]: https://api.rubyonrails.org/classes/ActiveModel/EachValidator.html
 [`ActiveModel::Validator`]: https://api.rubyonrails.org/classes/ActiveModel/Validator.html
