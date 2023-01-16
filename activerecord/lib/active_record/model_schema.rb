@@ -316,11 +316,7 @@ module ActiveRecord
       # The list of columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns
-        if defined?(@ignored_columns)
-          @ignored_columns
-        else
-          superclass.ignored_columns
-        end
+        @ignored_columns || superclass.ignored_columns
       end
 
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
@@ -575,6 +571,9 @@ module ActiveRecord
           super
           child_class.initialize_load_schema_monitor
           child_class.reload_schema_from_cache(false)
+          child_class.class_eval do
+            @ignored_columns = nil
+          end
         end
 
         def schema_loaded?

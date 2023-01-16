@@ -128,6 +128,14 @@ module ActiveRecord
       def clear_reflections_cache # :nodoc:
         @__reflections = nil
       end
+
+      private
+        def inherited(subclass)
+          super
+          subclass.class_eval do
+            @__reflections = nil
+          end
+        end
     end
 
     # Holds all the methods that are shared between MacroReflection and ThroughReflection.

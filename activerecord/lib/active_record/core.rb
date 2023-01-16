@@ -239,19 +239,6 @@ module ActiveRecord
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
-      def inherited(child_class) # :nodoc:
-        # initialize cache at class definition for thread safety
-        child_class.initialize_find_by_cache
-        unless child_class.base_class?
-          klass = self
-          until klass.base_class?
-            klass.initialize_find_by_cache
-            klass = klass.superclass
-          end
-        end
-        super
-      end
-
       def find(*ids) # :nodoc:
         # We don't have cache keys for this stuff yet
         return super unless ids.length == 1
@@ -342,10 +329,10 @@ module ActiveRecord
 
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
-        if defined?(@filter_attributes)
-          @filter_attributes
-        else
+        if @filter_attributes.nil?
           superclass.filter_attributes
+        else
+          @filter_attributes
         end
       end
 
@@ -356,13 +343,13 @@ module ActiveRecord
       end
 
       def inspection_filter # :nodoc:
-        if defined?(@filter_attributes)
+        if @filter_attributes.nil?
+          superclass.inspection_filter
+        else
           @inspection_filter ||= begin
             mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
             ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
           end
-        else
-          superclass.inspection_filter
         end
       end
 
@@ -406,6 +393,28 @@ module ActiveRecord
       end
 
       private
+        def inherited(subclass)
+          super
+
+          # initialize cache at class definition for thread safety
+          subclass.initialize_find_by_cache
+          unless subclass.base_class?
+            klass = self
+            until klass.base_class?
+              klass.initialize_find_by_cache
+              klass = klass.superclass
+            end
+          end
+          
+          subclass.class_eval do
+            @arel_table = nil
+            @predicate_builder = nil
+            @inspection_filter = nil
+            @filter_attributes = nil
+            @generated_association_methods = nil
+          end
+        end
+
         def relation
           relation = Relation.create(self)
 
