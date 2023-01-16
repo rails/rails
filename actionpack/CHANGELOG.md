@@ -1,3 +1,7 @@
+*   Remove deprecated ability to assign a single value to `config.action_dispatch.trusted_proxies`.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
 
     *Rafael Mendonça França*

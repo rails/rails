@@ -64,9 +64,9 @@ module ActionDispatch
       elsif custom_proxies.respond_to?(:any?)
         custom_proxies
       else
-        ActionDispatch.deprecator.warn(<<~EOM)
-          Setting config.action_dispatch.trusted_proxies to a single value has
-          been deprecated. Please set this to an enumerable instead. For
+        raise(ArgumentError, <<~EOM)
+          Setting config.action_dispatch.trusted_proxies to a single value isn't
+          supported. Please set this to an enumerable instead. For
           example, instead of:
 
           config.action_dispatch.trusted_proxies = IPAddr.new("10.0.0.0/8")
@@ -75,10 +75,8 @@ module ActionDispatch
 
           config.action_dispatch.trusted_proxies = [IPAddr.new("10.0.0.0/8")]
 
-          Note that unlike passing a single argument, passing an enumerable
-          will *replace* the default set of trusted proxies.
+          Note that passing an enumerable will *replace* the default set of trusted proxies.
         EOM
-        Array(custom_proxies) + TRUSTED_PROXIES
       end
     end
 

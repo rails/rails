@@ -84,14 +84,13 @@ module ApplicationTests
     end
 
     test "setting trusted proxies to a single value (deprecated) adds value to default trusted proxies" do
-      make_basic_app do |app|
-        app.config.action_dispatch.trusted_proxies = IPAddr.new("4.2.42.0/24")
+      exception = assert_raises(ArgumentError) do
+        make_basic_app do |app|
+          app.config.action_dispatch.trusted_proxies = IPAddr.new("4.2.42.0/24")
+        end
       end
 
-      assert_deprecated(/Setting config\.action_dispatch\.trusted_proxies to a single value/, ActionDispatch.deprecator) do
-        assert_equal "1.1.1.1",
-                     remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
-      end
+      assert_match(/Setting config\.action_dispatch\.trusted_proxies to a single value/, exception.message)
     end
   end
 end

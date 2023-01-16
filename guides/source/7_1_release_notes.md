@@ -52,6 +52,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated behavior on `Request#content_type`
 
+*   Remove deprecated ability to assign a single value to `config.action_dispatch.trusted_proxies`.
+
 ### Deprecations
 
 *   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
