@@ -3,14 +3,19 @@
 require "abstract_unit"
 require "rails/command"
 require "rails/commands/generate/generate_command"
+require "rails/commands/notes/notes_command"
 require "rails/commands/secrets/secrets_command"
 require "rails/commands/db/system/change/change_command"
 
 class Rails::Command::BaseTest < ActiveSupport::TestCase
-  test "printing commands" do
-    assert_equal [["generate", ""]], Rails::Command::GenerateCommand.printing_commands
-    assert_equal [["secrets:setup", ""], ["secrets:edit", ""], ["secrets:show", ""]], Rails::Command::SecretsCommand.printing_commands
-    assert_equal [["db:system:change", ""]], Rails::Command::Db::System::ChangeCommand.printing_commands
+  test "printing commands returns command and description if present" do
+    assert_equal ["generate", ""], Rails::Command::GenerateCommand.printing_commands.first
+    assert_equal ["notes", "Shows comments in your code annotated with FIXME, OPTIMIZE, and TODO"], Rails::Command::NotesCommand.printing_commands.first
+  end
+
+  test "printing commands returns namespaced commands" do
+    assert_equal %w(secrets:setup secrets:edit secrets:show), Rails::Command::SecretsCommand.printing_commands.map(&:first)
+    assert_equal %w(db:system:change), Rails::Command::Db::System::ChangeCommand.printing_commands.map(&:first)
   end
 
   test "printing commands hides hidden commands" do

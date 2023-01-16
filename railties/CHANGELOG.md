@@ -1,3 +1,7 @@
+*   Add descriptions for non-Rake commands when running `rails -h`.
+
+    *Petrik de Heus*
+
 *   Show relevant commands when calling help
 
     When running `rails -h` or just `rails` outside a Rails application,

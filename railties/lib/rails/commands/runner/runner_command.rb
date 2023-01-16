@@ -20,6 +20,7 @@ module Rails
         "#{super} [<'Some.ruby(code)'> | <filename.rb> | -]"
       end
 
+      desc "runner", "Runs Ruby code in the context of your application"
       def perform(code_or_file = nil, *command_argv)
         extract_environment_option_from_argument
 

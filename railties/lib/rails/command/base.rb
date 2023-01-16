@@ -92,8 +92,16 @@ module Rails
         end
 
         def printing_commands
-          namespaced_commands.map { |command| [command, ""] }
+          commands.filter_map do |key, command|
+            next if command.hidden?
+            if command_root_namespace.match?(/(\A|:)#{key}\z/)
+              [command_root_namespace, command.description]
+            else
+              ["#{command_root_namespace}:#{key}", command.description]
+            end
+          end
         end
+
 
         def executable(subcommand = nil)
           "#{bin} #{command_name}#{":" if subcommand}#{subcommand}"
@@ -162,17 +170,6 @@ module Rails
 
           def relative_command_path
             File.join("../commands", *command_root_namespace.split(":"))
-          end
-
-          def namespaced_commands
-            commands.filter_map do |key, command|
-              next if command.hidden?
-              if command_root_namespace.match?(/(\A|:)#{key}\z/)
-                command_root_namespace
-              else
-                "#{command_root_namespace}:#{key}"
-              end
-            end
           end
       end
 

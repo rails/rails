@@ -20,6 +20,7 @@ module Rails
         end
       end
 
+      desc "edit", "Opens the decrypted file in `$EDITOR` for editing"
       def edit(*)
         require_application!
 
@@ -29,6 +30,7 @@ module Rails
         change_encrypted_configuration_in_system_editor
       end
 
+      desc "show", "Shows the decrypted contents of the file"
       def show(*)
         require_application!
 
