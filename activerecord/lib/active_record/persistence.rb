@@ -1113,6 +1113,11 @@ module ActiveRecord
     end
 
   private
+    def init_internals
+      super
+      @_trigger_destroy_callback = @_trigger_update_callback = nil
+    end
+
     def strict_loaded_associations
       @association_cache.find_all do |_, assoc|
         assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?

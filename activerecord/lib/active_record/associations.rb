@@ -319,8 +319,8 @@ module ActiveRecord
 
     private
       def init_internals
-        @association_cache = {}
         super
+        @association_cache = {}
       end
 
       # Returns the specified association instance if it exists, +nil+ otherwise.

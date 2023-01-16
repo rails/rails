@@ -142,6 +142,7 @@ module ActionView
       @variant           = variant
       @compile_mutex     = Mutex.new
       @strict_locals     = NONE
+      @type              = nil
     end
 
     # The locals this template has been or will be compiled for, or nil if this

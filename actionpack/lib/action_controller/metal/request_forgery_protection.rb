@@ -339,6 +339,11 @@ module ActionController # :nodoc:
       end
     end
 
+    def initialize(...)
+      super
+      @marked_for_same_origin_verification = nil
+    end
+
     def reset_csrf_token(request) # :doc:
       request.env.delete(CSRF_TOKEN)
       csrf_token_storage_strategy.reset(request)

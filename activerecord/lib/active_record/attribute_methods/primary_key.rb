@@ -55,6 +55,7 @@ module ActiveRecord
 
         module ClassMethods
           ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set
+          PRIMARY_KEY_NOT_SET = BasicObject.new
 
           def instance_method_already_implemented?(method_name)
             super || primary_key && ID_ATTRIBUTE_METHODS.include?(method_name)
@@ -68,7 +69,9 @@ module ActiveRecord
           # Overwriting will negate any effect of the +primary_key_prefix_type+
           # setting, though.
           def primary_key
-            @primary_key = reset_primary_key unless defined? @primary_key
+            if PRIMARY_KEY_NOT_SET.equal?(@primary_key)
+              @primary_key = reset_primary_key
+            end
             @primary_key
           end
 
@@ -123,6 +126,14 @@ module ActiveRecord
           end
 
           private
+            def inherited(base)
+              super
+              base.class_eval do
+                @primary_key = PRIMARY_KEY_NOT_SET
+                @quoted_primary_key = nil
+              end
+            end
+
             def suppress_composite_primary_key(pk)
               return pk unless pk.is_a?(Array)
 

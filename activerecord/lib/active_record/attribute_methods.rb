@@ -40,11 +40,6 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(child_class) # :nodoc:
-        child_class.initialize_generated_modules
-        super
-      end
-
       def initialize_generated_modules # :nodoc:
         @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethods.new)
         private_constant :GeneratedAttributeMethods
@@ -187,6 +182,15 @@ module ActiveRecord
       def _has_attribute?(attr_name) # :nodoc:
         attribute_types.key?(attr_name)
       end
+
+      private
+        def inherited(child_class)
+          super
+          child_class.initialize_generated_modules
+          child_class.class_eval do
+            @attribute_names = nil
+          end
+        end
     end
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,

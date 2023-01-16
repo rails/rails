@@ -350,6 +350,13 @@ module ActiveModel
       end
 
       private
+        def inherited(base) # :nodoc:
+          super
+          base.class_eval do
+            @attribute_method_patterns_cache = nil
+          end
+        end
+
         def resolve_attribute_name(name)
           attribute_aliases.fetch(super, &:itself)
         end

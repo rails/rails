@@ -210,12 +210,6 @@ module ActiveRecord
         end
       end
 
-      def inherited(subclass)
-        subclass.set_base_class
-        subclass.instance_variable_set(:@_type_candidates_cache, Concurrent::Map.new)
-        super
-      end
-
       def dup # :nodoc:
         # `initialize_dup` / `initialize_copy` don't work when defined
         # in the `singleton_class`.
@@ -277,6 +271,15 @@ module ActiveRecord
         end
 
       private
+        def inherited(subclass)
+          super
+          subclass.set_base_class
+          subclass.instance_variable_set(:@_type_candidates_cache, Concurrent::Map.new)
+          subclass.class_eval do
+            @finder_needs_type_condition = nil
+          end
+        end
+
         # Called by +instantiate+ to decide which class to use for a new
         # record instance. For single-table inheritance, we check the record
         # for a +type+ column and return the corresponding class.

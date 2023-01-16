@@ -247,6 +247,12 @@ module ActiveModel
     end
 
     private
+      def init_internals
+        super
+        @mutations_before_last_save = nil
+        @mutations_from_database = nil
+      end
+
       def clear_attribute_change(attr_name)
         mutations_from_database.forget_change(attr_name.to_s)
       end
