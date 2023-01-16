@@ -405,7 +405,7 @@ module ActiveRecord
               klass = klass.superclass
             end
           end
-          
+
           subclass.class_eval do
             @arel_table = nil
             @predicate_builder = nil
