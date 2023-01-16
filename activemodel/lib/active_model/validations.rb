@@ -431,6 +431,11 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
   private
+    def init_internals
+      super
+      @validation_context = nil
+    end
+
     def run_validations!
       _run_validate_callbacks
       errors.empty?

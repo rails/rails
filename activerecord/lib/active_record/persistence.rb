@@ -600,6 +600,13 @@ module ActiveRecord
       end
 
       private
+        def inherited(subclass)
+          super
+          subclass.class_eval do
+            @_query_constraints_list = nil
+          end
+        end
+
         # Given a class, an attributes hash, +instantiate_instance_of+ returns a
         # new instance of the class. Accepts only keys as strings.
         def instantiate_instance_of(klass, attributes, column_types = {}, &block)
@@ -1113,6 +1120,11 @@ module ActiveRecord
     end
 
   private
+    def init_internals
+      super
+      @_trigger_destroy_callback = @_trigger_update_callback = nil
+    end
+
     def strict_loaded_associations
       @association_cache.find_all do |_, assoc|
         assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?

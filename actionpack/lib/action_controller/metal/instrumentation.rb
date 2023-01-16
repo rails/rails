@@ -16,6 +16,11 @@ module ActionController
 
     attr_internal :view_runtime
 
+    def initialize(...) # :nodoc:
+      super
+      self.view_runtime = nil
+    end
+
     def render(*)
       render_output = nil
       self.view_runtime = cleanup_view_runtime do

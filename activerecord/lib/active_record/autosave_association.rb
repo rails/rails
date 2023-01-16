@@ -154,6 +154,13 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
+        def inherited(base)
+          super
+          base.class_eval do
+            @_already_called = nil
+          end
+        end
+
         def define_non_cyclic_method(name, &block)
           return if method_defined?(name, false)
 
