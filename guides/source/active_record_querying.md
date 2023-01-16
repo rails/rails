@@ -117,6 +117,7 @@ The methods are:
 * [`references`][]
 * [`reorder`][]
 * [`reselect`][]
+* [`regroup`][]
 * [`reverse_order`][]
 * [`select`][]
 * [`where`][]
@@ -155,6 +156,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 [`references`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-references
 [`reorder`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reorder
 [`reselect`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reselect
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
 [`reverse_order`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reverse_order
 [`select`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-select
 [`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
@@ -1122,7 +1124,37 @@ the SQL executed would be:
 SELECT * FROM books WHERE out_of_print = 1 AND out_of_print = 0
 ```
 
-[`rewhere`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-rewhere
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
+
+
+### `regroup`
+
+The [`regroup`][] method overrides an existing, named `group` condition. For example:
+
+```ruby
+Book.group(:author).regroup(:id)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT * FROM books GROUP BY id
+```
+
+If the `regroup` clause is not used, the group clauses are combined together:
+
+```ruby
+Book.group(:author).group(:id)
+```
+
+the SQL executed would be:
+
+```sql
+SELECT * FROM books GROUP BY author, id
+```
+
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
+
 
 Null Relation
 -------------
