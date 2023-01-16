@@ -1,3 +1,7 @@
+*   Remove deprecated `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated ability to assign a single value to `config.action_dispatch.trusted_proxies`.
 
     *Rafael Mendonça França*

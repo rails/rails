@@ -54,6 +54,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Remove deprecated ability to assign a single value to `config.action_dispatch.trusted_proxies`.
 
+*   Remove deprecated `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing.
+
 ### Deprecations
 
 *   Deprecate `config.action_dispatch.return_only_request_media_type_on_content_type`.
