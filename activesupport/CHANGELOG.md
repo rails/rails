@@ -1,3 +1,10 @@
+*   `ActiveSupport::CurrentAttributes` now raises if a restricted attribute name is used.
+
+    Attributes such as `set` and `reset` cannot be used as they clash with the
+    `CurrentAttributes` public API.
+
+    *Alex Ghiculescu*
+
 *   `HashWithIndifferentAccess#transform_keys` now takes a Hash argument, just
     as Ruby's `Hash#transform_keys` does.
 
