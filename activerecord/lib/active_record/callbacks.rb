@@ -84,7 +84,7 @@ module ActiveRecord
   # == Types of callbacks
   #
   # There are three types of callbacks accepted by the callback macros: method references (symbol), callback objects,
-  # inline methods (using a proc). Method references and callback objects are the recommended approaches,
+  # inline methods (using a proc). \Method references and callback objects are the recommended approaches,
   # inline methods using a proc are sometimes appropriate (such as for creating mix-ins).
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
@@ -173,7 +173,7 @@ module ActiveRecord
   #
   # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
   # the associated action are cancelled.
-  # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
+  # \Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #
   # == Ordering callbacks
