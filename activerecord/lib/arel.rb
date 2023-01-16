@@ -35,6 +35,9 @@ module Arel
   # Great caution should be taken to avoid SQL injection vulnerabilities.
   # This method should not be used with unsafe values such as request
   # parameters or model attributes.
+  #
+  # Take a look at the {security guide}[https://edgeguides.rubyonrails.org/security.html#sql-injection]
+  # for more information.
   def self.sql(raw_sql)
     Arel::Nodes::SqlLiteral.new raw_sql
   end
