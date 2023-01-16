@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_record.partial_writes`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Base` config accessors.
 
     *Rafael Mendonça França*

@@ -101,6 +101,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 * Remove support for `:include_replicas` on `configs_for`. Use `:include_hidden` instead.
 
+*   Remove deprecated `config.active_record.partial_writes`.
+
 ### Deprecations
 
 ### Notable changes
