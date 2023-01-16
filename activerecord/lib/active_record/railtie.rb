@@ -79,6 +79,12 @@ module ActiveRecord
       app.deprecators[:active_record] = ActiveRecord.deprecator
     end
 
+    initializer "active_record.warn_if_prematurely_loaded" do
+      ActiveSupport.on_load(:active_record) do
+        ActiveSupport.warn_if_prematurely_loaded(:active_record, before: :after_initialize)
+      end
+    end
+
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true

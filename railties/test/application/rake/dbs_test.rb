@@ -560,6 +560,7 @@ module ApplicationTests
           end
         RUBY
         app_file "config/initializers/primary_key_table_name.rb", <<-RUBY
+          ActiveSupport.silence_prematurely_loading_warnings
           ActiveRecord::Base.primary_key_prefix_type = :table_name
         RUBY
         app_file "db/schema.rb", <<-RUBY

@@ -2,8 +2,11 @@
 
 require_relative "abstract_unit"
 require "active_support/core_ext/module/remove_method"
+require "active_support/testing/stream"
 
 class LazyLoadHooksTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Stream
+
   def test_basic_hook
     i = 0
     ActiveSupport.on_load(:basic_hook) { i += 1 }
@@ -172,6 +175,32 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
       FakeContext.second_wrestler
     end
     assert_equal "Hulk Hogan", context.second_wrestler
+  end
+
+  def test_prematurely_loading_a_framework
+    ActiveSupport.on_load(:framework_hook) do
+      ActiveSupport.warn_if_prematurely_loaded(:framework_hook, before: :required_hook)
+    end
+
+    output = capture(:stdout) do
+      ActiveSupport.run_load_hooks(:framework_hook)
+    end
+    expected = <<~MSG
+
+      Load hook :framework_hook was called before load hook :required_hook.
+      Prematurely loading frameworks may slow down your boot time and could
+      cause conflicts with load order and boot of your application.
+
+      Consider wrapping your code with an on_load hook:
+
+          ActiveSupport.on_load(:framework_hook) do
+            # your code
+          end
+
+      Called from:
+    MSG
+    assert_match expected, output
+    assert_match(/test\/lazy_load_hooks_test.rb:(\d+):in/, output)
   end
 
 private

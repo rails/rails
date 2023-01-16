@@ -1,3 +1,39 @@
+*   Warn if frameworks are loaded to early.
+
+    Prematurely loading frameworks in a Rails application may slow down boot
+    time and could cause conflicts with load order and boot of the
+    application.
+
+    By calling `warn_if_prematurely_loaded` in an `on_load` hook we can define a
+    dependency that needs to be loaded before the load hook has run.
+
+    ```ruby
+    initializer "active_record.warn_if_prematurely_loaded" do
+      ActiveSupport.on_load(:active_record) do
+        ActiveSupport.warn_if_prematurely_loaded(:active_record, before: :after_initialize)
+      end
+    end
+    ```
+
+    If the framework gets loaded to early we show a warning with a backtrace:
+
+    ```
+    Load hook :active_record was called before load hook :after_initialize.
+    Prematurely loading frameworks may slow down your boot time and could
+    cause conflicts with load order and boot of your application.
+
+    Consider wrapping your code with an on_load hook:
+
+        ActiveSupport.on_load(:active_record) do
+          # your code
+        end
+
+    Called from:
+    config/initializers/some_initializer.rb:1:in `<main>'
+    ```
+
+    *Petrik de Heus*
+
 *   `HashWithIndifferentAccess#transform_keys` now takes a Hash argument, just
     as Ruby's `Hash#transform_keys` does.
 

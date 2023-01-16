@@ -384,6 +384,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
         ActiveRecord::Migration.verbose = false
         ActiveRecord::Schema.define(version: 1) do
@@ -405,6 +406,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
         ActiveRecord::Migration.verbose = false
         ActiveRecord::Schema.define(version: 1) do
@@ -431,6 +433,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
         ActiveRecord::Migration.verbose = false
         ActiveRecord::Schema.define(version: 1) do
@@ -446,6 +449,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.connection.schema_cache.add("posts")
       RUBY
 
@@ -461,6 +465,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
         ActiveRecord::Migration.verbose = false
         ActiveRecord::Schema.define(version: 1) do
@@ -2610,6 +2615,7 @@ module ApplicationTests
 
     test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       RUBY
 
@@ -2626,6 +2632,7 @@ module ApplicationTests
 
       remove_from_config '.*config\.load_defaults.*\n'
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       RUBY
 
@@ -2644,6 +2651,7 @@ module ApplicationTests
       add_to_config "config.active_record.sqlite3_adapter_strict_strings_by_default = true"
 
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       RUBY
 
@@ -2663,6 +2671,7 @@ module ApplicationTests
         Rails.application.config.active_record.sqlite3_adapter_strict_strings_by_default = true
       RUBY
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       RUBY
 
@@ -3471,6 +3480,7 @@ module ApplicationTests
         Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
       RUBY
       app "development"
+
       assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
       assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
     end
@@ -3843,6 +3853,7 @@ module ApplicationTests
     test "logs a warning when running SQLite3 in production" do
       restore_sqlite3_warning
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       RUBY
       add_to_config "config.logger = MyLogRecorder.new"
@@ -3854,6 +3865,7 @@ module ApplicationTests
 
     test "doesn't log a warning when running SQLite3 in production and sqlite3_production_warning=false" do
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       RUBY
       add_to_config "config.logger = MyLogRecorder.new"
@@ -3868,6 +3880,7 @@ module ApplicationTests
       original_configurations = ActiveRecord::Base.configurations
       ActiveRecord::Base.configurations = { production: { db1: { adapter: "mysql2" } } }
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "mysql2")
       RUBY
       add_to_config "config.logger = MyLogRecorder.new"
@@ -3882,6 +3895,7 @@ module ApplicationTests
     test "doesn't log a warning when running SQLite3 in development" do
       restore_sqlite3_warning
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
       RUBY
       add_to_config "config.logger = MyLogRecorder.new"
@@ -4266,6 +4280,7 @@ module ApplicationTests
       original_configurations = ActiveRecord::Base.configurations
       ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "postgresql")
       RUBY
 
@@ -4280,6 +4295,7 @@ module ApplicationTests
       original_configurations = ActiveRecord::Base.configurations
       ActiveRecord::Base.configurations = { production: { db1: { adapter: "mysql2" } } }
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "mysql2")
       RUBY
 
@@ -4294,6 +4310,7 @@ module ApplicationTests
       original_configurations = ActiveRecord::Base.configurations
       ActiveRecord::Base.configurations = { production: { db1: { adapter: "postgresql" } } }
       app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.establish_connection(adapter: "postgresql")
       RUBY
       app_file "config/initializers/tz_aware_types.rb", <<~RUBY
