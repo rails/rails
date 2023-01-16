@@ -90,6 +90,8 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
+    INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all] # :nodoc:
+
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
@@ -98,7 +100,7 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       def attribute(*names)
-        invalid_attribute_names = names.map(&:to_sym) & [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all]
+        invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
         if invalid_attribute_names.any?
           raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
         end
