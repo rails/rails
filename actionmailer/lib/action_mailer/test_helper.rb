@@ -31,12 +31,34 @@ module ActionMailer
     #       ContactMailer.welcome.deliver_later
     #     end
     #   end
+    #
+    # If a block is passed, the method returns the +Mail::Message+s that were
+    # processed, enabling further analysis.
+    #
+    #   def test_emails_more_thoroughly
+    #     email = assert_emails 1 do
+    #       ContactMailer.welcome.deliver_now
+    #     end
+    #     assert_email "Hi there", email.subject
+    #
+    #     emails = assert_emails 2 do
+    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_later
+    #     end
+    #     assert_email "Hi there", emails.first.subject
+    #   end
     def assert_emails(number, &block)
       if block_given?
         original_count = ActionMailer::Base.deliveries.size
         perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, &block)
         new_count = ActionMailer::Base.deliveries.size
-        assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
+        diff = new_count - original_count
+        assert_equal number, diff, "#{number} emails expected, but #{diff} were sent"
+        if diff == 1
+          ActionMailer::Base.deliveries.last
+        else
+          ActionMailer::Base.deliveries.last(diff)
+        end
       else
         assert_equal number, ActionMailer::Base.deliveries.size
       end
