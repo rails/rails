@@ -1,3 +1,14 @@
+## Rails 6.1.7.1 (January 17, 2023) ##
+
+*   Avoid regex backtracking on If-None-Match header
+
+    [CVE-2023-22795]
+
+*   Use string#split instead of regex for domain parts
+
+    [CVE-2023-22792]
+
+
 ## Rails 6.1.7 (September 09, 2022) ##
 
 *   No changes.
