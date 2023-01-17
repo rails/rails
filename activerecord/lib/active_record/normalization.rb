@@ -91,9 +91,9 @@ module ActiveRecord # :nodoc:
       #     normalizes :email, with: -> email { email.strip.downcase }
       #   end
       #
-      #   User.normalize(:email, " CRUISE-CONTROL@EXAMPLE.COM\n")
+      #   User.normalize_value_for(:email, " CRUISE-CONTROL@EXAMPLE.COM\n")
       #   # => "cruise-control@example.com"
-      def normalize(name, value)
+      def normalize_value_for(name, value)
         type_for_attribute(name).cast(value)
       end
     end

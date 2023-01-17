@@ -49,7 +49,11 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
   end
 
   test "normalizes value without record" do
-    assert_equal "Titlecase Me", NormalizedAircraft.normalize(:name, "titlecase ME")
+    assert_equal "Titlecase Me", NormalizedAircraft.normalize_value_for(:name, "titlecase ME")
+  end
+
+  test "casts value when no normalization is declared" do
+    assert_equal 6, NormalizedAircraft.normalize_value_for(:wheels_count, "6")
   end
 
   test "casts value before applying normalization" do
@@ -58,7 +62,7 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
   end
 
   test "ignores nil by default" do
-    assert_nil NormalizedAircraft.normalize(:name, nil)
+    assert_nil NormalizedAircraft.normalize_value_for(:name, nil)
   end
 
   test "normalizes nil if apply_to_nil" do
@@ -66,7 +70,7 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
       normalizes :name, with: -> name { name&.titlecase || "Untitled" }, apply_to_nil: true
     end
 
-    assert_equal "Untitled", including_nil.normalize(:name, nil)
+    assert_equal "Untitled", including_nil.normalize_value_for(:name, nil)
   end
 
   test "does not automatically normalize value from database" do
@@ -84,8 +88,8 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
       normalizes :name, with: -> name { name.reverse }
     end
 
-    assert_equal "eM esreveR nehT esaceltiT", titlecase_then_reverse.normalize(:name, "titlecase THEN reverse ME")
-    assert_equal "Only Titlecase Me", NormalizedAircraft.normalize(:name, "ONLY titlecase ME")
+    assert_equal "esreveR nehT esaceltiT", titlecase_then_reverse.normalize_value_for(:name, "titlecase THEN reverse")
+    assert_equal "Only Titlecase", NormalizedAircraft.normalize_value_for(:name, "ONLY titlecase")
   end
 
   test "minimizes number of times normalization is applied" do
