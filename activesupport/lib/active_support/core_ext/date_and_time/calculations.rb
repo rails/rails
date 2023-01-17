@@ -73,6 +73,17 @@ module DateAndTime
       self > date_or_time
     end
 
+    # Returns true if the current date is also start of the month.
+    def is_start_of_month?
+      beginning_of_month.to_date == ::Date.current
+    end
+    alias :is_beginning_of_month? :is_start_of_month?
+
+    # Returns true if the current date is also end of the month.
+    def is_end_of_month?
+      end_of_month.to_date == ::Date.current
+    end
+
     # Returns a new date/time the specified number of days ago.
     def days_ago(days)
       advance(days: -days)
