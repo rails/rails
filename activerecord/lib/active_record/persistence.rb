@@ -1123,6 +1123,7 @@ module ActiveRecord
     def init_internals
       super
       @_trigger_destroy_callback = @_trigger_update_callback = nil
+      @previously_new_record = false
     end
 
     def strict_loaded_associations

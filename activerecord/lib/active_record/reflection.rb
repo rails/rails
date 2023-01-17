@@ -152,6 +152,14 @@ module ActiveRecord
     #     PolymorphicReflection
     #     RuntimeReflection
     class AbstractReflection # :nodoc:
+      def initialize
+        @class_name = nil
+        @counter_cache_column = nil
+        @inverse_of = nil
+        @inverse_which_updates_counter_cache_defined = false
+        @inverse_which_updates_counter_cache = nil
+      end
+
       def through_reflection?
         false
       end
@@ -260,10 +268,13 @@ module ActiveRecord
       #
       # Hence this method.
       def inverse_which_updates_counter_cache
-        return @inverse_which_updates_counter_cache if defined?(@inverse_which_updates_counter_cache)
-        @inverse_which_updates_counter_cache = klass.reflect_on_all_associations(:belongs_to).find do |inverse|
-          inverse.counter_cache_column == counter_cache_column
+        unless @inverse_which_updates_counter_cache_defined
+          @inverse_which_updates_counter_cache = klass.reflect_on_all_associations(:belongs_to).find do |inverse|
+            inverse.counter_cache_column == counter_cache_column
+          end
+          @inverse_which_updates_counter_cache_defined = true
         end
+        @inverse_which_updates_counter_cache
       end
       alias inverse_updates_counter_cache? inverse_which_updates_counter_cache
 
@@ -354,6 +365,7 @@ module ActiveRecord
       attr_reader :plural_name # :nodoc:
 
       def initialize(name, scope, options, active_record)
+        super()
         @name          = name
         @scope         = scope
         @options       = options
@@ -457,6 +469,10 @@ module ActiveRecord
         super
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
         @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
+        @join_table = nil
+        @foreign_key = nil
+        @association_foreign_key = nil
+        @association_primary_key = nil
 
         ensure_option_not_given_as_class!(:class_name)
       end
@@ -788,6 +804,7 @@ module ActiveRecord
                :active_record_primary_key, :join_foreign_key, to: :source_reflection
 
       def initialize(delegate_reflection)
+        super()
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
@@ -921,24 +938,23 @@ module ActiveRecord
       end
 
       def source_reflection_name # :nodoc:
-        return @source_reflection_name if @source_reflection_name
+        @source_reflection_name ||= begin
+          names = [name.to_s.singularize, name].collect(&:to_sym).uniq
+          names = names.find_all { |n|
+            through_reflection.klass._reflect_on_association(n)
+          }
 
-        names = [name.to_s.singularize, name].collect(&:to_sym).uniq
-        names = names.find_all { |n|
-          through_reflection.klass._reflect_on_association(n)
-        }
-
-        if names.length > 1
-          raise AmbiguousSourceReflectionForThroughAssociation.new(
-            active_record.name,
-            macro,
-            name,
-            options,
-            source_reflection_names
-          )
+          if names.length > 1
+            raise AmbiguousSourceReflectionForThroughAssociation.new(
+              active_record.name,
+              macro,
+              name,
+              options,
+              source_reflection_names
+            )
+          end
+          names.first
         end
-
-        @source_reflection_name = names.first
       end
 
       def source_options
@@ -1042,6 +1058,7 @@ module ActiveRecord
                :name, :scope_for, to: :@reflection
 
       def initialize(reflection, previous_reflection)
+        super()
         @reflection = reflection
         @previous_reflection = previous_reflection
       end
@@ -1067,6 +1084,7 @@ module ActiveRecord
       delegate :scope, :type, :constraints, :join_foreign_key, to: :@reflection
 
       def initialize(reflection, association)
+        super()
         @reflection = reflection
         @association = association
       end

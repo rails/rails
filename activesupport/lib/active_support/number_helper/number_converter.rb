@@ -121,7 +121,8 @@ module ActiveSupport
 
       def initialize(number, options)
         @number = number
-        @opts   = options.symbolize_keys
+        @opts = options.symbolize_keys
+        @options = nil
       end
 
       def execute

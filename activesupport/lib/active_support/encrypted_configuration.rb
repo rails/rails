@@ -46,6 +46,8 @@ module ActiveSupport
     def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
       super content_path: config_path, key_path: key_path,
         env_key: env_key, raise_if_missing_key: raise_if_missing_key
+      @config = nil
+      @options = nil
     end
 
     # Reads the file and returns the decrypted content. See EncryptedFile#read.

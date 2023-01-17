@@ -370,7 +370,9 @@ module ActiveRecord
 
       def init_internals
         super
+        @_start_transaction_state = nil
         @_committed_already_called = nil
+        @_new_record_before_last_commit = nil
       end
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
