@@ -1,3 +1,33 @@
+## Rails 6.1.7.1 (January 17, 2023) ##
+
+*   Make sanitize_as_sql_comment more strict
+
+    Though this method was likely never meant to take user input, it was
+    attempting sanitization. That sanitization could be bypassed with
+    carefully crafted input.
+
+    This commit makes the sanitization more robust by replacing any
+    occurrances of "/*" or "*/" with "/ *" or "* /". It also performs a
+    first pass to remove one surrounding comment to avoid compatibility
+    issues for users relying on the existing removal.
+
+    This also clarifies in the documentation of annotate that it should not
+    be provided user input.
+
+    [CVE-2023-22794]
+
+*   Added integer width check to PostgreSQL::Quoting
+
+    Given a value outside the range for a 64bit signed integer type
+    PostgreSQL will treat the column type as numeric. Comparing
+    integer values against numeric values can result in a slow
+    sequential scan.
+
+    This behavior is configurable via
+    ActiveRecord::Base.raise_int_wider_than_64bit which defaults to true.
+
+    [CVE-2022-44566]
+
 ## Rails 6.1.7 (September 09, 2022) ##
 
 *   Symbol is allowed by default for YAML columns
