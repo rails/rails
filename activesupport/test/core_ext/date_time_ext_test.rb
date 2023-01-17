@@ -557,4 +557,22 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, DateTime.civil(2000).subsec
     assert_equal Rational(1, 2), DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 2)).subsec
   end
+
+  def test_is_start_of_month
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).is_start_of_month?
+      assert_equal true,  DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-18000, 86400)).is_start_of_month?
+      assert_equal true,  DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).is_start_of_month?
+      assert_equal false, DateTime.civil(2000, 1, 2, 0, 0, 0, Rational(-18000, 86400)).is_start_of_month?
+    end
+  end
+
+  def test_is_end_of_month
+    Date.stub(:current, Date.new(2000, 1, 31)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).is_end_of_month?
+      assert_equal true,  DateTime.civil(2000, 1, 31, 0, 0, 0, Rational(-18000, 86400)).is_end_of_month?
+      assert_equal true,  DateTime.civil(2000, 1, 31, 23, 59, 59, Rational(-18000, 86400)).is_end_of_month?
+      assert_equal false, DateTime.civil(2000, 1, 30, 0, 0, 0, Rational(-18000, 86400)).is_end_of_month?
+    end
+  end
 end
