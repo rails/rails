@@ -80,7 +80,7 @@ module Enumerable
     # empty Enumerable; checking `empty?` would return
     # true for `[nil]`, which we want to deprecate to
     # keep consistent with Ruby
-    elsif first.is_a?(Numeric) || first(1) == []
+    elsif first.is_a?(Numeric) || first(1) == [] || first.respond_to?(:coerce)
       identity ||= 0
       _original_sum_with_required_identity(identity, &block)
     else
