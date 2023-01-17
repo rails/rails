@@ -30,7 +30,7 @@ class Mysql2OptimizerHintsTest < ActiveRecord::Mysql2TestCase
         assert_includes posts.explain, "| index | index_posts_on_author_id | index_posts_on_author_id |"
       end
 
-      assert_sql(%r{\ASELECT /\*\+  `posts`\.\*,  \*/}) do
+      assert_sql(%r{\ASELECT /\*\+ \*\* // `posts`\.\*, // \*\* \*/}) do
         posts = Post.optimizer_hints("**// `posts`.*, //**")
         posts = posts.select(:id).where(author_id: [0, 1])
         assert_equal({ "id" => 1 }, posts.first.as_json)
