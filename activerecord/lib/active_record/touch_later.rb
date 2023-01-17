@@ -46,6 +46,11 @@ module ActiveRecord
     end
 
     private
+      def init_internals
+        super
+        @_defer_touch_attrs = nil
+      end
+
       def surreptitiously_touch(attr_names)
         attr_names.each do |attr_name|
           _write_attribute(attr_name, @_touch_time)

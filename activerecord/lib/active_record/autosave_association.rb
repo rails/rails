@@ -154,13 +154,6 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
-        def inherited(base)
-          super
-          base.class_eval do
-            @_already_called = nil
-          end
-        end
-
         def define_non_cyclic_method(name, &block)
           return if method_defined?(name, false)
 
@@ -280,6 +273,11 @@ module ActiveRecord
     end
 
     private
+      def init_internals
+        super
+        @_already_called = nil
+      end
+
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.

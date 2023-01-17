@@ -137,6 +137,17 @@ module ActionController
       false
     end
 
+    class << self
+      private
+        def inherited(subclass)
+          super
+          subclass.middleware_stack = middleware_stack.dup
+          subclass.class_eval do
+            @controller_name = nil
+          end
+        end
+    end
+
     # Delegates to the class's ::controller_name.
     def controller_name
       self.class.controller_name
@@ -166,7 +177,9 @@ module ActionController
     def initialize
       @_request = nil
       @_response = nil
+      @_response_body = nil
       @_routes = nil
+      @_params = nil
       super
     end
 
@@ -239,11 +252,6 @@ module ActionController
     end
 
     class_attribute :middleware_stack, default: ActionController::MiddlewareStack.new
-
-    def self.inherited(base) # :nodoc:
-      base.middleware_stack = middleware_stack.dup
-      super
-    end
 
     class << self
       # Pushes the given Rack middleware and its arguments to the bottom of the

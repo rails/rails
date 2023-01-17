@@ -433,6 +433,7 @@ module ActiveModel
   private
     def init_internals
       super
+      @errors = nil
       @validation_context = nil
     end
 
