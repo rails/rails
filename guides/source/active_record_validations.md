@@ -1108,6 +1108,8 @@ irb> person.errors.messages
 => {:email=>["has already been taken"], :age=>["is not a number"], :name=>["can't be blank"]}
 ```
 
+We will cover more use-cases for `on:` in the [callbacks guide](active_record_callbacks.html).
+
 Strict Validations
 ------------------
 
