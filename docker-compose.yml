@@ -95,11 +95,6 @@ services:
       - memcached
       - chrome
 
-  actiontext:
-    <<: *default
-    depends_on:
-      - chrome
-
   memcached:
     image: memcached:alpine
 
