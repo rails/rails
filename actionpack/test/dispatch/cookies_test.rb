@@ -259,7 +259,7 @@ class CookiesTest < ActionController::TestCase
 
     def set_cookie_with_domain_and_longer_tld
       cookies[:user_name] = { value: "rizwanreza", domain: :all, tld_length: 4 }
-      head :ok 
+      head :ok
     end
 
     def delete_cookie_with_domain_and_tld
