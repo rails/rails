@@ -23,9 +23,9 @@ class EnumerableTests < ActiveSupport::TestCase
       Money.new(value + other.value)
     end
 
-   def coerce(other)
-     [Money.new(other), self]
-   end
+    def coerce(other)
+      [Money.new(other), self]
+    end
 
     def ==(other)
       other.value == value
