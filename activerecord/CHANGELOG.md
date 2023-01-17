@@ -1,3 +1,7 @@
+*   Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_record.partial_writes`.
 
     *Rafael Mendonça França*

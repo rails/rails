@@ -421,16 +421,6 @@ module ActiveRecord
         end
       end
 
-      def schema_file_type(format = ActiveRecord.schema_format)
-        case format
-        when :ruby
-          "schema.rb"
-        when :sql
-          "structure.sql"
-        end
-      end
-      deprecate :schema_file_type, deprecator: ActiveRecord.deprecator
-
       def schema_dump_path(db_config, format = ActiveRecord.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]
 

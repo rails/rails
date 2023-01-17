@@ -103,6 +103,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `config.active_record.partial_writes`.
 
+*   Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
+
 ### Deprecations
 
 ### Notable changes
