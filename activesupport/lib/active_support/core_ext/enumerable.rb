@@ -25,18 +25,6 @@ module Enumerable
   ActiveSupport::EnumerableCoreExt::SoleItemExpectedError = remove_const(:SoleItemExpectedError)
   singleton_class.prepend(ActiveSupport::EnumerableCoreExt::Constants)
 
-  # Enumerable#sum was added in Ruby 2.4, but it only works with Numeric elements
-  # when we omit an identity.
-
-  # :stopdoc:
-
-  # We can't use Refinements here because Refinements with Module which will be prepended
-  # doesn't work well https://bugs.ruby-lang.org/issues/13446
-  alias :_original_sum_with_required_identity :sum
-  private :_original_sum_with_required_identity
-
-  # :startdoc:
-
   # Calculates the minimum from the extracted elements.
   #
   #   payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
@@ -51,45 +39,6 @@ module Enumerable
   #   payments.maximum(:price) # => 15
   def maximum(key)
     map(&key).max
-  end
-
-  # Calculates a sum from the elements.
-  #
-  #   payments.sum { |p| p.price * p.tax_rate }
-  #   payments.sum(&:price)
-  #
-  # The latter is a shortcut for:
-  #
-  #   payments.inject(0) { |sum, p| sum + p.price }
-  #
-  # It can also calculate the sum without the use of a block.
-  #
-  #   [5, 15, 10].sum # => 30
-  #   ['foo', 'bar'].sum('') # => "foobar"
-  #   [[1, 2], [3, 1, 5]].sum([]) # => [1, 2, 3, 1, 5]
-  #
-  # The default sum of an empty list is zero. You can override this default:
-  #
-  #   [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  def sum(identity = nil, &block)
-    if identity
-      _original_sum_with_required_identity(identity, &block)
-    elsif block_given?
-      map(&block).sum
-    # we check `first(1) == []` to check if we have an
-    # empty Enumerable; checking `empty?` would return
-    # true for `[nil]`, which we want to deprecate to
-    # keep consistent with Ruby
-    elsif first.is_a?(Numeric) || first(1) == [] || first.respond_to?(:coerce)
-      identity ||= 0
-      _original_sum_with_required_identity(identity, &block)
-    else
-      ActiveSupport.deprecator.warn(<<-MSG.squish)
-        Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
-        Sum of non-numeric elements requires an initial argument.
-      MSG
-      inject(:+) || 0
-    end
   end
 
   # Convert an enumerable to a hash, using the block result as the key and the
@@ -284,38 +233,22 @@ end
 class Range # :nodoc:
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
-  def sum(identity = nil)
+  def sum(initial_value = 0)
     if block_given? || !(first.is_a?(Integer) && last.is_a?(Integer))
       super
     else
       actual_last = exclude_end? ? (last - 1) : last
       if actual_last >= first
-        sum = identity || 0
+        sum = initial_value || 0
         sum + (actual_last - first + 1) * (actual_last + first) / 2
       else
-        identity || 0
+        initial_value || 0
       end
     end
   end
 end
 
-# Using Refinements here in order not to expose our internal method
-using Module.new {
-  refine Array do
-    alias :orig_sum :sum
-  end
-}
-
 class Array # :nodoc:
-  def sum(init = nil, &block)
-    if init.is_a?(Numeric) || first.is_a?(Numeric)
-      init ||= 0
-      orig_sum(init, &block)
-    else
-      super
-    end
-  end
-
   # Removes all blank elements from the +Array+ in place and returns self.
   # Uses Object#blank? for determining if an item is blank.
   #

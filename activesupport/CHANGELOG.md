@@ -1,3 +1,7 @@
+*   Remove deprecated override of `Enumerable#sum`.
+
+    *Rafael Mendonça França*
+
 *   Deprecated initializing a `ActiveSupport::Cache::MemCacheStore` with an instance of `Dalli::Client`.
 
     Deprecate the undocumented option of providing an already-initialized instance of `Dalli::Client` to `ActiveSupport::Cache::MemCacheStore`. Such clients could be configured with unrecognized options, which could lead to unexpected behavior. Instead, provide addresses as documented.

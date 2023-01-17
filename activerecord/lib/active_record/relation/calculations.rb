@@ -143,24 +143,11 @@ module ActiveRecord
     # #calculate for examples with options.
     #
     #   Person.sum(:age) # => 4562
-    def sum(identity_or_column = nil, &block)
+    def sum(initial_value_or_column = 0, &block)
       if block_given?
-        values = map(&block)
-        if identity_or_column.nil? && (values.first.is_a?(Numeric) || values.first(1) == [] || values.first.respond_to?(:coerce))
-          identity_or_column = 0
-        end
-
-        if identity_or_column.nil?
-          ActiveRecord.deprecator.warn(<<-MSG.squish)
-            Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
-            Sum of non-numeric elements requires an initial argument.
-          MSG
-          values.inject(:+) || 0
-        else
-          values.sum(identity_or_column)
-        end
+        map(&block).sum(initial_value_or_column)
       else
-        calculate(:sum, identity_or_column)
+        calculate(:sum, initial_value_or_column)
       end
     end
 

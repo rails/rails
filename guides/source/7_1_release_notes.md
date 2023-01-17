@@ -136,6 +136,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated override of `Enumerable#sum`.
+
 ### Deprecations
 
 ### Notable changes
