@@ -1,3 +1,8 @@
+## Rails 7.0.4.1 (January 17, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.0.4 (September 09, 2022) ##
 
 *   Handle name clashes in attribute methods code generation cache.

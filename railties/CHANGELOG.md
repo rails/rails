@@ -9,6 +9,10 @@
 
     *Tony Drake*
 
+## Rails 7.0.4.1 (January 17, 2023) ##
+
+*   No changes.
+
 
 ## Rails 7.0.4 (September 09, 2022) ##
 
