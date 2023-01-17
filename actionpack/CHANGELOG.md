@@ -1,3 +1,21 @@
+## Rails 7.0.4.1 (January 17, 2023) ##
+
+*   Fix sec issue with _url_host_allowed?
+
+    Disallow certain strings from `_url_host_allowed?` to avoid a redirect
+    to malicious sites.
+
+    [CVE-2023-22797]
+
+*   Avoid regex backtracking on If-None-Match header
+
+    [CVE-2023-22795]
+
+*   Use string#split instead of regex for domain parts
+
+    [CVE-2023-22792]
+
+
 ## Rails 7.0.4 (September 09, 2022) ##
 
 *   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.

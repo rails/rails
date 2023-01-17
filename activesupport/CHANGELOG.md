@@ -1,3 +1,10 @@
+## Rails 7.0.4.1 (January 17, 2023) ##
+
+*   Avoid regex backtracking in Inflector.underscore
+
+    [CVE-2023-22796]
+
+
 ## Rails 7.0.4 (September 09, 2022) ##
 
 *   Redis cache store is now compatible with redis-rb 5.0.
