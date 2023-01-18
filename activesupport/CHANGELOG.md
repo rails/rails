@@ -535,7 +535,7 @@
     Time.zone.today.is_start_of_month?
     Date.current.is_start_of_month?
 
-    Time.zone.today.is_beginning_of_month?    
+    Time.zone.today.is_beginning_of_month?
     Date.current.is_beginning_of_month?
 
     Time.zone.today.is_end_of_month?
