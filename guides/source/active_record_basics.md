@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to use Active Record models to manipulate data stored in a relational
   database.
 * Active Record schema naming conventions.
-* The concepts of database migrations, validations, and callbacks.
+* The concepts of database migrations, validations, callbacks, and associations.
 
 --------------------------------------------------------------------------------
 
