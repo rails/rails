@@ -25,6 +25,11 @@ module ActionController
 
     include AbstractController::UrlFor
 
+    def initialize(...)
+      super
+      @_url_options = nil
+    end
+
     def url_options
       @_url_options ||= {
         host: request.host,
