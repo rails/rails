@@ -53,10 +53,13 @@ WARNING: Before you install and use third-party software, make sure you understa
 
 ## Setup
 
-Active Storage uses three tables in your application’s database named
+```bash
+$ bin/rails active_storage:install
+$ bin/rails db:migrate
+```
+
+This sets up configuration, and creates the three tables Active Storage uses:
 `active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
-Run `bin/rails active_storage:install` to generate a migration that creates
-these tables. Use `bin/rails db:migrate` to run the migration.
 
 | Table      | Purpose |
 | ------------------- | ----- |
