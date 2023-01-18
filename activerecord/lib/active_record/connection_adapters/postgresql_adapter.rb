@@ -312,6 +312,7 @@ module ActiveRecord
         @max_identifier_length = nil
         @type_map = nil
         @raw_connection = nil
+        @notice_receiver_sql_warnings = []
 
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -942,6 +943,13 @@ module ActiveRecord
           end
           self.client_min_messages = @config[:min_messages] || "warning"
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
+
+          @raw_connection.set_notice_receiver do |result|
+            message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
+            code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
+            level = result.error_field(PG::Result::PG_DIAG_SEVERITY)
+            @notice_receiver_sql_warnings << SQLWarning.new(message, code, level)
+          end
 
           # Use standard-conforming strings so we don't have to do the E'...' dance.
           set_standard_conforming_strings

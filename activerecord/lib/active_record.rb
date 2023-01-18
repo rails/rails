@@ -197,6 +197,39 @@ module ActiveRecord
 
   self.default_timezone = :utc
 
+  # The action to take when database query produces warning.
+  # Must be one of :ignore, :log, :raise, :report, or a custom proc.
+  # The default is :ignore.
+  singleton_class.attr_reader :db_warnings_action
+
+  def self.db_warnings_action=(action)
+    @db_warnings_action =
+      case action
+      when :ignore
+        nil
+      when :log
+        ->(warning) do
+          warning_message = "[#{warning.class}] #{warning.message}"
+          warning_message += " (#{warning.code})" if warning.code
+          ActiveRecord::Base.logger.warn(warning_message)
+        end
+      when :raise
+        ->(warning) { raise warning }
+      when :report
+        ->(warning) { Rails.error.report(warning, handled: true) }
+      when Proc
+        action
+      else
+        raise ArgumentError, "db_warnings_action must be one of :ignore, :log, :raise, :report, or a custom proc."
+      end
+  end
+
+  self.db_warnings_action = :ignore
+
+  # Specify allowlist of database warnings.
+  singleton_class.attr_accessor :db_warnings_ignore
+  self.db_warnings_ignore = []
+
   singleton_class.attr_accessor :writing_role
   self.writing_role = :writing
 
