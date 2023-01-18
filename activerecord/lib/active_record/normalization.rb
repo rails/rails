@@ -72,7 +72,7 @@ module ActiveRecord # :nodoc:
       #   User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
       #   User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
       #
-      #   User.normalize(:phone, "+1 (555) 867-5309") # => "5558675309"
+      #   User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
       def normalizes(*names, with:, apply_to_nil: false)
         names.each do |name|
           attribute(name) do |cast_type|
