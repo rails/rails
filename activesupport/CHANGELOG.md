@@ -530,4 +530,17 @@
 
     *Jean Boussier*
 
+*   New methods to check if current date is start of month or end of month, returns boolean.
+    ```
+    Time.zone.today.is_start_of_month?
+    Date.current.is_start_of_month?
+
+    Time.zone.today.is_beginning_of_month?    
+    Date.current.is_beginning_of_month?
+
+    Time.zone.today.is_end_of_month?
+    Date.current.is_end_of_month?
+    ```
+    *lordstingray*
+
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activesupport/CHANGELOG.md) for previous changes.
