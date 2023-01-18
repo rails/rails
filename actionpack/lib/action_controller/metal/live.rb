@@ -321,7 +321,7 @@ module ActionController
     def send_stream(filename:, disposition: "attachment", type: nil)
       response.headers["Content-Type"] =
         (type.is_a?(Symbol) ? Mime[type].to_s : type) ||
-        Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete(".")) ||
+        Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete("."))&.to_s ||
         "application/octet-stream"
 
       response.headers["Content-Disposition"] =
