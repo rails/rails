@@ -1,3 +1,9 @@
+*   `ActiveRecord::Base#signed_id` raises if called on a new record
+
+    Previously it would return an ID that was not usable, since it was based on `id = nil`.
+
+    *Alex Ghiculescu*
+
 *   Allow SQL warnings to be reported.
 
     Active Record configs can be set to enable SQL warning reporting.

@@ -110,6 +110,8 @@ module ActiveRecord
     # And you then change your +find_signed+ calls to require this new purpose. Any old signed ids that were not
     # created with the purpose will no longer find the record.
     def signed_id(expires_in: nil, expires_at: nil, purpose: nil)
+      raise ArgumentError, "Cannot get a signed_id for a new record" if new_record?
+
       self.class.signed_id_verifier.generate id, expires_in: expires_in, expires_at: expires_at, purpose: self.class.combine_signed_id_purposes(purpose)
     end
   end
