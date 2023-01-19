@@ -89,11 +89,6 @@ module Rails
         desc: "Specifies the database to use."
 
       def perform
-        extract_environment_option_from_argument
-
-        # RAILS_ENV needs to be set before config/application is required.
-        ENV["RAILS_ENV"] = options[:environment]
-
         require_application_and_environment!
         Rails::DBConsole.start(options)
       end

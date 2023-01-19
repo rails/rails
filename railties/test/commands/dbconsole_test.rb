@@ -246,21 +246,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args)
-      Rails::Command::DbconsoleCommand.class_eval do
-        alias_method :old_perform, :perform
-        define_method(:perform) do
-          extract_environment_option_from_argument
-
-          options
-        end
-      end
-
-      Rails::Command.invoke(:dbconsole, args)
-    ensure
-      Rails::Command::DbconsoleCommand.class_eval do
-        undef_method :perform
-        alias_method :perform, :old_perform
-        undef_method :old_perform
-      end
+      Rails::Command::DbconsoleCommand.new([], args).options
     end
 end
