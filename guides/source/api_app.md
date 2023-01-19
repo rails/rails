@@ -234,13 +234,16 @@ You can get a list of all middleware in your application via:
 $ bin/rails middleware
 ```
 
-### Using the Cache Middleware
+### Using Rack::Cache
 
-By default, Rails will add a middleware that provides a cache store based on
-the configuration of your application (memcache by default). This means that
-the built-in HTTP cache will rely on it.
+When used with Rails, `Rack::Cache` uses the Rails cache store for its
+entity and meta stores. This means that if you use memcache, for your
+Rails app, for instance, the built-in HTTP cache will use memcache.
 
-For instance, using the `stale?` method:
+To make use of `Rack::Cache`, you first need to add the `rack-cache` gem
+to `Gemfile`, and set `config.action_dispatch.rack_cache` to `true`.
+To enable its functionality, you will want to use `stale?` in your
+controller. Here’s an example of `stale?` in use.
 
 ```ruby
 def show
@@ -257,7 +260,7 @@ with `@post.updated_at`. If the header is newer than the last modified, this
 action will return a "304 Not Modified" response. Otherwise, it will render the
 response and include a `Last-Modified` header in it.
 
-Normally, this mechanism is used on a per-client basis. The cache middleware
+Normally, this mechanism is used on a per-client basis. `Rack::Cache`
 allows us to share this caching mechanism across clients. We can enable
 cross-client caching in the call to `stale?`:
 
@@ -271,7 +274,7 @@ def show
 end
 ```
 
-This means that the cache middleware will store off the `Last-Modified` value
+This means that `Rack::Cache` will store off the `Last-Modified` value
 for a URL in the Rails cache, and add an `If-Modified-Since` header to any
 subsequent inbound requests for the same URL.
 
