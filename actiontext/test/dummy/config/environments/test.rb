@@ -41,7 +41,7 @@ Rails.application.configure do
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
-  # Raises error for missing translations
+  # Raises error for missing translations in controllers and views.
   # config.i18n.raise_on_missing_translations = true
 
   # Annotate rendered view with file names
