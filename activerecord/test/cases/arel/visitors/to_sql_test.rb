@@ -768,6 +768,20 @@ module Arel
           }
         end
       end
+
+      describe "Nodes::Fragments" do
+        it "joins subexpressions" do
+          sql = Arel.sql("SELECT foo, bar") + Arel.sql(" FROM customers")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers"
+        end
+
+        it "can be built by adding SQL fragments one at a time" do
+          sql = Arel.sql("SELECT foo, bar")
+          sql += Arel.sql("FROM customers")
+          sql += Arel.sql("GROUP BY foo")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers GROUP BY foo"
+        end
+      end
     end
   end
 end

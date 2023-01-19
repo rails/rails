@@ -791,6 +791,10 @@ module Arel # :nodoc: all
         end
         alias :visit_Set :visit_Array
 
+        def visit_Arel_Nodes_Fragments(o, collector)
+          inject_join o.values, collector, " "
+        end
+
         def quote(value)
           return value if Arel::Nodes::SqlLiteral === value
           @connection.quote value
