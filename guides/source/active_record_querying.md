@@ -44,7 +44,7 @@ class Book < ApplicationRecord
 
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
-  scope :old, -> { where('year_published < ?', 50.years.ago )}
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
   scope :out_of_print_and_expensive, -> { out_of_print.where('price > 500') }
   scope :costs_more_than, ->(amount) { where('price > ?', amount) }
 end
@@ -64,7 +64,7 @@ class Order < ApplicationRecord
 
   enum :status, [:shipped, :being_packed, :complete, :cancelled]
 
-  scope :created_before, ->(time) { where('created_at < ?', time) }
+  scope :created_before, ->(time) { where(created_at: ...time) }
 end
 ```
 
@@ -1710,7 +1710,7 @@ Your scope can utilize conditionals:
 
 ```ruby
 class Order < ApplicationRecord
-  scope :created_before, ->(time) { where("created_at < ?", time) if time.present? }
+  scope :created_before, ->(time) { where(created_at: ...time) if time.present? }
 end
 ```
 
@@ -1719,7 +1719,7 @@ Like the other examples, this will behave similarly to a class method.
 ```ruby
 class Order < ApplicationRecord
   def self.created_before(time)
-    where("created_at < ?", time) if time.present?
+    where(created_at: ...time) if time.present?
   end
 end
 ```
@@ -1797,8 +1797,8 @@ class Book < ApplicationRecord
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
 
-  scope :recent, -> { where('year_published >= ?', Date.current.year - 50 )}
-  scope :old, -> { where('year_published < ?', Date.current.year - 50 )}
+  scope :recent, -> { where(year_published: 50.years.ago.year..) }
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
 end
 ```
 
@@ -1811,7 +1811,7 @@ We can mix and match `scope` and `where` conditions and the final SQL
 will have all conditions joined with `AND`.
 
 ```irb
-irb> Book.in_print.where('price < 100')
+irb> Book.in_print.where(price: ...100)
 SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
 ```
 
@@ -1828,7 +1828,7 @@ One important caveat is that `default_scope` will be prepended in
 
 ```ruby
 class Book < ApplicationRecord
-  default_scope { where('year_published >= ?', Date.current.year - 50 )}
+  default_scope { where(year_published: 50.years.ago.year..) }
 
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
