@@ -4,7 +4,7 @@
 #
 # Rails comes with a built-in health check endpoint that is reachable at the
 # `/up` path. This endpoint will return a 200 if the app has booted with no
-# exceptions, otherwise a 500 status code will be returned.
+# exceptions, otherwise a 503 status code will be returned.
 #
 # In production, many services are required to report their status upstream,
 # whether it's to an uptime monitor that will page an engineer when things go
@@ -42,7 +42,7 @@ class Rails::HealthController < ActionController::Base
     end
 
     def render_down
-      render html: html_status(color: "red"), status: 500
+      render html: html_status(color: "red"), status: :service_unavailable
     end
 
     def html_status(color:)

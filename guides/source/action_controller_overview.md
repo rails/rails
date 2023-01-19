@@ -1289,7 +1289,7 @@ via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware
 Built-in Health Check Endpoint
 ------------------------------
 
-Rails also comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
+Rails also comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 503 status code otherwise.
 
 In production, many services are required to report their status upstream, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine a pod's health. This health check is designed to be a one-size fits all that will work in many situations.
 
