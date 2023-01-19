@@ -73,9 +73,7 @@ module Rails
         @content_security_policy_nonce_directives = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
-        @credentials                             = ActiveSupport::OrderedOptions.new
-        @credentials.content_path                = default_credentials_content_path
-        @credentials.key_path                    = default_credentials_key_path
+        @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
@@ -539,24 +537,14 @@ module Rails
       end
 
       private
-        def default_credentials_content_path
-          if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.yml.enc")
-          else
-            root.join("config", "credentials.yml.enc")
-          end
-        end
+        def credentials_defaults
+          content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
+          content_path = root.join("config/credentials.yml.enc") if !content_path.exist?
 
-        def default_credentials_key_path
-          if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.key")
-          else
-            root.join("config", "master.key")
-          end
-        end
+          key_path = root.join("config/credentials/#{Rails.env}.key")
+          key_path = root.join("config/master.key") if !key_path.exist?
 
-        def credentials_available_for_current_env?
-          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
+          { content_path: content_path, key_path: key_path }
         end
     end
   end
