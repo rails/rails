@@ -457,6 +457,39 @@ module CookieAssertions
   end
 end
 
+module HeadersAssertions
+  def normalize_headers(headers)
+    headers.transform_keys(&:downcase)
+  end
+
+  def assert_headers(expected, actual = @response.headers)
+    actual = normalize_headers(actual)
+    expected.each do |key, value|
+      assert_equal value, actual[key]
+    end
+  end
+
+  def assert_header(key, value, actual = @response.headers)
+    actual = normalize_headers(actual)
+    assert_equal value, actual[key]
+  end
+
+  def assert_not_header(key, actual = @response.headers)
+    actual = normalize_headers(actual)
+    assert_not_includes(actual, key)
+  end
+
+  # This works for most headers, but not all, e.g. `set-cookie`.
+  def normalized_join_header(header)
+    header.is_a?(Array) ? header.join(",") : header
+  end
+
+  def assert_header_value(expected, header)
+    header = normalized_join_header(header)
+    assert_equal header, expected
+  end
+end
+
 class DrivenByRackTest < ActionDispatch::SystemTestCase
   driven_by :rack_test
 end
