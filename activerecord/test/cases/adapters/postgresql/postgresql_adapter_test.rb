@@ -78,6 +78,18 @@ module ActiveRecord
         end
       end
 
+      def test_bad_connection_to_postgres_database
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, 'FATAL:  database "postgres" does not exist') }
+        PG.stub(:connect, connect_raises_error) do
+          assert_raises ActiveRecord::ConnectionNotEstablished do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+            configuration = db_config.configuration_hash.merge(database: "postgres")
+            connection = ActiveRecord::Base.postgresql_connection(configuration)
+            connection.exec_query("SELECT 1")
+          end
+        end
+      end
+
       def test_database_exists_returns_false_when_the_database_does_not_exist
         config = { database: "non_extant_database", adapter: "postgresql" }
         assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
