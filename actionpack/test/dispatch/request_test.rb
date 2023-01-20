@@ -643,30 +643,32 @@ class RequestParamsParsing < BaseRequestTest
   end
 end
 
-class RequestRewind < BaseRequestTest
-  test "body should be rewound" do
-    data = "rewind"
-    env = {
-      "rack.input" => StringIO.new(data),
-      "CONTENT_LENGTH" => data.length,
-      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
-    }
+if Rack.release < "3"
+  class RequestRewind < BaseRequestTest
+    test "body should be rewound" do
+      data = "rewind"
+      env = {
+        "rack.input" => StringIO.new(data),
+        "CONTENT_LENGTH" => data.length,
+        "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
+      }
 
-    # Read the request body by parsing params.
-    request = stub_request(env)
-    request.request_parameters
+      # Read the request body by parsing params.
+      request = stub_request(env)
+      request.request_parameters
 
-    # Should have rewound the body.
-    assert_equal 0, request.body.pos
-  end
+      # Should have rewound the body.
+      assert_equal 0, request.body.pos
+    end
 
-  test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
-    request = stub_request(
-      "rack.input" => StringIO.new("raw"),
-      "CONTENT_LENGTH" => 3
-    )
-    assert_equal "raw", request.raw_post
-    assert_equal "raw", request.env["rack.input"].read
+    test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
+      request = stub_request(
+        "rack.input" => StringIO.new("raw"),
+        "CONTENT_LENGTH" => 3
+      )
+      assert_equal "raw", request.raw_post
+      assert_equal "raw", request.env["rack.input"].read
+    end
   end
 end
 
