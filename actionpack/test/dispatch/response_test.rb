@@ -423,14 +423,12 @@ class ResponseHeadersTest < ActiveSupport::TestCase
 
   test "has_header?" do
     assert @response.has_header? "Foo"
-    assert_not @response.has_header? "foo"
-    assert_not @response.has_header? nil
+    assert @response.has_header? "foo"
   end
 
   test "get_header" do
     assert_equal "1", @response.get_header("Foo")
-    assert_nil @response.get_header("foo")
-    assert_nil @response.get_header(nil)
+    assert_equal "1", @response.get_header("foo")
   end
 
   test "set_header" do
@@ -444,11 +442,6 @@ class ResponseHeadersTest < ActiveSupport::TestCase
   end
 
   test "delete_header" do
-    assert_nil @response.delete_header(nil)
-
-    assert_nil @response.delete_header("foo")
-    assert @response.has_header?("Foo")
-
     assert_equal "1", @response.delete_header("Foo")
     assert_not @response.has_header?("Foo")
   end
