@@ -772,10 +772,11 @@ module Arel # :nodoc: all
                 if value.empty?
                   collector << @connection.quote(nil)
                 else
-                  collector.add_binds(value, &bind_block)
+                  values = value.map { |v| @connection.cast_bound_value(v) }
+                  collector.add_binds(values, &bind_block)
                 end
               else
-                collector.add_bind(value, &bind_block)
+                collector.add_bind(@connection.cast_bound_value(value), &bind_block)
               end
             end
           end

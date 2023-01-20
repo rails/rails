@@ -6,6 +6,26 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
+        def cast_bound_value(value)
+          case value
+          when Rational
+            value.to_f.to_s
+          when Numeric
+            value.to_s
+          when BigDecimal
+            value.to_s("F")
+          when true
+            "1"
+          when false
+            "0"
+          when ActiveSupport::Duration
+            warn_quote_duration_deprecated
+            value.to_s
+          else
+            value
+          end
+        end
+
         def quote_bound_value(value)
           case value
           when Rational

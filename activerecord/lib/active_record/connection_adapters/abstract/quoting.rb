@@ -54,6 +54,10 @@ module ActiveRecord
         quote(value)
       end
 
+      def cast_bound_value(value)
+        value
+      end
+
       # If you are having to call this function, you are likely doing something
       # wrong. The column does not have sufficient type information if the user
       # provided a custom type on the class level either explicitly (via
