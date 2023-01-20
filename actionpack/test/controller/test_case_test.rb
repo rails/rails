@@ -236,10 +236,10 @@ class TestCaseTest < ActionController::TestCase
   end
 
   def test_raw_post_handling
-    params = Hash[:page, { name: "page name" }, "some key", 123]
-    post :render_raw_post, params: params.dup
+    body = "Hello World"
+    post :render_raw_post, body: body
 
-    assert_equal params.to_query, @response.body
+    assert_equal body, @response.body
   end
 
   def test_params_round_trip
@@ -263,11 +263,11 @@ class TestCaseTest < ActionController::TestCase
   end
 
   def test_body_stream
-    params = Hash[:page, { name: "page name" }, "some key", 123]
+    body = "Hello World"
 
-    post :render_body, params: params.dup
+    post :render_body, body: body
 
-    assert_equal params.to_query, @response.body
+    assert_equal body, @response.body
   end
 
   def test_document_body_and_params_with_post
@@ -751,10 +751,10 @@ class TestCaseTest < ActionController::TestCase
   end
 
   def test_raw_post_reset_between_post_requests
-    post :no_op, params: { foo: "bar" }
+    post :no_op, body: "foo=bar"
     assert_equal "foo=bar", @request.raw_post
 
-    post :no_op, params: { foo: "baz" }
+    post :no_op, body: "foo=baz"
     assert_equal "foo=baz", @request.raw_post
   end
 
