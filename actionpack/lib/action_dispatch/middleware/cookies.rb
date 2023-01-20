@@ -407,9 +407,15 @@ module ActionDispatch
         @cookies.each_key { |k| delete(k, options) }
       end
 
-      def write(headers)
-        if header = make_set_cookie_header(headers[HTTP_HEADER])
-          headers[HTTP_HEADER] = header
+      def write(response)
+        @set_cookies.each do |name, value|
+          if write_cookie?(value)
+            response.set_cookie(name, value)
+          end
+        end
+
+        @delete_cookies.each do |name, value|
+          response.delete_cookie(name, value)
         end
       end
 
@@ -418,19 +424,6 @@ module ActionDispatch
       private
         def escape(string)
           ::Rack::Utils.escape(string)
-        end
-
-        def make_set_cookie_header(header)
-          header = @set_cookies.inject(header) { |m, (k, v)|
-            if write_cookie?(v)
-              ::Rack::Utils.add_cookie_to_header(m, k, v)
-            else
-              m
-            end
-          }
-          @delete_cookies.inject(header) { |m, (k, v)|
-            ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
-          }
         end
 
         def write_cookie?(cookie)
@@ -714,21 +707,18 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
-
-      _, headers, _ = response = @app.call(env)
+      request = ActionDispatch::Request.new(env)
+      response = @app.call(env)
 
       if request.have_cookie_jar?
         cookie_jar = request.cookie_jar
         unless cookie_jar.committed?
-          cookie_jar.write(headers)
-          if headers[HTTP_HEADER].respond_to?(:join)
-            headers[HTTP_HEADER] = headers[HTTP_HEADER].join("\n")
-          end
+          response = Rack::Response[*response]
+          cookie_jar.write(response)
         end
       end
 
-      response
+      response.to_a
     end
   end
 end
