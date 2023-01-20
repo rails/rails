@@ -1331,7 +1331,7 @@ cookies["are_good_for_u"]     cookies[:are_good_for_u]
 
 ### Instance Variables Available
 
-You also have access to three instance variables in your functional tests, after a request is made:
+**After** a request is made, you also have access to three instance variables in your functional tests:
 
 * `@controller` - The controller processing the request
 * `@request` - The request object
