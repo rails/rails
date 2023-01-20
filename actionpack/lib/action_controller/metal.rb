@@ -163,7 +163,7 @@ module ActionController
     # :attr_reader: response
     #
     # The ActionDispatch::Response instance for the current response.
-    attr_internal :response
+    attr_internal_reader :response
 
     delegate :session, to: "@_request"
 
