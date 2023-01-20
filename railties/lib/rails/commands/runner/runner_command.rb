@@ -25,7 +25,7 @@ module Rails
           exit 1
         end
 
-        require_application_and_environment!
+        boot_application!
         Rails.application.load_runner
 
         ARGV.replace(command_argv)

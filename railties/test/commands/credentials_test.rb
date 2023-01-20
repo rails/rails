@@ -303,6 +303,28 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
   end
 
+  test "respects config.credentials.content_path when set in config/environments/*.rb" do
+    content_path = "my_secrets/credentials.yml.enc"
+    add_to_env_config "production", "config.credentials.content_path = #{content_path.inspect}"
+
+    with_rails_env "production" do
+      assert_credentials_paths content_path, "config/master.key"
+    end
+
+    assert_credentials_paths content_path, "config/credentials/production.key", environment: "production"
+  end
+
+  test "respects config.credentials.key_path when set in config/environments/*.rb" do
+    key_path = "my_secrets/master.key"
+    add_to_env_config "production", "config.credentials.key_path = #{key_path.inspect}"
+
+    with_rails_env "production" do
+      assert_credentials_paths "config/credentials.yml.enc", key_path
+    end
+
+    assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 

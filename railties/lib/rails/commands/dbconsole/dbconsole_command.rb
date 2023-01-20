@@ -89,7 +89,7 @@ module Rails
         desc: "Specifies the database to use."
 
       def perform
-        require_application_and_environment!
+        boot_application!
         Rails::DBConsole.start(options)
       end
     end

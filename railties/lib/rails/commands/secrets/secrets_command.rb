@@ -24,7 +24,7 @@ module Rails
 
       desc "edit", "Opens the secrets in `$EDITOR` for editing"
       def edit
-        require_application_and_environment!
+        boot_application!
 
         using_system_editor do
           Rails::Secrets.read_for_editing { |tmp_path| system_editor(tmp_path) }

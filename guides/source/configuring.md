@@ -266,7 +266,7 @@ Defaults to `config/credentials/#{Rails.env}.yml.enc` if it exists, or
 `config/credentials.yml.enc` otherwise.
 
 NOTE: In order for the `bin/rails credentials` commands to recognize this value,
-it must be set in `config/application.rb`.
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
 #### `config.credentials.key_path`
 
@@ -276,7 +276,7 @@ Defaults to `config/credentials/#{Rails.env}.key` if it exists, or
 `config/master.key` otherwise.
 
 NOTE: In order for the `bin/rails credentials` commands to recognize this value,
-it must be set in `config/application.rb`.
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
 #### `config.debug_exception_response_format`
 

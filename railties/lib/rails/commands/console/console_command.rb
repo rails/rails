@@ -97,7 +97,7 @@ module Rails
       end
 
       def perform
-        require_application_and_environment!
+        boot_application!
         Rails::Console.start(Rails.application, options)
       end
     end
