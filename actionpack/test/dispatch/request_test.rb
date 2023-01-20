@@ -1131,19 +1131,21 @@ class RequestParameters < BaseRequestTest
     end
   end
 
-  test "parameters not accessible after rack parse error of invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo%81E=1")
-    assert_raises(ActionController::BadRequest) { request.parameters }
-  end
+  if Rack.release < "3"
+    test "parameters not accessible after rack parse error of invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo%81E=1")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
 
-  test "parameters containing an invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo=%81E")
-    assert_raises(ActionController::BadRequest) { request.parameters }
-  end
+    test "parameters containing an invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo=%81E")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
 
-  test "parameters containing a deeply nested invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
-    assert_raises(ActionController::BadRequest) { request.parameters }
+    test "parameters containing a deeply nested invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
   end
 
   test "POST parameters containing invalid UTF8 character" do
