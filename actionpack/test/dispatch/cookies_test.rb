@@ -1153,6 +1153,20 @@ class CookiesTest < ActionController::TestCase
     assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.co.uk; path=/; SameSite=Lax"
   end
 
+  def test_cookie_with_all_domain_option_using_two_letter_one_level_tld
+    @request.host = "hawth.ca"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_set_cookie_header "user_name=rizwanreza; domain=.hawth.ca; path=/; SameSite=Lax"
+  end
+
+  def test_cookie_with_all_domain_option_using_two_letter_one_level_tld_and_subdomain
+    @request.host = "x.hawth.ca"
+    get :set_cookie_with_domain
+    assert_response :success
+    assert_set_cookie_header "user_name=rizwanreza; domain=.hawth.ca; path=/; SameSite=Lax"
+  end
+
   def test_cookie_with_all_domain_option_using_uk_style_tld_and_two_subdomains
     @request.host = "x.nextangle.co.uk"
     get :set_cookie_with_domain
