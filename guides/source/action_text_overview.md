@@ -98,6 +98,10 @@ And finally, display the sanitized rich text on a page:
 <%= @message.content %>
 ```
 
+**Note:** if there's an attached resource within `content` field. It might not show properly unless you
+have *libvips/libvips42* package installed locally on your machine. Linux based users can run `apt install libvips42`
+to install it.
+
 To accept the rich text content, all you have to do is permit the referenced attribute:
 
 ```ruby
