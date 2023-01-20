@@ -368,6 +368,95 @@ class ActiveSupport::TestCase
     end
 end
 
+module CookieAssertions
+  def parse_set_cookie_attributes(fields, attributes = {})
+    if fields.is_a?(String)
+      fields = fields.split(";").map(&:strip)
+    end
+
+    fields.each do |field|
+      key, value = field.split("=", 2)
+
+      # Normalize the key to lowercase:
+      key.downcase!
+
+      if value
+        attributes[key] = value
+      else
+        attributes[key] = true
+      end
+    end
+
+    attributes
+  end
+
+  # Parse the set-cookie header and return a hash of cookie names and values.
+  #
+  # Example:
+  #   set_cookies = headers["set-cookie"]
+  #   parse_set_cookies_headers(set_cookies)
+  def parse_set_cookies_headers(set_cookies)
+    if set_cookies.is_a?(String)
+      set_cookies = set_cookies.split("\n")
+    end
+
+    cookies = {}
+
+    set_cookies&.each do |cookie_string|
+      attributes = {}
+
+      fields = cookie_string.split(";").map(&:strip)
+
+      # The first one is the cookie name:
+      name, value = fields.shift.split("=", 2)
+
+      attributes[:value] = value
+
+      cookies[name] = parse_set_cookie_attributes(fields, attributes)
+    end
+
+    cookies
+  end
+
+  def assert_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
+    # In Rack v2, this is newline delimited. In Rack v3, this is an array.
+    # Normalize the comparison so that we can assert equality in both cases.
+
+    if header.is_a?(String)
+      header = header.split("\n").sort
+    end
+
+    if expected.is_a?(String)
+      expected = expected.split("\n").sort
+    end
+
+    # While not strictly speaking correct, this is probably good enough for now:
+    header = parse_set_cookies_headers(header)
+    expected = parse_set_cookies_headers(expected)
+
+    expected.each do |key, value|
+      assert_equal value, header[key]
+    end
+  end
+
+  def assert_not_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
+    if header.is_a?(String)
+      header = header.split("\n").sort
+    end
+
+    if expected.is_a?(String)
+      expected = expected.split("\n").sort
+    end
+
+    # While not strictly speaking correct, this is probably good enough for now:
+    header = parse_set_cookies_headers(header)
+
+    expected.each do |name|
+      assert_not_includes(header, name)
+    end
+  end
+end
+
 class DrivenByRackTest < ActionDispatch::SystemTestCase
   driven_by :rack_test
 end
