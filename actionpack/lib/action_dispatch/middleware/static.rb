@@ -53,7 +53,7 @@ module ActionDispatch
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
 
-      @file_server = ::Rack::File.new(@root, headers)
+      @file_server = ::Rack::Files.new(@root, headers)
     end
 
     def call(env)
