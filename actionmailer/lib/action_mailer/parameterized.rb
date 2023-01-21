@@ -88,7 +88,11 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
-      attr_accessor :params
+      attr_writer :params
+
+      def params
+        @params ||= {}
+      end
     end
 
     module ClassMethods

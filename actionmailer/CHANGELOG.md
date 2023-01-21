@@ -1,3 +1,7 @@
+*   Default `ActionMailer::Parameterized#params` to an empty `Hash`
+
+    *Sean Doyle*
+
 *   `assert_emails` now returns the emails that were sent.
 
     This makes it easier to do further analysis on those emails:
