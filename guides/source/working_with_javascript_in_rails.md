@@ -171,7 +171,7 @@ like this:
 ```erb
 <%= turbo_frame_tag dom_id(post) do %>
   <div>
-     <%= link_to post.title, post_path(path) %>
+     <%= link_to post.title, post_path(post) %>
   </div>
 <% end %>
 ```
