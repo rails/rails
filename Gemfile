@@ -112,7 +112,7 @@ end
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
-eval_gemfile local_gemfile if File.exist? local_gemfile
+instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect"
