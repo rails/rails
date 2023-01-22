@@ -10,7 +10,7 @@ steps:
       if [ -z "$${treesha}" ]; then
         echo "+++ No .buildkite/; using fallback repository"
         rm -rf .buildkite
-        git clone "https://github.com/rails/buildkite-config" .buildkite
+        git clone -b "$${CONFIG_BRANCH-main}" "https://github.com/$${CONFIG_FORK-rails}/buildkite-config" .buildkite
         rm -rf .buildkite/.git
         sh -c "$$PIPELINE_COMMAND"
       elif [ "$${#treesha}" -lt 40 ]; then
@@ -39,10 +39,10 @@ steps:
           timeout_in_minutes: 5
       NESTED
       fi
-      [ -f .buildkite/.dockerignore ] && cp .buildkite/.dockerignore .dockerignore
+      ([ -f .buildkite/.dockerignore ] && cp .buildkite/.dockerignore .dockerignore) || true
     plugins:
       - artifacts#v1.2.0:
-          upload: ".buildkite/**/*"
+          upload: [".buildkite/**/*", ".dockerignore"]
     env:
       PIPELINE_COMMAND: >-
         docker run --rm
