@@ -34,8 +34,6 @@ BUNDLER =
     "< 2"
   when Gem::Requirement.new("< 6.1")
     "< 2.2.10"
-  else
-    "< 2.4.4"
   end
 RUBYGEMS =
   case RAILS_VERSION
@@ -43,8 +41,6 @@ RUBYGEMS =
     "2.6.13"
   when Gem::Requirement.new("< 6.1")
     "3.2.9"
-  else
-    "3.4.3"
   end
 
 MAX_RUBY =
