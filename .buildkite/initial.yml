@@ -1,0 +1,59 @@
+# This file is never read -- it's just a copy of the pipeline's
+# configuration in the Buildkite UI.
+
+steps:
+  - name: ":pipeline:"
+    command: |
+      PATH=/bin:/usr/bin
+      set -e
+      treesha="$$(git ls-tree -d HEAD .buildkite | awk '{print $$3}')"
+      if [ -z "$${treesha}" ]; then
+        echo "+++ No .buildkite/; using fallback repository"
+        rm -rf .buildkite
+        git clone "https://github.com/rails/buildkite-config" .buildkite
+        rm -rf .buildkite/.git
+        sh -c "$$PIPELINE_COMMAND"
+      elif [ "$${#treesha}" -lt 40 ]; then
+        echo "Short SHA for .buildkite/"
+        exit 1
+      elif curl -s -S "https://gist.githubusercontent.com/matthewd/3f98bcc9957c8ddf2204a390bf3a6cdd/raw/list" | grep -a -F -x "$${treesha}"; then
+        echo "+++ Known tree; generating pipeline"
+        echo ".buildkite/ tree is $${treesha}"
+        sh -c "$$PIPELINE_COMMAND"
+      else
+        echo "+++ Unknown tree; requesting approval"
+        echo ".buildkite/ tree is $${treesha}"
+        buildkite-agent pipeline upload <<'NESTED'
+      steps:
+        - block: "Review Build Script"
+          prompt: |
+            This commit uses new build configuration. Please review the changes in .buildkite/ carefully before unblocking.
+        - name: ":pipeline:"
+          command: >-
+            $$PIPELINE_COMMAND
+          plugins:
+            - artifacts#v1.2.0:
+                download:
+                  - ".buildkite/*"
+                  - ".buildkite/**/*"
+          timeout_in_minutes: 5
+      NESTED
+      fi
+      [ -f .buildkite/.dockerignore ] && cp .buildkite/.dockerignore .dockerignore
+    plugins:
+      - artifacts#v1.2.0:
+          upload: ".buildkite/**/*"
+    env:
+      PIPELINE_COMMAND: >-
+        docker run --rm
+        -v "$$PWD":/app:ro -w /app
+        -e CI
+        -e BUILDKITE_BRANCH
+        -e BUILDKITE_BUILD_ID
+        -e BUILDKITE_PULL_REQUEST
+        -e BUILDKITE_PULL_REQUEST_BASE_BRANCH
+        -e BUILDKITE_REBUILT_FROM_BUILD_ID
+        ruby:latest
+        .buildkite/pipeline-generate |
+        buildkite-agent pipeline upload
+    timeout_in_minutes: 5
