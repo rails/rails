@@ -46,6 +46,13 @@ RUBYGEMS =
   else
     "3.4.3"
   end
+RACK =
+  case RAILS_VERSION
+  when Gem::Requirement.new("< 7.1")
+    Gem::Version.new("2.2")
+  else
+    Gem::Version.new("3.0")
+  end
 
 MAX_RUBY =
   case RAILS_VERSION
@@ -367,6 +374,7 @@ puts YAML.dump("steps" => [
           "env" => {
             "BUNDLER" => BUNDLER,
             "RUBYGEMS" => RUBYGEMS,
+            "RACK" => RACK,
             "RUBY_IMAGE" => ruby_image(ruby),
             "RUBY_YJIT_ENABLE" => ruby == YJIT_RUBY ? "1" : "0",
             "encrypted_0fb9444d0374_key" => nil,
