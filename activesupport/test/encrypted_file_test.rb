@@ -144,6 +144,18 @@ class EncryptedFileTest < ActiveSupport::TestCase
     FileUtils.rm_rf symlink_path
   end
 
+  test "can read encrypted file after changing MessageEncryptor.default_message_encryptor_serializer" do
+    original_serializer = ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
+
+    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = :marshal
+    encrypted_file(@content_path).write(@content)
+
+    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = :json
+    assert_equal @content, encrypted_file(@content_path).read
+  ensure
+    ActiveSupport::MessageEncryptor.default_message_encryptor_serializer = original_serializer
+  end
+
   private
     def encrypted_file(content_path, key_path: @key_path, env_key: "CONTENT_KEY")
       ActiveSupport::EncryptedFile.new(content_path: @content_path, key_path: key_path,
