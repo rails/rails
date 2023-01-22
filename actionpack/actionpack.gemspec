@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
-rack = Env.fetch("RACK", ["~> 2.0", ">= 2.2.4"])
+rack = ENV.fetch("RACK", ["~> 2.0", ">= 2.2.4"])
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
