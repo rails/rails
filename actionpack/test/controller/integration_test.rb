@@ -783,6 +783,9 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     mount MountedApp => "/mounted", :as => "mounted"
     get "fooz" => proc { |env| [ 200, { "X-Cascade" => "pass" }, [ "omg" ] ] }, :anchor => false
     get "fooz", to: "application_integration_test/test#index"
+
+    get "fooz_lower" => proc { |env| [ 200, { "x-cascade" => "pass" }, [ "omg" ] ] }, :anchor => false
+    get "fooz_lower", to: "application_integration_test/test#index"
   end
 
   def app
@@ -803,6 +806,11 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     get "/fooz"
     assert_equal "index", response.body
     assert_equal "/fooz", path
+  end
+
+  test "cascade pass for lower case headers" do
+    get "/fooz_lower"
+    assert_equal "index", response.body
   end
 
   test "route helpers after controller access" do

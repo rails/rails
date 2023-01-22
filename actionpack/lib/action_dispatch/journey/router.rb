@@ -47,16 +47,16 @@ module ActionDispatch
 
           req.path_parameters = tmp_params
 
-          _, headers, _ = response = route.app.serve(req)
+          response = Rack::Response[*route.app.serve(req)]
 
-          if "pass" == headers["X-Cascade"]
+          if "pass" == response.headers["X-Cascade"]
             req.script_name     = script_name
             req.path_info       = path_info
             req.path_parameters = set_params
             next
           end
 
-          return response
+          return response.to_a
         end
 
         [404, { "X-Cascade" => "pass" }, ["Not Found"]]
