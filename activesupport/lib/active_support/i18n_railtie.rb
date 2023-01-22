@@ -85,6 +85,15 @@ module I18n
       ActiveSupport.on_load(:action_controller) do
         AbstractController::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
       end
+
+      if app.config.i18n.raise_on_missing_translations &&
+          I18n.exception_handler.is_a?(I18n::ExceptionHandler) # Only override the i18n gem's default exception handler.
+
+        I18n.exception_handler = ->(exception, *) {
+          exception = exception.to_exception if exception.is_a?(I18n::MissingTranslation)
+          raise exception
+        }
+      end
     end
 
     def self.include_fallbacks_module

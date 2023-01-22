@@ -4335,6 +4335,98 @@ module ApplicationTests
       assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
     end
 
+    test "raise_on_missing_translations = true" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+      app "development"
+
+      assert_equal true, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_raise(I18n::MissingTranslationData) do
+        I18n.t("translations.missing")
+      end
+    end
+
+    test "raise_on_missing_translations = false" do
+      add_to_config "config.i18n.raise_on_missing_translations = false"
+      app "development"
+
+      assert_equal false, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_nothing_raised do
+        I18n.t("translations.missing")
+      end
+    end
+
+    test "raise_on_missing_translations = true and custom exception handler in initializer" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+      RUBY
+      app "development"
+
+      assert_equal true, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_equal "handled I18n::MissingTranslation", I18n.t("translations.missing")
+      assert_raise(I18n::InvalidLocale) do
+        I18n.t("en.errors.messages.required", locale: "dsafdsafdsa")
+      end
+    end
+
+    test "raise_on_missing_translations = false and custom exception handler in initializer" do
+      add_to_config "config.i18n.raise_on_missing_translations = false"
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+      RUBY
+      app "development"
+
+      assert_equal false, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_equal "handled I18n::MissingTranslation", I18n.t("translations.missing")
+      assert_raise(I18n::InvalidLocale) do
+        I18n.t("en.errors.messages.required", locale: "dsafdsafdsa")
+      end
+    end
+
+    test "i18n custom exception handler in initializer and pluralization backend" do
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+
+        Rails.application.config.after_initialize do
+          I18n.backend.class.include(I18n::Backend::Pluralization)
+          I18n.backend.send(:init_translations)
+          I18n.backend.store_translations :en, i18n: { plural: { rule: lambda { |n| [0, 1].include?(n) ? :one : :other } } }
+          I18n.backend.store_translations :en, apples: { one: 'one or none', other: 'more than one' }
+          I18n.backend.store_translations :en, pears: { pear: "pear", pears: "pears" }
+        end
+      RUBY
+
+      app "development"
+
+      assert I18n.backend.class.include?(I18n::Backend::Pluralization)
+      assert_equal "one or none", I18n.t(:apples, count: 0)
+      assert_raises I18n::InvalidPluralizationData do
+        assert_equal "pears", I18n.t(:pears, count: 0)
+      end
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
