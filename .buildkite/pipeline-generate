@@ -305,7 +305,7 @@ steps_for("railties", "test", service: "railties") do |x|
 end
 =end
 
-step_for("actionpack", "test", service: "default", pre_steps: ["bundle add rack --version '~> 3'"]) do |x|
+step_for("actionpack", "test", service: "default", pre_steps: ["rm Gemfile.lock", "bundle install"]) do |x|
   x["label"] += " [rack-3]"
   x["env"]["RACK"] = "~> 3.0, >= 2.2.4"
 end
