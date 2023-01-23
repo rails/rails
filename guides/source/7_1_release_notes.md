@@ -140,6 +140,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated override of `Enumerable#sum`.
 
+*   Remove deprecated `ActiveSupport::PerThreadRegistry`.
+
 ### Deprecations
 
 ### Notable changes

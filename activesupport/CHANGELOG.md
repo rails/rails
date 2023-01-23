@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::PerThreadRegistry`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated override of `Enumerable#sum`.
 
     *Rafael Mendonça França*

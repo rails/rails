@@ -51,7 +51,6 @@ module ActiveSupport
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
-  autoload :PerThreadRegistry
   autoload :SecureCompareRotator
 
   eager_autoload do
