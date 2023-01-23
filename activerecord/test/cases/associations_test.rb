@@ -131,7 +131,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_a_model_with_composite_foreign_key_finds_associated_record
     comment = sharded_comments(:great_comment_blog_post_one)
-    blog_post = sharded_blog_posts(:great_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
 
     assert_equal(blog_post, comment.blog_post)
   end
@@ -148,7 +148,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_with_composite_foreign_key_loads_records
-    blog_post = sharded_blog_posts(:great_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
 
     comments = blog_post.comments.to_a
     assert_includes(comments, sharded_comments(:wow_comment_blog_post_one))
@@ -156,7 +156,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_model_with_composite_query_constraints_has_many_association_sql
-    blog_post = sharded_blog_posts(:great_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
 
     sql = capture_sql do
       blog_post.comments.to_a
@@ -167,7 +167,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_append_composite_foreign_key_has_many_association
-    blog_post = sharded_blog_posts(:great_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
     comment = Sharded::Comment.new(body: "Great post! :clap:")
     comment.save
     blog_post.comments << comment
@@ -206,7 +206,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_append_composite_foreign_key_has_many_association_with_autosave
-    blog_post = sharded_blog_posts(:great_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
     comment = Sharded::Comment.new(body: "Great post! :clap:")
     blog_post.comments << comment
 
@@ -539,7 +539,8 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories,
+    :author_addresses, :sharded_blog_posts, :sharded_comments
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -1125,6 +1126,26 @@ class PreloaderTest < ActiveRecord::TestCase
       assert post.association(:author).loaded?
       assert_not_equal some_other_record, post.author
     end
+  end
+
+  def test_preload_has_many_association_with_composite_foreign_key
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_posts = [blog_post, sharded_blog_posts(:great_post_blog_two)]
+
+    ::ActiveRecord::Associations::Preloader.new(records: blog_posts, associations: [:comments]).call
+
+    assert blog_post.association(:comments).loaded?
+    assert_includes(blog_post.comments.to_a, sharded_comments(:great_comment_blog_post_one))
+  end
+
+  def test_preload_belongs_to_association_with_composite_foreign_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    comments = [comment, sharded_comments(:great_comment_blog_post_two)]
+
+    ActiveRecord::Associations::Preloader.new(records: comments, associations: :blog_post).call
+
+    assert comment.association(:blog_post).loaded?
+    assert_equal sharded_blog_posts(:great_post_blog_one), comment.blog_post
   end
 end
 
