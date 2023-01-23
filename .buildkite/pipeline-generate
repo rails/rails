@@ -155,7 +155,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: 
   end
 
   steps = pre_steps + ["rake #{rake_task}"]
-  command = steps.join("&& ")
+  command = steps.join(" && ")
 
   timeout = 30
 
@@ -305,7 +305,7 @@ steps_for("railties", "test", service: "railties") do |x|
 end
 =end
 
-step_for("actionpack", "test", service: "default", pre_steps: ["rm Gemfile.lock", "bundle install"]) do |x|
+step_for("actionpack", "test", service: "default", pre_steps: ["bundle update --conservative rack"]) do |x|
   x["label"] += " [rack-3]"
   x["env"]["RACK"] = ">= 2.2.4, < 4"
 end
