@@ -1,3 +1,13 @@
+*   `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
+
+    Previously it would only raise when called in a view or controller. Now it will raise
+    anytime `I18n.t` is provided an unrecognised key.
+
+    If you do not want this behaviour, you can customise the i18n exception handler. See the
+    upgrading guide or i18n guide for more information.
+
+    *Alex Ghiculescu*
+
 *   `ActiveSupport::CurrentAttributes` now raises if a restricted attribute name is used.
 
     Attributes such as `set` and `reset` cannot be used as they clash with the

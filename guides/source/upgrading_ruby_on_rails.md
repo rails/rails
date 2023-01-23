@@ -297,6 +297,37 @@ Option `config.action_mailer.preview_path` is deprecated in favor of `config.act
 config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
+### `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
+
+Previously it would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognised key.
+
+```ruby
+# with config.i18n.raise_on_missing_translations = true
+
+# in a view or controller:
+t("missing.key") # raises in 7.0, raises in 7.1
+I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
+
+# anywhere:
+I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
+```
+
+If you don't want this behaviour, you can set `config.i18n.raise_on_missing_translations = false`:
+
+```ruby
+# with config.i18n.raise_on_missing_translations = false
+
+# in a view or controller:
+t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
+I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
+
+# anywhere:
+I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
+```
+
+Alternatively, you can customise the `I18n.exception_handler`.
+See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers) for more information.
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
