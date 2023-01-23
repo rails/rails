@@ -189,6 +189,10 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: 
       },
       {
         DOCKER_COMPOSE_PLUGIN => {
+          "env" => [
+            "RACK",
+            "PRE_STEPS"
+          ],
           "run" => service,
           "pull" => service,
           "config" => ".buildkite/docker-compose.yml",
@@ -354,6 +358,10 @@ puts YAML.dump("steps" => [
               DOCKER_COMPOSE_PLUGIN => {
                 "build" => "base",
                 "config" => ".buildkite/docker-compose.yml",
+                "env" => [
+                  "RACK",
+                  "PRE_STEPS"
+                ],
                 "image-name" => image_name_for(ruby, short: true),
                 "cache-from" => [
                   REBUILD_ID && "base:" + image_name_for(ruby, REBUILD_ID),
