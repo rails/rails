@@ -24,14 +24,14 @@ module ActionDispatch
     end
 
     def call(env)
-      _, headers, body = response = @app.call(env)
+      response = Rack::Response[*@app.call(env)]
 
-      if headers["X-Cascade"] == "pass"
-        body.close if body.respond_to?(:close)
+      if response.headers["X-Cascade"] == "pass"
+        response.close
         raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
       end
 
-      response
+      response.to_a
     rescue Exception => exception
       request = ActionDispatch::Request.new env
       backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")

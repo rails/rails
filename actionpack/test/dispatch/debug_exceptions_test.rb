@@ -62,6 +62,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       case req.path
       when "/pass"
         [404, { "X-Cascade" => "pass" }, self]
+      when "/pass_lower"
+        [404, { "x-cascade" => "pass" }, self]
       when "/not_found"
         controller = SimpleController.new
         raise AbstractController::ActionNotFound.new(nil, controller, :ello)
@@ -152,6 +154,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = ProductionApp
     assert_raise ActionController::RoutingError do
       get "/pass", headers: { "action_dispatch.show_exceptions" => true }
+    end
+  end
+
+  test "raise an exception on lower cascade pass" do
+    @app = ProductionApp
+    assert_raise ActionController::RoutingError do
+      get "/pass_lower", headers: { "action_dispatch.show_exceptions" => true }
     end
   end
 
