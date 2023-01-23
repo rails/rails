@@ -128,6 +128,17 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "", body
   end
 
+  test "returns an empty response if custom exceptions app returns lower case x-cascade pass" do
+    exceptions_app = lambda do |env|
+      [404, { "x-cascade" => "pass" }, []]
+    end
+
+    @app = ActionDispatch::ShowExceptions.new(Boomer.new, exceptions_app)
+    get "/method_not_allowed", env: { "action_dispatch.show_exceptions" => true }
+    assert_response 405
+    assert_equal "", body
+  end
+
   test "bad params exception is returned in the correct format" do
     @app = ProductionApp
 

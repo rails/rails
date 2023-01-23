@@ -43,8 +43,8 @@ module ActionDispatch
         fallback_to_html_format_if_invalid_mime_type(request)
         request.path_info = "/#{status}"
         request.request_method = "GET"
-        response = @exceptions_app.call(request.env)
-        response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
+        response = Rack::Response[*@exceptions_app.call(request.env)]
+        response.headers["X-Cascade"] == "pass" ? pass_response(status) : response.to_a
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
 
