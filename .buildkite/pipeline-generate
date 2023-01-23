@@ -304,12 +304,12 @@ steps_for("railties", "test", service: "railties") do |x|
   x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
 end
 
-step_for("actionpack", "test", "default") do |x|
+step_for("actionpack", "test", service: "default") do |x|
   x["label"] += "rack-2"
   x["env"]["RACK"] = "~> 2.0, >= 2.2.4"
 end
 
-step_for("actionpack", "test", "default") do |x|
+step_for("actionpack", "test", service: "default") do |x|
   x["label"] += "rack-3"
   x["env"]["RACK"] = ">= 2.2.4, < 4"
 end
