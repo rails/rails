@@ -155,7 +155,9 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: 
     env["RUBY_YJIT_ENABLE"] = "1"
   end
 
-  env["PRE_STEPS"] = pre_steps.join(" && ")
+  if !pre_steps.empty?
+    env["PRE_STEPS"] = pre_steps.join(" && ")
+  end
   command = "rake #{rake_task}"
 
   timeout = 30
@@ -191,8 +193,8 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: 
       {
         DOCKER_COMPOSE_PLUGIN => {
           "env" => [
-            "RACK",
-            "PRE_STEPS"
+            "PRE_STEPS",
+            "RACK"
           ],
           "run" => service,
           "pull" => service,
@@ -360,8 +362,8 @@ puts YAML.dump("steps" => [
                 "build" => "base",
                 "config" => ".buildkite/docker-compose.yml",
                 "env" => [
-                  "RACK",
-                  "PRE_STEPS"
+                  "PRE_STEPS",
+                  "RACK"
                 ],
                 "image-name" => image_name_for(ruby, short: true),
                 "cache-from" => [

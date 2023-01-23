@@ -12,8 +12,6 @@ if ! [ -z "$PRE_STEPS" ]; then
   echo "+++ "
 fi
 
-echo "Trying to install Rack: $RACK"
-
 echo
 echo "--- bundle env"
 bundle env
