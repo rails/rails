@@ -51,7 +51,7 @@ module ActiveRecord
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
       def quote_bound_value(value)
-        quote(value)
+        quote(cast_bound_value(value))
       end
 
       def cast_bound_value(value)
