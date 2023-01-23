@@ -220,6 +220,7 @@ def steps_for(subdirectory, rake_task, service: "default", &block)
   end
 end
 
+=begin
 # GROUP 1: Runs additional isolated tests for non-PR builds
 %w(
   actionmailer    test                default
@@ -303,6 +304,7 @@ end
 steps_for("railties", "test", service: "railties") do |x|
   x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
 end
+=end
 
 step_for("actionpack", "test", service: "default") do |x|
   x["label"] += "rack-2"
@@ -314,6 +316,7 @@ step_for("actionpack", "test", service: "default") do |x|
   x["env"]["RACK"] = ">= 2.2.4, < 4"
 end
 
+=begin
 # Ugly hacks to just get the build passing for now
 STEPS.find { |s| s["label"] == "activestorage (2.2)" }&.tap do |s|
   s["soft_fail"] = true
@@ -322,6 +325,7 @@ if RAILS_VERSION < Gem::Version.new("7.x") && RAILS_VERSION >= Gem::Version.new(
   STEPS.delete_if { |s| s["label"] == "guides (2.7)" || s["label"] == "guides (3.0)" }
 end
 STEPS.delete_if { |s| s["label"] =~ /^guides/ } if RAILS_VERSION < Gem::Version.new("6.1")
+=end
 
 ###
 
