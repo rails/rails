@@ -4596,6 +4596,52 @@ module ApplicationTests
       )
     end
 
+    test "raise_on_missing_translations affects t in controllers and views" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "app/views/foo/view_test.html.erb", <<-RUBY
+        <%=
+          begin
+            t("missing.translation")
+          rescue I18n::MissingTranslationData
+            "rescued missing translation error from view"
+          end
+        %>
+      RUBY
+
+      app_file "app/controllers/foo_controller.rb", <<-RUBY
+      class FooController < ApplicationController
+        layout false
+        def controller_test
+          response = begin
+            t("missing.translation")
+          rescue I18n::MissingTranslationData
+            "rescued missing translation error from controller"
+          end
+          render plain: response
+        end
+        def view_test
+          render "view_test"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          get "foo/controller" => "foo#controller_test"
+          get "foo/view" => "foo#view_test"
+        end
+      RUBY
+
+      app "development"
+
+      get "foo/controller"
+      assert_equal "rescued missing translation error from controller", last_response.body
+
+      get "foo/view"
+      assert_includes last_response.body, "rescued missing translation error from view"
+    end
+
     test "dom testing uses the HTML5 parser in new apps if it is supported" do
       app "development"
       expected = defined?(Nokogiri::HTML5) ? :html5 : :html4

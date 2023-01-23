@@ -505,7 +505,7 @@ instance variables:
   @_action_has_layout  @_action_name    @_config  @_lookup_context                      @_request
   @_response           @_response_body  @_routes  @marked_for_same_origin_verification  @posts
   @rendered_format
-class variables: @@raise_on_missing_translations  @@raise_on_open_redirects
+class variables: @@raise_on_open_redirects
 ```
 
 ### Breakpoints
