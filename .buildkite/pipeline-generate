@@ -305,7 +305,7 @@ steps_for("railties", "test", service: "railties") do |x|
 end
 =end
 
-step_for("actionpack", "test", service: "default", pre_steps: ["bundle update --conservative rack"]) do |x|
+step_for("actionpack", "test", service: "default", pre_steps: ["bundle update rack"]) do |x|
   x["label"] += " [rack-3]"
   x["env"]["RACK"] = ">= 2.2.4, < 4"
 end
