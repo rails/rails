@@ -414,29 +414,35 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_warnings_do_not_change_returned_value_of_exec_update
+    ActiveRecord.db_warnings_action = :log
+
     # Mysql2 will raise an error when attempting to perform an update that warns if the sql_mode is set to strict
     old_sql_mode = @conn.query_value("SELECT @@SESSION.sql_mode")
     @conn.execute("SET @@SESSION.sql_mode=''")
 
     @conn.execute("INSERT INTO posts (title, body) VALUES('Title', 'Body')")
-    result = @conn.update("UPDATE posts SET title = 'Updated' WHERE id < (42+'foo') LIMIT 1")
+    result = @conn.update("UPDATE posts SET title = 'Updated' WHERE id > (0+'foo') LIMIT 1")
 
     assert_equal 1, result
   ensure
     @conn.execute("SET @@SESSION.sql_mode='#{old_sql_mode}'")
+    ActiveRecord.db_warnings_action = @original_db_warnings_action
   end
 
   def test_warnings_do_not_change_returned_value_of_exec_delete
+    ActiveRecord.db_warnings_action = :log
+
     # Mysql2 will raise an error when attempting to perform a delete that warns if the sql_mode is set to strict
     old_sql_mode = @conn.query_value("SELECT @@SESSION.sql_mode")
     @conn.execute("SET @@SESSION.sql_mode=''")
 
     @conn.execute("INSERT INTO posts (title, body) VALUES('Title', 'Body')")
-    result = @conn.delete("DELETE FROM posts WHERE id < (42+'foo') LIMIT 1")
+    result = @conn.delete("DELETE FROM posts WHERE id > (0+'foo') LIMIT 1")
 
     assert_equal 1, result
   ensure
     @conn.execute("SET @@SESSION.sql_mode='#{old_sql_mode}'")
+    ActiveRecord.db_warnings_action = @original_db_warnings_action
   end
 
   private
