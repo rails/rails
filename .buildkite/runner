@@ -5,10 +5,15 @@ set -e
 dir="$1"
 cmd="$2"
 
-echo
-echo "--- pre steps"
-exec $PRE_STEPS
-echo "+++ "
+if ! [ -z "$PRE_STEPS" ]
+then
+  echo
+  echo "--- pre steps"
+  $PRE_STEPS
+  echo "+++ "
+fi
+
+echo "Trying to install Rack: $RACK"
 
 echo
 echo "--- bundle env"
