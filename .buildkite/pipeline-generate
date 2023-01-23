@@ -209,13 +209,13 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: 
   STEPS << hash
 end
 
-def steps_for(subdirectory, rake_task, service: "default", env: {}, &block)
+def steps_for(subdirectory, rake_task, service: "default", pre_steps: [], &block)
   RUBIES.each do |ruby|
     if rake_task == "mysql:test"
       next unless ruby =~ /^ruby:(.*)/ && Gem::Version.new($1) < Gem::Version.new("2.4.x")
     end
 
-    step_for(subdirectory, rake_task, ruby: ruby, service: service, env: env, &block)
+    step_for(subdirectory, rake_task, ruby: ruby, service: service, pre_steps: pre_steps, &block)
   end
 end
 
