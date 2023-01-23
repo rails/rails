@@ -46,13 +46,6 @@ RUBYGEMS =
   else
     "3.4.3"
   end
-RACK =
-  case RAILS_VERSION
-  when Gem::Requirement.new("< 7.1")
-    Gem::Version.new("2.2")
-  else
-    Gem::Version.new("3.0")
-  end
 
 MAX_RUBY =
   case RAILS_VERSION
@@ -229,7 +222,6 @@ end
 
 # GROUP 1: Runs additional isolated tests for non-PR builds
 %w(
-  actionpack      test                default
   actionmailer    test                default
   activemodel     test                default
   activesupport   test                default
@@ -310,6 +302,16 @@ steps_for("activejob", "test:integration", service: "activejob") do |x|
 end
 steps_for("railties", "test", service: "railties") do |x|
   x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
+end
+
+step_for("actionpack", "test", "default") do |x|
+  x["label"] += "rack-2"
+  x["env"]["RACK"] = "~> 2.0, >= 2.2.4"
+end
+
+step_for("actionpack", "test", "default") do |x|
+  x["label"] += "rack-3"
+  x["env"]["RACK"] = ">= 2.2.4, < 4"
 end
 
 # Ugly hacks to just get the build passing for now
