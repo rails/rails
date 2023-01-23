@@ -306,12 +306,12 @@ steps_for("railties", "test", service: "railties") do |x|
 end
 =end
 
-step_for("actionpack", "test", service: "default") do |x|
+steps_for("actionpack", "test", service: "default") do |x|
   x["label"] += "rack-2"
   x["env"]["RACK"] = "~> 2.0, >= 2.2.4"
 end
 
-step_for("actionpack", "test", service: "default") do |x|
+steps_for("actionpack", "test", service: "default") do |x|
   x["label"] += "rack-3"
   x["env"]["RACK"] = ">= 2.2.4, < 4"
 end
