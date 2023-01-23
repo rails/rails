@@ -376,7 +376,6 @@ puts YAML.dump("steps" => [
           "env" => {
             "BUNDLER" => BUNDLER,
             "RUBYGEMS" => RUBYGEMS,
-            "RACK" => RACK,
             "RUBY_IMAGE" => ruby_image(ruby),
             "RUBY_YJIT_ENABLE" => ruby == YJIT_RUBY ? "1" : "0",
             "encrypted_0fb9444d0374_key" => nil,
