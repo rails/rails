@@ -5,11 +5,10 @@ set -e
 dir="$1"
 cmd="$2"
 
-if ! [ -z "$PRE_STEPS" ]
-then
+if ! [ -z "$PRE_STEPS" ]; then
   echo
   echo "--- pre steps"
-  $PRE_STEPS
+  eval "$PRE_STEPS"
   echo "+++ "
 fi
 
