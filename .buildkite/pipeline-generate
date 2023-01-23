@@ -24,8 +24,7 @@ ARTIFACTS_PLUGIN = "artifacts#v1.2.0"
 REPO_ROOT = Pathname.new(ARGV.shift || File.expand_path("../..", __FILE__))
 
 REPO_ROOT.join("rails.gemspec").read =~ /required_ruby_version[^0-9]+([0-9]+\.[0-9]+)/
-#RUBY_MINORS = %w(2.4 2.5 2.6 2.7 3.0 3.1 3.2).map { |v| Gem::Version.new(v) }
-RUBY_MINORS = %w(3.2).map { |v| Gem::Version.new(v) }
+RUBY_MINORS = %w(2.4 2.5 2.6 2.7 3.0 3.1 3.2).map { |v| Gem::Version.new(v) }
 MIN_RUBY = Gem::Version.new($1 || "2.0")
 
 RAILS_VERSION = Gem::Version.new(File.read(REPO_ROOT.join("RAILS_VERSION")))
@@ -90,7 +89,7 @@ RUBIES.reverse!
 SOFT_FAIL.reverse!
 
 # Run soft-failing Ruby steps last.
-#RUBIES.concat SOFT_FAIL
+RUBIES.concat SOFT_FAIL
 
 STEPS = []
 
@@ -226,9 +225,9 @@ def steps_for(subdirectory, rake_task, service: "default", pre_steps: [], &block
   end
 end
 
-=begin
 # GROUP 1: Runs additional isolated tests for non-PR builds
 %w(
+  actionpack      test                default
   actionmailer    test                default
   activemodel     test                default
   activesupport   test                default
@@ -310,14 +309,13 @@ end
 steps_for("railties", "test", service: "railties") do |x|
   x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
 end
-=end
 
 step_for("actionpack", "test", service: "default", pre_steps: ["bundle install"]) do |x|
   x["label"] += " [rack-3]"
   x["env"]["RACK"] = "~> 3.0, >= 2.2.4"
+  x["soft_fail"] = true
 end
 
-=begin
 # Ugly hacks to just get the build passing for now
 STEPS.find { |s| s["label"] == "activestorage (2.2)" }&.tap do |s|
   s["soft_fail"] = true
@@ -326,7 +324,6 @@ if RAILS_VERSION < Gem::Version.new("7.x") && RAILS_VERSION >= Gem::Version.new(
   STEPS.delete_if { |s| s["label"] == "guides (2.7)" || s["label"] == "guides (3.0)" }
 end
 STEPS.delete_if { |s| s["label"] =~ /^guides/ } if RAILS_VERSION < Gem::Version.new("6.1")
-=end
 
 ###
 
