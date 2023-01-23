@@ -131,7 +131,7 @@ def short_ruby(ruby)
   end
 end
 
-def step_for(subdirectory, rake_task, ruby: nil, service: "default", env: {})
+def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: [])
   return unless REPO_ROOT.join(subdirectory).exist?
 
   label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
@@ -146,7 +146,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", env: {})
     rake_task = "db:postgresql:rebuild #{rake_task}"
   end
 
-  env["IMAGE_NAME"] = image_name_for(ruby || ONE_RUBY)
+  env = {"IMAGE_NAME" => image_name_for(ruby || ONE_RUBY)}
 
   # If we have YJIT_RUBY set the environment variable
   # to turn it on.
@@ -154,7 +154,8 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", env: {})
     env["RUBY_YJIT_ENABLE"] = "1"
   end
 
-  command = "rake #{rake_task}"
+  steps = pre_steps + ["rake #{rake_task}"]
+  command = steps.join("&& ")
 
   timeout = 30
 
@@ -304,12 +305,9 @@ steps_for("railties", "test", service: "railties") do |x|
 end
 =end
 
-steps_for("actionpack", "test", service: "default", env: {"RACK": "~> 2.0, >= 2.2.4"}) do |x|
-  x["label"] += "rack-2"
-end
-
-steps_for("actionpack", "test", service: "default", env: {"RACK": ">= 2.2.4, < 4"}) do |x|
+steps_for("actionpack", "test", service: "default", pre_steps: ["bundle install"]) do |x|
   x["label"] += "rack-3"
+  x["env"]["RACK"] = ">= 2.2.4, < 4"
 end
 
 =begin
