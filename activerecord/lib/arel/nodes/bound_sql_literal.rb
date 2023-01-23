@@ -23,6 +23,12 @@ module Arel # :nodoc: all
       end
       alias :== :eql?
 
+      def +(other)
+        raise ArgumentError, "Expected Arel node" unless Arel.arel_node?(other)
+
+        Fragments.new([self, other])
+      end
+
       def inspect
         "#<#{self.class.name} #{sql_with_placeholders.inspect} #{positional_binds.inspect} #{named_binds.inspect}>"
       end
