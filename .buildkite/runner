@@ -6,11 +6,14 @@ dir="$1"
 cmd="$2"
 
 echo
+echo "--- pre steps"
+exec $PRE_STEPS
+echo "+++ "
+
+echo
 echo "--- bundle env"
 bundle env
 echo "+++  "
-
-exec $PRE_STEPS
 
 if ! [ -d "$PWD/railties/exe" ]; then
   export PATH="$PATH:$PWD/railties/bin"
