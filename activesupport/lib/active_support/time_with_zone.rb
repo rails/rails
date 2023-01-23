@@ -206,28 +206,9 @@ module ActiveSupport
     end
     alias_method :rfc822, :rfc2822
 
-    NOT_SET = Object.new # :nodoc:
-
     # Returns a string of the object's date and time.
-    def to_s(format = NOT_SET)
-      if format == :db
-        ActiveSupport.deprecator.warn(
-          "TimeWithZone#to_s(:db) is deprecated. Please use TimeWithZone#to_fs(:db) instead."
-        )
-        utc.to_fs(format)
-      elsif formatter = ::Time::DATE_FORMATS[format]
-        ActiveSupport.deprecator.warn(
-          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
-        )
-        formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
-      elsif format == NOT_SET
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
-      else
-        ActiveSupport.deprecator.warn(
-          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
-        )
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
-      end
+    def to_s
+      "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
     end
 
     # Returns a string of the object's date and time.

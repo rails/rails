@@ -142,7 +142,12 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `ActiveSupport::PerThreadRegistry`.
 
+*   Remove deprecated option to passing a format to `#to_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
+    `BigDecimal`, `Float` and, `Integer`.
+
 ### Deprecations
+
+*   Deprecate `config.active_support.disable_to_s_conversion`.
 
 ### Notable changes
 

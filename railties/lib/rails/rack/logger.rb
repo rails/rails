@@ -56,7 +56,7 @@ module Rails
             request.raw_request_method,
             request.filtered_path,
             request.remote_ip,
-            Time.now.to_default_s)
+            Time.now)
         end
 
         def compute_tags(request) # :doc:

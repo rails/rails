@@ -1,3 +1,12 @@
+*   Deprecate `config.active_support.disable_to_s_conversion`.
+
+    *Rafael Mendonça França*
+
+*    Remove deprecated option to passing a format to `#to_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
+    `BigDecimal`, `Float` and, `Integer`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::PerThreadRegistry`.
 
     *Rafael Mendonça França*

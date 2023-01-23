@@ -96,7 +96,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_storage.variant_processor`](#config-active-storage-variant-processor): `:vips`
 - [`config.active_storage.video_preview_arguments`](#config-active-storage-video-preview-arguments): `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2"`
 - [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.0`
-- [`config.active_support.disable_to_s_conversion`](#config-active-support-disable-to-s-conversion): `true`
 - [`config.active_support.executor_around_test_case`](#config-active-support-executor-around-test-case): `true`
 - [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_support.isolation_level`](#config-active-support-isolation-level): `:thread`
@@ -2317,20 +2316,6 @@ Configure the test suite to call `Rails.application.executor.wrap` around test c
 This makes test cases behave closer to an actual request or job.
 Several features that are normally disabled in test, such as Active Record query cache
 and asynchronous queries will then be enabled.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.0                   | `true`               |
-
-#### `config.active_support.disable_to_s_conversion`
-
-Disables the override of the `#to_s` methods in some Ruby core classes. This config is for applications that want to
-take advantage early of a [Ruby 3.1 optimization](https://github.com/ruby/ruby/commit/b08dacfea39ad8da3f1fd7fdd0e4538cc892ec44).
-This configuration needs to be set in `config/application.rb` inside the application class, otherwise it will not take
-effect.
 
 The default value depends on the `config.load_defaults` target version:
 
