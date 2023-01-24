@@ -20,6 +20,16 @@
 
     *Nathan Bardoux*
 
+
+## Rails 7.0.4.2 (January 24, 2023) ##
+
+*   Fix `domain: :all` for two letter TLD
+
+    This fixes a compatibility issue introduced in our previous security
+    release when using `domain: :all` with a two letter but single level top
+    level domain domain (like `.ca`, rather than `.co.uk`).
+
+
 ## Rails 7.0.4.1 (January 17, 2023) ##
 
 *   Fix sec issue with _url_host_allowed?

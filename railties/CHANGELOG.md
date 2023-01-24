@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *   Rails console now disables `IRB`'s autocompletion feature in production by default.
 
     Setting `IRB_USE_AUTOCOMPLETE=true` can override this default.
@@ -8,6 +9,12 @@
     scaffold controllers.
 
     *Tony Drake*
+
+
+## Rails 7.0.4.2 (January 24, 2023) ##
+
+*   No changes.
+
 
 ## Rails 7.0.4.1 (January 17, 2023) ##
 

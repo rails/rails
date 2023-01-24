@@ -1,3 +1,8 @@
+## Rails 7.0.4.2 (January 24, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.0.4.1 (January 17, 2023) ##
 
 *   Avoid regex backtracking in Inflector.underscore

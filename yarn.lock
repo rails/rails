@@ -65,11 +65,11 @@
 
 "@rails/actioncable@file:/Users/jhawthorn/src/rails/actioncable":
   "resolved" "file:actioncable"
-  "version" "7.0.4-1"
+  "version" "7.0.4-2"
 
 "@rails/actiontext@file:/Users/jhawthorn/src/rails/actiontext":
   "resolved" "file:actiontext"
-  "version" "7.0.4-1"
+  "version" "7.0.4-2"
   dependencies:
     "@rails/activestorage" ">= 7.0.0-alpha1"
 
@@ -82,13 +82,13 @@
 
 "@rails/activestorage@file:/Users/jhawthorn/src/rails/activestorage":
   "resolved" "file:activestorage"
-  "version" "7.0.4-1"
+  "version" "7.0.4-2"
   dependencies:
     "spark-md5" "^3.0.1"
 
 "@rails/ujs@file:/Users/jhawthorn/src/rails/actionview":
   "resolved" "file:actionview"
-  "version" "7.0.4-1"
+  "version" "7.0.4-2"
 
 "@rollup/plugin-commonjs@^19.0.1":
   "integrity" "sha512-gBjarfqlC7qs0AutpRW/hrFNm+cd2/QKxhwyFa+srbg1oX7rDsEU3l+W7LAUhsAp9mPJMAkXDhLbQaVwEaE8bA=="

@@ -21,6 +21,11 @@
     *Aaron Patterson*
 
 
+## Rails 7.0.4.2 (January 24, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.0.4.1 (January 17, 2023) ##
 
 *   Make sanitize_as_sql_comment more strict
