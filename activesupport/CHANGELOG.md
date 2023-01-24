@@ -1,3 +1,7 @@
+*   Remove implicit conversion of objects into `String` by `ActiveSupport::SafeBuffer`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `active_support/core_ext/range/include_time_with_zone` file.
 
     *Rafael Mendonça França*

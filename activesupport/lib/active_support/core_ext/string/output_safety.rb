@@ -198,22 +198,7 @@ module ActiveSupport # :nodoc:
         if !html_safe? || arg.html_safe?
           arg
         else
-          arg_string = begin
-            arg.to_str
-          rescue NoMethodError => error
-            if error.name == :to_str
-              str = arg.to_s
-              ActiveSupport.deprecator.warn <<~MSG.squish
-                Implicit conversion of #{arg.class} into String by ActiveSupport::SafeBuffer
-                is deprecated and will be removed in Rails 7.1.
-                You must explicitly cast it to a String.
-              MSG
-              str
-            else
-              raise
-            end
-          end
-          CGI.escapeHTML(arg_string)
+          CGI.escapeHTML(arg.to_str)
         end
       end
 
