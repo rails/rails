@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
+rack = ENV.fetch("RACK", "~> 2.0, >= 2.2.4").split(",")
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -35,7 +36,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activesupport", version
 
-  s.add_dependency "rack",      "~> 2.0", ">= 2.2.4"
+  s.add_dependency "rack", rack
   s.add_dependency "rack-test", ">= 0.6.3"
   s.add_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.2.0"
   s.add_dependency "rails-dom-testing", "~> 2.0"
