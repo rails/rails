@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
+
+    *Rafael Mendonça França*
+
 *   Remove implicit conversion of objects into `String` by `ActiveSupport::SafeBuffer`.
 
     *Rafael Mendonça França*

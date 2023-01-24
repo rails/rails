@@ -153,6 +153,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove implicit conversion of objects into `String` by `ActiveSupport::SafeBuffer`.
 
+*   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
+
 ### Deprecations
 
 *   Deprecate `config.active_support.disable_to_s_conversion`.
