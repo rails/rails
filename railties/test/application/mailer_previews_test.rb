@@ -960,7 +960,6 @@ module ApplicationTests
       assert_includes last_response.body, "bar"
     end
 
-
     private
       def build_app
         super
