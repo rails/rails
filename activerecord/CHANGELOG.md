@@ -1,3 +1,15 @@
+*   `ActiveRecord::Relation#explain` now accepts options.
+
+    For databases and adapters which support them (currently PostgreSQL
+    and MySQL), options can be passed to `explain` to provide more
+    detailed query plan analysis:
+
+    ```ruby
+    Customer.where(id: 1).joins(:orders).explain(:analyze, :verbose)
+    ```
+
+    *Reid Lynch*
+
 *   Multiple `Arel::Nodes::SqlLiteral` nodes can now be added together to
     form `Arel::Nodes::Fragments` nodes. This allows joining several pieces
     of SQL.

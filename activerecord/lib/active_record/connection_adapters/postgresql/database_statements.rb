@@ -4,9 +4,10 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [])
-          sql = "EXPLAIN #{to_sql(arel, binds)}"
-          PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
+        def explain(arel, binds = [], options = [])
+          sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
+          result = exec_query(sql, "EXPLAIN", binds)
+          PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
         # Queries the database and returns the results in an Array-like object
@@ -150,6 +151,12 @@ module ActiveRecord
 
         def high_precision_current_timestamp
           HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
+        def build_explain_clause(options = [])
+          return "EXPLAIN" if options.empty?
+
+          "EXPLAIN (#{options.join(", ").upcase})"
         end
 
         private

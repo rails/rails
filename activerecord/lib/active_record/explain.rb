@@ -16,15 +16,15 @@ module ActiveRecord
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
-    def exec_explain(queries) # :nodoc:
+    def exec_explain(queries, options = []) # :nodoc:
       str = queries.map do |sql, binds|
-        msg = +"EXPLAIN for: #{sql}"
+        msg = +"#{build_explain_clause(options)} #{sql}"
         unless binds.empty?
           msg << " "
           msg << binds.map { |attr| render_bind(attr) }.inspect
         end
         msg << "\n"
-        msg << connection.explain(sql, binds)
+        msg << connection_explain(sql, binds, options)
       end.join("\n")
 
       # Overriding inspect to be more human readable, especially in the console.
@@ -49,6 +49,26 @@ module ActiveRecord
         end
 
         [attr&.name, value]
+      end
+
+      def build_explain_clause(options = [])
+        if connection.respond_to?(:build_explain_clause)
+          connection.build_explain_clause(options)
+        else
+          "EXPLAIN for:"
+        end
+      end
+
+      def connection_explain(sql, binds, options)
+        if connection.method(:explain).parameters.size == 2
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            The current database adapter, #{connection.adapter_name}, does not support explain options.
+            To remove this warning, the adapter must implement `build_explain_clause(options = [])`.
+          MSG
+          connection.explain(sql, binds)
+        else
+          connection.explain(sql, binds, options)
+        end
       end
   end
 end
