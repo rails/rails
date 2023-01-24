@@ -659,17 +659,39 @@ module Arel
           }
         end
 
-        it "works with mixed binds" do
-          node = Nodes::BoundSqlLiteral.new("id = ? AND name = :name", [1], { name: "Aaron" })
-          _(compile(node)).must_be_like %{
-            id = ? AND name = ?
-          }
-        end
-
         it "works with array values" do
           node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
           _(compile(node)).must_be_like %{
             id IN (?, ?, ?)
+          }
+        end
+
+        it "refuses mixed binds" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id = ? AND name = :name", [1], { name: "Aaron" })
+          end
+        end
+
+        it "requires positional binds to match the placeholders" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2], {})
+          end
+
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2, 3, 4], {})
+          end
+        end
+
+        it "requires all named bind params to be supplied" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (:foo, :bar)", [], { foo: 1 })
+          end
+        end
+
+        it "ignores excess named parameters" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { foo: 2, id: 1, bar: 3 })
+          _(compile(node)).must_be_like %{
+            id = ?
           }
         end
       end
