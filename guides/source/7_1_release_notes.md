@@ -73,6 +73,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated constant `ActionView::Path`.
+
 ### Deprecations
 
 ### Notable changes

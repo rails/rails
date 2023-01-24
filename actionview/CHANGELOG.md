@@ -1,3 +1,7 @@
+*   Remove deprecated constant `ActionView::Path`.
+
+    *Rafael Mendonça França*
+
 *   Guard `token_list` calls from escaping HTML too often
 
     *Sean Doyle*
