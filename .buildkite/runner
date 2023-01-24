@@ -5,7 +5,7 @@ set -e
 dir="$1"
 cmd="$2"
 
-if ! [ -z "$PRE_STEPS" ]; then
+if [ -n "$PRE_STEPS" ]; then
   echo
   echo "--- pre steps"
   eval "$PRE_STEPS"
@@ -23,5 +23,5 @@ fi
 
 echo "+++ $dir: $cmd"
 
-cd $dir
+cd "$dir"
 exec bundle exec /bin/sh -e -c "$cmd"
