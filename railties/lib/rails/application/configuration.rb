@@ -237,7 +237,6 @@ module Rails
           if respond_to?(:active_support)
             active_support.hash_digest_class = OpenSSL::Digest::SHA256
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
-            active_support.remove_deprecated_time_with_zone_name = true
             active_support.cache_format_version = 7.0
             active_support.use_rfc4122_namespaced_uuids = true
             active_support.executor_around_test_case = true

@@ -145,9 +145,13 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Remove deprecated option to passing a format to `#to_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
     `BigDecimal`, `Float` and, `Integer`.
 
+*   Remove deprecated override of `ActiveSupport::TimeWithZone.name`.
+
 ### Deprecations
 
 *   Deprecate `config.active_support.disable_to_s_conversion`.
+
+*   Deprecate `config.active_support.remove_deprecated_time_with_zone_name`.
 
 ### Notable changes
 

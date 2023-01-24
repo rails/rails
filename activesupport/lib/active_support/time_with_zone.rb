@@ -40,18 +40,6 @@ module ActiveSupport
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
-    # Report class name as 'Time' to thwart type checking.
-    def self.name
-      ActiveSupport.deprecator.warn(<<~EOM)
-        ActiveSupport::TimeWithZone.name has been deprecated and
-        from Rails 7.1 will use the default Ruby implementation.
-        You can set `config.active_support.remove_deprecated_time_with_zone_name = true`
-        to enable the new behavior now.
-      EOM
-
-      "Time"
-    end
-
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
     PRECISIONS[0] = "%FT%T"
 

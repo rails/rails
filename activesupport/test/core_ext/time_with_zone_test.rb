@@ -579,13 +579,6 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_kind_of ActiveSupport::TimeWithZone, @twz
   end
 
-  def test_class_name
-    # TODO: Remove assertion in Rails 7.1 and change expected value
-    assert_deprecated("ActiveSupport::TimeWithZone.name has been deprecated", ActiveSupport.deprecator) do
-      assert_equal "Time", ActiveSupport::TimeWithZone.name
-    end
-  end
-
   def test_method_missing_with_time_return_value
     assert_instance_of ActiveSupport::TimeWithZone, @twz.months_since(1)
     assert_equal Time.utc(2000, 1, 31, 19, 0, 0), @twz.months_since(1).time

@@ -29,15 +29,6 @@ module ActiveSupport
       end
     end
 
-    initializer "active_support.remove_deprecated_time_with_zone_name" do |app|
-      config.after_initialize do
-        if app.config.active_support.remove_deprecated_time_with_zone_name
-          require "active_support/time_with_zone"
-          TimeWithZone.singleton_class.remove_method(:name)
-        end
-      end
-    end
-
     initializer "active_support.set_authenticated_message_encryption" do |app|
       config.after_initialize do
         unless app.config.active_support.use_authenticated_message_encryption.nil?
@@ -128,6 +119,8 @@ module ActiveSupport
       app.config.active_support.each do |k, v|
         if k == "disable_to_s_conversion"
           ActiveSupport.deprecator.warn("config.active_support.disable_to_s_conversion is deprecated and will be removed in Rails 7.2.")
+        elsif k == "remove_deprecated_time_with_zone_name"
+          ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
         else
           k = "#{k}="
           ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
