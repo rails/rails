@@ -461,7 +461,7 @@ module ActionDispatch
             # Case where tld_length is not provided
             else
               # Regular TLDs
-              if !(/([^.]{2,3}\.[^.]{2})$/.match?(request.host))
+              if !(/\.[^.]{2,3}\.[^.]{2}\z/.match?(request.host))
                 cookie_domain = dot_splitted_host.last(2).join(".")
               # **.**, ***.** style TLDs like co.uk and com.au
               else
