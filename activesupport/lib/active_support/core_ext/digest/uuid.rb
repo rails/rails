@@ -10,8 +10,6 @@ module Digest
     OID_NAMESPACE  = "k\xA7\xB8\x12\x9D\xAD\x11\xD1\x80\xB4\x00\xC0O\xD40\xC8" # :nodoc:
     X500_NAMESPACE = "k\xA7\xB8\x14\x9D\xAD\x11\xD1\x80\xB4\x00\xC0O\xD40\xC8" # :nodoc:
 
-    mattr_accessor :use_rfc4122_namespaced_uuids, instance_accessor: false, default: false
-
     # Generates a v5 non-random UUID (Universally Unique IDentifier).
     #
     # Using OpenSSL::Digest::MD5 generates version 3 UUIDs; OpenSSL::Digest::SHA1 generates version 5 UUIDs.
@@ -58,19 +56,12 @@ module Digest
     def self.pack_uuid_namespace(namespace)
       if [DNS_NAMESPACE, OID_NAMESPACE, URL_NAMESPACE, X500_NAMESPACE].include?(namespace)
         namespace
-      elsif use_rfc4122_namespaced_uuids == true
+      else
         match_data = namespace.match(/\A(\h{8})-(\h{4})-(\h{4})-(\h{4})-(\h{4})(\h{8})\z/)
 
         raise ArgumentError, "Only UUIDs are valid namespace identifiers" unless match_data.present?
 
         match_data.captures.map { |s| s.to_i(16) }.pack("NnnnnN")
-      else
-        ActiveSupport.deprecator.warn <<~WARNING.squish
-          Providing a namespace ID that is not one of the constants defined on Digest::UUID generates an incorrect UUID value according to RFC 4122.
-          To enable the correct behavior, set the Rails.application.config.active_support.use_rfc4122_namespaced_uuids configuration option to true.
-        WARNING
-
-        namespace
       end
     end
 

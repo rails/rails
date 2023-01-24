@@ -1,3 +1,12 @@
+*   Remove deprecated support to generate incorrect RFC 4122 UUIDs when providing a namespace ID that is not one of the
+    constants defined on `Digest::UUID`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.use_rfc4122_namespaced_uuids`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
 
     *Rafael Mendonça França*

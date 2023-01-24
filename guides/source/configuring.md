@@ -100,7 +100,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.hash_digest_class`](#config-active-support-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_support.isolation_level`](#config-active-support-isolation-level): `:thread`
 - [`config.active_support.key_generator_hash_digest_class`](#config-active-support-key-generator-hash-digest-class): `OpenSSL::Digest::SHA256`
-- [`config.active_support.use_rfc4122_namespaced_uuids`](#config-active-support-use-rfc4122-namespaced-uuids): `true`
 
 #### Default Values for Target Version 6.1
 
@@ -2272,31 +2271,6 @@ In the default generated `config/environments` files, this is set to `false` for
 #### `config.active_support.isolation_level`
 
 Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`. Otherwise it is best to use `:thread` locality. Defaults to `:thread`.
-
-#### `config.active_support.use_rfc4122_namespaced_uuids`
-
-Specifies whether generated namespaced UUIDs follow the RFC 4122 standard for namespace IDs provided as a `String` to `Digest::UUID.uuid_v3` or `Digest::UUID.uuid_v5` method calls.
-
-If set to `true`:
-
-* Only UUIDs are allowed as namespace IDs. If a namespace ID value provided is not allowed, an `ArgumentError` will be raised.
-* No deprecation warning will be generated, no matter if the namespace ID used is one of the constants defined on `Digest::UUID` or a `String`.
-* Namespace IDs are case-insensitive.
-* All generated namespaced UUIDs should be compliant to the standard.
-
-If set to `false`:
-
-* Any `String` value can be used as namespace ID (although not recommended). No `ArgumentError` will be raised in this case in order to preserve backwards-compatibility.
-* A deprecation warning will be generated if the namespace ID provided is not one of the constants defined on `Digest::UUID`.
-* Namespace IDs are case-sensitive.
-* Only namespaced UUIDs generated using one of the namespace ID constants defined on `Digest::UUID` are compliant to the standard.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.0                   | `true`               |
 
 #### `config.active_support.executor_around_test_case`
 

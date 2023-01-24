@@ -155,11 +155,16 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
 
+*   Remove deprecated support to generate incorrect RFC 4122 UUIDs when providing a namespace ID that is not one of the
+    constants defined on `Digest::UUID`.
+
 ### Deprecations
 
 *   Deprecate `config.active_support.disable_to_s_conversion`.
 
 *   Deprecate `config.active_support.remove_deprecated_time_with_zone_name`.
+
+*   Deprecate `config.active_support.use_rfc4122_namespaced_uuids`.
 
 ### Notable changes
 

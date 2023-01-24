@@ -121,6 +121,8 @@ module ActiveSupport
           ActiveSupport.deprecator.warn("config.active_support.disable_to_s_conversion is deprecated and will be removed in Rails 7.2.")
         elsif k == "remove_deprecated_time_with_zone_name"
           ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
+        elsif k == "use_rfc4122_namespaced_uuids"
+          ActiveSupport.deprecator.warn("config.active_support.use_rfc4122_namespaced_uuids is deprecated and will be removed in Rails 7.2.")
         else
           k = "#{k}="
           ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
@@ -140,15 +142,6 @@ module ActiveSupport
       config.after_initialize do
         if klass = app.config.active_support.key_generator_hash_digest_class
           ActiveSupport::KeyGenerator.hash_digest_class = klass
-        end
-      end
-    end
-
-    initializer "active_support.set_rfc4122_namespaced_uuids" do |app|
-      config.after_initialize do
-        if app.config.active_support.use_rfc4122_namespaced_uuids
-          require "active_support/core_ext/digest"
-          ::Digest::UUID.use_rfc4122_namespaced_uuids = app.config.active_support.use_rfc4122_namespaced_uuids
         end
       end
     end
