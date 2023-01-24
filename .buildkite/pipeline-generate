@@ -318,6 +318,13 @@ step_for("actionpack", "test", service: "default", pre_steps: ["bundle install"]
   x["soft_fail"] = true
 end
 
+step_for("railties", "test", service: "railties", pre_steps: ["bundle install"]) do |x|
+  x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
+  x["label"] += " [rack-3]"
+  x["env"]["RACK"] = "~> 3.0, >= 2.2.4"
+  x["soft_fail"] = true
+end
+
 # Ugly hacks to just get the build passing for now
 STEPS.find { |s| s["label"] == "activestorage (2.2)" }&.tap do |s|
   s["soft_fail"] = true
