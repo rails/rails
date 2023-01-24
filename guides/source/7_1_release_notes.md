@@ -147,6 +147,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated override of `ActiveSupport::TimeWithZone.name`.
 
+*   Remove deprecated `active_support/core_ext/uri` file.
+
 ### Deprecations
 
 *   Deprecate `config.active_support.disable_to_s_conversion`.
