@@ -1,3 +1,7 @@
+*   Remove deprecated `active_support/core_ext/range/include_time_with_zone` file.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `config.active_support.remove_deprecated_time_with_zone_name`.
 
     *Rafael Mendonça França*

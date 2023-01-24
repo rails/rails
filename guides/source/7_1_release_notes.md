@@ -149,6 +149,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove deprecated `active_support/core_ext/uri` file.
 
+*   Remove deprecated `active_support/core_ext/range/include_time_with_zone` file.
+
 ### Deprecations
 
 *   Deprecate `config.active_support.disable_to_s_conversion`.
