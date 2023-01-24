@@ -169,10 +169,6 @@ module ActionView
       if handler.respond_to?(:translate_location)
         handler.translate_location(spot, backtrace_location, encode!)
       else
-        ActionView.deprecator.warn(<<-MSG.squish)
-          The templating engine being used does not define `translate_location`
-          so Rails is unable to highlight the source location inside the template.
-        MSG
         spot
       end
     end
