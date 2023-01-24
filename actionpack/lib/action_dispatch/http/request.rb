@@ -145,6 +145,18 @@ module ActionDispatch
       @request_method ||= check_method(super)
     end
 
+    # Returns the URI pattern of the matched route for the request,
+    # using the same format as `bin/rails routes`:
+    #
+    #   request.route_uri_pattern # => "/:controller(/:action(/:id))(.:format)"
+    def route_uri_pattern
+      get_header("action_dispatch.route_uri_pattern")
+    end
+
+    def route_uri_pattern=(pattern) # :nodoc:
+      set_header("action_dispatch.route_uri_pattern", pattern)
+    end
+
     def routes # :nodoc:
       get_header("action_dispatch.routes")
     end

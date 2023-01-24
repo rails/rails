@@ -351,6 +351,17 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal "/stuff", controller.url_for(controller: "/stuff", only_path: true)
   end
 
+  def test_route_uri_pattern
+    rs.draw { ActionDispatch.deprecator.silence { get "/:controller(/:action(/:id))" } }
+
+    get URI("http://test.host/admin/user/list/10")
+
+    assert_equal(
+      "/:controller(/:action(/:id))(.:format)",
+      controller.request.route_uri_pattern
+    )
+  end
+
   def test_route_with_colon_first
     rs.draw do
       ActionDispatch.deprecator.silence do
