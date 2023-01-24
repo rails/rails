@@ -146,7 +146,9 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: 
     rake_task = "db:postgresql:rebuild #{rake_task}"
   end
 
-  env = {"IMAGE_NAME" => image_name_for(ruby || ONE_RUBY)}
+  env = {
+    "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
+  }
 
   # If we have YJIT_RUBY set the environment variable
   # to turn it on.
