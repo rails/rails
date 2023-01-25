@@ -162,6 +162,7 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 [`before_update`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_update
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
+
 ### Destroying an Object
 
 * [`before_destroy`][]
@@ -173,7 +174,7 @@ WARNING. `after_save` runs both on create and update, but always _after_ the mor
 [`around_destroy`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_destroy
 [`before_destroy`]: https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
 
-NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy` associations (or use the `prepend: true` option), to ensure they execute before the records are deleted by `dependent: :destroy`. More on [ordering callbacks](#order-callbacks) later.
+NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy` associations (or use the `prepend: true` option), to ensure they execute before the records are deleted by `dependent: :destroy`.
 
 WARNING. `after_commit` makes very different guarantees than `after_save`, `after_update`, and `after_destroy`. For example if an exception occurs in an `after_save` the transaction will be rolled back and the data will not be persisted. While anything that happens `after_commit` can guarantee the transaction has already completed and the data was persisted to the database. More on [transactional callbacks](#transaction-callbacks) below.
 
@@ -431,7 +432,7 @@ class Comment < ApplicationRecord
 end
 ```
 
-### Using both :if and :unless
+### Using Both `:if` and `:unless`
 
 Callbacks can mix both `:if` and `:unless` in the same declaration:
 
@@ -495,7 +496,7 @@ You can declare as many callbacks as you want inside your callback classes.
 Transaction Callbacks
 ---------------------
 
-### Dealing with consistency
+### Dealing With Consistency
 
 There are two additional callbacks that are triggered by the completion of a database transaction: [`after_commit`][] and [`after_rollback`][]. These callbacks are very similar to the `after_save` callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your active record models need to interact with external systems which are not part of the database transaction.
 
@@ -524,7 +525,7 @@ end
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't supply the `:on` option the callback will fire for every action.
 
-### Context matters
+### Context Matters
 
 Since using the `after_commit` callback only on create, update, or delete is
 common, there are aliases for those operations:
@@ -593,7 +594,7 @@ irb> @user.save # updating @user
 User was saved to database
 ```
 
-### Transactional callback ordering
+### Transactional Callback Ordering
 
 When defining multiple transactional `after_` callbacks (`after_commit`, `after_rollback`, etc), the order will be reversed from when they are defined.
 

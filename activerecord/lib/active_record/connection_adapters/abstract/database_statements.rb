@@ -155,7 +155,7 @@ module ActiveRecord
         exec_query(sql, name)
       end
 
-      def explain(arel, binds = []) # :nodoc:
+      def explain(arel, binds = [], options = []) # :nodoc:
         raise NotImplementedError
       end
 

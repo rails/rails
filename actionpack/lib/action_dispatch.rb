@@ -54,6 +54,7 @@ module ActionDispatch
   end
 
   autoload_under "middleware" do
+    autoload :AssumeSSL
     autoload :HostAuthorization
     autoload :RequestId
     autoload :Callbacks

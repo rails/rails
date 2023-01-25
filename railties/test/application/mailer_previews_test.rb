@@ -925,6 +925,41 @@ module ApplicationTests
       assert_match "<dd id=\"bcc\">bcc@example.com</dd>", last_response.body
     end
 
+    test "mailer preview has access to rendering context" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+          def foo
+            @template = params[:template]
+            mail to: "to@example.org", cc: "cc@example.com", bcc: "bcc@example.com"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        <%= @template %>
+      RUBY
+
+      text_template "notifier/bar", <<-RUBY
+        bar
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            # This is meant to simulate how Action Text's renderer works. See #47072.
+            template = Rails::MailersController.renderer.render_to_string("notifier/bar")
+            Notifier.with(template: template).foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo?part=text%2Fplain"
+      assert_includes last_response.body, "bar"
+    end
+
     private
       def build_app
         super
