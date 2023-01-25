@@ -1,3 +1,12 @@
+*   Add `ActionDispatch::AssumeSSL` middleware that can be turned on via `config.assume_ssl`.
+    It makes the application believe that all requests are arring over SSL. This is useful 
+    when proxying through a load balancer that terminates SSL, the forwarded request will appear
+    as though its HTTP instead of HTTPS to the application. This makes redirects and cookie
+    security target HTTP instead of HTTPS. This middleware makes the server assume that the
+    proxy already terminated SSL, and that the request really is HTTPS.
+
+    *DHH*
+
 *   Only use HostAuthorization middleware if `config.hosts` is not empty
 
     *Hartley McGuire*
