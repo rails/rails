@@ -1040,6 +1040,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "Dockerfile" do |content|
+      assert_match(%(BUNDLE_WITHOUT="development:test"), content)
       assert_match(/assets:precompile/, content)
       assert_match(/libvips/, content)
       assert_no_match(/yarn/, content)

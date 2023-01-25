@@ -1,3 +1,8 @@
+*   Change `Dockerfile` template to exclude _both_ `development` and `test` gem
+    groups
+
+    *Sean Doyle*
+
 *   Credentials commands (e.g. `bin/rails credentials:edit`) now respect
     `config.credentials.content_path` and `config.credentials.key_path` when set
     in `config/application.rb`.
