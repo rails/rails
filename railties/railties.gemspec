@@ -40,6 +40,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
   s.add_dependency "actionpack",    version
 
+  s.add_dependency "rackup", ">= 1.0.0"
   s.add_dependency "rake", ">= 12.2"
   s.add_dependency "thor", "~> 1.0"
   s.add_dependency "zeitwerk", "~> 2.6"
