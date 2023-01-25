@@ -1,3 +1,12 @@
+## Rails 6.1.7.2 (January 24, 2023) ##
+
+*   Fix `domain: :all` for two letter TLD
+
+    This fixes a compatibility issue introduced in our previous security
+    release when using `domain: :all` with a two letter but single level top
+    level domain domain (like `.ca`, rather than `.co.uk`).
+
+
 ## Rails 6.1.7.1 (January 17, 2023) ##
 
 *   Avoid regex backtracking on If-None-Match header
