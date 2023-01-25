@@ -284,6 +284,25 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(encrypted_content, run_diff_command(content_path))
   end
 
+
+  test "respects config.credentials.content_path when set in config/application.rb" do
+    content_path = "my_secrets/credentials.yml.enc"
+    add_to_config "config.credentials.content_path = #{content_path.inspect}"
+
+    assert_credentials_paths content_path, "config/master.key"
+
+    assert_credentials_paths content_path, "config/credentials/production.key", environment: "production"
+  end
+
+  test "respects config.credentials.key_path when set in config/application.rb" do
+    key_path = "my_secrets/master.key"
+    add_to_config "config.credentials.key_path = #{key_path.inspect}"
+
+    assert_credentials_paths "config/credentials.yml.enc", key_path
+
+    assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
@@ -307,6 +326,23 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     def write_credentials(content, **options)
       switch_env("CONTENT", content) do
         run_edit_command(editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"), **options)
+      end
+    end
+
+    def assert_credentials_paths(content_path, key_path, environment: nil)
+      content = "foo: #{content_path}"
+      remove_file content_path
+      remove_file key_path
+
+      assert_match "Editing #{content_path}", write_credentials(content, environment: environment)
+      assert_file content_path
+      assert_file key_path
+
+      assert_match content, run_show_command(environment: environment)
+
+      # Decrypted diffs apply to credentials files in standard locations only.
+      if %r"config/credentials(?:/.*)?\.yml\.enc$".match?(content_path)
+        assert_match content, run_diff_command(content_path)
       end
     end
 

@@ -1,3 +1,47 @@
+*   Credentials commands (e.g. `bin/rails credentials:edit`) now respect
+    `config.credentials.content_path` and `config.credentials.key_path` when set
+    in `config/application.rb`.
+
+    Before:
+
+      * `bin/rails credentials:edit` ignored `RAILS_ENV`, and would always edit
+        `config/credentials.yml.enc`.
+
+      * `bin/rails credentials:edit --environment foo` would create and edit
+        `config/credentials/foo.yml.enc`.
+
+      * If `config.credentials.content_path` or `config.credentials.key_path`
+        was set, `bin/rails credentials:edit` could not be used to edit the
+        credentials.  Editing credentials required using `bin/rails
+        encrypted:edit path/to/credentials --key path/to/key`.
+
+    After:
+
+      * `bin/rails credentials:edit` will edit the credentials file that the app
+        would load for the current `RAILS_ENV`.
+
+      * `bin/rails credentials:edit` respects `config.credentials.content_path`
+        and `config.credentials.key_path` when set in `config/application.rb`.
+        Using `RAILS_ENV`, environment-specific paths can be set, such as:
+
+          ```ruby
+          # config/application.rb
+          module MyCoolApp
+            class Application < Rails::Application
+              config.credentials.content_path = "my_credentials/#{Rails.env}.yml.enc"
+
+              config.credentials.key_path = "path/to/production.key" if Rails.env.production?
+            end
+          end
+          ```
+
+      * `bin/rails credentials:edit --environment foo` will create and edit
+        `config/credentials/foo.yml.enc` _if_ `config.credentials.content_path`
+        has not been set for the `foo` environment.  Ultimately, it will edit
+        the credentials file that the app would load for the `foo` environment.
+
+    *Jonathan Hefner*
+
 *   Add descriptions for non-Rake commands when running `rails -h`.
 
     *Petrik de Heus*
