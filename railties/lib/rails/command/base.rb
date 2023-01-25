@@ -174,8 +174,11 @@ module Rails
       end
 
       no_commands do
-        delegate :executable, to: :class
         attr_reader :current_subcommand
+
+        def executable(subcommand = nil)
+          self.class.executable(subcommand)
+        end
 
         def invoke_command(command, *) # :nodoc:
           @current_subcommand ||= nil

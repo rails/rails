@@ -3,7 +3,6 @@
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/callbacks"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
 require "thread"
@@ -355,7 +354,9 @@ module Rails
       alias :isolated? :isolated
       alias :engine_name :railtie_name
 
-      delegate :eager_load!, to: :instance
+      def eager_load!
+        instance.eager_load!
+      end
 
       def inherited(base)
         unless base.abstract_railtie?
@@ -426,9 +427,6 @@ module Rails
     include ActiveSupport::Callbacks
     define_callbacks :load_seed
 
-    delegate :middleware, :root, :paths, to: :config
-    delegate :engine_name, :isolated?, to: :class
-
     def initialize
       @_all_autoload_paths = nil
       @_all_load_paths     = nil
@@ -439,6 +437,26 @@ module Rails
       @routes              = nil
       @app_build_lock      = Mutex.new
       super
+    end
+
+    def middleware
+      config.middleware
+    end
+
+    def root
+      config.root
+    end
+
+    def paths
+      config.paths
+    end
+
+    def engine_name
+      self.class.engine_name
+    end
+
+    def isolated?
+      self.class.isolated?
     end
 
     # Load console and invoke the registered hooks.

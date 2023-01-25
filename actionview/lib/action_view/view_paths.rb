@@ -8,7 +8,7 @@ module ActionView
       ViewPaths.set_view_paths(self, ActionView::PathSet.new.freeze)
     end
 
-    delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
+    delegate :template_exists?, :any_templates?, :view_paths,
              :locale, :locale=, to: :lookup_context
 
     module ClassMethods
@@ -97,6 +97,14 @@ module ActionView
     def lookup_context
       @_lookup_context ||=
         ActionView::LookupContext.new(self.class._view_paths, details_for_lookup, _prefixes)
+    end
+
+    def formats
+      lookup_context.formats
+    end
+
+    def formats=(f)
+      lookup_context.formats = f
     end
 
     def details_for_lookup

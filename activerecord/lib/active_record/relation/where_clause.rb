@@ -5,10 +5,14 @@ require "active_support/core_ext/array/extract"
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
-      delegate :any?, :empty?, to: :predicates
+      delegate :any?, to: :predicates
 
       def initialize(predicates)
         @predicates = predicates
+      end
+
+      def empty?
+        predicates.empty?
       end
 
       def +(other)

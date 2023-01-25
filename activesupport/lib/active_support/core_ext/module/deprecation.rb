@@ -20,6 +20,6 @@ class Module
   #     end
   #   end
   def deprecate(*method_names)
-    ActiveSupport::Deprecation.deprecate_methods(self, *method_names)
+    ActiveSupport::Deprecation.instance.deprecate_methods(self, *method_names)
   end
 end

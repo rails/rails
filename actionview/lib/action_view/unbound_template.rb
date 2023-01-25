@@ -5,7 +5,7 @@ require "concurrent/map"
 module ActionView
   class UnboundTemplate
     attr_reader :virtual_path, :details
-    delegate :locale, :format, :variant, :handler, to: :@details
+    delegate :locale, :format, :handler, to: :@details
 
     def initialize(source, identifier, details:, virtual_path:)
       @source = source
@@ -15,6 +15,10 @@ module ActionView
 
       @templates = Concurrent::Map.new(initial_capacity: 2)
       @write_lock = Mutex.new
+    end
+
+    def variant
+      @details.variant
     end
 
     def bind_locals(locals)

@@ -38,12 +38,20 @@ module ActionDispatch # :nodoc:
         super(header)
       end
 
+      def [](k)
+        __getobj__[k]
+      end
+
       def []=(k, v)
         if @response.sending? || @response.sent?
           raise ActionDispatch::IllegalStateError, "header already sent"
         end
 
-        super
+        __getobj__[k] = v
+      end
+
+      def key?(k)
+        __getobj__.key? k
       end
 
       def merge(other)

@@ -13,7 +13,7 @@ module ActionView # :nodoc:
 
     attr_reader :paths
 
-    delegate :[], :include?, :size, :each, to: :paths
+    delegate :[], :include?, :size, to: :paths
 
     def initialize(paths = [])
       @paths = typecast(paths).freeze
@@ -22,6 +22,10 @@ module ActionView # :nodoc:
     def initialize_copy(other)
       @paths = other.paths.dup.freeze
       self
+    end
+
+    def each(&blk)
+      paths.each(&blk)
     end
 
     def to_ary

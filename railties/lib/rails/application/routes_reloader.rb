@@ -10,13 +10,17 @@ module Rails
       attr_reader :route_sets, :paths, :external_routes
       attr_accessor :eager_load
       attr_writer :run_after_load_paths # :nodoc:
-      delegate :execute_if_updated, :execute, :updated?, to: :updater
+      delegate :execute_if_updated, :updated?, to: :updater
 
       def initialize
         @paths      = []
         @route_sets = []
         @external_routes = []
         @eager_load = false
+      end
+
+      def execute
+        updater.execute
       end
 
       def reload!

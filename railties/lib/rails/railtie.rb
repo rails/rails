@@ -143,7 +143,10 @@ module Rails
 
     class << self
       private :new
-      delegate :config, to: :instance
+
+      def config
+        instance.config
+      end
 
       def subclasses
         super.reject(&:abstract_railtie?).sort
@@ -241,12 +244,14 @@ module Rails
         end
     end
 
-    delegate :railtie_name, to: :class
-
     def initialize # :nodoc:
       if self.class.abstract_railtie?
         raise "#{self.class.name} is abstract, you cannot instantiate it directly."
       end
+    end
+
+    def railtie_name
+      self.class.railtie_name
     end
 
     def inspect # :nodoc:

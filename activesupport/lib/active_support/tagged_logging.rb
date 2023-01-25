@@ -126,7 +126,11 @@ module ActiveSupport
       logger.extend(self)
     end
 
-    delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
+    delegate :push_tags, :pop_tags, to: :formatter
+
+    def clear_tags!
+      formatter.clear_tags!
+    end
 
     def tagged(*tags)
       if block_given?
