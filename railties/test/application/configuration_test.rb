@@ -1790,7 +1790,6 @@ module ApplicationTests
     test "config.log_level can be overwritten by ENV['RAILS_LOG_LEVEL'] in production" do
       restore_default_config
 
-      with_rails_env "production" do
       switch_env "RAILS_LOG_LEVEL", "debug" do
         app "production"
         assert_equal Logger::DEBUG, Rails.logger.level
