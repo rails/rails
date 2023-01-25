@@ -63,8 +63,9 @@ Rails.application.configure do
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]
 
-  # Turn on the lowest log level to for more diagnostic information if needed.
-  # config.log_level = :debug
+  # Include generic and useful information about system operation, but avoid logging too much
+  # information to avoid inadvertent exposure of personally identifiable information (PII).
+  config.log_level = :info
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
