@@ -1,0 +1,7 @@
+#!/bin/bash
+
+exec await $(
+    getent hosts $(
+        for v in ${!AWAIT_*}; do echo ${v#AWAIT_}; done
+    ) | while read ip name; do v="AWAIT_${name}"; echo ${!v}; done
+) -- "$@"
