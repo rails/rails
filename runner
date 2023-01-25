@@ -5,6 +5,13 @@ set -e
 dir="$1"
 cmd="$2"
 
+if [ -n "$PRE_STEPS" ]; then
+  echo
+  echo "--- pre steps"
+  eval "$PRE_STEPS"
+  echo "+++ "
+fi
+
 echo
 echo "--- bundle env"
 bundle env
@@ -16,5 +23,5 @@ fi
 
 echo "+++ $dir: $cmd"
 
-cd $dir
+cd "$dir"
 exec bundle exec /bin/sh -e -c "$cmd"

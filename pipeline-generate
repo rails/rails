@@ -127,7 +127,7 @@ def short_ruby(ruby)
   end
 end
 
-def step_for(subdirectory, rake_task, ruby: nil, service: "default")
+def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: [])
   return unless REPO_ROOT.join(subdirectory).exist?
 
   label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
@@ -152,6 +152,9 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
     env["RUBY_YJIT_ENABLE"] = "1"
   end
 
+  if !pre_steps.empty?
+    env["PRE_STEPS"] = pre_steps.join(" && ")
+  end
   command = "rake #{rake_task}"
 
   timeout = 30
@@ -186,6 +189,10 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
       },
       {
         DOCKER_COMPOSE_PLUGIN => {
+          "env" => [
+            "PRE_STEPS",
+            "RACK"
+          ],
           "run" => service,
           "pull" => service,
           "config" => ".buildkite/docker-compose.yml",
@@ -206,13 +213,13 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
   STEPS << hash
 end
 
-def steps_for(subdirectory, rake_task, service: "default", &block)
+def steps_for(subdirectory, rake_task, service: "default", pre_steps: [], &block)
   RUBIES.each do |ruby|
     if rake_task == "mysql:test"
       next unless ruby =~ /^ruby:(.*)/ && Gem::Version.new($1) < Gem::Version.new("2.4.x")
     end
 
-    step_for(subdirectory, rake_task, ruby: ruby, service: service, &block)
+    step_for(subdirectory, rake_task, ruby: ruby, service: service, pre_steps: pre_steps, &block)
   end
 end
 
@@ -301,6 +308,19 @@ steps_for("railties", "test", service: "railties") do |x|
   x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
 end
 
+step_for("actionpack", "test", service: "default", pre_steps: ["bundle install"]) do |x|
+  x["label"] += " [rack-3]"
+  x["env"]["RACK"] = "~> 3.0"
+  x["soft_fail"] = true
+end
+
+step_for("railties", "test", service: "railties", pre_steps: ["bundle install"]) do |x|
+  x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
+  x["label"] += " [rack-3]"
+  x["env"]["RACK"] = "~> 3.0"
+  x["soft_fail"] = true
+end
+
 # Ugly hacks to just get the build passing for now
 STEPS.find { |s| s["label"] == "activestorage (2.2)" }&.tap do |s|
   s["soft_fail"] = true
@@ -343,6 +363,10 @@ puts YAML.dump("steps" => [
               DOCKER_COMPOSE_PLUGIN => {
                 "build" => "base",
                 "config" => ".buildkite/docker-compose.yml",
+                "env" => [
+                  "PRE_STEPS",
+                  "RACK"
+                ],
                 "image-name" => image_name_for(ruby, short: true),
                 "cache-from" => [
                   REBUILD_ID && "base:" + image_name_for(ruby, REBUILD_ID),
