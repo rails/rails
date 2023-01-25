@@ -118,7 +118,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
             # User doesn't have ykman
           end
 
-          sh "npm publish --tag #{npm_tag}#{npm_otp}"
+          sh "npm publish #{npm_otp}"
         end
       end
     end
