@@ -625,14 +625,12 @@ module ApplicationTests
       end
     end
 
-    test "In production mode, STDOUT logging is enabled when RAILS_LOG_TO_STDOUT is set" do
+    test "In production mode, STDOUT logging is the default" do
       restore_default_config
 
       with_rails_env "production" do
-        switch_env "RAILS_LOG_TO_STDOUT", "1" do
-          app "production"
-          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
-        end
+        app "production"
+        assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
       end
     end
 
