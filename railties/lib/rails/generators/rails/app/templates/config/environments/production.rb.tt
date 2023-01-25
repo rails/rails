@@ -61,12 +61,11 @@ Rails.application.configure do
     .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
     .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
 
-  # Use the lowest log level to ensure availability of diagnostic information
-  # when problems arise.
-  config.log_level = :debug
-
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]
+
+  # Turn on the lowest log level to for more diagnostic information if needed.
+  # config.log_level = :debug
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
