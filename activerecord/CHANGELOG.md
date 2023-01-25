@@ -1,3 +1,25 @@
+*   Add predicate method to has_one accessors
+
+    Introduces `other!` to the list of generated methods for singular associations.
+
+    ```ruby
+    account.beneficiary
+    #=> nil
+
+    account.benificiary!
+    #=> #<ActiveRecord::RecordNotFound>
+
+    Benificiary.create!(account: account)
+    account.benificiary!
+    #=> #<Benificiary>
+
+    Benificiary.create!(account: account)
+    account.benificiary!
+    #=> #<ActiveRecord::SoleRecordExceeded>
+    ```
+
+    *Steve Polito*
+
 *   Fix `has_one` association autosave setting the foreign key attribute when it is unchanged.
 
     This behaviour is also inconsistent with autosaving `belongs_to` and can have unintended side effects like raising

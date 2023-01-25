@@ -1475,6 +1475,7 @@ end
 Each instance of the `Supplier` model will have these methods:
 
 * `account`
+* `account!`
 * `account=`
 * `build_account`
 * `create_account`
