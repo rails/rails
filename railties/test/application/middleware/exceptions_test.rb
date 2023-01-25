@@ -25,10 +25,11 @@ module ApplicationTests
         end
       RUBY
 
-      get "/foo"
-      assert_equal 500, last_response.status
+      log = capture(:stdout) do
+        get "/foo"
+        assert_equal 500, last_response.status
+      end
 
-      log = File.read(Rails.application.config.paths["log"].first)
       assert_no_match(/action_dispatch/, log, log)
       assert_match(/oops/, log, log)
     end
