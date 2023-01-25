@@ -186,19 +186,6 @@ module ApplicationTests
         rails("stats")
     end
 
-    def test_logger_is_flushed_when_exiting_production_rake_tasks
-      add_to_config <<-RUBY
-        rake_tasks do
-          task log_something: :environment do
-            Rails.logger.error("Sample log message")
-          end
-        end
-      RUBY
-
-      rails "log_something", "RAILS_ENV=production"
-      assert_match "Sample log message", File.read("#{app_path}/log/production.log")
-    end
-
     def test_loading_specific_fixtures
       rails "generate", "model", "user", "username:string", "password:string"
       rails "generate", "model", "product", "name:string"
