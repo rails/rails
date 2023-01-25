@@ -39,7 +39,7 @@ PATH
     actionpack (7.1.0.alpha)
       actionview (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
-      rack (~> 2.0, >= 2.2.4)
+      rack (>= 2.2.4)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
@@ -556,6 +556,7 @@ DEPENDENCIES
   puma (>= 5.0.3)
   queue_classic (>= 4.0.0)
   racc (>= 1.4.6)
+  rack (~> 2.0)
   rack-cache (~> 1.2)
   rails!
   rake (>= 13)

@@ -68,6 +68,10 @@ gem "webrick", require: false
 gem "jbuilder", require: false
 gem "web-console", require: false
 
+# Action Pack and railties
+rack_version = ENV.fetch("RACK", "~> 2.0") # Change to ~> 3 after #46594 is merged.
+gem "rack", rack_version
+
 # Active Job
 group :job do
   gem "resque", require: false
