@@ -7,8 +7,6 @@ module Rails
     class RunnerCommand < Base # :nodoc:
       include EnvironmentArgument
 
-      self.environment_desc = "The environment for the runner to operate under (test/development/production)"
-
       no_commands do
         def help
           super
@@ -22,14 +20,10 @@ module Rails
 
       desc "runner", "Runs Ruby code in the context of your application"
       def perform(code_or_file = nil, *command_argv)
-        extract_environment_option_from_argument
-
         unless code_or_file
           help
           exit 1
         end
-
-        ENV["RAILS_ENV"] = options[:environment]
 
         require_application_and_environment!
         Rails.application.load_runner

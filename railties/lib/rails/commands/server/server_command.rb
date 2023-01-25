@@ -129,7 +129,6 @@ module Rails
       end
 
       def perform
-        extract_environment_option_from_argument
         set_application_directory!
         prepare_restart
 

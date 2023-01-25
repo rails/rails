@@ -24,19 +24,16 @@ module Rails
 
       desc "edit", "Opens the decrypted credentials in `$EDITOR` for editing"
       def edit
-        environment_specified = options[:environment].present?
-        extract_environment_option_from_argument
-        ENV["RAILS_ENV"] = options[:environment]
         require_application!
         load_generators
 
-        if environment_specified
-          @content_path = "config/credentials/#{options[:environment]}.yml.enc" unless config.key?(:content_path)
-          @key_path = "config/credentials/#{options[:environment]}.key" unless config.key?(:key_path)
+        if environment_specified?
+          @content_path = "config/credentials/#{environment}.yml.enc" unless config.key?(:content_path)
+          @key_path = "config/credentials/#{environment}.key" unless config.key?(:key_path)
         end
 
         ensure_encryption_key_has_been_added
-        ensure_credentials_have_been_added(environment_specified)
+        ensure_credentials_have_been_added
         ensure_diffing_driver_is_configured
 
         change_credentials_in_system_editor
@@ -44,8 +41,6 @@ module Rails
 
       desc "show", "Shows the decrypted credentials"
       def show
-        extract_environment_option_from_argument
-        ENV["RAILS_ENV"] = options[:environment]
         require_application!
 
         say credentials.read.presence || missing_credentials_message
@@ -60,8 +55,7 @@ module Rails
       desc "diff", "Enrolls/disenrolls in decrypted diffs of credentials using git"
       def diff(content_path = nil)
         if @content_path = content_path
-          extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))
-          ENV["RAILS_ENV"] = options[:environment]
+          self.environment = extract_environment_from_path(content_path)
           require_application!
 
           say credentials.read.presence || credentials.content_path.read
@@ -100,12 +94,12 @@ module Rails
           encryption_key_file_generator.ignore_key_file(key_path)
         end
 
-        def ensure_credentials_have_been_added(environment_specified)
+        def ensure_credentials_have_been_added
           require "rails/generators/rails/credentials/credentials_generator"
 
           Rails::Generators::CredentialsGenerator.new(
             [content_path, key_path],
-            skip_secret_key_base: environment_specified && %w[development test].include?(options[:environment]),
+            skip_secret_key_base: environment_specified? && %w[development test].include?(environment),
             quiet: true
           ).invoke_all
         end
