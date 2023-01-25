@@ -616,23 +616,12 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "In production mode, config.public_file_server.enabled is off by default" do
+    test "In production mode, config.public_file_server.enabled is on by default" do
       restore_default_config
 
       with_rails_env "production" do
         app "production"
-        assert_not app.config.public_file_server.enabled
-      end
-    end
-
-    test "In production mode, config.public_file_server.enabled is enabled when RAILS_SERVE_STATIC_FILES is set" do
-      restore_default_config
-
-      with_rails_env "production" do
-        switch_env "RAILS_SERVE_STATIC_FILES", "1" do
-          app "production"
-          assert app.config.public_file_server.enabled
-        end
+        assert app.config.public_file_server.enabled
       end
     end
 
@@ -643,17 +632,6 @@ module ApplicationTests
         switch_env "RAILS_LOG_TO_STDOUT", "1" do
           app "production"
           assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
-        end
-      end
-    end
-
-    test "In production mode, config.public_file_server.enabled is disabled when RAILS_SERVE_STATIC_FILES is blank" do
-      restore_default_config
-
-      with_rails_env "production" do
-        switch_env "RAILS_SERVE_STATIC_FILES", " " do
-          app "production"
-          assert_not app.config.public_file_server.enabled
         end
       end
     end
