@@ -1,3 +1,7 @@
+*   Deprecate `ActionDispatch::IllegalStateError`.
+
+    *Samuel Williams*
+
 *   Add HTTP::Request#route_uri_pattern that returns URI pattern of matched route.
 
     *Joel Hawksley*, *Kate Higa*
