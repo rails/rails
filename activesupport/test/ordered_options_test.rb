@@ -82,6 +82,20 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal :baz, child.foo
   end
 
+  def test_inheritable_options_override_predicate
+    parent = ActiveSupport::OrderedOptions.new
+    parent[:foo] = nil
+    parent[:bar] = nil
+
+    child = ActiveSupport::InheritableOptions.new(parent)
+    child[:bar] = nil
+    child[:baz] = nil
+
+    assert_not child.override?(:foo)
+    assert child.override?(:bar)
+    assert child.override?(:baz)
+  end
+
   def test_inheritable_options_inheritable_copy
     original = ActiveSupport::InheritableOptions.new
     copy     = original.inheritable_copy

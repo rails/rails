@@ -92,6 +92,12 @@ module ActiveSupport
       end
     end
 
+    # Returns true if the given +key+ has an associated value that is not
+    # inherited.
+    def override?(key)
+      key?(key.to_sym)
+    end
+
     def inheritable_copy
       self.class.new(self)
     end
