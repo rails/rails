@@ -32,27 +32,14 @@ module ActionDispatch # :nodoc:
   #    end
   #  end
   class Response
-    class Header < DelegateClass(Hash) # :nodoc:
-      def initialize(response, header)
-        @response = response
-        super(header)
-      end
-
-      def []=(k, v)
-        if @response.sending? || @response.sent?
-          raise ActionDispatch::IllegalStateError, "header already sent"
-        end
-
-        super
-      end
-
-      def merge(other)
-        self.class.new @response, __getobj__.merge(other)
-      end
-
-      def to_hash
-        __getobj__.dup
-      end
+    begin
+      # For `Rack::Headers` (Rack 3+):
+      require "rack/headers"
+      Header = ::Rack::Headers
+    rescue LoadError
+      # For `Rack::Utils::HeaderHash`:
+      require "rack/utils"
+      Header = ::Rack::Utils::HeaderHash
     end
 
     # The request that the response is responding to.
@@ -168,10 +155,14 @@ module ActionDispatch # :nodoc:
     # The underlying body, as a streamable object.
     attr_reader :stream
 
-    def initialize(status = 200, header = {}, body = [])
+    def initialize(status = 200, header = nil, body = [])
       super()
 
-      @header = Header.new(self, header)
+      @header = Header.new
+
+      header&.each do |key, value|
+        @header[key] = value
+      end
 
       self.body, self.status = body, status
 
@@ -461,8 +452,8 @@ module ActionDispatch # :nodoc:
       # our last chance.
       commit! unless committed?
 
-      headers.freeze
-      request.commit_cookie_jar! unless committed?
+      @header.freeze
+      @request.commit_cookie_jar! unless committed?
     end
 
     def build_buffer(response, body)
