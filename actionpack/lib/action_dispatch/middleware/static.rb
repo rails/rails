@@ -24,7 +24,7 @@ module ActionDispatch
     end
   end
 
-  # This endpoint serves static files from disk using +Rack::File+.
+  # This endpoint serves static files from disk using +Rack::Files+.
   #
   # URL paths are matched with static files according to expected
   # conventions: +path+, +path+.html, +path+/index.html.
