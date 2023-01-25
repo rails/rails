@@ -1,3 +1,7 @@
+*   Add HTTP::Request#route_uri_pattern that returns URI pattern of matched route.
+
+    *Joel Hawksley*, *Kate Higa*
+
 *   Add `ActionDispatch::AssumeSSL` middleware that can be turned on via `config.assume_ssl`.
     It makes the application believe that all requests are arring over SSL. This is useful
     when proxying through a load balancer that terminates SSL, the forwarded request will appear
