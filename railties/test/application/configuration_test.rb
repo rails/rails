@@ -1787,6 +1787,17 @@ module ApplicationTests
       assert_equal Logger::INFO, Rails.logger.level
     end
 
+    test "config.log_level can be overwritten by ENV['RAILS_LOG_LEVEL'] in production" do
+      restore_default_config
+      app "production"
+
+      with_rails_env "production" do
+      switch_env "RAILS_LOG_LEVEL", "debug" do
+        app "production"
+        assert_equal Logger::DEBUG, Rails.logger.level
+      end
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)
