@@ -45,11 +45,17 @@ namespace :test do
   end
 
   task units: "test:prepare" do
-    Rails::TestUnit::Runner.rake_run(["test/models", "test/helpers", "test/unit"])
+    dirs = %w[models helpers unit].map do |name|
+      "test/#{name}/**"
+    end
+    Rails::TestUnit::Runner.rake_run(dirs)
   end
 
   task functionals: "test:prepare" do
-    Rails::TestUnit::Runner.rake_run(["test/controllers", "test/mailers", "test/functional"])
+    dirs = %w[controllers mailers functional].map do |name|
+      "test/#{name}/**"
+    end
+    Rails::TestUnit::Runner.rake_run(dirs)
   end
 
   desc "Run system tests only"
