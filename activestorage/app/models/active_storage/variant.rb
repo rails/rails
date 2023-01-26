@@ -100,6 +100,11 @@ class ActiveStorage::Variant
     self
   end
 
+  # Deletes variant file from service.
+  def destroy
+    service.delete(key)
+  end
+
   private
     def processed?
       service.exist?(key)

@@ -1,3 +1,11 @@
+*   Allow destroying active storage variants
+
+    ```ruby
+    User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
+    ```
+
+    *Shouichi Kamiya*, *Yuichiro NAKAGAWA*, *Ryohei UEDA*
+
 *   Add missing preview event to `ActiveStorage::LogSubscriber`
 
     A `preview` event is being instrumented in `ActiveStorage::Previewer`.

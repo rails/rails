@@ -4,6 +4,8 @@ require "test_helper"
 require "database/setup"
 
 class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   setup do
     @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, true
   end
@@ -203,5 +205,18 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  test "destroy deletes file from service" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize_to_limit: [100, 100]).processed
+
+    assert_equal 1, ActiveStorage::VariantRecord.count
+    assert blob.service.exist?(variant.key)
+
+    variant.destroy
+
+    assert_equal 0, ActiveStorage::VariantRecord.count
+    assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
   end
 end

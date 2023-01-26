@@ -27,6 +27,11 @@ class ActiveStorage::VariantWithRecord
     record&.image
   end
 
+  # Destroys record and deletes file from service.
+  def destroy
+    record&.destroy
+  end
+
   delegate :key, :url, :download, to: :image, allow_nil: true
 
   private
