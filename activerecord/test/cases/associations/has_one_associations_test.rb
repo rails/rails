@@ -703,6 +703,27 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "new name", pirate.ship.reload.name
   end
 
+  def test_has_one_assignment_triggers_save_when_belongs_to_already_assigned
+    pirate = Pirate.create!(catchphrase: "Why is the rum always gone?")
+    original_ship = Ship.create!(pirate: pirate, name: "Original Ship")
+
+    assert_equal "Original Ship", pirate.reload.ship.name
+
+    new_ship = Ship.new(name: "New Ship")
+    new_ship.pirate = pirate
+    assert_queries(3) do
+      # One query each to:
+      # - select the old ship (reload)
+      # - nullify the old ship
+      # - update the new ship
+      pirate.ship = new_ship
+    end
+    pirate.save!
+
+    assert_equal "New Ship", pirate.reload.ship.name
+    assert_nil original_ship.reload.pirate
+  end
+
   def test_has_one_autosave_with_primary_key_manually_set
     post = Post.create(id: 1234, title: "Some title", body: "Some content")
     author = Author.new(id: 33, name: "Hank Moody")
