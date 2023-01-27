@@ -167,5 +167,25 @@ module Arel
         _(@um.key).must_equal @table[:foo]
       end
     end
+
+    describe "from" do
+      it "generates an update statement" do
+        users = Table.new(:users)
+        employees = Table.new(:employees)
+
+        um = Arel::UpdateManager.new
+        um.table users
+        um.from employees
+        um.set [[users[:name], employees[:name]]]
+        um.where users[:id].eq(employees[:id])
+
+        _(um.to_sql).must_be_like %{ UPDATE "users" SET "name" = "employees"."name" FROM "employees" WHERE "users"."id" = "employees"."id" }
+      end
+
+      it "chains" do
+        um = Arel::UpdateManager.new
+        _(um.from(Table.new(:users))).must_equal um
+      end
+    end
   end
 end

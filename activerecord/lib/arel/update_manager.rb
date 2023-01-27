@@ -15,6 +15,11 @@ module Arel # :nodoc: all
       self
     end
 
+    def from(table)
+      @ast.from = table
+      self
+    end
+
     def set(values)
       if String === values
         @ast.values = [values]
