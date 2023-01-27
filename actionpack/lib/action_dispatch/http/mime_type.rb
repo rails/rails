@@ -201,10 +201,10 @@ module Mime
       end
 
       # For an input of <tt>'text'</tt>, returns <tt>[Mime[:json], Mime[:xml], Mime[:ics],
-      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]</tt>.
+      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]]</tt>.
       #
       # For an input of <tt>'application'</tt>, returns <tt>[Mime[:html], Mime[:js],
-      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]</tt>.
+      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]]</tt>.
       def parse_data_with_trailing_star(type)
         Mime::SET.select { |m| m.match?(type) }
       end
