@@ -80,6 +80,10 @@ SOFT_FAIL << MASTER_RUBY
 YJIT_RUBY = "yjit:#{MASTER_RUBY}"
 SOFT_FAIL << YJIT_RUBY
 
+# Add jruby
+JRUBY = "jruby:latest"
+SOFT_FAIL << JRUBY
+
 # Run steps for newer Rubies first.
 RUBIES.reverse!
 SOFT_FAIL.reverse!
@@ -129,6 +133,11 @@ end
 
 def step_for(subdirectory, rake_task, ruby: nil, service: "default", pre_steps: [])
   return unless REPO_ROOT.join(subdirectory).exist?
+
+  if ruby == JRUBY
+    # Uncomment to only run on main and stable branches
+    #return unless MAINLINE
+  end
 
   label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
   label.sub!(/ test/, "")
