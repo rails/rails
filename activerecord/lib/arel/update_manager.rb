@@ -44,5 +44,10 @@ module Arel # :nodoc: all
       @ast.havings << expr
       self
     end
+
+    def returning(returning)
+      @ast.returning << returning
+      self
+    end
   end
 end
