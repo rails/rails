@@ -3,6 +3,7 @@
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"
+require "action_view/attributes"
 require "action_view/log_subscriber"
 require "action_view/helpers"
 require "action_view/context"
@@ -167,6 +168,7 @@ module ActionView # :nodoc:
 
     class << self
       delegate :erb_trim_mode=, to: "ActionView::Template::Handlers::ERB"
+      delegate :token_lists, :token_lists=, to: "ActionView::Attributes"
 
       def cache_template_loading
         ActionView::Resolver.caching?

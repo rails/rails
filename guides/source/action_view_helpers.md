@@ -66,15 +66,45 @@ Call Action View's `tag.attributes` to transform `Hash` instances into HTML-read
 Calls to `tag.attributes` accept many `Hash` instances, and merge them left to right, and support nesting keys under `aria:` and `data:`:
 
 ```ruby
-tag.attributes({ id: "search" }, { type: :text }, { aria: { label: "Search" } }, data: { value: "123" })
-# => "id=\"search\" type=\"text\" aria-label=\"Search\" data-value=\"123\""
+attributes = tag.attributes({ id: "search" }, { type: :text }, { aria: { label: "Search" } }, data: { value: "123" })
+attributes.to_h # => { id: "search", type: "text", aria: { label: "search" }, data: { value: "123" } }
+attributes.to_s # => "id=\"search\" type=\"text\" aria-label=\"Search\" data-value=\"123\""
+```
+
+Attribute merging will account for token lists attributes (like `class` and `aria-labelledby`) by merging values from left to right:
+
+```erb
+<input <%= tag.attributes({ class: "font-bold" }, { class: ["text-sm", "text-gray-700"] }, class: "p-2") %> >
+<%# => <input class="font-bold text-sm text-gray-700 p-2" > %>
+```
+
+To override token list merging for an attribute, pass its name with a `!` suffix:
+
+```ruby
+attributes = tag.attributes({ class: "default" }, { class!: "first-override" }, class!: "second-override")
+attributes.to_h # => { class: "second-override" }
+attributes.to_s # => "class=\"second-override\""
 ```
 
 Calls to `tag.attributes` will merge nested values:
 
 ```ruby
-tag.attributes({ aria: { label: "Search" } }, aria: { disabled: true })
-# => "aria-label=\"Search\" aria-disabled=\"true\""
+attributes = tag.attributes({ aria: { label: "Search" } }, aria: { disabled: true })
+attributes.to_h # => { aria: { label: "Search", disabled: true } }
+attributes.to_s # => "aria-label=\"Search\" aria-disabled=\"true\""
+```
+
+Pass `tag.attributes` as options or keyword arguments:
+
+```ruby
+primary = { class: "bg-red-500 text-white" }
+large = { class: "text-lg p-4" }
+
+button_tag "Click me!", tag.attributes(primary, large)
+# => <button name="button" type="submit" class="bg-red-500 text-white text-lg p-4">Click me!</button>
+
+tag.button "Click me!", id: "cta", **tag.attributes(primary, large)
+# => <button id="cta" class="bg-red-500 text-white text-lg p-4">Click me!</button>
 ```
 
 ### AssetTagHelper
