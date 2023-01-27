@@ -1239,6 +1239,14 @@ Existing applications can opt in to this new behavior by setting [`config.active
 
 [`config.active_storage.replace_on_assign_to_many`]: configuring.html#config-active-storage-replace-on-assign-to-many
 
+### Custom exception handling applications
+
+Invalid `Accept` or `Content-Type` request headers will now raise an exception.
+The default [`config.exceptions_app`][] specifically handles that error and compensates for it.
+Custom exceptions applications will need to handle that error as well, or such requests will cause Rails to use the fallback exceptions application, which returns a `500 Internal Server Error`.
+
+[`config.exceptions_app`]: configuring.html#config-exceptions-app
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 

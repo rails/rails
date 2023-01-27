@@ -310,7 +310,43 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 
 #### `config.exceptions_app`
 
-Sets the exceptions application invoked by the `ShowException` middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
+Sets the exceptions application invoked by the `ShowException` middleware when an exception happens.
+Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
+
+Exceptions applications need to handle `ActionDispatch::Http::MimeNegotiation::InvalidType` errors, which are raised when a client sends an invalid `Accept` or `Content-Type` header.
+The default `ActionDispatch::PublicExceptions` application does this automatically, setting `Content-Type` to `text/html` and returning a `406 Not Acceptable` status.
+Failure to handle this error will result in a `500 Internal Server Error`.
+
+Using the `Rails.application.routes` `RouteSet` as the exceptions application also requires this special handling.
+It might look something like this:
+
+```ruby
+# config/application.rb
+config.exceptions_app = CustomExceptionsAppWrapper.new(exceptions_app: routes)
+
+# lib/custom_exceptions_app_wrapper.rb
+class CustomExceptionsAppWrapper
+  def initialize(exceptions_app:)
+    @exceptions_app = exceptions_app
+  end
+
+  def call(env)
+    request = ActionDispatch::Request.new(env)
+
+    fallback_to_html_format_if_invalid_mime_type(request)
+
+    @exceptions_app.call(env)
+  end
+
+  private
+
+  def fallback_to_html_format_if_invalid_mime_type(request)
+    request.formats
+  rescue ActionDispatch::Http::MimeNegotiation::InvalidType
+    request.set_header "CONTENT_TYPE", "text/html"
+  end
+end
+```
 
 #### `config.file_watcher`
 
