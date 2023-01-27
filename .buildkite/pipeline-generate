@@ -69,20 +69,26 @@ RUBY_MINORS.select { |v| v >= MIN_RUBY }.each do |v|
   end
 end
 
-ONE_RUBY = RUBIES.last || SOFT_FAIL.last
+#ONE_RUBY = RUBIES.last || SOFT_FAIL.last
 
 MASTER_RUBY = "rubylang/ruby:master-nightly-focal"
-SOFT_FAIL << MASTER_RUBY
+#SOFT_FAIL << MASTER_RUBY
 
 # Adds yjit: onto the master ruby image string so we
 # know when to turn on YJIT via the environment variable.
 # Same as master ruby, we want this to soft fail.
 YJIT_RUBY = "yjit:#{MASTER_RUBY}"
-SOFT_FAIL << YJIT_RUBY
+#SOFT_FAIL << YJIT_RUBY
+
+# TODO: Remove
+RUBIES = []
+SOFT_FAIL = []
 
 # Add jruby
 JRUBY = "jruby:latest"
 SOFT_FAIL << JRUBY
+
+ONE_RUBY = RUBIES.last || SOFT_FAIL.last
 
 # Run steps for newer Rubies first.
 RUBIES.reverse!
