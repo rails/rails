@@ -9,22 +9,17 @@ module ActionController # :nodoc:
   # and then the layout. The response is sent to the client after the whole
   # template is rendered, all queries are made, and the layout is processed.
   #
-  # Streaming inverts the rendering flow by rendering the layout first and
-  # streaming each part of the layout as they are processed. This allows the
+  # \Streaming inverts the rendering flow by rendering the layout first and
+  # subsequently each part of the layout as they are processed. This allows the
   # header of the HTML (which is usually in the layout) to be streamed back
-  # to client very quickly, allowing JavaScripts and stylesheets to be loaded
+  # to client very quickly, enabling JavaScripts and stylesheets to be loaded
   # earlier than usual.
   #
-  # This approach was introduced in Rails 3.1 and is still improving. Several
-  # Rack middlewares may not work and you need to be careful when streaming.
-  # Those points are going to be addressed soon.
+  # Several Rack middlewares may not work and you need to be careful when streaming.
+  # This is covered in more detail below, see the "Middlewares" section.
   #
-  # In order to use streaming, you will need to use a Ruby version that
-  # supports fibers (fibers are supported since version 1.9.2 of the main
-  # Ruby implementation).
-  #
-  # Streaming can be added to a given template easily, all you need to do is
-  # to pass the +:stream+ option.
+  # \Streaming can be added to a given template easily, all you need to do is
+  # to pass the +:stream+ option to +render+.
   #
   #   class PostsController
   #     def index
@@ -35,7 +30,7 @@ module ActionController # :nodoc:
   #
   # == When to use streaming
   #
-  # Streaming may be considered to be overkill for lightweight actions like
+  # \Streaming may be considered to be overkill for lightweight actions like
   # +new+ or +edit+. The real benefit of streaming is on expensive actions
   # that, for example, do a lot of queries on the database.
   #
@@ -59,7 +54,7 @@ module ActionController # :nodoc:
   #     render stream: true
   #   end
   #
-  # Notice that +:stream+ only works with templates. Rendering +:json+
+  # Notice that +:stream+ only works with templates. \Rendering +:json+
   # or +:xml+ with +:stream+ won't work.
   #
   # == Communication between layout and template
@@ -112,7 +107,7 @@ module ActionController # :nodoc:
   # This means that, if you have <code>yield :title</code> in your layout
   # and you want to use streaming, you would have to render the whole template
   # (and eventually trigger all queries) before streaming the title and all
-  # assets, which kills the purpose of streaming. For this purpose, you can use
+  # assets, which defeats the purpose of streaming. Alternatively, you can use
   # a helper called +provide+ that does the same as +content_for+ but tells the
   # layout to stop searching for other entries and continue rendering.
   #
@@ -122,7 +117,7 @@ module ActionController # :nodoc:
   #   Hello
   #   <%= content_for :title, " page" %>
   #
-  # Giving:
+  # Resulting in:
   #
   #   <html>
   #     <head><title>Main</title></head>
@@ -131,6 +126,8 @@ module ActionController # :nodoc:
   #
   # That said, when streaming, you need to properly check your templates
   # and choose when to use +provide+ and +content_for+.
+  #
+  # See also ActionView::Helpers::CaptureHelper for more information.
   #
   # == Headers, cookies, session, and flash
   #
@@ -161,9 +158,9 @@ module ActionController # :nodoc:
   #
   #   "><script>window.location = "/500.html"</script></html>
   #
-  # The first two characters (">) are required in case the exception happens
-  # while rendering attributes for a given tag. You can check the real cause
-  # for the exception in your logger.
+  # The first two characters (<tt>"></tt>) are required in case the exception
+  # happens while rendering attributes for a given tag. You can check the real
+  # cause for the exception in your logger.
   #
   # == Web server support
   #
@@ -183,11 +180,13 @@ module ActionController # :nodoc:
   #   unicorn_rails --config-file unicorn.config.rb
   #
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
+  #
   # Please check its documentation for more information:
-  # https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen
+  #
+  # * https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen
   #
   # If you are using Unicorn with NGINX, you may need to tweak NGINX.
-  # Streaming should work out of the box on Rainbows.
+  # \Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger
   #
@@ -203,7 +202,8 @@ module ActionController # :nodoc:
   # the response back to the client.
   #
   # Please check the documentation for more information:
-  # https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response
+  #
+  # * https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response
   #
   module Streaming
     private
