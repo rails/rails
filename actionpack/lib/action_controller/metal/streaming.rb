@@ -183,14 +183,27 @@ module ActionController # :nodoc:
   #   unicorn_rails --config-file unicorn.config.rb
   #
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
-  # Please check its documentation for more information: https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen
+  # Please check its documentation for more information:
+  # https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen
   #
   # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger
   #
-  # To be described.
+  # Phusion Passenger with NGINX, offers two streaming mechanisms out of the box.
+  #
+  # 1. NGINX response buffering mechanism which is dependent on the value of
+  #    `passenger_buffer_response` option (default is "off").
+  # 2. Passenger buffering system which is always 'on' irrespective of the value
+  #    of `passenger_buffer_response`.
+  #
+  # When `passenger_buffer_response` is turned "on", then streaming would be
+  # done at the NGINX level which waits until the application is done sending
+  # the response back to the client.
+  #
+  # Please check the documentation for more information:
+  # https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response
   #
   module Streaming
     private
