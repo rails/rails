@@ -488,7 +488,7 @@ To use an external debugger (pry, byebug, etc), install the debugger and use it 
 
 ### Warnings
 
-The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
+The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings. It's important to note that Rails CI will fail if the pull request raises warnings. To ensure that your code will pass Rails CI, you can reproduce the same behavior locally by setting the RAILS_STRICT_WARNINGS environment variable.
 
 ### Updating the Documentation
 
