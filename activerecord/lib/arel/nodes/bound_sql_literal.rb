@@ -56,10 +56,6 @@ module Arel # :nodoc: all
       def inspect
         "#<#{self.class.name} #{sql_with_placeholders.inspect} #{(named_binds || positional_binds).inspect}>"
       end
-
-      def ast
-        self
-      end
     end
   end
 end
