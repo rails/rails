@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Mail # :nodoc: all
-  class Message # :nodoc: all
+module Mail
+  class Message
     def from_address
       address_list(header[:from])&.addresses&.first
     end
