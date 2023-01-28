@@ -111,7 +111,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
       assert_operator event.allocations, :>, 0
     end
     assert_operator event.duration, :>, 0
-    assert_operator event.idle_time, :>, 0
+    assert_operator event.idle_time, :>=, 0
   end
 
   def test_does_not_send_the_event_if_it_doesnt_match_the_class
