@@ -170,7 +170,7 @@ module Rails
       end
 
       def api_main
-        "README.md"
+        component_root_dir("railties") + "/RDOC_MAIN.rdoc"
       end
     end
 
