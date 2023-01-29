@@ -485,11 +485,13 @@ module ActiveRecord
       end
 
       def test_only_check_for_insensitive_comparison_capability_once
-        with_example_table "id SERIAL PRIMARY KEY, number INTEGER" do
+        @connection.execute("CREATE DOMAIN example_type AS text")
+
+        with_example_table "id SERIAL PRIMARY KEY, content example_type" do
           number_klass = Class.new(ActiveRecord::Base) do
             self.table_name = "ex"
           end
-          attribute = number_klass.arel_table[:number]
+          attribute = number_klass.arel_table[:content]
           assert_queries :any, ignore_none: true do
             @connection.case_insensitive_comparison(attribute, "foo")
           end
@@ -497,6 +499,8 @@ module ActiveRecord
             @connection.case_insensitive_comparison(attribute, "foo")
           end
         end
+      ensure
+        @connection.execute("DROP DOMAIN example_type")
       end
 
       def test_ignores_warnings_when_behaviour_ignore
