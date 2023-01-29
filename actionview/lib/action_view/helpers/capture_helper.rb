@@ -5,16 +5,19 @@ require "active_support/core_ext/string/output_safety"
 module ActionView
   # = Action View Capture Helper
   module Helpers # :nodoc:
-    # CaptureHelper exposes methods to let you extract generated markup which
+    # \CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
     #
-    # It provides a method to capture blocks into variables through capture and
-    # a way to capture a block of markup for use in a layout through {content_for}[rdoc-ref:ActionView::Helpers::CaptureHelper#content_for].
+    # It provides a method to capture blocks into variables through #capture and
+    # a way to capture a block of markup for use in a layout through #content_for.
+    #
+    # As well as provides a method when using streaming responses through #provide.
+    # See ActionController::Streaming for more information.
     module CaptureHelper
-      # The capture method extracts part of a template as a String object.
+      # The capture method extracts part of a template as a string object.
       # You can then use this object anywhere in your templates, layout, or helpers.
       #
-      # The capture method can be used in ERB templates...
+      # The capture method can be used in \ERB templates...
       #
       #   <% @greeting = capture do %>
       #     Welcome to my shiny new web page!  The date and time is
@@ -178,6 +181,8 @@ module ActionView
       # concatenate several times to the same buffer when rendering a given
       # template, you should use +content_for+, if not, use +provide+ to tell
       # the layout to stop looking for more contents.
+      #
+      # See ActionController::Streaming for more information.
       def provide(name, content = nil, &block)
         content = capture(&block) if block_given?
         result = @view_flow.append!(name, content) if content
@@ -185,6 +190,7 @@ module ActionView
       end
 
       # <tt>content_for?</tt> checks whether any content has been captured yet using <tt>content_for</tt>.
+      #
       # Useful to render parts of your layout differently based on what is in your views.
       #
       #   <%# This is the layout %>
