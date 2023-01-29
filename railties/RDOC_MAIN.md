@@ -1,97 +1,97 @@
-= Welcome to \Rails
+# Welcome to Rails
 
-== What's \Rails
+## What's Rails?
 
-\Rails is a web-application framework that includes everything needed to
+Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
-{Model-View-Controller (MVC)}[https://en.wikipedia.org/wiki/Model-view-controller]
+[Model-View-Controller (MVC)](https://en.wikipedia.org/wiki/Model-view-controller)
 pattern.
 
-Understanding the MVC pattern is key to understanding \Rails. MVC divides your
+Understanding the MVC pattern is key to understanding Rails. MVC divides your
 application into three layers: Model, View, and Controller, each with a specific responsibility.
 
-== Model layer
+## Model layer
 
-The <em><b>Model layer</b></em> represents the domain model (such as Account, Product,
+The _**Model layer**_ represents the domain model (such as Account, Product,
 Person, Post, etc.) and encapsulates the business logic specific to
-your application. In \Rails, database-backed model classes are derived from
-<tt>ActiveRecord::Base</tt>. {Active Record}[link:/files/activerecord/README_rdoc.html] allows you to present the data from
+your application. In Rails, database-backed model classes are derived from
+`ActiveRecord::Base`. [Active Record](activerecord/README.rdoc) allows you to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. Although most \Rails models are backed by a database, models can also be ordinary
+methods.
+Although most Rails models are backed by a database, models can also be ordinary
 Ruby classes, or Ruby classes that implement a set of interfaces as provided by
-the {Active Model}[link:/files/activemodel/README_rdoc.html] module.
+the [Active Model](activemodel/README.rdoc) module.
 
-== Controller layer
+## View layer
 
-The <em><b>Controller layer</b></em> is responsible for handling incoming HTTP requests and
-providing a suitable response. Usually, this means returning \HTML, but \Rails controllers
-can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
-manipulate models and render view templates in order to generate the appropriate HTTP response.
-In \Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
-controller classes are derived from <tt>ActionController::Base</tt>. Action Dispatch and Action Controller
-are bundled together in {Action Pack}[link:/files/actionpack/README_rdoc.html].
-
-== View layer
-
-The <em><b>View layer</b></em> is composed of "templates" that are responsible for providing
+The _**View layer**_ is composed of "templates" that are responsible for providing
 appropriate representations of your application's resources. Templates can
-come in a variety of formats, but most view templates are \HTML with embedded
-Ruby code (ERB files). Views are typically rendered to generate a controller response,
-or to generate the body of an email. In \Rails, View generation is handled by {Action View}[link:/files/actionview/README_rdoc.html].
+come in a variety of formats, but most view templates are HTML with embedded
+Ruby code (ERB files). Views are typically rendered to generate a controller response
+or to generate the body of an email. In Rails, View generation is handled by [Action View](actionview/README.rdoc).
 
-== Frameworks and libraries
+## Controller layer
 
-{Active Record}[link:/files/activerecord/README_rdoc.html], {Active Model}[link:/files/activemodel/README_rdoc.html],
-{Action Pack}[link:/files/actionpack/README_rdoc.html], and {Action View}[link:/files/actionview/README_rdoc.html] can each be used independently outside \Rails.
-In addition to that, \Rails also comes with {Action Mailer}[link:/files/actionmailer/README_rdoc.html], a library
-to generate and send emails; {Action Mailbox}[link:/files/actionmailbox/README_md.html], a library to receive emails within a Rails application;
-{Active Job}[link:/files/activejob/README_md.html], a framework for declaring jobs and making them run on a variety of queueing
-backends; {Action Cable}[link:/files/actioncable/README_md.html], a framework to
-integrate WebSockets with a \Rails application; {Active Storage}[link:/files/activestorage/README_md.html],
-a library to attach cloud and local files to \Rails applications; {Action Text}[link:/files/actiontext/README_md.html], a library to handle rich text content;
-and {Active Support}[link:/files/activesupport/README_rdoc.html], a collection
-of utility classes and standard library extensions that are useful for \Rails,
-and may also be used independently outside \Rails.
+The _**Controller layer**_ is responsible for handling incoming HTTP requests and
+providing a suitable response. Usually, this means returning HTML, but Rails controllers
+can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
+manipulate models, and render view templates in order to generate the appropriate HTTP response.
+In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
+controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
+are bundled together in [Action Pack](actionpack/README.rdoc).
 
-== Getting Started
+## Frameworks and libraries
 
-1. Install \Rails at the command prompt if you haven't yet:
+[Active Record](activerecord/README.rdoc), [Active Model](activemodel/README.rdoc), [Action Pack](actionpack/README.rdoc), and [Action View](actionview/README.rdoc) can each be used independently outside Rails.
 
-    $ gem install rails
+In addition to that, Rails also comes with:
 
-2. At the command prompt, create a new \Rails application:
+- [Action Mailer](actionmailer/README.rdoc), a library to generate and send emails
+- [Action Mailbox](actionmailbox/README.md), a library to receive emails within a Rails application
+- [Active Job](activejob/README.md), a framework for declaring jobs and making them run on a variety of queuing backends
+- [Action Cable](actioncable/README.md), a framework to integrate WebSockets with a Rails application
+- [Active Storage](activestorage/README.md), a library to attach cloud and local files to Rails applications
+- [Action Text](actiontext/README.md), a library to handle rich text content
+- [Active Support](activesupport/README.rdoc), a collection of utility classes and standard library extensions that are useful for Rails, and may also be used independently outside Rails
 
-    $ rails new myapp
+## Getting Started
+
+1. Install Rails at the command prompt if you haven't yet:
+
+        $ gem install rails
+
+2. At the command prompt, create a new Rails application:
+
+        $ rails new myapp
 
    where "myapp" is the application name.
 
-3. Change directory to +myapp+ and start the web server:
+3. Change directory to `myapp` and start the web server:
 
-    $ cd myapp
-    $ bin/rails server
+        $ cd myapp
+        $ bin/rails server
 
-   Run with <tt>--help</tt> or <tt>-h</tt> for options.
+   Run with `--help` or `-h` for options.
 
-4. Go to <tt>http://localhost:3000</tt>, and you'll see: "Yay! You’re on \Rails!"
+4. Go to `http://localhost:3000` and you'll see the Rails bootscreen with your Rails and Ruby versions.
 
-5. Follow the guidelines to start developing your application. You may find the following resources handy:
+5. Follow the guidelines to start developing your application. You may find
+   the following resources handy:
+    * [Getting Started with Rails](https://guides.rubyonrails.org/getting_started.html)
+    * [Ruby on Rails Guides](https://guides.rubyonrails.org)
+    * [The API Documentation](https://api.rubyonrails.org)
 
-   * The \README file created within your application.
-   * {Getting Started with \Rails}[https://guides.rubyonrails.org/getting_started.html].
-   * {Ruby on \Rails Guides}[https://guides.rubyonrails.org].
-   * {The API Documentation}[link:/files/railties/RDOC_MAIN_rdoc.html].
+## Contributing
 
-== Contributing
+We encourage you to contribute to Ruby on Rails! Please check out the
+[Contributing to Ruby on Rails guide](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](https://contributors.rubyonrails.org)
 
-We encourage you to contribute to Ruby on \Rails! Please check out the
-{Contributing to Ruby on \Rails guide}[https://guides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how to proceed. {Join us!}[http://contributors.rubyonrails.org]
-
-Trying to report a possible security vulnerability in \Rails? Please
-check out our {security policy}[https://rubyonrails.org/security] for
+Trying to report a possible security vulnerability in Rails? Please
+check out our [security policy](https://rubyonrails.org/security) for
 guidelines about how to proceed.
 
-Everyone interacting in \Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the \Rails {code of conduct}[http://rubyonrails.org/conduct].
+Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct).
 
-== License
+## License
 
-Ruby on \Rails is released under the {MIT License}[https://opensource.org/licenses/MIT].
+Ruby on Rails is released under the [MIT License](https://opensource.org/licenses/MIT).
