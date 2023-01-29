@@ -81,8 +81,8 @@ module Rails
         initializers
       end
 
-      def initializers_for(binding)
-        Collection.new(initializers_chain.map { |i| i.bind(binding) })
+      def initializers_for(context)
+        Collection.new(initializers_chain.map { |i| i.bind(context) })
       end
 
       def initializer(name, opts = {}, &blk)
