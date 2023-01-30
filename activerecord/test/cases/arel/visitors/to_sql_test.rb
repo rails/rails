@@ -744,6 +744,29 @@ module Arel
         end
       end
 
+      describe 'Nodes::ValuesList' do
+        it 'works with Quoted' do
+          quoted = Arel::Nodes.build_quoted("foo")
+          node = Arel::Nodes::ValuesList.new([[quoted]])
+
+          _(compile(node)).must_be like %{
+            VALUES ('foo')
+          }
+        end
+
+        it 'works with InfixOperation' do
+          quoted = Arel::Nodes.build_quoted("foo")
+          type = Arel::Nodes::SqlLiteral.new('character varying')
+
+          infix_operation = Arel::Nodes::InfixOperation.new('::', quoted, type)
+          node = Arel::Nodes::ValuesList.new([[infix_operation]])
+
+          _(compile(node)).must_be like %{
+            VALUES ('foo' :: character varying)
+          }
+        end
+      end
+
       describe "Nodes::With" do
         it "handles table aliases" do
           manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr2"))
