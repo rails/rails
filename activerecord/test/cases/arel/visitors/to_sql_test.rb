@@ -113,6 +113,41 @@ module Arel
         assert_equal "omg(*, *)", compile(function)
       end
 
+      describe "Nodes::UpdateStatement" do
+        it "works without a from attribute" do
+          table = Table.new(:users)
+          node = Nodes::UpdateStatement.new(table)
+          node.values = [
+            Nodes::Assignment.new(
+              Nodes::UnqualifiedColumn.new(table[:name]),
+              Nodes.build_quoted("John"),
+            ),
+          ]
+
+          _(compile(node)).must_be_like %{
+            UPDATE "users" SET "users"."name" = 'John'
+          }
+        end
+
+        it "works with an from attribute" do
+          table = Table.new(:users)
+          from = Table.new(:customers)
+
+          node = Nodes::UpdateStatement.new(table)
+          node.values = [
+            Nodes::Assignment.new(
+              Nodes::UnqualifiedColumn.new(table[:name]),
+              from[:name],
+            ),
+          ]
+          node.wheres = [table[:id].eq(from[:id])]
+
+          _(compile(node)).must_be_like %{
+            UPDATE "users" SET "users"."name" = 'John' FROM "customers" WHERE "users"."id" = "customers"."id"
+          }
+        end
+      end
+
       describe "Nodes::Equality" do
         it "should escape strings" do
           test = Table.new(:users)[:name].eq "Aaron Patterson"

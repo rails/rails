@@ -25,6 +25,7 @@ describe Arel::Nodes::UpdateStatement do
       statement1.wheres   = 2
       statement1.values   = false
       statement1.orders   = %w[x y z]
+      statement1.from     = "bar"
       statement1.limit    = 42
       statement1.key      = "zomg"
       statement1.groups   = ["foo"]
@@ -34,6 +35,7 @@ describe Arel::Nodes::UpdateStatement do
       statement2.wheres   = 2
       statement2.values   = false
       statement2.orders   = %w[x y z]
+      statement2.from     = "bar"
       statement2.limit    = 42
       statement2.key      = "zomg"
       statement2.groups   = ["foo"]
@@ -48,6 +50,7 @@ describe Arel::Nodes::UpdateStatement do
       statement1.wheres   = 2
       statement1.values   = false
       statement1.orders   = %w[x y z]
+      statement1.from     = "bar"
       statement1.limit    = 42
       statement1.key      = "zomg"
       statement2 = Arel::Nodes::UpdateStatement.new
@@ -55,6 +58,7 @@ describe Arel::Nodes::UpdateStatement do
       statement2.wheres   = 2
       statement2.values   = false
       statement2.orders   = %w[x y z]
+      statement1.from     = "baz"
       statement2.limit    = 42
       statement2.key      = "wth"
       array = [statement1, statement2]
