@@ -42,7 +42,7 @@ module Arel # :nodoc: all
           collector << "UPDATE "
           collector = visit o.relation, collector
           collect_nodes_for o.values, collector, " SET "
-          collect_nodes_for o.from, collector, " FROM "
+          maybe_visit o.from, collector, " FROM "
 
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "

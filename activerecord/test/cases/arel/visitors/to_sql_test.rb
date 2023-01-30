@@ -129,7 +129,7 @@ module Arel
           }
         end
 
-        it "works with an from attribute" do
+        it "works with a from attribute" do
           table = Table.new(:users)
           from = Table.new(:customers)
 
