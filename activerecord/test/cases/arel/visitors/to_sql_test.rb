@@ -744,8 +744,8 @@ module Arel
         end
       end
 
-      describe 'Nodes::ValuesList' do
-        it 'works with Quoted' do
+      describe "Nodes::ValuesList" do
+        it "works with Quoted" do
           quoted = Arel::Nodes.build_quoted("foo")
           node = Arel::Nodes::ValuesList.new([[quoted]])
 
@@ -754,11 +754,11 @@ module Arel
           }
         end
 
-        it 'works with InfixOperation' do
+        it "works with InfixOperation" do
           quoted = Arel::Nodes.build_quoted("foo")
-          type = Arel::Nodes::SqlLiteral.new('character varying')
+          type = Arel::Nodes::SqlLiteral.new("character varying")
 
-          infix_operation = Arel::Nodes::InfixOperation.new('::', quoted, type)
+          infix_operation = Arel::Nodes::InfixOperation.new("::", quoted, type)
           node = Arel::Nodes::ValuesList.new([[infix_operation]])
 
           _(compile(node)).must_be like %{
@@ -766,10 +766,10 @@ module Arel
           }
         end
 
-        it 'works with InfixOperation' do
+        it "works with InfixOperation" do
           quoted = Arel::Nodes.build_quoted("foo")
 
-          named_function = Arel::Nodes::NamedFunction.new('CAST', [quoted.as('text')])
+          named_function = Arel::Nodes::NamedFunction.new("CAST", [quoted.as("text")])
           node = Arel::Nodes::ValuesList.new([[infix_operation]])
 
           _(compile(node)).must_be like %{
