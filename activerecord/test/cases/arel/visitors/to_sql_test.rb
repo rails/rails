@@ -770,7 +770,7 @@ module Arel
           quoted = Arel::Nodes.build_quoted("foo")
 
           named_function = Arel::Nodes::NamedFunction.new("CAST", [quoted.as("text")])
-          node = Arel::Nodes::ValuesList.new([[infix_operation]])
+          node = Arel::Nodes::ValuesList.new([[named_function]])
 
           _(compile(node)).must_be like %{
             VALUES (CAST('foo' AS text))
