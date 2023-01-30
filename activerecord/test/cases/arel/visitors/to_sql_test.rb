@@ -749,7 +749,7 @@ module Arel
           quoted = Arel::Nodes.build_quoted("foo")
           node = Arel::Nodes::ValuesList.new([[quoted]])
 
-          _(compile(node)).must_be like %{
+          _(compile(node)).must_be_like %{
             VALUES ('foo')
           }
         end
@@ -761,7 +761,7 @@ module Arel
           infix_operation = Arel::Nodes::InfixOperation.new("::", quoted, type)
           node = Arel::Nodes::ValuesList.new([[infix_operation]])
 
-          _(compile(node)).must_be like %{
+          _(compile(node)).must_be_like %{
             VALUES ('foo' :: character varying)
           }
         end
@@ -772,7 +772,7 @@ module Arel
           named_function = Arel::Nodes::NamedFunction.new("CAST", [quoted.as("text")])
           node = Arel::Nodes::ValuesList.new([[named_function]])
 
-          _(compile(node)).must_be like %{
+          _(compile(node)).must_be_like %{
             VALUES (CAST('foo' AS text))
           }
         end
