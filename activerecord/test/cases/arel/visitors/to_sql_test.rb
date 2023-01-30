@@ -765,6 +765,17 @@ module Arel
             VALUES ('foo' :: character varying)
           }
         end
+
+        it 'works with InfixOperation' do
+          quoted = Arel::Nodes.build_quoted("foo")
+
+          named_function = Arel::Nodes::NamedFunction.new('CAST', [quoted.as('text')])
+          node = Arel::Nodes::ValuesList.new([[infix_operation]])
+
+          _(compile(node)).must_be like %{
+            VALUES (CAST('foo' AS text))
+          }
+        end
       end
 
       describe "Nodes::With" do
