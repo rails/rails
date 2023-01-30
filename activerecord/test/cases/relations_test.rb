@@ -487,6 +487,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_match(/field\(id, NULL\)/, query)
   end
 
+  def test_finding_with_arel_sql_order
+    query = Tag.order(Arel.sql("field(id, ?)", [1, 3, 2])).to_sql
+    if current_adapter?(:Mysql2Adapter)
+      assert_match(/field\(id, '1', '3', '2'\)/, query)
+    else
+      assert_match(/field\(id, 1, 3, 2\)/, query)
+    end
+
+    query = Tag.order(Arel.sql("field(id, ?)", [])).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+
+    query = Tag.order(Arel.sql("field(id, ?)", nil)).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+  end
+
   def test_finding_with_order_limit_and_offset
     entrants = Entrant.order("id ASC").limit(2).offset(1)
 
