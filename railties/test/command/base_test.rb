@@ -27,6 +27,57 @@ class Rails::Command::BaseTest < ActiveSupport::TestCase
     assert_equal [], Rails::Command::HiddenCommand.printing_commands
   end
 
+  test "help shows usage and description" do
+    class Rails::Command::HelpfulCommand < Rails::Command::Base
+      desc "foo PATH", "description of foo"
+      def foo(path); end
+
+      desc "bar [paths...]", "description of bar"
+      def bar(*paths); end
+    end
+
+    overview = capture(:stdout) do
+      Rails::Command::HelpfulCommand.perform("help", [], {})
+    end
+    assert_match "bin/rails helpful:foo PATH", overview
+    assert_match "description of foo", overview
+    assert_match "bin/rails helpful:bar [paths...]", overview
+    assert_match "description of bar", overview
+
+    foo_help = capture(:stdout) do
+      Rails::Command::HelpfulCommand.perform("foo", ["--help"], {})
+    end
+    assert_match "bin/rails helpful:foo PATH", foo_help
+    assert_match "description of foo", foo_help
+    assert_no_match "helpful:bar", foo_help
+
+    bar_help = capture(:stdout) do
+      Rails::Command::HelpfulCommand.perform("bar", ["--help"], {})
+    end
+    assert_match "bin/rails helpful:bar [paths...]", bar_help
+    assert_match "description of bar", bar_help
+    assert_no_match "helpful:foo", bar_help
+  end
+
+  test "help usage banner shows full command name" do
+    module Rails::Command::Nesting
+      class NestedCommand < Rails::Command::Base
+        def perform(*); end
+        def foo(*); end
+      end
+    end
+
+    main_help = capture(:stdout) do
+      Rails::Command::Nesting::NestedCommand.perform("nested", ["--help"], {})
+    end
+    assert_match %r"Usage:\s+bin/rails nesting:nested$", main_help
+
+    foo_help = capture(:stdout) do
+      Rails::Command::Nesting::NestedCommand.perform("foo", ["--help"], {})
+    end
+    assert_match %r"Usage:\s+bin/rails nesting:nested:foo$", foo_help
+  end
+
   test "::executable returns bin and command name" do
     assert_equal "bin/rails generate", Rails::Command::GenerateCommand.executable
   end
