@@ -35,4 +35,18 @@ const setData = function(element, key, value) {
 // returns an Array
 const $ = selector => Array.prototype.slice.call(document.querySelectorAll(selector))
 
-export { matches, getData, setData, $ }
+const isContentEditable = function(element) {
+  var isEditable = false
+  do {
+    if(element.isContentEditable) {
+      isEditable = true
+      break
+    }
+
+    element = element.parentElement
+  } while(element)
+
+  return isEditable
+}
+
+export { matches, getData, setData, $, isContentEditable }
