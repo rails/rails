@@ -14,6 +14,36 @@ module Rails
     autoload :Behavior
     autoload :Base
 
+    class CorrectableNameError < StandardError # :nodoc:
+      attr_reader :name
+
+      def initialize(message, name, alternatives)
+        @name = name
+        @alternatives = alternatives
+        super(message)
+      end
+
+      if !Exception.method_defined?(:detailed_message)
+        def detailed_message(...)
+          message
+        end
+      end
+
+      if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+        include DidYouMean::Correctable
+
+        def corrections
+          @corrections ||= DidYouMean::SpellChecker.new(dictionary: @alternatives).correct(name)
+        end
+      end
+    end
+
+    class UnrecognizedCommandError < CorrectableNameError # :nodoc:
+      def initialize(name)
+        super("Unrecognized command #{name.inspect}", name, Command.printing_commands.map(&:first))
+      end
+    end
+
     include Behavior
 
     HELP_MAPPINGS = %w(-h -? --help).to_set
@@ -46,6 +76,9 @@ module Rails
           args = ["--describe", full_namespace] if HELP_MAPPINGS.include?(args[0])
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
+      rescue UnrecognizedCommandError => error
+        puts error.detailed_message
+        exit(1)
       ensure
         ARGV.replace(original_argv)
       end

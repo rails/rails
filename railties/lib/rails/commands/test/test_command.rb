@@ -65,8 +65,10 @@ module Rails
       private
         def run_prepare_task(args)
           if @force_prepare || args.empty?
-            Rails::Command::RakeCommand.perform("test:prepare", nil, {}, optional: true)
+            Rails::Command::RakeCommand.perform("test:prepare", [], {})
           end
+        rescue UnrecognizedCommandError => error
+          raise unless error.name == "test:prepare"
         end
     end
   end

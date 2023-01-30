@@ -271,14 +271,9 @@ module Rails
               Run `#{executable} --help` for more options.
             MSG
           else
-            error = CorrectableError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
-            if error.respond_to?(:detailed_message)
-              formatted_message = error.detailed_message
-            else
-              formatted_message = error.message
-            end
+            error = CorrectableNameError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
             <<~MSG
-              #{formatted_message}
+              #{error.detailed_message}
               Run `#{executable} --help` for more options.
             MSG
           end
