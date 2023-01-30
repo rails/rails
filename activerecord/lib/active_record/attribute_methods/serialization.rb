@@ -127,7 +127,7 @@ module ActiveRecord
             end
 
             cast_type = cast_type.subtype if Type::Serialized === cast_type
-            Type::Serialized.new(cast_type, coder)
+            Type::Serialized.new(cast_type, coder, default: columns_hash[attr_name.to_s]&.default)
           end
         end
 
