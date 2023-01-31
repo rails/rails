@@ -131,7 +131,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          owner._read_attribute(reflection.foreign_key)
+          Array(reflection.foreign_key).all? { |fk| owner._read_attribute(fk) }
         end
 
         def invertible_for?(record)
