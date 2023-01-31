@@ -485,7 +485,9 @@ module ActiveRecord
       end
 
       def test_only_check_for_insensitive_comparison_capability_once
-        with_example_table "id SERIAL PRIMARY KEY, number INTEGER" do
+        @connection.execute("CREATE DOMAIN example_type AS integer")
+
+        with_example_table "id SERIAL PRIMARY KEY, number example_type" do
           number_klass = Class.new(ActiveRecord::Base) do
             self.table_name = "ex"
           end
@@ -497,6 +499,8 @@ module ActiveRecord
             @connection.case_insensitive_comparison(attribute, "foo")
           end
         end
+      ensure
+        @connection.execute("DROP DOMAIN example_type")
       end
 
       def test_ignores_warnings_when_behaviour_ignore

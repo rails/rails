@@ -490,7 +490,12 @@ module ActiveRecord
       end
 
       def foreign_key
-        @foreign_key ||= -(options[:foreign_key]&.to_s || derive_foreign_key)
+        @foreign_key ||= if options[:foreign_key] && options[:foreign_key].is_a?(Array)
+          # composite foreign keys support
+          options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
+        else
+          -(options[:foreign_key]&.to_s || derive_foreign_key)
+        end
       end
 
       def association_foreign_key
@@ -502,7 +507,13 @@ module ActiveRecord
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||= -(options[:primary_key]&.to_s || primary_key(active_record))
+        @active_record_primary_key ||= if options[:foreign_key] && options[:foreign_key].is_a?(Array)
+          active_record.query_constraints_list
+        else
+          -(options[:primary_key]&.to_s || primary_key(active_record))
+        end
+
+        @active_record_primary_key
       end
 
       def join_primary_key(klass = nil)
@@ -530,7 +541,7 @@ module ActiveRecord
       end
 
       def join_id_for(owner) # :nodoc:
-        owner[join_foreign_key]
+        Array(join_foreign_key).map { |key| owner[key] }
       end
 
       def through_reflection
@@ -764,7 +775,9 @@ module ActiveRecord
 
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
-        if primary_key = options[:primary_key]
+        if options[:foreign_key] && options[:foreign_key].is_a?(Array)
+          (klass || self.klass).query_constraints_list
+        elsif primary_key = options[:primary_key]
           @association_primary_key ||= -primary_key.to_s
         else
           primary_key(klass || self.klass)

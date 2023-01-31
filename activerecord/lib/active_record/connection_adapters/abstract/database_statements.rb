@@ -15,7 +15,12 @@ module ActiveRecord
       end
 
       def to_sql_and_binds(arel_or_sql_string, binds = [], preparable = nil) # :nodoc:
+        # Arel::TreeManager -> Arel::Node
         if arel_or_sql_string.respond_to?(:ast)
+          arel_or_sql_string = arel_or_sql_string.ast
+        end
+
+        if Arel.arel_node?(arel_or_sql_string) && !(String === arel_or_sql_string)
           unless binds.empty?
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
@@ -25,7 +30,7 @@ module ActiveRecord
 
           if prepared_statements
             collector.preparable = true
-            sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
+            sql, binds = visitor.compile(arel_or_sql_string, collector)
 
             if binds.length > bind_params_length
               unprepared_statement do
@@ -34,7 +39,7 @@ module ActiveRecord
             end
             preparable = collector.preparable
           else
-            sql = visitor.compile(arel_or_sql_string.ast, collector)
+            sql = visitor.compile(arel_or_sql_string, collector)
           end
           [sql.freeze, binds, preparable]
         else

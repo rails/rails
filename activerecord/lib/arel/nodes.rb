@@ -69,5 +69,6 @@ require "arel/nodes/leading_join"
 require "arel/nodes/comment"
 
 require "arel/nodes/sql_literal"
+require "arel/nodes/bound_sql_literal"
 
 require "arel/nodes/casted"

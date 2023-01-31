@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activesupport", version
 
+  s.add_dependency "nokogiri", ">= 1.8.5"
   s.add_dependency "rack",      ">= 2.2.4"
   s.add_dependency "rack-session", ">= 1.0.1"
   s.add_dependency "rack-test", ">= 0.6.3"

@@ -5,17 +5,17 @@ Action Controller Overview
 
 In this guide, you will learn how controllers work and how they fit into the request cycle in your application.
 
-After reading this guide, you will know:
+After reading this guide, you will know how to:
 
-* How to follow the flow of a request through a controller.
-* How to restrict parameters passed to your controller.
-* How and why to store data in the session or cookies.
-* How to work with filters to execute code during request processing.
-* How to use Action Controller's built-in HTTP authentication.
-* How to stream data directly to the user's browser.
-* How to filter sensitive parameters, so they do not appear in the application's log.
-* How to deal with exceptions that may be raised during request processing.
-* About the built-in health check end-point useful for load balancers and uptime monitors.
+* Follow the flow of a request through a controller.
+* Restrict parameters passed to your controller.
+* Store data in the session or cookies, and why.
+* Work with filters to execute code during request processing.
+* Use Action Controller's built-in HTTP authentication.
+* Stream data directly to the user's browser.
+* Filter sensitive parameters, so they do not appear in the application's log.
+* Deal with exceptions that may be raised during request processing.
+* Use the built-in health check end-point for load balancers and uptime monitors.
 
 --------------------------------------------------------------------------------
 

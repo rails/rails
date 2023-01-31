@@ -47,11 +47,11 @@ module ActiveRecord
         end
       end
 
-      # Quote a value to be used as a bound parameter of unknown type. For example,
+      # Cast a value to be used as a bound parameter of unknown type. For example,
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
-      def quote_bound_value(value)
-        quote(value)
+      def cast_bound_value(value)
+        value
       end
 
       # If you are having to call this function, you are likely doing something

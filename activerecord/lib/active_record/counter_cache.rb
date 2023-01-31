@@ -65,7 +65,7 @@ module ActiveRecord
           updates.merge!(touch_updates)
         end
 
-        unscoped.where(primary_key => object.id).update_all(updates) if updates.any?
+        unscoped.where(primary_key => [object.id]).update_all(updates) if updates.any?
 
         true
       end

@@ -36,11 +36,14 @@ module Rack
 end
 
 module ActionDispatch
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
   extend ActiveSupport::Autoload
 
-  class IllegalStateError < StandardError
+  class DeprecatedIllegalStateError < StandardError
   end
-  deprecate_constant :IllegalStateError
+  deprecate_constant "IllegalStateError", "ActionDispatch::DeprecatedIllegalStateError",
+    message: "ActionDispatch::IllegalStateError is deprecated without replacement.",
+    deprecator: ActionDispatch.deprecator
 
   class MissingController < NameError
   end
