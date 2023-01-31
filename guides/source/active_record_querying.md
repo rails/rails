@@ -1533,7 +1533,7 @@ SELECT authors.* FROM authors
 
 Active Record lets you eager load any number of associations with a single `Model.find` call by using an array, hash, or a nested hash of array/hash with the `includes` method.
 
-#### Array of Multiple Associations
+##### Array of Multiple Associations
 
 ```ruby
 Customer.includes(:orders, :reviews)
