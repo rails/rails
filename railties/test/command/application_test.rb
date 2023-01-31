@@ -16,4 +16,14 @@ class Rails::Command::ApplicationTest < ActiveSupport::TestCase
     assert output.include?("The `rails new` command creates a new Rails application with a default
     directory structure and configuration at the path you specify.")
   end
+
+  test "prints helpful error on unrecognized command" do
+    output = capture(:stdout) do
+      Rails::Command.invoke("vershen")
+    rescue SystemExit
+    end
+
+    assert_match %(Unrecognized command "vershen"), output
+    assert_match "Did you mean?  version", output
+  end
 end
