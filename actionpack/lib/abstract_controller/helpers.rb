@@ -5,6 +5,7 @@ require "active_support/core_ext/name_error"
 
 module AbstractController
   module Helpers
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
     extend ActiveSupport::Concern
 
     included do
@@ -23,7 +24,7 @@ module AbstractController
       self._helpers = define_helpers_module(self)
     end
 
-    class MissingHelperError < LoadError
+    class DeprecatedMissingHelperError < LoadError
       def initialize(error, path)
         @error = error
         @path  = "helpers/#{path}.rb"
@@ -36,6 +37,9 @@ module AbstractController
         end
       end
     end
+    deprecate_constant "MissingHelperError", "AbstractController::Helpers::DeprecatedMissingHelperError",
+      message: "AbstractController::Helpers::MissingHelperError has been deprecated. If a Helper is not present, a NameError will be raised instead.",
+      deprecator: AbstractController.deprecator
 
     def _helpers
       self.class._helpers
