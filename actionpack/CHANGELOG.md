@@ -1,3 +1,7 @@
+*   Deprecate `AbstractController::Helpers::MissingHelperError`
+
+    *Hartley McGuire*
+
 *   Change `ActionDispatch::Testing::TestResponse#parsed_body` to parse HTML as
     a Nokogiri document
 
