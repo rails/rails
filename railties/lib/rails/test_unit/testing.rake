@@ -6,7 +6,7 @@ require "rails/test_unit/runner"
 
 task default: :test
 
-desc "Runs all tests in test folder except system ones"
+desc "Run all tests in test folder except system ones"
 task :test do
   if ENV.key?("TEST")
     Rails::TestUnit::Runner.rake_run([ENV["TEST"]])
@@ -23,7 +23,7 @@ namespace :test do
 
   task run: %w[test]
 
-  desc "Run tests quickly, but also reset db"
+  desc "Reset the database and run `bin/rails test`"
   task :db do
     success = system({ "RAILS_ENV" => ENV.fetch("RAILS_ENV", "test") }, "rake", "db:test:prepare", "test")
     success || exit(false)
@@ -35,7 +35,6 @@ namespace :test do
     end
   end
 
-  desc "Runs all tests, including system tests"
   task all: "test:prepare" do
     Rails::TestUnit::Runner.rake_run(["test/**/*_test.rb"])
   end
@@ -52,7 +51,6 @@ namespace :test do
     Rails::TestUnit::Runner.rake_run(["test/controllers", "test/mailers", "test/functional"])
   end
 
-  desc "Run system tests only"
   task system: "test:prepare" do
     Rails::TestUnit::Runner.rake_run(["test/system"])
   end
