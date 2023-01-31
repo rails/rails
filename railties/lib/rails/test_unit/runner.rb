@@ -10,6 +10,7 @@ module Rails
   module TestUnit
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
+      PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
 
       class << self
@@ -31,9 +32,9 @@ module Rails
           $VERBOSE = argv.delete_at(w_index) if w_index
         end
 
-        def rake_run(argv = [])
+        def run_from_rake(test_command, argv = [])
           # Ensure the tests run during the Rake Task action, not when the process exits
-          success = system("rails", "test", *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
+          success = system("rails", test_command, *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
           success || exit(false)
         end
 
@@ -62,7 +63,7 @@ module Rails
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.filter_map do |path|
-              next unless path_argument?(path) && !regexp_filter?(path)
+              next unless path_argument?(path)
 
               path = path.tr("\\", "/")
               case
@@ -92,7 +93,7 @@ module Rails
           end
 
           def path_argument?(arg)
-            %r"^\.*[/\\]?\w+[/\\]".match?(arg)
+            PATH_ARGUMENT_PATTERN.match?(arg)
           end
 
           def list_tests(argv)
