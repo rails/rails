@@ -1,3 +1,7 @@
+*   Use infinitive form for all rails command descriptions verbs.
+
+    *Petrik de Heus*
+
 *   Credentials commands (e.g. `bin/rails credentials:edit`) now respect
     `config.credentials.content_path` and `config.credentials.key_path` when set
     in `config/application.rb`.

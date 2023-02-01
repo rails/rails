@@ -18,7 +18,7 @@ module Rails
         "#{super} [<'Some.ruby(code)'> | <filename.rb> | -]"
       end
 
-      desc "runner", "Runs Ruby code in the context of your application"
+      desc "runner", "Run Ruby code in the context of your application"
       def perform(code_or_file = nil, *command_argv)
         unless code_or_file
           help

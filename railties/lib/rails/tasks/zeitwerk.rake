@@ -33,7 +33,7 @@ report = ->(not_checked) do
 end
 
 namespace :zeitwerk do
-  desc "Checks project structure for Zeitwerk compatibility"
+  desc "Check project structure for Zeitwerk compatibility"
   task check: :environment do
     begin
       eager_load[]
