@@ -26,4 +26,17 @@ class Rails::Command::ApplicationTest < ActiveSupport::TestCase
     assert_match %(Unrecognized command "vershen"), output
     assert_match "Did you mean?  version", output
   end
+
+  test "prints help via `X:help` command when running `X` and `X:X` command is not defined" do
+    help = capture(:stdout) do
+      Rails::Command.invoke("dev:help")
+    end
+
+    output = capture(:stdout) do
+      Rails::Command.invoke("dev")
+    rescue SystemExit
+    end
+
+    assert_equal help, output
+  end
 end
