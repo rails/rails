@@ -6,10 +6,6 @@ require "models/dashboard"
 class QueryLogsTest < ActiveRecord::TestCase
   fixtures :dashboards
 
-  ActiveRecord::QueryLogs.taggings[:application] = -> {
-    "active_record"
-  }
-
   def setup
     # ActiveSupport::ExecutionContext context is automatically reset in Rails app via an executor hooks set in railtie
     # But not in Active Record's own test suite.
@@ -19,16 +15,21 @@ class QueryLogsTest < ActiveRecord::TestCase
     @original_transformers = ActiveRecord.query_transformers
     @original_prepend = ActiveRecord::QueryLogs.prepend_comment
     @original_tags = ActiveRecord::QueryLogs.tags
+    @original_taggings = ActiveRecord::QueryLogs.taggings
     ActiveRecord.query_transformers += [ActiveRecord::QueryLogs]
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
     ActiveRecord::QueryLogs.cached_comment = nil
+    ActiveRecord::QueryLogs.taggings[:application] = -> {
+      "active_record"
+    }
   end
 
   def teardown
     ActiveRecord.query_transformers = @original_transformers
     ActiveRecord::QueryLogs.prepend_comment = @original_prepend
     ActiveRecord::QueryLogs.tags = @original_tags
+    ActiveRecord::QueryLogs.taggings = @original_taggings
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
     ActiveRecord::QueryLogs.cached_comment = nil
