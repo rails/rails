@@ -1633,6 +1633,23 @@ SELECT books.id AS t0_r0, books.last_name AS t0_r1, ...
 
 NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
 
+### `strict_loading`
+
+Eager loading can prevent N + 1 queries but you might still be lazy loading
+some associations. To make sure no associations are lazy loaded you can enable
+[`strict_loading`][].
+
+By enabling strict loading mode on a relation, an
+`ActiveRecord::StrictLoadingViolationError` will be raised if the record tries
+to lazily load an association:
+
+```ruby
+user = User.strict_loading.first
+user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+[`strict_loading`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-strict_loading
+
 Scopes
 ------
 
