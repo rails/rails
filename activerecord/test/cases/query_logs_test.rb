@@ -32,7 +32,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.taggings = @original_taggings
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
-    ActiveRecord::QueryLogs.cached_comment = nil
+    ActiveRecord::QueryLogs.clear_cache
     ActiveRecord::QueryLogs.update_formatter(:legacy)
 
     # ActiveSupport::ExecutionContext context is automatically reset in Rails app via an executor hooks set in railtie
@@ -116,12 +116,15 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_retrieves_comment_from_cache_when_enabled_and_set
     ActiveRecord::QueryLogs.cache_query_log_tags = true
-    ActiveRecord::QueryLogs.tags = [ :application ]
+    i = 0
+    ActiveRecord::QueryLogs.tags = [ { query_counter: -> { i += 1 } } ]
 
-    assert_equal "SELECT 1 /*application:active_record*/", ActiveRecord::QueryLogs.call("SELECT 1")
+    assert_sql("SELECT 1 /*query_counter:1*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
 
-    ActiveRecord::QueryLogs.stub(:cached_comment, "/*cached_comment*/") do
-      assert_equal "SELECT 1 /*cached_comment*/", ActiveRecord::QueryLogs.call("SELECT 1")
+    assert_sql("SELECT 1 /*query_counter:1*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
     end
   end
 
@@ -130,12 +133,15 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveSupport::ExecutionContext[:temporary] = "value"
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
-    assert_equal "SELECT 1 /*temporary_tag:value*/", ActiveRecord::QueryLogs.call("SELECT 1")
+    assert_sql("SELECT 1 /*temporary_tag:value*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
 
     ActiveSupport::ExecutionContext[:temporary] = "new_value"
 
-    assert_nil ActiveRecord::QueryLogs.cached_comment
-    assert_equal "SELECT 1 /*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("SELECT 1")
+    assert_sql("SELECT 1 /*temporary_tag:new_value*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
   end
 
   def test_default_tag_behavior
