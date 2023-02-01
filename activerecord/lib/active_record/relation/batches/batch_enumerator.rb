@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
+require "active_record/relation/batches/batch_relations"
+
 module ActiveRecord
   module Batches
     class BatchEnumerator
       include Enumerable
-
-      delegate :arel, :limit_value, :table, :primary_key, :to_sql, :klass, :predicate_builder, :where, to: :relation
 
       def initialize(of: 1000, start: nil, finish: nil, relation:, order: :asc, use_ranges: nil) # :nodoc:
         @of       = of
@@ -93,71 +93,11 @@ module ActiveRecord
       #   Person.in_batches.each do |relation|
       #     relation.update_all(awesome: true)
       #   end
-      def each(load: false, error_on_ignore: nil)
+      def each(load: false, &block)
         return to_enum(:each) unless block_given?
 
-        batch_limit = batch_size
-        if limit_value
-          remaining   = limit_value
-          batch_limit = remaining if remaining < batch_limit
-        end
-
-        relation = @relation.reorder(batch_order(@order)).limit(batch_limit)
-        relation = relation.send(:apply_limits, relation, start, finish, @order)
-        relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
-        batch_relation = relation
-        empty_scope = to_sql == klass.unscoped.all.to_sql
-
-        loop do
-          if load
-            records = batch_relation.records
-            ids = records.map(&:id)
-            yielded_relation = where(primary_key => ids)
-            yielded_relation.send(:load_records, records)
-          elsif (empty_scope && @use_ranges != false) || @use_ranges
-            ids = batch_relation.pluck(primary_key)
-            finish = ids.last
-            if finish
-              yielded_relation = relation.send(:apply_finish_limit, batch_relation, finish, @order)
-              yielded_relation = yielded_relation.except(:limit, :order)
-              yielded_relation.skip_query_cache!(false)
-            end
-          else
-            ids = batch_relation.pluck(primary_key)
-            yielded_relation = where(primary_key => ids)
-          end
-
-          break if ids.empty?
-
-          primary_key_offset = ids.last
-          raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
-
-          yield yielded_relation
-
-          break if ids.length < batch_limit
-
-          if limit_value
-            remaining -= ids.length
-
-            if remaining == 0
-              # Saves a useless iteration when the limit is a multiple of the
-              # batch size.
-              break
-            elsif remaining < batch_limit
-              relation = relation.limit(remaining)
-            end
-          end
-
-          batch_relation = relation.where(
-            predicate_builder[primary_key, primary_key_offset, @order == :desc ? :lt : :gt]
-          )
-        end
+        BatchRelations.new(of: @of, start: start, finish: finish, relation: relation, order: @order, use_ranges: @use_ranges, load: load).each(&block)
       end
-
-      private
-        def batch_order(order)
-          table[primary_key].public_send(order)
-        end
     end
   end
 end

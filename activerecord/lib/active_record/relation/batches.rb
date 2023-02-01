@@ -218,7 +218,7 @@ module ActiveRecord
           act_on_ignored_order(error_on_ignore)
         end
 
-        enumerator.each(load: load, error_on_ignore: error_on_ignore, &block)
+        enumerator.each(load: load, &block)
       else
         enumerator
       end
