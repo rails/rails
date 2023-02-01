@@ -15,7 +15,7 @@ module Rails
             super
           end
 
-          desc "change", "Changes `config/database.yml` and your database gem to the target database"
+          desc "change", "Change `config/database.yml` and your database gem to the target database"
           def perform(*)
             Rails::Generators::Db::System::ChangeGenerator.start(@argv)
           end

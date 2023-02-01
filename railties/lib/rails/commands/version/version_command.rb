@@ -3,7 +3,7 @@
 module Rails
   module Command
     class VersionCommand < Base # :nodoc:
-      desc "version", "Shows the Rails version"
+      desc "version", "Show the Rails version"
       def perform
         Rails::Command.invoke :application, [ "--version" ]
       end

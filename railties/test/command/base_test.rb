@@ -10,7 +10,7 @@ require "rails/commands/db/system/change/change_command"
 class Rails::Command::BaseTest < ActiveSupport::TestCase
   test "printing commands returns command and description if present" do
     assert_equal ["generate", ""], Rails::Command::GenerateCommand.printing_commands.first
-    assert_equal ["notes", "Shows comments in your code annotated with FIXME, OPTIMIZE, and TODO"], Rails::Command::NotesCommand.printing_commands.first
+    assert_equal ["notes", "Show comments in your code annotated with FIXME, OPTIMIZE, and TODO"], Rails::Command::NotesCommand.printing_commands.first
   end
 
   test "printing commands returns namespaced commands" do

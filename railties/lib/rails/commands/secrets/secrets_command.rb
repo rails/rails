@@ -22,7 +22,7 @@ module Rails
         deprecate_in_favor_of_credentials_and_exit
       end
 
-      desc "edit", "Opens the secrets in `$EDITOR` for editing"
+      desc "edit", "Open the secrets in `$EDITOR` for editing"
       def edit
         require_application_and_environment!
 
@@ -40,7 +40,7 @@ module Rails
         end
       end
 
-      desc "edit", "Shows the decrypted secrets"
+      desc "edit", "Show the decrypted secrets"
       def show
         say Rails::Secrets.read
       end
