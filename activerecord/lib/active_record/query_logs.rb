@@ -80,12 +80,14 @@ module ActiveRecord
 
     class << self
       def call(sql) # :nodoc:
+        comment = self.comment
+
         if comment.blank?
           sql
         elsif prepend_comment
-          "#{self.comment} #{sql}"
+          "#{comment} #{sql}"
         else
-          "#{sql} #{self.comment}"
+          "#{sql} #{comment}"
         end
       end
 
