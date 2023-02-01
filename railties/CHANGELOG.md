@@ -1,3 +1,12 @@
+*   Fix running `test:units` and `test:functionals` when directories don't
+    exist.
+
+    When creating a new application the `test/unit` and `test/functional`
+    directories are no longer created. By using a glob pattern for the tests
+    the task will no longer fail when run.
+
+    *Petrik de Heus*
+
 *   Credentials commands (e.g. `bin/rails credentials:edit`) now respect
     `config.credentials.content_path` and `config.credentials.key_path` when set
     in `config/application.rb`.

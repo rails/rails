@@ -98,6 +98,18 @@ module ApplicationTests
       end
     end
 
+    def test_run_units_with_missing_unit_directory
+      create_test_file :models, "foo"
+      create_test_file :helpers, "bar_helper"
+      create_test_file :controllers, "foobar_controller"
+
+      rails("test:units").tap do |output|
+        assert_match "FooTest", output
+        assert_match "BarHelperTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_all_takes_options
       create_test_file :system, "foo"
       assert_match "FooTest", rails("test:all", "--verbose")
@@ -180,6 +192,18 @@ module ApplicationTests
         assert_match "BarControllerTest", output
         assert_match "BazFunctionalTest", output
         assert_match "3 runs, 3 assertions, 0 failures", output
+      end
+    end
+
+    def test_run_functionals_with_missing_functional_directory
+      create_test_file :mailers, "foo_mailer"
+      create_test_file :controllers, "bar_controller"
+      create_test_file :models, "foo"
+
+      rails("test:functionals").tap do |output|
+        assert_match "FooMailerTest", output
+        assert_match "BarControllerTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
       end
     end
 
