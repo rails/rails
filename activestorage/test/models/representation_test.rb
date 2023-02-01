@@ -18,8 +18,8 @@ class ActiveStorage::RepresentationTest < ActiveSupport::TestCase
     representation = blob.representation(resize_to_limit: [640, 280]).processed
 
     image = read_image(representation.image)
-    assert_equal 612, image.width
-    assert_equal 792, image.height
+    assert_equal 216, image.width
+    assert_equal 280, image.height
   end
 
   test "representing an MP4 video" do
@@ -27,8 +27,8 @@ class ActiveStorage::RepresentationTest < ActiveSupport::TestCase
     representation = blob.representation(resize_to_limit: [640, 280]).processed
 
     image = read_image(representation.image)
-    assert_equal 640, image.width
-    assert_equal 480, image.height
+    assert_equal 373, image.width
+    assert_equal 280, image.height
   end
 
   test "representing an unrepresentable blob" do

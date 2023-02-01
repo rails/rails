@@ -13,8 +13,8 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     assert_equal "image/png", preview.image.content_type
 
     image = read_image(preview.image)
-    assert_equal 612, image.width
-    assert_equal 792, image.height
+    assert_equal 216, image.width
+    assert_equal 280, image.height
   end
 
   test "previewing a cropped PDF" do
@@ -39,8 +39,8 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     assert_equal "image/jpeg", preview.image.content_type
 
     image = read_image(preview.image)
-    assert_equal 640, image.width
-    assert_equal 480, image.height
+    assert_equal 373, image.width
+    assert_equal 280, image.height
   end
 
   test "previewing an unpreviewable blob" do

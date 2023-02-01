@@ -48,9 +48,9 @@ class ActiveStorage::Preview
     self
   end
 
-  # Returns the blob's attached preview image.
+  # Returns the blob's attached preview image with applied variations.
   def image
-    blob.preview_image
+    variant.image
   end
 
   # Returns the URL of the preview's variant on the service. Raises ActiveStorage::Preview::UnprocessedError if the
@@ -89,22 +89,23 @@ class ActiveStorage::Preview
   end
 
   private
+    delegate :preview_image, to: :blob
+
     def processed?
-      image.attached?
+      preview_image.attached?
     end
 
     def process
       previewer.preview(service_name: blob.service_name) do |attachable|
         ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
-          image.attach(attachable)
+          preview_image.attach(attachable)
         end
       end
     end
 
     def variant
-      image.variant(variation).processed
+      preview_image.variant(variation).processed
     end
-
 
     def previewer
       previewer_class.new(blob)
