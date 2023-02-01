@@ -117,10 +117,10 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.cache_query_log_tags = true
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    assert_equal "/*application:active_record*/", ActiveRecord::QueryLogs.call("")
+    assert_equal "SELECT 1 /*application:active_record*/", ActiveRecord::QueryLogs.call("SELECT 1")
 
     ActiveRecord::QueryLogs.stub(:cached_comment, "/*cached_comment*/") do
-      assert_equal "/*cached_comment*/", ActiveRecord::QueryLogs.call("")
+      assert_equal "SELECT 1 /*cached_comment*/", ActiveRecord::QueryLogs.call("SELECT 1")
     end
   end
 
@@ -129,12 +129,12 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveSupport::ExecutionContext[:temporary] = "value"
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
-    assert_equal "/*temporary_tag:value*/", ActiveRecord::QueryLogs.call("")
+    assert_equal "SELECT 1 /*temporary_tag:value*/", ActiveRecord::QueryLogs.call("SELECT 1")
 
     ActiveSupport::ExecutionContext[:temporary] = "new_value"
 
     assert_nil ActiveRecord::QueryLogs.cached_comment
-    assert_equal "/*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("")
+    assert_equal "SELECT 1 /*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("SELECT 1")
   end
 
   def test_default_tag_behavior
@@ -190,7 +190,6 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
-
   def test_sqlcommenter_format_value
     ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
 
@@ -217,6 +216,15 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  # Postgres does validate the query encoding. Other adapters don't care.
+  unless current_adapter?(:PostgreSQLAdapter)
+    def test_invalid_encoding_query
+      ActiveRecord::QueryLogs.tags = [ :application ]
+      assert_nothing_raised do
+        ActiveRecord::Base.connection.execute "select 1 as '\xFF'"
+      end
+    end
+  end
 
   def test_custom_proc_context_tags
     ActiveSupport::ExecutionContext[:foo] = "bar"

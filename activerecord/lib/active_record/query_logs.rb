@@ -80,11 +80,13 @@ module ActiveRecord
 
     class << self
       def call(sql) # :nodoc:
-        if prepend_comment
+        if comment.blank?
+          sql
+        elsif prepend_comment
           "#{self.comment} #{sql}"
         else
           "#{sql} #{self.comment}"
-        end.strip
+        end
       end
 
       def clear_cache # :nodoc:
