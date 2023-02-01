@@ -156,6 +156,25 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_connection_is_passed_to_tagging_proc
+    connection = ActiveRecord::Base.connection
+    ActiveRecord::QueryLogs.tags = [ same_connection: ->(context) { context[:connection] == connection } ]
+
+    assert_sql("SELECT 1 /*same_connection:true*/") do
+      connection.execute "SELECT 1"
+    end
+  end
+
+  def test_connection_does_not_override_already_existing_connection_in_context
+    fake_connection = Object.new
+    ActiveSupport::ExecutionContext[:connection] = fake_connection
+    ActiveRecord::QueryLogs.tags = [ fake_connection: ->(context) { context[:connection] == fake_connection } ]
+
+    assert_sql("SELECT 1 /*fake_connection:true*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
+  end
+
   def test_empty_comments_are_not_added
     ActiveRecord::QueryLogs.tags = [ empty: -> { nil } ]
     assert_sql(%r{select id from posts$}) do

@@ -18,7 +18,7 @@ module ApplicationTests
       app_file "app/controllers/users_controller.rb", <<-RUBY
         class UsersController < ApplicationController
           def index
-            render inline: ActiveRecord::QueryLogs.call("")
+            render inline: ActiveRecord::QueryLogs.call("", ActiveRecord::Base.connection)
           end
 
           def dynamic_content
@@ -30,7 +30,7 @@ module ApplicationTests
       app_file "app/controllers/name_spaced/users_controller.rb", <<-RUBY
         class NameSpaced::UsersController < ApplicationController
           def index
-            render inline: ActiveRecord::QueryLogs.call("")
+            render inline: ActiveRecord::QueryLogs.call("", ActiveRecord::Base.connection)
           end
         end
       RUBY
@@ -38,7 +38,7 @@ module ApplicationTests
       app_file "app/jobs/user_job.rb", <<-RUBY
         class UserJob < ActiveJob::Base
           def perform
-            ActiveRecord::QueryLogs.call("")
+            ActiveRecord::QueryLogs.call("", ActiveRecord::Base.connection)
           end
 
           def dynamic_content
