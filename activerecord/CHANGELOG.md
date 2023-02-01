@@ -1,3 +1,14 @@
+*   `ActiveRecord::QueryLogs` better handle broken encoding.
+
+    It's not uncommon when building queries with BLOB fields to contain
+    binary data. Unless the call carefully encode the string in ASCII-8BIT
+    it generally end up being encoded in `UTF-8`, and `QueryLogs` would
+    end up failing on it.
+
+    `ActiveRecord::QueryLogs` now longer depend on the query to be properly encoded.
+
+    *Jean Boussier*
+
 *   `ActiveRecord::Relation#explain` now accepts options.
 
     For databases and adapters which support them (currently PostgreSQL
