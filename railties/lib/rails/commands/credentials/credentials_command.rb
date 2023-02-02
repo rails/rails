@@ -14,14 +14,6 @@ module Rails
       require_relative "credentials_command/diffing"
       include Diffing
 
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
-      end
-
       desc "edit", "Open the decrypted credentials in `$EDITOR` for editing"
       def edit
         require_application!
@@ -46,13 +38,11 @@ module Rails
         say credentials.read.presence || missing_credentials_message
       end
 
+      desc "diff", "Enroll/disenroll in decrypted diffs of credentials using git"
       option :enroll, type: :boolean, default: false,
         desc: "Enrolls project in credentials file diffing with `git diff`"
-
       option :disenroll, type: :boolean, default: false,
         desc: "Disenrolls project from credentials file diffing"
-
-      desc "diff", "Enroll/disenroll in decrypted diffs of credentials using git"
       def diff(content_path = nil)
         if @content_path = content_path
           self.environment = extract_environment_from_path(content_path)
