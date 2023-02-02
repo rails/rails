@@ -374,7 +374,7 @@ GEM
       connection_pool
     redis-namespace (1.10.0)
       redis (>= 4)
-    regexp_parser (2.6.1)
+    regexp_parser (2.6.2)
     reline (0.3.2)
       io-console (~> 0.5)
     representable (3.2.0)
@@ -394,7 +394,7 @@ GEM
     retriable (3.1.2)
     rexml (3.2.5)
     rouge (4.0.1)
-    rubocop (1.43.0)
+    rubocop (1.44.1)
       json (~> 2.3)
       parallel (~> 1.10)
       parser (>= 3.2.0.0)
