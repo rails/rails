@@ -505,8 +505,14 @@ module ActiveRecord
             saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
-              association_id = record.public_send(reflection.options[:primary_key] || :id)
-              self[reflection.foreign_key] = association_id unless self[reflection.foreign_key] == association_id
+              primary_key = Array(reflection.options[:primary_key] || record.class.query_constraints_list)
+              foreign_key = Array(reflection.foreign_key)
+
+              primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+              primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
+                association_id = record.public_send(primary_key)
+                self[foreign_key] = association_id unless self[foreign_key] == association_id
+              end
               association.loaded!
             end
 

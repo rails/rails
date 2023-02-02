@@ -165,6 +165,72 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
     assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
   end
+
+  def test_append_composite_foreign_key_has_many_association
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comment = Sharded::Comment.new(body: "Great post! :clap:")
+    comment.save
+    blog_post.comments << comment
+
+    assert_includes(blog_post.comments, comment)
+    assert_equal(blog_post.id, comment.blog_post_id)
+    assert_equal(blog_post.blog_id, comment.blog_id)
+  end
+
+  def test_assign_persisted_composite_foreign_key_belongs_to_association
+    comment = sharded_comments(:great_comment_blog_post_one)
+    another_blog = sharded_blogs(:sharded_blog_two)
+    assert_not_equal(comment.blog_id, another_blog.id)
+
+    blog_post = Sharded::BlogPost.new(title: "New post", blog_id: another_blog.id)
+    blog_post.save
+    comment.blog_post = blog_post
+
+    assert_equal(blog_post, comment.blog_post)
+    assert_equal(comment.blog_id, blog_post.blog_id)
+    assert_equal(another_blog.id, comment.blog_id)
+    assert_equal(comment.blog_post_id, blog_post.id)
+  end
+
+  def test_assign_composite_foreign_key_belongs_to_association
+    comment = sharded_comments(:great_comment_blog_post_one)
+    another_blog = sharded_blogs(:sharded_blog_two)
+    assert_not_equal(comment.blog_id, another_blog.id)
+
+    blog_post = Sharded::BlogPost.new(title: "New post", blog_id: another_blog.id)
+    comment.blog_post = blog_post
+
+    assert_equal(blog_post, comment.blog_post)
+    assert_equal(comment.blog_id, blog_post.blog_id)
+    assert_equal(another_blog.id, comment.blog_id)
+  end
+
+  def test_append_composite_foreign_key_has_many_association_with_autosave
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comment = Sharded::Comment.new(body: "Great post! :clap:")
+    blog_post.comments << comment
+
+    assert_predicate(comment, :persisted?)
+    assert_includes(blog_post.comments, comment)
+    assert_equal(blog_post.id, comment.blog_post_id)
+    assert_equal(blog_post.blog_id, comment.blog_id)
+  end
+
+  def test_assign_composite_foreign_key_belongs_to_association_with_autosave
+    comment = sharded_comments(:great_comment_blog_post_one)
+    another_blog = sharded_blogs(:sharded_blog_two)
+    assert_not_equal(comment.blog_id, another_blog.id)
+
+    blog_post = Sharded::BlogPost.new(title: "New post", blog_id: another_blog.id)
+    comment.blog_post = blog_post
+    comment.save
+
+    assert_predicate(blog_post, :persisted?)
+    assert_equal(blog_post, comment.blog_post)
+    assert_equal(comment.blog_id, blog_post.blog_id)
+    assert_equal(another_blog.id, comment.blog_id)
+    assert_equal(comment.blog_post_id, blog_post.id)
+  end
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
