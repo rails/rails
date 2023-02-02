@@ -394,6 +394,7 @@ module ActiveSupport
       #
       # ==== Options
       #
+      # * +:namespace+ - Replace the store namespace for this call.
       # * +:version+ - Specifies a version for the cache entry. If the cached
       #   version does not match the requested version, the read will be treated
       #   as a cache miss. This feature is used to support recyclable cache keys.
