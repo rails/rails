@@ -131,7 +131,7 @@ should share a connection with.
 
 ```ruby
 class PrimaryApplicationRecord < ActiveRecord::Base
-  self.primary_abstract_class = true
+  primary_abstract_class
 end
 ```
 
