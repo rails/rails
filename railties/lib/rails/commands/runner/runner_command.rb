@@ -9,7 +9,7 @@ module Rails
 
       no_commands do
         def help
-          super
+          super("runner")
           say self.class.desc
         end
       end

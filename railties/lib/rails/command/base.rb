@@ -36,7 +36,7 @@ module Rails
           if usage
             super
           else
-            @desc ||= ERB.new(File.read(usage_path), trim_mode: "-").result(binding) if usage_path
+            class_usage
           end
         end
 
@@ -67,31 +67,38 @@ module Rails
 
         def perform(command, args, config) # :nodoc:
           if Rails::Command::HELP_MAPPINGS.include?(args.first)
-            command, args = "help", []
+            command, args = "help", [command]
+            args.clear if instance_method(:help).arity.zero?
           end
 
           dispatch(command, args.dup, nil, config)
         end
 
         def printing_commands
-          commands.filter_map do |key, command|
-            next if command.hidden?
-            if command_root_namespace.match?(/(\A|:)#{key}\z/)
-              [command_root_namespace, command.description]
-            else
-              ["#{command_root_namespace}:#{key}", command.description]
-            end
+          commands.filter_map do |name, command|
+            [namespaced_name(name), command.description] unless command.hidden?
           end
         end
 
-
-        def executable(subcommand = nil)
-          "#{bin} #{command_name}#{":" if subcommand}#{subcommand}"
+        def executable(command_name = self.command_name)
+          "#{bin} #{namespaced_name(command_name)}"
         end
 
-        # Use Rails' default banner.
-        def banner(*)
-          "#{executable} #{arguments.map(&:usage).join(' ')} [options]".squish
+        def banner(command = nil, *)
+          if command
+            # Similar to Thor's banner, but show the namespace (minus the
+            # "rails:" prefix), and show the command's declared bin instead of
+            # the command runner.
+            command.formatted_usage(self).gsub(/^#{namespace}:(\w+)/) { executable($1) }
+          else
+            executable
+          end
+        end
+
+        # Override Thor's class-level help to also show the USAGE.
+        def help(shell, *) # :nodoc:
+          super
+          shell.say class_usage if class_usage
         end
 
         # Sets the base_name taking into account the current class namespace.
@@ -113,12 +120,16 @@ module Rails
           end
         end
 
+        def class_usage # :nodoc:
+          if usage_path
+            @class_usage ||= ERB.new(File.read(usage_path), trim_mode: "-").result(binding)
+          end
+        end
+
         # Path to lookup a USAGE description in a file.
         def usage_path
-          if default_command_root
-            path = File.join(default_command_root, "USAGE")
-            path if File.exist?(path)
-          end
+          @usage_path = resolve_path("USAGE") unless defined?(@usage_path)
+          @usage_path
         end
 
         # Default file root to place extra files a command might need, placed
@@ -127,8 +138,8 @@ module Rails
         # For a Rails::Command::TestCommand placed in <tt>rails/command/test_command.rb</tt>
         # would return <tt>rails/test</tt>.
         def default_command_root
-          path = File.expand_path(relative_command_path, __dir__)
-          path if File.exist?(path)
+          @default_command_root = resolve_path(".") unless defined?(@default_command_root)
+          @default_command_root
         end
 
         private
@@ -139,19 +150,22 @@ module Rails
             else
               # Prevent exception about command without usage.
               # Some commands define their documentation differently.
-              @usage ||= ""
+              @usage ||= meth
               @desc  ||= ""
 
               super
             end
           end
 
-          def command_root_namespace
-            (namespace.split(":") - %w(rails)).join(":")
+          def namespaced_name(name)
+            *prefix, basename = namespace.delete_prefix("rails:").split(":")
+            prefix.concat([basename, name.to_s].uniq).join(":")
           end
 
-          def relative_command_path
-            File.join("../commands", *command_root_namespace.split(":"))
+          def resolve_path(path)
+            path = File.join("../commands", *namespace.delete_prefix("rails:").split(":"), path)
+            path = File.expand_path(path, __dir__)
+            path if File.exist?(path)
           end
       end
 
@@ -165,14 +179,6 @@ module Rails
           super
         ensure
           @current_subcommand = original_subcommand
-        end
-      end
-
-      def help
-        if command_name = self.class.command_name
-          self.class.command_help(shell, command_name)
-        else
-          super
         end
       end
     end
