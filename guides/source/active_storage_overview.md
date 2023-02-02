@@ -1018,7 +1018,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
       "Content-MD5",
       "Content-Disposition"
     ],
-    "MaxAgeSeconds": 3600
+    "MaxAge": 3600
   }
 ]
 ```
