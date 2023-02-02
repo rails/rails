@@ -43,9 +43,10 @@ module ActionView
       #
       #   @greeting # => "Welcome to my shiny new web page! The date and time is 2018-09-06 11:09:16 -0500"
       #
-      def capture(*args)
+      def capture(*args, &block)
         value = nil
-        buffer = with_output_buffer { value = yield(*args) }
+        @output_buffer ||= ActionView::OutputBuffer.new
+        buffer = @output_buffer.capture { value = yield(*args) }
 
         case string = buffer.presence || value
         when OutputBuffer
