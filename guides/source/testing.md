@@ -466,7 +466,7 @@ Known extensions: rails, pride
 
 To run all tests in a CI environment, there's just one command you need:
 
-```
+```bash
 bin/rails test
 ```
 

@@ -290,7 +290,7 @@ from the replica unless there was a recent write.
 To activate the automatic connection switching middleware you can run the automatic swapping
 generator:
 
-```
+```bash
 $ bin/rails g active_record:multi_db
 ```
 
@@ -471,7 +471,7 @@ code from mistakenly switching between tenants.
 The same generator as the database selector can be used to generate the file for
 automatic shard swapping:
 
-```
+```bash
 $ bin/rails g active_record:multi_db
 ```
 

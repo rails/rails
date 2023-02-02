@@ -1264,7 +1264,7 @@ to run them again.
 Thus, you generally want to preserve migrations coming from engines. They have a
 special comment like this:
 
-```
+```ruby
 # This migration comes from blorgh (originally 20210621082949)
 ```
 

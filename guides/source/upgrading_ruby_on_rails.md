@@ -367,7 +367,7 @@ Also, make sure [`config.cache_classes`][] is set to `false` in `config/environm
 The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
 make sure to add `sprockets-rails` to your Gemfile.
 
-```
+```ruby
 gem "sprockets-rails"
 ```
 
@@ -1325,7 +1325,7 @@ In Rails 5.0, `redirect_to :back` was deprecated. In Rails 5.1, it was removed c
 As an alternative, use `redirect_back`. It's important to note that `redirect_back` also takes
 a `fallback_location` option which will be used in case the `HTTP_REFERER` is missing.
 
-```
+```ruby
 redirect_back(fallback_location: root_path)
 ```
 
