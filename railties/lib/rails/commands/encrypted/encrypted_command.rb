@@ -12,14 +12,6 @@ module Rails
       class_option :key, aliases: "-k", type: :string,
         default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
 
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
-      end
-
       desc "edit", "Open the decrypted file in `$EDITOR` for editing"
       def edit(*)
         require_application!
