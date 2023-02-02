@@ -64,10 +64,21 @@ if ActiveRecord::Base.connection.supports_explain?
     end
 
     private
-      def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"], &block)
+      def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0
 
-        connection.stub(:explain, proc { explain_called += 1; query_plans[explain_called - 1] }, &block)
+        # Minitest's `stub` method is unable to correctly replicate method arguments
+        # signature, so we need to do a manual stubbing in this case.
+        metaclass = class << connection; self; end
+        explain_method = metaclass.instance_method(:explain)
+        metaclass.define_method(:explain) do |_arel, _binds = [], _options = {}|
+          explain_called += 1
+          query_plans[explain_called - 1]
+        end
+        yield
+      ensure
+        metaclass.undef_method(:explain)
+        metaclass.define_method(:explain, explain_method)
       end
 
       def bind_param(name, value)
