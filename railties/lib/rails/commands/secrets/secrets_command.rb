@@ -9,14 +9,6 @@ module Rails
     class SecretsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
 
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
-      end
-
       desc "setup", "Deprecated in favor of credentials -- run `bin/rails credentials:help`"
       def setup
         deprecate_in_favor_of_credentials_and_exit
@@ -40,7 +32,7 @@ module Rails
         end
       end
 
-      desc "edit", "Show the decrypted secrets"
+      desc "show", "Show the decrypted secrets"
       def show
         say Rails::Secrets.read
       end
