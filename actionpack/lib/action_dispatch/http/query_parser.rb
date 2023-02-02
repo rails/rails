@@ -75,7 +75,7 @@ module ActionDispatch
     # normalize_params recursively expands parameters into structural types. If
     # the structural types represented by two different parameter names are in
     # conflict, a ParameterTypeError is raised.
-    def normalize_params(params, name, v, depth)
+    def normalize_params(params, name, v, depth = param_depth_limit)
       raise ParamsTooDeepError if depth <= 0
 
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
