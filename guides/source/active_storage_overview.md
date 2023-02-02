@@ -1012,7 +1012,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
     "AllowedOrigins": [
       "https://www.example.com"
     ],
-    "ExposeHeaders": [
+    "ExposedHeaders": [
       "Origin",
       "Content-Type",
       "Content-MD5",
