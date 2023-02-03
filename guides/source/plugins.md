@@ -56,22 +56,24 @@ Navigate to the directory that contains the plugin, and edit `yaffle.gemspec` to
 replace any lines that have `TODO` values:
 
 ```ruby
-  spec.homepage    = "http://example.com"
-  spec.summary     = "Summary of Yaffle."
-  spec.description = "Description of Yaffle."
+spec.homepage    = "http://example.com"
+spec.summary     = "Summary of Yaffle."
+spec.description = "Description of Yaffle."
 
 ...
 
-  spec.metadata["source_code_uri"] = "http://example.com"
-  spec.metadata["changelog_uri"] = "http://example.com"
+spec.metadata["source_code_uri"] = "http://example.com"
+spec.metadata["changelog_uri"] = "http://example.com"
 ```
 
 Then run the `bundle install` command.
 
 Now you can run the tests using the `bin/test` command, and you should see:
 
-```
-  1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
+```bash
+$ bin/test
+...
+1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 This will tell you that everything got generated properly, and you are ready to start adding functionality.
@@ -97,7 +99,8 @@ end
 
 Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
 
-```
+```bash
+$ bin/test
 E
 
 Error:
@@ -110,7 +113,6 @@ bin/test /path/to/yaffle/test/core_ext_test.rb:4
 .
 
 Finished in 0.003358s, 595.6483 runs/s, 297.8242 assertions/s.
-
 2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 ```
 
@@ -145,7 +147,9 @@ end
 To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
 
 ```
-  2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
+$ bin/test
+...
+2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and commence squawking:
@@ -220,7 +224,8 @@ end
 
 When you run `bin/test`, you should see the following:
 
-```
+```bash
+$ bin/test
 # Running:
 
 ..E
@@ -244,7 +249,6 @@ bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:4
 
 
 Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
-
 4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 ```
 
@@ -314,7 +318,8 @@ end
 
 You can then return to the root directory (`cd ../..`) of your plugin and rerun the tests using `bin/test`.
 
-```
+```bash
+$ bin/test
 # Running:
 
 .E
@@ -338,7 +343,6 @@ bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:8
 .
 
 Finished in 0.008263s, 484.0999 runs/s, 242.0500 assertions/s.
-
 4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 ```
 
@@ -372,8 +376,10 @@ end
 
 When you run `bin/test`, you should see the tests all pass:
 
-```
-  4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
+```bash
+$ bin/test
+...
+4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 ### Add an Instance Method
@@ -447,8 +453,10 @@ end
 
 Run `bin/test` one final time, and you should see:
 
-```
-  6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
+```bash
+$ bin/test
+...
+6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
