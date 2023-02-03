@@ -10,10 +10,12 @@ require "models/categorization"
 require "models/person"
 require "models/tagging"
 require "models/tag"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
-           :taggings, :tags, :people
+           :taggings, :tags, :people, :sharded_comments, :sharded_blog_posts
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.joins(:thinking_posts, :welcome_posts).first
@@ -211,5 +213,22 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     categories = author.categories.eager_load(:special_categorizations).order(:name).to_a
     assert_equal 0, categories.first.special_categorizations.size
     assert_equal 1, categories.second.special_categorizations.size
+  end
+
+  test "joins a belongs_to association with a composite foreign key" do
+    first_post_comments = Sharded::Comment.joins(:blog_post).where(blog_post: { title: "My first post!" }).to_a
+    expected_blog_post = sharded_blog_posts(:great_blog_post_one)
+
+    assert_not_empty comments
+    assert_equal(expected_blog_post.comments.to_a.sort, first_post_comments.sort)
+  end
+
+  test "joins a has_many association with a composite foreign key" do
+    blog_posts = Sharded::BlogPost.joins(:comments).where(comments: { body: "Your first blog post is great!" }).to_a
+
+    expected_comment = sharded_comments(:unique_comment_blog_post_one)
+
+    assert_not_empty blog_posts
+    assert_equal(expected_comment.blog_post, blog_posts.first)
   end
 end
