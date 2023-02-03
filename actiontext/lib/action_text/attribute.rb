@@ -65,7 +65,7 @@ module ActionText
 
       # Eager load all dependent RichText models in bulk.
       def with_all_rich_text
-        eager_load(rich_text_association_names)
+        includes(rich_text_association_names)
       end
 
       def rich_text_association_names
