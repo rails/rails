@@ -16,7 +16,7 @@ module Rails
 
       desc "edit", "Open the decrypted credentials in `$EDITOR` for editing"
       def edit
-        require_application!
+        load_environment_config!
         load_generators
 
         if environment_specified?
@@ -33,7 +33,7 @@ module Rails
 
       desc "show", "Show the decrypted credentials"
       def show
-        require_application!
+        load_environment_config!
 
         say credentials.read.presence || missing_credentials_message
       end
@@ -46,7 +46,7 @@ module Rails
       def diff(content_path = nil)
         if @content_path = content_path
           self.environment = extract_environment_from_path(content_path)
-          require_application!
+          load_environment_config!
 
           say credentials.read.presence || credentials.content_path.read
         else

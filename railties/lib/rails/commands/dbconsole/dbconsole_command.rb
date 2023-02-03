@@ -90,7 +90,7 @@ module Rails
 
       desc "dbconsole", "Start a console for the database specified in config/database.yml"
       def perform
-        require_application_and_environment!
+        boot_application!
         Rails::DBConsole.start(options)
       end
     end

@@ -4,7 +4,7 @@
 
 *   Credentials commands (e.g. `bin/rails credentials:edit`) now respect
     `config.credentials.content_path` and `config.credentials.key_path` when set
-    in `config/application.rb`.
+    in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
     Before:
 
@@ -25,19 +25,8 @@
         would load for the current `RAILS_ENV`.
 
       * `bin/rails credentials:edit` respects `config.credentials.content_path`
-        and `config.credentials.key_path` when set in `config/application.rb`.
-        Using `RAILS_ENV`, environment-specific paths can be set, such as:
-
-          ```ruby
-          # config/application.rb
-          module MyCoolApp
-            class Application < Rails::Application
-              config.credentials.content_path = "my_credentials/#{Rails.env}.yml.enc"
-
-              config.credentials.key_path = "path/to/production.key" if Rails.env.production?
-            end
-          end
-          ```
+        and `config.credentials.key_path` when set in `config/application.rb`
+        or `config/environments/#{Rails.env}.rb`.
 
       * `bin/rails credentials:edit --environment foo` will create and edit
         `config/credentials/foo.yml.enc` _if_ `config.credentials.content_path`

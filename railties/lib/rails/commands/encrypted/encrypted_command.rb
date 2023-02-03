@@ -14,7 +14,7 @@ module Rails
 
       desc "edit", "Open the decrypted file in `$EDITOR` for editing"
       def edit(*)
-        require_application!
+        load_environment_config!
 
         ensure_encryption_key_has_been_added
         ensure_encrypted_configuration_has_been_added
@@ -24,7 +24,7 @@ module Rails
 
       desc "show", "Show the decrypted contents of the file"
       def show(*)
-        require_application!
+        load_environment_config!
 
         say encrypted_configuration.read.presence || missing_encrypted_configuration_message
       end

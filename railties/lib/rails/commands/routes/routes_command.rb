@@ -22,7 +22,7 @@ module Rails
 
       desc "routes", "List all the defined routes"
       def perform(*)
-        require_application_and_environment!
+        boot_application!
         require "action_dispatch/routing/inspector"
 
         say inspector.format(formatter, routes_filter)

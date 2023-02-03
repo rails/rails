@@ -10,23 +10,21 @@ module Rails
         Dir.chdir(File.expand_path("../..", APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
       end
 
-      def require_application_and_environment!
-        require_application!
-        require_environment!
-      end
-
       def require_application!
         require ENGINE_PATH if defined?(ENGINE_PATH)
-
-        if defined?(APP_PATH)
-          require APP_PATH
-        end
+        require APP_PATH if defined?(APP_PATH)
       end
 
-      def require_environment!
-        if defined?(APP_PATH)
-          Rails.application.require_environment!
-        end
+      def boot_application!
+        require_application!
+        Rails.application.require_environment! if defined?(APP_PATH)
+      end
+
+      def load_environment_config!
+        require_application!
+        # Only run initializers that are in the :all group, which includes the
+        # :load_environment_config initializer.
+        Rails.application.initialize!(:_) if defined?(APP_PATH)
       end
 
       if defined?(ENGINE_PATH)

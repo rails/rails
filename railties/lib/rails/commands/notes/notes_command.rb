@@ -9,7 +9,7 @@ module Rails
 
       desc "notes", "Show comments in your code annotated with FIXME, OPTIMIZE, and TODO"
       def perform(*)
-        require_application_and_environment!
+        boot_application!
 
         display_annotations
       end
