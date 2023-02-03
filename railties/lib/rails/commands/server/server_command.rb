@@ -128,6 +128,7 @@ module Rails
         @original_options = local_options - %w( --restart )
       end
 
+      desc "server", "Start the Rails server"
       def perform
         set_application_directory!
         prepare_restart
@@ -243,10 +244,6 @@ module Rails
 
         def pid
           File.expand_path(options[:pid] || ENV.fetch("PIDFILE", DEFAULT_PIDFILE))
-        end
-
-        def self.banner(*)
-          "#{executable} -u [thin/puma/webrick] [options]"
         end
 
         def prepare_restart

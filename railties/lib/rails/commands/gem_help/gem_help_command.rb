@@ -6,7 +6,7 @@ module Rails
       hide_command!
 
       def perform
-        say self.class.desc
+        say self.class.class_usage
       end
     end
   end
