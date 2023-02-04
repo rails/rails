@@ -31,6 +31,17 @@ class BlankTest < ActiveSupport::TestCase
 
   def test_presence
     BLANK.each { |v| assert_nil v.presence, "#{v.inspect}.presence should return nil" }
-    NOT.each   { |v| assert_equal v,   v.presence, "#{v.inspect}.presence should return self" }
+    NOT.each   { |v| assert_equal v, v.presence, "#{v.inspect}.presence should return self" }
+  end
+
+  def test_presence_if
+    assert_raises(ArgumentError, "Missing block") do
+      Object.new.presence_if?
+    end
+    BLANK.each { |v| assert_nil v.presence_if?(lambda { flunk "Block should not be called" }), "#{v.inspect}.presence_if? should return nil" }
+    NOT.each do |v|
+      assert_equal v, v.presence_if?(lambda { |x| x == v }), "#{v.inspect}.presence_if? should return self"
+      assert_nil v.presence_if?(lambda { BLANK.sample }), "#{v.inspect}.presence_if? should return nil when block returns falsy"
+    end
   end
 end

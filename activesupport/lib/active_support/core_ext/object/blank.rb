@@ -45,6 +45,27 @@ class Object
   def presence
     self if present?
   end
+
+  # Returns the receiver if it's present and arg or block is truthy otherwise returns +nil+.
+  # <tt>object.presence_if?(block)</tt> is equivalent to
+  #
+  #    object.present? && block.call ? object : nil
+  #
+  # For example, something like
+  #
+  #   model = Model.new
+  #   model.valid? ? model : nil
+  #
+  # becomes
+  #
+  #   Model.new.presence_if?(&:valid?)
+  #
+  # @return [Object]
+  def presence_if?
+    raise ArgumentError, "Missing block" unless block_given?
+
+    self if presence && yield(self).presence
+  end
 end
 
 class NilClass

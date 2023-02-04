@@ -1,3 +1,8 @@
+*   Add `Object#presence_if?(&block)` will return the object only if present and
+    block is truthy.
+
+    *trevorrjohn*
+
 *   `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
 
     Previously it would only raise when called in a view or controller. Now it will raise
