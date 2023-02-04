@@ -5,7 +5,7 @@ extensions that were found useful for the Rails framework. These additions
 reside in this package so they can be loaded as needed in Ruby projects
 outside of Rails.
 
-You can read more about the extensions in the {Active Support Core Extensions}[https://edgeguides.rubyonrails.org/active_support_core_extensions.html] guide.
+You can read more about the extensions in the {Active Support Core Extensions}[https://guides.rubyonrails.org/active_support_core_extensions.html] guide.
 
 == Download and installation
 
