@@ -1,3 +1,7 @@
+*   Display broadcasted messages on error message when using `assert_broadcast_on`
+
+    *Stéphane Robino*
+
 *   The Action Cable client now supports subprotocols to allow passing arbitrary data
     to the server.
 

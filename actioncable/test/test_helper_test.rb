@@ -112,5 +112,15 @@ class TransmittedDataTest < ActionCable::TestCase
     end
 
     assert_match(/No messages sent/, error.message)
+    assert_match(/Message\(s\) found:\nhello/, error.message)
+  end
+
+  def test_assert_broadcast_on_message_with_empty_channel
+    error = assert_raises Minitest::Assertion do
+      assert_broadcast_on("test", "world")
+    end
+
+    assert_match(/No messages sent/, error.message)
+    assert_match(/No message found for test/, error.message)
   end
 end
