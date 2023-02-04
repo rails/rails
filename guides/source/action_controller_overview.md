@@ -145,7 +145,7 @@ The `params` object acts like a Hash, but lets you use symbols and strings inter
 
 ### JSON Parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
+If you're application exposes an API, you are likely to be accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -1291,7 +1291,7 @@ Built-in Health Check Endpoint
 
 Rails also comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
 
-In production, many services are required to report their status upstream, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine a pod's health. This health check is designed to be a one-size fits all that will work in many situations.
+In production, many applications are required to report their status upstream, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine a pod's health. This health check is designed to be a one-size fits all that will work in many situations.
 
 While any newly generated Rails applications will have the health check at `/up`, you can configure the path to be anything you'd like in your "config/routes.rb":
 
@@ -1303,4 +1303,4 @@ end
 
 The health check will now be accessible via the `/healthz` path.
 
-NOTE: This endpoint is not designed to give the status of all of your service's dependencies, such as the database or redis cluster. It is also not recommended to use those for health checks, in general, as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+NOTE: This endpoint is not designed to give the status of all of your application's dependencies, such as the database or redis cluster. It is also not recommended to use those for health checks, in general, as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
