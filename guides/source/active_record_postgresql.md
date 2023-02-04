@@ -327,7 +327,7 @@ end
 
 NOTE: `ALTER TYPE ... ADD VALUE` cannot be executed inside of a transaction block so here we are using `disable_ddl_transaction!`
 
-NOTE: Enum values [can't be dropped or reordered](https://www.postgresql.org/docs/current/datatype-enum.html). Adding a value is not easily reversed.
+WARNING. Enum values [can't be dropped or reordered](https://www.postgresql.org/docs/current/datatype-enum.html). Adding a value is not easily reversed.
 
 Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
 
