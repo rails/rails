@@ -135,7 +135,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "up" => "rails/health#show"
+          get "up" => "rails/health#show", as: :rails_health_check
         end
       RUBY
 

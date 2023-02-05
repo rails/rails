@@ -116,7 +116,17 @@ module ActionCable
 
       message = new_messages.find { |msg| ActiveSupport::JSON.decode(msg) == serialized_msg }
 
-      assert message, "No messages sent with #{data} to #{stream}"
+      error_message = "No messages sent with #{data} to #{stream}"
+
+      if new_messages.any?
+        error_message = new_messages.inject("#{error_message}\nMessage(s) found:\n") do |error_message, new_message|
+          error_message + "#{ActiveSupport::JSON.decode(new_message)}\n"
+        end
+      else
+        error_message = "#{error_message}\nNo message found for #{stream}"
+      end
+
+      assert message, error_message
     end
 
     def pubsub_adapter # :nodoc:

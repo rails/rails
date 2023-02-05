@@ -17,7 +17,7 @@
 #
 # ```ruby
 # Rails.application.routes.draw do
-#   get "healthz" => "rails/health#show"
+#   get "healthz" => "rails/health#show", as: :rails_health_check
 # end
 # ```
 #
