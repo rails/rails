@@ -145,7 +145,7 @@ The `params` object acts like a Hash, but lets you use symbols and strings inter
 
 ### JSON Parameters
 
-If you're application exposes an API, you are likely to be accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
+If your application exposes an API, you are likely to be accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
