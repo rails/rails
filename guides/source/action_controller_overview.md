@@ -1297,10 +1297,12 @@ While any newly generated Rails applications will have the health check at `/up`
 
 ```ruby
 Rails.application.routes.draw do
-  get "healthz" => "rails/health#show"
+  get "healthz" => "rails/health#show", as: :rails_health_check
 end
 ```
 
 The health check will now be accessible via the `/healthz` path.
 
-NOTE: This endpoint is not designed to give the status of all of your application's dependencies, such as the database or redis cluster. It is also not recommended to use those for health checks, in general, as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+NOTE: This endpoint does not reflect the status of all of your service's dependencies, such as the database or redis cluster. Replace "rails/heath#show" with your own controller action if you have application specific needs.
+
+Think carefully about what you what to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
