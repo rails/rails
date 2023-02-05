@@ -96,8 +96,9 @@ module Rails
         super(args, local_options, config)
       end
 
+      desc "console", "Start the Rails console"
       def perform
-        require_application_and_environment!
+        boot_application!
         Rails::Console.start(Rails.application, options)
       end
     end

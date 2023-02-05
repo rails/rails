@@ -1113,7 +1113,7 @@ module ActiveRecord
 
         def transform_query(sql)
           ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql)
+            sql = transformer.call(sql, self)
           end
           sql
         end

@@ -189,14 +189,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["-h"])
     end
-    assert_match(/rails dbconsole \[options\]/, stdout)
+    assert_match %r"bin/rails dbconsole", stdout
   end
 
   def test_print_help_long
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["--help"])
     end
-    assert_match(/rails dbconsole \[options\]/, stdout)
+    assert_match %r"bin/rails dbconsole", stdout
   end
 
   attr_reader :aborted, :output

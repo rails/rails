@@ -6,7 +6,7 @@ module Rails
       hide_command!
 
       def help(*)
-        say self.class.desc
+        say self.class.class_usage
       end
 
       def help_extended(*)

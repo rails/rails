@@ -95,7 +95,6 @@ Rails.application.configure do
 
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
-
   <%- unless options.skip_active_record? -%>
 
   # Do not dump schema after migrations.

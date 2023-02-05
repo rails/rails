@@ -12,17 +12,9 @@ module Rails
       class_option :key, aliases: "-k", type: :string,
         default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
 
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
-      end
-
-      desc "edit", "Opens the decrypted file in `$EDITOR` for editing"
+      desc "edit", "Open the decrypted file in `$EDITOR` for editing"
       def edit(*)
-        require_application!
+        load_environment_config!
 
         ensure_encryption_key_has_been_added
         ensure_encrypted_configuration_has_been_added
@@ -30,9 +22,9 @@ module Rails
         change_encrypted_configuration_in_system_editor
       end
 
-      desc "show", "Shows the decrypted contents of the file"
+      desc "show", "Show the decrypted contents of the file"
       def show(*)
-        require_application!
+        load_environment_config!
 
         say encrypted_configuration.read.presence || missing_encrypted_configuration_message
       end

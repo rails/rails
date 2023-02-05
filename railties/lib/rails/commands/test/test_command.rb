@@ -8,85 +8,69 @@ require "rails/test_unit/reporter"
 module Rails
   module Command
     class TestCommand < Base # :nodoc:
-      no_commands do
-        def help
-          say "Usage: #{Rails::TestUnitReporter.executable} [options] [files or directories]"
-          say ""
-          say "You can run a single test by appending a line number to a filename:"
-          say ""
-          say "    #{Rails::TestUnitReporter.executable} test/models/user_test.rb:27"
-          say ""
-          say "You can run multiple files and directories at the same time:"
-          say ""
-          say "    #{Rails::TestUnitReporter.executable} test/controllers test/integration/login_test.rb"
-          say ""
-          say "By default test failures and errors are reported inline during a run."
-          say ""
+      def self.executable(*args)
+        args.empty? ? Rails::TestUnitReporter.executable : super
+      end
 
+      no_commands do
+        def help(command_name = nil, *)
+          super
+          if command_name == "test"
+            say ""
+            say self.class.class_usage
+          end
+          say ""
           Minitest.run(%w(--help))
         end
       end
 
-      def perform(*)
+      desc "test [PATHS...]", "Run tests except system tests"
+      def perform(*args)
         $LOAD_PATH << Rails::Command.root.join("test").to_s
 
         Rails::TestUnit::Runner.parse_options(args)
-        run_prepare_task(args)
+        run_prepare_task if self.args.none?(EXACT_TEST_ARGUMENT_PATTERN)
         Rails::TestUnit::Runner.run(args)
       end
 
       # Define Thor tasks to avoid going through Rake and booting twice when using bin/rails test:*
       Rails::TestUnit::Runner::TEST_FOLDERS.each do |name|
         desc name, "Run tests in test/#{name}"
-        define_method(name) do |*|
-          args.prepend("test/#{name}")
-          perform
+        define_method(name) do |*args|
+          perform("test/#{name}", *args)
         end
       end
 
       desc "all", "Run all tests, including system tests"
-      def all(*)
-        @force_prepare = true
-        args.prepend("test/**/*_test.rb")
-        perform
+      def all(*args)
+        perform("test/**/*_test.rb", *args)
       end
 
       desc "functionals", "Run tests in test/controllers, test/mailers, and test/functional"
-      def functionals(*)
-        @force_prepare = true
-        args.prepend("test/controllers")
-        args.prepend("test/mailers")
-        args.prepend("test/functional")
-        perform
+      def functionals(*args)
+        perform("test/controllers", "test/mailers", "test/functional", *args)
       end
 
       desc "units", "Run tests in test/models, test/helpers, and test/unit"
-      def units(*)
-        @force_prepare = true
-        args.prepend("test/models")
-        args.prepend("test/helpers")
-        args.prepend("test/unit")
-        perform
+      def units(*args)
+        perform("test/models", "test/helpers", "test/unit", *args)
       end
 
       desc "system", "Run system tests only"
-      def system(*)
-        @force_prepare = true
-        args.prepend("test/system")
-        perform
+      def system(*args)
+        perform("test/system", *args)
       end
 
       desc "generators", "Run tests in test/lib/generators"
-      def generators(*)
-        args.prepend("test/lib/generators")
-        perform
+      def generators(*args)
+        perform("test/lib/generators", *args)
       end
 
       private
-        def run_prepare_task(args)
-          if @force_prepare || args.empty?
-            Rails::Command::RakeCommand.perform("test:prepare", [], {})
-          end
+        EXACT_TEST_ARGUMENT_PATTERN = /^-n|^--name\b|#{Rails::TestUnit::Runner::PATH_ARGUMENT_PATTERN}/
+
+        def run_prepare_task
+          Rails::Command::RakeCommand.perform("test:prepare", [], {})
         rescue UnrecognizedCommandError => error
           raise unless error.name == "test:prepare"
         end

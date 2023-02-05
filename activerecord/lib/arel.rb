@@ -36,7 +36,7 @@ module Arel
   # This method should not be used with unsafe values such as request
   # parameters or model attributes.
   #
-  # Take a look at the {security guide}[https://edgeguides.rubyonrails.org/security.html#sql-injection]
+  # Take a look at the {security guide}[https://guides.rubyonrails.org/security.html#sql-injection]
   # for more information.
   #
   # To construct a more complex query fragment, including the possible

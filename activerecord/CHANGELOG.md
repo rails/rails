@@ -5,7 +5,7 @@
     it generally end up being encoded in `UTF-8`, and `QueryLogs` would
     end up failing on it.
 
-    `ActiveRecord::QueryLogs` now longer depend on the query to be properly encoded.
+    `ActiveRecord::QueryLogs` no longer depend on the query to be properly encoded.
 
     *Jean Boussier*
 

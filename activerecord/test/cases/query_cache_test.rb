@@ -401,7 +401,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_is_flat
     Task.cache do
-      assert_queries(1) { Topic.find(1); Topic.find(1); }
+      assert_queries(1) { Topic.find(1); Topic.find(1) }
     end
 
     ActiveRecord::Base.cache do

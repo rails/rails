@@ -53,7 +53,7 @@ class RedisAdapterTest < ActionCable::TestCase
       redis_conn.client("kill", "type", "pubsub")
     end
 
-    def wait_pubsub_connection(redis_conn, channel, timeout: 2)
+    def wait_pubsub_connection(redis_conn, channel, timeout: 5)
       wait = timeout
       loop do
         break if redis_conn.pubsub("numsub", channel).last > 0

@@ -14,17 +14,9 @@ module Rails
       require_relative "credentials_command/diffing"
       include Diffing
 
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
-      end
-
-      desc "edit", "Opens the decrypted credentials in `$EDITOR` for editing"
+      desc "edit", "Open the decrypted credentials in `$EDITOR` for editing"
       def edit
-        require_application!
+        load_environment_config!
         load_generators
 
         if environment_specified?
@@ -39,24 +31,22 @@ module Rails
         change_credentials_in_system_editor
       end
 
-      desc "show", "Shows the decrypted credentials"
+      desc "show", "Show the decrypted credentials"
       def show
-        require_application!
+        load_environment_config!
 
         say credentials.read.presence || missing_credentials_message
       end
 
+      desc "diff", "Enroll/disenroll in decrypted diffs of credentials using git"
       option :enroll, type: :boolean, default: false,
         desc: "Enrolls project in credentials file diffing with `git diff`"
-
       option :disenroll, type: :boolean, default: false,
         desc: "Disenrolls project from credentials file diffing"
-
-      desc "diff", "Enrolls/disenrolls in decrypted diffs of credentials using git"
       def diff(content_path = nil)
         if @content_path = content_path
           self.environment = extract_environment_from_path(content_path)
-          require_application!
+          load_environment_config!
 
           say credentials.read.presence || credentials.content_path.read
         else
