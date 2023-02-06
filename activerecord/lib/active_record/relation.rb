@@ -414,7 +414,7 @@ module ActiveRecord
     #   Comment.where(post_id: 1).scoping do
     #     Comment.first
     #   end
-    #   # => SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
+    #   # SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
     #
     # If <tt>all_queries: true</tt> is passed, scoping will apply to all queries
     # for the relation including +update+ and +delete+ on instances.
@@ -729,7 +729,7 @@ module ActiveRecord
     # Returns sql statement for the relation.
     #
     #   User.where(name: 'Oscar').to_sql
-    #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
+    #   # SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= if eager_loading?
         apply_join_dependency do |relation, join_dependency|

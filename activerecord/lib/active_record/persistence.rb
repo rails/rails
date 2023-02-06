@@ -463,28 +463,28 @@ module ActiveRecord
       #   end
       #
       #   developer = Developer.first
-      #   SELECT "developers".* FROM "developers" ORDER BY "developers"."company_id" ASC, "developers"."id" ASC LIMIT 1
+      #   # SELECT "developers".* FROM "developers" ORDER BY "developers"."company_id" ASC, "developers"."id" ASC LIMIT 1
       #   developer.inspect # => #<Developer id: 1, company_id: 1, ...>
       #
       #   developer.update!(name: "Nikita")
-      #   # => UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   It is possible to update attribute used in the query_by clause:
       #   developer.update!(company_id: 2)
-      #   # => UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.name = "Bob"
       #   developer.save!
-      #   # => UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.destroy!
-      #   # => DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.delete
-      #   # => DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.reload
-      #   # => SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
+      #   # SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
