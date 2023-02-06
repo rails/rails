@@ -75,7 +75,8 @@ module ActiveRecord
           #     default_scope { where(published: true) }
           #   end
           #
-          #   Article.all # => SELECT * FROM articles WHERE published = true
+          #   Article.all
+          #   # SELECT * FROM articles WHERE published = true
           #
           # The #default_scope is also applied while creating/building a record.
           # It is not applied while updating or deleting a record.
@@ -110,7 +111,8 @@ module ActiveRecord
           #     default_scope { where(rating: 'G') }
           #   end
           #
-          #   Article.all # => SELECT * FROM articles WHERE published = true AND rating = 'G'
+          #   Article.all
+          #   # SELECT * FROM articles WHERE published = true AND rating = 'G'
           #
           # This is also the case with inheritance and module includes where the
           # parent or module defines a #default_scope and the child or including
