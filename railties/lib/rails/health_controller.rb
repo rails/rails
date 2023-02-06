@@ -2,18 +2,19 @@
 
 # Built-in Health Check Endpoint
 #
-# Rails comes with a built-in health check endpoint that is reachable at the
-# +/up+ path. This endpoint will return a 200 if the app has booted with no
-# exceptions, otherwise a 500 status code will be returned.
+# Rails also comes with a built-in health check endpoint that is reachable at
+# the +/up+ path. This endpoint will return a 200 status code if the app has
+# booted with no exceptions, and a 500 status code otherwise.
 #
-# In production, many services are required to report their status upstream,
+# In production, many applications are required to report their status upstream,
 # whether it's to an uptime monitor that will page an engineer when things go
-# wrong, or a load balancer or Kubernetes controller used to determine a pods
+# wrong, or a load balancer or Kubernetes controller used to determine a pod's
 # health. This health check is designed to be a one-size fits all that will work
 # in many situations.
 #
-# For any newly generated Rails applications it will be enabled by default, but
-# you can configure it anywhere you'd like in your +config/routes.rb+:
+# While any newly generated Rails applications will have the health check at
+# +/up+, you can configure the path to be anything you'd like in your
+# <tt>"config/routes.rb"</tt>:
 #
 #   Rails.application.routes.draw do
 #     get "healthz" => "rails/health#show", as: :rails_health_check
@@ -21,12 +22,15 @@
 #
 # The health check will now be accessible via the +/healthz+ path.
 #
-# NOTE: This endpoint is not designed to give the status of all of your
-# service's dependencies, such as the database or redis cluster. It is also not
-# recommended to use those for health checks, in general, as it can lead to
-# situations where your application is being restarted due to a third-party
-# service going bad. Ideally, you should design your application to handle those
-# outages gracefully.
+# NOTE: This endpoint does not reflect the status of all of your application's
+# dependencies, such as the database or redis cluster. Replace
+# <tt>"rails/heath#show"</tt> with your own controller action if you have
+# application specific needs.
+#
+# Think carefully about what you what to check as it can lead to situations
+# where your application is being restarted due to a third-party service going
+# bad. Ideally, you should design your application to handle those outages
+# gracefully.
 class Rails::HealthController < ActionController::Base
   rescue_from(Exception) { render_down }
 
