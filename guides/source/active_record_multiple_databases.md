@@ -258,7 +258,7 @@ class Dog < AnimalsRecord
 end
 ```
 
-Note: Since Rails doesn't know which database is the replica for your writer you will need to
+NOTE: Since Rails doesn't know which database is the replica for your writer you will need to
 add this to the abstract class after you're done.
 
 Rails will only generate the new class once. It will not be overwritten by new scaffolds
