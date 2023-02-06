@@ -222,7 +222,7 @@ module ActiveRecord
             suffix == true ? "_#{name}" : "_#{suffix}"
           end
 
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs = values.respond_to?(:each_pair) ? values.each_pair : default_pairs(name, values)
           pairs.each do |label, value|
             enum_values[label] = value
             label = label.to_s
@@ -271,6 +271,14 @@ module ActiveRecord
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+            end
+          end
+
+          def default_pairs(name, values)
+            if ActiveRecord.use_string_database_mapping_for_enum
+              values.index_with { |v| v.to_s }.each_pair
+            else
+              values.each_with_index
             end
           end
       end

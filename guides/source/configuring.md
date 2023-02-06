@@ -1065,6 +1065,10 @@ Controls the format of the timestamp value in the cache key. Default is `:usec`.
 
 Is a boolean value which controls whether or not timestamping of `create` and `update` operations on a model occur. The default value is `true`.
 
+#### `config.active_record.use_string_database_mapping_for_enum`
+
+Allow setting string as the default database mapping strategy for enums. The default value is `false`.
+
 #### `config.active_record.partial_inserts`
 
 Is a boolean value and controls whether or not partial writes are used when creating new records (i.e. whether inserts only set attributes that are different from the default).

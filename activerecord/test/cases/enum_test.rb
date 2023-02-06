@@ -1031,4 +1031,19 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { instance.proposed? }
     assert_raises(NoMethodError) { instance.proposed! }
   end
+
+  test "string database mapping for enum configuration" do
+    original_value = ActiveRecord.use_string_database_mapping_for_enum
+    ActiveRecord.use_string_database_mapping_for_enum = true
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :cover, [:hard, :soft]
+    end
+
+    book = klass.create(cover: :soft)
+    assert_equal "soft", book.cover
+  ensure
+    ActiveRecord.use_string_database_mapping_for_enum = original_value
+  end
 end

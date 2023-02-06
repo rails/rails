@@ -311,6 +311,9 @@ module ActiveRecord
   singleton_class.attr_accessor :before_committed_on_all_records
   self.before_committed_on_all_records = false
 
+  singleton_class.attr_accessor :use_string_database_mapping_for_enum
+  self.use_string_database_mapping_for_enum = false
+
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of

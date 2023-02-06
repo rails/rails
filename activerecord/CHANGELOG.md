@@ -1,3 +1,23 @@
+*   Allow setting string as the default database mapping strategy for enums.
+
+    By default enum is mapped to database as integer, this change introduces
+    a new configuration variable that makes possible to use string
+    as the default mapping strategy.
+
+    ```ruby
+    config.active_record.use_string_database_mapping_for_enum = true
+    ```
+
+    ```ruby
+    # Before
+    enum status: { proposed: "proposed", written: "written", published: "published" }
+
+    # After
+    enum status: [:proposed, :written, :published]
+    ```
+
+    *Lázaro Nixon*
+
 *   `ActiveRecord::QueryLogs` better handle broken encoding.
 
     It's not uncommon when building queries with BLOB fields to contain
