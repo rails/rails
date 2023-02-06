@@ -32,8 +32,9 @@ module ActiveRecord
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
   # for differentiating between them or reloading the right type with find.
   #
-  # Note, all the attributes for all the cases are kept in the same table. Read more:
-  # https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
+  # Note, all the attributes for all the cases are kept in the same table.
+  # Read more:
+  # * https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
   #
   module Inheritance
     extend ActiveSupport::Concern
