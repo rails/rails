@@ -41,6 +41,10 @@ module ActionView
       # any threads waiting on a write lock will be woken up.
       def release_read_lock
         @guard.synchronize do
+          if @exclusive_count.value.zero?
+            raise "Attempted to release a read lock when none were held."
+          end
+
           @read_count -= 1
           @exclusive_count.value -= 1
         end

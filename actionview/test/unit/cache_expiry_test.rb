@@ -19,6 +19,14 @@ class ActionViewCacheExpiryTest < ActiveSupport::TestCase
     assert_equal 0, execution_lock.write_count
   end
 
+  def test_execution_lock_fails_when_releasing_read_lock_without_holding_it
+    execution_lock = ActionView::CacheExpiry::ExecutionLock.new
+
+    assert_raises RuntimeError do
+      execution_lock.release_read_lock
+    end
+  end
+
   def test_execution_lock_multiple_read_locks
     execution_lock = ActionView::CacheExpiry::ExecutionLock.new
 
@@ -71,6 +79,9 @@ class ActionViewCacheExpiryTest < ActiveSupport::TestCase
       execution_lock.release_read_lock
     end
 
+    # Wait for the writer to be waiting to acquire the lock:
+    Thread.pass until writer.status == "sleep"
+
     reader = Thread.new do
       execution_lock.acquire_read_lock
       sequence << :read_lock_acquired
@@ -79,8 +90,8 @@ class ActionViewCacheExpiryTest < ActiveSupport::TestCase
       assert_equal 0, execution_lock.read_count
     end
 
-    # Wait for both the threads to be waiting for the lock:
-    Thread.pass until reader.status == "sleep" && writer.status == "sleep"
+    # Wait for the reader to be waiting to acquire the lock:
+    Thread.pass until reader.status == "sleep"
 
     # After releasing this read lock, the writer thread should take priority over the reader:
     execution_lock.release_read_lock
