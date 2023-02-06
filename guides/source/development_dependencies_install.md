@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-Development Dependencies Install
-================================
+Installing Rails Core Development Dependencies
+==============================================
 
 This guide covers how to set up an environment for Ruby on Rails core development.
 
