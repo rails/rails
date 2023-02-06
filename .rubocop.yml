@@ -16,6 +16,7 @@ AllCops:
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'actionmailbox/test/dummy/**/*'
+    - 'activestorage/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
     - '**/node_modules/**/*'
 
