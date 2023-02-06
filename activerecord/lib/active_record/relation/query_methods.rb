@@ -704,7 +704,7 @@ module ActiveRecord
     # Performs LEFT OUTER JOINs on +args+:
     #
     #   User.left_outer_joins(:posts)
-    #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)

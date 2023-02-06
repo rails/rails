@@ -96,7 +96,7 @@ module ActiveRecord
           # queries that return a single object by primary key.
           #
           #   Article.find(1).destroy
-          #   => DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
+          #   # DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
           #
           # (You can also pass any object which responds to +call+ to the
           # +default_scope+ macro, and it will be called when building the
