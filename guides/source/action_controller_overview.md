@@ -684,7 +684,7 @@ If you use the cookie session store, this would apply to the `session` and
 Rendering
 ---------
 
-ActionController makes it extremely easy to render `HTML`, `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
+ActionController makes rendering HTML, XML, or JSON data effortless. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -927,7 +927,7 @@ Rails comes with three built-in HTTP authentication mechanisms:
 
 ### HTTP Basic Authentication
 
-HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, [`http_basic_authenticate_with`][].
+HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication only requires you to use one method, [`http_basic_authenticate_with`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -941,7 +941,7 @@ With this in place, you can create namespaced controllers that inherit from `Adm
 
 ### HTTP Digest Authentication
 
-HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_digest`][].
+HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails only requires using one method, [`authenticate_or_request_with_http_digest`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -966,7 +966,7 @@ As seen in the example above, the `authenticate_or_request_with_http_digest` blo
 
 HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
 
-As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_token`][].
+As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails only requires using one method, [`authenticate_or_request_with_http_token`][].
 
 ```ruby
 class PostsController < ApplicationController
@@ -1048,7 +1048,7 @@ TIP: It is not recommended that you stream static files through Rails if you can
 
 ### RESTful Downloads
 
-While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
+While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides a slick way of doing "RESTful" downloads. Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -1306,3 +1306,4 @@ The health check will now be accessible via the `/healthz` path.
 NOTE: This endpoint does not reflect the status of all of your service's dependencies, such as the database or redis cluster. Replace "rails/heath#show" with your own controller action if you have application specific needs.
 
 Think carefully about what you what to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+
