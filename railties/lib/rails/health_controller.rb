@@ -3,7 +3,7 @@
 # Built-in Health Check Endpoint
 #
 # Rails comes with a built-in health check endpoint that is reachable at the
-# `/up` path. This endpoint will return a 200 if the app has booted with no
+# +/up+ path. This endpoint will return a 200 if the app has booted with no
 # exceptions, otherwise a 500 status code will be returned.
 #
 # In production, many services are required to report their status upstream,
@@ -13,15 +13,13 @@
 # in many situations.
 #
 # For any newly generated Rails applications it will be enabled by default, but
-# you can configure it anywhere you'd like in your "config/routes.rb":
+# you can configure it anywhere you'd like in your +config/routes.rb+:
 #
-# ```ruby
-# Rails.application.routes.draw do
-#   get "healthz" => "rails/health#show", as: :rails_health_check
-# end
-# ```
+#   Rails.application.routes.draw do
+#     get "healthz" => "rails/health#show", as: :rails_health_check
+#   end
 #
-# The health check will now be accessible via the `/healthz` path.
+# The health check will now be accessible via the +/healthz+ path.
 #
 # NOTE: This endpoint is not designed to give the status of all of your
 # service's dependencies, such as the database or redis cluster. It is also not
