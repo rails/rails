@@ -49,6 +49,7 @@ end
 
 group :doc do
   gem "sdoc", ">= 2.6.0"
+  gem "rdoc", "~> 6.5"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
