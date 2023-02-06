@@ -26,7 +26,7 @@ module ActiveModel
   #       end
   #   end
   #
-  # Any class that inherits from ActiveModel::Validator must implement a method
+  # Any class that inherits from \ActiveModel::Validator must implement a method
   # called +validate+ which accepts a +record+.
   #
   #   class Person
@@ -65,7 +65,7 @@ module ActiveModel
   # life cycle, and not on each validation run.
   #
   # The easiest way to add custom validators for validating individual attributes
-  # is with the convenient ActiveModel::EachValidator.
+  # is with the convenient ActiveModel::EachValidator class.
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
@@ -73,8 +73,8 @@ module ActiveModel
   #     end
   #   end
   #
-  # This can now be used in combination with the +validates+ method
-  # (see ActiveModel::Validations::ClassMethods#validates for more on this).
+  # This can now be used in combination with the +validates+ method.
+  # See ActiveModel::Validations::ClassMethods#validates for more on this.
   #
   #   class Person
   #     include ActiveModel::Validations
