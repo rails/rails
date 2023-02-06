@@ -105,15 +105,16 @@ module Rails
       }
 
       def initialize(name)
-        super
-
         # Every time rake runs this task is instantiated as all the rest.
         # Be lazy computing stuff to have as light impact as possible to
         # the rest of tasks.
         before_running_rdoc do
-          configure_sdoc
           configure_rdoc_files
           setup_horo_variables
+        end
+
+        super do
+          configure_sdoc
         end
       end
 
