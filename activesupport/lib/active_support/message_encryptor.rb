@@ -165,12 +165,52 @@ module ActiveSupport
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
     # padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
+    #
+    # ==== Options
+    #
+    # [+:expires_at+]
+    #   The datetime at which the message expires. After this datetime,
+    #   verification of the message will fail.
+    #
+    #     message = encryptor.encrypt_and_sign("hello", expires_at: Time.now.tomorrow)
+    #     encryptor.decrypt_and_verify(message) # => "hello"
+    #     # 24 hours later...
+    #     encryptor.decrypt_and_verify(message) # => nil
+    #
+    # [+:expires_in+]
+    #   The duration for which the message is valid. After this duration has
+    #   elapsed, verification of the message will fail.
+    #
+    #     message = encryptor.encrypt_and_sign("hello", expires_in: 24.hours)
+    #     encryptor.decrypt_and_verify(message) # => "hello"
+    #     # 24 hours later...
+    #     encryptor.decrypt_and_verify(message) # => nil
+    #
+    # [+:purpose+]
+    #   The purpose of the message. If specified, the same purpose must be
+    #   specified when verifying the message; otherwise, verification will fail.
+    #   (See #decrypt_and_verify.)
     def encrypt_and_sign(value, expires_at: nil, expires_in: nil, purpose: nil)
       verifier.generate(_encrypt(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose))
     end
 
     # Decrypt and verify a message. We need to verify the message in order to
     # avoid padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
+    #
+    # ==== Options
+    #
+    # [+:purpose+]
+    #   The purpose that the message was generated with. If the purpose does not
+    #   match, +decrypt_and_verify+ will return +nil+.
+    #
+    #     message = encryptor.encrypt_and_sign("hello", purpose: "greeting")
+    #     encryptor.decrypt_and_verify(message, purpose: "greeting") # => "hello"
+    #     encryptor.decrypt_and_verify(message)                      # => nil
+    #
+    #     message = encryptor.encrypt_and_sign("bye")
+    #     encryptor.decrypt_and_verify(message)                      # => "bye"
+    #     encryptor.decrypt_and_verify(message, purpose: "greeting") # => nil
+    #
     def decrypt_and_verify(data, purpose: nil, **)
       _decrypt(verifier.verify(data), purpose)
     end
