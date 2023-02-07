@@ -5,6 +5,7 @@ require "active_record/relation/batches/batch_enumerator"
 module ActiveRecord
   module Batches
     ORDER_IGNORE_MESSAGE = "Scoped order is ignored, it's forced to be batch order."
+    VALID_DIRECTIONS = [:asc, :desc]
 
     # Looping through a collection of records from the database
     # (using the Scoping::Named::ClassMethods.all method, for example)
@@ -167,7 +168,12 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the iteration order. Defaults to +:asc+.
+    #   Can be specified as +:asc+ or +:desc+, for the primary key order
+    #   Alternatively it can be specified with Symbols - :post_id, or [:post_id, :comment_id]
+    #   You can also specify the direction - [:post_id, comment_id: :desc]
+    #   Nullable columns are supported
+    #   If the primary key is not passed in it will be appended to the sort order to ensure that sort keys are unique per row
     # * <tt>:use_ranges</tt> - Specifies whether to use range iteration (id >= x AND id <= y).
     #   It can make iterating over the whole or almost whole tables several times faster.
     #   Only whole table iterations use this style of iteration by default. You can disable this behavior by passing +false+.
@@ -207,10 +213,11 @@ module ActiveRecord
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc, use_ranges: nil, &block)
-      unless [:asc, :desc].include?(order)
-        raise ArgumentError, ":order must be :asc or :desc, got #{order.inspect}"
+      if use_ranges == true && !VALID_DIRECTIONS.include?(order)
+        raise ArgumentError, ":order must be :asc or :desc when setting :use_ranges, got #{order.inspect}"
       end
 
+      order = process_batches_order_arg(order)
       enumerator = BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order, use_ranges: use_ranges)
 
       if block
@@ -225,6 +232,31 @@ module ActiveRecord
     end
 
     private
+      def process_batches_order_arg(order)
+        primary_key_column = arel_column(primary_key)
+
+        if VALID_DIRECTIONS.include?(order)
+          [primary_key_column.public_send(order)]
+        else
+          order = order.dup
+          order = [order] unless order.is_a?(Array)
+          preprocess_order_args(order)
+          order.map! do |ordering|
+            if ordering.is_a?(Arel::Nodes::Ordering)
+              ordering
+            else
+              arel_column(ordering) { raise ArgumentError, "Unknown column '#{ordering}'" }.asc
+            end
+          end
+
+          # Add the primary key to the ordering to ensure rows have unique sort keys
+          unless order.any? { |ordering| ordering.expr == primary_key_column }
+            order << primary_key_column.asc
+          end
+          order
+        end
+      end
+
       def apply_limits(relation, start, finish, order)
         relation = apply_start_limit(relation, start, order) if start
         relation = apply_finish_limit(relation, finish, order) if finish

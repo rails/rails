@@ -6,7 +6,7 @@ require "models/post"
 require "models/subscriber"
 
 class EachTest < ActiveRecord::TestCase
-  fixtures :posts, :subscribers
+  fixtures :posts, :subscribers, :comments
 
   def setup
     @posts = Post.order("id asc")
@@ -166,7 +166,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_raise_if_order_is_invalid
     assert_raise(ArgumentError) do
-      Post.select(:title).find_each(batch_size: 1, order: :invalid) { |post|
+      Post.select(:title).find_each(batch_size: 1, order: "invalid") { |post|
         flunk "should not call this block"
       }
     end
@@ -174,7 +174,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_without_block_should_raise_if_order_is_invalid
     assert_raise(ArgumentError) do
-      Post.select(:title).in_batches(order: :invalid)
+      Post.select(:title).in_batches(order: "invalid")
     end
   end
 
@@ -762,6 +762,134 @@ class EachTest < ActiveRecord::TestCase
           relation.count
         end
       end
+    end
+  end
+
+  test "order by primary key" do
+    post_ids = Post.order(:id).ids
+    assert_queries(6) do
+      assert_equal post_ids, Post.find_each(batch_size: 2, order: :id).map(&:id)
+    end
+  end
+
+  test "order by other key" do
+    comment_ids = Comment.order(:post_id, :id).ids
+    assert_queries(13) do
+      assert_equal comment_ids, Comment.find_each(batch_size: 2, order: :post_id).map(&:id)
+    end
+  end
+
+  test "order by multiple keys desc" do
+    comment_ids = Comment.order(post_id: :desc, parent_id: :desc, id: :asc).ids
+    assert_queries(25) do
+      assert_equal comment_ids, Comment.find_each(batch_size: 1, order: [post_id: :desc, parent_id: :desc]).map(&:id)
+    end
+  end
+
+  test "order by multiple keys asc" do
+    comment_ids = Comment.order(post_id: :asc, parent_id: :asc, id: :asc).ids
+
+    assert_queries(25) do
+      assert_equal comment_ids, Comment.find_each(batch_size: 1, order: [:post_id, :parent_id]).map(&:id)
+    end
+  end
+
+  test "order by multiple keys desc with primary key" do
+    comment_ids = Comment.order(post_id: :desc, parent_id: :desc, id: :desc).ids
+    assert_queries(25) do
+      assert_equal comment_ids, Comment.find_each(batch_size: 1, order: [post_id: :desc, parent_id: :desc, id: :desc]).map(&:id)
+    end
+  end
+
+  test "order by multiple keys asc with primary key" do
+    comment_ids = Comment.order(post_id: :asc, parent_id: :asc, id: :asc).ids
+    assert_queries(25) do
+      assert_equal comment_ids, Comment.find_each(batch_size: 1, order: [:post_id, :parent_id, :id]).map(&:id)
+    end
+  end
+
+  test "order by multiple keys with different directions" do
+    comment_ids = Comment.order(post_id: :asc, parent_id: :desc, id: :asc).ids
+    assert_queries(25) do
+      assert_equal comment_ids, Comment.find_each(batch_size: 1, order: { post_id: :asc, parent_id: :desc, id: :asc }).map(&:id)
+    end
+  end
+
+  test "order by an invalid column raises a SQL error" do
+    assert_raises(ActiveRecord::StatementInvalid) do
+      Comment.find_each(batch_size: 1, order: :invalid) { }
+    end
+  end
+
+  test "find_in_batches order by multiple keys" do
+    comment_ids = Comment.order(post_id: :asc, parent_id: :asc, id: :asc).ids
+
+    assert_queries(25) do
+      batched_ids = []
+      Comment.find_in_batches(batch_size: 1, order: [:post_id, :parent_id]) { |batch| batched_ids.concat(batch.map(&:id)) }
+      assert_equal comment_ids, batched_ids
+    end
+  end
+
+  test "in_batches order by multiple keys" do
+    comment_ids = Comment.order(post_id: :asc, parent_id: :asc, id: :asc).ids
+
+    assert_queries(25) do
+      batched_ids = []
+      Comment.in_batches(of: 1, order: [:post_id, :parent_id]) { |batch| batched_ids.concat(batch.map(&:id)) }
+      assert_equal comment_ids, batched_ids
+    end
+  end
+
+  test "in_batches sort by joined column" do
+    comment_ids = Comment.joins(:post).order(:"posts.id", :id).ids
+
+    assert_queries(25) do
+      batched_ids = []
+      Comment.joins(:post).in_batches(of: 1, order: :"posts.id") { |batch| batched_ids.concat(batch.map(&:id)) }
+      assert_equal comment_ids, batched_ids
+    end
+  end
+
+  test "in_batches sort by main table column then joined column" do
+    comment_ids = Comment.joins(:post).order(parent_id: :desc, "posts.id": :asc, id: :asc).ids
+
+    assert_queries(25) do
+      batched_ids = []
+      Comment.joins(:post).in_batches(of: 1, order: { parent_id: :desc, "posts.id": :asc, id: :asc }) { |batch| batched_ids.concat(batch.map(&:id)) }
+      assert_equal comment_ids, batched_ids
+    end
+  end
+
+  test "in_batches unprefixed column from join table" do
+    comment_ids = Comment.joins(:post).order(author_id: :desc, id: :asc).map(&:id)
+
+    assert_queries(13) do
+      batched_ids = []
+      Comment.joins(:post).in_batches(of: 2, order: { author_id: :desc }) { |batch| batched_ids.concat(batch.map(&:id)) }
+      assert_equal comment_ids, batched_ids
+    end
+  end
+
+  test "in_batches unprefixed string column from join table" do
+    comment_ids = Comment.joins(:post).order(author_id: :asc, id: :asc).map(&:id)
+
+    assert_queries(13) do
+      batched_ids = []
+      Comment.joins(:post).in_batches(of: 2, order: "author_id") { |batch| batched_ids.concat(batch.map(&:id)) }
+      assert_equal comment_ids, batched_ids
+    end
+  end
+
+  test "disallows raw sql in order" do
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.joins(:comments).in_batches(of: 2, order: "REPLACE(title, 'misc', 'zzzz')") { |batch| batched_ids.concat(batch.map(&:id)) }
+    end
+  end
+
+  test "disallows raw sql in hash order" do
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.joins(:comments).in_batches(of: 2, order: { "REPLACE(title, 'misc', 'zzzz')" => :asc }) { |batch| batched_ids.concat(batch.map(&:id)) }
     end
   end
 end

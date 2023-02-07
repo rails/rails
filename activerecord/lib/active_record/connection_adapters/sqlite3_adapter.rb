@@ -224,6 +224,10 @@ module ActiveRecord
         true
       end
 
+      def sorts_nulls_first?
+        true
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:

@@ -1,3 +1,22 @@
+*   Custom ordering for `ActiveRecord::Batches#in_batches`
+
+    Adds extra order options for in_batches, so we can order by non primary
+    key columns.
+
+    This allows you to specific orders like:
+
+    ```
+    Comments.in_batches(order: :post_id)
+    Comments.in_batches(order: [:post_id, :parent_id])
+    Comments.in_batches(order: {post_id :asc, parent_id: desc})
+    Comments.joins(:post).in_batches(order: [:"posts.id", :parent_id])
+    ```
+
+    To ensure that the sort key always returns unique values the primary key
+    is appended to the sort order if it is not already included.
+
+    *Donal McBreen*
+
 *   `ActiveRecord::Base.serialize` no longer uses YAML by default.
 
     YAML isn't particularly performant and can lead to security issues
