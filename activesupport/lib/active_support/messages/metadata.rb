@@ -25,7 +25,7 @@ module ActiveSupport
             ActiveSupport::JSON.encode(envelope)
           else
             data = wrap_in_metadata_envelope({ "data" => data }, **metadata) if has_metadata
-            serializer.dump(data)
+            serialize(data)
           end
         end
 
@@ -35,7 +35,7 @@ module ActiveSupport
             extracted = extract_from_metadata_envelope(envelope, **expected_metadata)
             deserialize_from_json_safe_string(extracted["message"]) if extracted
           else
-            deserialized = serializer.load(message)
+            deserialized = deserialize(message)
             if metadata_envelope?(deserialized)
               extracted = extract_from_metadata_envelope(deserialized, **expected_metadata)
               extracted["data"] if extracted
@@ -90,11 +90,11 @@ module ActiveSupport
         end
 
         def serialize_to_json_safe_string(data)
-          ::Base64.strict_encode64(serializer.dump(data))
+          encode(serialize(data), url_safe: false)
         end
 
         def deserialize_from_json_safe_string(string)
-          serializer.load(::Base64.strict_decode64(string))
+          deserialize(decode(string, url_safe: false))
         end
     end
   end

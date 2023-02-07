@@ -3,17 +3,16 @@
 module ActiveSupport
   module Messages
     module Rotator # :nodoc:
-      def initialize(*secrets, on_rotation: nil, **options)
-        super(*secrets, **options)
-
-        @secrets = secrets
+      def initialize(*args, on_rotation: nil, **options)
+        super(*args, **options)
+        @args = args
         @options = options
         @rotations = []
         @on_rotation = on_rotation
       end
 
-      def rotate(*secrets, **options)
-        fall_back_to build_rotation(*secrets, **options)
+      def rotate(*args, **options)
+        fall_back_to build_rotation(*args, **options)
       end
 
       def fall_back_to(fallback)
@@ -24,24 +23,24 @@ module ActiveSupport
       module Encryptor # :nodoc:
         include Rotator
 
-        def decrypt_and_verify(*args, on_rotation: @on_rotation, **options)
-          super
+        def decrypt_and_verify(message, on_rotation: @on_rotation, **options)
+          super(message, **options)
         rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature
-          run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(*args, **options) } || raise
+          run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(message, **options) } || raise
         end
       end
 
       module Verifier # :nodoc:
         include Rotator
 
-        def verified(*args, on_rotation: @on_rotation, **options)
-          super || run_rotations(on_rotation) { |verifier| verifier.verified(*args, **options) }
+        def verified(message, on_rotation: @on_rotation, **options)
+          super(message, **options) || run_rotations(on_rotation) { |verifier| verifier.verified(message, **options) }
         end
       end
 
       private
-        def build_rotation(*secrets, **options)
-          self.class.new(*secrets, *@secrets.drop(secrets.length), **@options, **options)
+        def build_rotation(*args, **options)
+          self.class.new(*args, *@args.drop(args.length), **@options, **options)
         end
 
         def run_rotations(on_rotation)
