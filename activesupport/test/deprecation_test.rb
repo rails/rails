@@ -411,20 +411,6 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/this is the old way/, @deprecator) { klass.new.fubar }
   end
 
-  test "delegating to ActiveSupport::Deprecation" do
-    messages = []
-
-    klass = Class.new do
-      delegate :warn, :behavior=, to: ActiveSupport::Deprecation
-    end
-
-    o = klass.new
-    o.behavior = Proc.new { |message, callstack| messages << message }
-    assert_difference("messages.size") do
-      o.warn("warning")
-    end
-  end
-
   test "overriding deprecated_method_warning" do
     deprecator = deprecator_with_messages
 
