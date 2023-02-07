@@ -78,7 +78,7 @@ or add rich text field while creating a new model using:
 bin/rails generate model Message content:rich_text
 ```
 
-**Note:** you don't need to add a `content` field to your `messages` table.
+NOTE: you don't need to add a `content` field to your `messages` table.
 
 Then use [`rich_text_area`] to refer to this field in the form for the model:
 
