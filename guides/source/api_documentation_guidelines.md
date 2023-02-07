@@ -64,6 +64,8 @@ Documentation has to be brief but comprehensive. Explore and document edge cases
 
 The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper names.
 
+When referencing a "Rails application", as opposed to an "engine" or "plugin", always use "application". Rails apps are not "services", unless specifically discussing about service-oriented architecture.
+
 Spell names correctly: Arel, minitest, RSpec, HTML, MySQL, JavaScript, ERB, Hotwire. When in doubt, please have a look at some authoritative source like their official documentation.
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
