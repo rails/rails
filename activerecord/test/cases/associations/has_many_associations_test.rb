@@ -43,6 +43,9 @@ require "models/interest"
 require "models/human"
 require "models/sharded"
 require "models/cpk"
+require "models/question"
+require "models/choice"
+require "models/answer"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -1986,6 +1989,35 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
+  end
+
+  def test_restrict_with_error_through_accepts_nested_attributes_for
+    question = Question.create!(title: "initial title")
+    choice = ChoiceWithErrorRestriction.create!(question: question)
+    answer = Answer.create!(choice: choice)
+    question.assign_attributes(
+      title: "new title",
+      choice_with_error_restrictions_attributes: [{ id: choice.id, _destroy: true }]
+    )
+
+    assert_nothing_raised { question.save }
+    assert_equal "initial title", Question.find(question.id).title
+    assert ChoiceWithErrorRestriction.exists?(choice.id)
+    assert Answer.exists?(answer.id)
+    assert_not_empty question.errors
+    assert_equal "Cannot delete record because dependent choice_with_error_restrictions.answers exist",
+                 question.errors[:base].first
+  end
+
+  def test_restrict_with_exception_through_accepts_nested_attributes_for
+    question = Question.create!(title: "Did you double check?")
+    choice = Choice.create!(question: question)
+    Answer.create!(choice: choice)
+    question.assign_attributes(
+      choice_with_exception_restrictions_attributes: [{ id: choice.id, _destroy: true }]
+    )
+
+    assert_raise(ActiveRecord::DeleteRestrictionError) { question.save }
   end
 
   def test_restrict_with_error_with_locale

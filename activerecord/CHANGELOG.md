@@ -1,3 +1,12 @@
+*   `ActiveRecord::RecordNotDestroyed` is no longer raised when using `dependent: :restrict_with_error`.
+
+    When the destruction of a record is prevented because one of its association's
+    destruction is itself prevented by a `dependent: :restrict_with_error`, an error
+    is added to the initial record begin targeted for destruction instead of raising
+    an `ActiveRecord::RecordNotDestroyed` error.
+
+    *Younes Serraj*
+
 *   Allow composite primary key to be derived from schema
 
     Booting an application with a schema that contains composite primary keys

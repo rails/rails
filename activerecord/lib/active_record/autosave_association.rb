@@ -403,7 +403,15 @@ module ActiveRecord
           if records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
-              records_to_destroy.each { |record| association.destroy(record) }
+              records_to_destroy.each do |record|
+                association.destroy(record)
+              rescue ActiveRecord::RecordNotDestroyed => exception
+                exception.record.errors.each do |error|
+                  erroneous_record = [reflection.name, error.options[:record]].join(".")
+                  errors.add :base, error.type, record: erroneous_record
+                end
+                raise(RecordInvalid.new(association.owner))
+              end
               records -= records_to_destroy
             end
 
