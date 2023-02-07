@@ -424,7 +424,7 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.8.2)
       fugit (~> 1.1, >= 1.1.6)
-    sdoc (2.6.0)
+    sdoc (2.6.1)
       rdoc (>= 5.0)
     selenium-webdriver (4.7.1)
       rexml (~> 3.2, >= 3.2.5)
