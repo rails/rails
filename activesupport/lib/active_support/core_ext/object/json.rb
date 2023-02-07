@@ -65,6 +65,14 @@ class Object
   end
 end
 
+if RUBY_VERSION >= "3.2"
+  class Data # :nodoc:
+    def as_json(options = nil)
+      Hash[members.zip(deconstruct)].as_json(options)
+    end
+  end
+end
+
 class Struct # :nodoc:
   def as_json(options = nil)
     Hash[members.zip(values)].as_json(options)
