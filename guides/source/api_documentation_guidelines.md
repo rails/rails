@@ -292,19 +292,7 @@ Dynamically Generated Methods
 
 Methods created with `(module|class)_eval(STRING)` have a comment by their side with an instance of the generated code. That comment is 2 spaces away from the template:
 
-```ruby
-for severity in Severity.constants
-  class_eval <<-EOT, __FILE__, __LINE__ + 1
-    def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
-      add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
-    end                                                              # end
-                                                                     #
-    def #{severity.downcase}?                                        # def debug?
-      #{severity} >= @level                                          #   DEBUG >= @level
-    end                                                              # end
-  EOT
-end
-```
+[![(module|class)_eval(STRING) code comments](images/dynamic_method_class_eval.png)](images/dynamic_method_class_eval.png)
 
 If the resulting lines are too wide, say 200 columns or more, put the comment above the call:
 
