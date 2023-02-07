@@ -178,6 +178,22 @@ module ActiveSupport
     #
     #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
     #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
+    #
+    # ==== Options
+    #
+    # [+:purpose+]
+    #   The purpose that the message was generated with. If the purpose does not
+    #   match, +verified+ will return +nil+.
+    #
+    #     message = verifier.generate("hello", purpose: "greeting")
+    #     verifier.verified(message, purpose: "greeting") # => "hello"
+    #     verifier.verified(message, purpose: "chatting") # => nil
+    #     verifier.verified(message)                      # => nil
+    #
+    #     message = verifier.generate("bye")
+    #     verifier.verified(message)                      # => "bye"
+    #     verifier.verified(message, purpose: "greeting") # => nil
+    #
     def verified(signed_message, purpose: nil, **)
       data, digest = get_data_and_digest_from(signed_message)
       if digest_matches_data?(digest, data)
@@ -203,6 +219,22 @@ module ActiveSupport
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new("different_secret")
     #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
+    #
+    # ==== Options
+    #
+    # [+:purpose+]
+    #   The purpose that the message was generated with. If the purpose does not
+    #   match, +verify+ will raise ActiveSupport::MessageVerifier::InvalidSignature.
+    #
+    #     message = verifier.generate("hello", purpose: "greeting")
+    #     verifier.verify(message, purpose: "greeting") # => "hello"
+    #     verifier.verify(message, purpose: "chatting") # => raises InvalidSignature
+    #     verifier.verify(message)                      # => raises InvalidSignature
+    #
+    #     message = verifier.generate("bye")
+    #     verifier.verify(message)                      # => "bye"
+    #     verifier.verify(message, purpose: "greeting") # => raises InvalidSignature
+    #
     def verify(*args, **options)
       verified(*args, **options) || raise(InvalidSignature)
     end
@@ -214,6 +246,33 @@ module ActiveSupport
     #
     #   verifier = ActiveSupport::MessageVerifier.new("secret")
     #   verifier.generate("signed message") # => "BAhJIhNzaWduZWQgbWVzc2FnZQY6BkVU--f67d5f27c3ee0b8483cebf2103757455e947493b"
+    #
+    # ==== Options
+    #
+    # [+:expires_at+]
+    #   The datetime at which the message expires. After this datetime,
+    #   verification of the message will fail.
+    #
+    #     message = verifier.generate("hello", expires_at: Time.now.tomorrow)
+    #     verifier.verified(message) # => "hello"
+    #     # 24 hours later...
+    #     verifier.verified(message) # => nil
+    #     verifier.verify(message)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
+    #
+    # [+:expires_in+]
+    #   The duration for which the message is valid. After this duration has
+    #   elapsed, verification of the message will fail.
+    #
+    #     message = verifier.generate("hello", expires_in: 24.hours)
+    #     verifier.verified(message) # => "hello"
+    #     # 24 hours later...
+    #     verifier.verified(message) # => nil
+    #     verifier.verify(message)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
+    #
+    # [+:purpose+]
+    #   The purpose of the message. If specified, the same purpose must be
+    #   specified when verifying the message; otherwise, verification will fail.
+    #   (See #verified and #verify.)
     def generate(value, expires_at: nil, expires_in: nil, purpose: nil)
       data = encode(Messages::Metadata.wrap(@serializer.dump(value), expires_at: expires_at, expires_in: expires_in, purpose: purpose))
       "#{data}#{SEPARATOR}#{generate_digest(data)}"
