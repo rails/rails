@@ -10,14 +10,6 @@ class MessageEncryptorRotatorTest < ActiveSupport::TestCase
     assert_rotate [cipher: "aes-256-gcm"], [cipher: "aes-256-cbc"]
   end
 
-  test "rotate serializer" do
-    assert_rotate [serializer: JSON], [serializer: Marshal]
-  end
-
-  test "rotate serializer when message has purpose" do
-    assert_rotate [serializer: JSON], [serializer: Marshal], purpose: "purpose"
-  end
-
   test "rotate verifier secret when using non-authenticated encryption" do
     with_authenticated_encryption(false) do
       assert_rotate \
@@ -49,7 +41,7 @@ class MessageEncryptorRotatorTest < ActiveSupport::TestCase
 
     def decode(message, encryptor, **options)
       encryptor.decrypt_and_verify(message, **options)
-    rescue ActiveSupport::MessageVerifier::InvalidSignature
+    rescue ActiveSupport::MessageEncryptor::InvalidMessage
       nil
     end
 

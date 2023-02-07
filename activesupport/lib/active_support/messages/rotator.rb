@@ -20,21 +20,23 @@ module ActiveSupport
         self
       end
 
-      module Encryptor # :nodoc:
-        include Rotator
-
-        def decrypt_and_verify(message, on_rotation: @on_rotation, **options)
+      def read_message(message, on_rotation: @on_rotation, **options)
+        if @rotations.empty?
           super(message, **options)
-        rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature
-          run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(message, **options) } || raise
-        end
-      end
+        else
+          thrown, error = catch_rotation_error do
+            return super(message, **options)
+          end
 
-      module Verifier # :nodoc:
-        include Rotator
+          @rotations.each do |rotation|
+            catch_rotation_error do
+              value = rotation.read_message(message, **options)
+              on_rotation&.call
+              return value
+            end
+          end
 
-        def verified(message, on_rotation: @on_rotation, **options)
-          super(message, **options) || run_rotations(on_rotation) { |verifier| verifier.verified(message, **options) }
+          throw thrown, error
         end
       end
 
@@ -43,13 +45,14 @@ module ActiveSupport
           self.class.new(*args, *@args.drop(args.length), **@options, **options)
         end
 
-        def run_rotations(on_rotation)
-          @rotations.find do |rotation|
-            if message = yield(rotation) rescue next
-              on_rotation&.call
-              return message
+        def catch_rotation_error(&block)
+          error = catch :invalid_message_format do
+            error = catch :invalid_message_serialization do
+              return [nil, block.call]
             end
+            return [:invalid_message_serialization, error]
           end
+          [:invalid_message_format, error]
         end
     end
   end

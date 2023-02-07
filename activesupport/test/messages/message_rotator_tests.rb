@@ -18,6 +18,23 @@ module MessageRotatorTests
       assert_rotate [url_safe: true], [url_safe: false]
     end
 
+    test "rotate serializer" do
+      assert_rotate [serializer: JSON], [serializer: Marshal]
+    end
+
+    test "rotate serializer when message has purpose" do
+      assert_rotate [serializer: JSON], [serializer: Marshal], purpose: "purpose"
+    end
+
+    test "rotate serializer that raises a custom deserialization error" do
+      serializer = Class.new do
+        def self.dump(*); ""; end
+        def self.load(*); raise Class.new(StandardError); end
+      end
+
+      assert_rotate [serializer: serializer], [serializer: JSON], [serializer: Marshal]
+    end
+
     test "rotate secret and options" do
       assert_rotate [secret("new"), url_safe: true], [secret("old"), url_safe: false]
     end

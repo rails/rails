@@ -164,7 +164,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     end
 
     def assert_not_verified(value)
-      assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
+      assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
         @encryptor.decrypt_and_verify(value)
       end
     end

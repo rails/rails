@@ -38,6 +38,12 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal @data, @verifier.verify(message)
   end
 
+  def test_round_tripping_nil
+    message = @verifier.generate(nil)
+    assert_nil @verifier.verified(message)
+    assert_nil @verifier.verify(message)
+  end
+
   def test_verified_returns_false_on_invalid_message
     assert_not @verifier.verified("purejunk")
   end

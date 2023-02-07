@@ -48,7 +48,7 @@ class MessageEncryptorsTest < ActiveSupport::TestCase
 
     def roundtrip(message, encryptor, decryptor = encryptor)
       decryptor.decrypt_and_verify(encryptor.encrypt_and_sign(message))
-    rescue ActiveSupport::MessageVerifier::InvalidSignature
+    rescue ActiveSupport::MessageEncryptor::InvalidMessage
       nil
     end
 end
