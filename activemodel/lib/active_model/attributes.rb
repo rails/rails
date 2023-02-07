@@ -36,7 +36,6 @@ module ActiveModel
 
     module ClassMethods
       ##
-      # :method: attribute
       # :call-seq: attribute(name, cast_type = nil, default: nil, **options)
       #
       # Defines a model attribute. In addition to the attribute name, a cast
