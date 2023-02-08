@@ -30,9 +30,6 @@ module ActiveRecord
       def initialize(klass, association, **) # :nodoc:
         @association = association
         super klass
-
-        extensions = association.extensions
-        extend(*extensions) if extensions.any?
       end
 
       def target

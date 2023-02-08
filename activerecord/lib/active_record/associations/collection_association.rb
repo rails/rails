@@ -28,6 +28,13 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association # :nodoc:
+      def initialize(...)
+        super
+        @proxy = nil
+        @cached_proxy_class = nil
+        @cached_proxy_extensions = nil
+      end
+
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
         ensure_klass_exists!
@@ -36,7 +43,14 @@ module ActiveRecord
           reload
         end
 
-        @proxy ||= CollectionProxy.create(klass, self)
+        @proxy ||= begin
+          proxy_extensions = extensions
+          if proxy_extensions.empty?
+            CollectionProxy.create(klass, self)
+          else
+            CollectionProxy.create_extended_class(klass, proxy_extensions, self)
+          end
+        end
         @proxy.reset_scope
       end
 

@@ -10,6 +10,12 @@ module ActiveRecord
         @relation_delegate_cache[klass]
       end
 
+      def relation_extended_class(klass, extensions)
+        @relation_delegate_cache[[klass, extensions]] ||= begin
+          Class.new(@relation_delegate_cache[klass]).include(*extensions)
+        end
+      end
+
       def initialize_relation_delegate_cache
         @relation_delegate_cache = cache = {}
         [
@@ -115,13 +121,12 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       def create(klass, *args, **kwargs)
-        relation_class_for(klass).new(klass, *args, **kwargs)
+        klass.relation_delegate_class(self).new(klass, *args, **kwargs)
       end
 
-      private
-        def relation_class_for(klass)
-          klass.relation_delegate_class(self)
-        end
+      def create_extended_class(klass, extensions, *args, **kwargs)
+        klass.relation_extended_class(self, extensions).new(klass, *args, **kwargs)
+      end
     end
 
     private
