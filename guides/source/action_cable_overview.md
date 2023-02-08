@@ -251,7 +251,7 @@ Almost any public method declared on a channel is automatically exposed as a
 callable action to the client. These methods can take an optional `data`
 argument containing an optional Hash sent by the client.
 
-The `#subscribed` and `#unsubscribed` methods , and any public method
+The `#subscribed` and `#unsubscribed` methods, and any public method
 defined on `ActionCable::Channel::Base`, can not be called by the client.
 
 Example:
