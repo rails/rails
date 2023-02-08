@@ -103,22 +103,22 @@ module Rails
       DEFAULT_PIDFILE = "tmp/pids/server.pid"
 
       class_option :port, aliases: "-p", type: :numeric,
-        desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
+        desc: "Run Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
-        desc: "Binds Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
+        desc: "Bind Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
         banner: :IP
       class_option :config, aliases: "-c", type: :string, default: "config.ru",
-        desc: "Uses a custom rackup configuration.", banner: :file
+        desc: "Use a custom rackup configuration.", banner: :file
       class_option :daemon, aliases: "-d", type: :boolean, default: false,
-        desc: "Runs server as a Daemon."
+        desc: "Run server as a Daemon."
       class_option :using, aliases: "-u", type: :string,
-        desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
+        desc: "Specify the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string,
-        desc: "Specifies the PID file - defaults to #{DEFAULT_PIDFILE}."
+        desc: "Specify the PID file - defaults to #{DEFAULT_PIDFILE}."
       class_option :dev_caching, aliases: "-C", type: :boolean, default: nil,
-        desc: "Specifies whether to perform caching in development."
+        desc: "Specify whether to perform caching in development."
       class_option :restart, type: :boolean, default: nil, hide: true
-      class_option :early_hints, type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
+      class_option :early_hints, type: :boolean, default: nil, desc: "Enable HTTP/2 early hints."
       class_option :log_to_stdout, type: :boolean, default: nil, optional: true,
         desc: "Whether to log to stdout. Enabled by default in development when not daemonized."
 
