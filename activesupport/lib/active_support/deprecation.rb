@@ -21,6 +21,7 @@ module ActiveSupport
     require "active_support/deprecation/constant_accessor"
     require "active_support/deprecation/method_wrappers"
     require "active_support/deprecation/proxy_wrappers"
+    require "active_support/deprecation/deprecators"
     require "active_support/core_ext/module/deprecation"
     require "concurrent/atomic/thread_local_var"
 
@@ -44,7 +45,7 @@ module ActiveSupport
       # By default, warnings are not silenced and debugging is off.
       self.silenced = false
       self.debug = false
-      @silenced_thread = Concurrent::ThreadLocalVar.new(false)
+      @silence_counter = Concurrent::ThreadLocalVar.new(0)
       @explicitly_allowed_warnings = Concurrent::ThreadLocalVar.new(nil)
     end
   end

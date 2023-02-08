@@ -32,6 +32,7 @@ export default class Consumer {
     this._url = url
     this.subscriptions = new Subscriptions(this)
     this.connection = new Connection(this)
+    this.subprotocols = []
   }
 
   get url() {
@@ -54,6 +55,10 @@ export default class Consumer {
     if (!this.connection.isActive()) {
       return this.connection.open()
     }
+  }
+
+  addSubProtocol(subprotocol) {
+    this.subprotocols = [...this.subprotocols, subprotocol]
   }
 }
 

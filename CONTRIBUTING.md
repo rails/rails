@@ -39,6 +39,8 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 * Do not open an issue on GitHub until you have collected positive feedback about the change. GitHub issues are primarily intended for bug reports and fixes.
 
+* We generally reject changes to Active Support core extensions. Those change should be proposed in the [Ruby issue tracker instead](https://bugs.ruby-lang.org/issues), as we don't want to conflict with future versions of Ruby.
+
 #### **Do you have questions about the source code?**
 
 * Ask any question about how to use Ruby on Rails in the [rubyonrails-talk mailing list](https://discuss.rubyonrails.org/c/rubyonrails-talk).

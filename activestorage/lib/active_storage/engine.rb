@@ -82,6 +82,10 @@ module ActiveStorage
 
     config.eager_load_namespaces << ActiveStorage
 
+    initializer "active_storage.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:active_storage] = ActiveStorage.deprecator
+    end
+
     initializer "active_storage.configs" do
       config.after_initialize do |app|
         ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger

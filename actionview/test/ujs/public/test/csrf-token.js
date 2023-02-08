@@ -1,4 +1,4 @@
-(function() {
+import $ from 'jquery'
 
 QUnit.module('csrf-token', {})
 
@@ -7,7 +7,7 @@ QUnit.test('find csrf token', function(assert) {
 
   $('#qunit-fixture').append('<meta name="csrf-token" content="' + correctToken + '"/>')
 
-  currentToken = $.rails.csrfToken()
+  var currentToken = $.rails.csrfToken()
 
   assert.equal(currentToken, correctToken)
 })
@@ -17,9 +17,7 @@ QUnit.test('find csrf param', function(assert) {
 
   $('#qunit-fixture').append('<meta name="csrf-param" content="' + correctParam + '"/>')
 
-  currentParam = $.rails.csrfParam()
+  var currentParam = $.rails.csrfParam()
 
   assert.equal(currentParam, correctParam)
 })
-
-})()

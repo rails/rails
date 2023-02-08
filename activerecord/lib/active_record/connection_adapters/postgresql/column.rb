@@ -40,11 +40,13 @@ module ActiveRecord
 
         def init_with(coder)
           @serial = coder["serial"]
+          @generated = coder["generated"]
           super
         end
 
         def encode_with(coder)
           coder["serial"] = @serial
+          coder["generated"] = @generated
           super
         end
 

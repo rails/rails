@@ -6,7 +6,11 @@ module ActiveModel
       class AcceptsMultiparameterTime < Module
         module InstanceMethods
           def serialize(value)
-            super(cast(value))
+            serialize_cast_value(cast(value))
+          end
+
+          def serialize_cast_value(value)
+            value
           end
 
           def cast(value)

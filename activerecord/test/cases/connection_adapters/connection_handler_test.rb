@@ -114,7 +114,7 @@ module ActiveRecord
 
           @handler.establish_connection(:primary)
 
-          assert_not_deprecated do
+          assert_not_deprecated(ActiveRecord.deprecator) do
             @handler.retrieve_connection("primary")
             @handler.remove_connection_pool("primary")
           end
@@ -204,13 +204,13 @@ module ActiveRecord
           development: {
             primary: {
               adapter: "sqlite3",
-              database: "test/db/development.sqlite3",
+              database: "test/storage/development.sqlite3",
             },
           },
           test: {
             primary: {
               adapter: "sqlite3",
-              database: "test/db/test.sqlite3",
+              database: "test/storage/test.sqlite3",
             },
           },
         }

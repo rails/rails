@@ -94,7 +94,7 @@ module ActiveJob
           serialize_indifferent_hash(argument.to_h)
         else
           if BigDecimal === argument && !ActiveJob.use_big_decimal_serializer
-            ActiveSupport::Deprecation.warn(<<~MSG)
+            ActiveJob.deprecator.warn(<<~MSG)
               Primitive serialization of BigDecimal job arguments is deprecated as it may serialize via .to_s using certain queue adapters.
               Enable config.active_job.use_big_decimal_serializer to use BigDecimalSerializer instead, which will be mandatory in Rails 7.2.
 

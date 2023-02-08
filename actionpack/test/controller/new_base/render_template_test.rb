@@ -46,8 +46,12 @@ module RenderTemplate
       render template: "locals", locals: { secret: "area51" }
     end
 
-    def with_locals_without_key
-      render "locals", locals: { secret: "area51" }
+    def with_locals_with_slash
+      render template: "/locals", locals: { secret: "area51" }
+    end
+
+    def with_locals_with_slash_without_key
+      render "/locals", locals: { secret: "area51" }
     end
 
     def builder_template
@@ -105,8 +109,13 @@ module RenderTemplate
       assert_response "The secret is area51"
     end
 
-    test "rendering a template with local variables without key" do
-      get :with_locals
+    test "rendering a template with local variables with a leading slash" do
+      get :with_locals_with_slash
+      assert_response "The secret is area51"
+    end
+
+    test "rendering a template with local variables with a slash without key" do
+      get :with_locals_with_slash_without_key
       assert_response "The secret is area51"
     end
 
@@ -177,7 +186,7 @@ module RenderTemplate
   class TestWithLayout < Rack::TestCase
     test "rendering with implicit layout" do
       with_routing do |set|
-        set.draw { ActiveSupport::Deprecation.silence { get ":controller", action: :index } }
+        set.draw { ActionDispatch.deprecator.silence { get ":controller", action: :index } }
 
         get "/render_template/with_layout"
 

@@ -10,8 +10,11 @@ require "rails/ruby_version_check"
 Signal.trap("INT") { puts; exit(1) }
 
 require "rails/command"
-
-if ARGV.first == "plugin"
+case ARGV.first
+when Rails::Command::HELP_MAPPINGS, "help", nil
+  ARGV.shift
+  Rails::Command.invoke :gem_help, ARGV
+when "plugin"
   ARGV.shift
   Rails::Command.invoke :plugin, ARGV
 else

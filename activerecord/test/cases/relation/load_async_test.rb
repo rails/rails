@@ -222,8 +222,8 @@ module ActiveRecord
     end
   end
 
-  unless in_memory_db?
-    class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       self.use_transactional_tests = false
 
       fixtures :posts, :comments
@@ -342,8 +342,10 @@ module ActiveRecord
         assert_predicate deferred_posts, :loaded?
       end
     end
+  end
 
-    class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       include WaitForAsyncTestHelper
 
       self.use_transactional_tests = false
@@ -477,8 +479,10 @@ module ActiveRecord
         assert_predicate deferred_posts, :loaded?
       end
     end
+  end
 
-    class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       include WaitForAsyncTestHelper
 
       self.use_transactional_tests = false

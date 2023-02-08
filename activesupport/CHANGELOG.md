@@ -1,3 +1,246 @@
+*   `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
+
+    Previously it would only raise when called in a view or controller. Now it will raise
+    anytime `I18n.t` is provided an unrecognised key.
+
+    If you do not want this behaviour, you can customise the i18n exception handler. See the
+    upgrading guide or i18n guide for more information.
+
+    *Alex Ghiculescu*
+
+*   `ActiveSupport::CurrentAttributes` now raises if a restricted attribute name is used.
+
+    Attributes such as `set` and `reset` cannot be used as they clash with the
+    `CurrentAttributes` public API.
+
+    *Alex Ghiculescu*
+
+*   `HashWithIndifferentAccess#transform_keys` now takes a Hash argument, just
+    as Ruby's `Hash#transform_keys` does.
+
+    *Akira Matsuda*
+
+*   `delegate` now defines method with proper arity when delegating to a Class.
+    With this change, it defines faster method (3.5x faster with no argument).
+    However, in order to gain this benefit, the delegation target method has to
+    be defined before declaring the delegation.
+
+    ```ruby
+    # This defines 3.5 times faster method than before
+    class C
+      def self.x() end
+      delegate :x, to: :class
+    end
+
+    class C
+      # This works but silently falls back to old behavior because
+      # `delegate` cannot find the definition of `x`
+      delegate :x, to: :class
+      def self.x() end
+    end
+    ```
+
+    *Akira Matsuda*
+
+*   `assert_difference` message now includes what changed.
+
+    This makes it easier to debug non-obvious failures.
+
+    Before:
+
+    ```
+    "User.count" didn't change by 32.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    After:
+
+    ```
+    "User.count" didn't change by 32, but by 0.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    *Alex Ghiculescu*
+
+*   Add ability to match exception messages to `assert_raises` assertion
+
+    Instead of this
+    ```ruby
+    error = assert_raises(ArgumentError) do
+      perform_service(param: 'exception')
+    end
+    assert_match(/incorrect param/i, error.message)
+    ```
+
+    you can now write this
+    ```ruby
+    assert_raises(ArgumentError, match: /incorrect param/i) do
+      perform_service(param: 'exception')
+    end
+    ```
+
+    *fatkodima*
+
+*   Add `Rails.env.local?` shorthand for `Rails.env.development? || Rails.env.test?`.
+
+    *DHH*
+
+*   `ActiveSupport::Testing::TimeHelpers` now accepts named `with_usec` argument
+    to `freeze_time`, `travel`, and `travel_to` methods. Passing true prevents
+    truncating the destination time with `change(usec: 0)`.
+
+    *KevSlashNull*, and *serprex*
+
+*   `ActiveSupport::CurrentAttributes.resets` now accepts a method name
+
+    The block API is still the recommended approach, but now both APIs are supported:
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      resets { Time.zone = nil }
+      resets :clear_time_zone
+    end
+    ```
+
+    *Alex Ghiculescu*
+
+*   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
+
+    Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork
+    process closed the read end, wrote to it, and then terminated (which
+    presumably closed the file descriptors on its end). The parent process
+    closed the write end, read from it, and returned, never closing the read
+    end.
+
+    This resulted in an accumulation of open file descriptors, which could
+    cause errors if the limit is reached.
+
+    *Sam Bostock*
+
+*   Fix `Time#change` and `Time#advance` for times around the end of Daylight
+    Saving Time.
+
+    Previously, when `Time#change` or `Time#advance` constructed a time inside
+    the final stretch of Daylight Saving Time (DST), the non-DST offset would
+    always be chosen for local times:
+
+    ```ruby
+    # DST ended just before 2021-11-07 2:00:00 AM in US/Eastern.
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    And the DST offset would always be chosen for times with a `TimeZone`
+    object:
+
+    ```ruby
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0400
+    ```
+
+    Now, `Time#change` and `Time#advance` will choose the offset that matches
+    the original time's offset when possible:
+
+    ```ruby
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0400
+
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    *Kevin Hall*, *Takayoshi Nishida*, and *Jonathan Hefner*
+
+*   Fix MemoryStore to preserve entries TTL when incrementing or decrementing
+
+    This is to be more consistent with how MemCachedStore and RedisCacheStore behaves.
+
+    *Jean Boussier*
+
+*   `Rails.error.handle` and `Rails.error.record` filter now by multiple error classes.
+
+    ```ruby
+    Rails.error.handle(IOError, ArgumentError) do
+      1 + '1' # raises TypeError
+    end
+    1 + 1 # TypeErrors are not IOErrors or ArgumentError, so this will *not* be handled
+    ```
+
+    *Martin Spickermann*
+
+*   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
+
+    Previously they could return old implementations of reloadable classes that have been
+    dereferenced but not yet garbage collected.
+
+    They now automatically filter such classes like `DescendantTracker#subclasses` and
+    `DescendantTracker#descendants`.
+
+    *Jean Boussier*
+
+*   `Rails.error.report` now marks errors as reported to avoid reporting them twice.
+
+    In some cases, users might want to report errors explicitly with some extra context
+    before letting it bubble up.
+
+    This also allows to safely catch and report errors outside of the execution context.
+
+    *Jean Boussier*
+
 *   Add `assert_error_reported` and `assert_no_error_reported`
 
     Allows to easily asserts an error happened but was handled

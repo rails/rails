@@ -36,6 +36,8 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_external_protocol_relative() redirect_to "//www.rubyonrails.org"; end
 
+  def redirect_permanently() redirect_to "/some/path", status: :moved_permanently end
+
   def response404() head "404 AWOL" end
 
   def response500() head "500 Sorry" end
@@ -202,7 +204,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
         get "route_one", to: "action_pack_assertions#nothing", as: :route_one
         get "route_two", to: "action_pack_assertions#nothing", id: "two", as: :route_two
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -229,7 +231,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         get "admin/inner_module", to: "admin/inner_module#index", as: :admin_inner_module
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -246,7 +248,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         get "/action_pack_assertions/:id", to: "action_pack_assertions#index", as: :top_level
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -265,7 +267,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
         # this controller exists in the admin namespace as well which is the only difference from previous test
         get "/user/:id", to: "user#index", as: :top_level
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -438,6 +440,34 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_nothing_raised {
       assert_redirected_to controller: :elsewhere, action: :flash_me
     }
+  end
+
+  def test_assert_redirection_with_custom_message
+    error = assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_redirected_to "http://test.host/some/path", "wrong redirect"
+    end
+
+    assert_equal("wrong redirect", error.message)
+  end
+
+  def test_assert_redirection_with_status
+    process :redirect_to_path
+    assert_redirected_to "http://test.host/some/path", status: :found
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_redirected_to "http://test.host/some/path", status: :moved_permanently
+    end
+    assert_raise ActiveSupport::TestCase::Assertion, "Custom message" do
+      assert_redirected_to "http://test.host/some/path", { status: :moved_permanently }, "Custom message"
+    end
+
+    process :redirect_permanently
+    assert_redirected_to "http://test.host/some/path", status: :moved_permanently
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_redirected_to "http://test.host/some/path", status: :found
+    end
+    assert_raise ActiveSupport::TestCase::Assertion, "Custom message" do
+      assert_redirected_to "http://test.host/some/path", { status: :found }, "Custom message"
+    end
   end
 
   def test_redirected_to_with_nested_controller

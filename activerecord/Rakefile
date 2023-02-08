@@ -99,13 +99,14 @@ end
 
         # We need to dance around minitest autorun, though.
         require "minitest"
-        Minitest.instance_eval do
-          alias _original_autorun autorun
+        Minitest.singleton_class.class_eval do
+          alias_method :_original_autorun, :autorun
           def autorun
             # no-op
           end
           require "cases/helper"
-          alias autorun _original_autorun
+          alias_method :autorun, :autorun # suppress redefinition warning
+          alias_method :autorun, :_original_autorun
         end
 
         failing_files = []
@@ -204,7 +205,11 @@ namespace :db do
     desc "Create the MySQL Rails User"
     task :build_user do
       if ENV["MYSQL_CODESPACES"]
-        mysql_command = "sudo mysql -uroot -proot -e"
+        if ENV["MYSQL_SOCK"]
+          mysql_command = "sudo mysql -uroot -S #{ENV["MYSQL_SOCK"]} -e"
+        else
+          mysql_command = "sudo mysql -uroot -proot -e"
+        end
       else
         mysql_command = "mysql -uroot -e"
       end

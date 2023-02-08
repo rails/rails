@@ -1,0 +1,16 @@
+Usage:
+  rails COMMAND [options]
+
+You must specify a command:
+
+  new          Create a new Rails application. "rails new my_app" creates a
+               new application called MyApp in "./my_app"
+  plugin new   Create a new Rails railtie or engine
+
+All commands can be run with -h (or --help) for more information.
+
+Inside a Rails application directory, some common commands are:
+
+  console      Start the Rails console
+  server       Start the Rails server
+  test         Run tests except system tests

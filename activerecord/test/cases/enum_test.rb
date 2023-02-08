@@ -413,7 +413,7 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
         self.table_name = "books"
-        enum :status, {}
+        enum(:status, {}, **{})
       end
     end
 
@@ -1019,5 +1019,16 @@ class EnumTest < ActiveRecord::TestCase
       klass.columns # load schema
     end
     assert_equal "Unknown enum attribute 'columnless_genre' for Book", error.message
+  end
+
+  test "default methods can be disabled by :_instance_methods" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written], _instance_methods: false
+    end
+
+    instance = klass.new
+    assert_raises(NoMethodError) { instance.proposed? }
+    assert_raises(NoMethodError) { instance.proposed! }
   end
 end

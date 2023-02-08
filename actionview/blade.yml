@@ -1,5 +1,0 @@
-load_paths:
-  - app/assets/javascripts
-
-logical_paths:
-  - rails-ujs.js

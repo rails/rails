@@ -13,7 +13,6 @@ module ActiveRecord
     # * add_index
     # * add_reference
     # * add_timestamps
-    # * change_column
     # * change_column_default (must supply a +:from+ and +:to+ option)
     # * change_column_null
     # * change_column_comment (must supply a +:from+ and +:to+ option)
@@ -27,7 +26,7 @@ module ActiveRecord
     # * drop_table (must supply a block)
     # * enable_extension
     # * remove_column (must supply a type)
-    # * remove_columns (must specify at least one column name or more)
+    # * remove_columns (must supply a +:type+ option)
     # * remove_foreign_key (must supply a second table)
     # * remove_check_constraint
     # * remove_exclusion_constraint
@@ -124,7 +123,15 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       def change_table(table_name, **options) # :nodoc:
-        yield delegate.update_table_definition(table_name, self)
+        if delegate.supports_bulk_alter? && options[:bulk]
+          recorder = self.class.new(self.delegate)
+          recorder.reverting = @reverting
+          yield recorder.delegate.update_table_definition(table_name, recorder)
+          commands = recorder.commands
+          @commands << [:change_table, [table_name], -> t { bulk_change_table(table_name, commands) }]
+        else
+          yield delegate.update_table_definition(table_name, self)
+        end
       end
 
       def replay(migration)

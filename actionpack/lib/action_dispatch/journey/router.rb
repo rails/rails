@@ -46,8 +46,9 @@ module ActionDispatch
           }
 
           req.path_parameters = tmp_params
+          req.route_uri_pattern = route.path.spec.to_s
 
-          status, headers, body = route.app.serve(req)
+          _, headers, _ = response = route.app.serve(req)
 
           if "pass" == headers["X-Cascade"]
             req.script_name     = script_name
@@ -56,7 +57,7 @@ module ActionDispatch
             next
           end
 
-          return [status, headers, body]
+          return response
         end
 
         [404, { "X-Cascade" => "pass" }, ["Not Found"]]

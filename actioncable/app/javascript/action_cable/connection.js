@@ -33,9 +33,10 @@ class Connection {
       logger.log(`Attempted to open WebSocket, but existing socket is ${this.getState()}`)
       return false
     } else {
-      logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${protocols}`)
+      const socketProtocols = [...protocols, ...this.consumer.subprotocols || []]
+      logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${socketProtocols}`)
       if (this.webSocket) { this.uninstallEventHandlers() }
-      this.webSocket = new adapters.WebSocket(this.consumer.url, protocols)
+      this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols)
       this.installEventHandlers()
       this.monitor.start()
       return true
@@ -81,7 +82,7 @@ class Connection {
     return this.isState("open", "connecting")
   }
 
-  reconnectAttempted() {
+  triedToReconnect() {
     return this.monitor.reconnectAttempts > 0
   }
 
@@ -129,6 +130,9 @@ Connection.prototype.events = {
     const {identifier, message, reason, reconnect, type} = JSON.parse(event.data)
     switch (type) {
       case message_types.welcome:
+        if (this.triedToReconnect()) {
+          this.reconnectAttempted = true
+        }
         this.monitor.recordConnect()
         return this.subscriptions.reload()
       case message_types.disconnect:
@@ -138,7 +142,12 @@ Connection.prototype.events = {
         return this.monitor.recordPing()
       case message_types.confirmation:
         this.subscriptions.confirmSubscription(identifier)
-        return this.subscriptions.notify(identifier, "connected", {reconnected: this.reconnectAttempted()})
+        if (this.reconnectAttempted) {
+          this.reconnectAttempted = false
+          return this.subscriptions.notify(identifier, "connected", {reconnected: true})
+        } else {
+          return this.subscriptions.notify(identifier, "connected", {reconnected: false})
+        }
       case message_types.rejection:
         return this.subscriptions.reject(identifier)
       default:

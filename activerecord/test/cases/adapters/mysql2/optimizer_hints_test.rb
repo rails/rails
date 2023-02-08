@@ -3,8 +3,8 @@
 require "cases/helper"
 require "models/post"
 
-if supports_optimizer_hints?
-  class Mysql2OptimizerHintsTest < ActiveRecord::Mysql2TestCase
+class Mysql2OptimizerHintsTest < ActiveRecord::Mysql2TestCase
+  if supports_optimizer_hints?
     fixtures :posts
 
     def test_optimizer_hints
@@ -30,7 +30,7 @@ if supports_optimizer_hints?
         assert_includes posts.explain, "| index | index_posts_on_author_id | index_posts_on_author_id |"
       end
 
-      assert_sql(%r{\ASELECT /\*\+  `posts`\.\*,  \*/}) do
+      assert_sql(%r{\ASELECT /\*\+ \*\* // `posts`\.\*, // \*\* \*/}) do
         posts = Post.optimizer_hints("**// `posts`.*, //**")
         posts = posts.select(:id).where(author_id: [0, 1])
         assert_equal({ "id" => 1 }, posts.first.as_json)

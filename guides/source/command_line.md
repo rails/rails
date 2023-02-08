@@ -49,6 +49,7 @@ If you wish to skip some files from being generated or skip some libraries, you 
 | Argument                | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
 | `--skip-git`            | Skip git init, .gitignore, and .gitattributes               |
+| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint    |
 | `--skip-keeps`          | Skip source control .keep files                             |
 | `--skip-action-mailer`  | Skip Action Mailer files                                    |
 | `--skip-action-mailbox` | Skip Action Mailbox gem                                     |
@@ -83,11 +84,9 @@ $ rails new petstore --database=postgresql
 ...
 ```
 
-Let's see what it put in our database configuration:
+Let's see what it put in our `config/database.yml`:
 
-```bash
-$ cd petstore
-$ cat config/database.yml
+```yaml
 # PostgreSQL. Versions 9.3 and up are supported.
 #
 # Install the pg driver:
@@ -111,14 +110,13 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-..development:
+development:
   <<: *default
-  database: petstore_development.
+  database: petstore_development
 ...
 ```
 
-It generated some lines in our `database.yml` configuration corresponding
-to our choice of PostgreSQL for database.
+It generated a database configuration corresponding to our choice of PostgreSQL.
 
 Command Line Basics
 -------------------
@@ -139,36 +137,38 @@ You can get a list of rails commands available to you, which will often depend o
 
 ```bash
 $ rails --help
-Usage: rails COMMAND [ARGS]
+Usage:
+  bin/rails COMMAND [options]
 
-The most common rails commands are:
- generate    Generate new code (short-cut alias: "g")
- console     Start the Rails console (short-cut alias: "c")
- server      Start the Rails server (short-cut alias: "s")
- ...
+You must specify a command. The most common commands are:
+
+  generate     Generate new code (short-cut alias: "g")
+  console      Start the Rails console (short-cut alias: "c")
+  server       Start the Rails server (short-cut alias: "s")
+  ...
 
 All commands can be run with -h (or --help) for more information.
 
 In addition to those commands, there are:
- about                               List versions of all Rails ...
- assets:clean[keep]                  Remove old compiled assets
- assets:clobber                      Remove compiled assets
- assets:environment                  Load asset compile environment
- assets:precompile                   Compile all the assets ...
- ...
- db:fixtures:load                    Loads fixtures into the ...
- db:migrate                          Migrate the database ...
- db:migrate:status                   Display status of migrations
- db:rollback                         Rolls the schema back to ...
- db:schema:cache:clear               Clears a db/schema_cache.yml file
- db:schema:cache:dump                Creates a db/schema_cache.yml file
- db:schema:dump                      Creates a database schema file (either db/schema.rb or db/structure.sql ...
- db:schema:load                      Loads a database schema file (either db/schema.rb or db/structure.sql ...
- db:seed                             Loads the seed data ...
- db:version                          Retrieves the current schema ...
- ...
- restart                             Restart app by touching ...
- tmp:create                          Creates tmp directories ...
+about                               List versions of all Rails ...
+assets:clean[keep]                  Remove old compiled assets
+assets:clobber                      Remove compiled assets
+assets:environment                  Load asset compile environment
+assets:precompile                   Compile all the assets ...
+...
+db:fixtures:load                    Load fixtures into the ...
+db:migrate                          Migrate the database ...
+db:migrate:status                   Display status of migrations
+db:rollback                         Roll the schema back to ...
+db:schema:cache:clear               Clears a db/schema_cache.yml file
+db:schema:cache:dump                Create a db/schema_cache.yml file
+db:schema:dump                      Create a database schema file (either db/schema.rb or db/structure.sql ...
+db:schema:load                      Load a database schema file (either db/schema.rb or db/structure.sql ...
+db:seed                             Load the seed data ...
+db:version                          Retrieve the current schema ...
+...
+restart                             Restart app by touching ...
+tmp:create                          Create tmp directories ...
 ```
 
 ### `bin/rails server`
@@ -413,7 +413,7 @@ Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
 
-#### The app and helper objects
+#### The `app` and `helper` Objects
 
 Inside the `bin/rails console` you have access to the `app` and `helper` instances.
 

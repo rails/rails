@@ -2,8 +2,8 @@
 
 require "cases/helper"
 
-unless ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
-  class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
+class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
+  unless ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
     self.use_transactional_tests = false
 
     class Tag < ActiveRecord::Base
@@ -15,8 +15,10 @@ unless ActiveRecord::Base.connection.supports_transaction_isolation? && !current
       end
     end
   end
-else
-  class TransactionIsolationTest < ActiveRecord::TestCase
+end
+
+class TransactionIsolationTest < ActiveRecord::TestCase
+  if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
     self.use_transactional_tests = false
 
     class Tag < ActiveRecord::Base

@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module ActiveRecord
+  class ReadonlyAttributeError < ActiveRecordError
+  end
+
   module ReadonlyAttributes
     extend ActiveSupport::Concern
 
@@ -9,10 +12,11 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # Attributes listed as readonly will be used to create a new record but update operations will
-      # ignore these fields.
+      # Attributes listed as readonly will be used to create a new record.
+      # Assigning a new value to a readonly attribute on a persisted record raises an error.
       #
-      # You can assign a new value to a readonly attribute, but it will be ignored when the record is updated.
+      # By setting +config.active_record.raise_on_assign_to_attr_readonly+ to +false+, it will
+      # not raise. The value will change in memory, but will not be persisted on +save+.
       #
       # ==== Examples
       #
@@ -21,9 +25,14 @@ module ActiveRecord
       #   end
       #
       #   post = Post.create!(title: "Introducing Ruby on Rails!")
-      #   post.update(title: "a different title") # change to title will be ignored
+      #   post.title = "a different title" # raises ActiveRecord::ReadonlyAttributeError
+      #   post.update(title: "a different title") # raises ActiveRecord::ReadonlyAttributeError
       def attr_readonly(*attributes)
-        self._attr_readonly = Set.new(attributes.map(&:to_s)) + (_attr_readonly || [])
+        self._attr_readonly |= attributes.map(&:to_s)
+
+        if ActiveRecord.raise_on_assign_to_attr_readonly
+          include(HasReadonlyAttributes)
+        end
       end
 
       # Returns an array of all the attributes that have been specified as readonly.
@@ -33,6 +42,24 @@ module ActiveRecord
 
       def readonly_attribute?(name) # :nodoc:
         _attr_readonly.include?(name)
+      end
+    end
+
+    module HasReadonlyAttributes # :nodoc:
+      def write_attribute(attr_name, value)
+        if !new_record? && self.class.readonly_attribute?(attr_name.to_s)
+          raise ReadonlyAttributeError.new(attr_name)
+        end
+
+        super
+      end
+
+      def _write_attribute(attr_name, value)
+        if !new_record? && self.class.readonly_attribute?(attr_name.to_s)
+          raise ReadonlyAttributeError.new(attr_name)
+        end
+
+        super
       end
     end
   end

@@ -211,6 +211,9 @@ Lint/AmbiguousRegexpLiteral:
 Lint/DuplicateRequire:
   Enabled: true
 
+Lint/DuplicateMagicComment:
+  Enabled: true
+
 Lint/DuplicateMethods:
   Enabled: true
 
@@ -235,6 +238,11 @@ Lint/UselessAssignment:
 
 Lint/DeprecatedClassMethods:
   Enabled: true
+
+Style/EvalWithLocation:
+  Enabled: true
+  Exclude:
+    - '**/test/**/*'
 
 Style/ParenthesesAroundCondition:
   Enabled: true

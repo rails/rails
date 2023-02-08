@@ -165,11 +165,11 @@ class ViewLoadPathsTest < ActionController::TestCase
   def test_inheritance
     original_load_paths = ActionController::Base.view_paths
 
-    self.class.class_eval %{
+    self.class.class_eval <<~RUBY, __FILE__, __LINE__ + 1
       class A < ActionController::Base; end
       class B < A; end
       class C < ActionController::Base; end
-    }
+    RUBY
 
     A.view_paths = ["a/path"]
 

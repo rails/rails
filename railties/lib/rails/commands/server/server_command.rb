@@ -6,6 +6,7 @@ require "rails"
 require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
+require "rack/server"
 
 module Rails
   class Server < ::Rack::Server
@@ -79,7 +80,7 @@ module Rails
         console.formatter = Rails.logger.formatter
         console.level = Rails.logger.level
 
-        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
+        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
           Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
         end
       end
@@ -127,8 +128,8 @@ module Rails
         @original_options = local_options - %w( --restart )
       end
 
+      desc "server", "Start the Rails server"
       def perform
-        extract_environment_option_from_argument
         set_application_directory!
         prepare_restart
 
@@ -245,10 +246,6 @@ module Rails
           File.expand_path(options[:pid] || ENV.fetch("PIDFILE", DEFAULT_PIDFILE))
         end
 
-        def self.banner(*)
-          "#{executable} -u [thin/puma/webrick] [options]"
-        end
-
         def prepare_restart
           FileUtils.rm_f(pid) if options[:restart]
         end
@@ -271,14 +268,9 @@ module Rails
               Run `#{executable} --help` for more options.
             MSG
           else
-            error = CorrectableError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
-            if error.respond_to?(:detailed_message)
-              formatted_message = error.detailed_message
-            else
-              formatted_message = error.message
-            end
+            error = CorrectableNameError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
             <<~MSG
-              #{formatted_message}
+              #{error.detailed_message}
               Run `#{executable} --help` for more options.
             MSG
           end

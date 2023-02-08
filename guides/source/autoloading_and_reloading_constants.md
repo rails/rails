@@ -231,13 +231,15 @@ While booting, applications can autoload from the autoload once paths, which are
 
 However, you cannot autoload from the autoload paths, which are managed by the `main` autoloader. This applies to code in `config/initializers` as well as application or engines initializers.
 
-Why? Initializers only run once, when the application boots. If you reboot the server, they run again in a new process, but reloading does not reboot the server, and initializers don't run again. Let's see the two main use cases.
+Why? Initializers only run once, when the application boots. They do not run again on reloads. If the application used a reloadable class in an initializer, and the class was edited, on reload changes would not be reflected in whatever the initializer did. Therefore, referring to reloadable constants during initialization is disallowed.
 
-### Use case 1: During boot, load reloadable code
+Let's see what to do instead.
 
-#### Autoload on boot and on each reload
+### Use Case 1: During Boot, Load Reloadable Code
 
-Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
+#### Autoload on Boot and on Each Reload
+
+Let's imagine `ApiGateway` is a reloadable class and you need to configure its endpoint while the application boots:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
@@ -257,7 +259,7 @@ end
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
 
-#### Autoload on boot only
+#### Autoload on Boot Only
 
 Reloadable classes and modules can be autoloaded in `after_initialize` blocks too. These run on boot, but do not run again on reload. In some exceptional cases this may be what you want.
 
@@ -272,7 +274,7 @@ Rails.application.config.after_initialize do
 end
 ```
 
-### Use case 2: During boot, load code that remains cached
+### Use Case 2: During Boot, Load Code that Remains Cached
 
 Some configurations take a class or module object, and they store it in a place that is not reloaded.
 
@@ -309,7 +311,31 @@ Corollary: Those classes or modules **cannot be reloadable**.
 
 The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it.
 
-As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#config-autoload-once-paths) for details.
+As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](#config-autoload-once-paths) for details.
+
+### Use Case 3: Configure Application Classes for Engines
+
+Let's suppose an engine works with the reloadable application class that models users, and has a configuration point for it:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = User # DO NOT DO THIS
+end
+```
+
+On reload, `config.user_model` would be pointing to a stale object, because the reloaded `User` class would not be reset in the engine configuration. Therefore, edits to `User` would be missed by the engine.
+
+In order to play well with reloadable application code, the engine instead needs applications to configure the _name_ of that class:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = "User" # OK
+end
+```
+
+Then, at run time, `config.user_model.constantize` gives you the current class object.
 
 Eager Loading
 -------------
@@ -327,75 +353,90 @@ During eager loading, Rails invokes `Zeitwerk::Loader.eager_load_all`. That ensu
 Single Table Inheritance
 ------------------------
 
-Single Table Inheritance is a feature that doesn't play well with lazy loading. The reason is that its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
+Single Table Inheritance doesn't play well with lazy loading: Active Record has to be aware of STI hierarchies to work correctly, but when lazy loading, classes are precisely loaded only on demand!
 
-In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
+To address this fundamental mismatch we need to preload STIs. There are a few options to accomplish this, with different trade-offs. Let's see them.
 
-Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to include an STI preloading module in your `lib` directory:
+### Option 1: Enable Eager Loading
+
+The easiest way to preload STIs is to enable eager loading by setting:
 
 ```ruby
-module StiPreload
-  unless Rails.application.config.eager_load
-    extend ActiveSupport::Concern
+config.eager_load = true
+```
 
-    included do
-      cattr_accessor :preloaded, instance_accessor: false
-    end
+in `config/environments/development.rb` and `config/environments/test.rb`.
 
-    class_methods do
-      def descendants
-        preload_sti unless preloaded
-        super
-      end
+This is simple, but may be costly because it eager loads the entire application on boot and on every reload. The trade-off may be worthwhile for small applications, though.
 
-      # Constantizes all types present in the database. There might be more on
-      # disk, but that does not matter in practice as far as the STI API is
-      # concerned.
-      #
-      # Assumes store_full_sti_class is true, the default.
-      def preload_sti
-        types_in_db = \
-          base_class.
-            unscoped.
-            select(inheritance_column).
-            distinct.
-            pluck(inheritance_column).
-            compact
+### Option 2: Preload a Collapsed Directory
 
-        types_in_db.each do |type|
-          logger.debug("Preloading STI type #{type}")
-          type.constantize
-        end
+Store the files that define the hierarchy in a dedicated directory, which makes sense also conceptually. The directory is not meant to represent a namespace, its sole purpose is to group the STI:
 
-        self.preloaded = true
-      end
-    end
+```
+app/models/shapes/shape.rb
+app/models/shapes/circle.rb
+app/models/shapes/square.rb
+app/models/shapes/triangle.rb
+```
+
+In this example, we still want `app/models/shapes/circle.rb` to define `Circle`, not `Shapes::Circle`. This may be your personal preference to keep things simple, and also avoids refactors in existing code bases. The [collapsing](https://github.com/fxn/zeitwerk#collapsing-directories) feature of Zeitwerk allows us to do that:
+
+```ruby
+# config/initializers/preload_stis.rb
+
+shapes = "#{Rails.root}/app/models/shapes"
+Rails.autoloaders.main.collapse(shapes) # Not a namespace.
+
+unless Rails.application.config.eager_load
+  Rails.application.config.to_prepare do
+    Rails.autoloaders.main.eager_load_dir(shapes)
   end
 end
 ```
 
-and then include it in the STI root classes of your project:
+In this option, we eager load these few files on boot and reload even if the STI is not used. However, unless your application has a lot of STIs, this won't have any measurable impact.
+
+INFO: The method `Zeitwerk::Loader#eager_load_dir` was added in Zeitwerk 2.6.2. For older versions, you can still list the `app/models/shapes` directory and invoke `require_dependency` on its contents.
+
+WARNING: If models are added, modified, or deleted from the STI, reloading works as expected. However, if a new separate STI hierarchy is added to the application, you'll need to edit the initializer and restart the server.
+
+### Option 3: Preload a Regular Directory
+
+Similar to the previous one, but the directory is meant to be a namespace. That is, `app/models/shapes/circle.rb` is expected to define `Shapes::Circle`.
+
+For this one, the initializer is the same except no collapsing is configured:
 
 ```ruby
-# app/models/shape.rb
-require "sti_preload"
+# config/initializers/preload_stis.rb
 
-class Shape < ApplicationRecord
-  include StiPreload # Only in the root class.
+unless Rails.application.config.eager_load
+  Rails.application.config.to_prepare do
+    Rails.autoloaders.main.eager_load_dir("#{Rails.root}/app/models/shapes")
+  end
 end
 ```
 
+Same trade-offs.
+
+### Option 4: Preload Types from the Database
+
+In this option we do not need to organize the files in any way, but we hit the database:
+
 ```ruby
-# app/models/polygon.rb
-class Polygon < Shape
+# config/initializers/preload_stis.rb
+
+unless Rails.application.config.eager_load
+  Rails.application.config.to_prepare do
+    types = Shape.unscoped.select(:type).distinct.pluck(:type)
+    types.compact.each(&:constantize)
+  end
 end
 ```
 
-```ruby
-# app/models/triangle.rb
-class Triangle < Polygon
-end
-```
+WARNING: The STI will work correctly even if the table does not have all the types, but methods like `subclasses` or `descendants` won't return the missing types.
+
+WARNING: If models are added, modified, or deleted from the STI, reloading works as expected. However, if a new separate STI hierarchy is added to the application, you'll need to edit the initializer and restart the server.
 
 Customizing Inflections
 -----------------------

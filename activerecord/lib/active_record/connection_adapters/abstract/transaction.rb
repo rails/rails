@@ -83,11 +83,15 @@ module ActiveRecord
       def restartable?; false; end
       def dirty?; false; end
       def dirty!; end
+      def invalidated?; false; end
+      def invalidate!; end
     end
 
     class Transaction # :nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
       attr_accessor :written, :written_indirectly
+
+      delegate :invalidate!, :invalidated?, to: :@state
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -151,11 +155,11 @@ module ActiveRecord
       def rollback_records
         return unless records
 
-        ite = records.uniq(&:__id__)
+        ite = unique_records
+
         instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
 
-        while record = ite.shift
-          should_run_callbacks = record.__id__ == instances_to_run_callbacks_on[record].__id__
+        run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
           record.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: should_run_callbacks)
         end
       ensure
@@ -165,19 +169,34 @@ module ActiveRecord
       end
 
       def before_commit_records
-        records.uniq.each(&:before_committed!) if records && @run_commit_callbacks
+        return unless records
+
+        if @run_commit_callbacks
+          if ActiveRecord.before_committed_on_all_records
+            ite = unique_records
+
+            instances_to_run_callbacks_on = records.each_with_object({}) do |record, candidates|
+              candidates[record] = record
+            end
+
+            run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
+              record.before_committed! if should_run_callbacks
+            end
+          else
+            records.uniq.each(&:before_committed!)
+          end
+        end
       end
 
       def commit_records
         return unless records
 
-        ite = records.uniq(&:__id__)
+        ite = unique_records
 
         if @run_commit_callbacks
           instances_to_run_callbacks_on = prepare_instances_to_run_callbacks_on(ite)
 
-          while record = ite.shift
-            should_run_callbacks = record.__id__ == instances_to_run_callbacks_on[record].__id__
+          run_action_on_records(ite, instances_to_run_callbacks_on) do |record, should_run_callbacks|
             record.committed!(should_run_callbacks: should_run_callbacks)
           end
         else
@@ -196,6 +215,18 @@ module ActiveRecord
       def open?; !closed?; end
 
       private
+        def unique_records
+          records.uniq(&:__id__)
+        end
+
+        def run_action_on_records(records, instances_to_run_callbacks_on)
+          while record = records.shift
+            should_run_callbacks = record.__id__ == instances_to_run_callbacks_on[record].__id__
+
+            yield record, should_run_callbacks
+          end
+        end
+
         def prepare_instances_to_run_callbacks_on(records)
           records.each_with_object({}) do |record, candidates|
             next unless record.trigger_transactional_callbacks?
@@ -457,10 +488,6 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
-            if error.is_a?(ActiveRecord::TransactionRollbackError) &&
-                @connection.savepoint_errors_invalidate_transactions?
-              transaction.state.invalidate!
-            end
             rollback_transaction
             after_failure_actions(transaction, error)
           end
@@ -487,7 +514,7 @@ module ActiveRecord
                 if !completed && transaction.written_indirectly
                   # This is the case that was missed in the 6.1 deprecation, so we have to
                   # do it now
-                  ActiveSupport::Deprecation.warn(<<~EOW)
+                  ActiveRecord.deprecator.warn(<<~EOW)
                     Using `return`, `break` or `throw` to exit a transaction block is
                     deprecated without replacement. If the `throw` came from
                     `Timeout.timeout(duration)`, pass an exception class as a second
@@ -500,7 +527,7 @@ module ActiveRecord
                 begin
                   commit_transaction
                 rescue ActiveRecord::ConnectionFailed
-                  transaction.state.invalidate! unless transaction.state.completed?
+                  transaction.invalidate! unless transaction.state.completed?
                   raise
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?

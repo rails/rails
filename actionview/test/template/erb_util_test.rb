@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/json"
+require "active_support/core_ext/erb/util"
 
 class ErbUtilTest < ActiveSupport::TestCase
   include ERB::Util

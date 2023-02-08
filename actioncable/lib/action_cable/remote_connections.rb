@@ -21,7 +21,7 @@ module ActionCable
   # it uses the internal channel that all of these servers are subscribed to.
   #
   # By default, server sends a "disconnect" message with "reconnect" flag set to true.
-  # You can override it by specifying the `reconnect` option:
+  # You can override it by specifying the +reconnect+ option:
   #
   #   ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect(reconnect: false)
   class RemoteConnections

@@ -37,9 +37,12 @@ module ActiveSupport
           end
 
           def extract_metadata(message)
-            data = JSON.decode(message) rescue nil
+            begin
+              data = JSON.decode(message) if message.start_with?('{"_rails":')
+            rescue ::JSON::JSONError
+            end
 
-            if data.is_a?(Hash) && data.key?("_rails")
+            if data
               new(decode(data["_rails"]["message"]), data["_rails"]["exp"], data["_rails"]["pur"])
             else
               new(message)

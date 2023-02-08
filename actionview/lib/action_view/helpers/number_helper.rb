@@ -202,7 +202,7 @@ module ActionView
       #   number_with_delimiter("123456.78",
       #     delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)    # => "1,23,456.78"
       #
-      #  number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
+      #   number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
         delegate_number_helper_method(:number_to_delimited, number, options)
       end
@@ -370,13 +370,14 @@ module ActionView
       # out by default (set <tt>:strip_insignificant_zeros</tt> to
       # +false+ to change that):
       #
-      # number_to_human(12.00001)                                       # => "12"
-      # number_to_human(12.00001, strip_insignificant_zeros: false)     # => "12.0"
+      #   number_to_human(12.00001)                                       # => "12"
+      #   number_to_human(12.00001, strip_insignificant_zeros: false)     # => "12.0"
       #
       # ==== Custom Unit Quantifiers
       #
       # You can also use your own custom unit quantifiers:
-      #  number_to_human(500000, units: {unit: "ml", thousand: "lt"})  # => "500 lt"
+      #
+      #   number_to_human(500000, units: {unit: "ml", thousand: "lt"})  # => "500 lt"
       #
       # If in your I18n locale you have:
       #   distance:
@@ -393,12 +394,12 @@ module ActionView
       #
       # Then you could do:
       #
-      #  number_to_human(543934, units: :distance)              # => "544 kilometers"
-      #  number_to_human(54393498, units: :distance)            # => "54400 kilometers"
-      #  number_to_human(54393498000, units: :distance)         # => "54.4 gazillion-distance"
-      #  number_to_human(343, units: :distance, precision: 1)   # => "300 meters"
-      #  number_to_human(1, units: :distance)                   # => "1 meter"
-      #  number_to_human(0.34, units: :distance)                # => "34 centimeters"
+      #   number_to_human(543934, units: :distance)              # => "544 kilometers"
+      #   number_to_human(54393498, units: :distance)            # => "54400 kilometers"
+      #   number_to_human(54393498000, units: :distance)         # => "54.4 gazillion-distance"
+      #   number_to_human(343, units: :distance, precision: 1)   # => "300 meters"
+      #   number_to_human(1, units: :distance)                   # => "1 meter"
+      #   number_to_human(0.34, units: :distance)                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
         delegate_number_helper_method(:number_to_human, number, options)

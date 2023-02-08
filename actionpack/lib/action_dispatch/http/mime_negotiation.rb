@@ -35,7 +35,7 @@ module ActionDispatch
 
       def content_type
         if self.class.return_only_media_type_on_content_type
-          ActiveSupport::Deprecation.warn(
+          ActionDispatch.deprecator.warn(
             "Rails 7.1 will return Content-Type header without modification." \
             " If you want just the MIME type, please use `#media_type` instead."
           )
@@ -72,7 +72,7 @@ module ActionDispatch
       #   GET /posts/5.xhtml | request.format => Mime[:html]
       #   GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
       #
-      def format(view_path = [])
+      def format(_view_path = nil)
         formats.first || Mime::NullType.instance
       end
 
@@ -81,7 +81,7 @@ module ActionDispatch
           v = if params_readable?
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
-            accepts
+            accepts.dup
           elsif extension_format = format_from_path_extension
             [extension_format]
           elsif xhr?
@@ -90,7 +90,7 @@ module ActionDispatch
             [Mime[:html]]
           end
 
-          v = v.select do |format|
+          v.select! do |format|
             format.symbol || format.ref == "*/*"
           end
 

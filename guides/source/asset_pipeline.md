@@ -656,34 +656,45 @@ JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and
 `.scss` files are **not** automatically included as they compile to JS/CSS.
 
 If you have other manifests or individual stylesheets and JavaScript files to
-include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
+include, you can add them yourself.
+
+When you are using **Sprockets 3**, add the files to the `precompile` array in
+`config/initializers/assets.rb`:
 
 ```ruby
 Rails.application.config.assets.precompile += %w( admin.js admin.css )
 ```
 
+When you are using **Sprockets 4**, add the files or directories to
+`app/assets/config/manifest.js`:
+
+```js
+//= link_tree ../images
+//= link admin.js
+//= link admin.css
+// Or link whole directories:
+//= link_directory ../javascripts .js
+//= link_directory ../stylesheets .css
+```
+
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
-even if you want to add Sass or CoffeeScript files to the precompile array.
+even if you want to add Sass or CoffeeScript files to the precompile array or manifest file.
+
+NOTE. More information on the differences between Sprockets 3 and 4 please can be found in the [Sprockets Upgrading Guide](https://github.com/rails/sprockets/blob/main/UPGRADING.md#manifestjs)
 
 The command also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
 a 16-byte random hex string) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
 mapping requests back to Sprockets. A typical manifest file looks like:
 
-```ruby
-{"files":{"application-aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b.js":{"logical_path":"application.js","mtime":"2016-12-23T20:12:03-05:00","size":412383,
-"digest":"aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b","integrity":"sha256-ruS+cfEogDeueLmX3ziDMu39JGRxtTPc7aqPn+FWRCs="},
-"application-86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18.css":{"logical_path":"application.css","mtime":"2016-12-23T19:12:20-05:00","size":2994,
-"digest":"86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18","integrity":"sha256-hqKStQcHk8N+LA5fOfc7s4dkTq6tp/lub8BAoCixbBg="},
-"favicon-8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda.ico":{"logical_path":"favicon.ico","mtime":"2016-12-23T20:11:00-05:00","size":8629,
-"digest":"8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda","integrity":"sha256-jSOHuNTTLOzZP6OQDfDp/4nQGqzYT1DngMF8n2s9Dto="},
-"my_image-f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493.png":{"logical_path":"my_image.png","mtime":"2016-12-23T20:10:54-05:00","size":23414,
-"digest":"f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493","integrity":"sha256-9AKBVv1+ygNYTV8vwEcN8eDbxzaequY4sv8DP5iOxJM="}},
-"assets":{"application.js":"application-aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b.js",
-"application.css":"application-86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18.css",
-"favicon.ico":"favicon-8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda.ico",
-"my_image.png":"my_image-f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493.png"}}
+```json
+{"files":{"application-<fingerprint>.js":{"logical_path":"application.js","mtime":"2016-12-23T20:12:03-05:00","size":412383,
+"digest":"<fingerprint>","integrity":"sha256-<random-string>"}},
+"assets":{"application.js":"application-<fingerprint>.js"}}
 ```
+
+In your application, there will be more files and assets listed in the manifest,
+`<fingerprint>` and `<random-string>` will also be generated.
 
 The default location for the manifest is the root of the location specified in
 `config.assets.prefix` ('/assets' by default).
@@ -831,7 +842,7 @@ To set up your CDN you have to have your application running in production on
 the internet at a publicly available URL, for example `example.com`. Next
 you'll need to sign up for a CDN service from a cloud hosting provider. When you
 do this you need to configure the "origin" of the CDN to point back at your
-website `example.com`, check your provider for documentation on configuring the
+website `example.com`. Check your provider for documentation on configuring the
 origin server.
 
 The CDN you provisioned should give you a custom subdomain for your application
@@ -895,16 +906,16 @@ option your asset helper, which overwrites value set in
 
 A CDN works by caching content. If the CDN has stale or bad content, then it is
 hurting rather than helping your application. The purpose of this section is to
-describe general caching behavior of most CDNs, your specific provider may
+describe general caching behavior of most CDNs. Your specific provider may
 behave slightly differently.
 
 ##### CDN Request Caching
 
-While a CDN is described as being good for caching assets, in reality caches the
+While a CDN is described as being good for caching assets, it actually caches the
 entire request. This includes the body of the asset as well as any headers. The
-most important one being `Cache-Control` which tells the CDN (and web browsers)
+most important one being `Cache-Control`, which tells the CDN (and web browsers)
 how to cache contents. This means that if someone requests an asset that does
-not exist `/assets/i-dont-exist.png` and your Rails application returns a 404,
+not exist, such as `/assets/i-dont-exist.png`, and your Rails application returns a 404,
 then your CDN will likely cache the 404 page if a valid `Cache-Control` header
 is present.
 
@@ -929,7 +940,7 @@ Content-Length: 126560
 Via: 1.1 vegur
 ```
 
-Versus the CDN copy.
+Versus the CDN copy:
 
 ```bash
 $ curl -I http://mycdnsubdomain.fictional-cdn.com/application-
@@ -958,16 +969,14 @@ such as `X-Cache` or for any additional headers they may add.
 
 ##### CDNs and the Cache-Control Header
 
-The [cache control
-header](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
-specification that describes how a request can be cached. When no CDN is used, a
+The [`Cache-Control`][] header describes how a request can be cached. When no CDN is used, a
 browser will use this information to cache contents. This is very helpful for
 assets that are not modified so that a browser does not need to re-download a
 website's CSS or JavaScript on every request. Generally we want our Rails server
-to tell our CDN (and browser) that the asset is "public", that means any cache
+to tell our CDN (and browser) that the asset is "public". That means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
-value is set to seconds with a maximum possible value of `31536000` which is one
+value is set to seconds with a maximum possible value of `31536000`, which is one
 year. You can do this in your Rails application by setting
 
 ```ruby
@@ -978,9 +987,11 @@ config.public_file_server.headers = {
 
 Now when your application serves an asset in production, the CDN will store the
 asset for up to a year. Since most CDNs also cache headers of the request, this
-`Cache-Control` will be passed along to all future browsers seeking this asset,
-the browser then knows that it can store this asset for a very long time before
+`Cache-Control` will be passed along to all future browsers seeking this asset.
+The browser then knows that it can store this asset for a very long time before
 needing to re-request it.
+
+[`Cache-Control`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
 
 ##### CDNs and URL-based Cache Invalidation
 
@@ -1050,7 +1061,7 @@ NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
 supported runtime in order to use `terser`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
 
-### GZipping your assets
+### GZipping Your Assets
 
 By default, gzipped version of compiled assets will be generated, along with
 the non-gzipped version of assets. Gzipped assets help reduce the transmission
@@ -1173,7 +1184,7 @@ end
 ```
 
 Now that you have a module that modifies the input data, it's time to register
-it as a preprocessor for your mime type.
+it as a preprocessor for your MIME type.
 
 ```ruby
 Sprockets.register_preprocessor 'text/css', AddComment

@@ -12,7 +12,8 @@
   },
   "scripts": {
     "build": "rollup --config rollup.config.js",
-    "test": "echo \"See the README: https://github.com/rails/rails/blob/main/actionview/app/assets/javascripts#how-to-run-tests\" && exit 1",
+    "pretest": "rollup --config rollup.config.test.js",
+    "test": "karma start",
     "lint": "eslint app/javascript"
   },
   "repository": {
@@ -31,8 +32,16 @@
   },
   "homepage": "https://rubyonrails.org/",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^19.0.1",
+    "@rollup/plugin-node-resolve": "^11.0.1",
     "eslint": "^4.19.1",
     "eslint-plugin-import": "^2.23.4",
+    "jquery": "^2.2.0",
+    "karma": "^3.1.1",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-qunit": "^2.1.0",
+    "karma-sauce-launcher": "^1.2.0",
+    "qunit": "^2.8.0",
     "rollup": "^2.53.3",
     "rollup-plugin-terser": "^7.0.2"
   }

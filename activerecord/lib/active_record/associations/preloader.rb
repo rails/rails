@@ -22,8 +22,8 @@ module ActiveRecord
     #
     #   Author.includes(:books).where(name: ['bell hooks', 'Homer']).to_a
     #
-    #   => SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
-    #   => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
+    #   # SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
+    #   # SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
     #
     # Active Record saves the ids of the records from the first query to use in
     # the second. Depending on the number of associations involved there can be
@@ -33,11 +33,11 @@ module ActiveRecord
     # Record will fall back to a slightly more resource-intensive single query:
     #
     #   Author.includes(:books).where(books: {title: 'Illiad'}).to_a
-    #   => SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
-    #             `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
-    #      FROM `authors`
-    #      LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
-    #      WHERE `books`.`title` = 'Illiad'
+    #   # SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
+    #   #        `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
+    #   # FROM `authors`
+    #   # LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
+    #   # WHERE `books`.`title` = 'Illiad'
     #
     # This could result in many rows that contain redundant data and it performs poorly at scale
     # and is therefore only used when necessary.

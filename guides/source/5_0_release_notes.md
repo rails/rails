@@ -349,7 +349,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     names instead.
     ([commit](https://github.com/rails/rails/commit/83b767ce))
 
-*   Deprecated accessing mime types via constants (e.g. `Mime::HTML`). Use the
+*   Deprecated accessing MIME types via constants (e.g. `Mime::HTML`). Use the
     subscript operator with a symbol instead (e.g. `Mime[:html]`).
     ([Pull Request](https://github.com/rails/rails/pull/21869))
 

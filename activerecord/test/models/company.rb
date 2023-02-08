@@ -7,6 +7,8 @@ end
 class Company < AbstractCompany
   self.sequence_name = :companies_nonstd_seq
 
+  enum :status, [:active, :suspended]
+
   validates_presence_of :name
 
   has_one :account, foreign_key: "firm_id"
@@ -84,6 +86,8 @@ class Firm < Company
   has_one :account_with_inexistent_foreign_key, class_name: "Account", foreign_key: "inexistent"
   has_one :deletable_account, foreign_key: "firm_id", class_name: "Account", dependent: :delete
 
+  has_one :client, foreign_key: "client_of"
+
   has_one :account_limit_500_with_hash_conditions, -> { where credit_limit: 500 }, foreign_key: "firm_id", class_name: "Account"
 
   has_one :unautosaved_account, foreign_key: "firm_id", class_name: "Account", autosave: false
@@ -134,7 +138,7 @@ class Agency < Firm
 end
 
 class Client < Company
-  belongs_to :firm, foreign_key: "client_of"
+  belongs_to :firm, foreign_key: "client_of", inverse_of: :client
   belongs_to :firm_with_basic_id, class_name: "Firm", foreign_key: "firm_id"
   belongs_to :firm_with_select, -> { select("id") }, class_name: "Firm", foreign_key: "firm_id"
   belongs_to :firm_with_other_name, class_name: "Firm", foreign_key: "client_of"

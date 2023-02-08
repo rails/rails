@@ -1,0 +1,10 @@
+_fixture:
+  model_class: Sharded::BlogPost
+
+great_post_blog_one:
+  title: "My first post!"
+  blog_id: <%= ActiveRecord::FixtureSet.identify(:sharded_blog_one) %>
+
+great_post_blog_two:
+  title: "My first post!"
+  blog_id: <%= ActiveRecord::FixtureSet.identify(:sharded_blog_two) %>

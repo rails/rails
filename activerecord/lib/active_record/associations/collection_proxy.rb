@@ -955,10 +955,13 @@ module ActiveRecord
       #   person.pets == other
       #   # => true
       #
+      #
+      # Note that unpersisted records can still be seen as equal:
+      #
       #   other = [Pet.new(id: 1), Pet.new(id: 2)]
       #
       #   person.pets == other
-      #   # => false
+      #   # => true
       def ==(other)
         load_target == other
       end

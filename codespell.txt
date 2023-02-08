@@ -21,6 +21,7 @@ nd
 ned
 noone
 objekt
+optin
 ot
 overthere
 reenable
@@ -36,7 +37,10 @@ ue
 unqiue
 upto
 varius
+vershen
 vew
 wil
 wth
 yau
+nin
+elemen

@@ -13,7 +13,7 @@ module ActionDispatch
         @capabilities = capabilities
 
         if [:poltergeist, :webkit].include?(driver_type)
-          ActiveSupport::Deprecation.warn <<~MSG.squish
+          ActionDispatch.deprecator.warn <<~MSG.squish
             Poltergeist and capybara-webkit are not maintained already.
             Driver registration of :poltergeist or :webkit is deprecated and will be removed in Rails 7.1.
             You can still use :selenium, and also :cuprite is available for alternative to Poltergeist.
@@ -56,7 +56,7 @@ module ActionDispatch
         end
 
         def browser_options
-          @options.merge(capabilities: @browser.options).compact
+          @options.merge(options: @browser.options).compact
         end
 
         def register_selenium(app)

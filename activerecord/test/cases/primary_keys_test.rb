@@ -416,8 +416,8 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
-  class PrimaryKeyIntegerTest < ActiveRecord::TestCase
+class PrimaryKeyIntegerTest < ActiveRecord::TestCase
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     include SchemaDumpingHelper
 
     self.use_transactional_tests = false

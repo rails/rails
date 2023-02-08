@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
 require "active_model"
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActiveModel.deprecator.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false

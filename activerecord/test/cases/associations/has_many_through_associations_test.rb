@@ -403,7 +403,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_association
-    assert_queries(2) { posts(:welcome); people(:michael); }
+    assert_queries(2) { posts(:welcome); people(:michael) }
 
     assert_queries(1) do
       posts(:welcome).people.delete(people(:michael))
@@ -764,12 +764,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       firm = companies(:first_firm)
       lifo = Developer.new(name: "lifo")
       assert_raises(ActiveRecord::RecordInvalid) do
-        assert_deprecated { firm.developers << lifo }
+        assert_deprecated(ActiveRecord.deprecator) { firm.developers << lifo }
       end
 
       lifo = Developer.create!(name: "lifo")
       assert_raises(ActiveRecord::RecordInvalid) do
-        assert_deprecated { firm.developers << lifo }
+        assert_deprecated(ActiveRecord.deprecator) { firm.developers << lifo }
       end
     end
   end

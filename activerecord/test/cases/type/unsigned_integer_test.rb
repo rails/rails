@@ -14,6 +14,18 @@ module ActiveRecord
           UnsignedInteger.new.serialize(-1)
         end
       end
+
+      test "serialize_cast_value enforces range" do
+        type = UnsignedInteger.new
+
+        assert_raises(ActiveModel::RangeError) do
+          type.serialize_cast_value(-1)
+        end
+
+        assert_raises(ActiveModel::RangeError) do
+          type.serialize_cast_value(4294967296)
+        end
+      end
     end
   end
 end

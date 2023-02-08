@@ -8,7 +8,7 @@ module ActiveRecord
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
     def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, model.connection, inserts
+      @model, @connection, @inserts = model, model.connection, inserts.map(&:stringify_keys)
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
@@ -18,8 +18,9 @@ module ActiveRecord
       if @inserts.empty?
         @keys = []
       else
+        resolve_sti
         resolve_attribute_aliases
-        @keys = @inserts.first.keys.map(&:to_s)
+        @keys = @inserts.first.keys
       end
 
       configure_on_duplicate_update_logic
@@ -97,6 +98,15 @@ module ActiveRecord
 
       def has_attribute_aliases?(attributes)
         attributes.keys.any? { |attribute| model.attribute_alias?(attribute) }
+      end
+
+      def resolve_sti
+        return if model.descends_from_active_record?
+
+        sti_type = model.sti_name
+        @inserts = @inserts.map do |insert|
+          insert.reverse_merge(model.inheritance_column.to_s => sti_type)
+        end
       end
 
       def resolve_attribute_aliases

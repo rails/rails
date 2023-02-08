@@ -451,7 +451,7 @@ NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 [Object#with_options]: https://api.rubyonrails.org/classes/Object.html#method-i-with_options
 
-### JSON support
+### JSON Support
 
 Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
@@ -2895,7 +2895,7 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 [Hash#deep_merge!]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge-21
 [Hash#deep_merge]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge
 
-### Deep duplicating
+### Deep Duplicating
 
 The method [`Hash#deep_dup`][Hash#deep_dup] duplicates itself and all keys and values
 inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
@@ -3158,15 +3158,15 @@ NOTE: Defined in `active_support/core_ext/regexp.rb`.
 Extensions to `Range`
 ---------------------
 
-### `to_s`
+### `to_fs`
 
-Active Support extends the method `Range#to_s` so that it understands an optional format argument. As of this writing the only supported non-default format is `:db`:
+Active Support defines `Range#to_fs` as an alternative to `to_s` that understands an optional format argument. As of this writing the only supported non-default format is `:db`:
 
 ```ruby
-(Date.today..Date.tomorrow).to_s
+(Date.today..Date.tomorrow).to_fs
 # => "2009-10-25..2009-10-26"
 
-(Date.today..Date.tomorrow).to_s(:db)
+(Date.today..Date.tomorrow).to_fs(:db)
 # => "BETWEEN '2009-10-25' AND '2009-10-26'"
 ```
 
@@ -3235,7 +3235,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [DateAndTime::Calculations#on_weekend?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-on_weekend-3F
 [DateAndTime::Calculations#past?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-past-3F
 
-#### Named dates
+#### Named Dates
 
 ##### `beginning_of_week`, `end_of_week`
 
@@ -3459,22 +3459,6 @@ date.advance(months: 2, days: -2) # => Wed, 04 Aug 2010
 ```
 
 Note in the previous example that increments may be negative.
-
-To perform the computation the method first increments years, then months, then weeks, and finally days. This order is important towards the end of months. Say for example we are at the end of February of 2010, and we want to move one month and one day forward.
-
-The method `advance` advances first one month, and then one day, the result is:
-
-```ruby
-Date.new(2010, 2, 28).advance(months: 1, days: 1)
-# => Sun, 29 Mar 2010
-```
-
-While if it did it the other way around the result would be different:
-
-```ruby
-Date.new(2010, 2, 28).advance(days: 1).advance(months: 1)
-# => Thu, 01 Apr 2010
-```
 
 NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
@@ -4088,7 +4072,7 @@ Extensions to Pathname
 
 ### `existence`
 
-The [`existence`][Pathname#existence] method returns the receiver if the named file exists otherwise returns +nil+. It is useful for idioms like this:
+The [`existence`][Pathname#existence] method returns the receiver if the named file exists otherwise returns `nil`. It is useful for idioms like this:
 
 ```ruby
 content = Pathname.new("file").existence&.read

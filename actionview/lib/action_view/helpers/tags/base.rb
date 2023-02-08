@@ -122,6 +122,10 @@ module ActionView
 
           def select_content_tag(option_tags, options, html_options)
             html_options = html_options.stringify_keys
+            [:required, :multiple, :size].each do |prop|
+              html_options[prop.to_s] = options.delete(prop) if options.key?(prop) && !html_options.key?(prop.to_s)
+            end
+
             add_default_name_and_id(html_options)
 
             if placeholder_required?(html_options)

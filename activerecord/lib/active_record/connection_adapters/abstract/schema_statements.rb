@@ -290,6 +290,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options, &block)
+        validate_create_table_options!(options)
         validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
         td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
 
@@ -324,8 +325,8 @@ module ActiveRecord
       # if the same arguments were passed to #create_table. See #create_table for information about
       # passing a +table_name+, and other additional options that can be passed.
       def build_create_table_definition(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
-        table_definition = create_table_definition(table_name, **extract_table_options!(options))
-        table_definition.set_primary_key(table_name, id, primary_key, **options)
+        table_definition = create_table_definition(table_name, **options.extract!(*valid_table_definition_options, :_skip_validate_options))
+        table_definition.set_primary_key(table_name, id, primary_key, **options.extract!(*valid_primary_key_options, :_skip_validate_options))
 
         yield table_definition if block_given?
 
@@ -1117,7 +1118,7 @@ module ActiveRecord
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless use_foreign_keys?
-        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table)
+        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         options = foreign_key_options(from_table, to_table, options)
         at = create_alter_table from_table
@@ -1460,6 +1461,31 @@ module ActiveRecord
         SchemaCreation.new(self)
       end
 
+      def bulk_change_table(table_name, operations) # :nodoc:
+        sql_fragments = []
+        non_combinable_operations = []
+
+        operations.each do |command, args|
+          table, arguments = args.shift, args
+          method = :"#{command}_for_alter"
+
+          if respond_to?(method, true)
+            sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
+            sql_fragments.concat(sqls)
+            non_combinable_operations.concat(procs)
+          else
+            execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+            non_combinable_operations.each(&:call)
+            sql_fragments = []
+            non_combinable_operations = []
+            send(command, table, *arguments)
+          end
+        end
+
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+        non_combinable_operations.each(&:call)
+      end
+
       private
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
@@ -1558,8 +1584,20 @@ module ActiveRecord
           AlterTable.new create_table_definition(name)
         end
 
-        def extract_table_options!(options)
-          options.extract!(:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation)
+        def valid_table_definition_options
+          [:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation]
+        end
+
+        def valid_primary_key_options
+          [:limit, :default, :precision]
+        end
+
+        def validate_create_table_options!(options)
+          unless options[:_skip_validate_options]
+            options
+              .except(:_uses_legacy_table_name, :_skip_validate_options)
+              .assert_valid_keys(valid_table_definition_options, valid_primary_key_options)
+          end
         end
 
         def fetch_type_metadata(sql_type)
@@ -1681,31 +1719,6 @@ module ActiveRecord
           table_name.to_s.singularize
         end
 
-        def bulk_change_table(table_name, operations)
-          sql_fragments = []
-          non_combinable_operations = []
-
-          operations.each do |command, args|
-            table, arguments = args.shift, args
-            method = :"#{command}_for_alter"
-
-            if respond_to?(method, true)
-              sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
-              sql_fragments.concat(sqls)
-              non_combinable_operations.concat(procs)
-            else
-              execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-              non_combinable_operations.each(&:call)
-              sql_fragments = []
-              non_combinable_operations = []
-              send(command, table, *arguments)
-            end
-          end
-
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-          non_combinable_operations.each(&:call)
-        end
-
         def add_column_for_alter(table_name, column_name, type, **options)
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column_name, type, **options)
@@ -1752,7 +1765,7 @@ module ActiveRecord
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
             sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
-            sql << ";\n\n"
+            sql << ";"
             sql
           else
             "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"

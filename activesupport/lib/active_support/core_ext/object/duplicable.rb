@@ -31,8 +31,8 @@ end
 class Method
   # Methods are not duplicable:
   #
-  #  method(:puts).duplicable? # => false
-  #  method(:puts).dup         # => TypeError: allocator undefined for Method
+  #   method(:puts).duplicable? # => false
+  #   method(:puts).dup         # => TypeError: allocator undefined for Method
   def duplicable?
     false
   end
@@ -41,8 +41,8 @@ end
 class UnboundMethod
   # Unbound methods are not duplicable:
   #
-  #  method(:puts).unbind.duplicable? # => false
-  #  method(:puts).unbind.dup         # => TypeError: allocator undefined for UnboundMethod
+  #   method(:puts).unbind.duplicable? # => false
+  #   method(:puts).unbind.dup         # => TypeError: allocator undefined for UnboundMethod
   def duplicable?
     false
   end
@@ -53,7 +53,7 @@ require "singleton"
 module Singleton
   # Singleton instances are not duplicable:
   #
-  # Class.new.include(Singleton).instance.dup # TypeError (can't dup instance of singleton
+  #   Class.new.include(Singleton).instance.dup # TypeError (can't dup instance of singleton
   def duplicable?
     false
   end
