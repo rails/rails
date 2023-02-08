@@ -2577,7 +2577,12 @@ ANALYZE SELECT `shop_accounts`.* FROM `shop_accounts` INNER JOIN `customers` ON 
 1 row in set (0.00 sec)
 ```
 
-Please note that explain and analyze options vary across MySQL and MariaDB versions.
+NOTE: EXPLAIN and ANALYZE options vary across MySQL and MariaDB versions.
+([MySQL 5.7][MySQL5.7-explain], [MySQL 8.0][MySQL8-explain], [MariaDB][MariaDB-explain])
+
+[MySQL5.7-explain]: https://dev.mysql.com/doc/refman/5.7/en/explain.html
+[MySQL8-explain]: https://dev.mysql.com/doc/refman/8.0/en/explain.html
+[MariaDB-explain]: https://mariadb.com/kb/en/analyze-and-explain-statements/
 
 ### Interpreting EXPLAIN
 
