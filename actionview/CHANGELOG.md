@@ -1,3 +1,7 @@
+*   Guard `token_list` calls from escaping HTML too often
+
+    *Sean Doyle*
+
 *   `select` can now be called with a single hash containing options and some HTML options
 
     Previously this would not work as expected:
