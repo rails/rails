@@ -7,7 +7,7 @@ class SerializationTest < ActiveModel::TestCase
   class User
     include ActiveModel::Serialization
 
-    attr_accessor :name, :email, :gender, :address, :friends
+    attr_accessor :name, :email, :gender, :address, :friends, :phone
 
     def initialize(name, email, gender)
       @name, @email, @gender = name, email, gender
@@ -15,7 +15,7 @@ class SerializationTest < ActiveModel::TestCase
     end
 
     def attributes
-      instance_values.except("address", "friends")
+      instance_values.except("address", "friends", "phone")
     end
 
     def method_missing(method_name, *args)
@@ -112,6 +112,11 @@ class SerializationTest < ActiveModel::TestCase
     @user.friends = []
     expected = { "email" => "david@example.com", "gender" => "male", "name" => "David", "friends" => [] }
     assert_equal expected, @user.serializable_hash(include: :friends)
+  end
+
+  def test_include_option_with_nil_association
+    expected = { "name" => "David", "gender" => "male", "email" => "david@example.com", "phone" => nil }
+    assert_equal expected, @user.serializable_hash(include: :phone)
   end
 
   class FriendList
