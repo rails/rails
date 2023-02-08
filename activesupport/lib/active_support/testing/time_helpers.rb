@@ -169,10 +169,21 @@ module ActiveSupport
           now = date_or_time.to_time.change(usec: 0)
         end
 
-        stubbed_time = Time.now if simple_stubs.stubbing(Time, :now)
-        simple_stubs.stub_object(Time, :now) { at(now.to_f) }
-        simple_stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
-        simple_stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
+        stubs = simple_stubs
+        stubbed_time = Time.now if stubs.stubbing(Time, :now)
+        stubs.stub_object(Time, :now) { at(now) }
+
+        stubs.stub_object(Time, :new) do |*args, **options|
+          if args.empty? && options.empty?
+            at(now)
+          else
+            stub = stubs.stubbing(Time, :new)
+            Time.send(stub.original_method, *args, **options)
+          end
+        end
+
+        stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
+        stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
 
         if block_given?
           begin

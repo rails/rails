@@ -1,3 +1,7 @@
+*   Stub `Time.new()` in `TimeHelpers#travel_to`
+
+    *fatkodima*
+
 *   Raise `ActiveSupport::MessageEncryptor::InvalidMessage` from
     `ActiveSupport::MessageEncryptor#decrypt_and_verify` regardless of cipher.
     Previously, when a `MessageEncryptor` was using a non-AEAD cipher such as
