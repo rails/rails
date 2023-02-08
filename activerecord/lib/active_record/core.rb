@@ -448,7 +448,7 @@ module ActiveRecord
     # In both instances, valid attribute keys are determined by the column names of the associated table --
     # hence you can't have attributes that aren't part of the table columns.
     #
-    # ==== Example:
+    # ==== Example
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
@@ -639,14 +639,14 @@ module ActiveRecord
     #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
     #
-    # === Parameters:
+    # ==== Parameters
     #
     # * value - Boolean specifying whether to enable or disable strict loading.
     # * mode - Symbol specifying strict loading mode. Defaults to :all. Using
     #          :n_plus_one_only mode will only raise an error if an association
     #          that will lead to an n plus one query is lazily loaded.
     #
-    # === Example:
+    # ==== Example
     #
     #   user = User.first
     #   user.strict_loading!(false) # => false

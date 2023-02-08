@@ -21,7 +21,7 @@ module ActionController
     # * <tt>String</tt> not containing a protocol - The current protocol and host is prepended to the string.
     # * <tt>Proc</tt> - A block that will be executed in the controller's context. Should return any option accepted by +redirect_to+.
     #
-    # === Examples:
+    # === Examples
     #
     #   redirect_to action: "show", id: 5
     #   redirect_to @post
