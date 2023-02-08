@@ -1,3 +1,7 @@
+*   Added option to show all headers for mailer previews
+
+    *Matt Swanson*
+
 *   Default `ActionMailer::Parameterized#params` to an empty `Hash`
 
     *Sean Doyle*

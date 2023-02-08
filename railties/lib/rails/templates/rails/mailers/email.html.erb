@@ -125,6 +125,22 @@
         </select>
       </dd>
     <% end %>
+    
+    <dt>Headers:</dt>
+    <dd>
+      <details>
+        <summary>Show all headers</summary>
+        <table>
+        <% @email.header_fields.each do |field| %>
+          <tr>
+            <td align="right" style="color: #7f7f7f"><%= field.name %>:</td>
+            <td><%= field.value %></td>
+          </tr>
+        <% end %>
+        </table>
+      </details>
+    </dd>
+
     <dt>EML File:</dt>
     <dd><%= link_to "Download", action: :download %></dd>
   </dl>
