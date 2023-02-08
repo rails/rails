@@ -188,7 +188,7 @@ module ActiveRecord
 
       def test_index_exists
         with_change_table do |t|
-          @connection.expect :index_exists?, nil, [:delete_me, :bar, {}]
+          @connection.expect :index_exists?, nil, [:delete_me, :bar]
           t.index_exists?(:bar)
         end
       end
