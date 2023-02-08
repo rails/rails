@@ -32,7 +32,7 @@ module ActiveRecord
 
         # Register callback to be invoked when an encrypted attribute is declared.
         #
-        # === Example:
+        # === Example
         #
         #   ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_name|
         #     ...
