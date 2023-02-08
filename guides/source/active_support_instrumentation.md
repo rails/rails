@@ -348,6 +348,13 @@ INFO. Additional keys may be added by the caller.
 
 ### Active Record
 
+#### strict_loading_violation.active_record
+
+| Key           | Value                                            |
+| ------------- | ------------------------------------------------ |
+| `:owner`      | Model with `strict_loading` enabled              |
+| `:reflection` | Reflection of the association that tried to load |
+
 #### sql.active_record
 
 | Key                  | Value                                    |
