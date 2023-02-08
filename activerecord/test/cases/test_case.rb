@@ -39,11 +39,13 @@ module ActiveRecord
       SQLCounter.clear_log
     end
 
-    def capture_sql
+    def capture_sql(output = nil)
       ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       yield
-      SQLCounter.log.dup
+      sql_logs = SQLCounter.log.dup
+    ensure
+      output.concat(sql_logs || SQLCounter.log.dup) if output
     end
 
     def assert_sql(*patterns_to_match, &block)
