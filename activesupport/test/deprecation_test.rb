@@ -88,6 +88,17 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "Module::deprecate without a deprecator is deprecated" do
+    klass = Class.new(Deprecatee)
+    _, deprecations = collect_deprecations(ActiveSupport.deprecator) do
+      klass.deprecate :zero
+    end
+    assert_match "Module.deprecate without a deprecator is deprecated", deprecations.sole
+    assert_deprecated(/zero is deprecated/) do
+      klass.new.zero
+    end
+  end
+
   test "DeprecatedObjectProxy" do
     deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:", @deprecator)
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
