@@ -149,50 +149,69 @@ module ActiveRecord
 
     alias extensions extending_values
 
-    # Specify relationships to be included in the result set. For
-    # example:
+    # Specify associations +args+ to be eager loaded to prevent N + 1 queries.
+    # A separate query is performed for each association, unless a join is
+    # required by conditions.
     #
-    #   users = User.includes(:address)
+    # For example:
+    #
+    #   users = User.includes(:address).limit(5)
     #   users.each do |user|
     #     user.address.city
     #   end
     #
-    # allows you to access the +address+ attribute of the +User+ model without
-    # firing an additional query. This will often result in a
-    # performance improvement over a simple join.
+    #   # SELECT "users".* FROM "users" LIMIT 5
+    #   # SELECT "addresses".* FROM "addresses" WHERE "addresses"."id" IN (1,2,3,4,5)
     #
-    # You can also specify multiple relationships, like this:
+    # Instead of loading the 5 addresses with 5 separate queries, all addresses
+    # are loaded with a single query.
     #
-    #   users = User.includes(:address, :friends)
+    # Loading the associations in a separate query will often result in a
+    # performance improvement over a simple join, as a join can result in many
+    # rows that contain redundant data and it performs poorly at scale.
     #
-    # Loading nested relationships is possible using a Hash:
+    # You can also specify multiple associations. Each association will result
+    # in an additional query:
     #
-    #   users = User.includes(:address, friends: [:address, :followers])
+    #   User.includes(:address, :friends).to_a
+    #   # SELECT "users".* FROM "users"
+    #   # SELECT "addresses".* FROM "addresses" WHERE "addresses"."id" IN (1,2,3,4,5)
+    #   # SELECT "friends".* FROM "friends" WHERE "friends"."user_id" IN (1,2,3,4,5)
+    #
+    # Loading nested associations is possible using a Hash:
+    #
+    #   User.includes(:address, friends: [:address, :followers])
     #
     # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
     #
-    #   User.includes(:posts).where('posts.name = ?', 'example')
+    #   User.includes(:posts).where('posts.name = ?', 'example').to_a
     #
     # Will throw an error, but this will work:
     #
-    #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
+    #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts).to_a
+    #   # SELECT "users"."id" AS t0_r0, ... FROM "users"
+    #   #   LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   #   WHERE "posts"."name" = ?  [["name", "example"]]
+    #
+    # As the LEFT OUTER JOIN already contains the posts, the second query for
+    # the posts is no longer performed.
     #
     # Note that #includes works with association names while #references needs
     # the actual table name.
     #
-    # If you pass the conditions via hash, you don't need to call #references
+    # If you pass the conditions via a Hash, you don't need to call #references
     # explicitly, as #where references the tables for you. For example, this
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
     #
-    # Conditions affect both sides of an association.  For example, the above
-    # code will return only users that have a post named "example", <em>and will
-    # only include posts named "example"</em>, even when a matching user has
-    # other additional posts.
+    # NOTE: Conditions affect both sides of an association. For example, the
+    # above code will return only users that have a post named "example",
+    # <em>and will only include posts named "example"</em>, even when a
+    # matching user has other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
