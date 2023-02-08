@@ -3793,6 +3793,32 @@ module ApplicationTests
       assert_equal :hybrid, ActiveSupport::MessageVerifier.default_message_verifier_serializer
     end
 
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata is true by default for new apps" do
+      app "development"
+
+      assert ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+    end
+
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_not ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+    end
+
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata can be configured via config.active_support.use_message_serializer_for_metadata" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<~RUBY
+        Rails.application.config.active_support.use_message_serializer_for_metadata = true
+      RUBY
+
+      app "development"
+
+      assert ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+    end
+
     test "unknown_asset_fallback is false by default" do
       app "development"
 

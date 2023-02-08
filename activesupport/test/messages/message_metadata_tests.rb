@@ -2,6 +2,7 @@
 
 require "active_support/json"
 require "active_support/time"
+require "active_support/messages/metadata"
 
 module MessageMetadataTests
   extend ActiveSupport::Concern
@@ -89,6 +90,17 @@ module MessageMetadataTests
       codec = make_codec(serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       assert_roundtrip "a string", codec, { purpose: "x", expires_in: 1.year }, { purpose: "x" }
     end
+
+    test "messages are readable regardless of use_message_serializer_for_metadata" do
+      each_scenario do |data, codec|
+        message = encode(data, codec, purpose: "x")
+        message_setting = ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+
+        using_message_serializer_for_metadata(!message_setting) do
+          assert_equal data, decode(message, codec, purpose: "x")
+        end
+      end
+    end
   end
 
   private
@@ -116,11 +128,23 @@ module MessageMetadataTests
       ["a string", 123, Time.local(2004), { "key" => "value" }],
     ]
 
+    def using_message_serializer_for_metadata(value = true)
+      original = ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+      ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata = value
+      yield
+    ensure
+      ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata = original
+    end
+
     def each_scenario
-      SERIALIZERS.each do |serializer|
-        codec = make_codec(serializer: serializer)
-        DATA.each do |data|
-          yield data, codec
+      [false, true].each do |use_message_serializer_for_metadata|
+        using_message_serializer_for_metadata(use_message_serializer_for_metadata) do
+          SERIALIZERS.each do |serializer|
+            codec = make_codec(serializer: serializer)
+            DATA.each do |data|
+              yield data, codec
+            end
+          end
         end
       end
     end

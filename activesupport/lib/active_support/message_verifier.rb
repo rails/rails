@@ -119,6 +119,7 @@ module ActiveSupport
   #   @verifier = ActiveSupport::MessageVerifier.new("secret", url_safe: true)
   #   @verifier.generate("signed message") #=> URL-safe string
   class MessageVerifier
+    include Messages::Metadata
     prepend Messages::Rotator::Verifier
 
     class InvalidSignature < StandardError; end
@@ -198,8 +199,7 @@ module ActiveSupport
       data, digest = get_data_and_digest_from(signed_message)
       if digest_matches_data?(digest, data)
         begin
-          message = Messages::Metadata.verify(decode(data), purpose)
-          @serializer.load(message) if message
+          deserialize_with_metadata(decode(data), purpose: purpose)
         rescue ArgumentError => argument_error
           return if argument_error.message.include?("invalid base64")
           raise
@@ -274,11 +274,14 @@ module ActiveSupport
     #   specified when verifying the message; otherwise, verification will fail.
     #   (See #verified and #verify.)
     def generate(value, expires_at: nil, expires_in: nil, purpose: nil)
-      data = encode(Messages::Metadata.wrap(@serializer.dump(value), expires_at: expires_at, expires_in: expires_in, purpose: purpose))
-      "#{data}#{SEPARATOR}#{generate_digest(data)}"
+      data = encode(serialize_with_metadata(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose))
+      digest = generate_digest(data)
+      data << SEPARATOR << digest
     end
 
     private
+      attr_reader :serializer
+
       def encode(data)
         @url_safe ? Base64.urlsafe_encode64(data, padding: false) : Base64.strict_encode64(data)
       end
