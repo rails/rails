@@ -641,17 +641,22 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * value - Boolean specifying whether to enable or disable strict loading.
-    # * mode - Symbol specifying strict loading mode. Defaults to :all. Using
-    #          :n_plus_one_only mode will only raise an error if an association
-    #          that will lead to an n plus one query is lazily loaded.
+    # * +value+ - Boolean specifying whether to enable or disable strict loading.
+    # * <tt>:mode</tt> - Symbol specifying strict loading mode. Defaults to :all. Using
+    #   :n_plus_one_only mode will only raise an error if an association that
+    #   will lead to an n plus one query is lazily loaded.
     #
-    # ==== Example
+    # ==== Examples
     #
     #   user = User.first
     #   user.strict_loading!(false) # => false
     #   user.comments
     #   => #<ActiveRecord::Associations::CollectionProxy>
+    #
+    #   user.strict_loading!(mode: :n_plus_one_only)
+    #   user.address.city # => "Tatooine"
+    #   user.comments
+    #   => ActiveRecord::StrictLoadingViolationError
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."
