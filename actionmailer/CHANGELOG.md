@@ -1,3 +1,7 @@
+*   Added option to show all headers for mailer previews
+
+    *Matt Swanson*
+
 *   Added ability to download `.eml` file for the email preview.
 
     *Igor Kasyanchuk*
