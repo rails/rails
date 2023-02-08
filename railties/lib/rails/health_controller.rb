@@ -24,10 +24,10 @@
 #
 # NOTE: This endpoint does not reflect the status of all of your application's
 # dependencies, such as the database or redis cluster. Replace
-# <tt>"rails/heath#show"</tt> with your own controller action if you have
+# <tt>"rails/health#show"</tt> with your own controller action if you have
 # application specific needs.
 #
-# Think carefully about what you what to check as it can lead to situations
+# Think carefully about what you want to check as it can lead to situations
 # where your application is being restarted due to a third-party service going
 # bad. Ideally, you should design your application to handle those outages
 # gracefully.
