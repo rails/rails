@@ -627,7 +627,7 @@ module ActiveRecord
         # to build `where` clause from default scopes.
         # Skips empty scopes.
         def build_default_constraint
-          return unless default_scopes?(all_queries: true)
+          return if current_scope || default_scopes?(all_queries: true).blank?
 
           default_where_clause = default_scoped(all_queries: true).where_clause
           default_where_clause.ast unless default_where_clause.empty?
