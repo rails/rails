@@ -780,6 +780,15 @@ Note the following caveats:
 * Any necessary compressors or minifiers must be available on your development
   system.
 
+You can also set `ENV["SECRET_KEY_BASE_DUMMY"]` to trigger the use of a randomly
+generated `secret_key_base` that's stored in a temporary file. This is useful
+when precompiling assets for production as part of a build step that otherwise
+does not need access to the production secrets.
+
+```bash
+$ SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+```
+
 ### Live Compilation
 
 In some circumstances you may wish to use live compilation. In this mode all
