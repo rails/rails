@@ -302,6 +302,12 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal instance.foo_bar.inspect, fubar_inspected
   end
 
+  test "DeprecatedInstanceVariableProxy without a deprecator is deprecated" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(Deprecatee.new, :foobar, "@fubar")
+    end
+  end
+
   test "DeprecatedConstantProxy" do
     proxy = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("FUBAR", "Undeprecated::Foo::BAR", @deprecator)
 

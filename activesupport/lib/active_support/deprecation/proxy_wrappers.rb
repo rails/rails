@@ -53,15 +53,15 @@ module ActiveSupport
         end
     end
 
-    # DeprecatedInstanceVariableProxy transforms an instance variable into a
-    # deprecated one. It takes an instance of a class, a method on that class
-    # and an instance variable. It optionally takes a deprecator as the last
-    # argument. The deprecator defaults to +ActiveSupport::Deprecator+ if none
-    # is specified.
+    # DeprecatedInstanceVariableProxy transforms an instance variable into a deprecated one. It takes an instance of a
+    # class, a method on that class, an instance variable, and a deprecator as the last argument.
+    #
+    # Trying to use the deprecated instance variable will result in a deprecation warning, pointing to the method as a
+    # replacement.
     #
     #   class Example
     #     def initialize
-    #       @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request)
+    #       @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, ActiveSupport::Deprecation.new)
     #       @_request = :special_request
     #     end
     #
@@ -86,11 +86,12 @@ module ActiveSupport
     #   example.request.to_s
     #   # => "special_request"
     class DeprecatedInstanceVariableProxy < DeprecationProxy
-      def initialize(instance, method, var = "@#{method}", deprecator = ActiveSupport::Deprecation.instance)
+      def initialize(instance, method, var = "@#{method}", deprecator = nil)
         @instance = instance
         @method = method
         @var = var
-        @deprecator = deprecator
+        ActiveSupport.deprecator.warn("DeprecatedInstanceVariableProxy without a deprecator is deprecated") unless deprecator
+        @deprecator = deprecator || ActiveSupport::Deprecation.instance
       end
 
       private
