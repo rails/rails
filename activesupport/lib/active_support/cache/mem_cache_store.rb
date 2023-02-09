@@ -28,6 +28,10 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
+      # These options represent behavior overridden by this implementation and should
+      # not be allowed to get down to the Dalli client
+      OVERRIDDEN_OPTIONS = UNIVERSAL_OPTIONS
+
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
         true
@@ -108,6 +112,7 @@ module ActiveSupport
       #
       # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
       # MemCacheStore will connect to localhost:11211 (the default memcached port).
+      # Passing a +Dalli::Client+ instance is deprecated and will be removed. Please pass an address instead.
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
@@ -117,15 +122,19 @@ module ActiveSupport
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
-          raise ArgumentError, "First argument must be an empty array, an array of hosts or a Dalli::Client instance."
+          raise ArgumentError, "First argument must be an empty array, address, or array of addresses."
         end
         if addresses.first.is_a?(Dalli::Client)
+          ActiveSupport.deprecator.warn(<<~MSG)
+            Initializing MemCacheStore with a Dalli::Client is deprecated and will be removed in Rails 7.2.
+            Use memcached server addresses instead.
+          MSG
           @data = addresses.first
         else
           mem_cache_options = options.dup
           # The value "compress: false" prevents duplicate compression within Dalli.
           mem_cache_options[:compress] = false
-          (UNIVERSAL_OPTIONS - %i(compress)).each { |name| mem_cache_options.delete(name) }
+          (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| mem_cache_options.delete(name) }
           @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
       end
