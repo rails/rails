@@ -87,16 +87,14 @@ module ActionView
         @view_paths_by_class[klass] = paths
       end
 
-      def self.all_resolvers
-        @all_view_paths.values.map(&:to_a).flatten.uniq
-      end
-
       def self.file_system_resolver(path)
         path = File.expand_path(path)
         resolver = @file_system_resolvers[path]
         unless resolver
-          resolver = @file_system_resolvers.fetch_or_store(path) do
-            FileSystemResolver.new(path)
+          run_callbacks(:build_file_system_resolver) do
+            resolver = @file_system_resolvers.fetch_or_store(path) do
+              FileSystemResolver.new(path)
+            end
           end
         end
         resolver
