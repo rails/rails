@@ -39,9 +39,23 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "assert_deprecated is deprecated without a deprecator" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_deprecated do
+        ActiveSupport::Deprecation.warn
+      end
+    end
+  end
+
   test "assert_not_deprecated" do
     assert_not_deprecated(@deprecator) do
       1 + 1
+    end
+  end
+
+  test "assert_not_deprecated is deprecated without a deprecator" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_not_deprecated { }
     end
   end
 
@@ -53,6 +67,12 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 2, result.size
     assert_equal :result, result.first
     assert_match "DEPRECATION WARNING:", result.last.sole
+  end
+
+  test "collect_deprecations is deprecated without a deprecator" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      collect_deprecations { }
+    end
   end
 
   test "Module::deprecate" do
@@ -94,7 +114,7 @@ class DeprecationTest < ActiveSupport::TestCase
       klass.deprecate :zero
     end
     assert_match "Module.deprecate without a deprecator is deprecated", deprecations.sole
-    assert_deprecated(/zero is deprecated/) do
+    assert_deprecated(/zero is deprecated/, ActiveSupport::Deprecation) do
       klass.new.zero
     end
   end
@@ -346,8 +366,8 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "assert_deprecated without match argument" do
-    assert_deprecated do
-      ActiveSupport::Deprecation.warn
+    assert_deprecated(@deprecator) do
+      @deprecator.warn
     end
   end
 
