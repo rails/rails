@@ -819,10 +819,14 @@ This event is only emitted when using the Google Cloud Storage service.
 
 #### `deprecation.rails`
 
-| Key          | Value                           |
-| ------------ | ------------------------------- |
-| `:message`   | The deprecation warning         |
-| `:callstack` | Where the deprecation came from |
+| Key                    | Value                                                 |
+| ---------------------- | ------------------------------------------------------|
+| `:message`             | The deprecation warning                               |
+| `:callstack`           | Where the deprecation came from                       |
+| `:gem_name`            | Name of the gem reporting the deprecation             |
+| `:deprecation_horizon` | Version where the deprecated behavior will be removed |
+
+NOTE: Each framework will also emit their own namespaced `deprecation` events.
 
 Exceptions
 ----------
