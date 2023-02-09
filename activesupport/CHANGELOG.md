@@ -1,3 +1,19 @@
+*   Maintain `html_safe?` on html_safe strings when sliced with `slice`, `slice!`, or `chr` method.
+
+    Previously, `html_safe?` was only maintained when the html_safe strings were sliced
+    with `[]` method. Now, `slice`, `slice!`, and `chr` methods will maintain `html_safe?` like `[]` method.
+
+    ```ruby
+    string = "<div>test</div>".html_safe
+    string.slice(0, 1).html_safe? # => true
+    string.slice!(0, 1).html_safe? # => true
+    # maintain html_safe? after the slice!
+    string.html_safe? # => true
+    string.chr # => true
+    ```
+
+    *Michael Go*
+
 *   `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
 
     Previously it would only raise when called in a view or controller. Now it will raise

@@ -19,7 +19,7 @@ module ActiveSupport # :nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix
-      downcase lstrip next reverse rstrip scrub slice squeeze strip
+      downcase lstrip next reverse rstrip scrub squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
     )
 
@@ -41,12 +41,25 @@ module ActiveSupport # :nodoc:
 
         return unless new_string
 
-        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
-        new_safe_buffer.instance_variable_set :@html_safe, true
-        new_safe_buffer
+        string_into_safe_buffer(new_string, true)
       else
         to_str[*args]
       end
+    end
+    alias_method :slice, :[]
+
+    def slice!(*args)
+      new_string = super
+
+      return new_string if !html_safe? || new_string.nil?
+
+      string_into_safe_buffer(new_string, true)
+    end
+
+    def chr
+      return super unless html_safe?
+
+      string_into_safe_buffer(super, true)
     end
 
     def safe_concat(value)
@@ -208,6 +221,12 @@ module ActiveSupport # :nodoc:
         block.binding.eval("proc { |m| $~ = m }").call(match_data)
       rescue ArgumentError
         # Can't create binding from C level Proc
+      end
+
+      def string_into_safe_buffer(new_string, is_html_safe)
+        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
+        new_safe_buffer.instance_variable_set :@html_safe, is_html_safe
+        new_safe_buffer
       end
   end
 end
