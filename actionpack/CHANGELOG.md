@@ -2,8 +2,8 @@
 
     ```ruby
     get "/posts?password=test"
-    request.full_path         # => "/posts?password=test"
-    response.filtered_path    # => "/posts?password=[FILTERED]"
+    request.fullpath         # => "/posts?password=test"
+    request.filtered_path    # => "/posts?password=[FILTERED]"
     ```
 
     *Ritikesh G*
