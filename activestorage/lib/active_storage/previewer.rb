@@ -65,7 +65,12 @@ module ActiveStorage
       end
 
       def instrument(operation, payload = {}, &block)
-        ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
+        ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload.merge(service: service_name), &block
+      end
+
+      def service_name
+        # ActiveStorage::Service::DiskService => Disk
+        blob.service.class.to_s.split("::").third.remove("Service")
       end
 
       def capture(*argv, to:)

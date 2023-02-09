@@ -19,6 +19,14 @@ module ActiveRecord
       #
       #   sanitize_sql_for_conditions("name='foo''bar' and group_id='4'")
       #   # => "name='foo''bar' and group_id='4'"
+      #
+      # Note that this sanitization method is not schema-aware, hence won't do any type casting
+      # and will directly use the database adapter's +quote+ method.
+      # For MySQL specifically this means that numeric parameters will be quoted as strings
+      # to prevent query manipulation attacks.
+      #
+      #   sanitize_sql_for_conditions(["role = ?", 0])
+      #   # => "role = '0'"
       def sanitize_sql_for_conditions(condition)
         return nil if condition.blank?
 
@@ -43,6 +51,14 @@ module ActiveRecord
       #
       #   sanitize_sql_for_assignment("name=NULL and group_id='4'")
       #   # => "name=NULL and group_id='4'"
+      #
+      # Note that this sanitization method is not schema-aware, hence won't do any type casting
+      # and will directly use the database adapter's +quote+ method.
+      # For MySQL specifically this means that numeric parameters will be quoted as strings
+      # to prevent query manipulation attacks.
+      #
+      #   sanitize_sql_for_assignment(["role = ?", 0])
+      #   # => "role = '0'"
       def sanitize_sql_for_assignment(assignments, default_table_name = table_name)
         case assignments
         when Array; sanitize_sql_array(assignments)
@@ -125,6 +141,14 @@ module ActiveRecord
       #
       #   sanitize_sql_array(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
+      #
+      # Note that this sanitization method is not schema-aware, hence won't do any type casting
+      # and will directly use the database adapter's +quote+ method.
+      # For MySQL specifically this means that numeric parameters will be quoted as strings
+      # to prevent query manipulation attacks.
+      #
+      #   sanitize_sql_array(["role = ?", 0])
+      #   # => "role = '0'"
       def sanitize_sql_array(ary)
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
@@ -191,13 +215,13 @@ module ActiveRecord
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?
-              c.quote_bound_value(nil)
+              c.quote(c.cast_bound_value(nil))
             else
-              values.map! { |v| c.quote_bound_value(v) }.join(",")
+              values.map! { |v| c.quote(c.cast_bound_value(v)) }.join(",")
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)
-            c.quote_bound_value(value)
+            c.quote(c.cast_bound_value(value))
           end
         end
 

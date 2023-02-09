@@ -147,6 +147,27 @@ module ApplicationTests
       assert_equal sorted, middleware
     end
 
+    test "ActionDispatch::HostAuthorization is not included if no hosts are configured" do
+      add_to_config "config.hosts = []"
+      boot!
+
+      assert_not_includes middleware, "ActionDispatch::HostAuthorization"
+    end
+
+    test "ActionDispatch::HostAuthorization is not included if hosts is set to nil" do
+      add_to_config "config.hosts = nil"
+      boot!
+
+      assert_not_includes middleware, "ActionDispatch::HostAuthorization"
+    end
+
+    test "ActionDispatch::HostAuthorization is included if hosts is set to IPAddr" do
+      add_to_config "config.hosts = IPAddr.new('0.0.0.0/0')"
+      boot!
+
+      assert_includes middleware, "ActionDispatch::HostAuthorization"
+    end
+
     test "Rack::Cache is not included by default" do
       boot!
 
@@ -167,6 +188,12 @@ module ApplicationTests
       boot!
 
       assert_includes middleware, "ActiveRecord::Migration::CheckPending"
+    end
+
+    test "ActionDispatch::AssumeSSL is present when assume_ssl is set" do
+      add_to_config "config.assume_ssl = true"
+      boot!
+      assert_includes middleware, "ActionDispatch::AssumeSSL"
     end
 
     test "ActionDispatch::SSL is present when force_ssl is set" do

@@ -26,7 +26,7 @@ module ActiveRecord
     end
 
     teardown do
-      ActiveRecord::Base.clear_active_connections!(:all)
+      ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
       ActiveRecord::Base.connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
@@ -76,6 +76,57 @@ module ActiveRecord
         end
       end
       assert_predicate connection, :active?
+    end
+
+    test "rollback exception is swallowed after a rollback" do
+      barrier = Concurrent::CyclicBarrier.new(2)
+      deadlocks = 0
+
+      s1 = Sample.create value: 1
+      s2 = Sample.create value: 2
+
+      thread = Thread.new do
+        Sample.transaction(requires_new: false) do
+          make_parent_transaction_dirty
+          Sample.transaction(requires_new: true) do
+            assert_current_transaction_is_savepoint_transaction
+            s1.lock!
+            barrier.wait
+            s2.update value: 4
+
+          rescue ActiveRecord::Deadlocked
+            deadlocks += 1
+
+            # This rollback is actually wrong as mysql automatically rollbacks the transaction
+            # which means we have nothing to rollback on the db side
+            # but we expect the framework to handle our mistake gracefully
+            raise ActiveRecord::Rollback
+          end
+
+          s2.update value: 10
+        end
+      end
+
+      begin
+        Sample.transaction(requires_new: false) do
+          make_parent_transaction_dirty
+          Sample.transaction(requires_new: true) do
+            assert_current_transaction_is_savepoint_transaction
+            s2.lock!
+            barrier.wait
+            s1.update value: 3
+          rescue ActiveRecord::Deadlocked
+            deadlocks += 1
+            raise ActiveRecord::Rollback
+          end
+          s1.update value: 10
+        end
+      ensure
+        thread.join
+      end
+
+      assert_equal 1, deadlocks, "deadlock is required for the test setup"
+      assert_equal [10, 10], Sample.pluck(:value)
     end
 
     test "deadlock inside nested SavepointTransaction is recoverable" do

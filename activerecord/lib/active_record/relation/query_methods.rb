@@ -149,50 +149,69 @@ module ActiveRecord
 
     alias extensions extending_values
 
-    # Specify relationships to be included in the result set. For
-    # example:
+    # Specify associations +args+ to be eager loaded to prevent N + 1 queries.
+    # A separate query is performed for each association, unless a join is
+    # required by conditions.
     #
-    #   users = User.includes(:address)
+    # For example:
+    #
+    #   users = User.includes(:address).limit(5)
     #   users.each do |user|
     #     user.address.city
     #   end
     #
-    # allows you to access the +address+ attribute of the +User+ model without
-    # firing an additional query. This will often result in a
-    # performance improvement over a simple join.
+    #   # SELECT "users".* FROM "users" LIMIT 5
+    #   # SELECT "addresses".* FROM "addresses" WHERE "addresses"."id" IN (1,2,3,4,5)
     #
-    # You can also specify multiple relationships, like this:
+    # Instead of loading the 5 addresses with 5 separate queries, all addresses
+    # are loaded with a single query.
     #
-    #   users = User.includes(:address, :friends)
+    # Loading the associations in a separate query will often result in a
+    # performance improvement over a simple join, as a join can result in many
+    # rows that contain redundant data and it performs poorly at scale.
     #
-    # Loading nested relationships is possible using a Hash:
+    # You can also specify multiple associations. Each association will result
+    # in an additional query:
     #
-    #   users = User.includes(:address, friends: [:address, :followers])
+    #   User.includes(:address, :friends).to_a
+    #   # SELECT "users".* FROM "users"
+    #   # SELECT "addresses".* FROM "addresses" WHERE "addresses"."id" IN (1,2,3,4,5)
+    #   # SELECT "friends".* FROM "friends" WHERE "friends"."user_id" IN (1,2,3,4,5)
+    #
+    # Loading nested associations is possible using a Hash:
+    #
+    #   User.includes(:address, friends: [:address, :followers])
     #
     # === Conditions
     #
     # If you want to add string conditions to your included models, you'll have
     # to explicitly reference them. For example:
     #
-    #   User.includes(:posts).where('posts.name = ?', 'example')
+    #   User.includes(:posts).where('posts.name = ?', 'example').to_a
     #
     # Will throw an error, but this will work:
     #
-    #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
+    #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts).to_a
+    #   # SELECT "users"."id" AS t0_r0, ... FROM "users"
+    #   #   LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   #   WHERE "posts"."name" = ?  [["name", "example"]]
+    #
+    # As the LEFT OUTER JOIN already contains the posts, the second query for
+    # the posts is no longer performed.
     #
     # Note that #includes works with association names while #references needs
     # the actual table name.
     #
-    # If you pass the conditions via hash, you don't need to call #references
+    # If you pass the conditions via a Hash, you don't need to call #references
     # explicitly, as #where references the tables for you. For example, this
     # will work correctly:
     #
     #   User.includes(:posts).where(posts: { name: 'example' })
     #
-    # Conditions affect both sides of an association.  For example, the above
-    # code will return only users that have a post named "example", <em>and will
-    # only include posts named "example"</em>, even when a matching user has
-    # other additional posts.
+    # NOTE: Conditions affect both sides of an association. For example, the
+    # above code will return only users that have a post named "example",
+    # <em>and will only include posts named "example"</em>, even when a
+    # matching user has other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.includes!(*args)
@@ -362,9 +381,9 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts JOIN posts_with_tags ON posts_with_tags.id = posts.id
     #
-    # It is recommended to pass a query as `ActiveRecord::Relation`. If that is not possible
+    # It is recommended to pass a query as ActiveRecord::Relation. If that is not possible
     # and you have verified it is safe for the database, you can pass it as SQL literal
-    # using `Arel`.
+    # using +Arel+.
     #
     #   Post.with(popular_posts: Arel.sql("... complex sql to calculate posts popularity ..."))
     #
@@ -378,7 +397,7 @@ module ActiveRecord
     #     posts_with_tags: Post.where("tags_count > ?", 0)
     #   )
     #
-    # or chain multiple `.with` calls
+    # or chain multiple +.with+ calls
     #
     #   Post
     #     .with(posts_with_comments: Post.where("comments_count > ?", 0))
@@ -406,6 +425,7 @@ module ActiveRecord
     # Note that we're unscoping the entire select statement.
     def reselect(*args)
       check_if_method_has_arguments!(__callee__, args)
+      args = process_select_args(args)
       spawn.reselect!(*args)
     end
 
@@ -442,6 +462,27 @@ module ActiveRecord
 
     def group!(*args) # :nodoc:
       self.group_values += args
+      self
+    end
+
+    # Allows you to change a previously set group statement.
+    #
+    #   Post.group(:title, :body)
+    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`, `posts`.`body`
+    #
+    #   Post.group(:title, :body).regroup(:title)
+    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`
+    #
+    # This is short-hand for <tt>unscope(:group).group(fields)</tt>.
+    # Note that we're unscoping the entire group statement.
+    def regroup(*args)
+      check_if_method_has_arguments!(__callee__, args)
+      spawn.regroup!(*args)
+    end
+
+    # Same as #regroup but operates on relation in-place instead of copying.
+    def regroup!(*args) # :nodoc:
+      self.group_values = args
       self
     end
 
@@ -511,13 +552,16 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an order by a specific set of values. Depending on your
-    # adapter this will either use a CASE statement or a built-in function.
+    # Allows to specify an order by a specific set of values.
     #
     #   User.in_order_of(:id, [1, 5, 3])
     #   # SELECT "users".* FROM "users"
-    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
     #   #   WHERE "users"."id" IN (1, 5, 3)
+    #   #   ORDER BY CASE
+    #   #     WHEN "users"."id" = 1 THEN 1
+    #   #     WHEN "users"."id" = 5 THEN 2
+    #   #     WHEN "users"."id" = 3 THEN 3
+    #   #   END ASC
     #
     def in_order_of(column, values)
       klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
@@ -568,7 +612,8 @@ module ActiveRecord
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
-                                     :includes, :from, :readonly, :having, :optimizer_hints])
+                                     :includes, :eager_load, :preload, :from, :readonly,
+                                     :having, :optimizer_hints])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -678,7 +723,7 @@ module ActiveRecord
     # Performs LEFT OUTER JOINs on +args+:
     #
     #   User.left_outer_joins(:posts)
-    #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
+    #   # SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)
@@ -1304,6 +1349,8 @@ module ActiveRecord
     #   # SELECT "users"."name" FROM "users" /* selecting */ /* user */ /* names */
     #
     # The SQL block comment delimiters, "/*" and "*/", will be added automatically.
+    #
+    # Some escaping is performed, however untrusted user input should not be used.
     def annotate(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.annotate!(*args)
@@ -1511,9 +1558,6 @@ module ActiveRecord
           end
         end
         result
-      end
-
-      class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
       end
 
       def build_join_buckets

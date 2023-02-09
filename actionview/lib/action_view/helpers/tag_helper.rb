@@ -363,7 +363,7 @@ module ActionView
       #   token_list(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
       def token_list(*args)
-        tokens = build_tag_values(*args).flat_map { |value| value.to_s.split(/\s+/) }.uniq
+        tokens = build_tag_values(*args).flat_map { |value| CGI.unescape_html(value.to_s).split(/\s+/) }.uniq
 
         safe_join(tokens, " ")
       end

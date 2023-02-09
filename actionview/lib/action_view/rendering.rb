@@ -10,7 +10,8 @@ module ActionView
 
     def initialize(original_config, lookup_context)
       original_config = original_config.original_config if original_config.respond_to?(:original_config)
-      @original_config, @lookup_context = original_config, lookup_context
+      @original_config = original_config
+      @lookup_context = lookup_context
     end
 
     def locale

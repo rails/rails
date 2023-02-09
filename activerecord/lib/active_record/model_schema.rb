@@ -316,11 +316,7 @@ module ActiveRecord
       # The list of columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns
-        if defined?(@ignored_columns)
-          @ignored_columns
-        else
-          superclass.ignored_columns
-        end
+        @ignored_columns || superclass.ignored_columns
       end
 
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
@@ -549,10 +545,35 @@ module ActiveRecord
           @load_schema_monitor = Monitor.new
         end
 
+        def reload_schema_from_cache(recursive = true)
+          @arel_table = nil
+          @column_names = nil
+          @symbol_column_to_string_name_hash = nil
+          @attribute_types = nil
+          @content_columns = nil
+          @default_attributes = nil
+          @column_defaults = nil
+          @attributes_builder = nil
+          @columns = nil
+          @columns_hash = nil
+          @schema_loaded = false
+          @attribute_names = nil
+          @yaml_encoder = nil
+          if recursive
+            subclasses.each do |descendant|
+              descendant.send(:reload_schema_from_cache)
+            end
+          end
+        end
+
       private
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
+          child_class.reload_schema_from_cache(false)
+          child_class.class_eval do
+            @ignored_columns = nil
+          end
         end
 
         def schema_loaded?
@@ -562,7 +583,7 @@ module ActiveRecord
         def load_schema
           return if schema_loaded?
           @load_schema_monitor.synchronize do
-            return if defined?(@columns_hash) && @columns_hash
+            return if @columns_hash
 
             load_schema!
 
@@ -593,25 +614,6 @@ module ActiveRecord
           end
 
           super
-        end
-
-        def reload_schema_from_cache
-          @arel_table = nil
-          @column_names = nil
-          @symbol_column_to_string_name_hash = nil
-          @attribute_types = nil
-          @content_columns = nil
-          @default_attributes = nil
-          @column_defaults = nil
-          @attributes_builder = nil
-          @columns = nil
-          @columns_hash = nil
-          @schema_loaded = false
-          @attribute_names = nil
-          @yaml_encoder = nil
-          subclasses.each do |descendant|
-            descendant.send(:reload_schema_from_cache)
-          end
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.

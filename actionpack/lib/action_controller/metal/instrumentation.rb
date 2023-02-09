@@ -16,6 +16,11 @@ module ActionController
 
     attr_internal :view_runtime
 
+    def initialize(...) # :nodoc:
+      super
+      self.view_runtime = nil
+    end
+
     def render(*)
       render_output = nil
       self.view_runtime = cleanup_view_runtime do
@@ -58,7 +63,7 @@ module ActionController
           headers: request.headers,
           format: request.format.ref,
           method: request.request_method,
-          path: request.fullpath
+          path: request.filtered_path
         }
 
         ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)

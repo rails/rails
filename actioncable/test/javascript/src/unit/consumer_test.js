@@ -16,4 +16,12 @@ module("ActionCable.Consumer", () => {
     client.addEventListener("close", done)
     consumer.disconnect()
   })
+
+  consumerTest("#addSubProtocol", {subprotocols: "some subprotocol"}, ({consumer, server, assert, done}) => {
+    server.on("connection", () => {
+      assert.equal(consumer.subprotocols.length, 1)
+      assert.equal(consumer.subprotocols[0], "some subprotocol")
+      done()
+    })
+  })
 })

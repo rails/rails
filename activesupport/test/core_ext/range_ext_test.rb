@@ -30,7 +30,7 @@ class RangeTest < ActiveSupport::TestCase
   def test_to_s_with_format
     number_range = (1..100)
 
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "BETWEEN '1' AND '100'", number_range.to_s(:db)
     end
   end
@@ -38,7 +38,7 @@ class RangeTest < ActiveSupport::TestCase
   def test_to_s_with_format_invalid_format
     number_range = (1..100)
 
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "1..100", number_range.to_s(:not_existent)
     end
   end

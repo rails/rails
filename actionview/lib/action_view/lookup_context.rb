@@ -262,12 +262,12 @@ module ActionView
         values.concat(default_formats) if values.delete "*/*"
         values.uniq!
 
-        invalid_values = (values - Template::Types.symbols)
-        unless invalid_values.empty?
+        unless values.all? { |v| Template::Types.symbols.include?(v) }
+          invalid_values = values - Template::Types.symbols
           raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
         end
 
-        if values == [:js]
+        if (values.length == 1) && (values[0] == :js)
           values << :html
           @html_fallback_for_js = true
         end

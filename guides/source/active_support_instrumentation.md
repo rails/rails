@@ -16,7 +16,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction to instrumentation
+Introduction to Instrumentation
 -------------------------------
 
 The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the [Rails framework](#rails-framework-hooks). With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
@@ -25,7 +25,7 @@ For example, there is a hook provided within Active Record that is called every 
 
 You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
 
-Subscribing to an event
+Subscribing to an Event
 -----------------------
 
 Subscribing to an event is easy. Use `ActiveSupport::Notifications.subscribe` with a block to
@@ -277,6 +277,12 @@ INFO. Additional keys may be added by the caller.
 | `:location` | URL to redirect to            |
 | `:request`  | The `ActionDispatch::Request` |
 
+#### request.action_dispatch
+
+| Key         | Value                         |
+| ----------- | ----------------------------- |
+| `:request`  | The `ActionDispatch::Request` |
+
 ### Action View
 
 #### render_template.action_view
@@ -366,6 +372,15 @@ INFO. The adapters will add their own data as well.
   statement_name: nil
 }
 ```
+
+#### strict_loading_violation.active_record
+
+| Key           | Value                                            |
+| ------------- | ------------------------------------------------ |
+| `:owner`      | Model with `strict_loading` enabled              |
+| `:reflection` | Reflection of the association that tried to load |
+
+INFO. This event is only emitted when `config.active_record.action_on_strict_loading_violation` is set to `:log`.
 
 #### instantiation.active_record
 
@@ -731,10 +746,14 @@ INFO. The only ActiveStorage service that provides this hook so far is GCS.
 
 #### deprecation.rails
 
-| Key          | Value                           |
-| ------------ | ------------------------------- |
-| `:message`   | The deprecation warning         |
-| `:callstack` | Where the deprecation came from |
+| Key                    | Value                                                 |
+| ---------------------- | ------------------------------------------------------|
+| `:message`             | The deprecation warning                               |
+| `:callstack`           | Where the deprecation came from                       |
+| `:gem_name`            | Name of the gem reporting the deprecation             |
+| `:deprecation_horizon` | Version where the deprecated behavior will be removed |
+
+NOTE: Each framework will also emit their own namespaced `deprecation` events.
 
 Exceptions
 ----------
@@ -747,7 +766,7 @@ information about it.
 | `:exception`        | An array of two elements. Exception class name and the message |
 | `:exception_object` | The exception object                                           |
 
-Creating custom events
+Creating Custom Events
 ----------------------
 
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of

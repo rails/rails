@@ -34,11 +34,12 @@ module ActionDispatch # :nodoc:
       end
 
       def call(env)
-        request = ActionDispatch::Request.new(env)
         _, headers, _ = response = @app.call(env)
 
         return response unless html_response?(headers)
         return response if policy_present?(headers)
+
+        request = ActionDispatch::Request.new(env)
 
         if policy = request.permissions_policy
           headers[POLICY] = policy.build(request.controller_instance)
@@ -54,7 +55,7 @@ module ActionDispatch # :nodoc:
       private
         def html_response?(headers)
           if content_type = headers[CONTENT_TYPE]
-            /html/.match?(content_type)
+            content_type.include?("html")
           end
         end
 
@@ -134,7 +135,7 @@ module ActionDispatch # :nodoc:
 
     %w[speaker vibrate vr].each do |directive|
       define_method(directive) do |*sources|
-        ActiveSupport::Deprecation.warn(<<~MSG)
+        ActionDispatch.deprecator.warn(<<~MSG)
           The `#{directive}` permissions policy directive is deprecated
           and will be removed in Rails 7.2.
 

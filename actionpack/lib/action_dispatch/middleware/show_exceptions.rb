@@ -22,9 +22,9 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
       @app.call(env)
     rescue Exception => exception
+      request = ActionDispatch::Request.new env
       if request.show_exceptions?
         render_exception(request, exception)
       else

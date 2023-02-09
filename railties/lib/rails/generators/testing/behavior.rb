@@ -67,7 +67,7 @@ module Rails
         def run_generator(args = default_arguments, config = {})
           capture(:stdout) do
             args += ["--skip-bundle"] unless args.include?("--no-skip-bundle") || args.include?("--dev")
-            args |= ["--skip-bootsnap"] unless args.include?("--no-skip-bootsnap")
+            args += ["--skip-bootsnap"] unless args.include?("--no-skip-bootsnap") || args.include?("--skip-bootsnap")
 
             generator_class.start(args, config.reverse_merge(destination_root: destination_root))
           end
@@ -108,7 +108,8 @@ module Rails
           end
       end
 
-      Behaviour = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Rails::Generators::Testing::Behaviour", "Rails::Generators::Testing::Behavior")
+      include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+      deprecate_constant "Behaviour", "Rails::Generators::Testing::Behavior", deprecator: Rails.deprecator
     end
   end
 end

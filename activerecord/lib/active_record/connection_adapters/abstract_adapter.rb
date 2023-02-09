@@ -4,6 +4,7 @@ require "set"
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
+require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
@@ -155,7 +156,7 @@ module ActiveRecord
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
         @statements = build_statement_pool
-        @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+        self.lock_thread = nil
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
           @config.fetch(:prepared_statements) { default_prepared_statements }
@@ -169,6 +170,24 @@ module ActiveRecord
 
         @raw_connection_dirty = false
         @verified = false
+      end
+
+      THREAD_LOCK = ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+      private_constant :THREAD_LOCK
+
+      FIBER_LOCK = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+      private_constant :FIBER_LOCK
+
+      def lock_thread=(lock_thread) # :nodoc:
+        @lock =
+        case lock_thread
+        when Thread
+          THREAD_LOCK
+        when Fiber
+          FIBER_LOCK
+        else
+          ActiveSupport::Concurrency::NullLock
+        end
       end
 
       EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
@@ -972,6 +991,7 @@ module ActiveRecord
               result
             rescue => original_exception
               translated_exception = translate_exception_class(original_exception, nil, nil)
+              invalidate_transaction(translated_exception)
               retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
               if !retry_deadline_exceeded && retries_available > 0
@@ -1007,14 +1027,18 @@ module ActiveRecord
           exception.is_a?(ConnectionNotEstablished) || exception.is_a?(ConnectionFailed)
         end
 
+        def invalidate_transaction(exception)
+          return unless exception.is_a?(TransactionRollbackError)
+          return unless savepoint_errors_invalidate_transactions?
+
+          current_transaction.invalidate!
+        end
+
         def retryable_query_error?(exception)
-          # We definitely can't retry if we were inside a transaction that was instantly
-          # rolled back by this error
-          if exception.is_a?(TransactionRollbackError) && savepoint_errors_invalidate_transactions? && open_transactions > 0
-            false
-          else
-            exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
-          end
+          # We definitely can't retry if we were inside an invalidated transaction.
+          return false if current_transaction.invalidated?
+
+          exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
         end
 
         def backoff(counter)
@@ -1089,7 +1113,7 @@ module ActiveRecord
 
         def transform_query(sql)
           ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql)
+            sql = transformer.call(sql, self)
           end
           sql
         end
@@ -1160,6 +1184,10 @@ module ActiveRecord
 
         def default_prepared_statements
           true
+        end
+
+        def warning_ignored?(warning)
+          ActiveRecord.db_warnings_ignore.any? { |warning_matcher| warning.message.match?(warning_matcher) }
         end
     end
   end

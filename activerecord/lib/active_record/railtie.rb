@@ -36,6 +36,8 @@ module ActiveRecord
     config.active_record.query_log_tags = [ :application ]
     config.active_record.query_log_tags_format = :legacy
     config.active_record.cache_query_log_tags = false
+    config.active_record.raise_on_assign_to_attr_readonly = false
+    config.active_record.belongs_to_required_validates_foreign_key = true
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -73,6 +75,10 @@ module ActiveRecord
       require "active_record/base"
     end
 
+    initializer "active_record.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:active_record] = ActiveRecord.deprecator
+    end
+
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
@@ -101,7 +107,7 @@ module ActiveRecord
       end
     end
 
-    initializer "Check for cache versioning support" do
+    initializer "active_record.cache_versioning_support" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
           if app.config.active_record.cache_versioning && Rails.cache
@@ -297,7 +303,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport::Reloader.before_class_unload do
           if ActiveRecord::Base.connected?
             ActiveRecord::Base.clear_cache!
-            ActiveRecord::Base.clear_reloadable_connections!(:all)
+            ActiveRecord::Base.connection_handler.clear_reloadable_connections!(:all)
           end
         end
       end
@@ -324,8 +330,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
           # this connection is trivial: the rest of the pool would need to be
           # populated anyway.
 
-          clear_active_connections!(:all)
-          flush_idle_connections!(:all)
+          connection_handler.clear_active_connections!(:all)
+          connection_handler.flush_idle_connections!(:all)
         end
       end
     end
@@ -373,10 +379,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       # Filtered params
-      ActiveSupport.on_load(:action_controller, run_once: true) do
-        if ActiveRecord::Encryption.config.add_to_filter_parameters
-          ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
-        end
+      if ActiveRecord::Encryption.config.add_to_filter_parameters
+        ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
       end
     end
 
@@ -387,9 +391,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveRecord::QueryLogs.taggings.merge!(
             application:  Rails.application.class.name.split("::").first,
             pid:          -> { Process.pid.to_s },
-            socket:       -> { ActiveRecord::Base.connection_db_config.socket },
-            db_host:      -> { ActiveRecord::Base.connection_db_config.host },
-            database:     -> { ActiveRecord::Base.connection_db_config.database }
+            socket:       ->(context) { context[:connection].pool.db_config.socket },
+            db_host:      ->(context) { context[:connection].pool.db_config.host },
+            database:     ->(context) { context[:connection].pool.db_config.database }
           )
 
           if app.config.active_record.query_log_tags.present?

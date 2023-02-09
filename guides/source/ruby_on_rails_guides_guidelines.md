@@ -27,7 +27,7 @@ Headings
 
 The title of every guide uses an `h1` heading; guide sections use `h2` headings; subsections use `h3` headings; etc. Note that the generated HTML output will use heading tags starting with `<h2>`.
 
-```
+```markdown
 Guide Title
 ===========
 
@@ -39,7 +39,7 @@ Section
 
 When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
 
-```
+```markdown
 #### Assertions and Testing Jobs inside Components
 #### Middleware Stack is an Array
 #### When are Objects Saved?
@@ -47,7 +47,7 @@ When writing headings, capitalize all words except for prepositions, conjunction
 
 Use the same inline formatting as regular text:
 
-```
+```markdown
 ##### The `:content_type` Option
 ```
 

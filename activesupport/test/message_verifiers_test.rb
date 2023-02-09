@@ -22,6 +22,14 @@ class MessageVerifiersTest < ActiveSupport::TestCase
     assert_equal "message", roundtrip("message", coordinator["salt"])
   end
 
+  test "supports arbitrary secret generator kwargs when using #rotate block" do
+    secret_generator = ->(salt, foo:, bar: nil) { foo + bar }
+    coordinator = ActiveSupport::MessageVerifiers.new(&secret_generator)
+    coordinator.rotate { { foo: "foo", bar: "bar" } }
+
+    assert_equal "message", roundtrip("message", coordinator["salt"])
+  end
+
   private
     def make_coordinator
       ActiveSupport::MessageVerifiers.new { |salt| salt * 10 }

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Rails::ApplicationController < ActionController::Base # :nodoc:
-  self.view_paths = File.expand_path("templates", __dir__)
+  prepend_view_path File.expand_path("templates", __dir__)
   layout "application"
 
   before_action :disable_content_security_policy_nonce!

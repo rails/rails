@@ -140,12 +140,16 @@ module ActiveRecord
 
       # Returns whether a given attribute is encrypted or not.
       def encrypted_attribute?(attribute_name)
-        ActiveRecord::Encryption.encryptor.encrypted? ciphertext_for(attribute_name)
+        ActiveRecord::Encryption.encryptor.encrypted? read_attribute_before_type_cast(attribute_name)
       end
 
       # Returns the ciphertext for +attribute_name+.
       def ciphertext_for(attribute_name)
-        read_attribute_before_type_cast(attribute_name)
+        if encrypted_attribute?(attribute_name)
+          read_attribute_before_type_cast(attribute_name)
+        else
+          read_attribute_for_database(attribute_name)
+        end
       end
 
       # Encrypts all the encryptable attributes and saves the changes.
@@ -160,6 +164,15 @@ module ActiveRecord
 
       private
         ORIGINAL_ATTRIBUTE_PREFIX = "original_"
+
+        def _create_record(attribute_names = self.attribute_names)
+          if has_encrypted_attributes?
+            # Always persist encrypted attributes, because an attribute might be
+            # encrypting a column default value.
+            attribute_names |= self.class.encrypted_attributes.map(&:to_s)
+          end
+          super
+        end
 
         def encrypt_attributes
           validate_encryption_allowed

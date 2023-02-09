@@ -9,7 +9,7 @@ require "active_support/core_ext/object/blank"
 require "thread"
 
 module ActiveSupport
-  # Callbacks are code hooks that are run at key points in an object's life cycle.
+  # \Callbacks are code hooks that are run at key points in an object's life cycle.
   # The typical use case is to have a base class define a set of callbacks
   # relevant to the other functionality it supplies, so that subclasses can
   # install callbacks that enhance or modify the base functionality without
@@ -721,7 +721,7 @@ module ActiveSupport
         # This is used internally to append, prepend and skip callbacks to the
         # CallbackChain.
         def __update_callbacks(name) # :nodoc:
-          ([self] + self.descendants).reverse_each do |target|
+          self.descendants.prepend(self).reverse_each do |target|
             chain = target.get_callbacks name
             yield target, chain.dup
           end

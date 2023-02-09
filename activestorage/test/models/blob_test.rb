@@ -80,6 +80,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "create_and_upload raises for non-rewindable io" do
+    assert_raises(ArgumentError) do
+      ActiveStorage::Blob.create_and_upload!(io: file_fixture("racecar.jpg"), filename: "racecar.jpg")
+    end
+  end
+
   test "record touched after analyze" do
     user = User.create!(
       name: "Nate",
@@ -349,15 +355,15 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "warning if blob is created with invalid mime type" do
-    assert_deprecated do
+    assert_deprecated(ActiveStorage.deprecator) do
       create_blob(filename: "funky.jpg", content_type: "image/jpg")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveStorage.deprecator) do
       create_blob(filename: "funky.jpg", content_type: "image/jpeg")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveStorage.deprecator) do
       create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     end
   end
@@ -366,15 +372,15 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     warning_was = ActiveStorage.silence_invalid_content_types_warning
     ActiveStorage.silence_invalid_content_types_warning = true
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveStorage.deprecator) do
       create_blob(filename: "funky.jpg", content_type: "image/jpg")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveStorage.deprecator) do
       create_blob(filename: "funky.jpg", content_type: "image/jpeg")
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveStorage.deprecator) do
       create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     end
 

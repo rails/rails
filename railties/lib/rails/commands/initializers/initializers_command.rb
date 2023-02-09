@@ -9,10 +9,7 @@ module Rails
 
       desc "initializers", "Print out all defined initializers in the order they are invoked by Rails."
       def perform
-        extract_environment_option_from_argument
-        ENV["RAILS_ENV"] = options[:environment]
-
-        require_application_and_environment!
+        boot_application!
 
         Rails.application.initializers.tsort_each do |initializer|
           say "#{initializer.context_class}.#{initializer.name}"

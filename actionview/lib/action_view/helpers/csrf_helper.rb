@@ -16,8 +16,8 @@ module ActionView
       #
       # You don't need to use these tags for regular forms as they generate their own hidden fields.
       #
-      # For AJAX requests other than GETs, extract the "csrf-token" from the meta-tag and send as the
-      # "X-CSRF-Token" HTTP header. If you are using rails-ujs this happens automatically.
+      # For Ajax requests other than GETs, extract the "csrf-token" from the meta-tag and send as the
+      # +X-CSRF-Token+ HTTP header. If you are using rails-ujs, this happens automatically.
       #
       def csrf_meta_tags
         if defined?(protect_against_forgery?) && protect_against_forgery?

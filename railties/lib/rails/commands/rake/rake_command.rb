@@ -9,7 +9,7 @@ module Rails
 
       class << self
         def printing_commands
-          formatted_rake_tasks.map(&:first)
+          formatted_rake_tasks
         end
 
         def perform(task, args, config)
@@ -18,6 +18,10 @@ module Rails
           Rake.with_application do |rake|
             rake.init("rails", [task, *args])
             rake.load_rakefile
+            if unrecognized_task = rake.top_level_tasks.find { |task| !rake.lookup(task) }
+              raise UnrecognizedCommandError.new(unrecognized_task)
+            end
+
             if Rails.respond_to?(:root)
               rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
             end

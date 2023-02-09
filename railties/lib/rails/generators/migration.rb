@@ -57,13 +57,12 @@ module Rails
         source = File.expand_path(find_in_source_paths(source.to_s))
 
         set_migration_assigns!(destination)
-        context = instance_eval("binding")
 
         dir, base = File.split(destination)
         numbered_destination = File.join(dir, ["%migration_number%", base].join("_"))
 
         file = create_migration numbered_destination, nil, config do
-          ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
+          ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(binding)
         end
         Rails::Generators.add_generated_file(file)
       end

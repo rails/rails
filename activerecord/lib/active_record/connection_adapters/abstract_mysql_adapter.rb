@@ -221,11 +221,15 @@ module ActiveRecord
       #++
 
       # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil, async: false)
+      #
+      # Setting +allow_retry+ to true causes the db to reconnect and retry
+      # executing the SQL statement in case of a connection-related exception.
+      # This option should only be enabled for known idempotent queries.
+      def execute(sql, name = nil, async: false, allow_retry: false)
         sql = transform_query(sql)
         check_if_write_query(sql)
 
-        raw_execute(sql, name, async: async)
+        raw_execute(sql, name, async: async, allow_retry: allow_retry)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -727,9 +731,34 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
-              conn.query(sql)
+              sync_timezone_changes(conn)
+              result = conn.query(sql)
+              handle_warnings(sql)
+              result
             end
           end
+        end
+
+        def handle_warnings(sql)
+          return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+
+          @affected_rows_before_warnings = @raw_connection.affected_rows
+          result = @raw_connection.query("SHOW WARNINGS")
+          result.each do |level, code, message|
+            warning = SQLWarning.new(message, code, level, sql)
+            next if warning_ignored?(warning)
+
+            ActiveRecord.db_warnings_action.call(warning)
+          end
+        end
+
+        def warning_ignored?(warning)
+          warning.level == "Note" || super
+        end
+
+        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
+        # made since we established the connection
+        def sync_timezone_changes(raw_connection)
         end
 
         def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)

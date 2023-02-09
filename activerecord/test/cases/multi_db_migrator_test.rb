@@ -196,6 +196,17 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     assert_equal(3, migrator_b.current_version)
   end
 
+  def test_internal_metadata_stores_environment
+    current_env     = ActiveRecord::Base.connection.pool.db_config.env_name
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration_b, @internal_metadata_b)
+
+    migrator.up
+    assert_equal current_env, @internal_metadata_b[:environment]
+  ensure
+    migrator.down if migrator
+  end
+
   private
     def m(name, version)
       x = Sensor.new name, version

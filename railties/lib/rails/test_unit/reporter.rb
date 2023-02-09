@@ -6,7 +6,7 @@ require "minitest"
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
     class_attribute :app_root
-    class_attribute :executable, default: "rails test"
+    class_attribute :executable, default: "bin/rails test"
 
     def record(result)
       super
@@ -52,7 +52,11 @@ module Rails
     end
 
     def relative_path_for(file)
-      file.sub(/^#{app_root}\/?/, "")
+      if app_root
+        file.sub(/^#{app_root}\/?/, "")
+      else
+        file
+      end
     end
 
     private

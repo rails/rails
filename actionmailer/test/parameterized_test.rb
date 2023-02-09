@@ -37,6 +37,13 @@ class ParameterizedTest < ActiveSupport::TestCase
     assert_equal("So says david@basecamp.com", @mail.body.encoded)
   end
 
+  test "degrade gracefully when .with is not called" do
+    @mail = ParamsMailer.invitation
+
+    assert_nil(@mail.to)
+    assert_nil(@mail.from)
+  end
+
   test "enqueue the email with params" do
     args = [
       "ParamsMailer",

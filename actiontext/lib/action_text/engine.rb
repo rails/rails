@@ -19,6 +19,10 @@ module ActionText
       #{root}/app/models
     )
 
+    initializer "action_text.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:action_text] = ActionText.deprecator
+    end
+
     initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do
         include ActionText::Attribute

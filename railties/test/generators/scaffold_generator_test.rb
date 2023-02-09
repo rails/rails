@@ -361,8 +361,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     route_path = File.expand_path("config/routes.rb", destination_root)
     content = File.read(route_path)
 
-    # Remove all of the comments and blank lines from the routes file
+    # Remove all of the comments, blank lines, and default health controller from the routes file
     content.gsub!(/^  \#.*\n/, "")
+    content.gsub!(/^  get "up".*\n/, "")
     content.gsub!(/^\n/, "")
 
     File.write(route_path, content)

@@ -65,7 +65,7 @@ module Digest
 
         match_data.captures.map { |s| s.to_i(16) }.pack("NnnnnN")
       else
-        ActiveSupport::Deprecation.warn <<~WARNING.squish
+        ActiveSupport.deprecator.warn <<~WARNING.squish
           Providing a namespace ID that is not one of the constants defined on Digest::UUID generates an incorrect UUID value according to RFC 4122.
           To enable the correct behavior, set the Rails.application.config.active_support.use_rfc4122_namespaced_uuids configuration option to true.
         WARNING

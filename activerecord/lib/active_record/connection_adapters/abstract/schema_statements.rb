@@ -1118,7 +1118,7 @@ module ActiveRecord
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless use_foreign_keys?
-        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table)
+        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         options = foreign_key_options(from_table, to_table, options)
         at = create_alter_table from_table
@@ -1461,6 +1461,31 @@ module ActiveRecord
         SchemaCreation.new(self)
       end
 
+      def bulk_change_table(table_name, operations) # :nodoc:
+        sql_fragments = []
+        non_combinable_operations = []
+
+        operations.each do |command, args|
+          table, arguments = args.shift, args
+          method = :"#{command}_for_alter"
+
+          if respond_to?(method, true)
+            sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
+            sql_fragments.concat(sqls)
+            non_combinable_operations.concat(procs)
+          else
+            execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+            non_combinable_operations.each(&:call)
+            sql_fragments = []
+            non_combinable_operations = []
+            send(command, table, *arguments)
+          end
+        end
+
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+        non_combinable_operations.each(&:call)
+      end
+
       private
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
@@ -1694,31 +1719,6 @@ module ActiveRecord
           table_name.to_s.singularize
         end
 
-        def bulk_change_table(table_name, operations)
-          sql_fragments = []
-          non_combinable_operations = []
-
-          operations.each do |command, args|
-            table, arguments = args.shift, args
-            method = :"#{command}_for_alter"
-
-            if respond_to?(method, true)
-              sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
-              sql_fragments.concat(sqls)
-              non_combinable_operations.concat(procs)
-            else
-              execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-              non_combinable_operations.each(&:call)
-              sql_fragments = []
-              non_combinable_operations = []
-              send(command, table, *arguments)
-            end
-          end
-
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
-          non_combinable_operations.each(&:call)
-        end
-
         def add_column_for_alter(table_name, column_name, type, **options)
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column_name, type, **options)
@@ -1765,7 +1765,7 @@ module ActiveRecord
           if versions.is_a?(Array)
             sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
             sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
-            sql << ";\n\n"
+            sql << ";"
             sql
           else
             "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"

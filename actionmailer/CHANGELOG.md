@@ -1,3 +1,36 @@
+*   Email previews now include an expandable section to show all headers.
+
+    Headers like `Message-ID` for threading or email service provider specific
+    features like analytics tags or account metadata can now be viewed directly
+    in the mailer preview.
+
+    *Matt Swanson*
+
+*   Default `ActionMailer::Parameterized#params` to an empty `Hash`
+
+    *Sean Doyle*
+
+*   `assert_emails` now returns the emails that were sent.
+
+    This makes it easier to do further analysis on those emails:
+
+    ```ruby
+    def test_emails_more_thoroughly
+      email = assert_emails 1 do
+        ContactMailer.welcome.deliver_now
+      end
+      assert_email "Hi there", email.subject
+
+      emails = assert_emails 2 do
+        ContactMailer.welcome.deliver_now
+        ContactMailer.welcome.deliver_later
+      end
+      assert_email "Hi there", emails.first.subject
+    end
+    ```
+
+    *Alex Ghiculescu*
+
 *   Added ability to download `.eml` file for the email preview.
 
     *Igor Kasyanchuk*

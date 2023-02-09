@@ -40,6 +40,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
   end
 
+  test "tagged with an array" do
+    @logger.tagged(%w(BCX Jason New)) { @logger.info "Funky time" }
+    assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
+  end
+
   test "tagged are flattened" do
     @logger.tagged("BCX", %w(Jason New)) { @logger.info "Funky time" }
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
@@ -239,5 +244,10 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     tagged_logger = ActiveSupport::TaggedLogging.new(plain_logger)
     assert_respond_to tagged_logger.formatter, :tagged
     assert_respond_to tagged_logger.formatter, :crozz_method
+  end
+
+  test "accepts non-String objects" do
+    @logger.tagged("tag") { @logger.info [1, 2, 3] }
+    assert_equal "[tag] [1, 2, 3]\n", @output.string
   end
 end

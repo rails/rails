@@ -1,3 +1,8 @@
+*   Raise `NoMethodError` in `ActiveModel::Type::Value#as_json` to avoid unpredictable
+    results.
+
+    *Vasiliy Ermolovich*
+
 *   Custom attribute types that inherit from Active Model built-in types and do
     not override the `serialize` method will now benefit from an optimization
     when serializing attribute values for the database.

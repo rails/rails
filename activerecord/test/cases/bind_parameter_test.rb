@@ -229,6 +229,20 @@ if ActiveRecord::Base.connection.prepared_statements
           authors = Author.where(id: [1, 2, 3, 9223372036854775808])
           assert_equal sql, @connection.to_sql(authors.arel)
           assert_sql(sql) { assert_equal 3, authors.length }
+
+          # prepared_statements: true
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (?, ?, ?)
+          #
+          # prepared_statements: false
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
+          #
+          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+
+          arel_node = Arel.sql("SELECT #{table}.* FROM #{table} WHERE #{pk} IN (?)", [1, 2, 3])
+          assert_equal sql, @connection.to_sql(arel_node)
+          assert_sql(sql) { assert_equal 3, @connection.select_all(arel_node).length }
         end
 
         def bind_params(ids)

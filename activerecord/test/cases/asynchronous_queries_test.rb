@@ -86,9 +86,9 @@ module AsynchronousQueriesSharedTests
 
   private
     def wait_for_future_result(result)
-      100.times do
+      500.times do
         break unless result.pending?
-        sleep 0.01
+        sleep 0.02
       end
     end
 end

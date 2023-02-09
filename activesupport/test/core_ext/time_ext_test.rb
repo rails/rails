@@ -463,6 +463,118 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "+01:00").change(nsec: 1000000000, offset: -28800) }
   end
 
+  def test_change_preserves_offset_for_local_times_around_end_of_dst
+    with_env_tz "US/Eastern" do
+      # DST ended just before 2005-10-30 2:00:00 AM in US/Eastern, and clocks
+      # were rolled back 1 hour.
+      midnight = Time.local(2005, 10, 30, 00, 00, 00)     # 2005-10-30 00:00:00 -0400
+      one_am_1 = Time.local(2005, 10, 30, 00, 59, 59) + 1 # 2005-10-30 01:00:00 -0400
+      one_am_2 = Time.local(2005, 10, 30, 01, 00, 00)     # 2005-10-30 01:00:00 -0500
+      two_am   = Time.local(2005, 10, 30, 02, 00, 00)     # 2005-10-30 02:00:00 -0500
+      assert_operator one_am_1, :<, one_am_2
+
+      assert_equal one_am_1, midnight.change(hour: 1)
+      assert_equal two_am, midnight.change(hour: 2)
+
+      assert_equal midnight, one_am_1.change(hour: 0)
+      assert_equal one_am_1, one_am_1.change(hour: 1)
+      assert_equal one_am_1 + 1, one_am_1.change(sec: 1)
+      assert_equal two_am, one_am_1.change(hour: 2)
+
+      assert_equal midnight, one_am_2.change(hour: 0)
+      assert_equal one_am_2, one_am_2.change(hour: 1)
+      assert_equal one_am_2 + 1, one_am_2.change(sec: 1)
+      assert_equal two_am, one_am_2.change(hour: 2)
+
+      assert_equal one_am_2, two_am.change(hour: 1)
+      assert_equal midnight, two_am.change(hour: 0)
+    end
+  end
+
+  def test_change_preserves_offset_for_zoned_times_around_end_of_dst
+    with_tz_default "US/Eastern" do
+      # DST ended just before 2005-10-30 2:00:00 AM in US/Eastern, and clocks
+      # were rolled back 1 hour.
+      midnight = Time.new(2005, 10, 30, 00, 00, 00, Time.zone)        # 2005-10-30 00:00:00 -0400
+      one_am_1 = Time.new(2005, 10, 30, 01, 00, 00, Time.zone)        # 2005-10-30 01:00:00 -0400
+      one_am_2 = Time.new(2005, 10, 30, 02, 00, 00, Time.zone) - 3600 # 2005-10-30 01:00:00 -0500
+      two_am   = Time.new(2005, 10, 30, 02, 00, 00, Time.zone)        # 2005-10-30 02:00:00 -0500
+      assert_operator one_am_1, :<, one_am_2
+
+      assert_equal one_am_1, midnight.change(hour: 1)
+      assert_equal two_am, midnight.change(hour: 2)
+
+      assert_equal midnight, one_am_1.change(hour: 0)
+      assert_equal one_am_1, one_am_1.change(hour: 1)
+      assert_equal one_am_1 + 1, one_am_1.change(sec: 1)
+      assert_equal two_am, one_am_1.change(hour: 2)
+
+      assert_equal midnight, one_am_2.change(hour: 0)
+      assert_equal one_am_2, one_am_2.change(hour: 1)
+      assert_equal one_am_2 + 1, one_am_2.change(sec: 1)
+      assert_equal two_am, one_am_2.change(hour: 2)
+
+      assert_equal one_am_2, two_am.change(hour: 1)
+      assert_equal midnight, two_am.change(hour: 0)
+    end
+  end
+
+  def test_change_preserves_fractional_hour_offset_for_local_times_around_end_of_dst
+    with_env_tz "Australia/Lord_Howe" do
+      # DST ended just before 2005-03-27 2:00:00 AM in Australia/Lord_Howe, and
+      # clocks were rolled back 30 minutes.
+      one_am     = Time.local(2005, 03, 27, 01, 00, 00)     # 2005-03-27 00:00:00 +1100
+      one30_am_1 = Time.local(2005, 03, 27, 01, 29, 59) + 1 # 2005-03-27 01:30:00 +1100
+      one30_am_2 = Time.local(2005, 03, 27, 01, 30, 00)     # 2005-03-27 01:30:00 +1030
+      two_am     = Time.local(2005, 03, 27, 02, 00, 00)     # 2005-03-27 02:00:00 +1030
+      assert_operator one30_am_1, :<, one30_am_2
+
+      assert_equal one30_am_1, one_am.change(min: 30)
+      assert_equal two_am, one_am.change(hour: 2)
+
+      assert_equal one_am, one30_am_1.change(min: 0)
+      assert_equal one30_am_1, one30_am_1.change(min: 30)
+      assert_equal one30_am_1 + 1, one30_am_1.change(min: 30, sec: 1)
+      assert_equal two_am, one30_am_1.change(hour: 2)
+
+      assert_equal one_am, one30_am_2.change(min: 0)
+      assert_equal one30_am_2, one30_am_2.change(min: 30)
+      assert_equal one30_am_2 + 1, one30_am_2.change(min: 30, sec: 1)
+      assert_equal two_am, one30_am_2.change(hour: 2)
+
+      assert_equal one30_am_2, two_am.change(hour: 1, min: 30)
+      assert_equal one_am, two_am.change(hour: 1)
+    end
+  end
+
+  def test_change_preserves_fractional_hour_offset_for_zoned_times_around_end_of_dst
+    with_tz_default "Australia/Lord_Howe" do
+      # DST ended just before 2005-03-27 2:00:00 AM in Australia/Lord_Howe, and
+      # clocks were rolled back 30 minutes.
+      one_am     = Time.new(2005, 03, 27, 01, 00, 00, Time.zone)        # 2005-03-27 00:00:00 +1100
+      one30_am_1 = Time.new(2005, 03, 27, 01, 30, 00, Time.zone)        # 2005-03-27 01:30:00 +1100
+      one30_am_2 = Time.new(2005, 03, 27, 02, 00, 00, Time.zone) - 1800 # 2005-03-27 01:30:00 +1030
+      two_am     = Time.new(2005, 03, 27, 02, 00, 00, Time.zone)        # 2005-03-27 02:00:00 +1030
+      assert_operator one30_am_1, :<, one30_am_2
+
+      assert_equal one30_am_1, one_am.change(min: 30)
+      assert_equal two_am, one_am.change(hour: 2)
+
+      assert_equal one_am, one30_am_1.change(min: 0)
+      assert_equal one30_am_1, one30_am_1.change(min: 30)
+      assert_equal one30_am_1 + 1, one30_am_1.change(min: 30, sec: 1)
+      assert_equal two_am, one30_am_1.change(hour: 2)
+
+      assert_equal one_am, one30_am_2.change(min: 0)
+      assert_equal one30_am_2, one30_am_2.change(min: 30)
+      assert_equal one30_am_2 + 1, one30_am_2.change(min: 30, sec: 1)
+      assert_equal two_am, one30_am_2.change(hour: 2)
+
+      assert_equal one30_am_2, two_am.change(hour: 1, min: 30)
+      assert_equal one_am, two_am.change(hour: 1)
+    end
+  end
+
   def test_advance
     assert_equal Time.local(2006, 2, 28, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(years: 1)
     assert_equal Time.local(2005, 6, 28, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(months: 4)
@@ -551,6 +663,134 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(1000, 10, 4, 15, 15, 10), Time.local(999, 10, 4, 15, 15, 10).advance(years: 1)
   end
 
+  def test_advance_preserves_offset_for_local_times_around_end_of_dst
+    with_env_tz "US/Eastern" do
+      # DST ended just before 2005-10-30 2:00:00 AM in US/Eastern, and clocks
+      # were rolled back 1 hour.
+      midnight = Time.local(2005, 10, 30, 00, 00, 00)     # 2005-10-30 00:00:00 -0400
+      one_am_1 = Time.local(2005, 10, 30, 00, 59, 59) + 1 # 2005-10-30 01:00:00 -0400
+      one_am_2 = Time.local(2005, 10, 30, 01, 00, 00)     # 2005-10-30 01:00:00 -0500
+      two_am   = Time.local(2005, 10, 30, 02, 00, 00)     # 2005-10-30 02:00:00 -0500
+      assert_operator one_am_1, :<, one_am_2
+
+      assert_equal one_am_1, midnight.advance(hours: 1)
+      assert_equal one_am_2, midnight.advance(hours: 2)
+      assert_equal two_am, midnight.advance(hours: 3)
+
+      assert_equal midnight, one_am_1.advance(hours: -1)
+      assert_equal one_am_1, one_am_1.advance(seconds: 0)
+      assert_equal one_am_1 + 1, one_am_1.advance(seconds: 1)
+      assert_equal one_am_2, one_am_1.advance(hours: 1)
+      assert_equal two_am, one_am_1.advance(hours: 2)
+
+      assert_equal midnight, one_am_2.advance(hours: -2)
+      assert_equal one_am_1, one_am_2.advance(hours: -1)
+      assert_equal one_am_2, one_am_2.advance(seconds: 0)
+      assert_equal one_am_2 + 1, one_am_2.advance(seconds: 1)
+      assert_equal two_am, one_am_2.advance(hours: 1)
+
+      assert_equal one_am_2, two_am.advance(hours: -1)
+      assert_equal one_am_1, two_am.advance(hours: -2)
+      assert_equal midnight, two_am.advance(hours: -3)
+    end
+  end
+
+  def test_advance_preserves_offset_for_zoned_times_around_end_of_dst
+    with_tz_default "US/Eastern" do
+      # DST ended just before 2005-10-30 2:00:00 AM in US/Eastern, and clocks
+      # were rolled back 1 hour.
+      midnight = Time.new(2005, 10, 30, 00, 00, 00, Time.zone)        # 2005-10-30 00:00:00 -0400
+      one_am_1 = Time.new(2005, 10, 30, 01, 00, 00, Time.zone)        # 2005-10-30 01:00:00 -0400
+      one_am_2 = Time.new(2005, 10, 30, 02, 00, 00, Time.zone) - 3600 # 2005-10-30 01:00:00 -0500
+      two_am   = Time.new(2005, 10, 30, 02, 00, 00, Time.zone)        # 2005-10-30 02:00:00 -0500
+      assert_operator one_am_1, :<, one_am_2
+
+      assert_equal one_am_1, midnight.advance(hours: 1)
+      assert_equal one_am_2, midnight.advance(hours: 2)
+      assert_equal two_am, midnight.advance(hours: 3)
+
+      assert_equal midnight, one_am_1.advance(hours: -1)
+      assert_equal one_am_1, one_am_1.advance(seconds: 0)
+      assert_equal one_am_1 + 1, one_am_1.advance(seconds: 1)
+      assert_equal one_am_2, one_am_1.advance(hours: 1)
+      assert_equal two_am, one_am_1.advance(hours: 2)
+
+      assert_equal midnight, one_am_2.advance(hours: -2)
+      assert_equal one_am_1, one_am_2.advance(hours: -1)
+      assert_equal one_am_2, one_am_2.advance(seconds: 0)
+      assert_equal one_am_2 + 1, one_am_2.advance(seconds: 1)
+      assert_equal two_am, one_am_2.advance(hours: 1)
+
+      assert_equal one_am_2, two_am.advance(hours: -1)
+      assert_equal one_am_1, two_am.advance(hours: -2)
+      assert_equal midnight, two_am.advance(hours: -3)
+    end
+  end
+
+  def test_advance_preserves_fractional_hour_offset_for_local_times_around_end_of_dst
+    with_env_tz "Australia/Lord_Howe" do
+      # DST ended just before 2005-03-27 2:00:00 AM in Australia/Lord_Howe, and
+      # clocks were rolled back 30 minutes.
+      one_am     = Time.local(2005, 03, 27, 01, 00, 00)     # 2005-03-27 00:00:00 +1100
+      one30_am_1 = Time.local(2005, 03, 27, 01, 29, 59) + 1 # 2005-03-27 01:30:00 +1100
+      one30_am_2 = Time.local(2005, 03, 27, 01, 30, 00)     # 2005-03-27 01:30:00 +1030
+      two_am     = Time.local(2005, 03, 27, 02, 00, 00)     # 2005-03-27 02:00:00 +1030
+      assert_operator one30_am_1, :<, one30_am_2
+
+      assert_equal one30_am_1, one_am.advance(minutes: 30)
+      assert_equal one30_am_2, one_am.advance(minutes: 60)
+      assert_equal two_am, one_am.advance(minutes: 90)
+
+      assert_equal one_am, one30_am_1.advance(minutes: -30)
+      assert_equal one30_am_1, one30_am_1.advance(seconds: 0)
+      assert_equal one30_am_1 + 1, one30_am_1.advance(seconds: 1)
+      assert_equal one30_am_2, one30_am_1.advance(minutes: 30)
+      assert_equal two_am, one30_am_1.advance(minutes: 60)
+
+      assert_equal one_am, one30_am_2.advance(minutes: -60)
+      assert_equal one30_am_1, one30_am_2.advance(minutes: -30)
+      assert_equal one30_am_2, one30_am_2.advance(seconds: 0)
+      assert_equal one30_am_2 + 1, one30_am_2.advance(seconds: 1)
+      assert_equal two_am, one30_am_2.advance(minutes: 30)
+
+      assert_equal one30_am_2, two_am.advance(minutes: -30)
+      assert_equal one30_am_1, two_am.advance(minutes: -60)
+      assert_equal one_am, two_am.advance(minutes: -90)
+    end
+  end
+
+  def test_advance_preserves_fractional_hour_offset_for_zoned_times_around_end_of_dst
+    with_tz_default "Australia/Lord_Howe" do
+      # DST ended just before 2005-03-27 2:00:00 AM in Australia/Lord_Howe, and
+      # clocks were rolled back 30 minutes.
+      one_am     = Time.new(2005, 03, 27, 01, 00, 00, Time.zone)        # 2005-03-27 00:00:00 +1100
+      one30_am_1 = Time.new(2005, 03, 27, 01, 30, 00, Time.zone)        # 2005-03-27 01:30:00 +1100
+      one30_am_2 = Time.new(2005, 03, 27, 02, 00, 00, Time.zone) - 1800 # 2005-03-27 01:30:00 +1030
+      two_am     = Time.new(2005, 03, 27, 02, 00, 00, Time.zone)        # 2005-03-27 02:00:00 +1030
+      assert_operator one30_am_1, :<, one30_am_2
+
+      assert_equal one30_am_1, one_am.advance(minutes: 30)
+      assert_equal one30_am_2, one_am.advance(minutes: 60)
+      assert_equal two_am, one_am.advance(minutes: 90)
+
+      assert_equal one_am, one30_am_1.advance(minutes: -30)
+      assert_equal one30_am_1, one30_am_1.advance(seconds: 0)
+      assert_equal one30_am_1 + 1, one30_am_1.advance(seconds: 1)
+      assert_equal one30_am_2, one30_am_1.advance(minutes: 30)
+      assert_equal two_am, one30_am_1.advance(minutes: 60)
+
+      assert_equal one_am, one30_am_2.advance(minutes: -60)
+      assert_equal one30_am_1, one30_am_2.advance(minutes: -30)
+      assert_equal one30_am_2, one30_am_2.advance(seconds: 0)
+      assert_equal one30_am_2 + 1, one30_am_2.advance(seconds: 1)
+      assert_equal two_am, one30_am_2.advance(minutes: 30)
+
+      assert_equal one30_am_2, two_am.advance(minutes: -30)
+      assert_equal one30_am_1, two_am.advance(minutes: -60)
+      assert_equal one_am, two_am.advance(minutes: -90)
+    end
+  end
+
   def test_last_week
     with_env_tz "US/Eastern" do
       assert_equal Time.local(2005, 2, 21), Time.local(2005, 3, 1, 15, 15, 10).last_week
@@ -582,61 +822,61 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_s
     time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
     assert_equal time.to_default_s,                 time.to_s
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal time.to_default_s,                 time.to_s(:doesnt_exist)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "2005-02-21 17:44:30",             time.to_s(:db)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "21 Feb 17:44",                    time.to_s(:short)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "17:44",                           time.to_s(:time)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "20050221174430",                  time.to_s(:number)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "20050221174430123456789",         time.to_s(:nsec)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "20050221174430123456",            time.to_s(:usec)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "February 21, 2005 17:44",         time.to_s(:long)
     end
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
     end
     with_env_tz "UTC" do
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
       end
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "2005-02-21 17:44:30.123456789 +0000", time.to_s(:inspect)
       end
     end
     with_env_tz "US/Central" do
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:rfc822)
       end
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "Mon, 09 Jun 2008 04:05:01 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:rfc822)
       end
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "2009-02-05T14:30:05-06:00", Time.local(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
       end
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "2008-06-09T04:05:01-05:00", Time.local(2008, 6, 9, 4, 5, 1).to_s(:iso8601)
       end
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "2009-02-05T14:30:05Z", Time.utc(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
       end
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "2009-02-05 14:30:05.000000000 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:inspect)
       end
-      assert_deprecated do
+      assert_deprecated(ActiveSupport.deprecator) do
         assert_equal "2008-06-09 04:05:01.000000000 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:inspect)
       end
     end
@@ -672,7 +912,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_s_custom_date_format
     Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       assert_equal "20050221143000", Time.local(2005, 2, 21, 14, 30, 0).to_s(:custom)
     end
   ensure

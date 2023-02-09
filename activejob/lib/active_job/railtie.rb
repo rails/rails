@@ -10,6 +10,10 @@ module ActiveJob
     config.active_job.custom_serializers = []
     config.active_job.log_query_tags_around_perform = true
 
+    initializer "active_job.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:active_job] = ActiveJob.deprecator
+    end
+
     initializer "active_job.logger" do
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
@@ -72,7 +76,7 @@ module ActiveJob
         app.config.active_job.log_query_tags_around_perform
 
       if query_logs_tags_enabled
-        app.config.active_record.query_log_tags << :job
+        app.config.active_record.query_log_tags |= [:job]
 
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name if context[:job] }

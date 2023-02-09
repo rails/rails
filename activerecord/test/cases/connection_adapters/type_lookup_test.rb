@@ -2,10 +2,10 @@
 
 require "cases/helper"
 
-unless current_adapter?(:PostgreSQLAdapter) # PostgreSQL does not use type strings for lookup
-  module ActiveRecord
-    module ConnectionAdapters
-      class TypeLookupTest < ActiveRecord::TestCase
+module ActiveRecord
+  module ConnectionAdapters
+    class TypeLookupTest < ActiveRecord::TestCase
+      unless current_adapter?(:PostgreSQLAdapter) # PostgreSQL does not use type strings for lookup
         setup do
           @connection = ActiveRecord::Base.connection
         end

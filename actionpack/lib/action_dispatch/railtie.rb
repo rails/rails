@@ -41,6 +41,10 @@ module ActionDispatch
 
     config.eager_load_namespaces << ActionDispatch
 
+    initializer "action_dispatch.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:action_dispatch] = ActionDispatch.deprecator
+    end
+
     initializer "action_dispatch.configure" do |app|
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length

@@ -12,12 +12,12 @@ module ActiveRecord
       :create_or_find_by, :create_or_find_by!,
       :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
-      :select, :reselect, :order, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
+      :select, :reselect, :order, :regroup, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
       :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :strict_loading, :excluding, :without, :with,
+      :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with,
       :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick,
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)

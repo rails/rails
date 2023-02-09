@@ -38,7 +38,7 @@ class DriverTest < ActiveSupport::TestCase
   end
 
   test "initializing the driver with a poltergeist" do
-    driver = assert_deprecated do
+    driver = assert_deprecated(ActionDispatch.deprecator) do
       ActionDispatch::SystemTesting::Driver.new(:poltergeist, screen_size: [1400, 1400], options: { js_errors: false })
     end
     assert_equal :poltergeist, driver.instance_variable_get(:@driver_type)
@@ -47,7 +47,7 @@ class DriverTest < ActiveSupport::TestCase
   end
 
   test "initializing the driver with a webkit" do
-    driver = assert_deprecated do
+    driver = assert_deprecated(ActionDispatch.deprecator) do
       ActionDispatch::SystemTesting::Driver.new(:webkit, screen_size: [1400, 1400], options: { skip_image_loading: true })
     end
     assert_equal :webkit, driver.instance_variable_get(:@driver_type)
@@ -175,7 +175,7 @@ class DriverTest < ActiveSupport::TestCase
 
   private
     def assert_driver_capabilities(driver, expected_capabilities)
-      capabilities = driver.__send__(:browser_options)[:capabilities].as_json
+      capabilities = driver.__send__(:browser_options)[:options].as_json
 
       assert_equal expected_capabilities, capabilities.slice(*expected_capabilities.keys)
     end

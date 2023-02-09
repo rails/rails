@@ -53,16 +53,21 @@ WARNING: Before you install and use third-party software, make sure you understa
 
 ## Setup
 
-Active Storage uses three tables in your applicationâ€™s database named
-`active_storage_blobs`, `active_storage_variant_records`
-and `active_storage_attachments`. After creating a new
-application (or upgrading your application to Rails 5.2), run
-`bin/rails active_storage:install` to generate a migration that creates these
-tables. Use `bin/rails db:migrate` to run the migration.
+```bash
+$ bin/rails active_storage:install
+$ bin/rails db:migrate
+```
 
-WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
+This sets up configuration, and creates the three tables Active Storage uses:
+`active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
 
-WARNING: If you are using UUIDs instead of integers as the primary key on your models you will need to change the column type of `active_storage_attachments.record_id` and `active_storage_variant_records.id` in the generated migration accordingly.
+| Table      | Purpose |
+| ------------------- | ----- |
+| `active_storage_blobs` | Stores data about uploaded files, such as filename and content type. |
+| `active_storage_attachments` | A polymorphic join table that [connects your models to blobs](#attaching-files-to-records). If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name. |
+| `active_storage_variant_records` | If [variant tracking](#attaching-files-to-records) is enabled, stores records for each variant that has been generated. |
+
+WARNING: If you are using UUIDs instead of integers as the primary key on your models, you should set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -113,9 +118,6 @@ To use the test service when testing, you add the following to
 config.active_storage.service = :test
 ```
 
-Continue reading for more information on the built-in service adapters (e.g.
-`Disk` and `S3`) and the configuration they require.
-
 NOTE: Configuration files that are environment-specific will take precedence:
 in production, for example, the `config/storage/production.yml` file (if existent)
 will take precedence over the `config/storage.yml` file.
@@ -138,6 +140,9 @@ azure:
   # ...
   container: your_container_name-<%= Rails.env %>
 ```
+
+Continue reading for more information on the built-in service adapters (e.g.
+`Disk` and `S3`) and the configuration they require.
 
 ### Disk Service
 
@@ -176,6 +181,7 @@ amazon:
   retry_limit: 0
   upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
+    cache_control: "private, max-age=<%= 1.day.to_i %>"
 ```
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
@@ -346,12 +352,12 @@ gcs: &gcs
 
 private_gcs:
   <<: *gcs
-  credentials: <%= Rails.root.join("path/to/private_keyfile.json") %>
+  credentials: <%= Rails.root.join("path/to/private_key.json") %>
   bucket: ""
 
 public_gcs:
   <<: *gcs
-  credentials: <%= Rails.root.join("path/to/public_keyfile.json") %>
+  credentials: <%= Rails.root.join("path/to/public_key.json") %>
   bucket: ""
   public: true
 ```
@@ -595,7 +601,7 @@ generated URLs are hard to guess, but permanent by design. If your files
 require a higher level of protection consider implementing
 [Authenticated Controllers](#authenticated-controllers).
 
-### Redirect mode
+### Redirect Mode
 
 To generate a permanent URL for a blob, you can pass the blob to the
 [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
@@ -633,7 +639,7 @@ Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: tru
 [ActionView::RoutingUrlFor#url_for]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
 [ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
 
-### Proxy mode
+### Proxy Mode
 
 Optionally, files can be proxied instead. This means that your application servers will download file data from the storage service in response to requests. This can be useful for serving files from a CDN.
 
@@ -650,7 +656,7 @@ Or if you want to explicitly proxy specific attachments there are URL helpers yo
 <%= image_tag rails_storage_proxy_path(@user.avatar) %>
 ```
 
-#### Putting a CDN in front of Active Storage
+#### Putting a CDN in Front of Active Storage
 
 Additionally, in order to use a CDN for Active Storage attachments, you will need to generate URLs with proxy mode so that they are served by your app and the CDN will cache the attachment without any extra configuration. This works out of the box because the default Active Storage proxy controller sets an HTTP header indicating to the CDN to cache the response.
 
@@ -962,14 +968,14 @@ directly from the client to the cloud.
     Or, if you aren't using a `FormBuilder`, add the data attribute directly:
 
     ```erb
-    <input type=file data-direct-upload-url="<%= rails_direct_uploads_url %>" />
+    <input type="file" data-direct-upload-url="<%= rails_direct_uploads_url %>" />
     ```
 
 3. Configure CORS on third-party storage services to allow direct upload requests.
 
 4. That's it! Uploads begin upon form submission.
 
-### Cross-Origin Resource Sharing (CORS) configuration
+### Cross-Origin Resource Sharing (CORS) Configuration
 
 To make direct uploads to a third-party service work, youâ€™ll need to configure the service to allow cross-origin requests from your app. Consult the CORS documentation for your service:
 
@@ -992,7 +998,7 @@ Take care to allow:
 
 No CORS configuration is required for the Disk service since it shares your appâ€™s origin.
 
-#### Example: S3 CORS configuration
+#### Example: S3 CORS Configuration
 
 ```json
 [
@@ -1006,18 +1012,18 @@ No CORS configuration is required for the Disk service since it shares your appâ
     "AllowedOrigins": [
       "https://www.example.com"
     ],
-    "ExposeHeaders": [
+    "ExposedHeaders": [
       "Origin",
       "Content-Type",
       "Content-MD5",
       "Content-Disposition"
     ],
-    "MaxAgeSeconds": 3600
+    "MaxAge": 3600
   }
 ]
 ```
 
-#### Example: Google Cloud Storage CORS configuration
+#### Example: Google Cloud Storage CORS Configuration
 
 ```json
 [
@@ -1030,7 +1036,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
 ]
 ```
 
-#### Example: Azure Storage CORS configuration
+#### Example: Azure Storage CORS Configuration
 
 ```xml
 <Cors>
@@ -1043,7 +1049,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
 </Cors>
 ```
 
-### Direct upload JavaScript events
+### Direct Upload JavaScript Events
 
 | Event name | Event target | Event data (`event.detail`) | Description |
 | --- | --- | --- | --- |
@@ -1261,9 +1267,9 @@ end
 
 [`fixture_file_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html
 
-### Discarding files created during tests
+### Discarding Files Created During Tests
 
-#### System tests
+#### System Tests
 
 System tests clean up test data by rolling back a transaction. Because `destroy`
 is never called on an object, the attached files are never cleaned up. If you
@@ -1307,7 +1313,7 @@ config.active_job.queue_adapter = :inline
 
 [parallel tests]: testing.html#parallel-testing
 
-#### Integration tests
+#### Integration Tests
 
 Similarly to System Tests, files uploaded during Integration Tests will not be
 automatically cleaned up. If you want to clear the files, you can do it in an
@@ -1336,7 +1342,7 @@ end
 
 [parallel tests]: testing.html#parallel-testing
 
-### Adding attachments to fixtures
+### Adding Attachments to Fixtures
 
 You can add attachments to your existing [fixtures][]. First, you'll want to create a separate storage service:
 
@@ -1384,7 +1390,7 @@ class UserTest < ActiveSupport::TestCase
 end
 ```
 
-#### Cleaning up fixtures
+#### Cleaning up Fixtures
 
 While files uploaded in tests are cleaned up [at the end of each test](#discarding-files-created-during-tests),
 you only need to clean up fixture files once: when all your tests complete.
@@ -1415,6 +1421,33 @@ end
 [fixtures]: testing.html#the-low-down-on-fixtures
 [`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
 
+### Configuring services
+
+You can add `config/storage/test.yml` to configure services to be used in test environment
+This is useful when the `service` option is used.
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, service: :s3
+end
+```
+
+Without `config/storage/test.yml`, the `s3` service configured in `config/storage.yml` is used - even when running tests.
+
+The default configuration would be used and files would be uploaded to the service provider configured in `config/storage.yml`.
+
+In this case, you can add `config/storage/test.yml` and use Disk service for `s3` service to prevent sending requests.
+
+```yaml
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+s3:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+```
+
 Implementing Support for Other Cloud Services
 ---------------------------------------------
 
@@ -1432,7 +1465,7 @@ There are cases where a file is uploaded but never attached to a record. This ca
 namespace :active_storage do
   desc "Purges unattached Active Storage blobs. Run regularly."
   task purge_unattached: :environment do
-    ActiveStorage::Blob.unattached.where("active_storage_blobs.created_at <= ?", 2.days.ago).find_each(&:purge_later)
+    ActiveStorage::Blob.unattached.where(created_at: ..2.days.ago).find_each(&:purge_later)
   end
 end
 ```

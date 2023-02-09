@@ -100,7 +100,8 @@ module ActiveRecord
     # catch those in your application code.
     #
     # One exception is the ActiveRecord::Rollback exception, which will trigger
-    # a ROLLBACK when raised, but not be re-raised by the transaction block.
+    # a ROLLBACK when raised, but not be re-raised by the transaction block. Any
+    # other exception will be re-raised.
     #
     # *Warning*: one should not catch ActiveRecord::StatementInvalid exceptions
     # inside a transaction block. ActiveRecord::StatementInvalid exceptions indicate that an
@@ -366,6 +367,13 @@ module ActiveRecord
 
     private
       attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
+
+      def init_internals
+        super
+        @_start_transaction_state = nil
+        @_committed_already_called = nil
+        @_new_record_before_last_commit = nil
+      end
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state

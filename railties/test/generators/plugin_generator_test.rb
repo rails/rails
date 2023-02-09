@@ -120,10 +120,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_in_full_mode_with_almost_of_all_skip_options
-    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage"]
+    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage", "--skip-active-job"]
     assert_file "bin/rails" do |content|
       assert_no_match(/\s+require\s+["']rails\/all["']/, content)
     end
+    assert_file "bin/rails", /#\s+require\s+["']active_job\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_storage\/engine["']/
     assert_file "bin/rails", /#\s+require\s+["']action_mailer\/railtie["']/
@@ -412,7 +413,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/helpers/my_hyphenated/name/application_helper.rb",         /module MyHyphenated\n  module Name\n    module ApplicationHelper\n    end\n  end\nend/
     assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>My hyphenated name</title>", contents
-      assert_match(/stylesheet_link_tag\s+[""]my_hyphenated\/name\/application['"]/, contents)
+      assert_match(/stylesheet_link_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
       assert_no_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
     end
   end
@@ -613,6 +614,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/README.md"
     assert_no_file "test/dummy/config/master.key"
     assert_no_file "test/dummy/config/credentials.yml.enc"
+    assert_no_file "test/dummy/Dockerfile"
+    assert_no_file "test/dummy/.dockerignore"
     assert_no_directory "test/dummy/lib/tasks"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"

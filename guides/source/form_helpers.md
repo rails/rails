@@ -321,7 +321,7 @@ form_with model: [:admin, :management, @article]
 
 For more information on Rails' routing system and the associated conventions, please see [Rails Routing from the Outside In](routing.html) guide.
 
-### How do forms with PATCH, PUT, or DELETE methods work?
+### How do Forms with PATCH, PUT, or DELETE Methods Work?
 
 The Rails framework encourages RESTful design of your applications, which means you'll be making a lot of "PATCH", "PUT", and "DELETE" requests (besides "GET" and "POST"). However, most browsers _don't support_ methods other than "GET" and "POST" when it comes to submitting forms.
 
@@ -366,9 +366,6 @@ Rails works around this issue by emulating other methods over POST through a com
   <button type="submit" name="button">Update</button>
 </form>
 ```
-
-IMPORTANT: In Rails 6.0 and 5.2, all forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
-
 [formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
 [button-name]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-name
 [button-value]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-value
@@ -870,10 +867,10 @@ Which will result in a `params` hash that looks like:
 ```
 
 All of the form inputs map to the `"person"` hash because we called `fields_for`
-on the `person_form` form builder. By specifying an `:index` option, we mapped
-the address inputs to `person[address][#{address.id}][city]` instead of
-`person[address][city]`. Thus we are able to determine which Address records
-should be modified when processing the `params` hash.
+on the `person_form` form builder. Also, by specifying `index: address.id`, we
+rendered the `name` attribute of each city input as `person[address][#{address.id}][city]`
+instead of `person[address][city]`. Thus we are able to determine which Address
+records should be modified when processing the `params` hash.
 
 You can pass other numbers or strings of significance via the `:index` option.
 You can even pass `nil`, which will produce an array parameter.
@@ -1087,7 +1084,7 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 
 Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an "Add new address" button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds since the [epoch](https://en.wikipedia.org/wiki/Unix_time)) is a common choice.
 
-Using Tag Helpers Without a Form Builder
+Using Tag Helpers without a Form Builder
 ----------------------------------------
 
 In case you need to render form fields outside of the context of a form builder, Rails provides tag helpers for common form elements. For example, [`check_box_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-check_box_tag):

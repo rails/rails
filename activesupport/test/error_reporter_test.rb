@@ -68,6 +68,23 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal [], @subscriber.events
   end
 
+  test "#handle can be scoped to several exception classes" do
+    assert_raises ArgumentError do
+      @reporter.handle(NameError, NoMethodError) do
+        raise ArgumentError
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#handle swallows and reports matching errors" do
+    error = ArgumentError.new("Oops")
+    @reporter.handle(NameError, ArgumentError) do
+      raise error
+    end
+    assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
+  end
+
   test "#handle passes through the return value" do
     result = @reporter.handle do
       2 + 2
@@ -123,6 +140,25 @@ class ErrorReporterTest < ActiveSupport::TestCase
       end
     end
     assert_equal [], @subscriber.events
+  end
+
+  test "#record can be scoped to several exception classes" do
+    assert_raises ArgumentError do
+      @reporter.record(NameError, NoMethodError) do
+        raise ArgumentError
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#record report any matching, unhandled error and re-raise them" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.record(NameError, ArgumentError) do
+        raise error
+      end
+    end
+    assert_equal [[error, false, :error, "application", {}]], @subscriber.events
   end
 
   test "#record passes through the return value" do

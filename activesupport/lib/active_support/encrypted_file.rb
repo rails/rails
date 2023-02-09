@@ -111,7 +111,7 @@ module ActiveSupport
       end
 
       def encryptor
-        @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER)
+        @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER, serializer: Marshal)
       end
 
 

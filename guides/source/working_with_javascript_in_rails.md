@@ -17,7 +17,7 @@ your JavaScript.
 
 --------------------------------------------------------------------------------
 
-Import maps
+Import Maps
 -----------
 
 [Import maps](https://github.com/rails/importmap-rails) let you import JavaScript modules using
@@ -171,7 +171,7 @@ like this:
 ```erb
 <%= turbo_frame_tag dom_id(post) do %>
   <div>
-     <%= link_to post.title, post_path(path) %>
+     <%= link_to post.title, post_path(post) %>
   </div>
 <% end %>
 ```
@@ -274,19 +274,29 @@ non-GET action.
 
 ### Confirmations
 
-You can ask for an extra confirmation of the user by adding a `data-turbo-confirm` attribute on
-links and forms. The user will be presented with a JavaScript `confirm()` dialog containing the
-attribute’s text. If the user chooses to cancel, the action doesn't take place.
+You can ask for an extra confirmation from the user by adding a `data-turbo-confirm`
+attribute on links and forms. On link click or form submit, the user will be
+presented with a JavaScript `confirm()` dialog containing the attribute's text.
+If the user chooses to cancel, the action doesn't take place.
 
-Adding this attribute on links will trigger the dialog on click, and adding it on forms will
-trigger it on submit. For example:
+For example, with the `link_to` helper:
 
 ```erb
 <%= link_to "Delete post", post_path(post), data: { turbo_method: "delete", turbo_confirm: "Are you sure?" } %>
 ```
 
-This generates:
+Which generates:
 
 ```html
 <a href="..." data-turbo-confirm="Are you sure?" data-turbo-method="delete">Delete post</a>
+```
+
+When the user clicks on the "Delete post" link, they will be presented with an
+"Are you sure?" confirmation dialog.
+
+The attribute can also be used with the `button_to` helper, however it must be
+added to the form that the `button_to` helper renders internally:
+
+```erb
+<%= button_to "Delete post", post, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } } %>
 ```

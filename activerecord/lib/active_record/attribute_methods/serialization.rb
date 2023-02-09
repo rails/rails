@@ -51,6 +51,9 @@ module ActiveRecord
         #     using the coder's <tt>dump(value)</tt> method, and will be
         #     deserialized using the coder's <tt>load(string)</tt> method. The
         #     +dump+ method may return +nil+ to serialize the value as +NULL+.
+        # * +yaml+ - Optional. Yaml specific options. The allowed config is:
+        #   * +:permitted_classes+ - +Array+ with the permitted classes.
+        #   * +:unsafe_load+ - Unsafely load YAML blobs, allow YAML to load any class.
         #
         # ==== Options
         #
@@ -78,6 +81,12 @@ module ActiveRecord
         #     serialize :preferences, Hash
         #   end
         #
+        # ===== Serializes +preferences+ to YAML, permitting select classes
+        #
+        #   class User < ActiveRecord::Base
+        #     serialize :preferences, yaml: { permitted_classes: [Symbol, Time] }
+        #   end
+        #
         # ===== Serialize the +preferences+ attribute using a custom coder
         #
         #   class Rot13JSON
@@ -100,7 +109,7 @@ module ActiveRecord
         #     serialize :preferences, Rot13JSON
         #   end
         #
-        def serialize(attr_name, class_name_or_coder = Object, **options)
+        def serialize(attr_name, class_name_or_coder = Object, yaml: {}, **options)
           # When ::JSON is used, force it to go through the Active Support JSON encoder
           # to ensure special objects (e.g. Active Record models) are dumped correctly
           # using the #as_json hook.
@@ -109,7 +118,7 @@ module ActiveRecord
           elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
             class_name_or_coder
           else
-            Coders::YAMLColumn.new(attr_name, class_name_or_coder)
+            Coders::YAMLColumn.new(attr_name, class_name_or_coder, **yaml)
           end
 
           attribute(attr_name, **options) do |cast_type|

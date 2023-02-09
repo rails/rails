@@ -1,3 +1,173 @@
+*   Use infinitive form for all rails command descriptions verbs.
+
+    *Petrik de Heus*
+
+*   Credentials commands (e.g. `bin/rails credentials:edit`) now respect
+    `config.credentials.content_path` and `config.credentials.key_path` when set
+    in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
+
+    Before:
+
+      * `bin/rails credentials:edit` ignored `RAILS_ENV`, and would always edit
+        `config/credentials.yml.enc`.
+
+      * `bin/rails credentials:edit --environment foo` would create and edit
+        `config/credentials/foo.yml.enc`.
+
+      * If `config.credentials.content_path` or `config.credentials.key_path`
+        was set, `bin/rails credentials:edit` could not be used to edit the
+        credentials.  Editing credentials required using `bin/rails
+        encrypted:edit path/to/credentials --key path/to/key`.
+
+    After:
+
+      * `bin/rails credentials:edit` will edit the credentials file that the app
+        would load for the current `RAILS_ENV`.
+
+      * `bin/rails credentials:edit` respects `config.credentials.content_path`
+        and `config.credentials.key_path` when set in `config/application.rb`
+        or `config/environments/#{Rails.env}.rb`.
+
+      * `bin/rails credentials:edit --environment foo` will create and edit
+        `config/credentials/foo.yml.enc` _if_ `config.credentials.content_path`
+        has not been set for the `foo` environment.  Ultimately, it will edit
+        the credentials file that the app would load for the `foo` environment.
+
+    *Jonathan Hefner*
+
+*   Add descriptions for non-Rake commands when running `rails -h`.
+
+    *Petrik de Heus*
+
+*   Show relevant commands when calling help
+
+    When running `rails -h` or just `rails` outside a Rails application,
+    Rails outputs all options for running the `rails new` command. This can be
+    confusing to users when they probably want to see the common Rails commands.
+
+    Instead, we should always show the common commands when running `rails -h`
+    inside or outside a Rails application.
+
+    As the relevant commands inside a Rails application differ from the
+    commands outside an application, the help USAGE file has been split to
+    show the most relevant commands for the context.
+
+    *Petrik de Heus*
+
+*   Add Rails::HealthController#show and map it to /up for newly generated applications.
+    Load balancers and uptime monitors all need a basic endpoint to tell whether the app is up.
+    This is a good starting point that'll work in many situations.
+
+    *DHH*
+
+*   Only use HostAuthorization middleware if `config.hosts` is not empty
+
+    *Hartley McGuire*
+
+*   Raise an exception when a `before_action`'s "only" or "except" filter
+    options reference an action that doesn't exist. This will be enabled by
+    default but can be overridden via config.
+
+    ```
+    # config/environments/production.rb
+    config.action_controller.raise_on_missing_callback_actions = false
+    ```
+
+    *Jess Bees*
+
+*   Use physical processor count as the default Puma worker count in production.
+    This can be overridden by setting `ENV["WEB_CONCURRENCY"]` or editing the
+    generated "config/puma.rb" directly.
+
+    *DHH*
+
+*   Bump `required_rubygems_version` from 1.8.11 to 3.3.13 or higher in order to
+    support pre-release versions of Ruby when generating a new Rails app
+    Gemfile.
+
+    *Yasuo Honda*
+
+*   Add Docker files by default to new apps: Dockerfile, .dockerignore, bin/docker-entrypoint.
+    These files can be skipped with `--skip-docker`. They're intended as a starting point for
+    a production deploy of the application. Not intended for development (see Docked Rails for that).
+
+    Example:
+
+    ```
+    docker build -t app .
+    docker volume create app-storage
+    docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
+    ```
+
+    You can also start a console or a runner from this image:
+
+    ```
+    docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
+    ```
+
+    To create a multi-platform image on Apple Silicon to deploy on AMD or Intel and push to Docker Hub for user/app:
+
+    ```
+    docker login -u <user>
+    docker buildx create --use
+    docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
+    ```
+
+    *DHH, Sam Ruby*
+
+*   Add ENV["SECRET_KEY_BASE_DUMMY"] for starting production environment with a generated secret base key,
+    which can be used to run tasks like `assets:precompile` without making the RAILS_MASTER_KEY available
+    to the build process.
+
+    Dockerfile layer example:
+
+    ```
+    RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+    ```
+
+    *DHH*
+
+*   Show descriptions for all commands in Rails help
+
+    When calling `rails help` most commands missed their description. We now
+    show the same descriptions as shown in `rails -T`.
+
+    *Petrik de Heus*
+
+*   Always generate the storage/ directory with rails new to ensure there's a stable place to
+    put permanent files, and a single mount point for containers to map. Then default sqlite3 databases
+    to live there instead of db/, which is only meant for configuration, not data.
+
+    *DHH*
+
+*   Rails console now disables `IRB`'s autocompletion feature in production by default.
+
+    Setting `IRB_USE_AUTOCOMPLETE=true` can override this default.
+
+    *Stan Lo*
+
+*   Add `config.precompile_filter_parameters`, which enables precompilation of
+    `config.filter_parameters` using `ActiveSupport::ParameterFilter.precompile_filters`.
+    Precompilation can improve filtering performance, depending on the quantity
+    and types of filters.
+
+    `config.precompile_filter_parameters` defaults to `true` for
+    `config.load_defaults 7.1` and above.
+
+    *Jonathan Hefner*
+
+*   Add `after_routes_loaded` hook to `Rails::Railtie::Configuration` for
+    engines to add a hook to be called after application routes have been
+    loaded.
+
+    ```ruby
+    MyEngine.config.after_routes_loaded do
+      # code that must happen after routes have been loaded
+    end
+    ```
+
+    *Chris Salzberg*
+
 *   Send 303 See Other status code back for the destroy action on newly generated
     scaffold controllers.
 
@@ -44,7 +214,7 @@
     This patch moves #find_cmd_and_exec to the adapter and exposes a new API to
     lookup the adapter class without instantiating it.
 
-    *Gannon McGibbon, Paarth Madan*
+    *Gannon McGibbon*, *Paarth Madan*
 
 *   Add `Rails.application.message_verifiers` as a central point to configure
     and create message verifiers for an application.
@@ -351,5 +521,14 @@
     support Internet Explorer this header should not be a default one.
 
     *Harun Sabljaković*
+
+*   Add .node-version files for Rails apps that use Node.js
+
+    Node version managers that make use of this file:
+      https://github.com/shadowspawn/node-version-usage#node-version-file-usage
+
+    The generated Dockerfile will use the same node version.
+
+    *Sam Ruby*
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md) for previous changes.

@@ -222,8 +222,8 @@ module ActiveRecord
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if role and/or is the current connected role and/or
-    # current connected shard. If no shard is passed the default will be
+    # Returns true if role is the current connected role and/or
+    # current connected shard. If no shard is passed, the default will be
     # used.
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
@@ -272,7 +272,7 @@ module ActiveRecord
     #
     #  ActiveRecord::Base.connection_db_config
     #    #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-    #      @name="primary", @config={pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}>
+    #      @name="primary", @config={pool: 5, timeout: 5000, database: "storage/development.sqlite3", adapter: "sqlite3"}>
     #
     # Use only for reading.
     def connection_db_config
@@ -308,10 +308,35 @@ module ActiveRecord
       connection.schema_cache.clear!
     end
 
-    delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
+    def clear_active_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_active_connections!(role)
+    end
+
+    def clear_reloadable_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_reloadable_connections!(role)
+    end
+
+    def clear_all_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_all_connections!(role)
+    end
+
+    def flush_idle_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.flush_idle_connections!(role)
+    end
 
     private
+      def deprecation_for_delegation(method)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
+          Calling `ActiveRecord::Base.#{method} is deprecated. Please
+          call the method directly on the connection handler; for
+          example: `ActiveRecord::Base.connection_handler.#{method}`.
+        MSG
+      end
+
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 

@@ -35,8 +35,22 @@ module Arel
   # Great caution should be taken to avoid SQL injection vulnerabilities.
   # This method should not be used with unsafe values such as request
   # parameters or model attributes.
-  def self.sql(raw_sql)
-    Arel::Nodes::SqlLiteral.new raw_sql
+  #
+  # Take a look at the {security guide}[https://guides.rubyonrails.org/security.html#sql-injection]
+  # for more information.
+  #
+  # To construct a more complex query fragment, including the possible
+  # use of user-provided values, the +sql_string+ may contain +?+ and
+  # +:key+ placeholders, corresponding to the additional arguments. Note
+  # that this behavior only applies when bind value parameters are
+  # supplied in the call; without them, the placeholder tokens have no
+  # special meaning, and will be passed through to the query as-is.
+  def self.sql(sql_string, *positional_binds, **named_binds)
+    if positional_binds.empty? && named_binds.empty?
+      Arel::Nodes::SqlLiteral.new sql_string
+    else
+      Arel::Nodes::BoundSqlLiteral.new sql_string, positional_binds, named_binds
+    end
   end
 
   def self.star # :nodoc:

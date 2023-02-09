@@ -455,13 +455,15 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ "name" ]), ReadonlyNameShip.readonly_attributes
+    assert_equal [ "name" ], ReadonlyNameShip.readonly_attributes
 
     s = ReadonlyNameShip.create(name: "unchangeable name")
     s.reload
     assert_equal "unchangeable name", s.name
 
-    s.update(name: "changed name")
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      s.update(name: "changed name")
+    end
     s.reload
     assert_equal "unchangeable name", s.name
   end
@@ -664,8 +666,8 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-unless in_memory_db?
-  class PessimisticLockingTest < ActiveRecord::TestCase
+class PessimisticLockingTest < ActiveRecord::TestCase
+  unless in_memory_db?
     self.use_transactional_tests = false
     fixtures :people, :readers
 
@@ -716,7 +718,7 @@ unless in_memory_db?
       assert_nothing_raised do
         frog = ::Frog.create(name: "Old Frog")
         frog.name = "New Frog"
-        assert_not_deprecated do
+        assert_not_deprecated(ActiveRecord.deprecator) do
           frog.save!
         end
       end

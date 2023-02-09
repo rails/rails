@@ -49,10 +49,9 @@ class Time
     #     around_action :set_time_zone
     #
     #     private
-    #
-    #     def set_time_zone
-    #       Time.use_zone(current_user.timezone) { yield }
-    #     end
+    #       def set_time_zone
+    #         Time.use_zone(current_user.timezone) { yield }
+    #       end
     #   end
     #
     # NOTE: This won't affect any ActiveSupport::TimeWithZone

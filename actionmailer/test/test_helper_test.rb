@@ -7,6 +7,7 @@ class TestHelperMailer < ActionMailer::Base
   def test
     @world = "Earth"
     mail body: render(inline: "Hello, <%= @world %>"),
+      subject: "Hi!",
       to: "test@example.com",
       from: "tester@example.com"
   end
@@ -87,6 +88,25 @@ class TestHelperMailerTest < ActionMailer::TestCase
       assert_emails 1 do
         TestHelperMailer.test.deliver_now
       end
+    end
+  end
+
+  def test_assert_emails_returns_the_emails_that_were_sent_if_a_block_is_given
+    assert_nothing_raised do
+      email = assert_emails 1 do
+        TestHelperMailer.test.deliver_now
+      end
+      assert_instance_of Mail::Message, email
+      assert_equal "Hello, Earth", email.body.to_s
+      assert_equal "Hi!", email.subject
+
+      emails = assert_emails 2 do
+        TestHelperMailer.test.deliver_now
+        TestHelperMailer.test.deliver_now
+      end
+      assert_instance_of Array, emails
+      assert_instance_of Mail::Message, emails.first
+      assert_instance_of Mail::Message, emails.second
     end
   end
 

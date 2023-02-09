@@ -5,6 +5,29 @@ require "active_support/messages/rotation_coordinator"
 module ActiveSupport
   class MessageVerifiers < Messages::RotationCoordinator
     ##
+    # :attr_accessor: transitional
+    #
+    # If true, the first two rotation option sets are swapped when building
+    # message verifiers. For example, with the following configuration, message
+    # verifiers will generate messages using <tt>serializer: Marshal, url_safe: true</tt>,
+    # and will able to verify messages that were generated using any of the
+    # three option sets:
+    #
+    #   verifiers = ActiveSupport::MessageVerifiers.new { ... }
+    #   verifiers.rotate(serializer: JSON, url_safe: true)
+    #   verifiers.rotate(serializer: Marshal, url_safe: true)
+    #   verifiers.rotate(serializer: Marshal, url_safe: false)
+    #   verifiers.transitional = true
+    #
+    # This can be useful when performing a rolling deploy of an application,
+    # wherein servers that have not yet been updated must still be able to
+    # verify messages from updated servers. In such a scenario, first perform a
+    # rolling deploy with the new rotation (e.g. <tt>serializer: JSON, url_safe: true</tt>)
+    # as the first rotation and <tt>transitional = true</tt>. Then, after all
+    # servers have been updated, perform a second rolling deploy with
+    # <tt>transitional = false</tt>.
+
+    ##
     # :method: initialize
     # :call-seq: initialize(&secret_generator)
     #
@@ -50,6 +73,35 @@ module ActiveSupport
     # If any options match the kwargs of the operative secret generator, those
     # options will be passed to the secret generator instead of to the message
     # verifier.
+    #
+    # For fine-grained per-salt rotations, a block form is supported. The block
+    # will receive the salt, and should return an appropriate options Hash. The
+    # block may also return +nil+ to indicate that the rotation does not apply
+    # to the given salt. For example:
+    #
+    #   verifiers = ActiveSupport::MessageVerifiers.new { ... }
+    #
+    #   verifiers.rotate do |salt|
+    #     case salt
+    #     when :foo
+    #       { serializer: JSON, url_safe: true }
+    #     when :bar
+    #       { serializer: Marshal, url_safe: true }
+    #     end
+    #   end
+    #
+    #   verifiers.rotate(serializer: Marshal, url_safe: false)
+    #
+    #   # Uses `serializer: JSON, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: false`.
+    #   verifiers[:foo]
+    #
+    #   # Uses `serializer: Marshal, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: false`.
+    #   verifiers[:bar]
+    #
+    #   # Uses `serializer: Marshal, url_safe: false`.
+    #   verifiers[:baz]
 
     ##
     # :method: rotate_defaults

@@ -576,12 +576,12 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && (implicit_order_column || primary_key)
-          if implicit_order_column && primary_key && implicit_order_column != primary_key
-            order(table[implicit_order_column].asc, table[primary_key].asc)
-          else
-            order(table[implicit_order_column || primary_key].asc)
-          end
+        if order_values.empty? && (implicit_order_column || !query_constraints_list.empty?)
+          # use query_constraints_list as the order clause if there is no implicit_order_column
+          # otherwise remove the implicit order column from the query constraints list if it's there
+          # and prepend it to the beginning of the list
+          order_columns = implicit_order_column.nil? ? query_constraints_list : ([implicit_order_column] | query_constraints_list)
+          order(*order_columns.map { |column| table[column].asc })
         else
           self
         end

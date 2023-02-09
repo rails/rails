@@ -6,7 +6,7 @@ require "active_support/core_ext/module/delegation"
 # but it is possible to associate many different records with the same blob. A foreign-key constraint
 # on the attachments table prevents blobs from being purged if they’re still attached to any records.
 #
-# Attachments also have access to all methods from {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob].
+# Attachments also have access to all methods from ActiveStorage::Blob.
 #
 # If you wish to preload attachments or blobs, you can use these scopes:
 #
