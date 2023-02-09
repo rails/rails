@@ -569,11 +569,8 @@ module ActiveRecord
       def _update_record(values, constraints) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
-        default_constraint = build_default_constraint
-        constraints << default_constraint if default_constraint
-
-        if current_scope = self.global_current_scope
-          constraints << current_scope.where_clause.ast
+        if scope_constraints = build_scope_constraints
+          constraints << scope_constraints
         end
 
         um = Arel::UpdateManager.new(arel_table)
@@ -586,11 +583,8 @@ module ActiveRecord
       def _delete_record(constraints) # :nodoc:
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
-        default_constraint = build_default_constraint
-        constraints << default_constraint if default_constraint
-
-        if current_scope = self.global_current_scope
-          constraints << current_scope.where_clause.ast
+        if scope_constraints = build_scope_constraints
+          constraints << scope_constraints
         end
 
         dm = Arel::DeleteManager.new(arel_table)
@@ -623,14 +617,17 @@ module ActiveRecord
           self
         end
 
-        # Called by +_update_record+ and +_delete_record+
-        # to build `where` clause from default scopes.
+        # Called by +_update_record+ and +_delete_record+ to build `where`
+        # clause from scopes, default or from +scoping+
         # Skips empty scopes.
-        def build_default_constraint
-          return if current_scope || default_scopes?(all_queries: true).blank?
+        def build_scope_constraints
+          scope_constraints = if current_scope = global_current_scope
+            current_scope.where_clause
+          elsif default_scopes?(all_queries: true)
+            default_scoped(all_queries: true).where_clause
+          end
 
-          default_where_clause = default_scoped(all_queries: true).where_clause
-          default_where_clause.ast unless default_where_clause.empty?
+          scope_constraints.ast if scope_constraints&.any?
         end
 
         # This is a fallback method that is used to determine the query_constraints_list

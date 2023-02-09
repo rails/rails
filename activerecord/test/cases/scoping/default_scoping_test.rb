@@ -179,6 +179,15 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, update_sql)
   end
 
+  def test_default_scope_with_all_queries_is_applied_once_on_update_columns
+    Mentor.create!
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    relation = DeveloperWithDefaultMentorScopeAllQueries.where("1=1")
+    update_sql = capture_sql { relation.scoping(all_queries: true) { dev.update_columns(name: "Not Eileen") } }.first
+
+    assert_match(/WHERE .\w+.\..id. = \S+ AND .\w+.\..mentor_id. = \S+ AND \(1=1\)\Z/, update_sql)
+  end
+
   def test_default_scope_with_all_queries_doesnt_run_on_update_columns_when_unscoped
     Mentor.create!
     dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
@@ -208,6 +217,15 @@ class DefaultScopingTest < ActiveRecord::TestCase
     destroy_sql = capture_sql { dev.destroy }.first
 
     assert_match(/mentor_id/, destroy_sql)
+  end
+
+  def test_default_scope_with_all_queries_is_applied_once_on_destroy
+    Mentor.create!
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    relation = DeveloperWithDefaultMentorScopeAllQueries.where("1=1")
+    update_sql = capture_sql { relation.scoping(all_queries: true) { dev.destroy } }.first
+
+    assert_match(/WHERE .\w+.\..id. = \S+ AND .\w+.\..mentor_id. = \S+ AND \(1=1\)\Z/, update_sql)
   end
 
   def test_default_scope_with_all_queries_doesnt_run_on_destroy_when_unscoped
