@@ -348,13 +348,6 @@ INFO. Additional keys may be added by the caller.
 
 ### Active Record
 
-#### strict_loading_violation.active_record
-
-| Key           | Value                                            |
-| ------------- | ------------------------------------------------ |
-| `:owner`      | Model with `strict_loading` enabled              |
-| `:reflection` | Reflection of the association that tried to load |
-
 #### sql.active_record
 
 | Key                  | Value                                    |
@@ -379,6 +372,15 @@ INFO. The adapters will add their own data as well.
   statement_name: nil
 }
 ```
+
+#### strict_loading_violation.active_record
+
+| Key           | Value                                            |
+| ------------- | ------------------------------------------------ |
+| `:owner`      | Model with `strict_loading` enabled              |
+| `:reflection` | Reflection of the association that tried to load |
+
+INFO. This event is only emitted when `config.active_record.action_on_strict_loading_violation` is set to `:log`.
 
 #### instantiation.active_record
 
