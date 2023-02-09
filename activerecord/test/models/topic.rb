@@ -135,6 +135,10 @@ class DefaultRejectedTopic < Topic
   default_scope -> { where(approved: false) }
 end
 
+class DefaultApprovedTopic < Topic
+  default_scope -> { where(approved: true) }, all_queries: true
+end
+
 class BlankTopic < Topic
   # declared here to make sure that dynamic finder with a bang can find a model that responds to `blank?`
   def blank?
