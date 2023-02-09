@@ -626,9 +626,7 @@ module ActionView
       end
 
       def compare_recognized(path1, path2)
-        path1_recognized = _routes.recognize_path_mini(path1)
-        path2_recognized = _routes.recognize_path_mini(path2)
-        path1_recognized == path2_recognized
+        _routes.recognize_path_spec(path1) == _routes.recognize_path_spec(path2)
       end
 
       # Creates an SMS anchor link tag to the specified +phone_number+. When the

@@ -928,7 +928,7 @@ module ActionDispatch
       end
 
 
-      def recognize_path_mini(path, environment = {})
+      def recognize_path_spec(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
         path = Journey::Router::Utils.normalize_path(path) unless path.include?("://")
         extras = environment[:extras] || {}
@@ -940,10 +940,10 @@ module ActionDispatch
         end
 
         req = make_request(env)
-        recognize_path_with_request_mini(req, path, extras)
+        recognize_path_spec_with_request(req, path, extras)
       end
 
-      def recognize_path_with_request_mini(req, path, extras, raise_on_missing: true)
+      def recognize_path_spec_with_request(req, path, extras, raise_on_missing: true)
         @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|

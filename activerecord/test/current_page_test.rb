@@ -27,8 +27,6 @@ class BugTest < ActiveSupport::TestCase
 
   def test_returns_success
     @request = request_for_url("/posts", method: :head)
-    puts "::::" + url_for(controller: "posts", action: "index")
-    puts "ruri::" + @request.url
     assert current_page?(controller: "posts", action: "index")
   end
 end
