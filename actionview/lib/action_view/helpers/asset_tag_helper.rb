@@ -41,13 +41,14 @@ module ActionView
       # When the Asset Pipeline is enabled, you can pass the name of your manifest as
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
       #
-      # If the server supports Early Hints, header links for these assets will be
-      # automatically pushed.
+      # If the server supports HTTP Early Hints, and the +defer+ option is not
+      # enabled, Rails will push a <tt>103 Early Hints</tt> response that links
+      # to the assets.
       #
       # ==== Options
       #
       # When the last parameter is a hash you can add HTML attributes using that
-      # parameter. The following options are supported:
+      # parameter. This includes but is not limited to the following options:
       #
       # * <tt>:extname</tt>  - Append an extension to the generated URL unless the extension
       #   already exists. This only applies for relative URLs.
@@ -59,6 +60,20 @@ module ActionView
       #   when it is set to true.
       # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
       #   you have Content Security Policy enabled.
+      # * <tt>:async</tt>  - When set to +true+, adds the +async+ HTML
+      #   attribute, allowing the script to be fetched in parallel to be parsed
+      #   and evaluated as soon as possible.
+      # * <tt>:defer</tt>  - When set to +true+, adds the +defer+ HTML
+      #   attribute, which indicates to the browser that the script is meant to
+      #   be executed after the document has been parsed. Additionally, prevents
+      #   sending the Preload Links header.
+      #
+      # Any other specified options will be treated as HTML attributes for the
+      # +script+ tag.
+      #
+      # For example, <tt>:async</tt> and <tt>:defer</tt> options, please refer to the
+      # {MDN docs}[https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script]
+      # regarding how they affect the <tt><script></tt> tag.
       #
       # ==== Examples
       #
@@ -86,6 +101,12 @@ module ActionView
       #
       #   javascript_include_tag "http://www.example.com/xmlhr.js", nonce: true
       #   # => <script src="http://www.example.com/xmlhr.js" nonce="..."></script>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js", async: true
+      #   # => <script src="http://www.example.com/xmlhr.js" async="async"></script>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js", defer: true
+      #   # => <script src="http://www.example.com/xmlhr.js" defer="defer"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
@@ -130,8 +151,8 @@ module ActionView
       # set <tt>extname: false</tt> in the options.
       # You can modify the link attributes by passing a hash as the last argument.
       #
-      # If the server supports Early Hints, header links for these assets will be
-      # automatically pushed.
+      # If the server supports HTTP Early Hints, Rails will push a <tt>103 Early
+      # Hints</tt> response that links to the assets.
       #
       # ==== Options
       #
