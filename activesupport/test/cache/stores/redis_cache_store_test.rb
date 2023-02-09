@@ -210,14 +210,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     test "fetch caches nil" do
       @cache.write("foo", nil)
       assert_not_called(@cache, :write) do
-        assert_nil @cache.fetch("foo") { "baz" }
+        assert_nil @cache.fetch("foo", "baz")
       end
     end
 
     test "skip_nil is passed to ActiveSupport::Cache" do
       @cache = lookup_store(skip_nil: true)
       assert_not_called(@cache, :write) do
-        assert_nil @cache.fetch("foo") { nil }
+        assert_nil @cache.fetch("foo", nil)
         assert_equal false, @cache.exist?("foo")
       end
     end

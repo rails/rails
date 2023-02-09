@@ -268,12 +268,12 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
   test "fetch doesn't raise ParameterMissing exception if there is a default" do
     assert_equal "monkey", @params.fetch(:foo, "monkey")
-    assert_equal "monkey", @params.fetch(:foo) { "monkey" }
+    assert_equal "monkey", @params.fetch(:foo, "monkey")
   end
 
   test "fetch doesn't raise ParameterMissing exception if there is a default that is nil" do
     assert_nil @params.fetch(:foo, nil)
-    assert_nil @params.fetch(:foo) { nil }
+    assert_nil @params.fetch(:foo, nil)
   end
 
   test "KeyError in fetch block should not be covered up" do

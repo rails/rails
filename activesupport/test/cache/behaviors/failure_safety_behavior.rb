@@ -16,7 +16,7 @@ module FailureSafetyBehavior
     @cache.write(key, value)
 
     emulating_unavailability do |cache|
-      val = cache.fetch(key) { "1" }
+      val = cache.fetch(key, "1")
 
       ##
       # Though the `write` part of fetch fails for the same reason

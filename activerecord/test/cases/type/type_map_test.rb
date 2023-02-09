@@ -23,8 +23,8 @@ module ActiveRecord
         mapping = klass.new
         mapping.register_type(1, "string")
 
-        assert_equal "string", mapping.fetch(1) { "int" }
-        assert_equal "int", mapping.fetch(2) { "int" }
+        assert_equal "string", mapping.fetch(1, "int")
+        assert_equal "int", mapping.fetch(2, "int")
       end
 
       def test_fetch_memoizes

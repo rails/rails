@@ -343,3 +343,6 @@ Minitest/SkipEnsure:
 
 Minitest/UnreachableAssertion:
   Enabled: true
+
+Style/RedundantFetchBlock:
+  Enabled: true

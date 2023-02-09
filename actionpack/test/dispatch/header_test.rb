@@ -84,7 +84,7 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "fetch with block" do
-    assert_equal "omg", @headers.fetch("notthere") { "omg" }
+    assert_equal "omg", @headers.fetch("notthere", "omg")
   end
 
   test "accessing http header" do

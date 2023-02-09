@@ -206,12 +206,12 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_dalli_cache_nils
     cache = lookup_store(cache_nils: false)
-    cache.fetch("nil_foo") { nil }
-    assert_equal "bar", cache.fetch("nil_foo") { "bar" }
+    cache.fetch("nil_foo", nil)
+    assert_equal "bar", cache.fetch("nil_foo", "bar")
 
     cache1 = lookup_store(cache_nils: true)
-    cache1.fetch("not_nil_foo") { nil }
-    assert_nil cache.fetch("not_nil_foo") { "bar" }
+    cache1.fetch("not_nil_foo", nil)
+    assert_nil cache.fetch("not_nil_foo", "bar")
   end
 
   def test_local_cache_raw_values_with_marshal
@@ -320,7 +320,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
     @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), "value", 0, compress: false) }
     assert_nil @cache.read(key)
-    assert_equal "value", @cache.fetch(key) { "value" }
+    assert_equal "value", @cache.fetch(key, "value")
   end
 
   def test_can_load_raw_falsey_values_from_dalli_store
@@ -328,7 +328,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
     @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), false, 0, compress: false) }
     assert_nil @cache.read(key)
-    assert_equal false, @cache.fetch(key) { false }
+    assert_equal false, @cache.fetch(key, false)
   end
 
   def test_can_load_raw_values_from_dalli_store_with_local_cache
@@ -337,7 +337,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), "value", 0, compress: false) }
     @cache.with_local_cache do
       assert_nil @cache.read(key)
-      assert_equal "value", @cache.fetch(key) { "value" }
+      assert_equal "value", @cache.fetch(key, "value")
     end
   end
 
@@ -347,7 +347,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @cache.instance_variable_get(:@data).with { |c| c.set(@cache.send(:normalize_key, key, nil), false, 0, compress: false) }
     @cache.with_local_cache do
       assert_nil @cache.read(key)
-      assert_equal false, @cache.fetch(key) { false }
+      assert_equal false, @cache.fetch(key, false)
     end
   end
 

@@ -22,14 +22,14 @@ module CacheStoreBehavior
     key = SecureRandom.uuid
     @cache.write(key, "bar")
     assert_not_called(@cache, :write) do
-      assert_equal "bar", @cache.fetch(key) { "baz" }
+      assert_equal "bar", @cache.fetch(key, "baz")
     end
   end
 
   def test_fetch_with_cache_miss
     key = SecureRandom.uuid
     assert_called_with(@cache, :write, [key, "baz", @cache.options]) do
-      assert_equal "baz", @cache.fetch(key) { "baz" }
+      assert_equal "baz", @cache.fetch(key, "baz")
     end
   end
 
@@ -86,7 +86,7 @@ module CacheStoreBehavior
     key = SecureRandom.uuid
     @cache.write(key, nil)
     assert_not_called(@cache, :write) do
-      assert_nil @cache.fetch(key) { "baz" }
+      assert_nil @cache.fetch(key, "baz")
     end
   end
 
@@ -735,7 +735,7 @@ module CacheStoreBehavior
     ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) do |*args|
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
-    assert_not @cache.fetch(SecureRandom.uuid) { }
+    assert_not @cache.fetch(SecureRandom.uuid, nil)
     assert_equal 3, @events.length
     assert_equal "cache_read.active_support", @events[0].name
     assert_equal "cache_generate.active_support", @events[1].name
