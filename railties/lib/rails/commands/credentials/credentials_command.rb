@@ -40,9 +40,9 @@ module Rails
 
       desc "diff", "Enroll/disenroll in decrypted diffs of credentials using git"
       option :enroll, type: :boolean, default: false,
-        desc: "Enrolls project in credentials file diffing with `git diff`"
+        desc: "Enroll project in credentials file diffing with `git diff`"
       option :disenroll, type: :boolean, default: false,
-        desc: "Disenrolls project from credentials file diffing"
+        desc: "Disenroll project from credentials file diffing"
       def diff(content_path = nil)
         if @content_path = content_path
           self.environment = extract_environment_from_path(content_path)

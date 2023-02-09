@@ -86,7 +86,7 @@ module Rails
       class_option :header, type: :boolean
 
       class_option :database, aliases: "--db", type: :string,
-        desc: "Specifies the database to use."
+        desc: "Specify the database to use."
 
       desc "dbconsole", "Start a console for the database specified in config/database.yml"
       def perform
