@@ -335,6 +335,12 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "DeprecatedConstantProxy without a deprecator is deprecated" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Fuu", "Undeprecated::Foo")
+    end
+  end
+
   test "deprecate_constant" do
     legacy = Module.new { def self.name; "Legacy"; end }
     legacy.include ActiveSupport::Deprecation::DeprecatedConstantAccessor

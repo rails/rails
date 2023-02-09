@@ -104,18 +104,16 @@ module ActiveSupport
         end
     end
 
-    # DeprecatedConstantProxy transforms a constant into a deprecated one. It
-    # takes the full names of an old (deprecated) constant and of a new constant
-    # (both in string form) and optionally a deprecator. The deprecator defaults
-    # to +ActiveSupport::Deprecator+ if none is specified. The deprecated constant
-    # now returns the value of the new one.
+    # DeprecatedConstantProxy transforms a constant into a deprecated one. It takes the full names of an old
+    # (deprecated) constant and of a new constant (both in string form) and a deprecator. The deprecated constant now
+    # returns the value of the new one.
     #
     #   PLANETS = %w(mercury venus earth mars jupiter saturn uranus neptune pluto)
     #
     #   # (In a later update, the original implementation of `PLANETS` has been removed.)
     #
     #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
-    #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')
+    #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("PLANETS", "PLANETS_POST_2006", ActiveSupport::Deprecation.new)
     #
     #   PLANETS.map { |planet| planet.capitalize }
     #   # => DEPRECATION WARNING: PLANETS is deprecated! Use PLANETS_POST_2006 instead.
@@ -129,12 +127,13 @@ module ActiveSupport
         super
       end
 
-      def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance, message: "#{old_const} is deprecated! Use #{new_const} instead.")
+      def initialize(old_const, new_const, deprecator = nil, message: "#{old_const} is deprecated! Use #{new_const} instead.")
         Kernel.require "active_support/inflector/methods"
 
         @old_const = old_const
         @new_const = new_const
-        @deprecator = deprecator
+        ActiveSupport.deprecator.warn("DeprecatedConstantProxy without a deprecator is deprecated") unless deprecator
+        @deprecator = deprecator || ActiveSupport::Deprecation.instance
         @message = message
       end
 
