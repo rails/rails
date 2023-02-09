@@ -5,7 +5,7 @@ module ActionView
     extend ActiveSupport::Concern
 
     included do
-      ViewPaths.set_view_paths(self, ActionView::PathSet.new.freeze)
+      ViewPaths::Registry.set_view_paths(self, ActionView::PathSet.new.freeze)
     end
 
     delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
@@ -13,11 +13,11 @@ module ActionView
 
     module ClassMethods
       def _view_paths
-        ViewPaths.get_view_paths(self)
+        ViewPaths::Registry.get_view_paths(self)
       end
 
       def _view_paths=(paths)
-        ViewPaths.set_view_paths(self, paths)
+        ViewPaths::Registry.set_view_paths(self, paths)
       end
 
       def _prefixes # :nodoc:
@@ -70,21 +70,21 @@ module ActionView
         end
     end
 
-    # :stopdoc:
-    @all_view_paths = {}
+    module Registry # :nodoc:
+      @all_view_paths = {}
 
-    def self.get_view_paths(klass)
-      @all_view_paths[klass] || get_view_paths(klass.superclass)
-    end
+      def self.get_view_paths(klass)
+        @all_view_paths[klass] || get_view_paths(klass.superclass)
+      end
 
-    def self.set_view_paths(klass, paths)
-      @all_view_paths[klass] = paths
-    end
+      def self.set_view_paths(klass, paths)
+        @all_view_paths[klass] = paths
+      end
 
-    def self.all_view_paths
-      @all_view_paths.values.uniq
+      def self.all_resolvers
+        @all_view_paths.values.map(&:to_a).flatten.uniq
+      end
     end
-    # :startdoc:
 
     # The prefixes used in render "foo" shortcuts.
     def _prefixes # :nodoc:
