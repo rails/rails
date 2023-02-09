@@ -1,3 +1,17 @@
+*   The `deliver_later_queue_name` used by the default mailer job can now be
+    configured on a per-mailer basis. Previously this was only configurable
+    for all mailers via `ActionMailer::Base`.
+
+    Example:
+
+    ```ruby
+    class EventsMailer < ApplicationMailer
+      self.deliver_later_queue_name = :throttled_mailer
+    end
+    ```
+
+    *Jeffrey Hardy*
+
 *   Email previews now include an expandable section to show all headers.
 
     Headers like `Message-ID` for threading or email service provider specific
