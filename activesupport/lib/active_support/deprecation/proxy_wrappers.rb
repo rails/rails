@@ -25,11 +25,10 @@ module ActiveSupport
         end
     end
 
-    # DeprecatedObjectProxy transforms an object into a deprecated one. It
-    # takes an object, a deprecation message, and optionally a deprecator. The
-    # deprecator defaults to +ActiveSupport::Deprecator+ if none is specified.
+    # DeprecatedObjectProxy transforms an object into a deprecated one. It takes an object, a deprecation message, and
+    # a deprecator.
     #
-    #   deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, "This object is now deprecated")
+    #   deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, "This object is now deprecated", ActiveSupport::Deprecation.new)
     #   # => #<Object:0x007fb9b34c34b0>
     #
     #   deprecated_object.to_s
@@ -37,10 +36,11 @@ module ActiveSupport
     #   (Backtrace)
     #   # => "#<Object:0x007fb9b34c34b0>"
     class DeprecatedObjectProxy < DeprecationProxy
-      def initialize(object, message, deprecator = ActiveSupport::Deprecation.instance)
+      def initialize(object, message, deprecator = nil)
         @object = object
         @message = message
-        @deprecator = deprecator
+        ActiveSupport.deprecator.warn("DeprecatedObjectProxy without a deprecator is deprecated") unless deprecator
+        @deprecator = deprecator || ActiveSupport::Deprecation.instance
       end
 
       private

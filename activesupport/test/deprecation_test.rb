@@ -124,6 +124,12 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
   end
 
+  test "DeprecatedObjectProxy without a deprecator is deprecated" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
+    end
+  end
+
   test "nil behavior is ignored" do
     @deprecator.behavior = nil
     assert_deprecated("fubar", @deprecator) { @deprecator.warn("fubar") }
