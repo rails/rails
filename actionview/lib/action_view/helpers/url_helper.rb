@@ -609,7 +609,7 @@ module ActionView
         remove_trailing_slash!(url_string)
         remove_trailing_slash!(request_uri)
 
-        url_string == request_uri
+        url_string == request_uri || compare_recognized(url_string, request_uri)
       end
 
       if RUBY_VERSION.start_with?("2.7")
@@ -623,6 +623,12 @@ module ActionView
           options = args.pop
           options.is_a?(Hash) ? _current_page?(*args, **options) : _current_page?(*args, options)
         end
+      end
+
+      def compare_recognized(path1, path2)
+        path1_recognized = _routes.recognize_path_mini(path1)
+        path2_recognized = _routes.recognize_path_mini(path2)
+        path1_recognized == path2_recognized
       end
 
       # Creates an SMS anchor link tag to the specified +phone_number+. When the
