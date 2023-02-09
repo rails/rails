@@ -490,9 +490,9 @@ module ActiveRecord
       end
 
       def foreign_key
-        @foreign_key ||= if options[:foreign_key] && options[:foreign_key].is_a?(Array)
+        @foreign_key ||= if options[:query_constraints]
           # composite foreign keys support
-          options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
+          options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
         else
           -(options[:foreign_key]&.to_s || derive_foreign_key)
         end
@@ -507,7 +507,7 @@ module ActiveRecord
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||= if options[:foreign_key] && options[:foreign_key].is_a?(Array)
+        @active_record_primary_key ||= if options[:query_constraints]
           active_record.query_constraints_list
         else
           -(options[:primary_key]&.to_s || primary_key(active_record))
@@ -775,7 +775,7 @@ module ActiveRecord
 
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
-        if options[:foreign_key] && options[:foreign_key].is_a?(Array)
+        if options[:query_constraints]
           (klass || self.klass).query_constraints_list
         elsif primary_key = options[:primary_key]
           @association_primary_key ||= -primary_key.to_s

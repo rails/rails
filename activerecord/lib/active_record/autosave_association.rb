@@ -505,7 +505,7 @@ module ActiveRecord
             saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
-              primary_key = Array(reflection.options[:primary_key] || record.class.query_constraints_list)
+              primary_key = Array(compute_primary_key(reflection, record))
               foreign_key = Array(reflection.foreign_key)
 
               primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
@@ -518,6 +518,16 @@ module ActiveRecord
 
             saved if autosave
           end
+        end
+      end
+
+      def compute_primary_key(reflection, record)
+        if primary_key_options = reflection.options[:primary_key]
+          primary_key_options
+        elsif query_constraints = record.class.query_constraints_list
+          query_constraints
+        else
+          :id
         end
       end
 

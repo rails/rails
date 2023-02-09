@@ -1439,13 +1439,13 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_equal("id", ClothingItem.primary_key)
   end
 
-  def test_query_constraints_list_is_an_empty_array_if_primary_key_is_nil
+  def test_query_constraints_list_is_nil_if_primary_key_is_nil
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "developers_projects"
     end
 
     assert_nil klass.primary_key
-    assert_empty klass.query_constraints_list
+    assert_nil klass.query_constraints_list
   end
 
   def test_query_constraints_uses_primary_key_by_default

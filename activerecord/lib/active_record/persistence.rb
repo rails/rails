@@ -492,7 +492,11 @@ module ActiveRecord
       end
 
       def query_constraints_list # :nodoc:
-        @_query_constraints_list ||= query_constraints_list_fallback
+        @query_constraints_list ||= if base_class? || primary_key != base_class.primary_key
+          @_query_constraints_list
+        else
+          base_class.query_constraints_list
+        end
       end
 
       # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
@@ -631,17 +635,6 @@ module ActiveRecord
 
           default_where_clause = default_scoped(all_queries: true).where_clause
           default_where_clause.ast unless default_where_clause.empty?
-        end
-
-        # This is a fallback method that is used to determine the query_constraints_list
-        # for cases when the model is not explicitly configured with query_constraints.
-        # For a base class, just use the primary key.
-        # For a child class, use the primary key unless primary key was overridden.
-        # If the child's primary key was not overridden, use the parent's query_constraints_list.
-        def query_constraints_list_fallback # :nodoc:
-          return Array(primary_key) if base_class? || primary_key != base_class.primary_key
-
-          base_class.query_constraints_list
         end
     end
 
@@ -1144,8 +1137,12 @@ module ActiveRecord
     end
 
     def _in_memory_query_constraints_hash
-      self.class.query_constraints_list.index_with do |column_name|
-        attribute(column_name)
+      if self.class.query_constraints_list.nil?
+        { @primary_key => id }
+      else
+        self.class.query_constraints_list.index_with do |column_name|
+          attribute(column_name)
+        end
       end
     end
 
@@ -1155,8 +1152,12 @@ module ActiveRecord
     end
 
     def _query_constraints_hash
-      self.class.query_constraints_list.index_with do |column_name|
-        attribute_in_database(column_name)
+      if self.class.query_constraints_list.nil?
+        { @primary_key => id_in_database }
+      else
+        self.class.query_constraints_list.index_with do |column_name|
+          attribute_in_database(column_name)
+        end
       end
     end
 
