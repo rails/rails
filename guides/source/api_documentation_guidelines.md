@@ -287,6 +287,25 @@ In lists of options, parameters, etc. use a hyphen between the item and its desc
 
 The description starts in upper case and ends with a full stop—it's standard English.
 
+An alternative approach, when you want to provide additional detail and examples is to use option section style.
+
+[`ActiveSupport::MessageEncryptor#encrypt_and_sign`][#encrypt_and_sign] is a great example of this.
+
+```ruby
+# ==== Options
+#
+# [+:expires_at+]
+#   The datetime at which the message expires. After this datetime,
+#   verification of the message will fail.
+#
+#     message = encryptor.encrypt_and_sign("hello", expires_at: Time.now.tomorrow)
+#     encryptor.decrypt_and_verify(message) # => "hello"
+#     # 24 hours later...
+#     encryptor.decrypt_and_verify(message) # => nil
+```
+
+[#encrypt_and_sign]: https://edgeapi.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html#method-i-encrypt_and_sign
+
 Dynamically Generated Methods
 -----------------------------
 
