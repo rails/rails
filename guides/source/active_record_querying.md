@@ -1493,7 +1493,7 @@ Eager Loading Associations
 
 Eager loading is the mechanism for loading the associated records of the objects returned by `Model.find` using as few queries as possible.
 
-**N + 1 queries problem**
+### N + 1 Queries Problem
 
 Consider the following code, which finds 10 books and prints their authors' last_name:
 
@@ -1507,7 +1507,7 @@ end
 
 This code looks fine at the first sight. But the problem lies within the total number of queries executed. The above code executes 1 (to find 10 books) + 10 (one per each book to load the author) = **11** queries in total.
 
-**Solution to N + 1 queries problem**
+#### Solution to N + 1 Queries Problem
 
 Active Record lets you specify in advance all the associations that are going to be loaded.
 
