@@ -326,6 +326,13 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "deprecate_constant is deprecated without a deprecator" do
+    legacy = Module.new.include(ActiveSupport::Deprecation::DeprecatedConstantAccessor)
+    assert_deprecated("DeprecatedConstantAccessor.deprecate_constant without a deprecator is deprecated", ActiveSupport.deprecator) do
+      legacy.deprecate_constant "OLD", "NEW"
+    end
+  end
+
   test "assert_deprecated raises when no deprecation warning" do
     assert_raises(Minitest::Assertion) do
       assert_deprecated(@deprecator) { 1 + 1 }
