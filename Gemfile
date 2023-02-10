@@ -122,7 +122,6 @@ group :test do
   gem "minitest-bisect"
   gem "minitest-ci", require: false
   gem "minitest-retry"
-  gem "minitest-reporters"
 
   platforms :mri do
     gem "stackprof"

@@ -927,7 +927,6 @@ module ActionDispatch
         end
       end
 
-
       def recognize_path_spec(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
         path = Journey::Router::Utils.normalize_path(path) unless path.include?("://")
@@ -943,7 +942,7 @@ module ActionDispatch
         recognize_path_spec_with_request(req, path, extras)
       end
 
-      def recognize_path_spec_with_request(req, path, extras, raise_on_missing: true)
+      def recognize_path_spec_with_request(req, path, extras)
         @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|
@@ -957,13 +956,9 @@ module ActionDispatch
           if app.matches?(req) && app.dispatcher?
             return req.path_parameters
           elsif app.matches?(req) && app.engine?
-            path_parameters = app.rack_app.routes.recognize_path_with_request(req, path, extras, raise_on_missing: false)
+            path_parameters = app.rack_app.routes.recognize_path_spec_with_request(req, path, extras, raise_on_missing: false)
             return path_parameters if path_parameters
           end
-        end
-
-        if raise_on_missing
-          raise ActionController::RoutingError, "No route matches #{path.inspect}"
         end
       end
     end
