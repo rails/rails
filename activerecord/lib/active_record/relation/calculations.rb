@@ -289,6 +289,29 @@ module ActiveRecord
       async.pluck(*column_names)
     end
 
+    # Similar to <tt>#pluck</tt> but returns a hash with the column names as keys
+    #
+    #   Person.pluck_as_hash(:name)
+    #   # SELECT people.name FROM people
+    #   # => [{name: 'David'}, {name: 'Jeremy'}, {name: 'Jose'}]
+    #
+    #   Person.pluck_as_hash(:id, :name)
+    #   # SELECT people.id, people.name FROM people
+    #   # => [{id: 1, name: 'David'], [id: 2, name: 'Jeremy'}, {id: 3, name: 'Jose'}]
+    #
+    #   Person.where(age: 21).limit(5).pluck_as_hash(:id)
+    #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
+    #   # => [{id: 2}, {id: 3}]
+    def pluck_as_hash(*column_names)
+      attrs = Array(column_names).flatten
+      pluck(*attrs).map do |row|
+        row = Array(row)
+        attrs.each_with_object({}).with_index do |(attr, hash), index|
+          hash[attr] = row[index]
+        end
+      end
+    end
+
     # Pick the value(s) from the named column(s) in the current relation.
     # This is short-hand for <tt>relation.limit(1).pluck(*column_names).first</tt>, and is primarily useful
     # when you have a relation that's already narrowed down to a single row.

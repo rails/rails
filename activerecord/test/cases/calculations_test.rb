@@ -936,6 +936,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
+  def test_pluck_as_hash
+    assert_equal [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }], Topic.order(:id).pluck_as_hash(:id)
+  end
+
   def test_ids
     assert_equal Company.all.map(&:id).sort, Company.all.ids.sort
   end

@@ -18,7 +18,7 @@ module ActiveRecord
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
       :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with,
-      :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick,
+      :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick, :pluck_as_hash,
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
