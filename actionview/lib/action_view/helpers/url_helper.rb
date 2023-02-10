@@ -628,7 +628,7 @@ module ActionView
       end
 
       def is_root_route_equivalent(path1, path2)
-        path1 == '/' && !(request.fullpath.index("?")) && _routes.recognize_path_spec(path1) == _routes.recognize_path_spec(path2)
+        path1 == "/" && !(request.fullpath.index("?")) && _routes.recognize_path_spec(path1) == _routes.recognize_path_spec(path2)
       end
 
       # Creates an SMS anchor link tag to the specified +phone_number+. When the
