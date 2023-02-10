@@ -54,6 +54,14 @@ module ActiveRecord
           "x'#{value.hex}'"
         end
 
+        def unquote_identifier(identifier)
+          if identifier && identifier.start_with?("`")
+            identifier[1..-2]
+          else
+            identifier
+          end
+        end
+
         # Override +type_cast+ we pass to mysql2 Date and Time objects instead
         # of Strings since mysql2 is able to handle those classes more efficiently.
         def type_cast(value) # :nodoc:

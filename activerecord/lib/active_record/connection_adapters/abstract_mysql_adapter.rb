@@ -491,7 +491,7 @@ module ActiveRecord
 
         fk_info.map do |row|
           options = {
-            column: row["column"],
+            column: unquote_identifier(row["column"]),
             name: row["name"],
             primary_key: row["primary_key"]
           }
@@ -499,7 +499,7 @@ module ActiveRecord
           options[:on_update] = extract_foreign_key_action(row["on_update"])
           options[:on_delete] = extract_foreign_key_action(row["on_delete"])
 
-          ForeignKeyDefinition.new(table_name, row["to_table"], options)
+          ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
         end
       end
 
