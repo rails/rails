@@ -1,3 +1,7 @@
+*   Fix error when querying serialized Class attributes.
+
+    *Jorge Manrubia*
+
 *   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
     `Array#intersect?` is only available on Ruby 3.1 or later.

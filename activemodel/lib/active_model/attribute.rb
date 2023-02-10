@@ -115,13 +115,17 @@ module ActiveModel
     def ==(other)
       self.class == other.class &&
         name == other.name &&
-        value_before_type_cast == other.value_before_type_cast &&
+        identifier_value == other.identifier_value &&
         type == other.type
     end
     alias eql? ==
 
     def hash
-      [self.class, name, value_before_type_cast, type].hash
+      [self.class, name, identifier_value, type].hash
+    end
+
+    def identifier_value
+      value_before_type_cast
     end
 
     def init_with(coder)
