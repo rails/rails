@@ -225,6 +225,34 @@ class TimestampTest < ActiveRecord::TestCase
     end
   end
 
+  def test_saving_an_unchanged_record_with_a_mutating_before_save_callback_updates_its_timestamp
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
+
+      include Developer::TimestampAliases
+
+      before_save :change_name
+
+      private
+        def change_name
+          return if new_record?
+
+          self.name = "Jack Bauer"
+        end
+    end
+
+    @developer = klass.create!
+    @previously_updated_at = @developer.updated_at
+    @previous_name = @developer.name
+
+    travel(1.second) do
+      @developer.save!
+    end
+
+    assert_not_equal @previous_name, @developer.name
+    assert_not_equal @previously_updated_at, @developer.updated_at
+  end
+
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
     pet   = Pet.first
     owner = pet.owner
