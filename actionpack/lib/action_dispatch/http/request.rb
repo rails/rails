@@ -474,6 +474,7 @@ module ActionDispatch
       end
 
       def read_body_stream
+        body_stream.rewind if body_stream.respond_to?(:rewind)
         return body_stream.read if headers.key?("Transfer-Encoding") # Read body stream until EOF if "Transfer-Encoding" is present
         body_stream.read(content_length)
       end
