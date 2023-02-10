@@ -1471,35 +1471,40 @@ class RenderTest < ActionController::TestCase
     assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
   end
 
-  def test_template_annotations
+  def with_annotations_enabled
     ActionView::Base.annotate_rendered_view_with_filenames = true
+    ActionView::LookupContext::DetailsKey.clear
+    yield
+  ensure
+    ActionView::Base.annotate_rendered_view_with_filenames = false
+    ActionView::LookupContext::DetailsKey.clear
+  end
 
-    get :greeting
+  def test_template_annotations
+    with_annotations_enabled do
+      get :greeting
+    end
 
     assert_includes @response.body, "<!-- BEGIN"
     assert_includes @response.body, "<!-- END"
     assert_includes @response.body, "test/fixtures/actionpack/test/greeting.html.erb"
     assert_includes @response.body, "This is grand!"
-  ensure
-    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 
   def test_template_annotations_do_not_render_for_non_html_format
-    ActionView::Base.annotate_rendered_view_with_filenames = true
-
-    get :render_with_explicit_template_with_locals
+    with_annotations_enabled do
+      get :render_with_explicit_template_with_locals
+    end
 
     assert_not_includes @response.body, "BEGIN"
     assert_equal @response.body.split("\n").length, 1
-  ensure
-    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 
   def test_line_offset_with_annotations_enabled
-    ActionView::Base.annotate_rendered_view_with_filenames = true
-
     exc = assert_raises ActionView::Template::Error do
-      get :render_line_offset
+      with_annotations_enabled do
+        get :render_line_offset
+      end
     end
     line = exc.backtrace.first
     assert(line =~ %r{:(\d+):})
