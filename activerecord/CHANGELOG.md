@@ -1,3 +1,7 @@
+*   Fix error when querying serialized Class attributes.
+
+    *Jorge Manrubia*
+
 *   The deferrable foreign key can be passed to `t.references`.
 
     *Hiroyuki Ishii*
