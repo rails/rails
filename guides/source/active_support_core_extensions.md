@@ -1950,7 +1950,7 @@ They return the corresponding amount of bytes, using a conversion factor of 1024
 ```ruby
 2.kilobytes   # => 2048
 3.megabytes   # => 3145728
-3.5.gigabytes # => 3758096384
+3.5.gigabytes # => 3758096384.0
 -4.exabytes   # => -4611686018427387904
 ```
 
