@@ -62,6 +62,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   def test_dockerfile
     run_generator
 
+    assert_file "config/Dockerfile.erb"
     assert_file "Dockerfile" do |content|
       assert_no_match(/assets:precompile/, content)
     end

@@ -458,69 +458,10 @@ module Rails
         options[:javascript] && options[:javascript] != "importmap"
       end
 
-      def dockerfile_node_version
-        using_node? and `node --version`[/\d+\.\d+\.\d+/]
+      def node_version
+        `node --version`[/\d+\.\d+\.\d+/] if using_node?
       rescue
         "lts"
-      end
-
-      def dockerfile_yarn_version
-        using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
-      rescue
-        "latest"
-      end
-
-      def dockerfile_build_packages
-        # start with the essentials
-        packages = %w(build-essential git)
-
-        # add databases: sqlite3, postgres, mysql
-        packages += %w(pkg-config libpq-dev default-libmysqlclient-dev)
-
-        # add redis in case Action Cable, caching, or sidekiq are added later
-        packages << "redis"
-
-        # ActiveStorage preview support
-        packages << "libvips" unless skip_active_storage?
-
-        # node support, including support for building native modules
-        if using_node?
-          packages += %w(curl node-gyp) # pkg-config already listed above
-
-          # module build process depends on Python, and debian changed
-          # how python is installed with the bullseye release.  Below
-          # is based on debian release included with the Ruby images on
-          # Dockerhub.
-          case Gem.ruby_version
-          when /^2.7/
-            bullseye = ruby_version >= "2.7.4"
-          when /^3.0/
-            bullseye = ruby_version >= "3.0.2"
-          else
-            bullseye = true
-          end
-
-          if bullseye
-            packages << "python-is-python3"
-          else
-            packages << "python"
-          end
-        end
-
-        packages.sort
-      end
-
-      def dockerfile_deploy_packages
-        # start with databases: sqlite3, postgres, mysql
-        packages = %w(libsqlite3-0 postgresql-client default-mysql-client)
-
-        # add redis in case Action Cable, caching, or sidekiq are added later
-        packages << "redis"
-
-        # ActiveStorage preview support
-        packages << "libvips" unless skip_active_storage?
-
-        packages.sort
       end
 
       # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default

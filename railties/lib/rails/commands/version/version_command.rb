@@ -7,6 +7,7 @@ module Rails
       def perform
         Rails::Command.invoke :application, [ "--version" ]
       end
+      option :foo, type: :string, default: "OK", for: :version
     end
   end
 end

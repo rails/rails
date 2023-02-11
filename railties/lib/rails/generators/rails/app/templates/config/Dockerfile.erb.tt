@@ -1,0 +1,49 @@
+<%%#
+Run `bin/rails docker:render` to render this template to a Dockerfile in your
+application's root directory. For more information about the helpers used in
+this template, see https://api.rubyonrails.org/classes/Rails/DockerfileHelpers.html
+-%>
+
+# Base stage for build and final stages.
+FROM ruby:<%%= ruby_version %>-slim as base
+
+WORKDIR /rails
+RUN useradd rails
+
+ENV RAILS_ENV=<%%= Rails.env %>
+
+<%%= install_packages runtime_packages, skip_recommends: true %>
+
+
+# Throw-away build stage to reduce the size of final image.
+FROM base as build
+
+<%%= install_packages buildtime_packages %>
+
+<% if using_node? -%>
+<%%= install_node %>
+
+<% end -%>
+COPY Gemfile Gemfile.lock* .
+<%%= install_gems %>
+
+<% if using_node? -%>
+COPY package.json yarn.lock .
+<%%= install_node_modules %>
+
+<% end -%>
+COPY . .
+<%%= prepare_app %>
+
+RUN mkdir /artifacts && cp -r --parents $PWD /usr/local/bundle /artifacts
+
+
+# Final stage for application image.
+FROM base
+
+COPY --from=build --chown=1000 /artifacts /
+
+USER 1000
+ENTRYPOINT ["bin/docker-entrypoint"]
+CMD ["bin/rails", "server"]
+EXPOSE 3000

@@ -75,7 +75,7 @@ module Rails
     end
 
     def dockerfiles
-      template "Dockerfile"
+      template "config/Dockerfile.erb"
       template "dockerignore", ".dockerignore"
 
       template "docker-entrypoint", "bin/docker-entrypoint"
@@ -545,6 +545,12 @@ module Rails
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)
+      end
+
+      def render_dockerfile
+        unless options[:skip_docker] || options[:dummy_app] || options[:pretend]
+          rails_command "docker:render"
+        end
       end
 
       def self.banner

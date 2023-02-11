@@ -770,11 +770,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal 1, webpacker_called, "`javascript:install:webpack` expected to be called once, but was called #{webpacker_called} times."
     assert_gem "jsbundling-rails"
 
-    assert_file "Dockerfile" do |content|
-      assert_match(/yarn/, content)
-      assert_match(/node-gyp/, content)
-    end
-
     assert_file ".node-version" do |content|
       if ENV["NODE_VERSION"]
         assert_match(/#{ENV["NODE_VERSION"]}/, content)
@@ -1039,9 +1034,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_dockerfile
     run_generator
 
+    assert_file "config/Dockerfile.erb"
     assert_file "Dockerfile" do |content|
       assert_match(/assets:precompile/, content)
-      assert_match(/libvips/, content)
       assert_no_match(/yarn/, content)
       assert_no_match(/node-gyp/, content)
     end
