@@ -1,3 +1,10 @@
+*   Respect `foreign_type` option to `delegated_type` for `{role}_class` method.
+
+    Usage of `delegated_type` with non-conventional `{role}_type` column names can now be specified with `foreign_type` option.
+    This option is the same as `foreign_type` as forwarded to the underlying `belongs_to` association that `delegated_type` wraps.
+
+    *Jason Karns*
+
 *   Add support for unique constraints (PostgreSQL-only).
 
     ```ruby

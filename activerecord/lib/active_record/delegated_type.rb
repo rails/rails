@@ -192,6 +192,11 @@ module ActiveRecord
     #   +role+ with an "_id" suffix. So a class that defines a
     #   <tt>delegated_type :entryable, types: %w[ Message Comment ]</tt> association will use "entryable_id" as
     #   the default <tt>:foreign_key</tt>.
+    # [:foreign_type]
+    #   Specify the column used to store the associated object's type. By default this is inferred to be the passed
+    #   +role+ with a "_type" suffix. A class that defines a
+    #   <tt>delegated_type :entryable, types: %w[ Message Comment ]</tt> association will use "entryable_type" as
+    #   the default <tt>:foreign_type</tt>.
     # [:primary_key]
     #   Specify the method that returns the primary key of associated object used for the convenience methods.
     #   By default this is +id+.
@@ -211,11 +216,11 @@ module ActiveRecord
     private
       def define_delegated_type_methods(role, types:, options:)
         primary_key = options[:primary_key] || "id"
-        role_type = "#{role}_type"
+        role_type = options[:foreign_type] || "#{role}_type"
         role_id   = options[:foreign_key] || "#{role}_id"
 
         define_method "#{role}_class" do
-          public_send("#{role}_type").constantize
+          public_send(role_type).constantize
         end
 
         define_method "#{role}_name" do
