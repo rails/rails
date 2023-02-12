@@ -72,7 +72,13 @@ module ActiveStorage
         has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
         has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
 
-        scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
+        scope :"with_attached_#{name}", -> {
+          if ActiveStorage.track_variants
+            includes("#{name}_attachment": { blob: { variant_records: { image_attachment: :blob } } })
+          else
+            includes("#{name}_attachment": :blob)
+          end
+        }
 
         after_save { attachment_changes[name.to_s]&.save }
 
