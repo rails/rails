@@ -75,7 +75,7 @@ end
 or add rich text field while creating a new model using:
 
 ```bash
-bin/rails generate model Message content:rich_text
+$ bin/rails generate model Message content:rich_text
 ```
 
 NOTE: you don't need to add a `content` field to your `messages` table.
