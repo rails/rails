@@ -35,6 +35,7 @@ module RailtiesTest
       teardown_app
     end
 
+    # The TestInput class prevents Rack::MockRequest from adding a Content-Length when the method `size` is defined
     class TestInput < StringIO
       undef_method :size
     end
@@ -43,7 +44,7 @@ module RailtiesTest
       require "#{app_path}/config/environment"
 
       header "Transfer-Encoding", "gzip, chunked;foo=bar"
-      post "/posts", TestInput.new("foo=bar") # prevents Rack::MockRequest from adding a Content-Length
+      post "/posts", TestInput.new("foo=bar")
 
       json_response = JSON.parse(last_response.body)
       assert_equal 7, json_response["content_length"]
