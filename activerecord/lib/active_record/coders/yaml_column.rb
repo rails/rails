@@ -30,7 +30,7 @@ module ActiveRecord
         return if obj.nil?
 
         assert_valid_value(obj, action: "dump")
-        YAML.dump obj
+        YAML.dump object_class == Hash ? obj.to_h : obj
       end
 
       def load(yaml)
