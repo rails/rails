@@ -734,7 +734,7 @@ end
 <%= image_tag account_logo_path %>
 ```
 
-And then you might want to disable the Active Storage default routes with:
+And then you should disable the Active Storage default routes with:
 
 ```ruby
 config.active_storage.draw_routes = false
