@@ -467,7 +467,7 @@ Known extensions: rails, pride
 To run all tests in a CI environment, there's just one command you need:
 
 ```bash
-bin/rails test
+$ bin/rails test
 ```
 
 If you are using [System Tests](#system-testing), `bin/rails test` will not run them, since
