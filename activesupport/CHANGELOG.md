@@ -1,3 +1,54 @@
+*   Raise `ActiveSupport::MessageEncryptor::InvalidMessage` from
+    `ActiveSupport::MessageEncryptor#decrypt_and_verify` regardless of cipher.
+    Previously, when a `MessageEncryptor` was using a non-AEAD cipher such as
+    AES-256-CBC, a corrupt or tampered message would raise
+    `ActiveSupport::MessageVerifier::InvalidSignature`.  Now, all ciphers raise
+    the same error:
+
+      ```ruby
+      encryptor = ActiveSupport::MessageEncryptor.new("x" * 32, cipher: "aes-256-gcm")
+      message = encryptor.encrypt_and_sign("message")
+      encryptor.decrypt_and_verify(message.next)
+      # => raises ActiveSupport::MessageEncryptor::InvalidMessage
+
+      encryptor = ActiveSupport::MessageEncryptor.new("x" * 32, cipher: "aes-256-cbc")
+      message = encryptor.encrypt_and_sign("message")
+      encryptor.decrypt_and_verify(message.next)
+      # BEFORE:
+      # => raises ActiveSupport::MessageVerifier::InvalidSignature
+      # AFTER:
+      # => raises ActiveSupport::MessageEncryptor::InvalidMessage
+      ```
+
+    *Jonathan Hefner*
+
+*   Support `nil` original values when using `ActiveSupport::MessageVerifier#verify`.
+    Previously, `MessageVerifier#verify` did not work with `nil` original
+    values, though both `MessageVerifier#verified` and
+    `MessageEncryptor#decrypt_and_verify` do:
+
+      ```ruby
+      encryptor = ActiveSupport::MessageEncryptor.new(secret)
+      message = encryptor.encrypt_and_sign(nil)
+
+      encryptor.decrypt_and_verify(message)
+      # => nil
+
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      message = verifier.generate(nil)
+
+      verifier.verified(message)
+      # => nil
+
+      verifier.verify(message)
+      # BEFORE:
+      # => raises ActiveSupport::MessageVerifier::InvalidSignature
+      # AFTER:
+      # => nil
+      ```
+
+    *Jonathan Hefner*
+
 *   Maintain `html_safe?` on html_safe strings when sliced with `slice`, `slice!`, or `chr` method.
 
     Previously, `html_safe?` was only maintained when the html_safe strings were sliced
