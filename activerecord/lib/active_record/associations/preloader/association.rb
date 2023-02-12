@@ -82,14 +82,17 @@ module ActiveRecord
             end
         end
 
+        include Bucketing
+
         attr_reader :klass
 
-        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default)
+        def initialize(klass, owners, reflection, preload_scope, reflection_scope, bucket, associate_by_default)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
           @reflection_scope = reflection_scope
+          @bucket        = bucket
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
           @run = false
@@ -119,10 +122,10 @@ module ActiveRecord
           return self if run?
           @run = true
 
-          records = records_by_owner
-
           owners.each do |owner|
-            associate_records_to_owner(owner, records[owner] || [])
+            records = records_by_owner[owner] || []
+            associate_records_to_owner(owner, records)
+            link_records_to_bucket(records, @bucket)
           end if @associate
 
           self

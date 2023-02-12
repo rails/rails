@@ -48,6 +48,7 @@ module ActiveRecord
         autoload :Association,        "active_record/associations/preloader/association"
         autoload :Batch,              "active_record/associations/preloader/batch"
         autoload :Branch,             "active_record/associations/preloader/branch"
+        autoload :Bucketing,          "active_record/associations/preloader/bucketing"
         autoload :ThroughAssociation, "active_record/associations/preloader/through_association"
       end
 

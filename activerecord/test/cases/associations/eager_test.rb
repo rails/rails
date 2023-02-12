@@ -1675,6 +1675,27 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  test "post-hoc preloading uses already-loaded owner records" do
+    posts = Author.first.posts.load
+
+    assert_queries(1) do
+      posts.includes(:comments).each { |post| post.comments.to_a }
+    end
+  end
+
+  test "post-hoc preloading loads records for entire preloading bucket" do
+    5.times { Author.create!(name: "A").posts.create!(title: "X", body: "Y") }
+    authors = Author.all
+
+    assert_queries(3) do
+      authors.includes(:posts).each do |author|
+        author.posts.includes(:comments).each do |post|
+          post.comments.to_a
+        end
+      end
+    end
+  end
+
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a

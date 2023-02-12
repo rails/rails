@@ -933,6 +933,7 @@ module ActiveRecord
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
         @scope ||= @association.scope
+        @scope.with_records!(loaded? ? records : nil)
       end
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
