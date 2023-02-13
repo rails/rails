@@ -56,19 +56,26 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "identifies destroyed attachables as missing" do
-    attachable = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-    html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}"></action-text-attachment>)
-    attachable.destroy!
+    file = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{file.attachable_sgid}"></action-text-attachment>)
+    file.destroy!
     content = content_from_html(html)
     assert_equal 1, content.attachments.size
-    assert_equal ActionText::Attachables::MissingAttachable, content.attachments.first.attachable
+
+    attachable = content.attachments.first.attachable
+    assert_kind_of ActionText::Attachables::MissingAttachable, attachable
+    assert_equal file.class, attachable.model
+    assert_equal ActionText::Attachables::MissingAttachable::DEFAULT_PARTIAL_PATH, attachable.to_partial_path
   end
 
   test "extracts missing attachables" do
     html = '<action-text-attachment sgid="missing"></action-text-attachment>'
     content = content_from_html(html)
     assert_equal 1, content.attachments.size
-    assert_equal ActionText::Attachables::MissingAttachable, content.attachments.first.attachable
+
+    attachable = content.attachments.first.attachable
+    assert_kind_of ActionText::Attachables::MissingAttachable, attachable
+    assert_nil attachable.model
   end
 
   test "converts Trix-formatted attachments" do

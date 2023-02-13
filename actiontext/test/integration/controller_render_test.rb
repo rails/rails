@@ -48,4 +48,13 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
 
     assert_select ".mentioned-person", text: alice.name
   end
+
+  test "resolves missing ActionText::Attachable based on their to_missing_attachable_partial_path" do
+    alice = people(:alice)
+    alice.destroy!
+
+    get messages_path
+
+    assert_select ".missing-attachable", text: "Missing person"
+  end
 end
