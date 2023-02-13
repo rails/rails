@@ -1,3 +1,14 @@
+*   YAML columns use `YAML.safe_dump` is available.
+
+    As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
+    types restrictions than `YAML.safe_load`.
+
+    It's preferable to ensure the payload only use allowed types when we first
+    try to serialize it, otherwise you may end up with invalid records in the
+    database.
+
+    *Jean Boussier*
+
 *   `ActiveRecord::QueryLogs` better handle broken encoding.
 
     It's not uncommon when building queries with BLOB fields to contain
