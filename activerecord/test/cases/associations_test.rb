@@ -131,7 +131,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_a_model_with_composite_foreign_key_finds_associated_record
     comment = sharded_comments(:great_comment_blog_post_one)
-    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = sharded_blog_posts(:great_blog_post_one)
 
     assert_equal(blog_post, comment.blog_post)
   end
@@ -148,7 +148,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_association_with_composite_foreign_key_loads_records
-    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = sharded_blog_posts(:great_blog_post_one)
 
     comments = blog_post.comments.to_a
     assert_includes(comments, sharded_comments(:wow_comment_blog_post_one))
@@ -156,7 +156,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_model_with_composite_query_constraints_has_many_association_sql
-    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = sharded_blog_posts(:great_blog_post_one)
 
     sql = capture_sql do
       blog_post.comments.to_a
@@ -167,7 +167,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_append_composite_foreign_key_has_many_association
-    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = sharded_blog_posts(:great_blog_post_one)
     comment = Sharded::Comment.new(body: "Great post! :clap:")
     comment.save
     blog_post.comments << comment
@@ -206,7 +206,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_append_composite_foreign_key_has_many_association_with_autosave
-    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = sharded_blog_posts(:great_blog_post_one)
     comment = Sharded::Comment.new(body: "Great post! :clap:")
     blog_post.comments << comment
 

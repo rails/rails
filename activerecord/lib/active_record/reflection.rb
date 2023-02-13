@@ -199,10 +199,14 @@ module ActiveRecord
 
         scope_chain_items.inject(klass_scope, &:merge!)
 
-        primary_key = join_primary_key
-        foreign_key = join_foreign_key
+        primary_key_column_names = Array(join_primary_key)
+        foreign_key_column_names = Array(join_foreign_key)
 
-        klass_scope.where!(table[primary_key].eq(foreign_table[foreign_key]))
+        primary_foreign_key_pairs = primary_key_column_names.zip(foreign_key_column_names)
+
+        primary_foreign_key_pairs.each do |primary_key_column_name, foreign_key_column_name|
+          klass_scope.where!(table[primary_key_column_name].eq(foreign_table[foreign_key_column_name]))
+        end
 
         if klass.finder_needs_type_condition?
           klass_scope.where!(klass.send(:type_condition, table))
