@@ -1,3 +1,7 @@
+*   Remove deprecated drivers for system testing, poltergeist and capybara-webkit.
+
+    *Yusuke Iwaki*
+
 *   Change `ActionController::Instrumentation` to pass `filtered_path` instead of `fullpath` in the event payload to filter sensitive query params
 
     ```ruby
