@@ -45,7 +45,7 @@ overall database access code.
 
 NOTE: Basic knowledge of relational database management systems (RDBMS) and
 structured query language (SQL) is helpful in order to fully understand Active
-Record. Please refer to [this tutorial][w3sql] (or [this one][sqlcourse]) or
+Record. Please refer to [this tutorial][sqlcourse] (or [this one][rdbmsinfo]) or
 study them by other means if you would like to learn more.
 
 ### Active Record as an ORM Framework
@@ -62,8 +62,8 @@ to:
 [MVC]: https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller
 [MFAR]: https://www.martinfowler.com/eaaCatalog/activeRecord.html
 [ORM]: https://en.wikipedia.org/wiki/Object-relational_mapping
-[w3sql]: https://www.w3schools.com/sql/default.asp
-[sqlcourse]: https://www.sqlcourse.com
+[sqlcourse]: https://www.khanacademy.org/computing/computer-programming/sql
+[rdbmsinfo]: https://www.devart.com/what-is-rdbms/
 
 Convention over Configuration in Active Record
 ----------------------------------------------
