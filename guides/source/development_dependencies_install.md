@@ -188,7 +188,7 @@ and for macOS:
 $ createuser --superuser $USER
 ```
 
-MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
+NOTE: MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
 
 Then, you need to create the test databases for both MySQL and PostgreSQL with:
 
