@@ -67,13 +67,13 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # add custom user
-RUN useradd appuser
+RUN useradd rails
 
-USER appuser:appuser
+USER rails:rails
 
 # Copy built artifacts: gems, application
-COPY --from=build --chown=appuser:appuser /usr/local/bundle /usr/local/bundle
-COPY --from=build --chown=appuser:appuser /rails /rails
+COPY --from=build --chown=rails:rails /usr/local/bundle /usr/local/bundle
+COPY --from=build --chown=rails:rails /rails /rails
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
