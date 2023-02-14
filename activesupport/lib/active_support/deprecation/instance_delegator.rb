@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
-
 module ActiveSupport
   class Deprecation
     module InstanceDelegator # :nodoc:
@@ -18,7 +16,23 @@ module ActiveSupport
         end
 
         def method_added(method_name)
-          singleton_class.delegate(method_name, to: :instance)
+          use_instead =
+            case method_name
+            when :silence, :behavior=, :disallowed_behavior=, :disallowed_warnings=, :silenced=, :debug=
+              "Rails.application.deprecators.#{method_name}"
+            when :warn, :deprecate_methods, :gem_name, :gem_name=, :deprecation_horizon, :deprecation_horizon=
+              "your own Deprecation object"
+            else
+              "Rails.application.deprecators[framework].#{method_name} where framework is for example :active_record"
+            end
+          args = /[^\]]=\z/.match?(method_name) ? "arg" : "..."
+          singleton_class.module_eval <<~RUBY, __FILE__, __LINE__ + 1
+            def #{method_name}(#{args})
+              ActiveSupport::Deprecation.instance.#{method_name}(#{args})
+            ensure
+              ActiveSupport.deprecator.warn("Calling #{method_name} on ActiveSupport::Deprecation is deprecated and will be removed from Rails (use #{use_instead} instead)")
+            end
+          RUBY
         end
       end
 

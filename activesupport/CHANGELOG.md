@@ -459,6 +459,9 @@
     deprecator.warn("bar")                 # => raise ActiveSupport::DeprecationException
     ```
 
+    Note that global `ActiveSupport::Deprecation` methods such as `ActiveSupport::Deprecation.warn`
+    and `ActiveSupport::Deprecation.disallowed_warnings` have been deprecated.
+
     *Jonathan Hefner*
 
 *   Add italic and underline support to `ActiveSupport::LogSubscriber#color`

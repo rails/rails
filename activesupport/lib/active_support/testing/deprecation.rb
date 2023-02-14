@@ -31,7 +31,7 @@ module ActiveSupport
         match, deprecator = nil, match if match.is_a?(ActiveSupport::Deprecation)
         unless deprecator
           ActiveSupport.deprecator.warn("assert_deprecated without a deprecator is deprecated")
-          deprecator = ActiveSupport::Deprecation
+          deprecator = ActiveSupport::Deprecation.instance
         end
         result, warnings = collect_deprecations(deprecator, &block)
         assert !warnings.empty?, "Expected a deprecation warning within the block but received none"
@@ -54,7 +54,7 @@ module ActiveSupport
       def assert_not_deprecated(deprecator = nil, &block)
         unless deprecator
           ActiveSupport.deprecator.warn("assert_not_deprecated without a deprecator is deprecated")
-          deprecator = ActiveSupport::Deprecation
+          deprecator = ActiveSupport::Deprecation.instance
         end
         result, deprecations = collect_deprecations(deprecator, &block)
         assert deprecations.empty?, "Expected no deprecation warning within the block but received #{deprecations.size}: \n  #{deprecations * "\n  "}"
@@ -72,7 +72,7 @@ module ActiveSupport
       def collect_deprecations(deprecator = nil)
         unless deprecator
           ActiveSupport.deprecator.warn("collect_deprecations without a deprecator is deprecated")
-          deprecator = ActiveSupport::Deprecation
+          deprecator = ActiveSupport::Deprecation.instance
         end
         old_behavior = deprecator.behavior
         deprecations = []
