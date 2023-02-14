@@ -558,6 +558,13 @@ INFO. Cache stores may add their own keys
 | `:error`     | The error that caused the retry        |
 | `:wait`      | The delay of the retry                 |
 
+#### enqueue_all.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:jobs`      | An array of Job objects                |
+
 #### perform_start.active_job
 
 | Key          | Value                                  |
