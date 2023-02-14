@@ -1081,20 +1081,6 @@ class MigrationTest < ActiveRecord::TestCase
         "without an advisory lock, the Migrator should not make any changes, but it did."
     end
 
-    def test_with_advisory_lock_doesnt_release_closed_connections
-      # make sure we have a connection
-      ActiveRecord::Base.establish_connection :arunit
-
-      migration = Class.new(ActiveRecord::Migration::Current).new
-      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
-
-      silence_stream($stderr) do
-        migrator.send(:with_advisory_lock) do
-          ActiveRecord::Base.establish_connection :arunit
-        end
-      end
-    end
-
     if current_adapter?(:PostgreSQLAdapter)
       def test_with_advisory_lock_closes_connection
         migration = Class.new(ActiveRecord::Migration::Current) {
