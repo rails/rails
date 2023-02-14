@@ -151,6 +151,14 @@ This will do three main things for you:
 - Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
+NOTE: It may be helpful to see an example application created from scratch.
+Please refer to [this article][medAPI] on how to create a basic API containing a
+list of user submitted facts. You can also check out [this article][medAUTH]
+about implementing authentication and password hashing.
+
+[medAPI]: https://medium.com/@oliver.seq/creating-a-rest-api-with-rails-2a07f548e5dc
+[medAUTH]: https://medium.com/@oliver.seq/authentication-in-rails-with-auth0-4cc8ead3bd78
+
 ### Changing an Existing Application
 
 If you want to take an existing application and make it an API one, read the
