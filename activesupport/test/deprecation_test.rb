@@ -45,6 +45,16 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "collect_deprecations returns the return value of the block and the deprecations collected" do
+    result = collect_deprecations(@deprecator) do
+      @deprecator.warn
+      :result
+    end
+    assert_equal 2, result.size
+    assert_equal :result, result.first
+    assert_match "DEPRECATION WARNING:", result.last.sole
+  end
+
   test "Module::deprecate" do
     klass = Class.new(Deprecatee)
     klass.deprecate :zero, :one, :multi, deprecator: @deprecator
