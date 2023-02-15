@@ -1535,13 +1535,13 @@ module ActiveRecord
       end
 
       def build_join_dependencies
-        associations = joins_values | left_outer_joins_values
-        associations |= eager_load_values unless eager_load_values.empty?
-        associations |= includes_values unless includes_values.empty?
+        joins = joins_values | left_outer_joins_values
+        joins |= eager_load_values unless eager_load_values.empty?
+        joins |= includes_values unless includes_values.empty?
 
         join_dependencies = []
         join_dependencies.unshift construct_join_dependency(
-          select_association_list(associations, join_dependencies), nil
+          select_named_joins(joins, join_dependencies), nil
         )
       end
 
@@ -1598,17 +1598,23 @@ module ActiveRecord
         end
       end
 
+      def select_named_joins(join_names, stashed_joins = nil)
+        cte_joins, associations = join_names.partition do |join_name|
+          Symbol === join_name && with_values.any? { _1.key?(join_name) }
+        end
+
+        cte_joins.each do |cte_name|
+          yield build_with_join_node(cte_name)
+        end
+
+        select_association_list(associations, stashed_joins)
+      end
+
       def select_association_list(associations, stashed_joins = nil)
         result = []
         associations.each do |association|
           case association
-          when Symbol
-            if with_values.any? { |hash| hash.key?(association) }
-              yield build_with_join_node(association)
-            else
-              result << association
-            end
-          when Hash, Array
+          when Hash, Symbol, Array
             result << association
           when ActiveRecord::Associations::JoinDependency
             stashed_joins&.<< association
@@ -1624,12 +1630,12 @@ module ActiveRecord
 
         unless left_outer_joins_values.empty?
           stashed_left_joins = []
-          left_joins = select_association_list(left_outer_joins_values, stashed_left_joins) do
+          left_joins = select_named_joins(left_outer_joins_values, stashed_left_joins) do
             raise ArgumentError, "only Hash, Symbol and Array are allowed"
           end
 
           if joins_values.empty?
-            buckets[:association_join] = left_joins
+            buckets[:named_join] = left_joins
             buckets[:stashed_join] = stashed_left_joins
             return buckets, Arel::Nodes::OuterJoin
           else
@@ -1655,7 +1661,7 @@ module ActiveRecord
           end
         end
 
-        buckets[:association_join] = select_association_list(joins, buckets[:stashed_join]) do |join|
+        buckets[:named_join] = select_named_joins(joins, buckets[:stashed_join]) do |join|
           if join.is_a?(Arel::Nodes::Join)
             buckets[:join_node] << join
           else
@@ -1674,16 +1680,16 @@ module ActiveRecord
 
         buckets, join_type = build_join_buckets
 
-        association_joins = buckets[:association_join]
-        stashed_joins     = buckets[:stashed_join]
-        leading_joins     = buckets[:leading_join]
-        join_nodes        = buckets[:join_node]
+        named_joins   = buckets[:named_join]
+        stashed_joins = buckets[:stashed_join]
+        leading_joins = buckets[:leading_join]
+        join_nodes    = buckets[:join_node]
 
         join_sources.concat(leading_joins) unless leading_joins.empty?
 
-        unless association_joins.empty? && stashed_joins.empty?
+        unless named_joins.empty? && stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
-          join_dependency = construct_join_dependency(association_joins, join_type)
+          join_dependency = construct_join_dependency(named_joins, join_type)
           join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
         end
 
