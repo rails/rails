@@ -102,6 +102,10 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
+      def to_ary
+        @buf.to_ary
+      end
+
       def body
         @str_body ||= begin
           buf = +""
@@ -481,10 +485,6 @@ module ActionDispatch # :nodoc:
         @response = response
       end
 
-      def each(*args, &block)
-        @response.each(*args, &block)
-      end
-
       def close
         # Rack "close" maps to Response#abort, and *not* Response#close
         # (which is used when the controller's finished writing)
@@ -495,12 +495,26 @@ module ActionDispatch # :nodoc:
         @response.body
       end
 
+      BODY_METHODS = { to_ary: true, each: true, call: true, to_path: true }
+
       def respond_to?(method, include_private = false)
-        if method.to_sym == :to_path
+        if BODY_METHODS.key?(method)
           @response.stream.respond_to?(method)
         else
           super
         end
+      end
+
+      def to_ary
+        @response.stream.to_ary
+      end
+
+      def each(*args, &block)
+        @response.each(*args, &block)
+      end
+
+      def call(*arguments, &block)
+        @response.stream.call(*arguments, &block)
       end
 
       def to_path
