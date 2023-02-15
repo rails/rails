@@ -151,6 +151,97 @@ This will do three main things for you:
 - Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
+### Generating a New Resource
+
+To see how our newly created API handles generating a new resource, let's create
+a new Group resource. Each group will have a name.
+
+```bash
+$ bin/rails g scaffold Group name:string
+```
+
+Before we can use our scaffolded code, we need to update our database scheme.
+
+```bash
+$ bin/rails db:migrate
+```
+
+Now if we open our `GroupsController`, we should notice that with an API Rails
+app we are rendering JSON data only. On the index action we query for `Group.all`
+and assign it to an instance variable called `@groups`. Passing it to `render` with the
+`:json` option will automatically render the groups as JSON.
+
+```ruby
+# app/controllers/groups_controller.rb
+class GroupsController < ApplicationController
+  before_action :set_group, only: %i[ show update destroy ]
+
+  # GET /groups
+  def index
+    @groups = Group.all
+
+    render json: @groups
+  end
+
+  # GET /groups/1
+  def show
+    render json: @group
+  end
+
+  # POST /groups
+  def create
+    @group = Group.new(group_params)
+
+    if @group.save
+      render json: @group, status: :created, location: @group
+    else
+      render json: @group.errors, status: :unprocessable_entity
+    end
+  end
+
+  # PATCH/PUT /groups/1
+  def update
+    if @group.update(group_params)
+      render json: @group
+    else
+      render json: @group.errors, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /groups/1
+  def destroy
+    @group.destroy
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_group
+      @group = Group.find(params[:id])
+    end
+
+    # Only allow a list of trusted parameters through.
+    def group_params
+      params.require(:group).permit(:name)
+    end
+end
+```
+
+Finally we can add some groups to our database from the Rails console:
+
+```irb
+irb> Group.create(name: "Rails Founders")
+irb> Group.create(name: "Rails Contributors")
+```
+
+With some data in the app, we can boot up the server and visit <http://localhost:3000/groups.json> to see our JSON data.
+
+```json
+[
+{"id":1, "name":"Rails Founders", "created_at": ...},
+{"id":2, "name":"Rails Contributors", "created_at": ...}
+]
+```
+
 ### Changing an Existing Application
 
 If you want to take an existing application and make it an API one, read the
