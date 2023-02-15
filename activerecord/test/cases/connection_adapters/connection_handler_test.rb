@@ -73,7 +73,6 @@ module ActiveRecord
           assert_raises(ArgumentError) { setup_shared_connection_pool }
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_fixtures_dont_raise_if_theres_no_writing_pool_config
@@ -90,7 +89,6 @@ module ActiveRecord
           assert_equal rw_conn, ro_conn
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_setting_writing_role_while_using_another_named_role_does_not_raise
@@ -104,7 +102,6 @@ module ActiveRecord
         ensure
           ActiveRecord.writing_role = old_role
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_establish_connection_with_primary_works_without_deprecation
