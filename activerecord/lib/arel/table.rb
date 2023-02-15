@@ -14,7 +14,6 @@ module Arel # :nodoc: all
       @name =
         case name
         when Symbol then name.to_s
-        when Nodes::Node then Arel.sql(name.to_sql)
         else
           name
         end

@@ -130,15 +130,13 @@ module Arel
 
       it "should accept literal SQL"  do
         rel = Table.new Arel.sql("generate_series(4, 2)")
-        manager = rel.project(Arel.star)
-        _(manager.to_sql).must_be_like %{ SELECT * FROM generate_series(4, 2) }
+        assert_equal Arel.sql("generate_series(4, 2)"), rel.name
       end
 
       it "should accept Arel nodes"  do
         node = Arel::Nodes::NamedFunction.new("generate_series", [4, 2])
         rel = Table.new node
-        manager = rel.project(Arel.star)
-        _(manager.to_sql).must_be_like %{ SELECT * FROM generate_series(4, 2) }
+        assert_equal node, rel.name
       end
     end
 
