@@ -1,5 +1,12 @@
 *   Stub `Time.new()` in `TimeHelpers#travel_to`
 
+      ```ruby
+      travel_to Time.new(2004, 11, 24) do
+        # Inside the `travel_to` block `Time.new` is stubbed
+        assert_equal Time.new.year, 2004
+      end
+      ```
+
     *fatkodima*
 
 *   Raise `ActiveSupport::MessageEncryptor::InvalidMessage` from
