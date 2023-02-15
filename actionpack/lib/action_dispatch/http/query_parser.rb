@@ -134,7 +134,7 @@ module ActionDispatch
       end
 
       def params_hash_has_key?(hash, key)
-        return false if /\[\]/.match?(key)
+        return false if key.include?("[]")
 
         key.split(/[\[\]]+/).inject(hash) do |h, part|
           next h if part == ""
