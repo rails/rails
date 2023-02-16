@@ -539,6 +539,9 @@ Module.new do
 
   assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
   unless Dir.exist?("#{assets_path}/node_modules")
+    contents = File.read("#{assets_path}/package.json")
+    contents.gsub!(/RAILS_FRAMEWORK_ROOT/, RAILS_FRAMEWORK_ROOT)
+
     Dir.chdir(assets_path) do
       sh "yarn install"
     end

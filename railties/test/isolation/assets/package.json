@@ -2,9 +2,9 @@
   "name": "dummy",
   "private": true,
   "dependencies": {
-    "@rails/actioncable": "file:../../../../actioncable",
-    "@rails/activestorage": "file:../../../../activestorage",
-    "@rails/ujs": "file:../../../../actionview",
-    "@rails/webpacker": "^6.0.0-rc.5"
+    "@rails/actioncable": "file:RAILS_FRAMEWORK_ROOT/actioncable",
+    "@rails/activestorage": "file:RAILS_FRAMEWORK_ROOT/activestorage",
+    "@rails/ujs": "file:RAILS_FRAMEWORK_ROOT/actionview",
+    "@rails/webpacker": "^6.0.0-rc.6"
   }
 }
