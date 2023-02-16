@@ -120,6 +120,17 @@ module ActiveRecord
         end
     end
 
+    # A wrapper to distinguish CTE joins from other nodes
+    class CTEJoin
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
+    end
+
+    private_constant :CTEJoin
+
     FROZEN_EMPTY_ARRAY = [].freeze
     FROZEN_EMPTY_HASH = {}.freeze
 
@@ -1598,16 +1609,16 @@ module ActiveRecord
         end
       end
 
-      def select_named_joins(join_names, stashed_joins = nil)
+      def select_named_joins(join_names, stashed_joins = nil, &block)
         cte_joins, associations = join_names.partition do |join_name|
           Symbol === join_name && with_values.any? { _1.key?(join_name) }
         end
 
         cte_joins.each do |cte_name|
-          yield build_with_join_node(cte_name)
+          block&.call(CTEJoin.new(cte_name))
         end
 
-        select_association_list(associations, stashed_joins)
+        select_association_list(associations, stashed_joins, &block)
       end
 
       def select_association_list(associations, stashed_joins = nil)
@@ -1630,8 +1641,12 @@ module ActiveRecord
 
         unless left_outer_joins_values.empty?
           stashed_left_joins = []
-          left_joins = select_named_joins(left_outer_joins_values, stashed_left_joins) do
-            raise ArgumentError, "only Hash, Symbol and Array are allowed"
+          left_joins = select_named_joins(left_outer_joins_values, stashed_left_joins) do |left_join|
+            if left_join.is_a?(CTEJoin)
+              buckets[:join_node] << build_with_join_node(left_join.name, Arel::Nodes::OuterJoin)
+            else
+              raise ArgumentError, "only Hash, Symbol and Array are allowed"
+            end
           end
 
           if joins_values.empty?
@@ -1664,6 +1679,8 @@ module ActiveRecord
         buckets[:named_join] = select_named_joins(joins, buckets[:stashed_join]) do |join|
           if join.is_a?(Arel::Nodes::Join)
             buckets[:join_node] << join
+          elsif join.is_a?(CTEJoin)
+            buckets[:join_node] << build_with_join_node(join.name)
           else
             raise "unknown class: %s" % join.class.name
           end
@@ -1733,10 +1750,10 @@ module ActiveRecord
         end
       end
 
-      def build_with_join_node(name)
+      def build_with_join_node(name, kind = Arel::Nodes::InnerJoin)
         with_table = Arel::Table.new(name)
 
-        table.join(with_table).on(
+        table.join(with_table, kind).on(
           with_table[klass.model_name.to_s.foreign_key].eq(table[klass.primary_key])
         ).join_sources.first
       end

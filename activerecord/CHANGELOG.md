@@ -1,3 +1,16 @@
+*   Make `.joins` / `.left_outer_joins` work with CTEs.
+
+    For example:
+
+    ```ruby
+    Post
+     .with(commented_posts: Comment.select(:post_id).distinct)
+     .joins(:commented_posts)
+    #=> WITH (...) SELECT ... INNER JOIN commented_posts on posts.id = commented_posts.post_id
+    ```
+
+    *Vladimir Dementyev*
+
 *   Introduce adapter for Trilogy database client
 
     Trilogy is a MySQL-compatible database client. Rails applications can use Trilogy
