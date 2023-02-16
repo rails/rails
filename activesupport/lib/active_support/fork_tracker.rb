@@ -6,7 +6,7 @@ module ActiveSupport
       def _fork
         pid = super
         if pid == 0
-          ForkTracker.check!
+          ForkTracker.after_fork_callback
         end
         pid
       end
@@ -37,12 +37,20 @@ module ActiveSupport
     @callbacks = []
 
     class << self
-      def check!
+      def after_fork_callback
         new_pid = Process.pid
         if @pid != new_pid
           @callbacks.each(&:call)
           @pid = new_pid
         end
+      end
+
+      if Process.respond_to?(:_fork) # Ruby 3.1+
+        def check!
+          # We trust the `_fork` callback
+        end
+      else
+        alias_method :check!, :after_fork_callback
       end
 
       def hook!
