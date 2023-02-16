@@ -71,8 +71,8 @@ module ActionView
       end
 
       def self.clear
-        ActionView::ViewPaths.all_view_paths.each do |path_set|
-          path_set.each(&:clear_cache)
+        ActionView::ViewPaths::Registry.all_resolvers.each do |resolver|
+          resolver.clear_cache
         end
         @view_context_class = nil
         @details_keys.clear
