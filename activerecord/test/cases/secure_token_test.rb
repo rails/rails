@@ -44,4 +44,16 @@ class SecureTokenTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_token_on_callback
+    User.class_eval do
+      undef regenerate_token
+
+      has_secure_token on: :initialize
+    end
+
+    model = User.new
+
+    assert_predicate model.token, :present?
+  end
 end

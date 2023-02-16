@@ -1,3 +1,15 @@
+*   Specify callback in `has_secure_token`
+
+    ```ruby
+    class User < ApplicationRecord
+      has_secure_token on: :initialize
+    end
+
+    User.new.token # => "abc123...."
+    ```
+
+    *Sean Doyle*
+
 *   Fix incrementation of in memory counter caches when associations overlap
 
     When two associations had a similarly named counter cache column, Active Record
