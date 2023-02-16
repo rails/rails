@@ -706,7 +706,7 @@ class DeprecationTest < ActiveSupport::TestCase
   test "warn deprecation skips the internal caller locations" do
     @deprecator.behavior = ->(_, callstack, *) { @callstack = callstack }
     method_that_emits_deprecation(@deprecator)
-    assert_equal __FILE__, @callstack.first.absolute_path
+    assert_equal File.expand_path(__FILE__), @callstack.first.absolute_path
     assert_equal __LINE__ - 2, @callstack.first.lineno
   end
 
