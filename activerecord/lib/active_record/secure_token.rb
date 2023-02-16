@@ -29,7 +29,20 @@ module ActiveRecord
       # Note that it's still possible to generate a race condition in the database in the same way that
       # {validates_uniqueness_of}[rdoc-ref:Validations::ClassMethods#validates_uniqueness_of] can.
       # You're encouraged to add a unique index in the database to deal with this even more unlikely scenario.
-      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH)
+      #
+      # === Options
+      #
+      # [:length]
+      #   Length of the Secure Random, with a minimum of 24 characters. It will
+      #   default to 24.
+      #
+      # [:on]
+      #   The callback when the value is generated. When called with <tt>on:
+      #   :initialize</tt>, the value is generated in an
+      #   <tt>after_initialize</tt> callback, otherwise the value will be used
+      #   in a <tt>before_</tt> callback. It will default to <tt>:create</tt>.
+      #
+      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH, on: :create)
         if length < MINIMUM_TOKEN_LENGTH
           raise MinimumLengthError, "Token requires a minimum length of #{MINIMUM_TOKEN_LENGTH} characters."
         end
@@ -37,7 +50,9 @@ module ActiveRecord
         # Load securerandom only when has_secure_token is used.
         require "active_support/core_ext/securerandom"
         define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token(length: length) }
-        before_create { send("#{attribute}=", self.class.generate_unique_secure_token(length: length)) unless send("#{attribute}?") }
+        set_callback on, on == :initialize ? :after : :before do
+          send("#{attribute}=", self.class.generate_unique_secure_token(length: length)) unless send("#{attribute}?")
+        end
       end
 
       def generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
