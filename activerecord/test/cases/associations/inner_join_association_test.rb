@@ -216,8 +216,8 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   test "joins a belongs_to association with a composite foreign key" do
-    first_post_comments = Sharded::Comment.joins(:blog_post).where(blog_post: { title: "My first post!" }).to_a
-    expected_blog_post = sharded_blog_posts(:great_blog_post_one)
+    first_post_comments = Sharded::Comment.joins(:blog_post).where(blog_post: { title: "My first post in my Blog1!" }).to_a
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
 
     assert_not_empty comments
     assert_equal(expected_blog_post.comments.to_a.sort, first_post_comments.sort)
