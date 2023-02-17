@@ -195,6 +195,22 @@ module ActiveRecord
         ActiveRecord::Base.configurations = @prev_configs
       end
 
+      def test_establish_connection_with_string_owner_name
+        config = {
+          "development" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "development_readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3" }
+        }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+        @handler.establish_connection(:development_readonly, owner_name: "custom_connection")
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("custom_connection")
+        assert_not_predicate pool.connection, :preventing_writes?
+        assert_equal "test/db/readonly.sqlite3", pool.db_config.database
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
       def test_symbolized_configurations_assignment
         @prev_configs = ActiveRecord::Base.configurations
         config = {
