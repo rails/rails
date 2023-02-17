@@ -82,6 +82,22 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal "cool, isn't it?", @logger.logged(:info).last
   end
 
+  def test_logger_level
+    @logger.level = ::Logger::INFO
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    instrument "some_event.my_log_subscriber"
+    wait
+    assert_equal %w(some_event.my_log_subscriber), @logger.logged(:info)
+  end
+
+  def test_logger_level_with_symbol
+    @logger.level = :info
+    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
+    instrument "some_event.my_log_subscriber"
+    wait
+    assert_equal %w(some_event.my_log_subscriber), @logger.logged(:info)
+  end
+
   def test_event_is_sent_to_the_registered_class
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "some_event.my_log_subscriber"

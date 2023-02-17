@@ -86,6 +86,15 @@ module ActiveSupport
     CYAN    = "\e[36m"
     WHITE   = "\e[37m"
 
+    LEVELS = {
+      debug:   Logger::DEBUG,
+      info:    Logger::INFO,
+      warn:    Logger::WARN,
+      error:   Logger::ERROR,
+      fatal:   Logger::FATAL,
+      unknown: Logger::UNKNOWN,
+    }.freeze
+
     mattr_accessor :colorize_logging, default: true
     class_attribute :log_levels, instance_accessor: false, default: {} # :nodoc:
 
@@ -139,8 +148,13 @@ module ActiveSupport
       LogSubscriber.logger
     end
 
+    def logger_level
+      level = logger.level
+      LEVELS.fetch(level, level)
+    end
+
     def silenced?(event)
-      logger.nil? || logger.level > @event_levels.fetch(event, Float::INFINITY)
+      logger.nil? || logger_level > @event_levels.fetch(event, Float::INFINITY)
     end
 
     def call(event)
