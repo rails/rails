@@ -1,3 +1,7 @@
+*   Include response status and headers in request.action_dispatch payload
+
+    *Hartley McGuire*
+
 *   Add `without` as an alias of `except` on `ActiveController::Parameters`.
 
     *Hidde-Jan Jongsma*
