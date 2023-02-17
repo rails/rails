@@ -230,10 +230,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic.content = { "one" => 1, "two" => 2 }
 
     db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
-    before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
-
     assert_equal topic.attributes, db_attributes
-    assert_not_equal topic.attributes, before_type_cast_attributes
   end
 
   test "read attributes after type cast on a date" do

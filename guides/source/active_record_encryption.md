@@ -144,14 +144,14 @@ If you need to support a custom type, the recommended way is using a [serialized
 ```ruby
 # CORRECT
 class Article < ApplicationRecord
-  serialize :title, Title
+  serialize :title, type: Title
   encrypts :title
 end
 
 # INCORRECT
 class Article < ApplicationRecord
   encrypts :title
-  serialize :title, Title
+  serialize :title, type: Title
 end
 ```
 

@@ -50,9 +50,11 @@ module ActiveRecord
         assert_equal "foo", coder.load("foo")
       end
 
-      def test_load_handles_other_classes
+      def test_load_raises_on_other_classes
         coder = YAMLColumn.new("attr_name")
-        assert_equal [], coder.load([])
+        assert_raises TypeError do
+          coder.load([])
+        end
       end
 
       def test_load_doesnt_swallow_yaml_exceptions
