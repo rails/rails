@@ -79,19 +79,23 @@ module ActiveRecord
         end
 
         def next_chain_scope(scope, reflection, next_reflection)
-          primary_key = reflection.join_primary_key
-          foreign_key = reflection.join_foreign_key
+          primary_key = Array(reflection.join_primary_key)
+          foreign_key = Array(reflection.join_foreign_key)
 
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table
-          constraint = table[primary_key].eq(foreign_table[foreign_key])
+
+          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+          constraints = primary_key_foreign_key_pairs.map do |join_primary_key, foreign_key|
+            table[join_primary_key].eq(foreign_table[foreign_key])
+          end.inject(&:and)
 
           if reflection.type
             value = transform_value(next_reflection.klass.polymorphic_name)
             scope = apply_scope(scope, table, reflection.type, value)
           end
 
-          scope.joins!(join(foreign_table, constraint))
+          scope.joins!(join(foreign_table, constraints))
         end
 
         class ReflectionProxy < SimpleDelegator # :nodoc:
