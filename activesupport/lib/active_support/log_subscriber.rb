@@ -96,6 +96,10 @@ module ActiveSupport
         end
       end
 
+      def logger_level
+        @logger_level ||= logger.level.is_a?(Symbol) ? ::Logger.const_get(logger.level.upcase) : logger.level
+      end
+
       def attach_to(...) # :nodoc:
         result = super
         set_event_levels
@@ -139,8 +143,12 @@ module ActiveSupport
       LogSubscriber.logger
     end
 
+    def logger_level
+      LogSubscriber.logger_level
+    end
+
     def silenced?(event)
-      logger.nil? || logger.level > @event_levels.fetch(event, Float::INFINITY)
+      logger.nil? || logger_level > @event_levels.fetch(event, Float::INFINITY)
     end
 
     def call(event)
