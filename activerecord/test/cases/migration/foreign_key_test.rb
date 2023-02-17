@@ -340,6 +340,16 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_not @connection.foreign_key_exists?(:astronauts, :stars)
         end
 
+        def test_foreign_key_exists_referencing_table_having_keyword_as_name
+          @connection.create_table :user, force: true
+          @connection.add_column :rockets, :user_id, :bigint
+          @connection.add_foreign_key :rockets, :user
+          assert @connection.foreign_key_exists?(:rockets, :user)
+        ensure
+          @connection.remove_foreign_key :rockets, :user
+          @connection.drop_table :user
+        end
+
         def test_foreign_key_exists_by_column
           @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
 
