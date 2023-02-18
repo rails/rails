@@ -2180,6 +2180,28 @@ module ApplicationTests
       assert_equal "dev_db",  ar_config["development"]["primary"]["database"]
     end
 
+    test "loads database.yml using 3-tier shared keys with a 3-tier config" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          one:
+            migrations_path: "db/one"
+          two:
+            migrations_path: "db/two"
+
+        development:
+          one:
+            adapter: sqlite3
+          two:
+            adapter: sqlite3
+      YAML
+
+      app "development"
+
+      ar_config = Rails.configuration.database_configuration
+      assert_equal "db/one", ar_config["development"]["one"]["migrations_path"]
+      assert_equal "db/two", ar_config["development"]["two"]["migrations_path"]
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 
