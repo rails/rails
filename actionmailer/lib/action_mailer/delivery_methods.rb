@@ -12,7 +12,6 @@ module ActionMailer
       # Do not make this inheritable, because we always want it to propagate
       cattr_accessor :raise_delivery_errors, default: true
       cattr_accessor :perform_deliveries, default: true
-      cattr_accessor :deliver_later_queue_name, default: :mailers
 
       class_attribute :delivery_methods, default: {}.freeze
       class_attribute :delivery_method, default: :smtp

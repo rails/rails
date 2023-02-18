@@ -53,6 +53,7 @@ module ActionMailer
   autoload :TestHelper
   autoload :MessageDelivery
   autoload :MailDeliveryJob
+  autoload :QueuedDelivery
 
   def self.eager_load!
     super

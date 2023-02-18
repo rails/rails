@@ -460,12 +460,14 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Defaults to
-  #   +ActionMailer::MailDeliveryJob+.
+  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Mailers can set this to use a
+  #   custom delivery job. Defaults to +ActionMailer::MailDeliveryJob+.
   #
-  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
+  # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
+  #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue. Defaults to <tt>:mailers</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
+    include QueuedDelivery
     include Rescuable
     include Parameterized
     include Previews
@@ -487,7 +489,6 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :delivery_job, default: ::ActionMailer::MailDeliveryJob
     class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
