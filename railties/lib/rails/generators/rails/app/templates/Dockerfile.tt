@@ -66,9 +66,8 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y <%= dockerfile_deploy_packages.join(" ") %> && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# add custom user
+# Run and own the application files as a non-root user for security
 RUN useradd rails
-
 USER rails:rails
 
 # Copy built artifacts: gems, application
