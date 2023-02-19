@@ -733,7 +733,7 @@ SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders
 `AND` conditions can be built by chaining `where` conditions.
 
 ```ruby
-Customer.where(last_name: 'Smith').where(orders_count: [1,3,5]))
+Customer.where(last_name: 'Smith').where(orders_count: [1,3,5])
 ```
 
 ```sql
