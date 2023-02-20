@@ -682,6 +682,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_equal 1, @bundle_commands.count("install")
+    assert_file "#{destination_root}/Gemfile.lock"
   end
 
   def test_generation_use_original_bundle_environment
