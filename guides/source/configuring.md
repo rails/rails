@@ -2120,8 +2120,7 @@ Specifies whether the mailer templates should perform fragment caching or not. I
 
 Specifies the Active Job queue to use for the default delivery job (see `config.action_mailer.delivery_job`). When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
 
-Mailer classes can override this to use a different queue. Note that this only applies when using the default delivery job. If your mailer is using a custom
-job, its queue will be used.
+Mailer classes can override this to use a different queue. Note that this only applies when using the default delivery job. If your mailer is using a custom job, its queue will be used.
 
 Ensure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
 
