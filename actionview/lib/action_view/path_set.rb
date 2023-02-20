@@ -67,7 +67,7 @@ module ActionView # :nodoc:
         paths.map do |path|
           case path
           when Pathname, String
-            FileSystemResolver.new path.to_s
+            ViewPaths::Registry.file_system_resolver(path.to_s)
           when Resolver
             path
           else

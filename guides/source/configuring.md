@@ -2112,9 +2112,17 @@ Enable or disable mailer previews. By default this is `true` in development.
 config.action_mailer.show_previews = false
 ```
 
+#### `config.action_mailer.perform_caching`
+
+Specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
+
 #### `config.action_mailer.deliver_later_queue_name`
 
-Specifies the Active Job queue to use for delivery jobs. When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). Make sure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
+Specifies the Active Job queue to use for the default delivery job (see `config.action_mailer.delivery_job`). When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+
+Mailer classes can override this to use a different queue. Note that this only applies when using the default delivery job. If your mailer is using a custom job, its queue will be used.
+
+Ensure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2122,10 +2130,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:mailers`           |
 | 6.1                   | `nil`                |
-
-#### `config.action_mailer.perform_caching`
-
-Specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
 #### `config.action_mailer.delivery_job`
 
@@ -2240,7 +2244,7 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 #### `config.active_support.report_deprecations`
 
-When `false`, disables all deprecation warnings, including disallowed deprecations, making `ActiveSupport::Deprecation.warn` a no-op.
+When `false`, disables all deprecation warnings, including disallowed deprecations, from the [application’s deprecators](https://api.rubyonrails.org/classes/Rails/Application.html#method-i-deprecators). This includes all the deprecations from Rails and other gems that may add their deprecator to the collection of deprecators, but may not prevent all deprecation warnings emitted from ActiveSupport::Deprecation.
 
 In the default generated `config/environments` files, this is set to `false` for production.
 

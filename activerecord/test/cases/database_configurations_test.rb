@@ -14,7 +14,6 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
       assert_predicate ActiveRecord::Base.configurations, :blank?
     ensure
       ActiveRecord::Base.configurations = old_config
-      ActiveRecord::Base.establish_connection :arunit
     end
   end
 

@@ -119,7 +119,7 @@ module ActiveSupport
   #   @verifier = ActiveSupport::MessageVerifier.new("secret", url_safe: true)
   #   @verifier.generate("signed message") #=> URL-safe string
   class MessageVerifier < Messages::Codec
-    prepend Messages::Rotator::Verifier
+    prepend Messages::Rotator
 
     class InvalidSignature < StandardError; end
 
@@ -145,7 +145,7 @@ module ActiveSupport
     #   tampered_message = signed_message.chop # editing the message invalidates the signature
     #   verifier.valid_message?(tampered_message) # => false
     def valid_message?(message)
-      !!extract_encoded(message)
+      !!catch_and_ignore(:invalid_message_format) { extract_encoded(message) }
     end
 
     # Decodes the signed message using the +MessageVerifier+'s secret.
@@ -186,10 +186,13 @@ module ActiveSupport
     #     verifier.verified(message, purpose: "greeting") # => nil
     #
     def verified(message, **options)
-      encoded = extract_encoded(message)
-      deserialize_with_metadata(decode(encoded), **options) if encoded
-    rescue ArgumentError => error
-      raise unless error.message.include?("invalid base64")
+      catch_and_ignore :invalid_message_format do
+        catch_and_raise :invalid_message_serialization do
+          catch_and_ignore :invalid_message_content do
+            read_message(message, **options)
+          end
+        end
+      end
     end
 
     # Decodes the signed message using the +MessageVerifier+'s secret.
@@ -220,8 +223,14 @@ module ActiveSupport
     #     verifier.verify(message)                      # => "bye"
     #     verifier.verify(message, purpose: "greeting") # => raises InvalidSignature
     #
-    def verify(*args, **options)
-      verified(*args, **options) || raise(InvalidSignature)
+    def verify(message, **options)
+      catch_and_raise :invalid_message_format, as: InvalidSignature do
+        catch_and_raise :invalid_message_serialization do
+          catch_and_raise :invalid_message_content, as: InvalidSignature do
+            read_message(message, **options)
+          end
+        end
+      end
     end
 
     # Generates a signed message for the provided value.
@@ -259,7 +268,15 @@ module ActiveSupport
     #   specified when verifying the message; otherwise, verification will fail.
     #   (See #verified and #verify.)
     def generate(value, **options)
+      create_message(value, **options)
+    end
+
+    def create_message(value, **options) # :nodoc:
       sign_encoded(encode(serialize_with_metadata(value, **options)))
+    end
+
+    def read_message(message, **options) # :nodoc:
+      deserialize_with_metadata(decode(extract_encoded(message)), **options)
     end
 
     private
@@ -269,14 +286,18 @@ module ActiveSupport
       end
 
       def extract_encoded(signed)
-        return if signed.nil? || !signed.valid_encoding?
+        if signed.nil? || !signed.valid_encoding?
+          throw :invalid_message_format, "invalid message string"
+        end
 
         if separator_index = separator_index_for(signed)
           encoded = signed[0, separator_index]
           digest = signed[separator_index + SEPARATOR_LENGTH, digest_length_in_hex]
         end
 
-        return unless digest_matches_data?(digest, encoded)
+        unless digest_matches_data?(digest, encoded)
+          throw :invalid_message_format, "mismatched digest"
+        end
 
         encoded
       end

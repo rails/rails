@@ -86,7 +86,7 @@ module ActiveSupport
   #
   #   crypt.rotate old_secret, cipher: "aes-256-cbc"
   class MessageEncryptor < Messages::Codec
-    prepend Messages::Rotator::Encryptor
+    prepend Messages::Rotator
 
     cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
     cattr_accessor :default_message_encryptor_serializer, instance_accessor: false, default: :marshal
@@ -174,7 +174,7 @@ module ActiveSupport
     #   specified when verifying the message; otherwise, verification will fail.
     #   (See #decrypt_and_verify.)
     def encrypt_and_sign(value, **options)
-      sign(encrypt(serialize_with_metadata(value, **options)))
+      create_message(value, **options)
     end
 
     # Decrypt and verify a message. We need to verify the message in order to
@@ -195,9 +195,13 @@ module ActiveSupport
     #     encryptor.decrypt_and_verify(message, purpose: "greeting") # => nil
     #
     def decrypt_and_verify(message, **options)
-      deserialize_with_metadata(decrypt(verify(message)), **options)
-    rescue TypeError, ArgumentError, ::JSON::ParserError
-      raise InvalidMessage
+      catch_and_raise :invalid_message_format, as: InvalidMessage do
+        catch_and_raise :invalid_message_serialization, as: InvalidMessage do
+          catch_and_ignore :invalid_message_content do
+            read_message(message, **options)
+          end
+        end
+      end
     end
 
     # Given a cipher, returns the key length of the cipher to help generate the key of desired size
@@ -205,13 +209,21 @@ module ActiveSupport
       OpenSSL::Cipher.new(cipher).key_len
     end
 
+    def create_message(value, **options) # :nodoc:
+      sign(encrypt(serialize_with_metadata(value, **options)))
+    end
+
+    def read_message(message, **options) # :nodoc:
+      deserialize_with_metadata(decrypt(verify(message)), **options)
+    end
+
     private
       def sign(data)
-        @verifier ? @verifier.generate(data) : data
+        @verifier ? @verifier.create_message(data) : data
       end
 
       def verify(data)
-        @verifier ? @verifier.verify(data) : data
+        @verifier ? @verifier.read_message(data) : data
       end
 
       def encrypt(data)
@@ -239,7 +251,9 @@ module ActiveSupport
         # Currently the OpenSSL bindings do not raise an error if auth_tag is
         # truncated, which would allow an attacker to easily forge it. See
         # https://github.com/ruby/openssl/issues/63
-        raise InvalidMessage if aead_mode? && auth_tag.bytesize != AUTH_TAG_LENGTH
+        if aead_mode? && auth_tag.bytesize != AUTH_TAG_LENGTH
+          throw :invalid_message_format, "truncated auth_tag"
+        end
 
         cipher.decrypt
         cipher.key = @secret
@@ -251,8 +265,8 @@ module ActiveSupport
 
         decrypted_data = cipher.update(encrypted_data)
         decrypted_data << cipher.final
-      rescue OpenSSLCipherError
-        raise InvalidMessage
+      rescue OpenSSLCipherError => error
+        throw :invalid_message_format, error
       end
 
       def length_after_encode(length_before_encode)
@@ -281,7 +295,7 @@ module ActiveSupport
         if encrypted_message[index - SEPARATOR.length, SEPARATOR.length] == SEPARATOR
           encrypted_message[index, length]
         else
-          raise InvalidMessage
+          throw :invalid_message_format, "missing separator"
         end
       end
 

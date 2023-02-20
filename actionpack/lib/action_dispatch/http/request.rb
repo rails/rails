@@ -290,6 +290,7 @@ module ActionDispatch
 
     # Returns the content length of the request as an integer.
     def content_length
+      return raw_post.bytesize if headers.key?("Transfer-Encoding")
       super.to_i
     end
 
@@ -344,9 +345,8 @@ module ActionDispatch
     # work with raw requests directly.
     def raw_post
       unless has_header? "RAW_POST_DATA"
-        raw_post_body = body
-        set_header("RAW_POST_DATA", raw_post_body.read(content_length))
-        raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
+        set_header("RAW_POST_DATA", read_body_stream)
+        body_stream.rewind if body_stream.respond_to?(:rewind)
       end
       get_header "RAW_POST_DATA"
     end
@@ -471,6 +471,12 @@ module ActionDispatch
 
       def default_session
         Session.disabled(self)
+      end
+
+      def read_body_stream
+        body_stream.rewind if body_stream.respond_to?(:rewind)
+        return body_stream.read if headers.key?("Transfer-Encoding") # Read body stream until EOF if "Transfer-Encoding" is present
+        body_stream.read(content_length)
       end
   end
 end

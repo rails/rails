@@ -32,6 +32,8 @@ module ActiveSupport
 
         def decode(encoded, url_safe: @url_safe)
           url_safe ? ::Base64.urlsafe_decode64(encoded) : ::Base64.strict_decode64(encoded)
+        rescue ArgumentError => error
+          throw :invalid_message_format, error
         end
 
         def serialize(data)
@@ -40,6 +42,23 @@ module ActiveSupport
 
         def deserialize(serialized)
           serializer.load(serialized)
+        rescue StandardError => error
+          throw :invalid_message_serialization, error
+        end
+
+        def catch_and_ignore(throwable, &block)
+          catch throwable do
+            return block.call
+          end
+          nil
+        end
+
+        def catch_and_raise(throwable, as: nil, &block)
+          error = catch throwable do
+            return block.call
+          end
+          error = as.new(error.to_s) if as
+          raise error
         end
     end
   end

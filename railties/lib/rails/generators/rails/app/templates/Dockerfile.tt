@@ -66,9 +66,13 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y <%= dockerfile_deploy_packages.join(" ") %> && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+# Run and own the application files as a non-root user for security
+RUN useradd rails
+USER rails:rails
+
 # Copy built artifacts: gems, application
-COPY --from=build /usr/local/bundle /usr/local/bundle
-COPY --from=build /rails /rails
+COPY --from=build --chown=rails:rails /usr/local/bundle /usr/local/bundle
+COPY --from=build --chown=rails:rails /rails /rails
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]

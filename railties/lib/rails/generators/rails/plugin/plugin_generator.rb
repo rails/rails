@@ -124,10 +124,6 @@ module Rails
     def test_dummy_config
       template "rails/boot.rb", "#{dummy_path}/config/boot.rb", force: true
 
-      insert_into_file "#{dummy_path}/config/application.rb", <<~RUBY, after: /^Bundler\.require.+\n/
-        require #{namespaced_name.inspect}
-      RUBY
-
       if mountable?
         template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
       end

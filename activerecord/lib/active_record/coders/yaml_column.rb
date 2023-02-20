@@ -26,11 +26,24 @@ module ActiveRecord
         @unsafe_load = coder["unsafe_load"]
       end
 
-      def dump(obj)
-        return if obj.nil?
+      if Gem::Version.new(Psych::VERSION) >= "5.1"
+        def dump(obj)
+          return if obj.nil?
 
-        assert_valid_value(obj, action: "dump")
-        YAML.dump obj
+          assert_valid_value(obj, action: "dump")
+          if unsafe_load?
+            YAML.dump(obj)
+          else
+            YAML.safe_dump(obj, permitted_classes: permitted_classes, aliases: true)
+          end
+        end
+      else
+        def dump(obj)
+          return if obj.nil?
+
+          assert_valid_value(obj, action: "dump")
+          YAML.dump obj
+        end
       end
 
       def load(yaml)

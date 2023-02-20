@@ -375,6 +375,17 @@ module ActiveRecord
         end
       end
 
+      test "#init_with skips deduplication if told to" do
+        coder = {
+          "columns" => [].freeze,
+          "deduplicated" => true,
+        }
+
+        schema_cache = SchemaCache.allocate
+        schema_cache.init_with(coder)
+        assert_same coder["columns"], schema_cache.instance_variable_get(:@columns)
+      end
+
       private
         def schema_dump_path
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"

@@ -62,9 +62,10 @@ module ActionMailer
     # * <tt>:queue</tt> - Enqueue the email on the specified queue
     # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
-    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
-    # ActionMailer::Base class can specify the job to use by setting the class variable
-    # +delivery_job+.
+    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt> on
+    # the +:mailers+ queue. Mailer classes can customize the queue name used for the default
+    # job by assigning a +deliver_later_queue_name+ class variable, or provide a custom job
+    # by assigning a +delivery_job+. When a custom job is used, it controls the queue name.
     #
     #   class AccountRegistrationMailer < ApplicationMailer
     #     self.delivery_job = RegistrationDeliveryJob
@@ -88,9 +89,10 @@ module ActionMailer
     # * <tt>:queue</tt> - Enqueue the email on the specified queue.
     # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
-    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
-    # ActionMailer::Base class can specify the job to use by setting the class variable
-    # +delivery_job+.
+    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt> on
+    # the +:mailers+ queue. Mailer classes can customize the queue name used for the default
+    # job by assigning a +deliver_later_queue_name+ class variable, or provide a custom job
+    # by assigning a +delivery_job+. When a custom job is used, it controls the queue name.
     #
     #   class AccountRegistrationMailer < ApplicationMailer
     #     self.delivery_job = RegistrationDeliveryJob

@@ -222,12 +222,32 @@ module ActiveRecord
       self
     end
 
-    # Forces eager loading by performing a LEFT OUTER JOIN on +args+:
+    # Specify associations +args+ to be eager loaded using a <tt>LEFT OUTER JOIN</tt>.
+    # Performs a single query joining all specified associations. For example:
     #
-    #   User.eager_load(:posts)
-    #   # SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ...
-    #   # FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
-    #   # "users"."id"
+    #   users = User.eager_load(:address).limit(5)
+    #   users.each do |user|
+    #     user.address.city
+    #   end
+    #
+    #   # SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ... FROM "users"
+    #   #   LEFT OUTER JOIN "addresses" ON "addresses"."id" = "users"."address_id"
+    #   #   LIMIT 5
+    #
+    # Instead of loading the 5 addresses with 5 separate queries, all addresses
+    # are loaded with a single query.
+    #
+    # Loading multiple and nested associations is possible using a Arrays and
+    # Hashes, similar to #includes:
+    #
+    #   User.eager_load(:address, friends: [:address, :followers])
+    #   # SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ... FROM "users"
+    #   #   LEFT OUTER JOIN "addresses" ON "addresses"."id" = "users"."address_id"
+    #   #   LEFT OUTER JOIN "friends" ON "friends"."user_id" = "users"."id"
+    #   #   ...
+    #
+    # NOTE: Loading the associations in a join can result in many rows that
+    # contain redundant data and it performs poorly at scale.
     def eager_load(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.eager_load!(*args)
@@ -238,10 +258,28 @@ module ActiveRecord
       self
     end
 
-    # Allows preloading of +args+, in the same way that #includes does:
+    # Specify associations +args+ to be eager loaded using separate queries.
+    # A separate query is performed for each association.
     #
-    #   User.preload(:posts)
-    #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
+    #   users = User.preload(:address).limit(5)
+    #   users.each do |user|
+    #     user.address.city
+    #   end
+    #
+    #   # SELECT "users".* FROM "users" LIMIT 5
+    #   # SELECT "addresses".* FROM "addresses" WHERE "addresses"."id" IN (1,2,3,4,5)
+    #
+    # Instead of loading the 5 addresses with 5 separate queries, all addresses
+    # are loaded with a separate query.
+    #
+    # Loading multiple and nested associations is possible using a Arrays and
+    # Hashes, similar to #includes:
+    #
+    #   User.preload(:address, friends: [:address, :followers])
+    #   # SELECT "users".* FROM "users"
+    #   # SELECT "addresses".* FROM "addresses" WHERE "addresses"."id" IN (1,2,3,4,5)
+    #   # SELECT "friends".* FROM "friends" WHERE "friends"."user_id" IN (1,2,3,4,5)
+    #   # SELECT ...
     def preload(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.preload!(*args)

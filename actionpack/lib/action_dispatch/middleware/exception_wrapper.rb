@@ -245,11 +245,9 @@ module ActionDispatch
       def build_backtrace
         built_methods = {}
 
-        ActionView::ViewPaths.all_view_paths.each do |path_set|
-          path_set.each do |resolver|
-            resolver.built_templates.each do |template|
-              built_methods[template.method_name] = template
-            end
+        ActionView::ViewPaths::Registry.all_resolvers.each do |resolver|
+          resolver.built_templates.each do |template|
+            built_methods[template.method_name] = template
           end
         end
 

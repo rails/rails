@@ -12,9 +12,9 @@ module ActionController
       end
 
       def test_header_merge
-        header = @response.header.merge("Foo" => "Bar")
-        assert_kind_of(ActionController::Live::Response::Header, header)
-        assert_not_equal header, @response.header
+        headers = @response.headers.merge("Foo" => "Bar")
+        assert_kind_of(ActionController::Live::Response::Headers, headers)
+        assert_not_equal headers, @response.headers
       end
 
       def test_initialize_with_default_headers
@@ -25,7 +25,7 @@ module ActionController
         end
 
         headers = r.create.headers
-        assert_kind_of(ActionController::Live::Response::Header, headers)
+        assert_kind_of(ActionController::Live::Response::Headers, headers)
         assert_equal "g", headers["omg"]
       end
 

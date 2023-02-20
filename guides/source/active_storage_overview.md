@@ -734,7 +734,7 @@ end
 <%= image_tag account_logo_path %>
 ```
 
-And then you might want to disable the Active Storage default routes with:
+And then you should disable the Active Storage default routes with:
 
 ```ruby
 config.active_storage.draw_routes = false
@@ -1012,13 +1012,13 @@ No CORS configuration is required for the Disk service since it shares your appâ
     "AllowedOrigins": [
       "https://www.example.com"
     ],
-    "ExposedHeaders": [
+    "ExposeHeaders": [
       "Origin",
       "Content-Type",
       "Content-MD5",
       "Content-Disposition"
     ],
-    "MaxAge": 3600
+    "MaxAgeSeconds": 3600
   }
 ]
 ```

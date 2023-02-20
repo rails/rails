@@ -35,12 +35,15 @@ module ActionDispatch # :nodoc:
     begin
       # For `Rack::Headers` (Rack 3+):
       require "rack/headers"
-      Header = ::Rack::Headers
+      Headers = ::Rack::Headers
     rescue LoadError
       # For `Rack::Utils::HeaderHash`:
       require "rack/utils"
-      Header = ::Rack::Utils::HeaderHash
+      Headers = ::Rack::Utils::HeaderHash
     end
+
+    # To be deprecated:
+    Header = Headers
 
     # The request that the response is responding to.
     attr_accessor :request
@@ -60,11 +63,12 @@ module ActionDispatch # :nodoc:
     #   headers["Content-Type"] = "application/json"
     #   headers["Content-Type"] # => "application/json"
     #
-    attr_reader :header
+    # Also aliased as +header+ for compatibility.
+    attr_reader :headers
 
-    alias_method :headers,  :header
+    alias_method :header, :headers
 
-    delegate :[], :[]=, to: :@header
+    delegate :[], :[]=, to: :@headers
 
     def each(&block)
       sending!
@@ -96,6 +100,10 @@ module ActionDispatch # :nodoc:
         @buf      = buf
         @closed   = false
         @str_body = nil
+      end
+
+      def to_ary
+        @buf.to_ary
       end
 
       def body
@@ -143,9 +151,9 @@ module ActionDispatch # :nodoc:
         end
     end
 
-    def self.create(status = 200, header = {}, body = [], default_headers: self.default_headers)
-      header = merge_default_headers(header, default_headers)
-      new status, header, body
+    def self.create(status = 200, headers = {}, body = [], default_headers: self.default_headers)
+      headers = merge_default_headers(headers, default_headers)
+      new status, headers, body
     end
 
     def self.merge_default_headers(original, default)
@@ -155,13 +163,13 @@ module ActionDispatch # :nodoc:
     # The underlying body, as a streamable object.
     attr_reader :stream
 
-    def initialize(status = 200, header = nil, body = [])
+    def initialize(status = 200, headers = nil, body = [])
       super()
 
-      @header = Header.new
+      @headers = Headers.new
 
-      header&.each do |key, value|
-        @header[key] = value
+      headers&.each do |key, value|
+        @headers[key] = value
       end
 
       self.body, self.status = body, status
@@ -176,10 +184,10 @@ module ActionDispatch # :nodoc:
       yield self if block_given?
     end
 
-    def has_header?(key);   headers.key? key;   end
-    def get_header(key);    headers[key];       end
-    def set_header(key, v); headers[key] = v;   end
-    def delete_header(key); headers.delete key; end
+    def has_header?(key);   @headers.key? key;   end
+    def get_header(key);    @headers[key];       end
+    def set_header(key, v); @headers[key] = v;   end
+    def delete_header(key); @headers.delete key; end
 
     def await_commit
       synchronize do
@@ -385,7 +393,7 @@ module ActionDispatch # :nodoc:
     #   status, headers, body = *response
     def to_a
       commit!
-      rack_response @status, @header.to_hash
+      rack_response @status, @headers.to_hash
     end
     alias prepare! to_a
 
@@ -452,7 +460,7 @@ module ActionDispatch # :nodoc:
       # our last chance.
       commit! unless committed?
 
-      @header.freeze
+      @headers.freeze
       @request.commit_cookie_jar! unless committed?
     end
 
@@ -477,10 +485,6 @@ module ActionDispatch # :nodoc:
         @response = response
       end
 
-      def each(*args, &block)
-        @response.each(*args, &block)
-      end
-
       def close
         # Rack "close" maps to Response#abort, and *not* Response#close
         # (which is used when the controller's finished writing)
@@ -491,12 +495,26 @@ module ActionDispatch # :nodoc:
         @response.body
       end
 
+      BODY_METHODS = { to_ary: true, each: true, call: true, to_path: true }
+
       def respond_to?(method, include_private = false)
-        if method.to_sym == :to_path
+        if BODY_METHODS.key?(method)
           @response.stream.respond_to?(method)
         else
           super
         end
+      end
+
+      def to_ary
+        @response.stream.to_ary
+      end
+
+      def each(*args, &block)
+        @response.each(*args, &block)
+      end
+
+      def call(*arguments, &block)
+        @response.stream.call(*arguments, &block)
       end
 
       def to_path
@@ -506,16 +524,16 @@ module ActionDispatch # :nodoc:
 
     def handle_no_content!
       if NO_CONTENT_CODES.include?(@status)
-        @header.delete CONTENT_TYPE
-        @header.delete "Content-Length"
+        @headers.delete CONTENT_TYPE
+        @headers.delete "Content-Length"
       end
     end
 
-    def rack_response(status, header)
+    def rack_response(status, headers)
       if NO_CONTENT_CODES.include?(status)
-        [status, header, []]
+        [status, headers, []]
       else
-        [status, header, RackBody.new(self)]
+        [status, headers, RackBody.new(self)]
       end
     end
   end

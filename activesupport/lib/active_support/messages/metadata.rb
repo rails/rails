@@ -22,7 +22,7 @@ module ActiveSupport
           if has_metadata && !use_message_serializer_for_metadata?
             data_string = serialize_to_json_safe_string(data)
             envelope = wrap_in_metadata_envelope({ "message" => data_string }, **metadata)
-            ActiveSupport::JSON.encode(envelope)
+            serialize_to_json(envelope)
           else
             data = wrap_in_metadata_envelope({ "data" => data }, **metadata) if has_metadata
             serialize(data)
@@ -31,16 +31,17 @@ module ActiveSupport
 
         def deserialize_with_metadata(message, **expected_metadata)
           if dual_serialized_metadata_envelope_json?(message)
-            envelope = ActiveSupport::JSON.decode(message)
+            envelope = deserialize_from_json(message)
             extracted = extract_from_metadata_envelope(envelope, **expected_metadata)
-            deserialize_from_json_safe_string(extracted["message"]) if extracted
+            deserialize_from_json_safe_string(extracted["message"])
           else
             deserialized = deserialize(message)
             if metadata_envelope?(deserialized)
-              extracted = extract_from_metadata_envelope(deserialized, **expected_metadata)
-              extracted["data"] if extracted
+              extract_from_metadata_envelope(deserialized, **expected_metadata)["data"]
+            elsif expected_metadata.none? { |k, v| v }
+              deserialized
             else
-              deserialized if expected_metadata.none? { |k, v| v }
+              throw :invalid_message_content, "missing metadata"
             end
           end
         end
@@ -58,8 +59,15 @@ module ActiveSupport
 
         def extract_from_metadata_envelope(envelope, purpose: nil)
           hash = envelope["_rails"]
-          return if hash["exp"] && Time.now.utc >= parse_expiry(hash["exp"])
-          return if hash["pur"] != purpose&.to_s
+
+          if hash["exp"] && Time.now.utc >= parse_expiry(hash["exp"])
+            throw :invalid_message_content, "expired"
+          end
+
+          if hash["pur"] != purpose&.to_s
+            throw :invalid_message_content, "mismatched purpose"
+          end
+
           hash
         end
 
@@ -87,6 +95,19 @@ module ActiveSupport
           else
             Time.parse(expires_at)
           end
+        end
+
+        def serialize_to_json(data)
+          ActiveSupport::JSON.encode(data)
+        end
+
+        def deserialize_from_json(serialized)
+          ActiveSupport::JSON.decode(serialized)
+        rescue ::JSON::ParserError => error
+          # Throw :invalid_message_format instead of :invalid_message_serialization
+          # because here a parse error is due to a bad message rather than an
+          # incompatible `self.serializer`.
+          throw :invalid_message_format, error
         end
 
         def serialize_to_json_safe_string(data)

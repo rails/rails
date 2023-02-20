@@ -17,18 +17,13 @@ class ParameterizedTest < ActiveSupport::TestCase
     @previous_delivery_method = ActionMailer::Base.delivery_method
     ActionMailer::Base.delivery_method = :test
 
-    @previous_deliver_later_queue_name = ActionMailer::Base.deliver_later_queue_name
-    ActionMailer::Base.deliver_later_queue_name = :test_queue
-
     @mail = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com").invitation
   end
 
   teardown do
     ActiveJob::Base.logger = @previous_logger
     ParamsMailer.deliveries.clear
-
     ActionMailer::Base.delivery_method = @previous_delivery_method
-    ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
   end
 
   test "parameterized headers" do

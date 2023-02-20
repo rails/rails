@@ -1220,13 +1220,18 @@ end
 
 To add initial data after a database is created, Rails has a built-in 'seeds'
 feature that speeds up the process. This is especially useful when reloading the
-database frequently in development and test environments. To get started with
-this feature, fill up `db/seeds.rb` with some Ruby code, and run `bin/rails
-db:seed`:
+database frequently in development and test environments, or when setting up
+initial data for production.
+
+To get started with this feature, open up `db/seeds.rb` and add some Ruby code,
+then run `bin/rails db:seed`.
+
+NOTE: The code here should be idempotent so that it can be executed at any point
+in every environment.
 
 ```ruby
-5.times do |i|
-  Product.create(name: "Product ##{i}", description: "A product.")
+["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
+  MovieGenre.find_or_create_by!(name: genre_name)
 end
 ```
 

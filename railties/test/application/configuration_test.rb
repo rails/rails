@@ -1281,7 +1281,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal "test_default", ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_equal "test_default", ActionMailer::Base.deliver_later_queue_name
     end
 
     test "ActionMailer::DeliveryJob queue name is :mailers without the Rails defaults" do
@@ -1292,7 +1292,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal :mailers, ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_equal :mailers, ActionMailer::Base.deliver_later_queue_name
     end
 
     test "ActionMailer::DeliveryJob queue name is nil by default in 6.1" do
@@ -1304,7 +1304,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_nil ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_nil ActionMailer::Base.deliver_later_queue_name
     end
 
     test "valid timezone is setup correctly" do
