@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "plugin_helpers"
 require "generators/generators_test_helper"
 require "rails/generators/rails/plugin/plugin_generator"
 require "generators/shared_generator_tests"
@@ -22,6 +23,7 @@ DEFAULT_PLUGIN_FILES = %w(
 )
 
 class PluginGeneratorTest < Rails::Generators::TestCase
+  include PluginHelpers
   include GeneratorsTestHelper
   destination File.join(destination_root, "bukkits")
   arguments [destination_root]
@@ -120,10 +122,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_in_full_mode_with_almost_of_all_skip_options
-    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage"]
+    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage", "--skip-active-job"]
     assert_file "bin/rails" do |content|
       assert_no_match(/\s+require\s+["']rails\/all["']/, content)
     end
+    assert_file "bin/rails", /#\s+require\s+["']active_job\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_storage\/engine["']/
     assert_file "bin/rails", /#\s+require\s+["']action_mailer\/railtie["']/
@@ -281,10 +284,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_ensure_that_migration_tasks_work_with_mountable_option
     run_generator [destination_root, "--mountable"]
-    FileUtils.cd destination_root
-    quietly { system "bundle install" }
-    output = `bin/rails db:migrate 2>&1`
-    assert $?.success?, "Command failed: #{output}"
+    prepare_plugin(destination_root)
+
+    in_plugin_context(destination_root) do
+      quietly { system "bundle install" }
+      output = `bin/rails db:migrate 2>&1`
+      assert $?.success?, "Command failed: #{output}"
+    end
   end
 
   def test_creating_engine_in_full_mode
@@ -553,10 +559,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dummy_application_loads_plugin
+  def test_plugin_passes_generated_test
     run_generator
+    prepare_plugin(destination_root)
 
-    assert_file "test/dummy/config/application.rb", /^require "bukkits"/
+    in_plugin_context(destination_root) do
+      output = `bin/test 2>&1`
+      assert $?.success?, "Command failed: #{output}"
+    end
   end
 
   def test_dummy_application_sets_include_all_helpers_to_false_for_mountable

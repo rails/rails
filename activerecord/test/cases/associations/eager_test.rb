@@ -33,6 +33,9 @@ require "models/contract"
 require "models/pirate"
 require "models/matey"
 require "models/parrot"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
 
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
@@ -51,7 +54,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :companies, :accounts, :tags, :taggings, :ratings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
-            :pirates, :mateys
+            :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
@@ -1673,6 +1676,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::AssociationNotFoundError) do
       Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :fist_comment }, :membership]).to_a
     end
+  end
+
+  test "preloading belongs_to association associated by a composite query_constraints" do
+    blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
+    posts = Sharded::BlogPost.where(blog_id: blog_ids).includes(:comments).to_a
+    assert posts.all? { |post| post.comments.loaded? }
+
+    post = posts.find { |post| post.id == sharded_blog_posts(:great_post_blog_one).id }
+    expected_comments = Sharded::Comment.where(blog_id: post.blog_id, blog_post_id: post.id).to_a
+    assert_equal(post.comments.sort, expected_comments.sort)
+  end
+
+  test "reloading has_many association associated by a composite query_constraints" do
+    blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
+    comments = Sharded::Comment.where(blog_id: blog_ids).includes(:blog_post).to_a
+    assert comments.all? { |comment| comment.association(:blog_post).loaded? }
+
+    comment = comments.find { |comment| comment.id == sharded_comments(:great_comment_blog_post_one).id }
+    assert_equal(comment.blog_post, sharded_blog_posts(:great_post_blog_one))
   end
 
   private

@@ -1,3 +1,98 @@
+*   Stub `Time.new()` in `TimeHelpers#travel_to`
+
+      ```ruby
+      travel_to Time.new(2004, 11, 24) do
+        # Inside the `travel_to` block `Time.new` is stubbed
+        assert_equal Time.new.year, 2004
+      end
+      ```
+
+    *fatkodima*
+
+*   Raise `ActiveSupport::MessageEncryptor::InvalidMessage` from
+    `ActiveSupport::MessageEncryptor#decrypt_and_verify` regardless of cipher.
+    Previously, when a `MessageEncryptor` was using a non-AEAD cipher such as
+    AES-256-CBC, a corrupt or tampered message would raise
+    `ActiveSupport::MessageVerifier::InvalidSignature`.  Now, all ciphers raise
+    the same error:
+
+      ```ruby
+      encryptor = ActiveSupport::MessageEncryptor.new("x" * 32, cipher: "aes-256-gcm")
+      message = encryptor.encrypt_and_sign("message")
+      encryptor.decrypt_and_verify(message.next)
+      # => raises ActiveSupport::MessageEncryptor::InvalidMessage
+
+      encryptor = ActiveSupport::MessageEncryptor.new("x" * 32, cipher: "aes-256-cbc")
+      message = encryptor.encrypt_and_sign("message")
+      encryptor.decrypt_and_verify(message.next)
+      # BEFORE:
+      # => raises ActiveSupport::MessageVerifier::InvalidSignature
+      # AFTER:
+      # => raises ActiveSupport::MessageEncryptor::InvalidMessage
+      ```
+
+    *Jonathan Hefner*
+
+*   Support `nil` original values when using `ActiveSupport::MessageVerifier#verify`.
+    Previously, `MessageVerifier#verify` did not work with `nil` original
+    values, though both `MessageVerifier#verified` and
+    `MessageEncryptor#decrypt_and_verify` do:
+
+      ```ruby
+      encryptor = ActiveSupport::MessageEncryptor.new(secret)
+      message = encryptor.encrypt_and_sign(nil)
+
+      encryptor.decrypt_and_verify(message)
+      # => nil
+
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      message = verifier.generate(nil)
+
+      verifier.verified(message)
+      # => nil
+
+      verifier.verify(message)
+      # BEFORE:
+      # => raises ActiveSupport::MessageVerifier::InvalidSignature
+      # AFTER:
+      # => nil
+      ```
+
+    *Jonathan Hefner*
+
+*   Maintain `html_safe?` on html_safe strings when sliced with `slice`, `slice!`, or `chr` method.
+
+    Previously, `html_safe?` was only maintained when the html_safe strings were sliced
+    with `[]` method. Now, `slice`, `slice!`, and `chr` methods will maintain `html_safe?` like `[]` method.
+
+    ```ruby
+    string = "<div>test</div>".html_safe
+    string.slice(0, 1).html_safe? # => true
+    string.slice!(0, 1).html_safe? # => true
+    # maintain html_safe? after the slice!
+    string.html_safe? # => true
+    string.chr # => true
+    ```
+
+    *Michael Go*
+
+*   `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
+
+    Previously it would only raise when called in a view or controller. Now it will raise
+    anytime `I18n.t` is provided an unrecognised key.
+
+    If you do not want this behaviour, you can customise the i18n exception handler. See the
+    upgrading guide or i18n guide for more information.
+
+    *Alex Ghiculescu*
+
+*   `ActiveSupport::CurrentAttributes` now raises if a restricted attribute name is used.
+
+    Attributes such as `set` and `reset` cannot be used as they clash with the
+    `CurrentAttributes` public API.
+
+    *Alex Ghiculescu*
+
 *   `HashWithIndifferentAccess#transform_keys` now takes a Hash argument, just
     as Ruby's `Hash#transform_keys` does.
 

@@ -67,19 +67,21 @@ module ActiveSupport
         result
       end
 
-      # Returns an array of all the deprecation warnings emitted by the given
+      # Returns the return value of the block and an array of all the deprecation warnings emitted by the given
       # +deprecator+ during the execution of the yielded block.
       #
       #   collect_deprecations(CustomDeprecator) do
       #     CustomDeprecator.warn "message"
-      #   end # => ["message"]
+      #     :result
+      #   end # => [:result, ["message"]]
       #
       # If no +deprecator+ is given, defaults to ActiveSupport::Deprecation.
       #
       #   collect_deprecations do
       #     CustomDeprecator.warn "custom message"
       #     ActiveSupport::Deprecation.warn "message"
-      #   end # => ["message"]
+      #     :result
+      #   end # => [:result, ["message"]]
       def collect_deprecations(deprecator = nil)
         deprecator ||= ActiveSupport::Deprecation
         old_behavior = deprecator.behavior

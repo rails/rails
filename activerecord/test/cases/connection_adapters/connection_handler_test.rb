@@ -73,7 +73,6 @@ module ActiveRecord
           assert_raises(ArgumentError) { setup_shared_connection_pool }
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_fixtures_dont_raise_if_theres_no_writing_pool_config
@@ -90,7 +89,6 @@ module ActiveRecord
           assert_equal rw_conn, ro_conn
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_setting_writing_role_while_using_another_named_role_does_not_raise
@@ -104,7 +102,6 @@ module ActiveRecord
         ensure
           ActiveRecord.writing_role = old_role
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_establish_connection_with_primary_works_without_deprecation
@@ -192,6 +189,22 @@ module ActiveRecord
         @handler.establish_connection(:development_readonly)
 
         assert_not_nil pool = @handler.retrieve_connection_pool("development_readonly")
+        assert_not_predicate pool.connection, :preventing_writes?
+        assert_equal "test/db/readonly.sqlite3", pool.db_config.database
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
+      def test_establish_connection_with_string_owner_name
+        config = {
+          "development" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "development_readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3" }
+        }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+        @handler.establish_connection(:development_readonly, owner_name: "custom_connection")
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("custom_connection")
         assert_not_predicate pool.connection, :preventing_writes?
         assert_equal "test/db/readonly.sqlite3", pool.db_config.database
       ensure

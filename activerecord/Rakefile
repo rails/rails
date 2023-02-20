@@ -205,7 +205,11 @@ namespace :db do
     desc "Create the MySQL Rails User"
     task :build_user do
       if ENV["MYSQL_CODESPACES"]
-        mysql_command = "sudo mysql -uroot -proot -e"
+        if ENV["MYSQL_SOCK"]
+          mysql_command = "sudo mysql -uroot -S #{ENV["MYSQL_SOCK"]} -e"
+        else
+          mysql_command = "sudo mysql -uroot -proot -e"
+        end
       else
         mysql_command = "mysql -uroot -e"
       end

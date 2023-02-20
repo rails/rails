@@ -175,7 +175,7 @@ class DriverTest < ActiveSupport::TestCase
 
   private
     def assert_driver_capabilities(driver, expected_capabilities)
-      capabilities = driver.__send__(:browser_options)[:capabilities].as_json
+      capabilities = driver.__send__(:browser_options)[:options].as_json
 
       assert_equal expected_capabilities, capabilities.slice(*expected_capabilities.keys)
     end

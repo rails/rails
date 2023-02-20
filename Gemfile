@@ -49,6 +49,7 @@ end
 
 group :doc do
   gem "sdoc", ">= 2.6.0"
+  gem "rdoc", "~> 6.5"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
@@ -68,6 +69,10 @@ gem "webrick", require: false
 gem "jbuilder", require: false
 gem "web-console", require: false
 
+# Action Pack and railties
+rack_version = ENV.fetch("RACK", "~> 2.0") # Change to ~> 3 after #46594 is merged.
+gem "rack", rack_version
+
 # Active Job
 group :job do
   gem "resque", require: false
@@ -79,7 +84,6 @@ group :job do
   gem "sneakers", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
-  gem "sequel", require: false
 end
 
 # Action Cable

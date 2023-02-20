@@ -37,7 +37,7 @@ module Notifications
       assert event, "should have an event"
       assert_operator event.allocations, :>, 0
       assert_operator event.cpu_time, :>, 0
-      assert_operator event.idle_time, :>, 0
+      assert_operator event.idle_time, :>=, 0
       assert_operator event.duration, :>, 0
     end
 

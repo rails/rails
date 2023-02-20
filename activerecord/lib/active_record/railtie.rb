@@ -391,9 +391,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveRecord::QueryLogs.taggings.merge!(
             application:  Rails.application.class.name.split("::").first,
             pid:          -> { Process.pid.to_s },
-            socket:       -> { ActiveRecord::Base.connection_db_config.socket },
-            db_host:      -> { ActiveRecord::Base.connection_db_config.host },
-            database:     -> { ActiveRecord::Base.connection_db_config.database }
+            socket:       ->(context) { context[:connection].pool.db_config.socket },
+            db_host:      ->(context) { context[:connection].pool.db_config.host },
+            database:     ->(context) { context[:connection].pool.db_config.database }
           )
 
           if app.config.active_record.query_log_tags.present?

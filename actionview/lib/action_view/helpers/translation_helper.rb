@@ -11,7 +11,7 @@ module ActionView
 
       include TagHelper
 
-      # Specify whether an error should be raised for missing translations
+      # Specify whether an error should be raised for missing translations.
       singleton_class.attr_accessor :raise_on_missing_translations
 
       included do

@@ -264,6 +264,12 @@ class HelperTest < ActiveSupport::TestCase
     assert_equal "smth", AllHelpersController.helpers.config.my_var
   end
 
+  def test_missing_helper_error_is_deprecated
+    assert_deprecated(AbstractController.deprecator) do
+      AbstractController::Helpers::MissingHelperError
+    end
+  end
+
   private
     def expected_helper_methods
       TestHelper.instance_methods

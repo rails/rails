@@ -347,5 +347,13 @@ module ActiveModel
       end
     end
     private_class_method :model_name_from_record_or_class
+
+    private
+      def inherited(base)
+        super
+        base.class_eval do
+          @_model_name = nil
+        end
+      end
   end
 end

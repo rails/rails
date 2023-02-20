@@ -11,7 +11,7 @@ module ActiveModel
   # Like the Active Record methods, the callback chain is aborted as soon as
   # one of the methods throws +:abort+.
   #
-  # First, extend ActiveModel::Callbacks from the class you are creating:
+  # First, extend <tt>ActiveModel::Callbacks</tt> from the class you are creating:
   #
   #   class MyModel
   #     extend ActiveModel::Callbacks
@@ -69,7 +69,7 @@ module ActiveModel
       end
     end
 
-    # define_model_callbacks accepts the same options +define_callbacks+ does,
+    # +define_model_callbacks+ accepts the same options +define_callbacks+ does,
     # in case you want to overwrite a default. Besides that, it also accepts an
     # <tt>:only</tt> option, where you can choose if you want all types (before,
     # around or after) or just some.
@@ -77,7 +77,7 @@ module ActiveModel
     #   define_model_callbacks :initialize, only: :after
     #
     # Note, the <tt>only: <type></tt> hash will apply to all callbacks defined
-    # on that method call. To get around this you can call the define_model_callbacks
+    # on that method call. To get around this you can call the +define_model_callbacks+
     # method as many times as you need.
     #
     #   define_model_callbacks :create,  only: :after
@@ -104,7 +104,7 @@ module ActiveModel
     #     end
     #   end
     #
-    # NOTE: +method_name+ passed to define_model_callbacks must not end with
+    # NOTE: +method_name+ passed to +define_model_callbacks+ must not end with
     # <tt>!</tt>, <tt>?</tt> or <tt>=</tt>.
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!

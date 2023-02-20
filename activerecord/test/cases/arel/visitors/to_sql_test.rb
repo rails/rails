@@ -644,6 +644,58 @@ module Arel
         end
       end
 
+      describe "Nodes::BoundSqlLiteral" do
+        it "works with positional binds" do
+          node = Nodes::BoundSqlLiteral.new("id = ?", [1], {})
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "works with named binds" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { id: 1 })
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "works with array values" do
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?, ?)
+          }
+        end
+
+        it "refuses mixed binds" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id = ? AND name = :name", [1], { name: "Aaron" })
+          end
+        end
+
+        it "requires positional binds to match the placeholders" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2], {})
+          end
+
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2, 3, 4], {})
+          end
+        end
+
+        it "requires all named bind params to be supplied" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (:foo, :bar)", [], { foo: 1 })
+          end
+        end
+
+        it "ignores excess named parameters" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { foo: 2, id: 1, bar: 3 })
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+      end
+
       describe "TableAlias" do
         it "should use the underlying table for checking columns" do
           test = Table.new(:users).alias("zomgusers")[:id].eq "3"
@@ -766,6 +818,20 @@ module Arel
           _(compile(manager.ast)).must_be_like %{
             WITH RECURSIVE expr1 AS (SELECT * FROM "bar") SELECT * FROM expr1
           }
+        end
+      end
+
+      describe "Nodes::Fragments" do
+        it "joins subexpressions" do
+          sql = Arel.sql("SELECT foo, bar") + Arel.sql(" FROM customers")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers"
+        end
+
+        it "can be built by adding SQL fragments one at a time" do
+          sql = Arel.sql("SELECT foo, bar")
+          sql += Arel.sql("FROM customers")
+          sql += Arel.sql("GROUP BY foo")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers GROUP BY foo"
         end
       end
     end

@@ -12,6 +12,26 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < ActiveSupport::TestCase
+  class Money
+    attr_reader :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def +(other)
+      Money.new(value + other.value)
+    end
+
+    def coerce(other)
+      [Money.new(other), self]
+    end
+
+    def ==(other)
+      other.value == value
+    end
+  end
+
   class GenericEnumerable
     include Enumerable
 
@@ -184,6 +204,10 @@ class EnumerableTests < ActiveSupport::TestCase
       assert_equal SummablePayment.new(20), payments.sum { |p| p }
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }
+
+    assert_not_deprecated do
+      assert_equal Money.new(3), [Money.new(1), Money.new(2)].sum
+    end
 
     sum = [3, 5.quo(1)].sum
     assert_typed_equal(8, sum, Rational)

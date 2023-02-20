@@ -157,11 +157,12 @@ class Connection {
       logger.log(`Attempted to open WebSocket, but existing socket is ${this.getState()}`);
       return false;
     } else {
-      logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${protocols}`);
+      const socketProtocols = [ ...protocols, ...this.consumer.subprotocols || [] ];
+      logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${socketProtocols}`);
       if (this.webSocket) {
         this.uninstallEventHandlers();
       }
-      this.webSocket = new adapters.WebSocket(this.consumer.url, protocols);
+      this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols);
       this.installEventHandlers();
       this.monitor.start();
       return true;
@@ -456,6 +457,7 @@ class Consumer {
     this._url = url;
     this.subscriptions = new Subscriptions(this);
     this.connection = new Connection(this);
+    this.subprotocols = [];
   }
   get url() {
     return createWebSocketURL(this._url);
@@ -475,6 +477,9 @@ class Consumer {
     if (!this.connection.isActive()) {
       return this.connection.open();
     }
+  }
+  addSubProtocol(subprotocol) {
+    this.subprotocols = [ ...this.subprotocols, subprotocol ];
   }
 }
 

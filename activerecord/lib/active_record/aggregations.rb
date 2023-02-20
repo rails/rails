@@ -19,8 +19,8 @@ module ActiveRecord
       end
 
       def init_internals
-        @aggregation_cache = {}
         super
+        @aggregation_cache = {}
       end
 
       # Active Record implements aggregation through a macro-like class method called #composed_of

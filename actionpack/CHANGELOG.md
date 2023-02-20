@@ -1,3 +1,46 @@
+*   Change `ActionController::Instrumentation` to pass `filtered_path` instead of `fullpath` in the event payload to filter sensitive query params
+
+    ```ruby
+    get "/posts?password=test"
+    request.fullpath         # => "/posts?password=test"
+    request.filtered_path    # => "/posts?password=[FILTERED]"
+    ```
+
+    *Ritikesh G*
+
+*   Deprecate `AbstractController::Helpers::MissingHelperError`
+
+    *Hartley McGuire*
+
+*   Change `ActionDispatch::Testing::TestResponse#parsed_body` to parse HTML as
+    a Nokogiri document
+
+    ```ruby
+    get "/posts"
+    response.content_type         # => "text/html; charset=utf-8"
+    response.parsed_body.class    # => Nokogiri::HTML5::Document
+    response.parsed_body.to_html  # => "<!DOCTYPE html>\n<html>\n..."
+    ```
+
+    *Sean Doyle*
+
+*   Deprecate `ActionDispatch::IllegalStateError`.
+
+    *Samuel Williams*
+
+*   Add HTTP::Request#route_uri_pattern that returns URI pattern of matched route.
+
+    *Joel Hawksley*, *Kate Higa*
+
+*   Add `ActionDispatch::AssumeSSL` middleware that can be turned on via `config.assume_ssl`.
+    It makes the application believe that all requests are arriving over SSL. This is useful
+    when proxying through a load balancer that terminates SSL, the forwarded request will appear
+    as though its HTTP instead of HTTPS to the application. This makes redirects and cookie
+    security target HTTP instead of HTTPS. This middleware makes the server assume that the
+    proxy already terminated SSL, and that the request really is HTTPS.
+
+    *DHH*
+
 *   Only use HostAuthorization middleware if `config.hosts` is not empty
 
     *Hartley McGuire*

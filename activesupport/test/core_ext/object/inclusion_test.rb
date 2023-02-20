@@ -32,6 +32,11 @@ class InTest < ActiveSupport::TestCase
     assert_not 3.in?(s)
   end
 
+  def test_in_date_range
+    assert Date.today.in?(..Date.tomorrow)
+    assert_not Date.today.in?(Date.tomorrow..)
+  end
+
   module A
   end
   class B

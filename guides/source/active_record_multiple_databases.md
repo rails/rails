@@ -131,7 +131,7 @@ should share a connection with.
 
 ```ruby
 class PrimaryApplicationRecord < ActiveRecord::Base
-  self.primary_abstract_class = true
+  primary_abstract_class
 end
 ```
 
@@ -165,10 +165,10 @@ You can run `bin/rails -T` to see all the commands you're able to run. You shoul
 
 ```bash
 $ bin/rails -T
-rails db:create                          # Creates the database from DATABASE_URL or config/database.yml for the ...
+rails db:create                          # Create the database from DATABASE_URL or config/database.yml for the ...
 rails db:create:animals                  # Create animals database for current environment
 rails db:create:primary                  # Create primary database for current environment
-rails db:drop                            # Drops the database from DATABASE_URL or config/database.yml for the cu...
+rails db:drop                            # Drop the database from DATABASE_URL or config/database.yml for the cu...
 rails db:drop:animals                    # Drop animals database for current environment
 rails db:drop:primary                    # Drop primary database for current environment
 rails db:migrate                         # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
@@ -177,21 +177,21 @@ rails db:migrate:primary                 # Migrate primary database for current 
 rails db:migrate:status                  # Display status of migrations
 rails db:migrate:status:animals          # Display status of migrations for animals database
 rails db:migrate:status:primary          # Display status of migrations for primary database
-rails db:reset                           # Drops and recreates all databases from their schema for the current environment and loads the seeds
-rails db:reset:animals                   # Drops and recreates the animals database from its schema for the current environment and loads the seeds
-rails db:reset:primary                   # Drops and recreates the primary database from its schema for the current environment and loads the seeds
-rails db:rollback                        # Rolls the schema back to the previous version (specify steps w/ STEP=n)
+rails db:reset                           # Drop and recreates all databases from their schema for the current environment and loads the seeds
+rails db:reset:animals                   # Drop and recreates the animals database from its schema for the current environment and loads the seeds
+rails db:reset:primary                   # Drop and recreates the primary database from its schema for the current environment and loads the seeds
+rails db:rollback                        # Roll the schema back to the previous version (specify steps w/ STEP=n)
 rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
 rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
-rails db:schema:dump                     # Creates a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:dump:animals             # Creates a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:dump:primary             # Creates a db/schema.rb file that is portable against any DB supported  ...
-rails db:schema:load                     # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:load:animals             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:load:primary             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:setup                           # Creates all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
-rails db:setup:animals                   # Creates the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
-rails db:setup:primary                   # Creates the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
+rails db:schema:dump                     # Create a database schema file (either db/schema.rb or db/structure.sql  ...
+rails db:schema:dump:animals             # Create a database schema file (either db/schema.rb or db/structure.sql  ...
+rails db:schema:dump:primary             # Create a db/schema.rb file that is portable against any DB supported  ...
+rails db:schema:load                     # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+rails db:schema:load:animals             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+rails db:schema:load:primary             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+rails db:setup                           # Create all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
+rails db:setup:animals                   # Create the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
+rails db:setup:primary                   # Create the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
 ```
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.
@@ -258,7 +258,7 @@ class Dog < AnimalsRecord
 end
 ```
 
-Note: Since Rails doesn't know which database is the replica for your writer you will need to
+NOTE: Since Rails doesn't know which database is the replica for your writer you will need to
 add this to the abstract class after you're done.
 
 Rails will only generate the new class once. It will not be overwritten by new scaffolds
@@ -290,7 +290,7 @@ from the replica unless there was a recent write.
 To activate the automatic connection switching middleware you can run the automatic swapping
 generator:
 
-```
+```bash
 $ bin/rails g active_record:multi_db
 ```
 
@@ -471,7 +471,7 @@ code from mistakenly switching between tenants.
 The same generator as the database selector can be used to generate the file for
 automatic shard swapping:
 
-```
+```bash
 $ bin/rails g active_record:multi_db
 ```
 

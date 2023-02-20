@@ -21,6 +21,11 @@ class TimeTravelTest < ActiveSupport::TestCase
       assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
       assert_equal expected_time.to_date, Date.today
       assert_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
+
+      assert_equal expected_time.to_fs(:db), Time.new.to_fs(:db)
+      if RUBY_VERSION >= "3.2"
+        assert_not_equal expected_time.to_fs(:db), Time.new(precision: 3).to_fs(:db)
+      end
     ensure
       travel_back
     end
@@ -34,11 +39,20 @@ class TimeTravelTest < ActiveSupport::TestCase
         assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
         assert_equal expected_time.to_date, Date.today
         assert_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
+
+        assert_equal expected_time.to_fs(:db), Time.new.to_fs(:db)
+        if RUBY_VERSION >= "3.2"
+          assert_not_equal expected_time.to_fs(:db), Time.new(precision: 3).to_fs(:db)
+          assert_equal Time.new("2000-12-31 23:59:59.567"), Time.new("2000-12-31 23:59:59.56789", precision: 3)
+        end
       end
 
       assert_not_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
       assert_not_equal expected_time.to_date, Date.today
       assert_not_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
+      if RUBY_VERSION >= "3.2"
+        assert_equal Time.new("2000-12-31 23:59:59.567"), Time.new("2000-12-31 23:59:59.56789", precision: 3)
+      end
     end
   end
 
@@ -48,6 +62,11 @@ class TimeTravelTest < ActiveSupport::TestCase
       travel_to expected_time
 
       assert_equal expected_time, Time.now
+      assert_equal expected_time, Time.new
+      assert_not_equal expected_time, Time.new(2004, 11, 25)
+      if RUBY_VERSION >= "3.2"
+        assert_not_equal expected_time, Time.new(precision: 3)
+      end
       assert_equal Date.new(2004, 11, 24), Date.today
       assert_equal expected_time.to_datetime, DateTime.now
     ensure
@@ -61,11 +80,17 @@ class TimeTravelTest < ActiveSupport::TestCase
 
       travel_to expected_time do
         assert_equal expected_time, Time.now
+        assert_equal expected_time, Time.new
+        if RUBY_VERSION >= "3.2"
+          assert_not_equal expected_time, Time.new(precision: 3)
+        end
+        assert_not_equal expected_time, Time.new(2004, 11, 25)
         assert_equal Date.new(2004, 11, 24), Date.today
         assert_equal expected_time.to_datetime, DateTime.now
       end
 
       assert_not_equal expected_time, Time.now
+      assert_not_equal expected_time, Time.new
       assert_not_equal Date.new(2004, 11, 24), Date.today
       assert_not_equal expected_time.to_datetime, DateTime.now
     end
@@ -105,11 +130,13 @@ class TimeTravelTest < ActiveSupport::TestCase
 
       travel_to expected_time
       assert_equal expected_time, Time.now
+      assert_equal expected_time, Time.new
       assert_equal Date.new(2004, 11, 24), Date.today
       assert_equal expected_time.to_datetime, DateTime.now
       travel_back
 
       assert_not_equal expected_time, Time.now
+      assert_not_equal expected_time, Time.new
       assert_not_equal Date.new(2004, 11, 24), Date.today
       assert_not_equal expected_time.to_datetime, DateTime.now
     ensure
@@ -123,16 +150,19 @@ class TimeTravelTest < ActiveSupport::TestCase
 
       travel_to expected_time
       assert_equal expected_time, Time.now
+      assert_equal expected_time, Time.new
       assert_equal Date.new(2004, 11, 24), Date.today
       assert_equal expected_time.to_datetime, DateTime.now
 
       travel_back do
         assert_not_equal expected_time, Time.now
+        assert_not_equal expected_time, Time.new
         assert_not_equal Date.new(2004, 11, 24), Date.today
         assert_not_equal expected_time.to_datetime, DateTime.now
       end
 
       assert_equal expected_time, Time.now
+      assert_equal expected_time, Time.new
       assert_equal Date.new(2004, 11, 24), Date.today
       assert_equal expected_time.to_datetime, DateTime.now
     ensure

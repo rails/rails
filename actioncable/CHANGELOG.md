@@ -1,3 +1,24 @@
+*   Display broadcasted messages on error message when using `assert_broadcast_on`
+
+    *Stéphane Robino*
+
+*   The Action Cable client now supports subprotocols to allow passing arbitrary data
+    to the server.
+
+    ```js
+    const consumer = ActionCable.createConsumer()
+
+    consumer.addSubProtocol('custom-protocol')
+
+    consumer.connect()
+    ```
+
+    See also:
+
+    * https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#subprotocols
+
+    *Guillaume Hain*
+
 *   Redis pub/sub adapter now automatically reconnects when Redis connection is lost.
 
     *Vladimir Dementyev*

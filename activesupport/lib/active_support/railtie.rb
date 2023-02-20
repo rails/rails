@@ -192,5 +192,12 @@ module ActiveSupport
         end
       end
     end
+
+    initializer "active_support.set_use_message_serializer_for_metadata" do |app|
+      config.after_initialize do
+        ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata =
+          app.config.active_support.use_message_serializer_for_metadata
+      end
+    end
   end
 end

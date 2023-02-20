@@ -1745,7 +1745,7 @@ module ActionView
       # <tt><button></tt> element should be treated as the <tt><form></tt>
       # element's submit button, regardless of where it exists in the DOM.
       def id
-        options.dig(:html, :id)
+        options.dig(:html, :id) || options[:id]
       end
 
       # Generate an HTML <tt>id</tt> attribute value for the given field

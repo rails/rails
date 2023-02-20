@@ -13,7 +13,7 @@ columns. Although these mappings can be defined explicitly, it's recommended
 to follow naming conventions, especially when getting started with the
 library.
 
-You can read more about Active Record in the {Active Record Basics}[https://edgeguides.rubyonrails.org/active_record_basics.html] guide.
+You can read more about Active Record in the {Active Record Basics}[https://guides.rubyonrails.org/active_record_basics.html] guide.
 
 A short rundown of some of the major features:
 

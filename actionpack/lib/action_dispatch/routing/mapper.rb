@@ -306,7 +306,7 @@ module ActionDispatch
           end
 
           def split_to(to)
-            if /#/.match?(to)
+            if to&.include?("#")
               to.split("#").map!(&:-@)
             else
               []
@@ -1640,7 +1640,7 @@ module ActionDispatch
             when Symbol
               options[:action] = to
             when String
-              if /#/.match?(to)
+              if to.include?("#")
                 options[:to] = to
               else
                 options[:controller] = to

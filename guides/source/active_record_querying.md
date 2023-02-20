@@ -44,7 +44,7 @@ class Book < ApplicationRecord
 
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
-  scope :old, -> { where('year_published < ?', 50.years.ago )}
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
   scope :out_of_print_and_expensive, -> { out_of_print.where('price > 500') }
   scope :costs_more_than, ->(amount) { where('price > ?', amount) }
 end
@@ -64,7 +64,7 @@ class Order < ApplicationRecord
 
   enum :status, [:shipped, :being_packed, :complete, :cancelled]
 
-  scope :created_before, ->(time) { where('created_at < ?', time) }
+  scope :created_before, ->(time) { where(created_at: ...time) }
 end
 ```
 
@@ -117,6 +117,7 @@ The methods are:
 * [`references`][]
 * [`reorder`][]
 * [`reselect`][]
+* [`regroup`][]
 * [`reverse_order`][]
 * [`select`][]
 * [`where`][]
@@ -155,6 +156,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 [`references`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-references
 [`reorder`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reorder
 [`reselect`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reselect
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
 [`reverse_order`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reverse_order
 [`select`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-select
 [`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
@@ -731,7 +733,7 @@ SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders
 `AND` conditions can be built by chaining `where` conditions.
 
 ```ruby
-Customer.where(last_name: 'Smith').where(orders_count: [1,3,5]))
+Customer.where(last_name: 'Smith').where(orders_count: [1,3,5])
 ```
 
 ```sql
@@ -1122,7 +1124,37 @@ the SQL executed would be:
 SELECT * FROM books WHERE out_of_print = 1 AND out_of_print = 0
 ```
 
-[`rewhere`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-rewhere
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
+
+
+### `regroup`
+
+The [`regroup`][] method overrides an existing, named `group` condition. For example:
+
+```ruby
+Book.group(:author).regroup(:id)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT * FROM books GROUP BY id
+```
+
+If the `regroup` clause is not used, the group clauses are combined together:
+
+```ruby
+Book.group(:author).group(:id)
+```
+
+the SQL executed would be:
+
+```sql
+SELECT * FROM books GROUP BY author, id
+```
+
+[`regroup`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-regroup
+
 
 Null Relation
 -------------
@@ -1501,7 +1533,7 @@ SELECT authors.* FROM authors
 
 Active Record lets you eager load any number of associations with a single `Model.find` call by using an array, hash, or a nested hash of array/hash with the `includes` method.
 
-#### Array of Multiple Associations
+##### Array of Multiple Associations
 
 ```ruby
 Customer.includes(:orders, :reviews)
@@ -1601,6 +1633,23 @@ SELECT books.id AS t0_r0, books.last_name AS t0_r1, ...
 
 NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
 
+### `strict_loading`
+
+Eager loading can prevent N + 1 queries but you might still be lazy loading
+some associations. To make sure no associations are lazy loaded you can enable
+[`strict_loading`][].
+
+By enabling strict loading mode on a relation, an
+`ActiveRecord::StrictLoadingViolationError` will be raised if the record tries
+to lazily load an association:
+
+```ruby
+user = User.strict_loading.first
+user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
+```
+
+[`strict_loading`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-strict_loading
+
 Scopes
 ------
 
@@ -1678,7 +1727,7 @@ Your scope can utilize conditionals:
 
 ```ruby
 class Order < ApplicationRecord
-  scope :created_before, ->(time) { where("created_at < ?", time) if time.present? }
+  scope :created_before, ->(time) { where(created_at: ...time) if time.present? }
 end
 ```
 
@@ -1687,7 +1736,7 @@ Like the other examples, this will behave similarly to a class method.
 ```ruby
 class Order < ApplicationRecord
   def self.created_before(time)
-    where("created_at < ?", time) if time.present?
+    where(created_at: ...time) if time.present?
   end
 end
 ```
@@ -1765,8 +1814,8 @@ class Book < ApplicationRecord
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
 
-  scope :recent, -> { where('year_published >= ?', Date.current.year - 50 )}
-  scope :old, -> { where('year_published < ?', Date.current.year - 50 )}
+  scope :recent, -> { where(year_published: 50.years.ago.year..) }
+  scope :old, -> { where(year_published: ...50.years.ago.year) }
 end
 ```
 
@@ -1779,7 +1828,7 @@ We can mix and match `scope` and `where` conditions and the final SQL
 will have all conditions joined with `AND`.
 
 ```irb
-irb> Book.in_print.where('price < 100')
+irb> Book.in_print.where(price: ...100)
 SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
 ```
 
@@ -1796,7 +1845,7 @@ One important caveat is that `default_scope` will be prepended in
 
 ```ruby
 class Book < ApplicationRecord
-  default_scope { where('year_published >= ?', Date.current.year - 50 )}
+  default_scope { where(year_published: 50.years.ago.year..) }
 
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
@@ -2259,15 +2308,15 @@ You can also use `any?` and `many?` to check for existence on a model or relatio
 ```ruby
 # via a model
 Order.any?
-# => SELECT 1 FROM orders LIMIT 1
+# SELECT 1 FROM orders LIMIT 1
 Order.many?
-# => SELECT COUNT(*) FROM (SELECT 1 FROM orders LIMIT 2)
+# SELECT COUNT(*) FROM (SELECT 1 FROM orders LIMIT 2)
 
 # via a named scope
 Order.shipped.any?
-# => SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 1
+# SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 1
 Order.shipped.many?
-# => SELECT COUNT(*) FROM (SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 2)
+# SELECT COUNT(*) FROM (SELECT 1 FROM orders WHERE orders.status = 0 LIMIT 2)
 
 # via a relation
 Book.where(out_of_print: true).any?
@@ -2386,7 +2435,7 @@ Customer.where(id: 1).joins(:orders).explain
 may yield
 
 ```
-EXPLAIN for: SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
+EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
 +----+-------------+------------+-------+---------------+
 | id | select_type | table      | type  | possible_keys |
 +----+-------------+------------+-------+---------------+
@@ -2410,7 +2459,7 @@ corresponding database shell. So, the same query running with the
 PostgreSQL adapter would yield instead
 
 ```
-EXPLAIN for: SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
+EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
                                   QUERY PLAN
 ------------------------------------------------------------------------------
  Nested Loop  (cost=4.33..20.85 rows=4 width=164)
@@ -2434,7 +2483,7 @@ Customer.where(id: 1).includes(:orders).explain
 may yield this for MySQL and MariaDB:
 
 ```
-EXPLAIN for: SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
+EXPLAIN SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
 +----+-------------+-----------+-------+---------------+
 | id | select_type | table     | type  | possible_keys |
 +----+-------------+-----------+-------+---------------+
@@ -2448,7 +2497,7 @@ EXPLAIN for: SELECT `customers`.* FROM `customers`  WHERE `customers`.`id` = 1
 
 1 row in set (0.00 sec)
 
-EXPLAIN for: SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1)
+EXPLAIN SELECT `orders`.* FROM `orders`  WHERE `orders`.`customer_id` IN (1)
 +----+-------------+--------+------+---------------+
 | id | select_type | table  | type | possible_keys |
 +----+-------------+--------+------+---------------+
@@ -2469,7 +2518,7 @@ and may yield this for PostgreSQL:
 ```
   Customer Load (0.3ms)  SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1  [["id", 1]]
   Order Load (0.3ms)  SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = $1  [["customer_id", 1]]
-=> EXPLAIN for: SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1 [["id", 1]]
+=> EXPLAIN SELECT "customers".* FROM "customers" WHERE "customers"."id" = $1 [["id", 1]]
                                     QUERY PLAN
 ----------------------------------------------------------------------------------
  Index Scan using customers_pkey on customers  (cost=0.15..8.17 rows=1 width=164)
@@ -2478,6 +2527,62 @@ and may yield this for PostgreSQL:
 ```
 
 [`explain`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-explain
+
+### Explain Options
+
+For databases and adapters which support them (currently PostgreSQL and MySQL), options can be passed to provide deeper analysis.
+
+Using PostgreSQL, the following:
+
+```ruby
+Customer.where(id: 1).joins(:orders).explain(:analyze, :verbose)
+```
+
+yields:
+
+```sql
+EXPLAIN (ANALYZE, VERBOSE) SELECT "shop_accounts".* FROM "shop_accounts" INNER JOIN "customers" ON "customers"."id" = "shop_accounts"."customer_id" WHERE "shop_accounts"."id" = $1 [["id", 1]]
+                                                                   QUERY PLAN
+------------------------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=0.30..16.37 rows=1 width=24) (actual time=0.003..0.004 rows=0 loops=1)
+   Output: shop_accounts.id, shop_accounts.customer_id, shop_accounts.customer_carrier_id
+   Inner Unique: true
+   ->  Index Scan using shop_accounts_pkey on public.shop_accounts  (cost=0.15..8.17 rows=1 width=24) (actual time=0.003..0.003 rows=0 loops=1)
+         Output: shop_accounts.id, shop_accounts.customer_id, shop_accounts.customer_carrier_id
+         Index Cond: (shop_accounts.id = '1'::bigint)
+   ->  Index Only Scan using customers_pkey on public.customers  (cost=0.15..8.17 rows=1 width=8) (never executed)
+         Output: customers.id
+         Index Cond: (customers.id = shop_accounts.customer_id)
+         Heap Fetches: 0
+ Planning Time: 0.063 ms
+ Execution Time: 0.011 ms
+(12 rows)
+```
+
+Using MySQL or MariaDB, the following:
+
+```ruby
+Customer.where(id: 1).joins(:orders).explain(:analyze)
+```
+
+yields:
+
+```sql
+ANALYZE SELECT `shop_accounts`.* FROM `shop_accounts` INNER JOIN `customers` ON `customers`.`id` = `shop_accounts`.`customer_id` WHERE `shop_accounts`.`id` = 1
++----+-------------+-------+------+---------------+------+---------+------+------+--------+----------+------------+--------------------------------+
+| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | r_rows | filtered | r_filtered | Extra                          |
++----+-------------+-------+------+---------------+------+---------+------+------+--------+----------+------------+--------------------------------+
+|  1 | SIMPLE      | NULL  | NULL | NULL          | NULL | NULL    | NULL | NULL | NULL   | NULL     | NULL       | no matching row in const table |
++----+-------------+-------+------+---------------+------+---------+------+------+--------+----------+------------+--------------------------------+
+1 row in set (0.00 sec)
+```
+
+NOTE: EXPLAIN and ANALYZE options vary across MySQL and MariaDB versions.
+([MySQL 5.7][MySQL5.7-explain], [MySQL 8.0][MySQL8-explain], [MariaDB][MariaDB-explain])
+
+[MySQL5.7-explain]: https://dev.mysql.com/doc/refman/5.7/en/explain.html
+[MySQL8-explain]: https://dev.mysql.com/doc/refman/8.0/en/explain.html
+[MariaDB-explain]: https://mariadb.com/kb/en/analyze-and-explain-statements/
 
 ### Interpreting EXPLAIN
 

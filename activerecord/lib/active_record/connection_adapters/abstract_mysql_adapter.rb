@@ -491,7 +491,7 @@ module ActiveRecord
 
         fk_info.map do |row|
           options = {
-            column: row["column"],
+            column: unquote_identifier(row["column"]),
             name: row["name"],
             primary_key: row["primary_key"]
           }
@@ -499,7 +499,7 @@ module ActiveRecord
           options[:on_update] = extract_foreign_key_action(row["on_update"])
           options[:on_delete] = extract_foreign_key_action(row["on_delete"])
 
-          ForeignKeyDefinition.new(table_name, row["to_table"], options)
+          ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
         end
       end
 
@@ -732,9 +732,28 @@ module ActiveRecord
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
               sync_timezone_changes(conn)
-              conn.query(sql)
+              result = conn.query(sql)
+              handle_warnings(sql)
+              result
             end
           end
+        end
+
+        def handle_warnings(sql)
+          return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+
+          @affected_rows_before_warnings = @raw_connection.affected_rows
+          result = @raw_connection.query("SHOW WARNINGS")
+          result.each do |level, code, message|
+            warning = SQLWarning.new(message, code, level, sql)
+            next if warning_ignored?(warning)
+
+            ActiveRecord.db_warnings_action.call(warning)
+          end
+        end
+
+        def warning_ignored?(warning)
+          warning.level == "Note" || super
         end
 
         # Make sure we carry over any changes to ActiveRecord.default_timezone that have been

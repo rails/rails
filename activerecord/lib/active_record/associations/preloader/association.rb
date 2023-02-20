@@ -36,7 +36,12 @@ module ActiveRecord
           end
 
           def load_records_for_keys(keys, &block)
-            scope.where(association_key_name => keys).load(&block)
+            if association_key_name.is_a?(Array)
+              or_scope = keys.map { |values_set| scope.klass.where(association_key_name.zip(values_set).to_h) }.inject(&:or)
+              scope.merge(or_scope)
+            else
+              scope.where(association_key_name => keys)
+            end.load(&block)
           end
         end
 
@@ -151,7 +156,7 @@ module ActiveRecord
 
         def owners_by_key
           @owners_by_key ||= owners.each_with_object({}) do |owner, result|
-            key = convert_key(owner[owner_key_name])
+            key = derive_key(owner, owner_key_name)
             (result[key] ||= []) << owner if key
           end
         end
@@ -169,7 +174,7 @@ module ActiveRecord
         end
 
         def set_inverse(record)
-          if owners = owners_by_key[convert_key(record[association_key_name])]
+          if owners = owners_by_key[derive_key(record, association_key_name)]
             # Processing only the first owner
             # because the record is modified but not an owner
             association = owners.first.association(reflection.name)
@@ -182,11 +187,10 @@ module ActiveRecord
           # #compare_by_identity makes such owners different hash keys
           @records_by_owner = {}.compare_by_identity
           raw_records ||= loader_query.records_for([self])
-
           @preloaded_records = raw_records.select do |record|
             assignments = false
 
-            owners_by_key[convert_key(record[association_key_name])]&.each do |owner|
+            owners_by_key[derive_key(record, association_key_name)]&.each do |owner|
               entries = (@records_by_owner[owner] ||= [])
 
               if reflection.collection? || entries.empty?
@@ -206,7 +210,7 @@ module ActiveRecord
           return if reflection.collection?
 
           unscoped_records.select { |r| r[association_key_name].present? }.each do |record|
-            owners = owners_by_key[convert_key(record[association_key_name])]
+            owners = owners_by_key[derive_key(record, association_key_name)]
             owners&.each_with_index do |owner, i|
               association = owner.association(reflection.name)
               association.target = record
@@ -244,6 +248,14 @@ module ActiveRecord
             end
 
             @key_conversion_required
+          end
+
+          def derive_key(owner, key)
+            if key.is_a?(Array)
+              key.map { |k| convert_key(owner[k]) }
+            else
+              convert_key(owner[key])
+            end
           end
 
           def convert_key(key)

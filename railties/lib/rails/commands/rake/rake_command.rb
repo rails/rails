@@ -12,28 +12,24 @@ module Rails
           formatted_rake_tasks
         end
 
-        def perform(task, args, config, optional: false)
+        def perform(task, args, config)
           require_rake
 
           Rake.with_application do |rake|
             rake.init("rails", [task, *args])
             rake.load_rakefile
+            if unrecognized_task = rake.top_level_tasks.find { |task| !rake.lookup(task) }
+              raise UnrecognizedCommandError.new(unrecognized_task)
+            end
+
             if Rails.respond_to?(:root)
               rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
             end
-            rake.standard_exception_handling { rake.top_level } unless optional && !task_exists?(rake, task)
+            rake.standard_exception_handling { rake.top_level }
           end
         end
 
         private
-          def task_exists?(rake, task)
-            name, _args = rake.parse_task_string(task)
-            rake[name]
-            true
-          rescue Exception
-            false
-          end
-
           def rake_tasks
             require_rake
 

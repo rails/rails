@@ -373,6 +373,15 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
+#### strict_loading_violation.active_record
+
+| Key           | Value                                            |
+| ------------- | ------------------------------------------------ |
+| `:owner`      | Model with `strict_loading` enabled              |
+| `:reflection` | Reflection of the association that tried to load |
+
+INFO. This event is only emitted when `config.active_record.action_on_strict_loading_violation` is set to `:log`.
+
 #### instantiation.active_record
 
 | Key              | Value                                     |
@@ -548,6 +557,13 @@ INFO. Cache stores may add their own keys
 | `:adapter`   | QueueAdapter object processing the job |
 | `:error`     | The error that caused the retry        |
 | `:wait`      | The delay of the retry                 |
+
+#### enqueue_all.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:jobs`      | An array of Job objects                |
 
 #### perform_start.active_job
 
@@ -737,10 +753,14 @@ INFO. The only ActiveStorage service that provides this hook so far is GCS.
 
 #### deprecation.rails
 
-| Key          | Value                           |
-| ------------ | ------------------------------- |
-| `:message`   | The deprecation warning         |
-| `:callstack` | Where the deprecation came from |
+| Key                    | Value                                                 |
+| ---------------------- | ------------------------------------------------------|
+| `:message`             | The deprecation warning                               |
+| `:callstack`           | Where the deprecation came from                       |
+| `:gem_name`            | Name of the gem reporting the deprecation             |
+| `:deprecation_horizon` | Version where the deprecated behavior will be removed |
+
+NOTE: Each framework will also emit their own namespaced `deprecation` events.
 
 Exceptions
 ----------

@@ -14,6 +14,36 @@ module Rails
     autoload :Behavior
     autoload :Base
 
+    class CorrectableNameError < StandardError # :nodoc:
+      attr_reader :name
+
+      def initialize(message, name, alternatives)
+        @name = name
+        @alternatives = alternatives
+        super(message)
+      end
+
+      if !Exception.method_defined?(:detailed_message)
+        def detailed_message(...)
+          message
+        end
+      end
+
+      if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+        include DidYouMean::Correctable
+
+        def corrections
+          @corrections ||= DidYouMean::SpellChecker.new(dictionary: @alternatives).correct(name)
+        end
+      end
+    end
+
+    class UnrecognizedCommandError < CorrectableNameError # :nodoc:
+      def initialize(name)
+        super("Unrecognized command #{name.inspect}", name, Command.printing_commands.map(&:first))
+      end
+    end
+
     include Behavior
 
     HELP_MAPPINGS = %w(-h -? --help).to_set
@@ -30,24 +60,26 @@ module Rails
 
       # Receives a namespace, arguments, and the behavior to invoke the command.
       def invoke(full_namespace, args = [], **config)
-        full_namespace = full_namespace.to_s
-
-        namespace, command_name = split_namespace(full_namespace)
-
         args = ["--help"] if rails_new_with_no_path?(args)
 
-        original_argv = ARGV.dup
-        ARGV.replace(args)
-
+        full_namespace = full_namespace.to_s
+        namespace, command_name = split_namespace(full_namespace)
         command = find_by_namespace(namespace, command_name)
-        if command && command.all_commands[command_name]
-          command.perform(command_name, args, config)
-        else
-          args = ["--describe", full_namespace] if HELP_MAPPINGS.include?(args[0])
-          find_by_namespace("rake").perform(full_namespace, args, config)
+
+        with_argv(args) do
+          if command && command.all_commands[command_name]
+            command.perform(command_name, args, config)
+          else
+            invoke_rake(full_namespace, args, config)
+          end
         end
-      ensure
-        ARGV.replace(original_argv)
+      rescue UnrecognizedCommandError => error
+        if error.name == full_namespace && command && command_name == full_namespace
+          command.perform("help", [], config)
+        else
+          puts error.detailed_message
+        end
+        exit(1)
       end
 
       # Rails finds namespaces similar to Thor, it only adds one rule:
@@ -105,6 +137,19 @@ module Rails
           else
             [namespace, namespace]
           end
+        end
+
+        def with_argv(argv)
+          original_argv = ARGV.dup
+          ARGV.replace(argv)
+          yield
+        ensure
+          ARGV.replace(original_argv)
+        end
+
+        def invoke_rake(task, args, config)
+          args = ["--describe", task] if HELP_MAPPINGS.include?(args[0])
+          find_by_namespace("rake").perform(task, args, config)
         end
 
         def command_type # :doc:

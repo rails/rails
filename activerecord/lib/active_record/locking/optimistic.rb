@@ -169,10 +169,7 @@ module ActiveRecord
           end
 
           # The version column used for optimistic locking. Defaults to +lock_version+.
-          def locking_column
-            @locking_column = DEFAULT_LOCKING_COLUMN unless defined?(@locking_column)
-            @locking_column
-          end
+          attr_reader :locking_column
 
           # Reset the column used for optimistic locking back to the +lock_version+ default.
           def reset_locking_column
@@ -192,6 +189,14 @@ module ActiveRecord
             end
             super
           end
+
+          private
+            def inherited(base)
+              super
+              base.class_eval do
+                @locking_column = DEFAULT_LOCKING_COLUMN
+              end
+            end
         end
     end
 

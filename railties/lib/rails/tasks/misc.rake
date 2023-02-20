@@ -28,17 +28,17 @@ namespace :time do
   end
 
   namespace :zones do
-    # desc 'Displays all time zones, also available: time:zones:us, time:zones:local -- filter with OFFSET parameter, e.g., OFFSET=-6'
+    # desc 'Display all time zones, also available: time:zones:us, time:zones:local -- filter with OFFSET parameter, e.g., OFFSET=-6'
     task :all do
       build_time_zone_list ActiveSupport::TimeZone.all
     end
 
-    # desc 'Displays names of US time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
+    # desc 'Display names of US time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
     task :us do
       build_time_zone_list ActiveSupport::TimeZone.us_zones
     end
 
-    # desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
+    # desc 'Display names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
     task :local do
       require "active_support"
       require "active_support/time"

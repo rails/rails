@@ -4,9 +4,10 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [])
-          sql = "EXPLAIN #{to_sql(arel, binds)}"
-          PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
+        def explain(arel, binds = [], options = [])
+          sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
+          result = exec_query(sql, "EXPLAIN", binds)
+          PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
         # Queries the database and returns the results in an Array-like object
@@ -48,9 +49,13 @@ module ActiveRecord
 
           with_raw_connection(allow_retry: allow_retry) do |conn|
             log(sql, name) do
-              conn.async_exec(sql)
+              result = conn.async_exec(sql)
+              handle_warnings(sql)
+              result
             end
           end
+        ensure
+          @notice_receiver_sql_warnings = []
         end
 
         def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
@@ -148,6 +153,12 @@ module ActiveRecord
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
 
+        def build_explain_clause(options = [])
+          return "EXPLAIN" if options.empty?
+
+          "EXPLAIN (#{options.join(", ").upcase})"
+        end
+
         private
           def cancel_any_running_query
             return unless @raw_connection && @raw_connection.transaction_status != PG::PQTRANS_IDLE
@@ -171,6 +182,21 @@ module ActiveRecord
 
           def suppress_composite_primary_key(pk)
             pk unless pk.is_a?(Array)
+          end
+
+          def handle_warnings(sql)
+            return if ActiveRecord.db_warnings_action.nil?
+
+            @notice_receiver_sql_warnings.each do |warning|
+              next if warning_ignored?(warning)
+
+              warning.sql = sql
+              ActiveRecord.db_warnings_action.call(warning)
+            end
+          end
+
+          def warning_ignored?(warning)
+            ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
           end
       end
     end

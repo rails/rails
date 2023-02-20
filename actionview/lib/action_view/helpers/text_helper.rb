@@ -139,16 +139,19 @@ module ActionView
         if text.blank? || phrases.blank?
           text || ""
         else
-          match = Array(phrases).map do |p|
-            Regexp === p ? p.to_s : Regexp.escape(p)
-          end.join("|")
+          patterns = Array(phrases).map { |phrase| Regexp === phrase ? phrase : Regexp.escape(phrase) }
+          pattern = /(#{patterns.join("|")})/i
+          highlighter = options.fetch(:highlighter, '<mark>\1</mark>') unless block
 
-          if block_given?
-            text.gsub(/(#{match})(?![^<]*?>)/i, &block)
-          else
-            highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-            text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
-          end
+          text.scan(/<[^>]*|[^<]+/).each do |segment|
+            if !segment.start_with?("<")
+              if block
+                segment.gsub!(pattern, &block)
+              else
+                segment.gsub!(pattern, highlighter)
+              end
+            end
+          end.join
         end.html_safe
       end
 

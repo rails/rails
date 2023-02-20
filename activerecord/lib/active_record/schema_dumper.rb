@@ -306,6 +306,10 @@ module ActiveRecord
       end
 
       def remove_prefix_and_suffix(table)
+        # This method appears at the top when profiling active_record test cases run.
+        # Avoid costly calculation when there are no prefix and suffix.
+        return table if @options[:table_name_prefix].blank? && @options[:table_name_suffix].blank?
+
         prefix = Regexp.escape(@options[:table_name_prefix].to_s)
         suffix = Regexp.escape(@options[:table_name_suffix].to_s)
         table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")

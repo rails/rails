@@ -73,6 +73,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.default_message_encryptor_serializer`](#config-active-support-default-message-encryptor-serializer): `:json`
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 - [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
+- [`config.active_support.use_message_serializer_for_metadata`](#config-active-support-use-message-serializer-for-metadata): `true`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
 - [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
 - [`config.precompile_filter_parameters`](#config-precompile-filter-parameters): `true`
@@ -194,6 +195,10 @@ be set to `false` if application code is not thread safe. Defaults to `true`.
 
 Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
+#### `config.assume_ssl`
+
+Makes application believe that all requests are arriving over SSL. This is useful when proxying through a load balancer that terminates SSL, the forwarded request will appear as though its HTTP instead of HTTPS to the application. This makes redirects and cookie security target HTTP instead of HTTPS. This middleware makes the server assume that the proxy already terminated SSL, and that the request really is HTTPS.
+
 #### `config.autoflush_log`
 
 Enables writing log file output immediately instead of buffering. Defaults to
@@ -256,11 +261,23 @@ Guide
 
 #### `config.credentials.content_path`
 
-Configures lookup path for encrypted credentials.
+The path of the encrypted credentials file.
+
+Defaults to `config/credentials/#{Rails.env}.yml.enc` if it exists, or
+`config/credentials.yml.enc` otherwise.
+
+NOTE: In order for the `bin/rails credentials` commands to recognize this value,
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
 #### `config.credentials.key_path`
 
-Configures lookup path for encryption key.
+The path of the encrypted credentials key file.
+
+Defaults to `config/credentials/#{Rails.env}.key` if it exists, or
+`config/master.key` otherwise.
+
+NOTE: In order for the `bin/rails credentials` commands to recognize this value,
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
 #### `config.debug_exception_response_format`
 
@@ -294,7 +311,43 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 
 #### `config.exceptions_app`
 
-Sets the exceptions application invoked by the `ShowException` middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
+Sets the exceptions application invoked by the `ShowException` middleware when an exception happens.
+Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
+
+Exceptions applications need to handle `ActionDispatch::Http::MimeNegotiation::InvalidType` errors, which are raised when a client sends an invalid `Accept` or `Content-Type` header.
+The default `ActionDispatch::PublicExceptions` application does this automatically, setting `Content-Type` to `text/html` and returning a `406 Not Acceptable` status.
+Failure to handle this error will result in a `500 Internal Server Error`.
+
+Using the `Rails.application.routes` `RouteSet` as the exceptions application also requires this special handling.
+It might look something like this:
+
+```ruby
+# config/application.rb
+config.exceptions_app = CustomExceptionsAppWrapper.new(exceptions_app: routes)
+
+# lib/custom_exceptions_app_wrapper.rb
+class CustomExceptionsAppWrapper
+  def initialize(exceptions_app:)
+    @exceptions_app = exceptions_app
+  end
+
+  def call(env)
+    request = ActionDispatch::Request.new(env)
+
+    fallback_to_html_format_if_invalid_mime_type(request)
+
+    @exceptions_app.call(env)
+  end
+
+  private
+
+  def fallback_to_html_format_if_invalid_mime_type(request)
+    request.formats
+  rescue ActionDispatch::Http::MimeNegotiation::InvalidType
+    request.set_header "CONTENT_TYPE", "text/html"
+  end
+end
+```
 
 #### `config.file_watcher`
 
@@ -813,8 +866,7 @@ Sets the path Rails uses to look for locale files. Defaults to `config/locales/*
 
 #### `config.i18n.raise_on_missing_translations`
 
-Determines whether an error should be raised for missing translations
-in controllers and views. This defaults to `false`.
+Determines whether an error should be raised for missing translations. This defaults to `false`.
 
 #### `config.i18n.fallbacks`
 
@@ -945,6 +997,46 @@ Specifies if an error should be raised if the order of a query is ignored during
 #### `config.active_record.timestamped_migrations`
 
 Controls whether migrations are numbered with serial integers or with timestamps. The default is `true`, to use timestamps, which are preferred if there are multiple developers working on the same application.
+
+#### `config.active_record.db_warnings_action`
+
+Controls the action to be taken when a SQL query produces a warning. The following options are available:
+
+  * `:ignore` - Database warnings wil be ignored. This is the default.
+
+  * `:log` - Database warnings will be logged via `ActiveRecord.logger` at the `:warn` level.
+
+  * `:raise` - Database warnings will be raised as `ActiveRecord::SQLWarning`.
+
+  * `:report` - Database warnings be will reported to subscribers of Rails' error reporter.
+
+  * Custom proc - A custom proc can be provided. It should accept a `SQLWarning` error object.
+
+    For example:
+
+    ```ruby
+    config.active_record.db_warnings_action = ->(warning) do
+      # Report to custom exception reporting service
+      Bugsnag.notify(warning.message) do |notification|
+        notification.add_metadata(:warning_code, warning.code)
+        notification.add_metadata(:warning_level, warning.level)
+      end
+    end
+    ```
+
+#### `config.active_record.db_warnings_ignore`
+
+Specifies an allowlist of warnings that will be ignored, regardless of the configured `db_warnings_action`.
+The default behavior is to report all warnings. Warnings to ignore can be specified as Strings or Regexps. For example:
+
+  ```ruby
+  config.active_record.db_warnings_action = :raise
+  # The following warnings will not be raised
+  config.active_record.db_warnings_ignore = [
+    /Invalid utf8mb4 character string/,
+    "An exact warning message",
+  ]
+  ```
 
 #### `config.active_record.migration_strategy`
 
@@ -1288,6 +1380,12 @@ Defaults to `[Symbol]`. Allows applications to include additional permitted clas
 #### `config.active_record.use_yaml_unsafe_load`
 
 Defaults to `false`. Allows applications to opt into using `unsafe_load` on the `ActiveRecord::Coders::YAMLColumn`.
+
+#### `config.active_record.raise_int_wider_than_64bit`
+
+Defaults to `true`. Determines whether to raise an exception or not when
+the PostgreSQL adapter is provided an integer that is wider than signed
+64bit representation.
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans`
 
@@ -2014,9 +2112,18 @@ Enable or disable mailer previews. By default this is `true` in development.
 config.action_mailer.show_previews = false
 ```
 
+#### `config.action_mailer.perform_caching`
+
+Specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
+
 #### `config.action_mailer.deliver_later_queue_name`
 
-Specifies the Active Job queue to use for delivery jobs. When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`). Make sure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
+Specifies the Active Job queue to use for the default delivery job (see `config.action_mailer.delivery_job`). When this option is set to `nil`, delivery jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).
+
+Mailer classes can override this to use a different queue. Note that this only applies when using the default delivery job. If your mailer is using a custom
+job, its queue will be used.
+
+Ensure that your Active Job adapter is also configured to process the specified queue, otherwise delivery jobs may be silently ignored.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -2024,10 +2131,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:mailers`           |
 | 6.1                   | `nil`                |
-
-#### `config.action_mailer.perform_caching`
-
-Specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
 #### `config.action_mailer.delivery_job`
 
@@ -2098,6 +2201,21 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 5.2                   | `true`               |
 
+#### `config.active_support.use_message_serializer_for_metadata`
+
+When `true`, enables a performance optimization that serializes message data and
+metadata together. This changes the message format, so messages serialized this
+way cannot be read by older (< 7.1) versions of Rails. However, messages that
+use the old format can still be read, regardless of whether this optimization is
+enabled.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
 #### `config.active_support.cache_format_version`
 
 Specifies which version of the cache serializer to use. Possible values are `6.1` and `7.0`.
@@ -2127,7 +2245,7 @@ Configures deprecation warnings that the Application considers disallowed. This 
 
 #### `config.active_support.report_deprecations`
 
-When `false`, disables all deprecation warnings, including disallowed deprecations, making `ActiveSupport::Deprecation.warn` a no-op.
+When `false`, disables all deprecation warnings, including disallowed deprecations, from the [application’s deprecators](https://api.rubyonrails.org/classes/Rails/Application.html#method-i-deprecators). This includes all the deprecations from Rails and other gems that may add their deprecator to the collection of deprecators, but may not prevent all deprecation warnings emitted from ActiveSupport::Deprecation.
 
 In the default generated `config/environments` files, this is set to `false` for production.
 

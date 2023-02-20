@@ -154,11 +154,6 @@ module ActiveSupport
 
       @direct_descendants = {}
 
-      def inherited(base) # :nodoc:
-        DescendantsTracker.store_inherited(self, base)
-        super
-      end
-
       class << self
         def subclasses(klass)
           descendants = @direct_descendants[klass]
@@ -184,6 +179,12 @@ module ActiveSupport
       def descendants
         DescendantsTracker.descendants(self)
       end
+
+      private
+        def inherited(base) # :nodoc:
+          DescendantsTracker.store_inherited(self, base)
+          super
+        end
     end
   end
 end

@@ -184,8 +184,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args)
-      command = Rails::Command::ConsoleCommand.new([], args)
-      command.send(:extract_environment_option_from_argument)
-      command.options
+      Rails::Command::ConsoleCommand.new([], args).options
     end
 end

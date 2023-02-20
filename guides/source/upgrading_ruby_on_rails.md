@@ -297,6 +297,37 @@ Option `config.action_mailer.preview_path` is deprecated in favor of `config.act
 config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
+### `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
+
+Previously it would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognised key.
+
+```ruby
+# with config.i18n.raise_on_missing_translations = true
+
+# in a view or controller:
+t("missing.key") # raises in 7.0, raises in 7.1
+I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
+
+# anywhere:
+I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
+```
+
+If you don't want this behaviour, you can set `config.i18n.raise_on_missing_translations = false`:
+
+```ruby
+# with config.i18n.raise_on_missing_translations = false
+
+# in a view or controller:
+t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
+I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
+
+# anywhere:
+I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
+```
+
+Alternatively, you can customise the `I18n.exception_handler`.
+See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers) for more information.
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 
@@ -336,7 +367,7 @@ Also, make sure [`config.cache_classes`][] is set to `false` in `config/environm
 The gem `rails` doesn't depend on `sprockets-rails` anymore. If your application still needs to use Sprockets,
 make sure to add `sprockets-rails` to your Gemfile.
 
-```
+```ruby
 gem "sprockets-rails"
 ```
 
@@ -1208,6 +1239,14 @@ Existing applications can opt in to this new behavior by setting [`config.active
 
 [`config.active_storage.replace_on_assign_to_many`]: configuring.html#config-active-storage-replace-on-assign-to-many
 
+### Custom exception handling applications
+
+Invalid `Accept` or `Content-Type` request headers will now raise an exception.
+The default [`config.exceptions_app`][] specifically handles that error and compensates for it.
+Custom exceptions applications will need to handle that error as well, or such requests will cause Rails to use the fallback exceptions application, which returns a `500 Internal Server Error`.
+
+[`config.exceptions_app`]: configuring.html#config-exceptions-app
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 
@@ -1286,7 +1325,7 @@ In Rails 5.0, `redirect_to :back` was deprecated. In Rails 5.1, it was removed c
 As an alternative, use `redirect_back`. It's important to note that `redirect_back` also takes
 a `fallback_location` option which will be used in case the `HTTP_REFERER` is missing.
 
-```
+```ruby
 redirect_back(fallback_location: root_path)
 ```
 

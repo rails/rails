@@ -1235,7 +1235,7 @@ module ApplicationTests
           error = assert_raises do
             rails "db:migrate:animals" ### Task not defined
           end
-          assert_includes error.message, "See the list of available tasks"
+          assert_includes error.message, "Unrecognized command"
 
           rails "db:schema:dump"
           assert_not File.exist?("db/animals_schema.yml")

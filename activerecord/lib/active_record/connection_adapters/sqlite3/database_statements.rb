@@ -15,9 +15,10 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def explain(arel, binds = [])
-          sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-          SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
+        def explain(arel, binds = [], _options = [])
+          sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
+          result = exec_query(sql, "EXPLAIN", [])
+          SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
         def execute(sql, name = nil, allow_retry: false) # :nodoc:

@@ -300,7 +300,7 @@ commonly misspelled English words quickly with `misspell`. `misspell` is differe
 because it doesn't use a custom dictionary. You can run `misspell` locally against all files with:
 
 ```bash
-find . -type f | xargs ./misspell -i 'aircrafts,devels,invertions' -error
+$ find . -type f | xargs ./misspell -i 'aircrafts,devels,invertions' -error
 ```
 
 Notable `misspell` help options or flags are:
@@ -313,7 +313,7 @@ We also run [codespell](https://github.com/codespell-project/codespell) with Git
 `codespell` is written in [Python](https://www.python.org/) and you can run it with:
 
 ```bash
-codespell --ignore-words=codespell.txt
+$ codespell --ignore-words=codespell.txt
 ```
 
 ### Benchmark Your Code
@@ -489,6 +489,8 @@ To use an external debugger (pry, byebug, etc), install the debugger and use it 
 ### Warnings
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
+
+Rails CI will raise if warnings are introduced. To implement the same behavior locally set `RAILS_STRICT_WARNINGS=1` when running the test suite.
 
 ### Updating the Documentation
 

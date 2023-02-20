@@ -296,20 +296,6 @@ module ActionDispatch
     class CookieJar # :nodoc:
       include Enumerable, ChainedCookieJars
 
-      # This regular expression is used to split the levels of a domain.
-      # The top level domain can be any string without a period or
-      # **.**, ***.** style TLDs like co.uk or com.au
-      #
-      # www.example.co.uk gives:
-      # $& => example.co.uk
-      #
-      # example.com gives:
-      # $& => example.com
-      #
-      # lots.of.subdomains.example.local gives:
-      # $& => example.local
-      DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
-
       def self.build(req, cookies)
         jar = new(req)
         jar.update(cookies)
@@ -421,9 +407,15 @@ module ActionDispatch
         @cookies.each_key { |k| delete(k, options) }
       end
 
-      def write(headers)
-        if header = make_set_cookie_header(headers[HTTP_HEADER])
-          headers[HTTP_HEADER] = header
+      def write(response)
+        @set_cookies.each do |name, value|
+          if write_cookie?(value)
+            response.set_cookie(name, value)
+          end
+        end
+
+        @delete_cookies.each do |name, value|
+          response.delete_cookie(name, value)
         end
       end
 
@@ -432,19 +424,6 @@ module ActionDispatch
       private
         def escape(string)
           ::Rack::Utils.escape(string)
-        end
-
-        def make_set_cookie_header(header)
-          header = @set_cookies.inject(header) { |m, (k, v)|
-            if write_cookie?(v)
-              ::Rack::Utils.add_cookie_to_header(m, k, v)
-            else
-              m
-            end
-          }
-          @delete_cookies.inject(header) { |m, (k, v)|
-            ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
-          }
         end
 
         def write_cookie?(cookie)
@@ -463,13 +442,35 @@ module ActionDispatch
           end
 
           if options[:domain] == :all || options[:domain] == "all"
-            # If there is a provided tld length then we use it otherwise default domain regexp.
-            domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+            cookie_domain = ""
+            dot_splitted_host = request.host.split(".", -1)
 
-            # If host is not ip and matches domain regexp.
-            # (ip confirms to domain regexp so we explicitly check for ip)
-            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
-              ".#{$&}"
+            # Case where request.host is not an IP address or it's an invalid domain
+            # (ip confirms to the domain structure we expect so we explicitly check for ip)
+            if request.host.match?(/^[\d.]+$/) || dot_splitted_host.include?("") || dot_splitted_host.length == 1
+              options[:domain] = nil
+              return
+            end
+
+            # If there is a provided tld length then we use it otherwise default domain.
+            if options[:tld_length].present?
+              # Case where the tld_length provided is valid
+              if dot_splitted_host.length >= options[:tld_length]
+                cookie_domain = dot_splitted_host.last(options[:tld_length]).join(".")
+              end
+            # Case where tld_length is not provided
+            else
+              # Regular TLDs
+              if !(/\.[^.]{2,3}\.[^.]{2}\z/.match?(request.host))
+                cookie_domain = dot_splitted_host.last(2).join(".")
+              # **.**, ***.** style TLDs like co.uk and com.au
+              else
+                cookie_domain = dot_splitted_host.last(3).join(".")
+              end
+            end
+
+            options[:domain] = if cookie_domain.present?
+              ".#{cookie_domain}"
             end
           elsif options[:domain].is_a? Array
             # If host matches one of the supplied domains.
@@ -557,6 +558,8 @@ module ActionDispatch
     class JsonSerializer # :nodoc:
       def self.load(value)
         ActiveSupport::JSON.decode(value)
+      rescue JSON::ParserError
+        nil
       end
 
       def self.dump(value)
@@ -686,7 +689,7 @@ module ActionDispatch
           deserialize(name) do |rotate|
             @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
           end
-        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature, JSON::ParserError
+        rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
 
@@ -704,21 +707,18 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
-
-      _, headers, _ = response = @app.call(env)
+      request = ActionDispatch::Request.new(env)
+      response = @app.call(env)
 
       if request.have_cookie_jar?
         cookie_jar = request.cookie_jar
         unless cookie_jar.committed?
-          cookie_jar.write(headers)
-          if headers[HTTP_HEADER].respond_to?(:join)
-            headers[HTTP_HEADER] = headers[HTTP_HEADER].join("\n")
-          end
+          response = Rack::Response[*response]
+          cookie_jar.write(response)
         end
       end
 
-      response
+      response.to_a
     end
   end
 end

@@ -616,45 +616,21 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "In production mode, config.public_file_server.enabled is off by default" do
+    test "In production mode, config.public_file_server.enabled is on by default" do
       restore_default_config
 
       with_rails_env "production" do
         app "production"
-        assert_not app.config.public_file_server.enabled
+        assert app.config.public_file_server.enabled
       end
     end
 
-    test "In production mode, config.public_file_server.enabled is enabled when RAILS_SERVE_STATIC_FILES is set" do
+    test "In production mode, STDOUT logging is the default" do
       restore_default_config
 
       with_rails_env "production" do
-        switch_env "RAILS_SERVE_STATIC_FILES", "1" do
-          app "production"
-          assert app.config.public_file_server.enabled
-        end
-      end
-    end
-
-    test "In production mode, STDOUT logging is enabled when RAILS_LOG_TO_STDOUT is set" do
-      restore_default_config
-
-      with_rails_env "production" do
-        switch_env "RAILS_LOG_TO_STDOUT", "1" do
-          app "production"
-          assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
-        end
-      end
-    end
-
-    test "In production mode, config.public_file_server.enabled is disabled when RAILS_SERVE_STATIC_FILES is blank" do
-      restore_default_config
-
-      with_rails_env "production" do
-        switch_env "RAILS_SERVE_STATIC_FILES", " " do
-          app "production"
-          assert_not app.config.public_file_server.enabled
-        end
+        app "production"
+        assert ActiveSupport::Logger.logger_outputs_to?(app.config.logger, STDOUT)
       end
     end
 
@@ -1305,7 +1281,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal "test_default", ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_equal "test_default", ActionMailer::Base.deliver_later_queue_name
     end
 
     test "ActionMailer::DeliveryJob queue name is :mailers without the Rails defaults" do
@@ -1316,7 +1292,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal :mailers, ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_equal :mailers, ActionMailer::Base.deliver_later_queue_name
     end
 
     test "ActionMailer::DeliveryJob queue name is nil by default in 6.1" do
@@ -1328,7 +1304,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_nil ActionMailer::Base.class_variable_get(:@@deliver_later_queue_name)
+      assert_nil ActionMailer::Base.deliver_later_queue_name
     end
 
     test "valid timezone is setup correctly" do
@@ -1811,6 +1787,15 @@ module ApplicationTests
       assert_equal Logger::INFO, Rails.logger.level
     end
 
+    test "config.log_level can be overwritten by ENV['RAILS_LOG_LEVEL'] in production" do
+      restore_default_config
+
+      switch_env "RAILS_LOG_LEVEL", "debug" do
+        app "production"
+        assert_equal Logger::DEBUG, Rails.logger.level
+      end
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)
@@ -1877,6 +1862,23 @@ module ApplicationTests
       app "production"
       assert ActiveRecord.use_yaml_unsafe_load
     end
+
+    test "config.active_record.raise_int_wider_than_64bit is true by default" do
+      app "production"
+      assert ActiveRecord.raise_int_wider_than_64bit
+    end
+
+    test "config.active_record.raise_int_wider_than_64bit can be configured" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/dont_raise.rb", <<-RUBY
+        Rails.application.config.active_record.raise_int_wider_than_64bit = false
+      RUBY
+
+      app "production"
+      assert_not ActiveRecord.raise_int_wider_than_64bit
+    end
+
 
     test "config.active_record.yaml_column_permitted_classes is [Symbol] by default" do
       app "production"
@@ -3791,6 +3793,32 @@ module ApplicationTests
       assert_equal :hybrid, ActiveSupport::MessageVerifier.default_message_verifier_serializer
     end
 
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata is true by default for new apps" do
+      app "development"
+
+      assert ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+    end
+
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_not ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+    end
+
+    test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata can be configured via config.active_support.use_message_serializer_for_metadata" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<~RUBY
+        Rails.application.config.active_support.use_message_serializer_for_metadata = true
+      RUBY
+
+      app "development"
+
+      assert ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata
+    end
+
     test "unknown_asset_fallback is false by default" do
       app "development"
 
@@ -4316,6 +4344,98 @@ module ApplicationTests
       end
 
       assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
+    end
+
+    test "raise_on_missing_translations = true" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+      app "development"
+
+      assert_equal true, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_raise(I18n::MissingTranslationData) do
+        I18n.t("translations.missing")
+      end
+    end
+
+    test "raise_on_missing_translations = false" do
+      add_to_config "config.i18n.raise_on_missing_translations = false"
+      app "development"
+
+      assert_equal false, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_nothing_raised do
+        I18n.t("translations.missing")
+      end
+    end
+
+    test "raise_on_missing_translations = true and custom exception handler in initializer" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+      RUBY
+      app "development"
+
+      assert_equal true, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_equal "handled I18n::MissingTranslation", I18n.t("translations.missing")
+      assert_raise(I18n::InvalidLocale) do
+        I18n.t("en.errors.messages.required", locale: "dsafdsafdsa")
+      end
+    end
+
+    test "raise_on_missing_translations = false and custom exception handler in initializer" do
+      add_to_config "config.i18n.raise_on_missing_translations = false"
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+      RUBY
+      app "development"
+
+      assert_equal false, Rails.application.config.i18n.raise_on_missing_translations
+
+      assert_equal "handled I18n::MissingTranslation", I18n.t("translations.missing")
+      assert_raise(I18n::InvalidLocale) do
+        I18n.t("en.errors.messages.required", locale: "dsafdsafdsa")
+      end
+    end
+
+    test "i18n custom exception handler in initializer and pluralization backend" do
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        I18n.exception_handler = ->(exception, *) {
+          if exception.is_a?(I18n::MissingTranslation)
+            "handled I18n::MissingTranslation"
+          else
+            raise exception
+          end
+          }
+
+        Rails.application.config.after_initialize do
+          I18n.backend.class.include(I18n::Backend::Pluralization)
+          I18n.backend.send(:init_translations)
+          I18n.backend.store_translations :en, i18n: { plural: { rule: lambda { |n| [0, 1].include?(n) ? :one : :other } } }
+          I18n.backend.store_translations :en, apples: { one: 'one or none', other: 'more than one' }
+          I18n.backend.store_translations :en, pears: { pear: "pear", pears: "pears" }
+        end
+      RUBY
+
+      app "development"
+
+      assert I18n.backend.class.include?(I18n::Backend::Pluralization)
+      assert_equal "one or none", I18n.t(:apples, count: 0)
+      assert_raises I18n::InvalidPluralizationData do
+        assert_equal "pears", I18n.t(:pears, count: 0)
+      end
     end
 
     private

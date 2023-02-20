@@ -11,7 +11,7 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "ControllerTest"
 
       class_option :api, type: :boolean,
-                         desc: "Generates API functional tests"
+                         desc: "Generate API functional tests"
 
       class_option :system_tests, type: :string,
                          desc: "Skip system test files"

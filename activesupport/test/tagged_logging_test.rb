@@ -40,6 +40,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
   end
 
+  test "tagged with an array" do
+    @logger.tagged(%w(BCX Jason New)) { @logger.info "Funky time" }
+    assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
+  end
+
   test "tagged are flattened" do
     @logger.tagged("BCX", %w(Jason New)) { @logger.info "Funky time" }
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string

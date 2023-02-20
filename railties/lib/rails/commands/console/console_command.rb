@@ -96,13 +96,9 @@ module Rails
         super(args, local_options, config)
       end
 
+      desc "console", "Start the Rails console"
       def perform
-        extract_environment_option_from_argument
-
-        # RAILS_ENV needs to be set before config/application is required.
-        ENV["RAILS_ENV"] = options[:environment]
-
-        require_application_and_environment!
+        boot_application!
         Rails::Console.start(Rails.application, options)
       end
     end

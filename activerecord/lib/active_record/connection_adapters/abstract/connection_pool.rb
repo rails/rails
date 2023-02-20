@@ -31,12 +31,22 @@ module ActiveRecord
     class NullPool # :nodoc:
       include ConnectionAdapters::AbstractPool
 
+      class NullConfig # :nodoc:
+        def method_missing(*)
+          nil
+        end
+      end
+      NULL_CONFIG = NullConfig.new # :nodoc:
+
       attr_accessor :schema_cache
 
       def connection_class; end
       def checkin(_); end
       def remove(_); end
       def async_executor; end
+      def db_config
+        NULL_CONFIG
+      end
     end
 
     # Connection pool base class for managing Active Record database

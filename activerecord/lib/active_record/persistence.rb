@@ -463,28 +463,28 @@ module ActiveRecord
       #   end
       #
       #   developer = Developer.first
-      #   SELECT "developers".* FROM "developers" ORDER BY "developers"."company_id" ASC, "developers"."id" ASC LIMIT 1
+      #   # SELECT "developers".* FROM "developers" ORDER BY "developers"."company_id" ASC, "developers"."id" ASC LIMIT 1
       #   developer.inspect # => #<Developer id: 1, company_id: 1, ...>
       #
       #   developer.update!(name: "Nikita")
-      #   # => UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "name" = 'Nikita' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   It is possible to update attribute used in the query_by clause:
       #   developer.update!(company_id: 2)
-      #   # => UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "company_id" = 2 WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.name = "Bob"
       #   developer.save!
-      #   # => UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.destroy!
-      #   # => DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.delete
-      #   # => DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+      #   # DELETE FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
       #
       #   developer.reload
-      #   # => SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
+      #   # SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
@@ -492,7 +492,11 @@ module ActiveRecord
       end
 
       def query_constraints_list # :nodoc:
-        @_query_constraints_list ||= query_constraints_list_fallback
+        @query_constraints_list ||= if base_class? || primary_key != base_class.primary_key
+          @_query_constraints_list
+        else
+          base_class.query_constraints_list
+        end
       end
 
       # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
@@ -600,6 +604,13 @@ module ActiveRecord
       end
 
       private
+        def inherited(subclass)
+          super
+          subclass.class_eval do
+            @_query_constraints_list = nil
+          end
+        end
+
         # Given a class, an attributes hash, +instantiate_instance_of+ returns a
         # new instance of the class. Accepts only keys as strings.
         def instantiate_instance_of(klass, attributes, column_types = {}, &block)
@@ -624,17 +635,6 @@ module ActiveRecord
 
           default_where_clause = default_scoped(all_queries: true).where_clause
           default_where_clause.ast unless default_where_clause.empty?
-        end
-
-        # This is a fallback method that is used to determine the query_constraints_list
-        # for cases when the model is not explicitly configured with query_constraints.
-        # For a base class, just use the primary key.
-        # For a child class, use the primary key unless primary key was overridden.
-        # If the child's primary key was not overridden, use the parent's query_constraints_list.
-        def query_constraints_list_fallback # :nodoc:
-          return Array(primary_key) if base_class? || primary_key != base_class.primary_key
-
-          base_class.query_constraints_list
         end
     end
 
@@ -1113,6 +1113,12 @@ module ActiveRecord
     end
 
   private
+    def init_internals
+      super
+      @_trigger_destroy_callback = @_trigger_update_callback = nil
+      @previously_new_record = false
+    end
+
     def strict_loaded_associations
       @association_cache.find_all do |_, assoc|
         assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
@@ -1131,8 +1137,12 @@ module ActiveRecord
     end
 
     def _in_memory_query_constraints_hash
-      self.class.query_constraints_list.index_with do |column_name|
-        attribute(column_name)
+      if self.class.query_constraints_list.nil?
+        { @primary_key => id }
+      else
+        self.class.query_constraints_list.index_with do |column_name|
+          attribute(column_name)
+        end
       end
     end
 
@@ -1142,8 +1152,12 @@ module ActiveRecord
     end
 
     def _query_constraints_hash
-      self.class.query_constraints_list.index_with do |column_name|
-        attribute_in_database(column_name)
+      if self.class.query_constraints_list.nil?
+        { @primary_key => id_in_database }
+      else
+        self.class.query_constraints_list.index_with do |column_name|
+          attribute_in_database(column_name)
+        end
       end
     end
 

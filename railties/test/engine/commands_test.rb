@@ -2,13 +2,15 @@
 
 require "abstract_unit"
 require "console_helpers"
+require "plugin_helpers"
 
 class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   include ConsoleHelpers
+  include PluginHelpers
 
   def setup
     @destination_root = Dir.mktmpdir("bukkits")
-    Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    generate_plugin("#{@destination_root}/bukkits", "--mountable")
   end
 
   def teardown
@@ -17,14 +19,14 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
 
   def test_help_command_work_inside_engine
     output = capture(:stderr) do
-      Dir.chdir(plugin_path) { `bin/rails --help` }
+      in_plugin_context(plugin_path) { `bin/rails --help` }
     end
     assert_no_match "NameError", output
   end
 
   def test_runner_command_work_inside_engine
     output = capture(:stdout) do
-      Dir.chdir(plugin_path) { system("bin/rails runner 'puts Rails.env'") }
+      in_plugin_context(plugin_path) { system({ "RAILS_ENV" => "test" }, "bin/rails runner 'puts Rails.env'") }
     end
 
     assert_equal "test", output.strip
@@ -63,10 +65,9 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     end
 
     def spawn_command(command, fd)
-      Process.spawn(
-        "#{plugin_path}/bin/rails #{command}",
-        in: fd, out: fd, err: fd
-      )
+      in_plugin_context(plugin_path) do
+        Process.spawn("bin/rails #{command}", in: fd, out: fd, err: fd)
+      end
     end
 
     def kill(pid)

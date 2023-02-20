@@ -378,12 +378,18 @@ module ActiveRecord
         mutex = Mutex.new
         order = []
         errors = []
+        dispose_held_connections = Concurrent::Event.new
 
         threads = expected.map do |i|
           t = new_thread {
             begin
               @pool.checkout # never checked back in
               mutex.synchronize { order << i }
+
+              # if the thread terminates, its connection may be
+              # reclaimed by the pool, so we need to hold on to it
+              # until we're done trickling in connections
+              dispose_held_connections.wait
             rescue => e
               mutex.synchronize { errors << e }
             end
@@ -395,6 +401,7 @@ module ActiveRecord
         # this should wake up the waiting threads one by one in order
         conns.each { |conn| @pool.checkin(conn); sleep 0.1 }
 
+        dispose_held_connections.set
         threads.each(&:join)
 
         raise errors.first if errors.any?
@@ -417,12 +424,15 @@ module ActiveRecord
         mutex = Mutex.new
         successes = []    # threads that successfully got a connection
         errors = []
+        dispose_held_connections = Concurrent::Event.new
 
         make_thread = proc do |i|
           t = new_thread {
             begin
               @pool.checkout # never checked back in
               mutex.synchronize { successes << i }
+
+              dispose_held_connections.wait
             rescue => e
               mutex.synchronize { errors << e }
             end
@@ -453,6 +463,7 @@ module ActiveRecord
         winners = mutex.synchronize { successes.dup }
         checkin.call(group2.size)         # should wake up everyone remaining
 
+        dispose_held_connections.set
         group1.each(&:join)
         group2.each(&:join)
 

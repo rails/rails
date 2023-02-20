@@ -13,39 +13,40 @@ After reading this guide, you will know:
 * How to use Active Record models to manipulate data stored in a relational
   database.
 * Active Record schema naming conventions.
-* The concepts of database migrations, validations, and callbacks.
+* The concepts of database migrations, validations, callbacks, and associations.
 
 --------------------------------------------------------------------------------
 
 What is Active Record?
 ----------------------
 
-Active Record is the M in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
-model - which is the layer of the system responsible for representing business
-data and logic. Active Record facilitates the creation and use of business
-objects whose data requires persistent storage to a database. It is an
-implementation of the Active Record pattern which itself is a description of an
-Object Relational Mapping system.
+Active Record is the M in [MVC][] - the model - which is the layer of the system
+responsible for representing business data and logic. Active Record facilitates
+the creation and use of business objects whose data requires persistent storage
+to a database. It is an implementation of the Active Record pattern which itself
+is a description of an Object Relational Mapping system.
 
 ### The Active Record Pattern
 
-[Active Record was described by Martin Fowler](https://www.martinfowler.com/eaaCatalog/activeRecord.html)
-in his book _Patterns of Enterprise Application Architecture_. In
-Active Record, objects carry both persistent data and behavior which
-operates on that data. Active Record takes the opinion that ensuring
-data access logic as part of the object will educate users of that
-object on how to write to and read from the database.
+[Active Record was described by Martin Fowler][MFAR] in his book _Patterns of
+Enterprise Application Architecture_. In Active Record, objects carry both
+persistent data and behavior which operates on that data. Active Record takes
+the opinion that ensuring data access logic as part of the object will educate
+users of that object on how to write to and read from the database.
 
 ### Object Relational Mapping
 
-[Object Relational Mapping](https://en.wikipedia.org/wiki/Object-relational_mapping), commonly referred to as its abbreviation ORM, is
-a technique that connects the rich objects of an application to tables in
-a relational database management system. Using ORM, the properties and
+[Object Relational Mapping][ORM], commonly referred to as its abbreviation ORM,
+is a technique that connects the rich objects of an application to tables in a
+relational database management system. Using ORM, the properties and
 relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
 
-NOTE: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful in order to fully understand Active Record. Please refer to [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means if you would like to learn more.
+NOTE: Basic knowledge of relational database management systems (RDBMS) and
+structured query language (SQL) is helpful in order to fully understand Active
+Record. Please refer to [this tutorial][sqlcourse] (or [this one][rdbmsinfo]) or
+study them by other means if you would like to learn more.
 
 ### Active Record as an ORM Framework
 
@@ -57,6 +58,12 @@ to:
 * Represent inheritance hierarchies through related models.
 * Validate models before they get persisted to the database.
 * Perform database operations in an object-oriented fashion.
+
+[MVC]: https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller
+[MFAR]: https://www.martinfowler.com/eaaCatalog/activeRecord.html
+[ORM]: https://en.wikipedia.org/wiki/Object-relational_mapping
+[sqlcourse]: https://www.khanacademy.org/computing/computer-programming/sql
+[rdbmsinfo]: https://www.devart.com/what-is-rdbms/
 
 Convention over Configuration in Active Record
 ----------------------------------------------

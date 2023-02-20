@@ -531,7 +531,7 @@ module ActiveRecord
 
           fk_info.map do |row|
             options = {
-              column: row["column"],
+              column: Utils.unquote_identifier(row["column"]),
               name: row["name"],
               primary_key: row["primary_key"]
             }
@@ -541,8 +541,9 @@ module ActiveRecord
             options[:deferrable] = extract_foreign_key_deferrable(row["deferrable"], row["deferred"])
 
             options[:validate] = row["valid"]
+            to_table = Utils.unquote_identifier(row["to_table"])
 
-            ForeignKeyDefinition.new(table_name, row["to_table"], options)
+            ForeignKeyDefinition.new(table_name, to_table, options)
           end
         end
 

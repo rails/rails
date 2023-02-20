@@ -2,6 +2,7 @@
 
 require "set"
 require "active_support/rescuable"
+require "active_support/parameter_filter"
 
 module ActionCable
   module Channel
@@ -275,10 +276,17 @@ module ActionCable
 
         def action_signature(action, data)
           (+"#{self.class.name}##{action}").tap do |signature|
-            if (arguments = data.except("action")).any?
+            arguments = data.except("action")
+
+            if arguments.any?
+              arguments = parameter_filter.filter(arguments)
               signature << "(#{arguments.inspect})"
             end
           end
+        end
+
+        def parameter_filter
+          @parameter_filter ||= ActiveSupport::ParameterFilter.new(connection.server.config.filter_parameters)
         end
 
         def transmit_subscription_confirmation

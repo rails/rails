@@ -466,8 +466,8 @@ Known extensions: rails, pride
 
 To run all tests in a CI environment, there's just one command you need:
 
-```
-bin/rails test
+```bash
+$ bin/rails test
 ```
 
 If you are using [System Tests](#system-testing), `bin/rails test` will not run them, since
@@ -1331,7 +1331,7 @@ cookies["are_good_for_u"]     cookies[:are_good_for_u]
 
 ### Instance Variables Available
 
-You also have access to three instance variables in your functional tests, after a request is made:
+**After** a request is made, you also have access to three instance variables in your functional tests:
 
 * `@controller` - The controller processing the request
 * `@request` - The request object
@@ -2156,18 +2156,24 @@ Additional Testing Resources
 
 Rails provides built-in helper methods that enable you to assert that your time-sensitive code works as expected.
 
-Here is an example using the [`travel_to`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper:
+The following example uses the [`travel_to`][travel_to] helper:
 
 ```ruby
-# Lets say that a user is eligible for gifting a month after they register.
+# Given a user is eligible for gifting a month after they register.
 user = User.create(name: "Gaurish", activation_date: Date.new(2004, 10, 24))
 assert_not user.applicable_for_gifting?
+
 travel_to Date.new(2004, 11, 24) do
-  assert_equal Date.new(2004, 10, 24), user.activation_date # inside the `travel_to` block `Date.current` is mocked
+  # Inside the `travel_to` block `Date.current` is stubbed
+  assert_equal Date.new(2004, 10, 24), user.activation_date
   assert user.applicable_for_gifting?
 end
-assert_equal Date.new(2004, 10, 24), user.activation_date # The change was visible only inside the `travel_to` block.
+
+# The change was visible only inside the `travel_to` block.
+assert_equal Date.new(2004, 10, 24), user.activation_date
 ```
 
-Please see [`ActiveSupport::Testing::TimeHelpers` API Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
-for in-depth information about the available time helpers.
+Please see [`ActiveSupport::Testing::TimeHelpers`][time_helpers_api] API reference for more information about the available time helpers.
+
+[travel_to]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to
+[time_helpers_api]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html

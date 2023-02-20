@@ -66,7 +66,7 @@ Rails.error.subscribe(ErrorSubscriber.new)
 
 You can register as many subscribers as you wish. Rails will call them in turn, in the order in which they were registered.
 
-Note: The Rails error-reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
+NOTE: The Rails error-reporter will always call registered subscribers, regardless of your environment. However, many error-reporting services only report errors in production by default. You should configure and test your setup across environments as needed.
 
 ### Using the Error Reporter
 

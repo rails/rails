@@ -207,4 +207,12 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   ensure
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
   end
+
+  test "CurrentAttributes restricted attribute names" do
+    assert_raises ArgumentError, match: /Restricted attribute names: reset, set/ do
+      class InvalidAttributeNames < ActiveSupport::CurrentAttributes
+        attribute :reset, :foo, :set
+      end
+    end
+  end
 end

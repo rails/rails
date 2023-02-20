@@ -33,8 +33,8 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def explain(arel, binds = [])
-          sql     = "EXPLAIN #{to_sql(arel, binds)}"
+        def explain(arel, binds = [], options = [])
+          sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = exec_query(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
@@ -65,7 +65,8 @@ module ActiveRecord
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
           if without_prepared_statement?(binds)
             with_raw_connection do |conn|
-              execute_and_free(sql, name) { conn.affected_rows }
+              @affected_rows_before_warnings = nil
+              execute_and_free(sql, name) { @affected_rows_before_warnings || conn.affected_rows }
             end
           else
             exec_stmt_and_free(sql, name, binds) { |stmt| stmt.affected_rows }
@@ -80,6 +81,18 @@ module ActiveRecord
 
         def high_precision_current_timestamp
           HIGH_PRECISION_CURRENT_TIMESTAMP
+        end
+
+        def build_explain_clause(options = [])
+          return "EXPLAIN" if options.empty?
+
+          explain_clause = "EXPLAIN #{options.join(" ").upcase}"
+
+          if analyze_without_explain? && explain_clause.include?("ANALYZE")
+            explain_clause.sub("EXPLAIN ", "")
+          else
+            explain_clause
+          end
         end
 
         private
@@ -193,6 +206,11 @@ module ActiveRecord
                 ret
               end
             end
+          end
+
+          # https://mariadb.com/kb/en/analyze-statement/
+          def analyze_without_explain?
+            mariadb? && database_version >= "10.1.0"
           end
       end
     end

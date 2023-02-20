@@ -228,7 +228,12 @@ module ActionDispatch
         end
 
         def spot(exc)
-          location = super
+          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location)
+            location = @template.spot(__getobj__)
+          else
+            location = super
+          end
+
           if location
             @template.translate_location(__getobj__, location)
           end
@@ -240,11 +245,9 @@ module ActionDispatch
       def build_backtrace
         built_methods = {}
 
-        ActionView::ViewPaths.all_view_paths.each do |path_set|
-          path_set.each do |resolver|
-            resolver.built_templates.each do |template|
-              built_methods[template.method_name] = template
-            end
+        ActionView::ViewPaths::Registry.all_resolvers.each do |resolver|
+          resolver.built_templates.each do |template|
+            built_methods[template.method_name] = template
           end
         end
 

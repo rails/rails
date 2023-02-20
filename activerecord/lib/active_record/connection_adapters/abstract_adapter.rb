@@ -1113,7 +1113,7 @@ module ActiveRecord
 
         def transform_query(sql)
           ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql)
+            sql = transformer.call(sql, self)
           end
           sql
         end
@@ -1184,6 +1184,10 @@ module ActiveRecord
 
         def default_prepared_statements
           true
+        end
+
+        def warning_ignored?(warning)
+          ActiveRecord.db_warnings_ignore.any? { |warning_matcher| warning.message.match?(warning_matcher) }
         end
     end
   end

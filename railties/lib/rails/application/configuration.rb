@@ -10,7 +10,7 @@ require "rails/source_annotation_extractor"
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
+      attr_accessor :allow_concurrency, :asset_host, :assume_ssl, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
@@ -34,10 +34,6 @@ module Rails
         @filter_redirect                         = []
         @helpers_paths                           = []
         if Rails.env.development?
-          if defined?(RubyVM) && RubyVM.respond_to?(:keep_script_lines=)
-            RubyVM.keep_script_lines = true
-          end
-
           @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
             ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
         else
@@ -47,6 +43,7 @@ module Rails
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
+        @assume_ssl                              = false
         @force_ssl                               = false
         @ssl_options                             = {}
         @session_store                           = nil
@@ -76,9 +73,7 @@ module Rails
         @content_security_policy_nonce_directives = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
-        @credentials                             = ActiveSupport::OrderedOptions.new
-        @credentials.content_path                = default_credentials_content_path
-        @credentials.key_path                    = default_credentials_key_path
+        @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
@@ -311,6 +306,7 @@ module Rails
           if respond_to?(:active_support)
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
+            active_support.use_message_serializer_for_metadata = true
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
@@ -542,24 +538,14 @@ module Rails
       end
 
       private
-        def default_credentials_content_path
-          if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.yml.enc")
-          else
-            root.join("config", "credentials.yml.enc")
-          end
-        end
+        def credentials_defaults
+          content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
+          content_path = root.join("config/credentials.yml.enc") if !content_path.exist?
 
-        def default_credentials_key_path
-          if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.key")
-          else
-            root.join("config", "master.key")
-          end
-        end
+          key_path = root.join("config/credentials/#{Rails.env}.key")
+          key_path = root.join("config/master.key") if !key_path.exist?
 
-        def credentials_available_for_current_env?
-          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
+          { content_path: content_path, key_path: key_path }
         end
     end
   end

@@ -150,6 +150,10 @@ module ActionCable
         send_async :handle_close
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      end
+
       private
         attr_reader :websocket
         attr_reader :message_buffer

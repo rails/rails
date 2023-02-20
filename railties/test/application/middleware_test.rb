@@ -190,6 +190,12 @@ module ApplicationTests
       assert_includes middleware, "ActiveRecord::Migration::CheckPending"
     end
 
+    test "ActionDispatch::AssumeSSL is present when assume_ssl is set" do
+      add_to_config "config.assume_ssl = true"
+      boot!
+      assert_includes middleware, "ActionDispatch::AssumeSSL"
+    end
+
     test "ActionDispatch::SSL is present when force_ssl is set" do
       add_to_config "config.force_ssl = true"
       boot!

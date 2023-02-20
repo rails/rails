@@ -34,11 +34,15 @@ require "models/shipping_line"
 require "models/essay"
 require "models/member"
 require "models/membership"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
+
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers, :authors, :author_addresses, :author_favorites,
-           :comments, :posts
+           :comments, :posts, :sharded_blogs, :sharded_blog_posts, :sharded_comments
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -123,6 +127,109 @@ class AssociationsTest < ActiveRecord::TestCase
   def test_association_with_references
     firm = companies(:first_firm)
     assert_equal [:foo], firm.association_with_references.references_values
+  end
+
+  def test_belongs_to_a_model_with_composite_foreign_key_finds_associated_record
+    comment = sharded_comments(:great_comment_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    assert_equal(blog_post, comment.blog_post)
+  end
+
+  def test_belongs_to_a_model_with_composite_primary_key_uses_composite_pk_in_sql
+    comment = sharded_comments(:great_comment_blog_post_one)
+
+    sql = capture_sql do
+      comment.blog_post
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+  end
+
+  def test_has_many_association_with_composite_foreign_key_loads_records
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    comments = blog_post.comments.to_a
+    assert_includes(comments, sharded_comments(:wow_comment_blog_post_one))
+    assert_includes(comments, sharded_comments(:great_comment_blog_post_one))
+  end
+
+  def test_model_with_composite_query_constraints_has_many_association_sql
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      blog_post.comments.to_a
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+  end
+
+  def test_append_composite_foreign_key_has_many_association
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comment = Sharded::Comment.new(body: "Great post! :clap:")
+    comment.save
+    blog_post.comments << comment
+
+    assert_includes(blog_post.comments, comment)
+    assert_equal(blog_post.id, comment.blog_post_id)
+    assert_equal(blog_post.blog_id, comment.blog_id)
+  end
+
+  def test_assign_persisted_composite_foreign_key_belongs_to_association
+    comment = sharded_comments(:great_comment_blog_post_one)
+    another_blog = sharded_blogs(:sharded_blog_two)
+    assert_not_equal(comment.blog_id, another_blog.id)
+
+    blog_post = Sharded::BlogPost.new(title: "New post", blog_id: another_blog.id)
+    blog_post.save
+    comment.blog_post = blog_post
+
+    assert_equal(blog_post, comment.blog_post)
+    assert_equal(comment.blog_id, blog_post.blog_id)
+    assert_equal(another_blog.id, comment.blog_id)
+    assert_equal(comment.blog_post_id, blog_post.id)
+  end
+
+  def test_assign_composite_foreign_key_belongs_to_association
+    comment = sharded_comments(:great_comment_blog_post_one)
+    another_blog = sharded_blogs(:sharded_blog_two)
+    assert_not_equal(comment.blog_id, another_blog.id)
+
+    blog_post = Sharded::BlogPost.new(title: "New post", blog_id: another_blog.id)
+    comment.blog_post = blog_post
+
+    assert_equal(blog_post, comment.blog_post)
+    assert_equal(comment.blog_id, blog_post.blog_id)
+    assert_equal(another_blog.id, comment.blog_id)
+  end
+
+  def test_append_composite_foreign_key_has_many_association_with_autosave
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comment = Sharded::Comment.new(body: "Great post! :clap:")
+    blog_post.comments << comment
+
+    assert_predicate(comment, :persisted?)
+    assert_includes(blog_post.comments, comment)
+    assert_equal(blog_post.id, comment.blog_post_id)
+    assert_equal(blog_post.blog_id, comment.blog_id)
+  end
+
+  def test_assign_composite_foreign_key_belongs_to_association_with_autosave
+    comment = sharded_comments(:great_comment_blog_post_one)
+    another_blog = sharded_blogs(:sharded_blog_two)
+    assert_not_equal(comment.blog_id, another_blog.id)
+
+    blog_post = Sharded::BlogPost.new(title: "New post", blog_id: another_blog.id)
+    comment.blog_post = blog_post
+    comment.save
+
+    assert_predicate(blog_post, :persisted?)
+    assert_equal(blog_post, comment.blog_post)
+    assert_equal(comment.blog_id, blog_post.blog_id)
+    assert_equal(another_blog.id, comment.blog_id)
+    assert_equal(comment.blog_post_id, blog_post.id)
   end
 end
 
@@ -432,7 +539,8 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories,
+    :author_addresses, :sharded_blog_posts, :sharded_comments
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -1018,6 +1126,26 @@ class PreloaderTest < ActiveRecord::TestCase
       assert post.association(:author).loaded?
       assert_not_equal some_other_record, post.author
     end
+  end
+
+  def test_preload_has_many_association_with_composite_foreign_key
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_posts = [blog_post, sharded_blog_posts(:great_post_blog_two)]
+
+    ::ActiveRecord::Associations::Preloader.new(records: blog_posts, associations: [:comments]).call
+
+    assert blog_post.association(:comments).loaded?
+    assert_includes(blog_post.comments.to_a, sharded_comments(:great_comment_blog_post_one))
+  end
+
+  def test_preload_belongs_to_association_with_composite_foreign_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    comments = [comment, sharded_comments(:great_comment_blog_post_two)]
+
+    ActiveRecord::Associations::Preloader.new(records: comments, associations: :blog_post).call
+
+    assert comment.association(:blog_post).loaded?
+    assert_equal sharded_blog_posts(:great_post_blog_one), comment.blog_post
   end
 end
 

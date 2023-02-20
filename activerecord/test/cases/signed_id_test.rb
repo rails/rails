@@ -11,6 +11,17 @@ SIGNED_ID_VERIFIER_TEST_SECRET = -> { "This is normally set by the railtie initi
 ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
 
 class SignedIdTest < ActiveRecord::TestCase
+  class GetSignedIDInCallback < ActiveRecord::Base
+    self.table_name = "accounts"
+    after_create :set_signed_id
+    attr_reader :signed_id_from_callback
+
+    private
+      def set_signed_id
+        @signed_id_from_callback = signed_id
+      end
+  end
+
   fixtures :accounts, :toys, :companies
 
   setup do
@@ -174,5 +185,15 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_equal @account, Account.find_signed(@account.signed_id)
   ensure
     Account.signed_id_verifier = old_verifier
+  end
+
+  test "cannot get a signed ID for a new record" do
+    assert_raises ArgumentError, match: /Cannot get a signed_id for a new record/ do
+      Account.new.signed_id
+    end
+  end
+
+  test "can get a signed ID in an after_create" do
+    assert_not_nil GetSignedIDInCallback.create.signed_id_from_callback
   end
 end

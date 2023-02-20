@@ -99,6 +99,17 @@
 #
 # For detailed migration steps, check out https://guides.rubyonrails.org/v7.1/upgrading_ruby_on_rails.html#new-activesupport-messageverifier-default-serializer
 
+# Enable a performance optimization that serializes message data and metadata
+# together. This changes the message format, so messages serialized this way
+# cannot be read by older versions of Rails. However, messages that use the old
+# format can still be read, regardless of whether this optimization is enabled.
+#
+# To perform a rolling deploy of a Rails 7.1 upgrade, wherein servers that have
+# not yet been upgraded must be able to read messages from upgraded servers,
+# leave this optimization off on the first deploy, then enable it on a
+# subsequent deploy.
+# Rails.application.config.active_support.use_message_serializer_for_metadata = true
+
 # Set the maximum size for Rails log files.
 #
 # `config.load_defaults 7.1` does not set this value for environments other than

@@ -31,12 +31,34 @@ module ActionMailer
     #       ContactMailer.welcome.deliver_later
     #     end
     #   end
+    #
+    # If a block is passed, the method returns the +Mail::Message+s that were
+    # processed, enabling further analysis.
+    #
+    #   def test_emails_more_thoroughly
+    #     email = assert_emails 1 do
+    #       ContactMailer.welcome.deliver_now
+    #     end
+    #     assert_email "Hi there", email.subject
+    #
+    #     emails = assert_emails 2 do
+    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_later
+    #     end
+    #     assert_email "Hi there", emails.first.subject
+    #   end
     def assert_emails(number, &block)
       if block_given?
         original_count = ActionMailer::Base.deliveries.size
         perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, &block)
         new_count = ActionMailer::Base.deliveries.size
-        assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
+        diff = new_count - original_count
+        assert_equal number, diff, "#{number} emails expected, but #{diff} were sent"
+        if diff == 1
+          ActionMailer::Base.deliveries.last
+        else
+          ActionMailer::Base.deliveries.last(diff)
+        end
       else
         assert_equal number, ActionMailer::Base.deliveries.size
       end
@@ -148,11 +170,14 @@ module ActionMailer
     #       ContactMailer.with(email: 'user@example.com').welcome.deliver_later
     #     end
     #   end
-    def assert_enqueued_email_with(mailer, method, params: nil, args: nil, queue: ActionMailer::Base.deliver_later_queue_name || "default", &block)
+    def assert_enqueued_email_with(mailer, method, params: nil, args: nil, queue: nil, &block)
       if mailer.is_a? ActionMailer::Parameterized::Mailer
         params = mailer.instance_variable_get(:@params)
         mailer = mailer.instance_variable_get(:@mailer)
       end
+
+      queue ||= mailer.deliver_later_queue_name || ActiveJob::Base.default_queue_name
+
       args = if args.is_a?(Hash)
         [mailer.to_s, method.to_s, "deliver_now", params: args, args: []]
       elsif params.present?
@@ -160,6 +185,7 @@ module ActionMailer
       else
         [mailer.to_s, method.to_s, "deliver_now", args: Array(args)]
       end
+
       assert_enqueued_with(job: mailer.delivery_job, args: args, queue: queue.to_s, &block)
     end
 

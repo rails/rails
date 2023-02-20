@@ -4,10 +4,10 @@ module ActiveModel
   module Validations
     # == Active \Model \Validation \Callbacks
     #
-    # Provides an interface for any class to have +before_validation+ and
-    # +after_validation+ callbacks.
+    # Provides an interface for any class to have ClassMethods#before_validation and
+    # ClassMethods#after_validation callbacks.
     #
-    # First, include ActiveModel::Validations::Callbacks from the class you are
+    # First, include <tt>ActiveModel::Validations::Callbacks</tt> from the class you are
     # creating:
     #
     #   class MyModel

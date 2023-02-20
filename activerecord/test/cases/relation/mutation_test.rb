@@ -135,6 +135,13 @@ module ActiveRecord
       assert relation.skip_preloading_value
     end
 
+    test "#regroup!" do
+      @relation = relation.group("foo")
+
+      assert relation.regroup!("bar").equal?(relation)
+      assert_equal ["bar"], relation.group_values
+    end
+
     private
       def relation
         @relation ||= Relation.new(FakeKlass)

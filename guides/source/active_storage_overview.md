@@ -53,10 +53,13 @@ WARNING: Before you install and use third-party software, make sure you understa
 
 ## Setup
 
-Active Storage uses three tables in your application’s database named
+```bash
+$ bin/rails active_storage:install
+$ bin/rails db:migrate
+```
+
+This sets up configuration, and creates the three tables Active Storage uses:
 `active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
-Run `bin/rails active_storage:install` to generate a migration that creates
-these tables. Use `bin/rails db:migrate` to run the migration.
 
 | Table      | Purpose |
 | ------------------- | ----- |
@@ -178,6 +181,7 @@ amazon:
   retry_limit: 0
   upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
+    cache_control: "private, max-age=<%= 1.day.to_i %>"
 ```
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
@@ -730,7 +734,7 @@ end
 <%= image_tag account_logo_path %>
 ```
 
-And then you might want to disable the Active Storage default routes with:
+And then you should disable the Active Storage default routes with:
 
 ```ruby
 config.active_storage.draw_routes = false
@@ -1461,7 +1465,7 @@ There are cases where a file is uploaded but never attached to a record. This ca
 namespace :active_storage do
   desc "Purges unattached Active Storage blobs. Run regularly."
   task purge_unattached: :environment do
-    ActiveStorage::Blob.unattached.where("active_storage_blobs.created_at <= ?", 2.days.ago).find_each(&:purge_later)
+    ActiveStorage::Blob.unattached.where(created_at: ..2.days.ago).find_each(&:purge_later)
   end
 end
 ```

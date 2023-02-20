@@ -243,6 +243,21 @@ ActiveRecord::Schema.define do
     t.index [:clothing_type, :color], unique: true
   end
 
+  create_table :sharded_blogs, force: true do |t|
+    t.string :name
+  end
+
+  create_table :sharded_blog_posts, force: true do |t|
+    t.string :title
+    t.integer :blog_id
+  end
+
+  create_table :sharded_comments, force: true do |t|
+    t.string :body
+    t.integer :blog_post_id
+    t.integer :blog_id
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id

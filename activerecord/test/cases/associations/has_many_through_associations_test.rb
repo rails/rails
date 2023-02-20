@@ -403,7 +403,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_association
-    assert_queries(2) { posts(:welcome); people(:michael); }
+    assert_queries(2) { posts(:welcome); people(:michael) }
 
     assert_queries(1) do
       posts(:welcome).people.delete(people(:michael))

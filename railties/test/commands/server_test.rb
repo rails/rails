@@ -303,8 +303,6 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args = [])
-      command = Rails::Command::ServerCommand.new([], args)
-      command.send(:extract_environment_option_from_argument)
-      command.server_options
+      Rails::Command::ServerCommand.new([], args).server_options
     end
 end

@@ -9,20 +9,14 @@ module Rails
     class SecretsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
 
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
-      end
-
+      desc "setup", "Deprecated in favor of credentials -- run `bin/rails credentials:help`"
       def setup
         deprecate_in_favor_of_credentials_and_exit
       end
 
+      desc "edit", "Open the secrets in `$EDITOR` for editing"
       def edit
-        require_application_and_environment!
+        boot_application!
 
         using_system_editor do
           Rails::Secrets.read_for_editing { |tmp_path| system_editor(tmp_path) }
@@ -31,13 +25,14 @@ module Rails
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
       rescue Errno::ENOENT => error
-        if /secrets\.yml\.enc/.match?(error.message)
+        if error.message.include?("secrets.yml.enc")
           deprecate_in_favor_of_credentials_and_exit
         else
           raise
         end
       end
 
+      desc "show", "Show the decrypted secrets"
       def show
         say Rails::Secrets.read
       end

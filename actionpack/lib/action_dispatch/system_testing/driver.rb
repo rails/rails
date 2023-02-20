@@ -56,7 +56,7 @@ module ActionDispatch
         end
 
         def browser_options
-          @options.merge(capabilities: @browser.options).compact
+          @options.merge(options: @browser.options).compact
         end
 
         def register_selenium(app)

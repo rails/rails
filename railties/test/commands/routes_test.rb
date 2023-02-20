@@ -377,7 +377,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
 
     output = run_routes_command([ "--unused" ])
 
-    assert_equal(output, "No unused routes found.\n")
+    assert_includes(output, "No unused routes found.")
   end
 
   private

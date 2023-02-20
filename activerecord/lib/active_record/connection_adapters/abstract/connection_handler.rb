@@ -127,7 +127,7 @@ module ActiveRecord
       end
 
       def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
-        owner_name = StringConnectionName.new(config.to_s) if config.is_a?(Symbol)
+        owner_name = determine_owner_name(owner_name, config)
 
         pool_config = resolve_pool_config(config, owner_name, role, shard)
         db_config = pool_config.db_config
@@ -348,6 +348,16 @@ module ActiveRecord
           end
 
           ConnectionAdapters::PoolConfig.new(connection_name, db_config, role, shard)
+        end
+
+        def determine_owner_name(owner_name, config)
+          if owner_name.is_a?(String) || owner_name.is_a?(Symbol)
+            StringConnectionName.new(owner_name.to_s)
+          elsif config.is_a?(Symbol)
+            StringConnectionName.new(config.to_s)
+          else
+            owner_name
+          end
         end
     end
   end

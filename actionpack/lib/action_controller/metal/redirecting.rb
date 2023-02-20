@@ -21,7 +21,7 @@ module ActionController
     # * <tt>String</tt> not containing a protocol - The current protocol and host is prepended to the string.
     # * <tt>Proc</tt> - A block that will be executed in the controller's context. Should return any option accepted by +redirect_to+.
     #
-    # === Examples:
+    # === Examples
     #
     #   redirect_to action: "show", id: 5
     #   redirect_to @post
@@ -196,7 +196,11 @@ module ActionController
 
       def _url_host_allowed?(url)
         host = URI(url.to_s).host
-        host == request.host || host.nil? && url.to_s.start_with?("/")
+
+        return true if host == request.host
+        return false unless host.nil?
+        return false unless url.to_s.start_with?("/")
+        !url.to_s.start_with?("//")
       rescue ArgumentError, URI::Error
         false
       end

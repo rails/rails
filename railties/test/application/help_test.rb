@@ -13,11 +13,14 @@ class HelpTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  test "lists common commands and extended commands" do
+  test "lists common commands and extended commands with descriptions" do
     output = rails("help")
     assert_match "You must specify a command. The most common commands are:", output
     assert_match "  generate     Generate new code (short-cut alias: \"g\")", output
     assert_match "In addition to those commands", output
+    assert_match(/^about(\s+)List versions of all Rails frameworks/, output)
+    assert_match(/^test:models(\s+)Run tests in test\/models/, output)
+    assert_match(/^routes(\s+)List all the defined routes/, output)
     assert_no_match(/^generate/, output)
     assert_no_match(/^console/, output)
     assert_no_match(/^server/, output)

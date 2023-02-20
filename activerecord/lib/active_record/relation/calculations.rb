@@ -146,7 +146,7 @@ module ActiveRecord
     def sum(identity_or_column = nil, &block)
       if block_given?
         values = map(&block)
-        if identity_or_column.nil? && (values.first.is_a?(Numeric) || values.first(1) == [])
+        if identity_or_column.nil? && (values.first.is_a?(Numeric) || values.first(1) == [] || values.first.respond_to?(:coerce))
           identity_or_column = 0
         end
 

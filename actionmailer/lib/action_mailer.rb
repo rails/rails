@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2022 David Heinemeier Hansson
+# Copyright (c) 2004-2023 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -53,6 +53,7 @@ module ActionMailer
   autoload :TestHelper
   autoload :MessageDelivery
   autoload :MailDeliveryJob
+  autoload :QueuedDelivery
 
   def self.eager_load!
     super

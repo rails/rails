@@ -45,6 +45,16 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "collect_deprecations returns the return value of the block and the deprecations collected" do
+    result = collect_deprecations(@deprecator) do
+      @deprecator.warn
+      :result
+    end
+    assert_equal 2, result.size
+    assert_equal :result, result.first
+    assert_match "DEPRECATION WARNING:", result.last.sole
+  end
+
   test "Module::deprecate" do
     klass = Class.new(Deprecatee)
     klass.deprecate :zero, :one, :multi, deprecator: @deprecator
@@ -411,20 +421,6 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/this is the old way/, @deprecator) { klass.new.fubar }
   end
 
-  test "delegating to ActiveSupport::Deprecation" do
-    messages = []
-
-    klass = Class.new do
-      delegate :warn, :behavior=, to: ActiveSupport::Deprecation
-    end
-
-    o = klass.new
-    o.behavior = Proc.new { |message, callstack| messages << message }
-    assert_difference("messages.size") do
-      o.warn("warning")
-    end
-  end
-
   test "overriding deprecated_method_warning" do
     deprecator = deprecator_with_messages
 
@@ -707,7 +703,18 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "warn deprecation skips the internal caller locations" do
+    @deprecator.behavior = ->(_, callstack, *) { @callstack = callstack }
+    method_that_emits_deprecation(@deprecator)
+    assert_equal File.expand_path(__FILE__), @callstack.first.absolute_path
+    assert_equal __LINE__ - 2, @callstack.first.lineno
+  end
+
   private
+    def method_that_emits_deprecation(deprecator)
+      deprecator.warn
+    end
+
     def deprecator_with_messages
       klass = Class.new(ActiveSupport::Deprecation)
       deprecator = klass.new

@@ -227,13 +227,12 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
     def using_strict(strict)
-      connection = ActiveRecord::Base.remove_connection
-      conn_hash = connection.configuration_hash
+      db_config = ActiveRecord::Base.connection_pool.db_config
+      conn_hash = db_config.configuration_hash
       ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
       yield
     ensure
-      ActiveRecord::Base.remove_connection
-      ActiveRecord::Base.establish_connection connection
+      ActiveRecord::Base.establish_connection db_config
     end
 
     # Strict mode controls how MySQL handles invalid or missing values

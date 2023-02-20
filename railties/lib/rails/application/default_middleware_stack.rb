@@ -17,6 +17,10 @@ module Rails
             middleware.use ::ActionDispatch::HostAuthorization, config.hosts, **config.host_authorization
           end
 
+          if config.assume_ssl
+            middleware.use ::ActionDispatch::AssumeSSL
+          end
+
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, **config.ssl_options,
               ssl_default_redirect_status: config.action_dispatch.ssl_default_redirect_status

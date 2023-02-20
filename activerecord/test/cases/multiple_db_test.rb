@@ -98,19 +98,15 @@ class MultipleDbTest < ActiveRecord::TestCase
 
   unless in_memory_db?
     def test_count_on_custom_connection
-      ActiveRecord::Base.remove_connection
+      assert_equal ARUnit2Model.connection, College.connection
+      assert_not_equal ActiveRecord::Base.connection, College.connection
       assert_equal 1, College.count
-    ensure
-      ActiveRecord::Base.establish_connection :arunit
     end
 
     def test_associations_should_work_when_model_has_no_connection
-      ActiveRecord::Base.remove_connection
       assert_nothing_raised do
         College.first.courses.first
       end
-    ensure
-      ActiveRecord::Base.establish_connection :arunit
     end
   end
 end

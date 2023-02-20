@@ -183,6 +183,14 @@ module ActiveRecord
       end
 
       private
+        def init_internals
+          super
+          @mutations_before_last_save = nil
+          @mutations_from_database = nil
+          @_touch_attr_names = nil
+          @_skip_dirty_tracking = nil
+        end
+
         def _touch_row(attribute_names, time)
           @_touch_attr_names = Set.new(attribute_names)
 

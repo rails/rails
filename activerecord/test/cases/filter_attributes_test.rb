@@ -91,7 +91,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
         assert_equal 0, account.inspect.scan("[FILTERED]").length
       end
     ensure
-      Admin::Account.remove_instance_variable(:@filter_attributes)
+      Admin::Account.instance_variable_set(:@filter_attributes, nil)
     end
   end
 
@@ -110,7 +110,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
     assert_includes user.inspect, "auth_token: [FILTERED]"
     assert_includes user.inspect, 'token: "[FILTERED]"'
   ensure
-    User.remove_instance_variable(:@filter_attributes)
+    User.instance_variable_set(:@filter_attributes, nil)
   end
 
   test "filter_attributes on pretty_print" do
@@ -141,6 +141,6 @@ class FilterAttributesTest < ActiveRecord::TestCase
     assert_includes actual, 'auth_token: "[FILTERED]"'
     assert_includes actual, 'token: "[FILTERED]"'
   ensure
-    User.remove_instance_variable(:@filter_attributes)
+    User.instance_variable_set(:@filter_attributes, nil)
   end
 end

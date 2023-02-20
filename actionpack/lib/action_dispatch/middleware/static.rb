@@ -24,7 +24,7 @@ module ActionDispatch
     end
   end
 
-  # This endpoint serves static files from disk using +Rack::File+.
+  # This endpoint serves static files from disk using +Rack::Files+.
   #
   # URL paths are matched with static files according to expected
   # conventions: +path+, +path+.html, +path+/index.html.
@@ -53,7 +53,7 @@ module ActionDispatch
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
 
-      @file_server = ::Rack::File.new(@root, headers)
+      @file_server = ::Rack::Files.new(@root, headers)
     end
 
     def call(env)

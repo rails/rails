@@ -52,6 +52,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `AbstractController::Helpers::MissingHelperError`
+
+*   Deprecate `ActionDispatch::IllegalStateError`.
+
 ### Notable changes
 
 Action View
