@@ -91,11 +91,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
+    #
+    # Also defines the (build|create)_association methods if possible
     def self.define_accessors(model, reflection)
       mixin = model.generated_association_methods
       name = reflection.name
       define_readers(mixin, name)
       define_writers(mixin, name)
+      define_constructors(mixin, name) unless reflection.polymorphic? || (reflection.has_many? && reflection.through_reflection?)
     end
 
     def self.define_readers(mixin, name)
@@ -112,6 +115,32 @@ module ActiveRecord::Associations::Builder # :nodoc:
           association(:#{name}).writer(value)
         end
       CODE
+    end
+
+    # Defines the (build|create)_association methods
+    def self.define_constructors(mixin, name)
+      association_name = define_association_name(name)
+      unless self.constructors_defined?(mixin, association_name)
+        mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          def build_#{association_name}(*args, &block)
+            association(:#{name}).build(*args, &block)
+          end
+          def create_#{association_name}(*args, &block)
+            association(:#{name}).create(*args, &block)
+          end
+          def create_#{association_name}!(*args, &block)
+            association(:#{name}).create!(*args, &block)
+          end
+        CODE
+      end
+    end
+
+    def self.constructors_defined?(mixin, name)
+      mixin.method_defined?("build_#{name}") && mixin.method_defined?("create_#{name}") && mixin.method_defined?("create_#{name}!")
+    end
+
+    def self.define_association_name(name)
+      raise NotImplementedError
     end
 
     def self.define_validations(model, reflection)
@@ -162,8 +191,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
-      :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
-      :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
+      :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_constructors,
+      :define_validations, :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
       :add_destroy_callbacks, :add_after_commit_jobs_callback
   end
 end
