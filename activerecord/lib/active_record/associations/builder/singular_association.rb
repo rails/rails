@@ -13,8 +13,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin = model.generated_association_methods
       name = reflection.name
 
-      define_constructors(mixin, name) unless reflection.polymorphic?
-
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def reload_#{name}
           association = association(:#{name})
@@ -26,29 +24,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
           association = association(:#{name})
           deprecated_associations_api_guard(association, __method__)
           association.reset
-        end
-      CODE
-    end
-
-    # Defines the (build|create)_association methods for belongs_to or has_one association
-    def self.define_constructors(mixin, name)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def build_#{name}(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.build(*args, &block)
-        end
-
-        def create_#{name}(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.create(*args, &block)
-        end
-
-        def create_#{name}!(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.create!(*args, &block)
         end
       CODE
     end
@@ -71,6 +46,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    private_class_method :valid_options, :define_accessors, :define_constructors
+    def self.define_association_name(name)
+      name
+    end
+
+    def self.constructors_defined?(mixin, name)
+      false
+    end
+
+    private_class_method :valid_options, :define_accessors
   end
 end
