@@ -14,7 +14,34 @@ require "rails_guides/markdown"
 require "rails_guides/helpers"
 require "rails_guides/epub"
 
+module ActionView::Helpers
+  include RailsGuides::Helpers
+end
+
 module RailsGuides
+  class Controller < ActionController::Base
+    def guide(source_dir:, body:, header_section:, description:, page_title:, index_section:, edge:, version:, epub:, language:, direction:, uuid:)
+      @header_section = header_section
+      @description = description
+      @page_title = page_title
+      @index_section = index_section
+
+      view_paths + [source_dir]
+      prepend_view_path source_dir
+
+      render_to_string html: body,
+        layout: "layout",
+        uuid: uuid,
+        assigns: {
+          edge: edge,
+          version: version,
+          epub: epub,
+          language: language,
+          direction: direction
+        }
+    end
+  end
+
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
@@ -132,6 +159,9 @@ module RailsGuides
         puts "Generating #{guide} as #{output_file}"
         layout = @epub ? "epub/layout" : "layout"
 
+        controller = Controller.new
+        controller.view_paths + [@source_dir]
+
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
           edge:     @edge,
@@ -152,11 +182,14 @@ module RailsGuides
         else
           body = File.read("#{@source_dir}/#{guide}")
           result = RailsGuides::Markdown.new(
-            view:    view,
+            controller: controller,
+            source_dir: @source_dir,
+            direction: @direction,
             layout:  layout,
             edge:    @edge,
             version: @version,
-            epub:    @epub
+            epub:    "epub/#{epub_filename}",
+            uuid: SecureRandom.uuid
           ).render(body)
 
           warn_about_broken_links(result)

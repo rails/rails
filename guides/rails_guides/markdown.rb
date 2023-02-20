@@ -6,10 +6,14 @@ require "rails_guides/markdown/renderer"
 require "rails_guides/markdown/epub_renderer"
 require "rails-html-sanitizer"
 
+require "debug"
+
 module RailsGuides
   class Markdown
-    def initialize(view:, layout:, edge:, version:, epub:)
-      @view          = view
+    def initialize(controller:, source_dir:, direction:, layout:, edge:, version:, epub:, uuid:)
+      @controller    = controller
+      @source_dir    = source_dir
+      @direction     = direction
       @layout        = layout
       @edge          = edge
       @version       = version
@@ -17,6 +21,7 @@ module RailsGuides
       @raw_header    = ""
       @node_ids      = {}
       @epub          = epub
+      @uuid          = uuid
     end
 
     def render(body)
@@ -174,11 +179,20 @@ module RailsGuides
       end
 
       def render_page
-        @view.content_for(:header_section) { @header }
-        @view.content_for(:description) { @description }
-        @view.content_for(:page_title) { @title }
-        @view.content_for(:index_section) { @index }
-        @view.render(layout: @layout, html: @body.html_safe)
+        @controller.guide(
+          source_dir: @source_dir,
+          body: @body.html_safe,
+          header_section: @header.html_safe,
+          description: @description.html_safe,
+          page_title: @title.html_safe,
+          index_section: @index.html_safe,
+          edge: @edge,
+          version: @version,
+          epub: @epub,
+          language: @language,
+          direction: @direction,
+          uuid:      @uuid
+        )
       end
   end
 end
