@@ -333,7 +333,7 @@ Please check its [documentation](https://github.com/ruby/debug) for usage.
 
 ### Entering a Debugging Session
 
-By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere your program.
+By default, a debugging session will start after the `debug` library is required, which happens when your app boots. But don't worry, the session won't interfere with your application.
 
 To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
 
@@ -371,11 +371,11 @@ Processing by PostsController#index as HTML
 (rdbg)
 ```
 
-You can exit the debugging session at any time and continue your application execution with the `continue` (or `c`) command.  Or, to exit both the debugging session and your application, use the `quit` (or `q`) command.
+You can exit the debugging session at any time and continue your application execution with the `continue` (or `c`) command. Or, to exit both the debugging session and your application, use the `quit` (or `q`) command.
 
 ### The Context
 
-After entering the debugging session, you can type in Ruby code as you're in a Rails console or IRB.
+After entering the debugging session, you can type in Ruby code as if you are in a Rails console or IRB.
 
 ```rb
 (rdbg) @posts    # ruby
@@ -385,7 +385,7 @@ After entering the debugging session, you can type in Ruby code as you're in a R
 (rdbg)
 ```
 
-You can also use `p` or `pp` command to evaluate Ruby expressions (e.g. when a variable name conflicts with a debugger command).
+You can also use the `p` or `pp` command to evaluate Ruby expressions, which is useful when a variable name conflicts with a debugger command.
 
 ```rb
 (rdbg) p headers    # command
@@ -400,7 +400,7 @@ You can also use `p` or `pp` command to evaluate Ruby expressions (e.g. when a v
 (rdbg)
 ```
 
-Besides direct evaluation, debugger also helps you collect rich amount of information through different commands. Just to name a few here:
+Besides direct evaluation, the debugger also helps you collect a rich amount of information through different commands, such as:
 
 - `info` (or `i`) - Information about current frame.
 - `backtrace` (or `bt`) - Backtrace (with additional information).
@@ -408,7 +408,7 @@ Besides direct evaluation, debugger also helps you collect rich amount of inform
 
 #### The `info` Command
 
-It'll give you an overview of the values of local and instance variables that are visible from the current frame.
+`info` provides an overview of the values of local and instance variables that are visible from the current frame.
 
 ```rb
 (rdbg) info    # command
@@ -428,7 +428,7 @@ It'll give you an overview of the values of local and instance variables that ar
 
 #### The `backtrace` Command
 
-When used without any options, it lists all the frames on the stack:
+When used without any options, `backtrace` lists all the frames on the stack:
 
 ```rb
 =>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
@@ -449,21 +449,21 @@ Every frame comes with:
 - Call location
 - Additional information (e.g. block or method arguments)
 
-This will give you a great sense about what's happening in your app. However, you probably will notice that:
+This will give you a great sense about what is happening in your app. However, you probably will notice that:
 
 - There are too many frames (usually 50+ in a Rails app).
 - Most of the frames are from Rails or other libraries you use.
 
-Don't worry, the `backtrace` command provides 2 options to help you filter frames:
+The `backtrace` command provides 2 options to help you filter frames:
 
 - `backtrace [num]` - only show `num` numbers of frames, e.g. `backtrace 10` .
 - `backtrace /pattern/` - only show frames with identifier or location that matches the pattern, e.g. `backtrace /MyModel/`.
 
-It's also possible to use these options together: `backtrace [num] /pattern/`.
+It is also possible to use these options together: `backtrace [num] /pattern/`.
 
 #### The `outline` Command
 
-This command is similar to `pry` and `irb`'s `ls` command. It will show you what's accessible from the current scope, including:
+`outline` is similar to `pry` and `irb`'s `ls` command. It will show you what is accessible from the current scope, including:
 
 - Local variables
 - Instance variables
@@ -558,7 +558,7 @@ And to remove them, you can use:
 Stop by #0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
 ```
 
-**Set a breakpoint on a given method call - e.g. `b @post.save`**
+Set a breakpoint on a given method call - e.g. `b @post.save`.
 
 ```rb
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
@@ -602,7 +602,7 @@ Stop by #0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/r
 
 #### The `catch` Command
 
-**Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`**
+Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`.
 
 ```rb
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
@@ -645,7 +645,7 @@ Stop by #1  BP - Catch  "ActiveRecord::RecordInvalid"
 
 #### The `watch` Command
 
-**Stop when the instance variable is changed - e.g. `watch @_response_body`**
+Stop when the instance variable is changed - e.g. `watch @_response_body`.
 
 ```rb
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
@@ -689,7 +689,7 @@ Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body = 
 
 #### Breakpoint Options
 
-In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflow. Currently, the debugger supports 4 options:
+In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflows. Currently, the debugger supports 4 options:
 
 - `do: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression and continue the program:
   - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames
