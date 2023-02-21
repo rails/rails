@@ -1721,6 +1721,49 @@ module ApplicationTests
       assert_equal "XML", last_response.body
     end
 
+    test "config.action_dispatch.ignore_format_from_path_extension is false by default" do
+      make_basic_app do |application|
+        application.routes.prepend do
+          get "/:value", to: "omg#index", value: /.+/
+        end
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          respond_to do |format|
+            format.html { render plain: "HTML" }
+            format.mp3 { render plain: "MP3" }
+          end
+        end
+      end
+
+      get "/foo.mp3", {}, {}
+      assert_equal 200, last_response.status
+      assert_equal "MP3", last_response.body
+    end
+
+    test "config.action_dispatch.ignore_format_from_path_extension = true" do
+      make_basic_app do |application|
+        application.config.action_dispatch.ignore_format_from_path_extension = true
+        application.routes.prepend do
+          get "/:value", to: "omg#index", value: /.+/
+        end
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          respond_to do |format|
+            format.html { render plain: "HTML" }
+            format.mp3 { render plain: "MP3" }
+          end
+        end
+      end
+
+      get "/foo.mp3", {}, {}
+      assert_equal 200, last_response.status
+      assert_equal "HTML", last_response.body
+    end
+
     test "Rails.application#env_config exists and includes some existing parameters" do
       make_basic_app
 

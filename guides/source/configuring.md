@@ -1789,6 +1789,10 @@ The default value depends on the `config.load_defaults` target version:
 Enables logging those unhandled exceptions configured in `rescue_responses`. It
 defaults to `true`.
 
+#### `config.action_dispatch.ignore_format_from_path_extension`
+
+Configures whether to ignore format from path extension. Defaults to `false`.
+
 #### `ActionDispatch::Callbacks.before`
 
 Takes a block of code to run before the request.

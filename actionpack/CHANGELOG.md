@@ -1,3 +1,7 @@
+*   Add `config.action_dispatch.ignore_format_from_path_extension` to ignore path extensions in the MIME negotiation
+
+    *youpy*
+
 *   Change `ActionController::Instrumentation` to pass `filtered_path` instead of `fullpath` in the event payload to filter sensitive query params
 
     ```ruby
