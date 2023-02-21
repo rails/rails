@@ -20,6 +20,7 @@ module ActiveRecord
       def create_migration_file
         return if skip_migration_creation?
         attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
+        source_paths << File.expand_path(File.join(self.class.base_name, "migration", "templates"), self.class.base_root)
         migration_template "../../migration/templates/create_table_migration.rb", File.join(db_migrate_path, "create_#{table_name}.rb")
       end
 
