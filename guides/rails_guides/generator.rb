@@ -182,7 +182,7 @@ module RailsGuides
       def generate_guide(guide, output_file)
         output_path = output_path_for(output_file)
         puts "Generating #{guide} as #{output_file}"
-        layout = @epub ? "epub/layout" : "layout"
+        layout = @epub ? "epub" : "layout"
 
         controller = Controller.new
         controller.view_paths + [@source_dir]
