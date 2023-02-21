@@ -22,33 +22,29 @@ module RailsGuides
   class Controller < ActionController::Base
     attr_accessor :header_section, :description, :page_title, :index_section
 
-    def plain(guide:, source_dir:, layout:, edge:, version:, epub_filename:, language:, direction:, uuid:)
-      prepend_view_path source_dir
-
-      render_to_string "/#{guide}", layout: layout,
-        uuid: uuid,
-        assigns: {
-          edge: edge,
-          version: version,
-          epub: epub_filename,
-          language: language,
-          direction: direction
-        }
+    def setup(source_dir:, layout:, edge:, version:, epub:, language:, direction:, uuid:)
+      @source_dir = source_dir
+      @layout = layout
+      @edge = edge
+      @version = version
+      @epub = epub
+      @language = language
+      @direction = direction
+      @uuid = uuid
     end
 
-    def guide(source_dir:, layout:, body:, edge:, version:, epub_filename:, language:, direction:, uuid:)
-      prepend_view_path source_dir
+    def plain(guide)
+      prepend_view_path @source_dir
+
+      render_to_string "/#{guide}", layout: @layout, uuid: @uuid
+    end
+
+    def guide(body)
+      prepend_view_path @source_dir
 
       render_to_string html: body,
-        layout: layout,
-        uuid: uuid,
-        assigns: {
-          edge: edge,
-          version: version,
-          epub: epub_filename,
-          language: language,
-          direction: direction
-        }
+        layout: @layout,
+        uuid: @uuid
     end
   end
 
@@ -169,38 +165,29 @@ module RailsGuides
         puts "Generating #{guide} as #{output_file}"
         layout = @epub ? "epub" : "layout"
 
-        controller = Controller.new
-
         @epub_filename = "epub/#{epub_filename}"
         @uuid = SecureRandom.uuid
+
+        controller = Controller.new
+        controller.setup(
+          source_dir: @source_dir,
+          layout:  layout,
+          edge:    @edge,
+          version: @version,
+          epub: @epub_filename,
+          language: @language,
+          direction: @direction,
+          uuid: @uuid
+        )
 
         if guide =~ /\.(\w+)\.erb$/
           return if %w[_license _welcome layout].include?($`)
 
           # Generate the special pages like the home.
-          result = controller.plain(guide: $`,
-            layout: layout,
-            source_dir: @source_dir,
-            direction: @direction,
-            edge: @edge,
-            version: @version,
-            language: @language,
-            epub_filename: @epub_filename,
-            uuid: @uuid
-          )
+          result = controller.plain($`)
         else
           body = File.read("#{@source_dir}/#{guide}")
-          result = RailsGuides::Markdown.new(
-            controller: controller,
-            source_dir: @source_dir,
-            direction: @direction,
-            layout:  layout,
-            edge:    @edge,
-            version: @version,
-            language: @language,
-            epub_filename: @epub_filename,
-            uuid: @uuid
-          ).render(body)
+          result = RailsGuides::Markdown.new(controller).render(body)
 
           warn_about_broken_links(result)
         end
