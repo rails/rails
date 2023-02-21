@@ -37,6 +37,8 @@ require "models/membership"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
+require "models/member_detail"
+require "models/organization"
 
 
 class AssociationsTest < ActiveRecord::TestCase
@@ -539,8 +541,8 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
 end
 
 class PreloaderTest < ActiveRecord::TestCase
-  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories,
-    :author_addresses, :sharded_blog_posts, :sharded_comments
+  fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
+           :sharded_blog_posts, :sharded_comments, :members, :member_details, :organizations
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -626,6 +628,21 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_queries(3) do
       ActiveRecord::Associations::Preloader.new(records: [author], associations: [:hello_post_comments, :comments]).call
+    end
+  end
+
+  def test_preload_through_records_with_already_loaded_middle_record
+    member = members(:groucho)
+    expected_member_detail_ids = member.organization_member_details_2.pluck(:id)
+
+    member.reload.organization # load through record
+
+    assert_queries(1) do
+      ActiveRecord::Associations::Preloader.new(records: [member], associations: :organization_member_details_2).call
+    end
+
+    assert_no_queries do
+      assert_equal expected_member_detail_ids.sort, member.organization_member_details_2.map(&:id).sort
     end
   end
 
