@@ -26,7 +26,6 @@ module RailsGuides
       view_paths + [source_dir]
       prepend_view_path source_dir
 
-      #binding.break
       render_to_string "/#{guide}", layout: layout,
         uuid: uuid,
         assigns: {
@@ -38,19 +37,7 @@ module RailsGuides
         }
     end
 
-    #before_action do
-    #  view_context.content_for :header_section, @header_section
-    #  view_context.content_for :description, @description
-    #  view_context.content_for :page_title, @page_title
-    #  view_context.content_for :index_section, @index_section
-    #end
-
     def guide(source_dir:, layout:, body:, edge:, version:, epub_filename:, language:, direction:, uuid:)
-      #view_context.content_for(:header_section) { header_section }
-      #view_context.content_for(:description) { description }
-      #view_context.content_for(:page_title) { page_title }
-      #view_context.content_for(:index_section) { index_section }
-
       view_paths + [source_dir]
       prepend_view_path source_dir
 
@@ -194,7 +181,6 @@ module RailsGuides
           return if %w[_license _welcome layout].include?($`)
 
           # Generate the special pages like the home.
-          #body = File.read("#{@source_dir}/#{guide}")
           result = controller.plain(guide: $`,
             layout: layout,
             source_dir: @source_dir,
