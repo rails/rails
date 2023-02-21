@@ -514,7 +514,7 @@ module Rails
 
         # node support, including support for building native modules
         if using_node?
-          packages += %w(curl node-gyp) # pkg-config already listed above
+          packages += %w(curl node-gyp unzip) # pkg-config already listed above
 
           # module build process depends on Python, and debian changed
           # how python is installed with the bullseye release.  Below

@@ -23,9 +23,10 @@ RUN apt-get update -qq && \
 # Install JavaScript dependencies
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
-ENV VOLTA_HOME="/usr/local"
-RUN curl https://get.volta.sh | bash && \
-    volta install node@$NODE_VERSION yarn@$YARN_VERSION
+RUN curl -fsSL https://fnm.vercel.app/install | bash && \
+    /root/.local/share/fnm/fnm install $NODE_VERSION
+ENV PATH=/root/.local/share/fnm/aliases/default/bin/:$PATH
+RUN npm install -g yarn@$YARN_VERSION
 
 <% end -%>
 # Install application gems
