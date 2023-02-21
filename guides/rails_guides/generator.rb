@@ -23,7 +23,6 @@ module RailsGuides
     attr_accessor :header_section, :description, :page_title, :index_section
 
     def plain(guide:, source_dir:, layout:, edge:, version:, epub_filename:, language:, direction:, uuid:)
-      view_paths + [source_dir]
       prepend_view_path source_dir
 
       render_to_string "/#{guide}", layout: layout,
@@ -38,7 +37,6 @@ module RailsGuides
     end
 
     def guide(source_dir:, layout:, body:, edge:, version:, epub_filename:, language:, direction:, uuid:)
-      view_paths + [source_dir]
       prepend_view_path source_dir
 
       render_to_string html: body,
@@ -172,7 +170,6 @@ module RailsGuides
         layout = @epub ? "epub" : "layout"
 
         controller = Controller.new
-        controller.view_paths + [@source_dir]
 
         @epub_filename = "epub/#{epub_filename}"
         @uuid = SecureRandom.uuid
