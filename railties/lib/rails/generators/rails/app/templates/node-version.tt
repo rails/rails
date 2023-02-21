@@ -1,1 +1,0 @@
-<%= ENV["NODE_VERSION"] || dockerfile_node_version %>

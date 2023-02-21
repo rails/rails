@@ -458,18 +458,6 @@ module Rails
         options[:javascript] && options[:javascript] != "importmap"
       end
 
-      def dockerfile_node_version
-        using_node? and `node --version`[/\d+\.\d+\.\d+/]
-      rescue
-        "lts"
-      end
-
-      def dockerfile_yarn_version
-        using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
-      rescue
-        "latest"
-      end
-
       def dockerfile_binfile_fixups
         # binfiles may have OS specific paths to ruby.  Normalize them.
         shebangs = Dir["bin/*"].map { |file| IO.read(file).lines.first }.join

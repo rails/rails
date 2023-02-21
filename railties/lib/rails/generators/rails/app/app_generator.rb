@@ -54,10 +54,6 @@ module Rails
       template "ruby-version", ".ruby-version"
     end
 
-    def node_version
-      template "node-version", ".node-version"
-    end
-
     def gemfile
       template "Gemfile"
     end
@@ -329,7 +325,6 @@ module Rails
       def create_root_files
         build(:readme)
         build(:rakefile)
-        build(:node_version) if using_node?
         build(:ruby_version)
         build(:configru)
 
