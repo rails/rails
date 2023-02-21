@@ -6,8 +6,6 @@ require "rails_guides/markdown/renderer"
 require "rails_guides/markdown/epub_renderer"
 require "rails-html-sanitizer"
 
-require "debug"
-
 module RailsGuides
   class Markdown
     def initialize(controller)

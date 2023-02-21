@@ -170,7 +170,7 @@ module RailsGuides
 
         controller = Controller.new
         controller.setup(
-          source_dir: @source_dir,
+          source_dir: "source",
           layout:  layout,
           edge:    @edge,
           version: @version,
