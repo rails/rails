@@ -45,7 +45,7 @@ module RailsGuides
     #  view_context.content_for :index_section, @index_section
     #end
 
-    def guide(source_dir:, body:, edge:, version:, epub_filename:, language:, direction:, uuid:)
+    def guide(source_dir:, layout:, body:, edge:, version:, epub_filename:, language:, direction:, uuid:)
       #view_context.content_for(:header_section) { header_section }
       #view_context.content_for(:description) { description }
       #view_context.content_for(:page_title) { page_title }
@@ -55,7 +55,7 @@ module RailsGuides
       prepend_view_path source_dir
 
       render_to_string html: body,
-        layout: "layout",
+        layout: layout,
         uuid: uuid,
         assigns: {
           edge: edge,

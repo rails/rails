@@ -187,6 +187,7 @@ module RailsGuides
 
         @controller.guide(
           source_dir: @source_dir,
+          layout: @layout,
           body: @body.html_safe,
           edge: @edge,
           version: @version,
