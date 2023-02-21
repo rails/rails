@@ -6,7 +6,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :comment, :valid
 
       def initialize(
         table, name,
@@ -18,6 +18,7 @@ module ActiveRecord
         where: nil,
         type: nil,
         using: nil,
+        include: nil,
         comment: nil,
         valid: true
       )
@@ -31,6 +32,7 @@ module ActiveRecord
         @where = where
         @type = type
         @using = using
+        @include = include
         @comment = comment
         @valid = valid
       end
@@ -47,12 +49,13 @@ module ActiveRecord
         }
       end
 
-      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, **options)
         columns = options[:column] if columns.blank?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
-          (valid.nil? || self.valid == valid)
+          (valid.nil? || self.valid == valid) &&
+          (include.nil? || Array(self.include) == Array(include))
       end
 
       private

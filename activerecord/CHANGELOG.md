@@ -81,6 +81,24 @@
 
     *Leonardo Luarte*
 
+*   Add `:include` index option
+
+    Add support for including non-key columns in indexes for PostgreSQL
+    with the `INCLUDE` parameter.
+
+    ```ruby
+    add_index(:users, :email, include: [:id, :created_at])
+    ```
+
+    will result in:
+
+    ```sql
+    CREATE INDEX index_users_on_email USING btree (email) INCLUDE (id,
+    created_at)
+    ```
+
+    *Steve Abrams*
+
 *   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
     argument, more closely matching their `Enumerable` equivalents.
 

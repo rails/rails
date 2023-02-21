@@ -5,6 +5,9 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
+          delegate :quoted_include_columns_for_index, :supports_index_include?,
+          to: :@conn
+
           def visit_AlterTable(o)
             sql = super
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
@@ -25,6 +28,12 @@ module ActiveRecord
 
           def visit_CheckConstraintDefinition(o)
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
+          end
+
+          def visit_CreateIndexDefinition(o)
+            super.dup.tap do |sql|
+              sql << " INCLUDE (#{quoted_include_columns(o.index.include)})" if supports_index_include? && o.index.include
+            end
           end
 
           def visit_ValidateConstraint(name)
@@ -113,6 +122,10 @@ module ActiveRecord
               end
             end
             super
+          end
+
+          def quoted_include_columns(o)
+            String === o ? o : quoted_include_columns_for_index(o)
           end
 
           # Returns any SQL string to go between CREATE and TABLE. May be nil.

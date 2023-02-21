@@ -444,6 +444,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support including non-key columns?
+      def supports_index_include?
+        false
+      end
+
       # Does this adapter support expression indices?
       def supports_expression_index?
         false

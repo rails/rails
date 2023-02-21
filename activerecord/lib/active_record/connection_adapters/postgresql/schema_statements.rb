@@ -108,10 +108,11 @@ module ActiveRecord
             oid = row[4]
             comment = row[5]
             valid = row[6]
-            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: NULLS(?: NOT)? DISTINCT)?(?: WHERE (.+))?\z/m).flatten
+            using, expressions, where, include = inddef.scan(/ USING (\w+?) \((.+?)\)(?: NULLS(?: NOT)? DISTINCT)?(?: WHERE (.+?))?(?: INCLUDE \((.+)\))?\z/m).flatten
 
             orders = {}
             opclasses = {}
+            include_columns = include ? include.split(",").map(&:strip) : []
 
             if indkey.include?(0)
               columns = expressions
@@ -122,6 +123,9 @@ module ActiveRecord
                 WHERE a.attrelid = #{oid}
                 AND a.attnum IN (#{indkey.join(",")})
               SQL
+
+              # prevent INCLUDE columns from being matched
+              columns.reject! { |c| include_columns.include?(c) }
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
@@ -144,6 +148,7 @@ module ActiveRecord
               opclasses: opclasses,
               where: where,
               using: using.to_sym,
+              include: include_columns.map(&:to_sym).presence,
               comment: comment.presence,
               valid: valid
             )
@@ -757,6 +762,15 @@ module ActiveRecord
         def foreign_key_column_for(table_name) # :nodoc:
           _schema, table_name = extract_schema_qualified_name(table_name)
           super
+        end
+
+        def quoted_include_columns_for_index(column_names) # :nodoc:
+          return quote_column_name(column_names) if column_names.is_a?(Symbol)
+
+          quoted_columns = column_names.each_with_object({}) do |name, result|
+            result[name.to_sym] = quote_column_name(name).dup
+          end
+          add_options_for_index_columns(quoted_columns).values.join(", ")
         end
 
         def schema_creation  # :nodoc:
