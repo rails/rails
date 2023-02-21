@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= @page_title %></title>
+  <title><%= @page_title || yield(:page_title) %></title>
   <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbo-track="reload">
   <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
   <link rel="stylesheet" type="text/css" href="stylesheets/highlight.css" data-turbo-track="reload">
@@ -11,9 +11,9 @@
   <script src="javascripts/@hotwired--turbo.js" data-turbo-track="reload"></script>
   <script src="javascripts/clipboard.js" data-turbo-track="reload"></script>
   <script src="javascripts/guides.js" data-turbo-track="reload"></script>
-  <meta property="og:title" content="<%= @page_title %>" />
-  <meta name="description" content="<%= @description %>" />
-  <meta property="og:description" content="<%= @description %>" />
+  <meta property="og:title" content="<%= @page_title || yield(:page_title) %>" />
+  <meta name="description" content="<%= @description || yield(:description) %>" />
+  <meta property="og:description" content="<%= @description || yield(:description) %>" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:site_name" content="Ruby on Rails Guides" />
   <meta property="og:image" content="https://avatars.githubusercontent.com/u/4223" />
@@ -81,9 +81,9 @@
 
   <div id="feature">
     <div class="wrapper">
-      <%= @header_section %>
+      <%= @header_section || yield(:header_section) %>
 
-      <%= @index_section %>
+      <%= @index_section || yield(:index_section) %>
     </div>
   </div>
 

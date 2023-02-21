@@ -10,17 +10,18 @@ require "debug"
 
 module RailsGuides
   class Markdown
-    def initialize(controller:, source_dir:, direction:, layout:, edge:, version:, epub:, uuid:)
+    def initialize(controller:, source_dir:, direction:, layout:, edge:, language:, version:, epub_filename:, uuid:)
       @controller    = controller
       @source_dir    = source_dir
       @direction     = direction
       @layout        = layout
       @edge          = edge
+      @language      = language
       @version       = version
       @index_counter = Hash.new(0)
       @raw_header    = ""
       @node_ids      = {}
-      @epub          = epub
+      @epub_filename = epub_filename
       @uuid          = uuid
     end
 
@@ -179,16 +180,17 @@ module RailsGuides
       end
 
       def render_page
+        @controller.header_section = @header.html_safe
+        @controller.description = @description.html_safe
+        @controller.page_title = @title.html_safe
+        @controller.index_section = @index.html_safe
+
         @controller.guide(
           source_dir: @source_dir,
           body: @body.html_safe,
-          header_section: @header.html_safe,
-          description: @description.html_safe,
-          page_title: @title.html_safe,
-          index_section: @index.html_safe,
           edge: @edge,
           version: @version,
-          epub: @epub,
+          epub_filename: @epub_filename,
           language: @language,
           direction: @direction,
           uuid:      @uuid

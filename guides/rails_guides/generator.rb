@@ -20,11 +20,36 @@ end
 
 module RailsGuides
   class Controller < ActionController::Base
-    def guide(source_dir:, body:, header_section:, description:, page_title:, index_section:, edge:, version:, epub:, language:, direction:, uuid:)
-      @header_section = header_section
-      @description = description
-      @page_title = page_title
-      @index_section = index_section
+    attr_accessor :header_section, :description, :page_title, :index_section
+
+    def plain(guide:, source_dir:, layout:, edge:, version:, epub_filename:, language:, direction:, uuid:)
+      view_paths + [source_dir]
+      prepend_view_path source_dir
+
+      #binding.break
+      render_to_string "/#{guide}", layout: layout,
+        uuid: uuid,
+        assigns: {
+          edge: edge,
+          version: version,
+          epub: epub_filename,
+          language: language,
+          direction: direction
+        }
+    end
+
+    #before_action do
+    #  view_context.content_for :header_section, @header_section
+    #  view_context.content_for :description, @description
+    #  view_context.content_for :page_title, @page_title
+    #  view_context.content_for :index_section, @index_section
+    #end
+
+    def guide(source_dir:, body:, edge:, version:, epub_filename:, language:, direction:, uuid:)
+      #view_context.content_for(:header_section) { header_section }
+      #view_context.content_for(:description) { description }
+      #view_context.content_for(:page_title) { page_title }
+      #view_context.content_for(:index_section) { index_section }
 
       view_paths + [source_dir]
       prepend_view_path source_dir
@@ -35,7 +60,7 @@ module RailsGuides
         assigns: {
           edge: edge,
           version: version,
-          epub: epub,
+          epub: epub_filename,
           language: language,
           direction: direction
         }
@@ -162,23 +187,24 @@ module RailsGuides
         controller = Controller.new
         controller.view_paths + [@source_dir]
 
-        view = ActionView::Base.with_empty_template_cache.with_view_paths(
-          [@source_dir],
-          edge:     @edge,
-          version:  @version,
-          epub:     "epub/#{epub_filename}",
-          language: @language,
-          direction: @direction,
-          uuid:      SecureRandom.uuid
-        )
-        view.extend(Helpers)
+        @epub_filename = "epub/#{epub_filename}"
+        @uuid = SecureRandom.uuid
 
         if guide =~ /\.(\w+)\.erb$/
           return if %w[_license _welcome layout].include?($`)
 
           # Generate the special pages like the home.
-          # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(layout: layout, formats: [$1.to_sym], template: $`)
+          #body = File.read("#{@source_dir}/#{guide}")
+          result = controller.plain(guide: $`,
+            layout: layout,
+            source_dir: @source_dir,
+            direction: @direction,
+            edge: @edge,
+            version: @version,
+            language: @language,
+            epub_filename: @epub_filename,
+            uuid: @uuid
+          )
         else
           body = File.read("#{@source_dir}/#{guide}")
           result = RailsGuides::Markdown.new(
@@ -188,8 +214,9 @@ module RailsGuides
             layout:  layout,
             edge:    @edge,
             version: @version,
-            epub:    "epub/#{epub_filename}",
-            uuid: SecureRandom.uuid
+            language: @language,
+            epub_filename: @epub_filename,
+            uuid: @uuid
           ).render(body)
 
           warn_about_broken_links(result)
