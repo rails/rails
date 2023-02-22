@@ -33,9 +33,7 @@ require "models/contract"
 require "models/pirate"
 require "models/matey"
 require "models/parrot"
-require "models/sharded/blog"
-require "models/sharded/blog_post"
-require "models/sharded/comment"
+require "models/sharded"
 
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
@@ -54,7 +52,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :companies, :accounts, :tags, :taggings, :ratings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
-            :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments
+            :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags,
+            :sharded_tags
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
@@ -1688,13 +1687,30 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal(post.comments.sort, expected_comments.sort)
   end
 
-  test "reloading has_many association associated by a composite query_constraints" do
+  test "preloading has_many association associated by a composite query_constraints" do
     blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
     comments = Sharded::Comment.where(blog_id: blog_ids).includes(:blog_post).to_a
     assert comments.all? { |comment| comment.association(:blog_post).loaded? }
 
     comment = comments.find { |comment| comment.id == sharded_comments(:great_comment_blog_post_one).id }
     assert_equal(comment.blog_post, sharded_blog_posts(:great_post_blog_one))
+  end
+
+  test "preloading has_many through association associated by a composite query_constraints" do
+    blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
+    blog_posts = Sharded::BlogPost.where(blog_id: blog_ids).includes(:tags).to_a
+    assert blog_posts.all? { |post| post.association(:tags).loaded? }
+
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_tag_ids = Sharded::BlogPostTag
+      .where(blog_id: expected_blog_post.blog_id, blog_post_id: expected_blog_post.id)
+      .pluck(:tag_id)
+
+    assert_not_empty(expected_tag_ids)
+
+    blog_post = blog_posts.find { |post| post.id == expected_blog_post.id }
+
+    assert_equal(expected_tag_ids.sort, blog_post.tags.map(&:id).sort)
   end
 
   private
