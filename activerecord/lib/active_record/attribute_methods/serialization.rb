@@ -63,7 +63,7 @@ module ActiveRecord
         # ==== Choosing a serializer
         #
         # While any serialization format can be used, it is recommended to carefully
-        # evaludate the properties of a serializer before using it, as migrating to
+        # evaluate the properties of a serializer before using it, as migrating to
         # another format later on can be difficult.
         #
         # ===== Avoid accepting arbitrary types
@@ -72,9 +72,9 @@ module ActiveRecord
         # only expected types will be serialized. For instance some serializer like
         # +Marshal+ or +YAML+ are capable of serializing almost any Ruby object.
         #
-        # This can lead to unexpected types being serialized, and it it happens
-        # that type serialization must remain backward and forward compatible as long
-        # as some database record still contain these serialized types.
+        # This can lead to unexpected types being serialized, and it is important
+        # that type serialization remains backward and forward compatible as long
+        # as some database records still contain these serialized types.
         #
         #   class Address
         #     def initialize(line, city, country)
@@ -116,13 +116,13 @@ module ActiveRecord
         #     serialize :address, coder: Address
         #   end
         #
-        # This patterns allow to be more deliberate about what is serialized, and
+        # This pattern allows to be more deliberate about what is serialized, and
         # to evolve the format in a backward compatible way.
         #
         # ===== Ensure serialization stability
         #
         # Some serialization methods may accept some types they don't support by
-        # silently casting them to another types. This can cause bugs when the
+        # silently casting them to other types. This can cause bugs when the
         # data is deserialized.
         #
         # For instance the +JSON+ serializer provided in the standard library will

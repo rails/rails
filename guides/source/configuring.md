@@ -1275,7 +1275,7 @@ column.
 
 `serialize` and `store` while allowing to use alternative serializer
 implementations, use `YAML` by default, but it's not a very efficient format
-and can be the source of security vulnerability if not carefully employeed.
+and can be the source of security vulnerabilities if not carefully employed.
 
 As such it is recommended to prefer stricter, more limited formats for database
 serialization.
