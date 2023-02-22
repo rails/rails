@@ -783,6 +783,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_no_year_in_license_file
+    year = Date.today.year
+
+    run_generator
+    assert_file "MIT-LICENSE" do |contents|
+      assert_no_match(/#{year}/, contents)
+    end
+  end
+
   def test_no_details_from_git_when_skip_git
     name = "TODO: Write your name"
     email = "TODO: Write your email address"
