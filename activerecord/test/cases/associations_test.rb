@@ -34,9 +34,7 @@ require "models/shipping_line"
 require "models/essay"
 require "models/member"
 require "models/membership"
-require "models/sharded/blog"
-require "models/sharded/blog_post"
-require "models/sharded/comment"
+require "models/sharded"
 require "models/member_detail"
 require "models/organization"
 
@@ -542,7 +540,8 @@ end
 
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
-           :sharded_blog_posts, :sharded_comments, :members, :member_details, :organizations
+           :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
+           :members, :member_details, :organizations
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -1163,6 +1162,24 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert comment.association(:blog_post).loaded?
     assert_equal sharded_blog_posts(:great_post_blog_one), comment.blog_post
+  end
+
+  def test_preload_has_many_through_association_with_composite_query_constraints
+    tag = sharded_tags(:short_read_blog_one)
+
+    tags = [tag, sharded_tags(:breaking_news_blog_2)]
+
+    ActiveRecord::Associations::Preloader.new(records: tags, associations: :blog_posts).call
+
+    assert tags.all? { |tag| tag.association(:blog_posts).loaded? }
+
+    expected_blog_post_ids = Sharded::BlogPostTag
+      .where(blog_id: tag.blog_id, tag_id: tag.id)
+      .pluck(:blog_post_id)
+
+    assert_not_empty(expected_blog_post_ids)
+
+    assert_equal(expected_blog_post_ids.sort, tag.blog_posts.map(&:id).sort)
   end
 end
 
