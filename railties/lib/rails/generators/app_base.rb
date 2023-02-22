@@ -94,6 +94,9 @@ module Rails
         class_option :dev,                 type: :boolean, default: nil,
                                            desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
+        class_option :vendor,              type: :boolean, default: nil,
+                                           desc: "Set up the #{name} with Gemfile pointing to your Rails checkout copied to the vendor directory. Useful for testing your checkout with Docker."
+
         class_option :edge,                type: :boolean, default: nil,
                                            desc: "Set up the #{name} with a Gemfile pointing to the #{edge_branch} branch on the Rails repository"
 
@@ -234,6 +237,9 @@ module Rails
         valid_const?
 
         empty_directory "."
+        if vendor?
+          empty_directory_with_keep_file "vendor"
+        end
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
@@ -398,11 +404,17 @@ module Rails
       end
 
       def rails_prerelease?
-        options.dev? || options.edge? || options.main?
+        options.vendor? || options.dev? || options.edge? || options.main?
+      end
+
+      def vendor?
+        options.vendor?
       end
 
       def rails_gemfile_entry
-        if options.dev?
+        if options.vendor?
+          GemfileEntry.path("rails", "vendor/rails", "Use local checkout of Rails")
+        elsif options.dev?
           GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH, "Use local checkout of Rails")
         elsif options.edge?
           GemfileEntry.github("rails", "rails/rails", edge_branch, "Use specific branch of Rails")
@@ -624,6 +636,10 @@ module Rails
       def target_rails_prerelease(self_command = "new")
         return unless rails_prerelease? && bundle_install?
 
+        if vendor? && !File.exist?(File.expand_path("vendor/rails"))
+          vendor_rails
+        end
+
         if !File.exist?(File.expand_path("Gemfile", destination_root))
           create_file("Gemfile", <<~GEMFILE)
             source "https://rubygems.org"
@@ -681,6 +697,10 @@ module Rails
       def empty_directory_with_keep_file(destination, config = {})
         empty_directory(destination, config)
         keep_file(destination)
+      end
+
+      def vendor_rails
+        FileUtils.cp_r Rails::Generators::RAILS_DEV_PATH, "vendor/rails"
       end
 
       def keep_file(destination)
