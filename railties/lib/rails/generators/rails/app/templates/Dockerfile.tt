@@ -23,7 +23,7 @@ RUN apt-get update -qq && \
 
 <% if using_node? -%>
 # Install JavaScript dependencies
-ARG NODE_VERSION=<%= dockerfile_node_version %>
+ARG NODE_VERSION=<%= node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
 ENV PATH=/usr/local/node/bin:$PATH
 RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
