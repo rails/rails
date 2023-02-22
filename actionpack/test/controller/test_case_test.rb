@@ -82,34 +82,34 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_html_output
-      render plain: <<HTML
-<html>
-  <body>
-    <a href="/"><img src="/images/button.png" /></a>
-    <div id="foo">
-      <ul>
-        <li class="item">hello</li>
-        <li class="item">goodbye</li>
-      </ul>
-    </div>
-    <div id="bar">
-      <form action="/somewhere">
-        Name: <input type="text" name="person[name]" id="person_name" />
-      </form>
-    </div>
-  </body>
-</html>
-HTML
+      render plain: <<~HTML
+        <html>
+          <body>
+            <a href="/"><img src="/images/button.png" /></a>
+            <div id="foo">
+              <ul>
+                <li class="item">hello</li>
+                <li class="item">goodbye</li>
+              </ul>
+            </div>
+            <div id="bar">
+              <form action="/somewhere">
+                Name: <input type="text" name="person[name]" id="person_name" />
+              </form>
+            </div>
+          </body>
+        </html>
+      HTML
     end
 
     def test_xml_output
       response.content_type = params[:response_as]
-      render plain: <<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <area><p>area is an empty tag in HTML, so it won't contain this content</p></area>
-</root>
-XML
+      render plain: <<~XML
+        <?xml version="1.0" encoding="UTF-8"?>
+        <root>
+          <area><p>area is an empty tag in HTML, so it won't contain this content</p></area>
+        </root>
+      XML
     end
 
     def test_only_one_param
@@ -169,6 +169,11 @@ XML
       @counter ||= 0
       @counter += 1
       render plain: @counter
+    end
+
+    def original_fullpath
+      request.set_header("PATH_INFO", "/new")
+      render plain: request.original_fullpath
     end
 
     private
@@ -1043,6 +1048,11 @@ XML
     get :increment_count
     assert_equal "1", response.body
     assert_equal 1, @controller.instance_variable_get(:@counter)
+  end
+
+  def test_original_fullpath_doesnt_change_when_path_is_changed
+    get :original_fullpath
+    assert_equal "/test_case_test/test/original_fullpath", response.body
   end
 end
 
