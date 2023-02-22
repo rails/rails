@@ -102,7 +102,8 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
+        coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
+        serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
         store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 

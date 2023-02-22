@@ -1268,6 +1268,22 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+#### `config.active_record.default_column_serializer`
+
+The serializer implementation to use if none is explicitly specified for a given
+column.
+
+`serialize` and `store` while allowing to use alternative serializer
+implementations, use `YAML` by default, but it's not a very efficient format
+and can be the source of security vulnerability if not carefully employeed.
+
+As such it is recommended to prefer stricter, more limited formats for database
+serialization.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `YAML`               |
+
 #### `config.active_record.query_log_tags_enabled`
 
 Specifies whether or not to enable adapter-level query comments. Defaults to
