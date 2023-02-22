@@ -81,7 +81,7 @@
 
     *Leonardo Luarte*
 
-*   Add `:include` index option
+*   Add `:include` option to `add_index`.
 
     Add support for including non-key columns in indexes for PostgreSQL
     with the `INCLUDE` parameter.
@@ -93,8 +93,7 @@
     will result in:
 
     ```sql
-    CREATE INDEX index_users_on_email USING btree (email) INCLUDE (id,
-    created_at)
+    CREATE INDEX index_users_on_email USING btree (email) INCLUDE (id, created_at)
     ```
 
     *Steve Abrams*
