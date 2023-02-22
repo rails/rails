@@ -23,9 +23,11 @@ RUN apt-get update -qq && \
 # Install JavaScript dependencies
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
-ENV VOLTA_HOME="/usr/local"
-RUN curl https://get.volta.sh | bash && \
-    volta install node@$NODE_VERSION yarn@$YARN_VERSION
+
+RUN git clone https://github.com/nodenv/node-build.git /tmp/node-build/ && \
+    /tmp/node-build/bin/node-build "${NODE_VERSION}" /usr/local && \
+    npm install -g yarn@$YARN_VERSION && \
+    rm -rf /tmp/node-build
 
 <% end -%>
 # Install application gems
