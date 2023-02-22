@@ -24,10 +24,11 @@ RUN apt-get update -qq && \
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
 
-RUN git clone https://github.com/nodenv/node-build.git /tmp/node-build/ && \
-    /tmp/node-build/bin/node-build "${NODE_VERSION}" /usr/local && \
+ENV PATH=$PATH:/usr/local/node/bin
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     npm install -g yarn@$YARN_VERSION && \
-    rm -rf /tmp/node-build
+    rm -rf /tmp/node-build-master
 
 <% end -%>
 # Install application gems
