@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1
 
-# Make sure it matches the Ruby version in .ruby-version and Gemfile
+# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
 FROM ruby:$RUBY_VERSION-slim as base
 
@@ -9,15 +9,22 @@ WORKDIR /rails
 
 # Set production environment
 ENV RAILS_ENV="production" \
+    BUNDLE_PATH="vendor/bundle" \
     BUNDLE_WITHOUT="development"
+
+# Update gems and preinstall the desired version of bundler
+ARG BUNDLER_VERSION=<%= Bundler::VERSION %>
+RUN gem update --system --no-document && \
+    gem install -N irb reline && \
+    gem install -N bundler -v ${BUNDLER_VERSION}
 
 
 # Throw-away build stage to reduce size of final image
 FROM base as build
 
-# Install packages need to build gems<%= using_node? ? " and node modules" : "" %>
+# Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
 RUN apt-get update -qq && \
-    apt-get install -y <%= dockerfile_build_packages.join(" ") %>
+    apt-get install --no-install-recommends -y <%= dockerfile_build_packages.join(" ") %>
 
 <% if using_node? -%>
 # Install JavaScript dependencies
@@ -33,13 +40,13 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
 <% end -%>
 # Install application gems
 COPY Gemfile Gemfile.lock ./
-RUN bundle install<% if depend_on_bootsnap? -%> && \
+RUN bundle _${BUNDLER_VERSION}_ install<% if depend_on_bootsnap? -%> && \
     bundle exec bootsnap precompile --gemfile
 <% end %>
 
 <% if using_node? -%>
 # Install node modules
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .
 RUN yarn install
 
 <% end -%>
@@ -73,8 +80,7 @@ RUN apt-get update -qq && \
 RUN useradd rails
 USER rails:rails
 
-# Copy built artifacts: gems, application
-COPY --from=build --chown=rails:rails /usr/local/bundle /usr/local/bundle
+# Copy built application from previous stage
 COPY --from=build --chown=rails:rails /rails /rails
 
 # Entrypoint prepares the database.

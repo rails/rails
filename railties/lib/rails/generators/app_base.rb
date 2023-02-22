@@ -465,7 +465,7 @@ module Rails
       end
 
       def dockerfile_yarn_version
-        using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
+        using_node? and `yarn --version`[/\d+\.\d+\.\d+/] || "1.22.19"
       rescue
         "latest"
       end
