@@ -24,7 +24,7 @@ RUN apt-get update -qq && \
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
 
-ENV PATH=$PATH:/usr/local/node/bin
+ENV PATH=/usr/local/node/bin:$PATH
 RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
     /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     npm install -g yarn@$YARN_VERSION && \
