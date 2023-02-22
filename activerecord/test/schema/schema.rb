@@ -258,6 +258,17 @@ ActiveRecord::Schema.define do
     t.integer :blog_id
   end
 
+  create_table :sharded_tags, force: true do |t|
+    t.string :name
+    t.integer :blog_id
+  end
+
+  create_table :sharded_blog_posts_tags, force: true do |t|
+    t.integer :blog_id
+    t.integer :blog_post_id
+    t.integer :tag_id
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id
