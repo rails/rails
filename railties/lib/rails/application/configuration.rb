@@ -417,8 +417,14 @@ module Rails
           if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |env, config|
               if config.is_a?(Hash) && config.values.all?(Hash)
-                config.map do |name, sub_config|
-                  sub_config.reverse_merge!(shared)
+                if shared.is_a?(Hash) && shared.values.all?(Hash)
+                  config.map do |name, sub_config|
+                    sub_config.reverse_merge!(shared[name])
+                  end
+                else
+                  config.map do |name, sub_config|
+                    sub_config.reverse_merge!(shared)
+                  end
                 end
               else
                 config.reverse_merge!(shared)
