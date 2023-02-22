@@ -235,10 +235,10 @@ module ActiveRecord
     #   #   LIMIT 5
     #
     # Instead of loading the 5 addresses with 5 separate queries, all addresses
-    # are loaded with a single query.
+    # are loaded with a single joined query.
     #
-    # Loading multiple and nested associations is possible using a Arrays and
-    # Hashes, similar to #includes:
+    # Loading multiple and nested associations is possible using Hashes and Arrays,
+    # similar to #includes:
     #
     #   User.eager_load(:address, friends: [:address, :followers])
     #   # SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ... FROM "users"
@@ -272,8 +272,8 @@ module ActiveRecord
     # Instead of loading the 5 addresses with 5 separate queries, all addresses
     # are loaded with a separate query.
     #
-    # Loading multiple and nested associations is possible using a Arrays and
-    # Hashes, similar to #includes:
+    # Loading multiple and nested associations is possible using Hashes and Arrays,
+    # similar to #includes:
     #
     #   User.preload(:address, friends: [:address, :followers])
     #   # SELECT "users".* FROM "users"
