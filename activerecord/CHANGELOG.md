@@ -1,3 +1,16 @@
+*   Return record ids additionally to the relation in `Batches#in_batches`.
+
+    ```ruby
+    User.in_batches do |relation, ids|
+      SomeWorker.perform_async(ids)
+    end
+    ```
+
+    This helps to avoid calling `relation.pluck(:id)` inside the block,
+    which produces additional SQL queries.
+
+    *fatkodima*
+
 *   YAML columns use `YAML.safe_dump` is available.
 
     As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
