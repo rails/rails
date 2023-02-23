@@ -1359,6 +1359,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [member], club.favorites
   end
 
+  def test_insert_records_via_has_many_through_association_with_scope_and_association_name_different_from_the_joining_table_name
+    club = Club.create!
+    member = Member.create!
+    Membership.create!(club: club, member: member)
+
+    club.custom_favorites << member
+    assert_equal [member], club.custom_favorites
+
+    club.reload
+    assert_equal [member], club.custom_favorites
+  end
+
   def test_has_many_through_unscope_default_scope
     post = Post.create!(title: "Beaches", body: "I like beaches!")
     Reader.create! person: people(:david), post: post

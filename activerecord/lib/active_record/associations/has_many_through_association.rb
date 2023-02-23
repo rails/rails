@@ -70,7 +70,7 @@ module ActiveRecord
 
         def through_scope_attributes
           scope = through_scope || self.scope
-          attributes = scope.where_values_hash(through_association.reflection.name.to_s)
+          attributes = scope.where_values_hash(through_association.reflection.klass.table_name)
           except_keys = [
             *Array(through_association.reflection.foreign_key),
             through_association.reflection.klass.inheritance_column
