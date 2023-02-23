@@ -369,7 +369,7 @@ module ActionDispatch
           def #{method}(#{definition})
             #{reset_html_document}
 
-            result = integration_session.#{method}(#{definition})
+            result = integration_session.#{method}(**#{definition})
             copy_session_variables!
             result
           end
