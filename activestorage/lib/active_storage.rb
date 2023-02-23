@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2023 David Heinemeier Hansson, Basecamp
+# Copyright (c) David Heinemeier Hansson, 37signals LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
