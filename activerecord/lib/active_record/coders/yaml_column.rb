@@ -11,7 +11,7 @@ module ActiveRecord
           @unsafe_load = unsafe_load
         end
 
-        if Gem::Version.new(Psych::VERSION) >= "5.1"
+        if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("5.1")
           def dump(object)
             if @unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : @unsafe_load
               ::YAML.dump(object)
