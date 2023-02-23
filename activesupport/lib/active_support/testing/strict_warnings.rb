@@ -12,7 +12,16 @@ module RaiseWarnings
     /Ignoring .*\.yml because it has expired/,
     /Failed to validate the schema cache because/,
   )
+
+  SUPPRESSED_WARNINGS = Regexp.union(
+    # TODO: remove if https://github.com/mikel/mail/pull/1557 or similar fix
+    %r{/lib/mail/parsers/.*statement not reached},
+    %r{/lib/mail/parsers/.*assigned but unused variable - testEof}
+  )
+
   def warn(message, *)
+    return if SUPPRESSED_WARNINGS.match?(message)
+
     super
 
     return unless message.include?(PROJECT_ROOT)
