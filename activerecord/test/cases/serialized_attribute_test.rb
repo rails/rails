@@ -416,7 +416,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
       end
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "tmp_posts"
-        serialize(:content, Hash)
+        serialize(:content, type: Hash)
       end
 
       t = klass.create!(content: { "other_key" => "new_value" })
@@ -439,7 +439,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
       end
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "tmp_posts"
-        serialize(:content, Hash)
+        serialize(:content, type: Hash)
       end
 
       t = klass.create!(content: { foo: "bar" })
