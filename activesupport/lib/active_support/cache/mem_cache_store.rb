@@ -96,7 +96,7 @@ module ActiveSupport
         if pool_options.empty?
           Dalli::Client.new(addresses, options)
         else
-          ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+          ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.reverse_merge(threadsafe: false)) }
         end
       end
 
