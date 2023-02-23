@@ -326,7 +326,7 @@ If your application decorates classes or modules from an engine, chances are it 
 
 ```ruby
 config.to_prepare do
-  Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").each do |override|
+  Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").sort.each do |override|
     require_dependency override
   end
 end
@@ -338,7 +338,7 @@ That has to be updated: You need to tell the `main` autoloader to ignore the dir
 overrides = "#{Rails.root}/app/overrides"
 Rails.autoloaders.main.ignore(overrides)
 config.to_prepare do
-  Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+  Dir.glob("#{overrides}/**/*_override.rb").sort.each do |override|
     load override
   end
 end
