@@ -762,8 +762,18 @@ module Arel # :nodoc: all
               if value.empty?
                 collector << @connection.quote(nil)
               else
-                values = value.map { |v| @connection.cast_bound_value(v) }
-                collector.add_binds(values, &bind_block)
+                if value.none? { |v| Arel.arel_node?(v) }
+                  collector.add_binds(value.map { |v| @connection.cast_bound_value(v) }, &bind_block)
+                else
+                  value.each_with_index do |v, i|
+                    collector << ", " unless i == 0
+                    if Arel.arel_node?(v)
+                      visit v, collector
+                    else
+                      collector.add_bind(@connection.cast_bound_value(v), &bind_block)
+                    end
+                  end
+                end
               end
             else
               collector.add_bind(@connection.cast_bound_value(value), &bind_block)
