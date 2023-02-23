@@ -71,9 +71,9 @@ module ActionView
       # Any other specified options will be treated as HTML attributes for the
       # +script+ tag.
       #
-      # For example, <tt>:async</tt> and <tt>:defer</tt> options, please refer to the
-      # {MDN docs}[https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script]
-      # regarding how they affect the <tt><script></tt> tag.
+      # For more information regarding how the <tt>:async</tt> and <tt>:defer</tt>
+      # options affect the <tt><script></tt> tag, please refer to the
+      # {MDN docs}[https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script].
       #
       # ==== Examples
       #
