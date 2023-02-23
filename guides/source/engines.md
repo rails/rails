@@ -1090,7 +1090,7 @@ module MyApp
     Rails.autoloaders.main.ignore(overrides)
 
     config.to_prepare do
-      Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+      Dir.glob("#{overrides}/**/*_override.rb").sort.each do |override|
         load override
       end
     end
