@@ -9,10 +9,9 @@ module ActiveRecord
 
       attr_reader :subtype, :coder
 
-      def initialize(subtype, coder, default: nil)
+      def initialize(subtype, coder)
         @subtype = subtype
         @coder = coder
-        @default = default
         super(subtype)
       end
 
@@ -26,7 +25,7 @@ module ActiveRecord
 
       def serialize(value)
         return if value.nil?
-        unless default_value?(value) && @default.nil?
+        unless default_value?(value)
           super coder.dump(value)
         end
       end

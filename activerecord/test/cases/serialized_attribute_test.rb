@@ -403,51 +403,18 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [topic, topic2], Topic.where(content: nil).sort_by(&:id)
   end
 
-  # MySQL doesn't support default values for text columns, so we need to skip this test for MySQL
-  if !current_adapter?(:Mysql2Adapter)
-    def test_serialized_attribute_with_default_can_update_to_default
-      @verbose_was = ActiveRecord::Migration.verbose
-      ActiveRecord::Migration.verbose = false
-
-      ActiveRecord::Schema.define do
-        create_table :tmp_posts, force: true do |t|
-          t.text     :content, null: false, default: "{}"
-        end
-      end
-      klass = Class.new(ActiveRecord::Base) do
-        self.table_name = "tmp_posts"
-        serialize(:content, type: Hash)
-      end
-
-      t = klass.create!(content: { "other_key" => "new_value" })
-      assert_equal({ "other_key" => "new_value" }, t.content)
-
-      t.update!(content: {})
-      assert_equal({}, t.content)
-    ensure
-      ActiveRecord::Migration.verbose = @verbose_was
+  def test_serialized_attribute_can_be_defined_in_abstract_classes
+    klass = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      self.table_name = nil
+      serialize(:content, type: Hash)
     end
 
-    def test_nil_is_always_persisted_as_default
-      @verbose_was = ActiveRecord::Migration.verbose
-      ActiveRecord::Migration.verbose = false
-
-      ActiveRecord::Schema.define do
-        create_table :tmp_posts, force: true do |t|
-          t.text     :content, null: false, default: "{}"
-        end
-      end
-      klass = Class.new(ActiveRecord::Base) do
-        self.table_name = "tmp_posts"
-        serialize(:content, type: Hash)
-      end
-
-      t = klass.create!(content: { foo: "bar" })
-      t.update_attribute :content, nil
-      assert_equal({}, t.content)
-    ensure
-      ActiveRecord::Migration.verbose = @verbose_was
+    subclass = Class.new(klass) do
+      self.table_name = "posts"
     end
+
+    subclass.define_attribute_methods
   end
 
   def test_nil_is_always_persisted_as_null
