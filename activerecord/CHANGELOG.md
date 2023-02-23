@@ -1,3 +1,26 @@
+*   Adds support for deferrable exclude constraints in PostgreSQL.
+
+    By default, exclude constraints in PostgreSQL are checked after each statement.
+    This works for most use cases, but becomes a major limitation when replacing
+    records with overlapping ranges by using multiple statements.
+
+    ```ruby
+    exclusion_constraint :users, "daterange(valid_from, valid_to) WITH &&", deferrable: :immediate
+    ```
+
+    Passing `deferrable: :immediate` checks constraint after each statement,
+    but allows manually deferring the check using `SET CONSTRAINTS ALL DEFERRED`
+    within a transaction. This will cause the excludes to be checked after the transaction.
+
+    It's also possible to change the default behavior from an immediate check
+    (after the statement), to a deferred check (after the transaction):
+
+    ```ruby
+    exclusion_constraint :users, "daterange(valid_from, valid_to) WITH &&", deferrable: :deferred
+    ```
+
+    *Hiroyuki Ishii*
+
 *   Respect `foreign_type` option to `delegated_type` for `{role}_class` method.
 
     Usage of `delegated_type` with non-conventional `{role}_type` column names can now be specified with `foreign_type` option.

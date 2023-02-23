@@ -202,6 +202,10 @@ module ActiveRecord
           options[:where]
         end
 
+        def deferrable
+          options[:deferrable]
+        end
+
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.excl_ignore_pattern.match?(name) if name
         end

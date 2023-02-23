@@ -131,8 +131,14 @@ _SQL
   create_table :test_exclusion_constraints, force: true do |t|
     t.date :start_date
     t.date :end_date
+    t.date :valid_from
+    t.date :valid_to
+    t.date :transaction_from
+    t.date :transaction_to
 
     t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "test_exclusion_constraints_date_overlap"
+    t.exclusion_constraint "daterange(valid_from, valid_to) WITH &&", using: :gist, where: "valid_from IS NOT NULL AND valid_to IS NOT NULL", name: "test_exclusion_constraints_valid_overlap", deferrable: :immediate
+    t.exclusion_constraint "daterange(transaction_from, transaction_to) WITH &&", using: :gist, where: "transaction_from IS NOT NULL AND transaction_to IS NOT NULL", name: "test_exclusion_constraints_transaction_overlap", deferrable: :deferred
   end
 
   create_table :test_unique_keys, force: true do |t|

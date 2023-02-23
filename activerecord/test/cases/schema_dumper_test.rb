@@ -222,10 +222,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if ActiveRecord::Base.connection.supports_exclusion_constraints?
     def test_schema_dumps_exclusion_constraints
-      constraint_definitions = dump_table_schema("test_exclusion_constraints").split(/\n/).grep(/test_exclusion_constraints_date_overlap/)
+      output = dump_table_schema("test_exclusion_constraints")
+      constraint_definitions = output.split(/\n/).grep(/test_exclusion_constraints_.*_overlap/)
 
-      assert_equal 1, constraint_definitions.size
-      assert_equal 't.exclusion_constraint "daterange(start_date, end_date) WITH &&", where: "(start_date IS NOT NULL) AND (end_date IS NOT NULL)", using: :gist, name: "test_exclusion_constraints_date_overlap"', constraint_definitions.first.strip
+      assert_equal 3, constraint_definitions.size
+      assert_match 't.exclusion_constraint "daterange(start_date, end_date) WITH &&", where: "(start_date IS NOT NULL) AND (end_date IS NOT NULL)", using: :gist, name: "test_exclusion_constraints_date_overlap"', output
+      assert_match 't.exclusion_constraint "daterange(valid_from, valid_to) WITH &&", where: "(valid_from IS NOT NULL) AND (valid_to IS NOT NULL)", using: :gist, deferrable: :immediate, name: "test_exclusion_constraints_valid_overlap"', output
+      assert_match 't.exclusion_constraint "daterange(transaction_from, transaction_to) WITH &&", where: "(transaction_from IS NOT NULL) AND (transaction_to IS NOT NULL)", using: :gist, deferrable: :deferred, name: "test_exclusion_constraints_transaction_overlap"', output
     end
   end
 
