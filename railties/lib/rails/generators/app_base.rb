@@ -520,11 +520,11 @@ module Rails
           # how python is installed with the bullseye release.  Below
           # is based on debian release included with the Ruby images on
           # Dockerhub.
-          case Gem.ruby_version
-          when /^2.7/
-            bullseye = ruby_version >= "2.7.4"
-          when /^3.0/
-            bullseye = ruby_version >= "3.0.2"
+          case Gem.ruby_version.to_s
+          when /^2\.7/
+            bullseye = Gem.ruby_version >= "2.7.4"
+          when /^3\.0/
+            bullseye = Gem.ruby_version >= "3.0.2"
           else
             bullseye = true
           end
