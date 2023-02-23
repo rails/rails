@@ -55,7 +55,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
   def test_console_defaults_to_IRB
     app = build_app(nil)
-    assert_equal IRB, Rails::Console.new(app).console
+    assert_equal "IRB", Rails::Console.new(app).console.name
   end
 
   def test_console_disables_IRB_auto_completion_in_production
@@ -64,7 +64,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     with_rack_env "production" do
       app = build_app(nil)
-      assert_equal IRB, Rails::Console.new(app).console
+      assert_equal "IRB", Rails::Console.new(app).console.name
       assert_equal "false", ENV["IRB_USE_AUTOCOMPLETE"]
     end
   ensure
@@ -77,7 +77,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     with_rack_env "production" do
       app = build_app(nil)
-      assert_equal IRB, Rails::Console.new(app).console
+      assert_equal "IRB", Rails::Console.new(app).console.name
       assert_equal "true", ENV["IRB_USE_AUTOCOMPLETE"]
     end
   ensure
@@ -90,7 +90,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     with_rails_env nil do
       app = build_app(nil)
-      assert_equal IRB, Rails::Console.new(app).console
+      assert_equal "IRB", Rails::Console.new(app).console.name
       assert_nil ENV["IRB_USE_AUTOCOMPLETE"]
     end
   ensure

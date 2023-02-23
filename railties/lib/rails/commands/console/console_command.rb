@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "irb"
-require "irb/completion"
-
 require "rails/command/environment_argument"
 
 module Rails
@@ -34,14 +31,17 @@ module Rails
 
       app.load_console
 
-      @console = app.config.console || IRB
+      @console = app.config.console || begin
+        require "irb"
+        require "irb/completion"
 
-      if @console == IRB
         IRB::WorkSpace.prepend(BacktraceCleaner)
 
         if Rails.env.production?
           ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
         end
+
+        IRB
       end
     end
 
