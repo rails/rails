@@ -1,3 +1,9 @@
+*   Make analyze job to ignore FileNotFoundError
+
+    Files can be missing when analyzing because of timing or client bugs.
+
+    *Shouichi Kamiya*
+
 *   Add missing preview event to `ActiveStorage::LogSubscriber`
 
     A `preview` event is being instrumented in `ActiveStorage::Previewer`.
