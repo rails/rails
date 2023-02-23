@@ -5,7 +5,7 @@ module ActionView
     extend ActiveSupport::Concern
 
     included do
-      ViewPaths::Registry.set_view_paths(self, ActionView::PathSet.new.freeze)
+      ActionView::PathRegistry.set_view_paths(self, ActionView::PathSet.new.freeze)
     end
 
     delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,
@@ -13,11 +13,11 @@ module ActionView
 
     module ClassMethods
       def _view_paths
-        ViewPaths::Registry.get_view_paths(self)
+        ActionView::PathRegistry.get_view_paths(self)
       end
 
       def _view_paths=(paths)
-        ViewPaths::Registry.set_view_paths(self, paths)
+        ActionView::PathRegistry.set_view_paths(self, paths)
       end
 
       def _prefixes # :nodoc:
@@ -68,47 +68,6 @@ module ActionView
         def local_prefixes
           [controller_path]
         end
-    end
-
-    module Registry # :nodoc:
-      @view_paths_by_class = {}
-      @file_system_resolvers = Concurrent::Map.new
-
-      class << self
-        include ActiveSupport::Callbacks
-        define_callbacks :build_file_system_resolver
-      end
-
-      def self.get_view_paths(klass)
-        @view_paths_by_class[klass] || get_view_paths(klass.superclass)
-      end
-
-      def self.set_view_paths(klass, paths)
-        @view_paths_by_class[klass] = paths
-      end
-
-      def self.file_system_resolver(path)
-        path = File.expand_path(path)
-        resolver = @file_system_resolvers[path]
-        unless resolver
-          run_callbacks(:build_file_system_resolver) do
-            resolver = @file_system_resolvers.fetch_or_store(path) do
-              FileSystemResolver.new(path)
-            end
-          end
-        end
-        resolver
-      end
-
-      def self.all_resolvers
-        resolvers = [all_file_system_resolvers]
-        resolvers.concat @view_paths_by_class.values.map(&:to_a)
-        resolvers.flatten.uniq
-      end
-
-      def self.all_file_system_resolvers
-        @file_system_resolvers.values
-      end
     end
 
     # The prefixes used in render "foo" shortcuts.

@@ -40,6 +40,7 @@ module ActionView
     autoload :Helpers
     autoload :LookupContext
     autoload :Layouts
+    autoload :PathRegistry
     autoload :PathSet
     autoload :RecordIdentifier
     autoload :Rendering
