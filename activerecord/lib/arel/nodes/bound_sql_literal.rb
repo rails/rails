@@ -13,7 +13,7 @@ module Arel # :nodoc: all
             raise BindError.new("wrong number of bind variables (#{positional_binds.size} for #{expected})", sql_with_placeholders)
           end
         elsif !named_binds.empty?
-          tokens_in_string = sql_with_placeholders.scan(/:(?<!::)(\w+)/).flatten.map(&:to_sym).uniq
+          tokens_in_string = sql_with_placeholders.scan(/:(?<!::)([a-zA-Z]\w*)/).flatten.map(&:to_sym).uniq
           tokens_in_hash = named_binds.keys.map(&:to_sym).uniq
 
           if !(missing = (tokens_in_string - tokens_in_hash)).empty?
