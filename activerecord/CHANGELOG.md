@@ -1,4 +1,4 @@
-*   ActiveRecord::Base.serialize now longer use YAML by default.
+*   `ActiveRecord::Base.serialize` no longer uses YAML by default.
 
     YAML isn't particularly performant and can lead to security issues
     if not used carefully.
@@ -12,16 +12,16 @@
 
     Some third party JSON libraries like `Oj` have a suitable strict mode.
 
-    So it's preferable if users chose a serializer based on their own constraints.
+    So it's preferable that users choose a serializer based on their own constraints.
 
     The original default can be restored by setting `config.active_record.default_column_serializer = YAML`.
 
     *Jean Boussier*
 
-*   ActiveRecord::Base.serialize signature changed.
+*   `ActiveRecord::Base.serialize` signature changed.
 
-    Rather than a single positional argument that accept two possible
-    types of values, `serialize` now accept two distinct keyword arguments.
+    Rather than a single positional argument that accepts two possible
+    types of values, `serialize` now accepts two distinct keyword arguments.
 
     Before:
 
