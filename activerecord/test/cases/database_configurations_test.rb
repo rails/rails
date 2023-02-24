@@ -84,6 +84,50 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal ActiveRecord::ConnectionHandling::DEFAULT_ENV.call, config.env_name
     assert_equal ":memory:", config.database
   end
+
+  class CustomHashConfig < ActiveRecord::DatabaseConfigurations::HashConfig
+    def sharded?
+      custom_config.fetch("sharded", false)
+    end
+
+    private
+      def custom_config
+        configuration_hash.fetch(:custom_config)
+      end
+  end
+
+  def test_registering_a_custom_config_object
+    previous_handlers = ActiveRecord::DatabaseConfigurations.db_config_handlers
+
+    ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, _, config|
+      next unless config.key?(:custom_config)
+      CustomHashConfig.new(env_name, name, config)
+    end
+
+    configs = ActiveRecord::DatabaseConfigurations.new({
+      "test" => {
+        "config_1" => {
+          "database" => "db",
+          "custom_config" => {
+            "sharded" => 1
+          }
+        },
+        "config_2" => {
+          "database" => "db"
+        }
+      }
+    }).configurations
+
+    custom_config = configs.first
+    hash_config = configs.last
+
+    assert custom_config.is_a?(CustomHashConfig)
+    assert hash_config.is_a?(ActiveRecord::DatabaseConfigurations::HashConfig)
+
+    assert_predicate custom_config, :sharded?
+  ensure
+    ActiveRecord::DatabaseConfigurations.db_config_handlers = previous_handlers
+  end
 end
 
 class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
