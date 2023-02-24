@@ -76,6 +76,15 @@
 
     *Michael Go*
 
+*   Add `Object#in?` support for open ranges.
+
+    ```ruby
+    assert Date.today.in?(..Date.tomorrow)
+    assert_not Date.today.in?(Date.tomorrow..)
+    ```
+
+    *Ignacio Galindo*
+
 *   `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
 
     Previously it would only raise when called in a view or controller. Now it will raise
