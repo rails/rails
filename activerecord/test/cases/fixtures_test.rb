@@ -440,9 +440,14 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_logger_level_invariant
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
+
     level = ActiveRecord::Base.logger.level
     create_fixtures("topics")
     assert_equal level, ActiveRecord::Base.logger.level
+  ensure
+    ActiveRecord::Base.logger = previous_logger
   end
 
   def test_instantiation

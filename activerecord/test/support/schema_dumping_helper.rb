@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module SchemaDumpingHelper
-  def dump_table_schema(table)
+  def dump_table_schema(*tables)
     connection = ActiveRecord::Base.connection
     old_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-    ActiveRecord::SchemaDumper.ignore_tables = connection.data_sources - [table]
+    ActiveRecord::SchemaDumper.ignore_tables = connection.data_sources - tables
     stream = StringIO.new
 
     ActiveRecord::SchemaDumper.dump(connection, stream)

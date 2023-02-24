@@ -65,6 +65,11 @@ module ActiveRecord
         @connection = connection
         @version = connection.migration_context.current_version rescue nil
         @options = options
+        @ignore_tables = [
+          ActiveRecord::Base.schema_migrations_table_name,
+          ActiveRecord::Base.internal_metadata_table_name,
+          self.class.ignore_tables
+        ].flatten
       end
 
       # turns 20170404131909 into "2017_04_04_131909"
@@ -317,7 +322,7 @@ module ActiveRecord
       end
 
       def ignored?(table_name)
-        [ActiveRecord::Base.schema_migrations_table_name, ActiveRecord::Base.internal_metadata_table_name, ignore_tables].flatten.any? do |ignored|
+        @ignore_tables.any? do |ignored|
           ignored === remove_prefix_and_suffix(table_name)
         end
       end
