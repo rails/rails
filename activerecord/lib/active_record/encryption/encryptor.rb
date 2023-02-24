@@ -112,7 +112,7 @@ module ActiveRecord
 
         # Under certain threshold, ZIP compression is actually worse that not compressing
         def compress_if_worth_it(string)
-          if string.bytesize > THRESHOLD_TO_JUSTIFY_COMPRESSION
+          if ActiveRecord::Encryption.config.compress && string.bytesize > THRESHOLD_TO_JUSTIFY_COMPRESSION
             [compress(string), true]
           else
             [string, false]

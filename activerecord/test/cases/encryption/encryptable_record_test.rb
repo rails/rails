@@ -134,6 +134,33 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal "", book.name
   end
 
+  test "ciphertext length varies based on compression settings" do
+    # THRESHOLD_TO_JUSTIFY_COMPRESSION is 140 bytes
+    plaintext_under_threshold = "_" * 130
+    plaintext_over_threshold = "_" * 300
+
+    # Explicitly set the default
+    ActiveRecord::Encryption.config.compress = true
+    minimal_length = EncryptedBook.create!(name: "_").ciphertext_for(:name).length
+    under_threshold_length = EncryptedBook.create!(name: plaintext_under_threshold).ciphertext_for(:name).length
+    over_threshold_length = EncryptedBook.create!(name: plaintext_over_threshold).ciphertext_for(:name).length
+
+    ActiveRecord::Encryption.config.compress = false
+    over_threshold_uncompressed_length = EncryptedBook.create!(name: plaintext_over_threshold).ciphertext_for(:name).length
+
+    # Change back to the default to avoid affecting other tests.
+    ActiveRecord::Encryption.config.compress = true
+
+    # Short plaintexts are not compressed.
+    assert_operator under_threshold_length, :>, minimal_length + 150
+
+    # A highly compressible plaintext should add very little length to the ciphertext.
+    assert_operator over_threshold_length, :<, minimal_length + 30
+
+    # 300 bytes of uncompressed plaintext should significantly lengthen the ciphertext
+    assert_operator over_threshold_uncompressed_length, :>, minimal_length + 350
+  end
+
   test "can't modify encrypted attributes when frozen_encryption is true" do
     post = posts(:welcome).becomes(EncryptedPost)
     post.title = "Some new title"
