@@ -431,8 +431,11 @@ module ActionController
           authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm, message)
         end
 
-        # Authenticate using an HTTP Bearer token. Returns true if
-        # authentication is successful, false otherwise.
+        # Authenticate using an HTTP Bearer token.
+        # Returns the return value of <tt>login_procedure</tt> if a
+        # token is found. Returns <tt>nil</tt> if no token is found.
+        #
+        # See ActionController::HttpAuthentication::Token for example usage.
         def authenticate_with_http_token(&login_procedure)
           Token.authenticate(self, &login_procedure)
         end
