@@ -328,6 +328,18 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_should_yield_ids_if_block_given
+    all_ids = Post.ids.sort.in_groups_of(2, false)
+    index = 0
+
+    assert_queries(6) do
+      Post.in_batches(of: 2) do |_relation, ids|
+        assert_equal all_ids[index], ids
+        index += 1
+      end
+    end
+  end
+
   def test_in_batches_should_be_enumerable_if_no_block_given
     assert_queries(6) do
       Post.in_batches(of: 2).each do |relation|
@@ -428,16 +440,18 @@ class EachTest < ActiveRecord::TestCase
   def test_in_batches_should_start_from_the_start_option
     post = Post.order("id ASC").where("id >= ?", 2).first
     assert_queries(2) do
-      relation = Post.in_batches(of: 1, start: 2).first
+      relation, ids = Post.in_batches(of: 1, start: 2).first
       assert_equal post, relation.first
+      assert_equal [post.id], ids
     end
   end
 
   def test_in_batches_should_end_at_the_finish_option
     post = Post.order("id DESC").where("id <= ?", 5).first
     assert_queries(7) do
-      relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
+      relation, ids = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
       assert_equal post, relation.last
+      assert_equal [post.id], ids
     end
   end
 
@@ -514,7 +528,7 @@ class EachTest < ActiveRecord::TestCase
   def test_in_batches_enumerator_should_quote_batch_order_with_desc_order
     c = Post.connection
     assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
-      relation = Post.in_batches(of: 1, order: :desc).first
+      relation, = Post.in_batches(of: 1, order: :desc).first
       assert_kind_of ActiveRecord::Relation, relation
       assert_kind_of Post, relation.first
     end

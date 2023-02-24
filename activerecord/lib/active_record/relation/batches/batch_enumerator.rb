@@ -63,7 +63,9 @@ module ActiveRecord
       #
       # See Relation#delete_all for details of how each batch is deleted.
       def delete_all
-        sum(&:delete_all)
+        sum do |relation, _ids|
+          relation.delete_all
+        end
       end
 
       # Updates records in batches. Returns the total number of rows affected.
@@ -72,7 +74,7 @@ module ActiveRecord
       #
       # See Relation#update_all for details of how each batch is updated.
       def update_all(updates)
-        sum do |relation|
+        sum do |relation, _ids|
           relation.update_all(updates)
         end
       end
@@ -83,7 +85,9 @@ module ActiveRecord
       #
       # See Relation#destroy_all for details of how each batch is destroyed.
       def destroy_all
-        each(&:destroy_all)
+        each do |relation, _ids|
+          relation.destroy_all
+        end
       end
 
       # Yields an ActiveRecord::Relation object for each batch of records.

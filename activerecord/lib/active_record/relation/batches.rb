@@ -257,7 +257,7 @@ module ActiveRecord
         primary_key_offset = ids.last
         raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
 
-        yield yielded_relation
+        yield yielded_relation, ids
 
         break if ids.length < batch_limit
 
