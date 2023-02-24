@@ -644,7 +644,17 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
+        if bundle_install?
+          bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1")
+
+          # The vast majority of Rails apps will be deployed on `x86_64-linux`.
+          platform = ["--add-platform=x86_64-linux"]
+
+          # Users that develop on M1 mac may use docker and would need `aarch64-linux` as well.
+          platform << "--add-platform=aarch64-linux" if RUBY_PLATFORM.start_with?("arm64")
+
+          bundle_command("lock #{platform.join(" ")}", "BUNDLE_IGNORE_MESSAGES" => "1")
+        end
       end
 
       def run_javascript
