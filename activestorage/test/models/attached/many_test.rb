@@ -997,6 +997,14 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "getting the combined bytes size" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.highlights.attach blobs
+
+      assert_equal blobs.map(&:byte_size).sum, @user.highlights.bytes_size
+    end
+  end
+
   private
     def append_on_assign
       ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many

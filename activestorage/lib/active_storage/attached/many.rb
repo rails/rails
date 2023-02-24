@@ -65,6 +65,17 @@ module ActiveStorage
       attachments.any?
     end
 
+    # Returns the combined size in bytes of all attached blobs.
+    #
+    #   class Gallery < ApplicationRecord
+    #     has_many_attached :photos
+    #   end
+    #
+    #   Gallery.new.photos.bytes_size # => 2048
+    def bytes_size
+      blobs.sum(:byte_size)
+    end
+
     private
       def purge_many
         Attached::Changes::PurgeMany.new(name, record, attachments)
