@@ -66,6 +66,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
+- [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
@@ -1273,16 +1274,23 @@ The default value depends on the `config.load_defaults` target version:
 The serializer implementation to use if none is explicitly specified for a given
 column.
 
-`serialize` and `store` while allowing to use alternative serializer
-implementations, use `YAML` by default, but it's not a very efficient format
+Historically `serialize` and `store` while allowing to use alternative serializer
+implementations, would use `YAML` by default, but it's not a very efficient format
 and can be the source of security vulnerabilities if not carefully employed.
 
 As such it is recommended to prefer stricter, more limited formats for database
 serialization.
 
+Unfortunately there isn't really any suitable defaults available in Ruby's standard
+library. `JSON` could work as a format, but the `json` gems will cast unsupported
+types to strings which may lead to bugs.
+
+The default value depends on the `config.load_defaults` target version:
+
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
 | (original)            | `YAML`               |
+| 7.1                   | `nil`                |
 
 #### `config.active_record.query_log_tags_enabled`
 
