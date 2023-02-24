@@ -6,6 +6,19 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
+        def quote(value)
+          case value
+          when String
+            if value.encoding == Encoding::BINARY
+              quoted_binary(value)
+            else
+              "'#{quote_string(value.to_s)}'"
+            end
+          else
+            super
+          end
+        end
+
         def cast_bound_value(value)
           case value
           when Rational
@@ -51,7 +64,11 @@ module ActiveRecord
         end
 
         def quoted_binary(value)
-          "x'#{value.hex}'"
+          if value.is_a? String
+            "x'#{value.unpack1("H*")}'"
+          else
+            "x'#{value.hex}'"
+          end
         end
 
         def unquote_identifier(identifier)
