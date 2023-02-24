@@ -13,7 +13,7 @@ module ActionView
         rebuild_watcher
 
         _self = self
-        ActionView::ViewPaths::Registry.singleton_class.set_callback(:build_file_system_resolver, :after) do
+        ActionView::PathRegistry.singleton_class.set_callback(:build_file_system_resolver, :after) do
           _self.send(:rebuild_watcher)
         end
       end
@@ -59,7 +59,7 @@ module ActionView
         end
 
         def all_view_paths
-          ActionView::ViewPaths::Registry.all_file_system_resolvers.map(&:path)
+          ActionView::PathRegistry.all_file_system_resolvers.map(&:path)
         end
     end
   end
