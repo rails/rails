@@ -1,3 +1,7 @@
+*   Preserve attachment changes when converting record to another class using STI
+
+    *fatkodima*
+
 *   Add missing preview event to `ActiveStorage::LogSubscriber`
 
     A `preview` event is being instrumented in `ActiveStorage::Previewer`.

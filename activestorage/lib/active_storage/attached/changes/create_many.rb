@@ -2,7 +2,8 @@
 
 module ActiveStorage
   class Attached::Changes::CreateMany # :nodoc:
-    attr_reader :name, :record, :attachables, :pending_uploads
+    attr_reader :name, :attachables, :pending_uploads
+    attr_accessor :record
 
     def initialize(name, record, attachables, pending_uploads: [])
       @name, @record, @attachables = name, record, Array(attachables)

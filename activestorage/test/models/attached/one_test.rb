@@ -765,4 +765,10 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
   end
+
+  test "preserves attachment changes when using STI" do
+    user = User.new(name: "John", avatar: create_blob(filename: "funky.jpg"))
+    special_user = user.becomes(SpecialUser)
+    assert_predicate special_user.avatar, :attached?
+  end
 end

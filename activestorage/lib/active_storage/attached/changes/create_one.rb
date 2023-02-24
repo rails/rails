@@ -5,7 +5,8 @@ require "action_dispatch/http/upload"
 
 module ActiveStorage
   class Attached::Changes::CreateOne # :nodoc:
-    attr_reader :name, :record, :attachable
+    attr_reader :name, :attachable
+    attr_accessor :record
 
     def initialize(name, record, attachable)
       @name, @record, @attachable = name, record, attachable
