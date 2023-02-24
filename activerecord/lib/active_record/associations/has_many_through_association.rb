@@ -59,9 +59,10 @@ module ActiveRecord
 
             attributes = through_scope_attributes
             attributes[source_reflection.name] = record
-            attributes[source_reflection.foreign_type] = options[:source_type] if options[:source_type]
 
-            through_association.build(attributes)
+            through_association.build(attributes).tap do |new_record|
+              new_record.send("#{source_reflection.foreign_type}=", options[:source_type]) if options[:source_type]
+            end
           end
         end
 

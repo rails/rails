@@ -27,6 +27,7 @@ require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
+require "models/hardback"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -324,7 +325,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 2, hotel.chefs.count
   end
 
-  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_subclass_source
     hotel = Hotel.create!
     hotel.mocktail_designers << MocktailDesigner.create!
 
@@ -339,6 +340,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 0, hotel.mocktail_designers.count
     assert_equal 0, hotel.chef_lists.size
     assert_equal 0, hotel.chef_lists.count
+  end
+
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_and_subclass_source_2
+    author = Author.create!(name: "John Doe")
+    hardback = BestHardback.create!
+    author.best_hardbacks << hardback
+
+    assert_equal [hardback], author.best_hardbacks
+    assert_equal [hardback], author.reload.best_hardbacks
+
+    author.best_hardbacks = []
+
+    assert_empty author.best_hardbacks
+    assert_empty author.reload.best_hardbacks
   end
 
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
