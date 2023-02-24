@@ -10,7 +10,7 @@
     however the JSON serializer in Ruby's stdlib isn't strict enough, as it fallback
     to casting unknown types to strings, which could lead to corrupted data.
 
-    Some third party JSON libaries like `Oj` have a suitable strict mode.
+    Some third party JSON libraries like `Oj` have a suitable strict mode.
 
     So it's preferable if users chose a serializer based on their own constraints.
 
