@@ -2,10 +2,18 @@
   #route_table {
     margin: 0;
     border-collapse: collapse;
+    word-wrap:break-word;
+    table-layout: fixed;
+    width:100%;
   }
 
   #route_table thead tr {
     border-bottom: 2px solid #ddd;
+  }
+
+  #route_table th {
+    padding-left: 30px;
+    text-align: left;
   }
 
   #route_table thead tr.bottom {
@@ -13,12 +21,16 @@
   }
 
   #route_table thead tr.bottom th {
-    padding: 10px 0;
+    padding: 10px 30px;
     line-height: 15px;
   }
 
   #route_table thead tr.bottom th input#search {
     -webkit-appearance: textfield;
+  }
+
+  #route_table thead th.http-verb {
+    width: 10%;
   }
 
   #route_table tbody tr {
@@ -66,7 +78,7 @@
   <thead>
     <tr>
       <th>Helper</th>
-      <th>HTTP Verb</th>
+      <th class="http-verb">HTTP Verb</th>
       <th>Path</th>
       <th>Controller#Action</th>
     </tr>
