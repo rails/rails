@@ -12,7 +12,7 @@
     carefully crafted input.
 
     This commit makes the sanitization more robust by replacing any
-    occurrances of "/*" or "*/" with "/ *" or "* /". It also performs a
+    occurrences of "/*" or "*/" with "/ *" or "* /". It also performs a
     first pass to remove one surrounding comment to avoid compatibility
     issues for users relying on the existing removal.
 
