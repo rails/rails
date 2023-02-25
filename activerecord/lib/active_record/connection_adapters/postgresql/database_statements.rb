@@ -160,8 +160,12 @@ module ActiveRecord
         end
 
         private
+          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
+          private_constant :IDLE_TRANSACTION_STATUSES
+
           def cancel_any_running_query
-            return unless @raw_connection && @raw_connection.transaction_status != PG::PQTRANS_IDLE
+            return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
+
             @raw_connection.cancel
             @raw_connection.block
           rescue PG::Error

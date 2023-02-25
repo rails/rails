@@ -92,9 +92,14 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_warn_if_order_scope_is_set
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
+
     assert_called(ActiveRecord::Base.logger, :warn) do
       Post.order("title").find_each { |post| post }
     end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
   end
 
   def test_logger_not_required

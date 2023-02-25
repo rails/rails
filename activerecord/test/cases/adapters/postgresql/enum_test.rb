@@ -101,7 +101,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   def test_schema_dump
     @connection.add_column "postgresql_enums", "good_mood", :mood, default: "happy", null: false
 
-    output = dump_all_table_schema
+    output = dump_table_schema("postgresql_enums")
 
     assert_includes output, "# Note that some types may not work with other database engines. Be careful if changing database."
 

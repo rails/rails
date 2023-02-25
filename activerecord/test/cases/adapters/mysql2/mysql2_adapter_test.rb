@@ -414,6 +414,8 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_warnings_do_not_change_returned_value_of_exec_update
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
     ActiveRecord.db_warnings_action = :log
 
     # Mysql2 will raise an error when attempting to perform an update that warns if the sql_mode is set to strict
@@ -426,10 +428,13 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     assert_equal 1, result
   ensure
     @conn.execute("SET @@SESSION.sql_mode='#{old_sql_mode}'")
+    ActiveRecord::Base.logger = previous_logger
     ActiveRecord.db_warnings_action = @original_db_warnings_action
   end
 
   def test_warnings_do_not_change_returned_value_of_exec_delete
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
     ActiveRecord.db_warnings_action = :log
 
     # Mysql2 will raise an error when attempting to perform a delete that warns if the sql_mode is set to strict
@@ -442,6 +447,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     assert_equal 1, result
   ensure
     @conn.execute("SET @@SESSION.sql_mode='#{old_sql_mode}'")
+    ActiveRecord::Base.logger = previous_logger
     ActiveRecord.db_warnings_action = @original_db_warnings_action
   end
 
