@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.description = "Structure many real-time application concerns into channels over a single WebSocket connection."
 
   s.required_ruby_version = ">= 2.7.0"
+  s.required_rubygems_version = ">= 3.3.13"
 
   s.license = "MIT"
 

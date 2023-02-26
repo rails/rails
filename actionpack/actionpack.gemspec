@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.description = "Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server."
 
   s.required_ruby_version = ">= 2.7.0"
+  s.required_rubygems_version = ">= 3.3.13"
 
   s.license = "MIT"
 

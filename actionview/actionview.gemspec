@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.description = "Simple, battle-tested conventions and helpers for building web pages."
 
   s.required_ruby_version = ">= 2.7.0"
+  s.required_rubygems_version = ">= 3.3.13"
 
   s.license = "MIT"
 

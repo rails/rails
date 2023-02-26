@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.description = "Attach cloud and local files in Rails applications."
 
   s.required_ruby_version = ">= 2.7.0"
+  s.required_rubygems_version = ">= 3.3.13"
 
   s.license = "MIT"
 

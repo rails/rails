@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.description = "Databases on Rails. Build a persistent domain model by mapping database tables to Ruby classes. Strong conventions for associations, validations, aggregations, migrations, and testing come baked-in."
 
   s.required_ruby_version = ">= 2.7.0"
+  s.required_rubygems_version = ">= 3.3.13"
 
   s.license = "MIT"
 
