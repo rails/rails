@@ -377,7 +377,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
           super&.freeze
         end
       end
-      serialize :normal_blob, FrozenCoder.new(:normal_blob, Array)
+      serialize(:normal_blob, coder: FrozenCoder.new(:normal_blob, Array))
     end
 
     def test_is_not_changed_when_stored_in_mysql_blob_frozen_payload
