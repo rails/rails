@@ -182,7 +182,7 @@ module ActiveRecord
         def serialize(attr_name, class_name_or_coder = nil, coder: nil, type: Object, yaml: {}, **options)
           unless class_name_or_coder.nil?
             if class_name_or_coder.respond_to?(:new)
-              ActiveRecord.deprecator.warn(<<-MSG)
+              ActiveRecord.deprecator.warn(<<~MSG)
                 Passing the class as positional argument is deprecated and will be remove in Rails 7.2.
 
                 Please pass the class as a keyword argument:
@@ -191,7 +191,7 @@ module ActiveRecord
               MSG
               type = class_name_or_coder
             else
-              ActiveRecord.deprecator.warn(<<-MSG)
+              ActiveRecord.deprecator.warn(<<~MSG)
                 Passing the coder as positional argument is deprecated and will be remove in Rails 7.2.
 
                 Please pass the coder as a keyword argument:
