@@ -2,7 +2,7 @@
 
         class VideoEmbed < ApplicationRecord
           include ActionText::Attachable
-          
+
           # VideoEmbed records will be rendered with this partial in mailers
           def to_email_attachment_partial_path
             "video_embeds/email_preview"
