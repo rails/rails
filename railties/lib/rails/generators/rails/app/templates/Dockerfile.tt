@@ -43,7 +43,7 @@ RUN bundle install && \
 <% if using_node? -%>
 # Install node modules
 COPY package.json yarn.lock ./
-RUN yarn install
+RUN yarn install --frozen-lockfile
 
 <% end -%>
 # Copy application code
