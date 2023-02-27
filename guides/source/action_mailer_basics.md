@@ -818,7 +818,7 @@ files (environment.rb, production.rb, etc...)
 |`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing. If this value is `false`, `deliveries` array will not be populated even if `delivery_method` is `:test`.|
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |`delivery_job`|The job class used with `deliver_later`. Defaults to `ActionMailer::MailDeliveryJob`.|
-|`deliver_later_queue_name`|The name of the queue used with the default `delivery_job`. Defaults to `:mailers`|
+|`deliver_later_queue_name`|The name of the queue used with the default `delivery_job`. Defaults to the default Active Job queue.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 
 For a complete writeup of possible configurations see the

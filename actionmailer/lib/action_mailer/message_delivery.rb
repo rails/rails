@@ -63,7 +63,7 @@ module ActionMailer
     # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt> on
-    # the +:mailers+ queue. Mailer classes can customize the queue name used for the default
+    # the default queue. Mailer classes can customize the queue name used for the default
     # job by assigning a +deliver_later_queue_name+ class variable, or provide a custom job
     # by assigning a +delivery_job+. When a custom job is used, it controls the queue name.
     #
@@ -90,7 +90,7 @@ module ActionMailer
     # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt> on
-    # the +:mailers+ queue. Mailer classes can customize the queue name used for the default
+    # the default queue. Mailer classes can customize the queue name used for the default
     # job by assigning a +deliver_later_queue_name+ class variable, or provide a custom job
     # by assigning a +delivery_job+. When a custom job is used, it controls the queue name.
     #
