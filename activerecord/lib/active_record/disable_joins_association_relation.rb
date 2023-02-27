@@ -30,7 +30,7 @@ module ActiveRecord
         record[key]
       end
 
-      records = ids.flat_map { |id| records_by_id[id.to_i] }
+      records = ids.flat_map { |id| records_by_id[id] }
       records.compact!
 
       @records = records
