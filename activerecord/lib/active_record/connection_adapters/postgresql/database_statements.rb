@@ -189,8 +189,6 @@ module ActiveRecord
           end
 
           def handle_warnings(sql)
-            return if ActiveRecord.db_warnings_action.nil?
-
             @notice_receiver_sql_warnings.each do |warning|
               next if warning_ignored?(warning)
 
