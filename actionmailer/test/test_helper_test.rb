@@ -487,6 +487,68 @@ class TestHelperMailerTest < ActionMailer::TestCase
       end
     end
   end
+
+  def test_deliver_enqueued_emails_with_no_block
+    assert_nothing_raised do
+      silence_stream($stdout) do
+        TestHelperMailer.test.deliver_later
+        deliver_enqueued_emails
+      end
+    end
+
+    assert_emails(1)
+  end
+
+  def test_deliver_enqueued_emails_with_a_block
+    assert_nothing_raised do
+      deliver_enqueued_emails do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+
+    assert_emails(1)
+  end
+
+  def test_deliver_enqueued_emails_with_custom_delivery_job
+    assert_nothing_raised do
+      deliver_enqueued_emails do
+        silence_stream($stdout) do
+          CustomDeliveryMailer.test.deliver_later
+        end
+      end
+    end
+
+    assert_emails(1)
+  end
+
+  def test_deliver_enqueued_emails_with_custom_queue
+    assert_nothing_raised do
+      deliver_enqueued_emails(queue: CustomQueueMailer.deliver_later_queue_name) do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+          CustomQueueMailer.test.deliver_later
+        end
+      end
+    end
+
+    assert_emails(1)
+    assert_enqueued_email_with(TestHelperMailer, :test)
+  end
+
+  def test_deliver_enqueued_emails_with_at
+    assert_nothing_raised do
+      deliver_enqueued_emails(at: 1.hour.from_now) do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+          TestHelperMailer.test.deliver_later(wait: 2.hours)
+        end
+      end
+    end
+
+    assert_emails(1)
+  end
 end
 
 class AnotherTestHelperMailerTest < ActionMailer::TestCase
