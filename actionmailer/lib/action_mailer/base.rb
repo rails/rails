@@ -464,7 +464,7 @@ module ActionMailer
   #   custom delivery job. Defaults to +ActionMailer::MailDeliveryJob+.
   #
   # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
-  #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue. Defaults to <tt>:mailers</tt>.
+  #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue name.
   class Base < AbstractController::Base
     include DeliveryMethods
     include QueuedDelivery
