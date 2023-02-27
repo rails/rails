@@ -31,7 +31,7 @@ PATH
       actionview (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
-      mail (~> 2.5, >= 2.5.4)
+      mail (>= 2.8.1)
       net-imap
       net-pop
       net-smtp
@@ -279,7 +279,7 @@ GEM
     loofah (2.19.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
-    mail (2.8.0.1)
+    mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
       net-pop

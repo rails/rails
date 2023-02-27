@@ -1190,7 +1190,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailInterceptor], ::Mail.class_variable_get(:@@delivery_interceptors)
+      assert_equal [::MyMailInterceptor], ActionMailer::Base.interceptors
     end
 
     test "registers multiple interceptors with ActionMailer" do
@@ -1203,7 +1203,7 @@ module ApplicationTests
       require "mail"
       _ = ActionMailer::Base
 
-      assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.class_variable_get(:@@delivery_interceptors)
+      assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ActionMailer::Base.interceptors
     end
 
     test "registers preview interceptors with ActionMailer" do

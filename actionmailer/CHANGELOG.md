@@ -1,3 +1,10 @@
+*   Added `interceptors` method to `ActionMailer::Base`.
+
+    Calling `ActionMailer::Base.interceptors` returns the all registered
+    mail interceptors.
+
+    *Ghouse Mohamed*
+
 *   The `deliver_later_queue_name` used by the default mailer job can now be
     configured on a per-mailer basis. Previously this was only configurable
     for all mailers via `ActionMailer::Base`.

@@ -545,6 +545,11 @@ module ActionMailer
         Mail.unregister_interceptor(observer_class_for(interceptor))
       end
 
+      # Returns all the registered interceptors.
+      def interceptors
+        Mail.delivery_interceptors
+      end
+
       def observer_class_for(value) # :nodoc:
         case value
         when String, Symbol
