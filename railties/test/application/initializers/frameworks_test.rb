@@ -262,6 +262,9 @@ module ApplicationTests
       RUBY
 
       switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3::Column objects
+        require "active_record/connection_adapters/sqlite3/column"
+
         require "#{app_path}/config/environment"
 
         assert_nil ActiveRecord::Base.connection_pool.schema_cache
@@ -294,6 +297,9 @@ module ApplicationTests
       RUBY
 
       switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3::Column objects
+        require "active_record/connection_adapters/sqlite3/column"
+
         require "#{app_path}/config/environment"
 
         assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")

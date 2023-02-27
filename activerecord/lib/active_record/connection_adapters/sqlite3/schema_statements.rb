@@ -145,7 +145,8 @@ module ActiveRecord
               type_metadata,
               field["notnull"].to_i == 0,
               default_function,
-              collation: field["collation"]
+              collation: field["collation"],
+              auto_increment: field["auto_increment"],
             )
           end
 
