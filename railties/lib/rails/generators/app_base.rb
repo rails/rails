@@ -506,9 +506,6 @@ module Rails
         # add databases: sqlite3, postgres, mysql
         packages += %w(pkg-config libpq-dev default-libmysqlclient-dev)
 
-        # add redis in case Action Cable, caching, or sidekiq are added later
-        packages << "redis"
-
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
 
@@ -542,9 +539,6 @@ module Rails
       def dockerfile_deploy_packages
         # start with databases: sqlite3, postgres, mysql
         packages = %w(libsqlite3-0 postgresql-client default-mysql-client)
-
-        # add redis in case Action Cable, caching, or sidekiq are added later
-        packages << "redis"
 
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
