@@ -950,11 +950,13 @@ module ActiveRecord
           self.client_min_messages = @config[:min_messages] || "warning"
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
-          @raw_connection.set_notice_receiver do |result|
-            message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
-            code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
-            level = result.error_field(PG::Result::PG_DIAG_SEVERITY)
-            @notice_receiver_sql_warnings << SQLWarning.new(message, code, level)
+          unless ActiveRecord.db_warnings_action.nil?
+            @raw_connection.set_notice_receiver do |result|
+              message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
+              code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
+              level = result.error_field(PG::Result::PG_DIAG_SEVERITY)
+              @notice_receiver_sql_warnings << SQLWarning.new(message, code, level)
+            end
           end
 
           # Use standard-conforming strings so we don't have to do the E'...' dance.
