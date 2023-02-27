@@ -1,0 +1,5 @@
+<% 1001.times do |i| %>
+fixture_no_<%= i %>:
+  id: <%= i %>
+  book_id: <%= i*i %>
+<% end %>

@@ -6,14 +6,15 @@ module ActiveRecord
   module ConnectionAdapters
     class SchemaCacheTest < ActiveRecord::TestCase
       def setup
-        @connection       = ActiveRecord::Base.connection
+        @connection       = ARUnit2Model.connection
         @cache            = SchemaCache.new @connection
         @database_version = @connection.get_database_version
       end
 
       def test_yaml_dump_and_load
+        connection = ActiveRecord::Base.connection
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = SchemaCache.new connection
 
         tempfile = Tempfile.new(["schema_cache-", ".yml"])
         # Dump it. It should get populated before dumping.
@@ -25,7 +26,7 @@ module ActiveRecord
         # Give it a connection. Usually the connection
         # would get set on the cache when it's retrieved
         # from the pool.
-        cache.connection = @connection
+        cache.connection = connection
 
         assert_no_queries do
           assert_equal 12, cache.columns("posts").size
@@ -70,11 +71,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 3, cache.columns("courses").size
+          assert_equal 3, cache.columns_hash("courses").size
+          assert cache.data_sources("courses")
+          assert_equal "id", cache.primary_keys("courses")
+          assert_equal 1, cache.indexes("courses").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
 
@@ -85,11 +86,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 3, cache.columns("courses").size
+          assert_equal 3, cache.columns_hash("courses").size
+          assert cache.data_sources("courses")
+          assert_equal "id", cache.primary_keys("courses")
+          assert_equal 1, cache.indexes("courses").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -98,7 +99,7 @@ module ActiveRecord
 
       def test_yaml_loads_5_1_dump
         cache = SchemaCache.load_from(schema_dump_path)
-        cache.connection = @connection
+        cache.connection = ActiveRecord::Base.connection
 
         assert_no_queries do
           assert_equal 11, cache.columns("posts").size
@@ -110,7 +111,7 @@ module ActiveRecord
 
       def test_yaml_loads_5_1_dump_without_indexes_still_queries_for_indexes
         cache = SchemaCache.load_from(schema_dump_path)
-        cache.connection = @connection
+        cache.connection = ActiveRecord::Base.connection
 
         assert_queries :any, ignore_none: true do
           assert_equal 1, cache.indexes("posts").size
@@ -119,7 +120,7 @@ module ActiveRecord
 
       def test_yaml_loads_5_1_dump_without_database_version_still_queries_for_database_version
         cache = SchemaCache.load_from(schema_dump_path)
-        cache.connection = @connection
+        cache.connection = ActiveRecord::Base.connection
 
         # We can't verify queries get executed because the database version gets
         # cached in both MySQL and PostgreSQL outside of the schema cache.
@@ -128,7 +129,7 @@ module ActiveRecord
       end
 
       def test_primary_key_for_existent_table
-        assert_equal "id", @cache.primary_keys("posts")
+        assert_equal "id", @cache.primary_keys("courses")
       end
 
       def test_primary_key_for_non_existent_table
@@ -136,7 +137,7 @@ module ActiveRecord
       end
 
       def test_columns_for_existent_table
-        assert_equal 12, @cache.columns("posts").size
+        assert_equal 3, @cache.columns("courses").size
       end
 
       def test_columns_for_non_existent_table
@@ -146,7 +147,7 @@ module ActiveRecord
       end
 
       def test_columns_hash_for_existent_table
-        assert_equal 12, @cache.columns_hash("posts").size
+        assert_equal 3, @cache.columns_hash("courses").size
       end
 
       def test_columns_hash_for_non_existent_table
@@ -156,7 +157,7 @@ module ActiveRecord
       end
 
       def test_indexes_for_existent_table
-        assert_equal 1, @cache.indexes("posts").size
+        assert_equal 1, @cache.indexes("courses").size
       end
 
       def test_indexes_for_non_existent_table
@@ -176,11 +177,11 @@ module ActiveRecord
       end
 
       def test_clearing
-        @cache.columns("posts")
-        @cache.columns_hash("posts")
-        @cache.data_sources("posts")
-        @cache.primary_keys("posts")
-        @cache.indexes("posts")
+        @cache.columns("courses")
+        @cache.columns_hash("courses")
+        @cache.data_sources("courses")
+        @cache.primary_keys("courses")
+        @cache.indexes("courses")
 
         @cache.clear!
 
@@ -193,17 +194,17 @@ module ActiveRecord
         cache = SchemaCache.new @connection
 
         # Populate it.
-        cache.add("posts")
+        cache.add("courses")
 
         # Create a new cache by marshal dumping / loading.
         cache = Marshal.load(Marshal.dump(cache))
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 3, cache.columns("courses").size
+          assert_equal 3, cache.columns_hash("courses").size
+          assert cache.data_sources("courses")
+          assert_equal "id", cache.primary_keys("courses")
+          assert_equal 1, cache.indexes("courses").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       end
@@ -221,11 +222,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 3, cache.columns("courses").size
+          assert_equal 3, cache.columns_hash("courses").size
+          assert cache.data_sources("courses")
+          assert_equal "id", cache.primary_keys("courses")
+          assert_equal 1, cache.indexes("courses").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -234,7 +235,7 @@ module ActiveRecord
 
       def test_marshal_dump_and_load_with_ignored_tables
         old_ignore = ActiveRecord.schema_cache_ignored_tables
-        ActiveRecord.schema_cache_ignored_tables = ["p_schema_migrations"]
+        ActiveRecord.schema_cache_ignored_tables = ["professors"]
         # Create an empty cache.
         cache = SchemaCache.new @connection
 
@@ -247,23 +248,23 @@ module ActiveRecord
         cache.connection = @connection
 
         # Assert a table in the cache
-        assert cache.data_sources("posts"), "expected posts to be in the cached data_sources"
-        assert_equal 12, cache.columns("posts").size
-        assert_equal 12, cache.columns_hash("posts").size
-        assert cache.data_sources("posts")
-        assert_equal "id", cache.primary_keys("posts")
-        assert_equal 1, cache.indexes("posts").size
+        assert cache.data_sources("courses"), "expected courses to be in the cached data_sources"
+        assert_equal 3, cache.columns("courses").size
+        assert_equal 3, cache.columns_hash("courses").size
+        assert cache.data_sources("courses")
+        assert_equal "id", cache.primary_keys("courses")
+        assert_equal 1, cache.indexes("courses").size
 
         # Assert ignored table. Behavior should match non-existent table.
-        assert_nil cache.data_sources("p_schema_migrations"), "expected comments to not be in the cached data_sources"
+        assert_nil cache.data_sources("professors"), "expected professors to not be in the cached data_sources"
         assert_raises ActiveRecord::StatementInvalid do
-          cache.columns("p_schema_migrations")
+          cache.columns("professors")
         end
         assert_raises ActiveRecord::StatementInvalid do
-          cache.columns_hash("p_schema_migrations").size
+          cache.columns_hash("professors").size
         end
-        assert_nil cache.primary_keys("p_schema_migrations")
-        assert_equal [], cache.indexes("p_schema_migrations")
+        assert_nil cache.primary_keys("professors")
+        assert_equal [], cache.indexes("professors")
       ensure
         tempfile.unlink
         ActiveRecord.schema_cache_ignored_tables = old_ignore
@@ -282,11 +283,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 3, cache.columns("courses").size
+          assert_equal 3, cache.columns_hash("courses").size
+          assert cache.data_sources("courses")
+          assert_equal "id", cache.primary_keys("courses")
+          assert_equal 1, cache.indexes("courses").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
 
@@ -295,11 +296,11 @@ module ActiveRecord
         cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
-          assert cache.data_sources("posts")
-          assert_equal "id", cache.primary_keys("posts")
-          assert_equal 1, cache.indexes("posts").size
+          assert_equal 3, cache.columns("courses").size
+          assert_equal 3, cache.columns_hash("courses").size
+          assert cache.data_sources("courses")
+          assert_equal "id", cache.primary_keys("courses")
+          assert_equal 1, cache.indexes("courses").size
           assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
@@ -307,34 +308,34 @@ module ActiveRecord
       end
 
       def test_data_source_exist
-        assert @cache.data_source_exists?("posts")
+        assert @cache.data_source_exists?("courses")
         assert_not @cache.data_source_exists?("foo")
       end
 
       def test_clear_data_source_cache
-        @cache.clear_data_source_cache!("posts")
+        @cache.clear_data_source_cache!("courses")
       end
 
       test "#columns_hash? is populated by #columns_hash" do
-        assert_not @cache.columns_hash?("posts")
+        assert_not @cache.columns_hash?("courses")
 
-        @cache.columns_hash("posts")
+        @cache.columns_hash("courses")
 
-        assert @cache.columns_hash?("posts")
+        assert @cache.columns_hash?("courses")
       end
 
       test "#columns_hash? is not populated by #data_source_exists?" do
-        assert_not @cache.columns_hash?("posts")
+        assert_not @cache.columns_hash?("courses")
 
-        @cache.data_source_exists?("posts")
+        @cache.data_source_exists?("courses")
 
-        assert_not @cache.columns_hash?("posts")
+        assert_not @cache.columns_hash?("courses")
       end
 
       unless in_memory_db?
         def test_when_lazily_load_schema_cache_is_set_cache_is_lazily_populated_when_est_connection
           tempfile = Tempfile.new(["schema_cache-", ".yml"])
-          original_config = ActiveRecord::Base.connection_db_config
+          original_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary")
           new_config = original_config.configuration_hash.merge(schema_cache_path: tempfile.path)
 
           ActiveRecord::Base.establish_connection(new_config)

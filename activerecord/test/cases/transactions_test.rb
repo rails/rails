@@ -1346,8 +1346,11 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-class ConcurrentTransactionTest < TransactionTest
+class ConcurrentTransactionTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+    self.use_transactional_tests = false
+    fixtures :topics, :developers
+
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread

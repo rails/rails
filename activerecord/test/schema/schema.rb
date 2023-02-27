@@ -252,6 +252,10 @@ ActiveRecord::Schema.define do
     t.string :status
   end
 
+  create_table :paragraphs, force: true do |t|
+    t.references :book
+  end
+
   create_table :clothing_items, force: true do |t|
     t.string :clothing_type
     t.string :color
@@ -1390,7 +1394,7 @@ end
 
 Course.connection.create_table :courses, force: true do |t|
   t.column :name, :string, null: false
-  t.column :college_id, :integer
+  t.column :college_id, :integer, index: true
 end
 
 College.connection.create_table :colleges, force: true do |t|
