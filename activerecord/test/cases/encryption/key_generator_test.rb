@@ -27,6 +27,11 @@ class ActiveRecord::Encryption::KeyGeneratorTest < ActiveRecord::EncryptionTestC
     assert_equal 10, [ @generator.generate_random_hex_key(length: 10) ].pack("H*").bytesize
   end
 
+  test "derive keys using the configured digest algorithm" do
+    assert_derive_key "some secret", digest_class: OpenSSL::Digest::SHA1
+    assert_derive_key "some secret", digest_class: OpenSSL::Digest::SHA256
+  end
+
   test "derive_key derives a key with from the provided password with the cipher key length by default" do
     assert_equal @generator.derive_key_from("some password"), @generator.derive_key_from("some password")
     assert_not_equal @generator.derive_key_from("some password"), @generator.derive_key_from("some other password")
@@ -38,4 +43,13 @@ class ActiveRecord::Encryption::KeyGeneratorTest < ActiveRecord::EncryptionTestC
     assert_not_equal @generator.derive_key_from("some password", length: 12), @generator.derive_key_from("some other password", length: 12)
     assert_equal 12, @generator.derive_key_from("some password", length: 12).length
   end
+
+  private
+    def assert_derive_key(secret, digest_class: OpenSSL::Digest::SHA256, length: 20)
+      expected_derived_key = ActiveSupport::KeyGenerator.new(secret, hash_digest_class: digest_class)
+                                                        .generate_key(ActiveRecord::Encryption.config.key_derivation_salt, length)
+      assert_equal length, expected_derived_key.length
+      ActiveRecord::Encryption.config.hash_digest_class = digest_class
+      assert_equal expected_derived_key, @generator.derive_key_from(secret, length: length)
+    end
 end

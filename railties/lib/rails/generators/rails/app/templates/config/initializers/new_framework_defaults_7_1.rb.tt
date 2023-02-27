@@ -29,6 +29,15 @@
 # as equal to an equivalent `Hash` by default.
 # Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality = false
 
+# Active Record Encryption now uses SHA-256 as its hash digest algorithm. Important: If you have
+# data encrypted with previous versions, you should not set the new default or the existing data
+# will fail to decrypt. In this case, if you load the new 7.1 defaults, you need to configure the
+# previous algorithm SHA-1:
+# Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
+# Alternatively, if you don't have data encrypted previously, you can configure the new digest for
+# Active Record Encryption with:
+# Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::256
+
 # No longer run after_commit callbacks on the first of multiple Active Record
 # instances to save changes to the same database row within a transaction.
 # Instead, run these callbacks on the instance most likely to have internal
