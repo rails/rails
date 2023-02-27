@@ -35,6 +35,9 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
 <% end -%>
 # Install application gems
 COPY Gemfile Gemfile.lock ./
+<% if rails_dev? %>
+COPY vendor/rails vendor/rails
+<% end %>
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git<% if depend_on_bootsnap? -%> && \
     bundle exec bootsnap precompile --gemfile

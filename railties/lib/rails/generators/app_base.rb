@@ -397,6 +397,10 @@ module Rails
         end
       end
 
+      def rails_dev?
+        options.dev?
+      end
+
       def rails_prerelease?
         options.dev? || options.edge? || options.main?
       end
@@ -504,7 +508,7 @@ module Rails
         packages = %w(build-essential git)
 
         # add databases: sqlite3, postgres, mysql
-        packages += %w(pkg-config libpq-dev default-libmysqlclient-dev)
+        packages += %w(pkg-config libpq-dev default-libmysqlclient-dev libxml2-dev)
 
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
@@ -538,7 +542,7 @@ module Rails
 
       def dockerfile_deploy_packages
         # start with databases: sqlite3, postgres, mysql
-        packages = %w(libsqlite3-0 postgresql-client default-mysql-client)
+        packages = %w(libsqlite3-0 postgresql-client default-mysql-client libxml2-dev)
 
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
