@@ -21,11 +21,7 @@ module ARTest
   def self.connect
     ActiveRecord.async_query_executor = :global_thread_pool
     puts "Using #{connection_name}"
-    if ENV["CI"]
-      ActiveRecord::Base.logger = nil
-    else
-      ActiveRecord::Base.logger = ActiveSupport::Logger.new("debug.log", 1, 100 * 1024 * 1024)
-    end
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new("debug.log", 1, 100 * 1024 * 1024)
     ActiveRecord::Base.configurations = test_configuration_hashes
     ActiveRecord::Base.establish_connection :arunit
     ARUnit2Model.establish_connection :arunit2
