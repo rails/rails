@@ -38,6 +38,14 @@ namespace :test do
       %w(isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
   end
+
+  Rake::TestTask.new(:arel) do |t|
+    t.libs << "test"
+    t.test_files = FileList["test/cases/arel/**/*_test.rb"]
+
+    t.warning = true
+    t.verbose = true
+  end
 end
 
 namespace :db do
