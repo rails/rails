@@ -81,12 +81,6 @@
 
     *DHH*
 
-*   Bump `required_rubygems_version` from 1.8.11 to 3.3.13 or higher in order to
-    support pre-release versions of Ruby when generating a new Rails app
-    Gemfile.
-
-    *Yasuo Honda*
-
 *   Add Docker files by default to new apps: Dockerfile, .dockerignore, bin/docker-entrypoint.
     These files can be skipped with `--skip-docker`. They're intended as a starting point for
     a production deploy of the application. Not intended for development (see Docked Rails for that).
