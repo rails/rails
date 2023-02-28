@@ -128,16 +128,33 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::DatabaseConfigurations.db_config_handlers = previous_handlers
   end
-end
 
-class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
-  def test_unsupported_method_raises
-    assert_raises NoMethodError do
-      ActiveRecord::Base.configurations.fetch(:foo)
+  def test_configs_for_with_custom_key
+    previous_handlers = ActiveRecord::DatabaseConfigurations.db_config_handlers
+
+    ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, _, config|
+      next unless config.key?(:custom_config)
+      CustomHashConfig.new(env_name, name, config)
     end
+
+    config = {
+      "default_env" => {
+        "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "custom_config" => { "sharded" => 1 } },
+        "replica" => { "adapter" => "sqlite3", "database" => "test/db/hidden.sqlite3", "replica" => true, "custom_config" => { "sharded" => 1 } },
+        "secondary" => { "adapter" => "sqlite3", "database" => "test/db/secondary.sqlite3" }
+      }
+    }
+    prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+    assert_equal 1, ActiveRecord::Base.configurations.configs_for(env_name: "default_env", config_key: :custom_config).count
+    assert_equal 2, ActiveRecord::Base.configurations.configs_for(env_name: "default_env", config_key: :custom_config, include_hidden: true).count
+    assert_equal 2, ActiveRecord::Base.configurations.configs_for(env_name: "default_env").count
+  ensure
+    ActiveRecord::DatabaseConfigurations.db_config_handlers = previous_handlers
+    ActiveRecord::Base.configurations = prev_configs
   end
 
-  def test_hidden_returns_replicas
+  def test_configs_for_with_include_hidden
     config = {
       "default_env" => {
         "readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3", "replica" => true },
@@ -151,13 +168,5 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal 3, ActiveRecord::Base.configurations.configs_for(env_name: "default_env", include_hidden: true).count
   ensure
     ActiveRecord::Base.configurations = prev_configs
-  end
-
-  def test_include_replicas_is_deprecated
-    assert_deprecated(ActiveRecord.deprecator) do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary", include_replicas: true)
-
-      assert_equal "primary", db_config.name
-    end
   end
 end

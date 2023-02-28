@@ -89,6 +89,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 * Remove support for `ActiveRecord.legacy_connection_handling`.
 
+* Remove support for `:include_replicas` on `configs_for`. Use `:include_hidden` instead.
+
 ### Deprecations
 
 ### Notable changes
