@@ -694,6 +694,29 @@ module Arel
             id = ?
           }
         end
+
+        it "quotes nested arrays" do
+          # Two cases to exercise all branches.
+          # For real adapters, quoting arrays may fail in adapter-specific ways.
+
+          inner_literal = Nodes::BoundSqlLiteral.new("? * 2", [4], {})
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, [2, 3], inner_literal]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?, ? * 2)
+          }
+
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, [2, 3]]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?)
+          }
+        end
+
+        it "supports other bound literals as binds" do
+          node = Arel.sql("?", [1, 2, Arel.sql("?", 3)])
+          _(compile(node)).must_be_like %{
+            ?, ?, ?
+          }
+        end
       end
 
       describe "TableAlias" do
