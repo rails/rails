@@ -34,7 +34,7 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
 
 <% end -%>
 # Install application gems
-COPY Gemfile Gemfile.lock ./
+COPY --link Gemfile Gemfile.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git<% if depend_on_bootsnap? -%> && \
     bundle exec bootsnap precompile --gemfile
@@ -42,12 +42,12 @@ RUN bundle install && \
 
 <% if using_node? -%>
 # Install node modules
-COPY package.json yarn.lock ./
+COPY --link package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 <% end -%>
 # Copy application code
-COPY . .
+COPY --link . .
 
 <% if depend_on_bootsnap? -%>
 # Precompile bootsnap code for faster boot times
