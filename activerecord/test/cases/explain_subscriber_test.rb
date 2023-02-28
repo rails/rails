@@ -55,6 +55,11 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_equal 1, queries.size
     end
 
+    def test_collects_queries_starting_with_comment
+      SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "/* comment */ select 1 from users")
+      assert_equal 1, queries.size
+    end
+
     teardown do
       ActiveRecord::ExplainRegistry.reset
     end
