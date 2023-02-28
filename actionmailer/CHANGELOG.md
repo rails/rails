@@ -1,6 +1,6 @@
 *   Added `deliver_enqueued_emails` to `ActionMailer::TestHelper`. This method
     delivers all enqueued email jobs.
-    
+
     Example:
 
     ```ruby
@@ -11,6 +11,8 @@
       assert_emails 1
     end
     ```
+
+    *Andrew Novoselac*
 
 *   The `deliver_later_queue_name` used by the default mailer job can now be
     configured on a per-mailer basis. Previously this was only configurable

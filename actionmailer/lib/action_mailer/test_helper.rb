@@ -216,6 +216,7 @@ module ActionMailer
     #     deliver_enqueued_emails do
     #       ContactMailer.welcome.deliver_later
     #     end
+    #
     #     assert_emails 1
     #   end
     #
@@ -225,7 +226,6 @@ module ActionMailer
     #     deliver_enqueued_emails
     #
     #     assert_emails 1
-    #
     #   end
     #
     # If the +:queue+ option is specified,
@@ -238,11 +238,12 @@ module ActionMailer
     #       EmployeeMailer.deliver_later_queue_name = :internal_mailers
     #       EmployeeMailer.welcome.deliver_later # will not be performed
     #     end
+    #
     #     assert_emails 1
     #   end
     #
     # If the +:at+ option is specified, then only delivers emails enqueued to deliver
-    # immediately or before the given time
+    # immediately or before the given time.
     def deliver_enqueued_emails(queue: nil, at: nil, &block)
       perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, queue: queue, at: at, &block)
     end
