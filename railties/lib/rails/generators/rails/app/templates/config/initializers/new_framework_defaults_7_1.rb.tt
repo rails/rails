@@ -36,7 +36,7 @@
 # Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
 # Alternatively, if you don't have data encrypted previously, you can configure the new digest for
 # Active Record Encryption with:
-# Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::256
+# Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
 
 # No longer run after_commit callbacks on the first of multiple Active Record
 # instances to save changes to the same database row within a transaction.

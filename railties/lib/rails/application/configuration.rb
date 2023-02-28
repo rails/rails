@@ -288,6 +288,7 @@ module Rails
             active_record.belongs_to_required_validates_foreign_key = false
             active_record.before_committed_on_all_records = true
             active_record.default_column_serializer = nil
+            active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
           end
 
           if respond_to?(:action_dispatch)
@@ -313,10 +314,6 @@ module Rails
 
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
-          end
-
-          if respond_to?(:active_record)
-            active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
