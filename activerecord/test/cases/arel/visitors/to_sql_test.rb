@@ -659,6 +659,13 @@ module Arel
           }
         end
 
+        it "will only consider named binds starting with a letter" do
+          node = Nodes::BoundSqlLiteral.new("id = :0abc", [], { "0abc": 1 })
+          _(compile(node)).must_be_like %{
+            id = :0abc
+          }
+        end
+
         it "works with array values" do
           node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
           _(compile(node)).must_be_like %{

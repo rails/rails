@@ -792,7 +792,7 @@ module Arel # :nodoc: all
               end
             end
           else
-            o.sql_with_placeholders.scan(/:(?<!::)(\w+)|([^:]+|.)/) do
+            o.sql_with_placeholders.scan(/:(?<!::)([a-zA-Z]\w*)|([^:]+|.)/) do
               if $2
                 collector << $2
               else
