@@ -5,8 +5,9 @@ module Arel # :nodoc: all
     class MySQL < Arel::Visitors::ToSql
       private
         def visit_Arel_Nodes_Bin(o, collector)
-          collector << "BINARY "
+          collector << "CAST("
           visit o.expr, collector
+          collector << " AS BINARY)"
         end
 
         def visit_Arel_Nodes_UnqualifiedColumn(o, collector)
