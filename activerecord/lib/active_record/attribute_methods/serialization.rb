@@ -181,24 +181,24 @@ module ActiveRecord
         #
         def serialize(attr_name, class_name_or_coder = nil, coder: nil, type: Object, yaml: {}, **options)
           unless class_name_or_coder.nil?
-            if class_name_or_coder.respond_to?(:new)
+            if class_name_or_coder == ::JSON || [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
               ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the class as positional argument is deprecated and will be remove in Rails 7.2.
-
-                Please pass the class as a keyword argument:
-
-                  serialize #{attr_name.inspect}, type: #{class_name_or_coder.name}
-              MSG
-              type = class_name_or_coder
-            else
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the coder as positional argument is deprecated and will be remove in Rails 7.2.
+                Passing the coder as positional argument is deprecated and will be removed in Rails 7.2.
 
                 Please pass the coder as a keyword argument:
 
                   serialize #{attr_name.inspect}, coder: #{class_name_or_coder}
               MSG
               coder = class_name_or_coder
+            else
+              ActiveRecord.deprecator.warn(<<~MSG)
+                Passing the class as positional argument is deprecated and will be removed in Rails 7.2.
+
+                Please pass the class as a keyword argument:
+
+                  serialize #{attr_name.inspect}, type: #{class_name_or_coder.name}
+              MSG
+              type = class_name_or_coder
             end
           end
 
@@ -230,7 +230,7 @@ module ActiveRecord
             # using the #as_json hook.
             coder = Coders::JSON if coder == ::JSON
 
-            if coder == ::YAML
+            if coder == ::YAML || coder == Coders::YAMLColumn
               Coders::YAMLColumn.new(attr_name, type, **(yaml || {}))
             elsif coder.respond_to?(:new) && !coder.respond_to?(:load)
               coder.new(attr_name, type)
