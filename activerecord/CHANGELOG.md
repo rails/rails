@@ -1,3 +1,47 @@
+*   Allow applications to register a custom database configuration handler.
+
+    Adds a mechanism for registering a custom handler for cases where you want database configurations to respond to custom methods. This is useful for non-Rails database adapters or tools like Vitess that you may want to configure differently from a standard `HashConfig` or `UrlConfig`.
+
+    Given the following database YAML we want the `animals` db to create a `CustomConfig` object instead while the `primary` database will be a `UrlConfig`:
+
+    ```yaml
+    development:
+      primary:
+        url: postgres://localhost/primary
+      animals:
+        url: postgres://localhost/animals
+        custom_config:
+          sharded: 1
+    ```
+
+    To register a custom handler first make a class that has your custom methods:
+
+    ```ruby
+    class CustomConfig < ActiveRecord::DatabaseConfigurations::UrlConfig
+      def sharded?
+        custom_config.fetch("sharded", false)
+      end
+
+      private
+        def custom_config
+          configuration_hash.fetch(:custom_config)
+        end
+    end
+    ```
+
+    Then register the config in an inializer:
+
+    ```ruby
+    ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
+      next unless config.key?(:custom_config)
+      CustomConfig.new(env_name, name, url, config)
+    end
+    ```
+
+    When the application is booted, configuration hashes with the `:custom_config` key will be `CustomConfig` objects and respond to `sharded?`. Applications must handle the condition in which Active Record should use their custom handler.
+
+    *Eileen M. Uchitelle and John Crepezzi*
+
 *   `ActiveRecord::Base.serialize` no longer uses YAML by default.
 
     YAML isn't particularly performant and can lead to security issues
