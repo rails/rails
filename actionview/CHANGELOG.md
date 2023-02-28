@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing instance variables as locals to partials.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated constant `ActionView::Path`.
 
     *Rafael Mendonça França*

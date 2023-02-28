@@ -75,6 +75,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Remove deprecated constant `ActionView::Path`.
 
+*   Remove deprecated support to passing instance variables as locals to partials.
+
 ### Deprecations
 
 ### Notable changes
