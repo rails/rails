@@ -230,7 +230,7 @@ module ActiveRecord
             # using the #as_json hook.
             coder = Coders::JSON if coder == ::JSON
 
-            if coder == ::YAML
+            if coder == ::YAML || coder == Coders::YAMLColumn
               Coders::YAMLColumn.new(attr_name, type, **(yaml || {}))
             elsif coder.respond_to?(:new) && !coder.respond_to?(:load)
               coder.new(attr_name, type)

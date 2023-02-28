@@ -657,6 +657,12 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     skip "Time is a DisallowedClass in Psych safe_load()."
   end
 
+  def test_supports_permitted_classes_for_default_column_serializer
+    Topic.serialize(:content, yaml: { permitted_classes: [Time] })
+    topic = Topic.new(content: Time.now)
+    assert topic.save
+  end
+
   def test_recognizes_coder_as_deprecated_positional_argument
     some_coder = Struct.new(:foo) do
       def self.dump(value)
