@@ -82,26 +82,26 @@ module ActiveRecord
     # * <tt>name:</tt> The db config name (i.e. primary, animals, etc.). Defaults
     #   to +nil+. If no +env_name+ is specified the config for the default env and the
     #   passed +name+ will be returned.
-    # * <tt>include_replicas:</tt> Deprecated. Determines whether to include replicas in
-    #   the returned list. Most of the time we're only iterating over the write
-    #   connection (i.e. migrations don't need to run for the write and read connection).
-    #   Defaults to +false+.
+    # * <tt>config_key:</tt> Selects configs that contain a particular key in the configuration
+    #   hash. Useful for selecting configs that use a custom db config handler or finding
+    #   configs with hashes that contain a particular key.
     # * <tt>include_hidden:</tt> Determines whether to include replicas and configurations
     #   hidden by +database_tasks: false+ in the returned list. Most of the time we're only
     #   iterating over the primary connections (i.e. migrations don't need to run for the
     #   write and read connection). Defaults to +false+.
-    def configs_for(env_name: nil, name: nil, include_replicas: false, include_hidden: false)
-      if include_replicas
-        include_hidden = include_replicas
-        ActiveRecord.deprecator.warn("The kwarg `include_replicas` is deprecated in favor of `include_hidden`. When `include_hidden` is passed, configurations with `replica: true` or `database_tasks: false` will be returned. `include_replicas` will be removed in Rails 7.1.")
-      end
-
+    def configs_for(env_name: nil, name: nil, config_key: nil, include_hidden: false)
       env_name ||= default_env if name
       configs = env_with_configs(env_name)
 
       unless include_hidden
         configs = configs.select do |db_config|
           db_config.database_tasks?
+        end
+      end
+
+      if config_key
+        configs = configs.select do |db_config|
+          db_config.configuration_hash.key?(config_key)
         end
       end
 
