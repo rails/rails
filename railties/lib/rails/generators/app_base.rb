@@ -519,9 +519,9 @@ module Rails
           # Dockerhub.
           case Gem.ruby_version.to_s
           when /^2\.7/
-            bullseye = Gem.ruby_version >= "2.7.4"
+            bullseye = Gem.ruby_version >= Gem::Version.new("2.7.4")
           when /^3\.0/
-            bullseye = Gem.ruby_version >= "3.0.2"
+            bullseye = Gem.ruby_version >= Gem::Version.new("3.0.2")
           else
             bullseye = true
           end
