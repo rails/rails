@@ -271,9 +271,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_uses_provided_dalli_client_if_present
-    cache = lookup_store(Dalli::Client.new("custom_host"))
-
-    assert_equal ["custom_host"], servers(cache)
+    assert_deprecated(ActiveSupport.deprecator) do
+      host = "custom_host"
+      cache = lookup_store(Dalli::Client.new(host))
+      assert_equal [host], servers(cache)
+    end
   end
 
   def test_forwards_string_addresses_if_present
