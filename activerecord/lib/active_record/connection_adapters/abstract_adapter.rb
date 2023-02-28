@@ -573,6 +573,10 @@ module ActiveRecord
         true
       end
 
+      def sorts_nulls_first?
+        raise NotImplementedError
+      end
+
       def async_enabled? # :nodoc:
         supports_concurrent_connections? &&
           !ActiveRecord.async_query_executor.nil? && !pool.async_executor.nil?

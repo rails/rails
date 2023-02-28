@@ -434,6 +434,10 @@ module ActiveRecord
         true
       end
 
+      def sorts_nulls_first?
+        false
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")

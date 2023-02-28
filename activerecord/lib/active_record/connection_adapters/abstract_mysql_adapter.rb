@@ -168,6 +168,10 @@ module ActiveRecord
         true
       end
 
+      def sorts_nulls_first?
+        true
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/relation/batches/batch_relations"
+
 module ActiveRecord
   module Batches
     class BatchEnumerator
@@ -52,7 +54,7 @@ module ActiveRecord
       def each_record(&block)
         return to_enum(:each_record) unless block_given?
 
-        @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: true, order: @order).each do |relation|
+        each(load: true) do |relation|
           relation.records.each(&block)
         end
       end
@@ -91,10 +93,10 @@ module ActiveRecord
       #   Person.in_batches.each do |relation|
       #     relation.update_all(awesome: true)
       #   end
-      def each(&block)
-        enum = @relation.to_enum(:in_batches, of: @of, start: @start, finish: @finish, load: false, order: @order, use_ranges: @use_ranges)
-        return enum.each(&block) if block_given?
-        enum
+      def each(load: false, &block)
+        return to_enum(:each) unless block_given?
+
+        BatchRelations.new(of: @of, start: start, finish: finish, relation: relation, order: @order, use_ranges: @use_ranges, load: load).each(&block)
       end
     end
   end
