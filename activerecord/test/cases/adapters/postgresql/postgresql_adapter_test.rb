@@ -521,9 +521,13 @@ module ActiveRecord
 
       def test_ignores_warnings_when_behaviour_ignore
         with_db_warnings_action(:ignore) do
-          result = @connection.execute("do $$ BEGIN RAISE WARNING 'foo'; END; $$")
-
-          assert_equal [], result.to_a
+          # libpq prints a warning to stderr from C, so we need to stub
+          # the whole file descriptors, not just Ruby's $stdout/$stderr.
+          _out, err = capture_subprocess_io do
+            result = @connection.execute("do $$ BEGIN RAISE WARNING 'foo'; END; $$")
+            assert_equal [], result.to_a
+          end
+          assert_match(/WARNING:  foo/, err)
         end
       end
 
