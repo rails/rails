@@ -258,6 +258,7 @@ end
   activestorage   test                default
   actionmailbox   test                default
   actiontext      test                default
+  activerecord    arel:test           default
   guides          test                default
 ).each_slice(3) do |dir, task, service|
   steps_for(dir, task, service: service)
