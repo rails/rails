@@ -377,7 +377,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "read_attribute raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
     computer = Computer.select(:id, :extendedWarranty).first
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
+    assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'developer' for Computer/) do
+      computer[:developer]
+    end
     assert_nothing_raised { computer[:extendedWarranty] }
     assert_nothing_raised { computer[:no_column_exists] }
   end

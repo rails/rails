@@ -11,7 +11,7 @@ module ActiveModel
   #
   #   user = User.first
   #   user.pets.select(:id).first.user_id
-  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute 'user_id' for Pet
   class MissingAttributeError < NoMethodError
   end
 
@@ -501,7 +501,7 @@ module ActiveModel
       end
 
       def missing_attribute(attr_name, stack)
-        raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
+        raise ActiveModel::MissingAttributeError, "missing attribute '#{attr_name}' for #{self.class}", stack
       end
 
       def _read_attribute(attr)

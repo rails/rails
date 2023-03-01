@@ -94,7 +94,7 @@ module ActiveRecord
       # receive:
       #
       #   person.pets.select(:name).first.person_id
-      #   # => ActiveModel::MissingAttributeError: missing attribute: person_id
+      #   # => ActiveModel::MissingAttributeError: missing attribute 'person_id' for Pet
       #
       # *Second:* You can pass a block so it can be used just like Array#select.
       # This builds an array of objects from the database for the scope,

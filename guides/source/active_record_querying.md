@@ -824,7 +824,7 @@ SELECT isbn, out_of_print FROM books
 Be careful because this also means you're initializing a model object with only the fields that you've selected. If you attempt to access a field that is not in the initialized record you'll receive:
 
 ```
-ActiveModel::MissingAttributeError: missing attribute: <attribute>
+ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
 
 Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
