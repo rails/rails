@@ -231,6 +231,27 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(another_blog.id, comment.blog_id)
     assert_equal(comment.blog_post_id, blog_post.id)
   end
+
+  def test_append_composite_has_many_through_association
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    tag = Sharded::Tag.new(name: "Ruby on Rails", blog_id: blog_post.blog_id)
+    tag.save
+
+    blog_post.tags << tag
+
+    assert_includes(blog_post.reload.tags, tag)
+    assert_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id, tag_id: tag.id), :exists?
+  end
+
+  def test_append_composite_has_many_through_association_with_autosave
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    tag = Sharded::Tag.new(name: "Ruby on Rails", blog_id: blog_post.blog_id)
+
+    blog_post.tags << tag
+
+    assert_includes(blog_post.reload.tags, tag)
+    assert_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id, tag_id: tag.id), :exists?
+  end
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
