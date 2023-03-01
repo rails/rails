@@ -10,39 +10,11 @@ require "active_support"
 require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
-require "active_support/configuration_file"
-require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
 
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
-
-SERVICE_CONFIGURATIONS = begin
-  ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
-rescue Errno::ENOENT
-  puts "Missing service configuration file in test/service/configurations.yml"
-  {}
-end
-# Azure service tests are currently failing on the main branch.
-# We temporarily disable them while we get things working again.
-if ENV["CI"]
-  SERVICE_CONFIGURATIONS.delete(:azure)
-  SERVICE_CONFIGURATIONS.delete(:azure_public)
-end
-
-require "tmpdir"
-
-Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
-  "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
-  "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
-  "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
-  "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
-  "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
-  "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
-).deep_stringify_keys
-
-Rails.configuration.active_storage.service = "local"
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
