@@ -10,6 +10,9 @@ class Club < ActiveRecord::Base
 
   has_many :favorites, -> { where(memberships: { favorite: true }) }, through: :memberships, source: :member
 
+  has_many :custom_memberships, class_name: "Membership"
+  has_many :custom_favorites, -> { where(memberships: { favorite: true }) }, through: :custom_memberships, source: :member
+
   scope :general, -> { left_joins(:category).where(categories: { name: "General" }).unscope(:limit) }
 
   accepts_nested_attributes_for :membership
