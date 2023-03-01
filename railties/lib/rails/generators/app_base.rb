@@ -546,10 +546,10 @@ module Rails
         packages.sort
       end
 
-      # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
+      # CSS processors other than Tailwind and Sass require a node-based JavaScript environment. So overwrite the normal JS default
       # if one such processor has been specified.
       def adjusted_javascript_option
-        if options[:css] && options[:css] != "tailwind" && options[:javascript] == "importmap"
+        if options[:css] && options[:css] != "tailwind" && options[:css] != "sass" && options[:javascript] == "importmap"
           "esbuild"
         else
           options[:javascript]
@@ -561,6 +561,8 @@ module Rails
 
         if !using_node? && options[:css] == "tailwind"
           GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
+        elsif !using_node? && options[:css] == "sass"
+          GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
         else
           GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
@@ -673,6 +675,8 @@ module Rails
 
         if !using_node? && options[:css] == "tailwind"
           rails_command "tailwindcss:install"
+        elsif !using_node? && options[:css] == "sass"
+          rails_command "dartsass:install"
         else
           rails_command "css:install:#{options[:css]}"
         end
