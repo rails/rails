@@ -868,6 +868,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_css_option_with_asset_pipeline_sass
+    run_generator_and_bundler [destination_root, "--css=sass"]
+    assert_gem "dartsass-rails"
+    assert_file "app/assets/stylesheets/application.scss"
+  end
+
   def test_css_option_with_cssbundling_gem
     run_generator_and_bundler [destination_root, "--css=postcss"]
     assert_gem "cssbundling-rails"

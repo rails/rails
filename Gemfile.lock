@@ -168,6 +168,8 @@ GEM
       railties (>= 6.0.0)
     dalli (3.2.3)
     dante (0.2.0)
+    dartsass-rails (0.4.1)
+      railties (>= 6.0.0)
     date (3.3.3)
     debug (1.7.1)
       irb (>= 1.5.0)
@@ -540,6 +542,7 @@ DEPENDENCIES
   connection_pool
   cssbundling-rails
   dalli (>= 3.0.1)
+  dartsass-rails
   debug (>= 1.1.0)
   delayed_job
   delayed_job_active_record
