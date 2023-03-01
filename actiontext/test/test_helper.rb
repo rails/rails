@@ -6,6 +6,7 @@ require "active_support/testing/strict_warnings"
 ENV["RAILS_ENV"] = "test"
 
 require_relative "../test/dummy/config/environment"
+require "active_record/testing/query_assertions"
 ActiveRecord::Migrator.migrations_paths = [File.expand_path("../test/dummy/db/migrate", __dir__)]
 require "rails/test_help"
 
@@ -26,23 +27,7 @@ end
 class ActiveSupport::TestCase
   module QueryHelpers
     include ActiveJob::TestHelper
-
-    def assert_queries(expected_count, &block)
-      ActiveRecord::Base.connection.materialize_transactions
-
-      queries = []
-      ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
-        queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
-      end
-
-      result = _assert_nothing_raised_or_warn("assert_queries", &block)
-      assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. #{queries.inspect}"
-      result
-    end
-
-    def assert_no_queries(&block)
-      assert_queries(0, &block)
-    end
+    include ActiveRecord::Assertions::QueryAssertions
   end
 
   private
