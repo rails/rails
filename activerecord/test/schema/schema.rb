@@ -125,6 +125,8 @@ ActiveRecord::Schema.define do
     default_zero = { default: 0 }
     t.references :author
     t.string :format
+    t.integer :format_record_id
+    t.string :format_record_type
     t.column :name, :string
     t.column :status, :integer, **default_zero
     t.column :last_read, :integer, **default_zero
@@ -163,6 +165,9 @@ ActiveRecord::Schema.define do
 
     t.datetime :created_at
     t.datetime :updated_at
+  end
+
+  create_table :hardbacks, force: true do |t|
   end
 
   create_table :booleans, force: true do |t|
