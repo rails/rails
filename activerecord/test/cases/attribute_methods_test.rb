@@ -341,6 +341,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.first
     assert_raises(ActiveModel::MissingAttributeError) { topic.update_columns(no_column_exists: "Hello!") }
     assert_raises(ActiveModel::UnknownAttributeError) { topic.update(no_column_exists: "Hello!") }
+    assert_raises(ActiveModel::MissingAttributeError) { topic[:no_column_exists] = "Hello!" }
+  end
+
+  test "write_attribute does not raise when the attribute isn't selected" do
+    topic = Topic.select(:id).first
+    assert_nothing_raised { topic[:title] = "Hello!" }
   end
 
   test "write_attribute allows writing to aliased attributes" do
@@ -369,12 +375,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:heading]
   end
 
-  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
-    computer = Computer.select("id").first
+  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
+    computer = Computer.select(:id, :extendedWarranty).first
     assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:no_column_exists] = "Hello!" }
-    assert_nothing_raised { computer[:developer] = "Hello!" }
+    assert_nothing_raised { computer[:extendedWarranty] }
+    assert_nothing_raised { computer[:no_column_exists] }
   end
 
   test "read_attribute when false" do
