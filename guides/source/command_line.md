@@ -93,8 +93,6 @@ Let's see what it put in our `config/database.yml`:
 #   gem install pg
 # On macOS with Homebrew:
 #   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
-# On macOS with MacPorts:
-#   gem install pg -- --with-pg-config=/opt/local/lib/postgresql84/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
