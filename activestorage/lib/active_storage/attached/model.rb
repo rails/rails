@@ -140,24 +140,10 @@ module ActiveStorage
             attachables = Array(attachables).compact_blank
             pending_uploads = attachment_changes["#{name}"].try(:pending_uploads)
 
-            if ActiveStorage.replace_on_assign_to_many
-              attachment_changes["#{name}"] =
-                if attachables.none?
-                  ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
-                else
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
-                end
+            attachment_changes["#{name}"] = if attachables.none?
+              ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
             else
-              ActiveStorage.deprecator.warn \
-                "config.active_storage.replace_on_assign_to_many is deprecated and will be removed in Rails 7.1. " \
-                "Make sure that your code works well with config.active_storage.replace_on_assign_to_many set to true before upgrading. " \
-                "To append new attachables to the Active Storage association, prefer using `attach`. " \
-                "Using association setter would result in purging the existing attached attachments and replacing them with new ones."
-
-              if attachables.any?
-                attachment_changes["#{name}"] =
-                  ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables, pending_uploads: pending_uploads)
-              end
+              ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
             end
           end
         CODE

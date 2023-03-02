@@ -1,3 +1,9 @@
+*   Remove deprecated behavior when assigning to a collection of attachments.
+
+    Instead of appending to the collection, the collection is now replaced.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveStorage::Current#host` and `ActiveStorage::Current#host=` methods.
 
     *Rafael Mendonça França*

@@ -120,7 +120,10 @@ module ActiveStorage
           ActiveStorage.silence_invalid_content_types_warning = app.config.active_storage.silence_invalid_content_types_warning
         end
 
-        ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
+        unless app.config.active_storage.replace_on_assign_to_many.nil?
+          ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many
+        end
+
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
       end
     end

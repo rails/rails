@@ -125,7 +125,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.collection_cache_versioning`](#config-active-record-collection-cache-versioning): `true`
 - [`config.active_storage.queues.analysis`](#config-active-storage-queues-analysis): `:active_storage_analysis`
 - [`config.active_storage.queues.purge`](#config-active-storage-queues-purge): `:active_storage_purge`
-- [`config.active_storage.replace_on_assign_to_many`](#config-active-storage-replace-on-assign-to-many): `true`
 
 #### Default Values for Target Version 5.2
 
@@ -2647,17 +2646,6 @@ config.active_storage.routes_prefix = '/files'
 ```
 
 The default is `/rails/active_storage`.
-
-#### `config.active_storage.replace_on_assign_to_many`
-
-Determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 6.0                   | `true`               |
 
 #### `config.active_storage.track_variants`
 

@@ -358,10 +358,17 @@ module ActiveStorage
   mattr_accessor :draw_routes, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
-  mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
+
+  def self.replace_on_assign_to_many
+    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
+  end
+
+  def self.replace_on_assign_to_many=(value)
+    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
+  end
 
   def self.silence_invalid_content_types_warning
     ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
