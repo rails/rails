@@ -177,6 +177,21 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(blog_post.blog_id, comment.blog_id)
   end
 
+  def test_nullify_composite_foreign_key_has_many_association
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comment = sharded_comments(:great_comment_blog_post_one)
+
+    assert_not_empty(blog_post.comments)
+    blog_post.comments = []
+
+    comment = Sharded::Comment.find(comment.id)
+    assert_nil(comment.blog_post_id)
+    assert_nil(comment.blog_id)
+
+    assert_empty(blog_post.comments)
+    assert_empty(blog_post.reload.comments)
+  end
+
   def test_assign_persisted_composite_foreign_key_belongs_to_association
     comment = sharded_comments(:great_comment_blog_post_one)
     another_blog = sharded_blogs(:sharded_blog_two)
@@ -190,6 +205,19 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(comment.blog_id, blog_post.blog_id)
     assert_equal(another_blog.id, comment.blog_id)
     assert_equal(comment.blog_post_id, blog_post.id)
+  end
+
+  def test_nullify_composite_foreign_key_belongs_to_association
+    comment = sharded_comments(:great_comment_blog_post_one)
+    assert_not_nil(comment.blog_post)
+
+    comment.blog_post = nil
+    assert_nil(comment.blog_id)
+    assert_nil(comment.blog_post_id)
+
+    comment.save
+    assert_nil(comment.blog_post)
+    assert_nil(comment.reload.blog_post)
   end
 
   def test_assign_composite_foreign_key_belongs_to_association
