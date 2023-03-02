@@ -50,6 +50,8 @@ module ActiveJob
         private
           def log_arguments?
             job_data["job_class"].constantize.log_arguments?
+          rescue NameError
+            false
           end
       end
     end
