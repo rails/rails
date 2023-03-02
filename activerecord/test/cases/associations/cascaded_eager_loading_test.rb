@@ -12,10 +12,11 @@ require "models/reply"
 require "models/person"
 require "models/vertex"
 require "models/edge"
+require "models/rating"
 
 class CascadedEagerLoadingTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :mixins, :companies, :posts, :topics, :accounts, :comments,
-           :categorizations, :people, :categories, :edges, :vertices
+           :categorizations, :people, :categories, :edges, :vertices, :ratings
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.includes(posts: :comments).order(:id).to_a
@@ -241,5 +242,27 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
     assert_equal 2, retrieved_authors.size
     assert_equal [author, authors(:bob)], retrieved_authors
+  end
+
+  def test_preloading_cascading_through_associations
+    authors(:david) # load david to avoid extra query in the assert_queries block
+    authors = assert_queries(4) do
+      Author.where(id: authors(:david).id).preload(:hello_post_comments, :hello_post_comments_ratings).load
+    end
+    assert_equal true, authors.first.association(:hello_post_comments_ratings).loaded?
+    assert_equal 3, authors.first.hello_post_comments_ratings.size
+  end
+
+  def test_partly_loaded_preloading_cascading_through_associations
+    Author.find(authors(:mary).id).hello_post_comments.first.ratings.create(value: 1)
+
+    ActiveRecord::Associations::Preloader.new(records: [authors(:david)], associations: :hello_post_comments).call
+    ActiveRecord::Associations::Preloader.new(records: [authors(:david), authors(:mary)], associations: :hello_post_comments_ratings).call
+
+    assert_equal true, authors(:david).association(:hello_post_comments_ratings).loaded?
+    assert_equal 3, authors(:david).hello_post_comments_ratings.size
+
+    assert_equal true, authors(:mary).association(:hello_post_comments_ratings).loaded?
+    assert_equal 1, authors(:mary).hello_post_comments_ratings.size
   end
 end

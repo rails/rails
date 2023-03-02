@@ -74,7 +74,14 @@ module ActiveRecord
           end
 
           def middle_records
-            through_preloaders.flat_map(&:preloaded_records)
+            middle_records = owners.flat_map do |owner|
+              association = owner.association(through_reflection.name)
+              break unless association.loaded?
+
+              Array.wrap(association.target)
+            end
+
+            middle_records || through_preloaders.flat_map(&:preloaded_records)
           end
 
           def through_preloaders

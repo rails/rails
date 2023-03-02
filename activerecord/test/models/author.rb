@@ -105,6 +105,7 @@ class Author < ActiveRecord::Base
 
   has_many :hello_posts, -> { where "posts.body = 'hello'" }, class_name: "Post"
   has_many :hello_post_comments, through: :hello_posts, source: :comments
+  has_many :hello_post_comments_ratings, through: :hello_post_comments, source: :ratings
   has_many :posts_with_no_comments, -> { where("comments.id" => nil).includes(:comments) }, class_name: "Post"
   has_many :posts_with_no_comments_2, -> { left_joins(:comments).where("comments.id": nil) }, class_name: "Post"
 
