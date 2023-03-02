@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveStorage::Current#host` and `ActiveStorage::Current#host=` methods.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated invalid default content types in Active Storage configurations.
 
     *Rafael Mendonça França*

@@ -122,6 +122,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 *   Remove deprecated invalid default content types in Active Storage configurations.
 
+*   Remove deprecated `ActiveStorage::Current#host` and `ActiveStorage::Current#host=` methods.
+
 ### Deprecations
 
 ### Notable changes
