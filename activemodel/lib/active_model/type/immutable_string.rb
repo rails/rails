@@ -46,6 +46,7 @@ module ActiveModel
       def serialize(value)
         case value
         when ::Numeric, ::Symbol, ActiveSupport::Duration then value.to_s
+        when ::String then serialize_cast_value(value)
         when true then @true
         when false then @false
         else super
@@ -53,6 +54,12 @@ module ActiveModel
       end
 
       def serialize_cast_value(value) # :nodoc:
+        if value&.encoding == Encoding::BINARY
+          # If we can treat the bytes as UTF-8 without changing them, then use UTF-8 as encoding
+          new_value = value.dup.force_encoding(Encoding::UTF_8)
+          return new_value if new_value.valid_encoding?
+        end
+
         value
       end
 

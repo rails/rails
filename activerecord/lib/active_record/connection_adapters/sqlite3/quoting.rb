@@ -79,12 +79,6 @@ module ActiveRecord
           case value
           when BigDecimal
             value.to_f
-          when String
-            if value.encoding == Encoding::ASCII_8BIT
-              super(value.encode(Encoding::UTF_8))
-            else
-              super
-            end
           else
             super
           end
