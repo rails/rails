@@ -16,7 +16,7 @@ module ActiveRecord
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
-        :supports_exclusion_constraints?, to: :@conn, private: true
+        :supports_index_include?, :supports_exclusion_constraints?, to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
@@ -104,6 +104,7 @@ module ActiveRecord
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
           sql << "USING #{index.using}" if supports_index_using? && index.using
           sql << "(#{quoted_columns(index)})"
+          sql << "INCLUDE (#{quoted_include_columns(o.index.include)})" if supports_index_include? && o.index.include
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
           sql.join(" ")

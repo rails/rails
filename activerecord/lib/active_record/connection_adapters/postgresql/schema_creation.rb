@@ -5,8 +5,7 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
-          delegate :quoted_include_columns_for_index, :supports_index_include?,
-          to: :@conn
+          delegate :quoted_include_columns_for_index, to: :@conn
 
           def visit_AlterTable(o)
             sql = super
@@ -28,12 +27,6 @@ module ActiveRecord
 
           def visit_CheckConstraintDefinition(o)
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
-          end
-
-          def visit_CreateIndexDefinition(o)
-            super.dup.tap do |sql|
-              sql << " INCLUDE (#{quoted_include_columns(o.index.include)})" if supports_index_include? && o.index.include
-            end
           end
 
           def visit_ValidateConstraint(name)

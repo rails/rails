@@ -286,6 +286,14 @@ module ActiveRecord
           connection.remove_index("testings", "last_name")
           assert_not connection.index_exists?("testings", "last_name")
         end
+
+        def test_add_index_with_included_column_and_where_clause
+          connection.add_index("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+          assert connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+
+          connection.remove_index("testings", "last_name")
+          assert_not connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+        end
       end
 
       private
