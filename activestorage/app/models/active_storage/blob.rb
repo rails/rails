@@ -327,31 +327,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     services.fetch(service_name)
   end
 
-  def content_type=(value)
-    unless ActiveStorage.silence_invalid_content_types_warning
-      if INVALID_VARIABLE_CONTENT_TYPES_DEPRECATED_IN_RAILS_7.include?(value)
-        ActiveStorage.deprecator.warn(<<-MSG.squish)
-          #{value} is not a valid content type, it should not be used when creating a blob, and support for it will be removed in Rails 7.1.
-          If you want to keep supporting this content type past Rails 7.1, add it to `config.active_storage.variable_content_types`.
-          Dismiss this warning by setting `config.active_storage.silence_invalid_content_types_warning = true`.
-        MSG
-      end
-
-      if INVALID_VARIABLE_CONTENT_TYPES_TO_SERVE_AS_BINARY_DEPRECATED_IN_RAILS_7.include?(value)
-        ActiveStorage.deprecator.warn(<<-MSG.squish)
-          #{value} is not a valid content type, it should not be used when creating a blob, and support for it will be removed in Rails 7.1.
-          If you want to keep supporting this content type past Rails 7.1, add it to `config.active_storage.content_types_to_serve_as_binary`.
-          Dismiss this warning by setting `config.active_storage.silence_invalid_content_types_warning = true`.
-        MSG
-      end
-    end
-
-    super
-  end
-
-  INVALID_VARIABLE_CONTENT_TYPES_DEPRECATED_IN_RAILS_7 = ["image/jpg", "image/pjpeg"]
-  INVALID_VARIABLE_CONTENT_TYPES_TO_SERVE_AS_BINARY_DEPRECATED_IN_RAILS_7 = ["text/javascript"]
-
   private
     def compute_checksum_in_chunks(io)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)

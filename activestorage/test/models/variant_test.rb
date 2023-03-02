@@ -197,15 +197,13 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
-  test "doesn't crash content_type not recognized by mini_mime" do
+  test "content_type not recognized by mini_mime ins't included as variable" do
     blob = create_file_blob(filename: "racecar.jpg")
 
-    # image/jpg is not recognised by mini_mime (image/jpeg is correct)
-    assert_deprecated(ActiveStorage.deprecator) do
-      blob.update(content_type: "image/jpg")
-    end
+    # image/jpg is not recognized by mini_mime (image/jpeg is correct)
+    blob.update(content_type: "image/jpg")
 
-    assert_nothing_raised do
+    assert_raises(ActiveStorage::InvariableError) do
       blob.variant(resize_to_limit: [100, 100])
     end
 

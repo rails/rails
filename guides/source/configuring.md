@@ -2590,14 +2590,6 @@ By default, this is defined as:
 config.active_storage.content_types_allowed_inline` = %w(image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
 ```
 
-#### `config.active_storage.silence_invalid_content_types_warning`
-
-Since Rails 7, Active Storage will warn if you use an invalid content type that was incorrectly supported in Rails 6. You can use this config to turn the warning off.
-
-```ruby
-config.active_storage.silence_invalid_content_types_warning = false
-```
-
 #### `config.active_storage.queues.analysis`
 
 Accepts a symbol indicating the Active Job queue to use for analysis jobs. When this option is `nil`, analysis jobs are sent to the default Active Job queue (see `config.active_job.default_queue_name`).

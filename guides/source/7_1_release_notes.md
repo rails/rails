@@ -120,6 +120,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated invalid default content types in Active Storage configurations.
+
 ### Deprecations
 
 ### Notable changes

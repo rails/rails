@@ -1,3 +1,7 @@
+*   Remove deprecated invalid default content types in Active Storage configurations.
+
+    *Rafael Mendonça França*
+
 *   Add missing preview event to `ActiveStorage::LogSubscriber`
 
     A `preview` event is being instrumented in `ActiveStorage::Previewer`.
