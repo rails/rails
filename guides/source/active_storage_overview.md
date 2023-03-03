@@ -826,10 +826,15 @@ image_tag file.representation(resize_to_limit: [100, 100])
 
 Will generate an `<img>` tag with the `src` pointing to the
 [`ActiveStorage::Representations::RedirectController`][]. The browser will
-make a request to that controller, which will return a `302` redirect to the
-file on the remote service (or in [proxy mode](#proxy-mode), return the file
-contents). Loading the file lazily allows features like
-[single use URLs](#public-access) to work without slowing down your initial page loads.
+make a request to that controller, which will perform the following:
+
+1. Process file and upload the processed file if necessary.
+2. Return a `302` redirect to the file either to
+  * the remote service (e.g., S3).
+  * or `ActiveStorage::Blobs::ProxyController` which will return the file contents if [proxy mode](#proxy-mode) is enabled.
+
+Loading the file lazily allows features like [single use URLs](#public-access)
+to work without slowing down your initial page loads.
 
 This works fine for most cases.
 
