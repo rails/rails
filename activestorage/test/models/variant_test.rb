@@ -197,7 +197,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
-  test "content_type not recognized by mini_mime ins't included as variable" do
+  test "content_type not recognized by mini_mime isn't included as variable" do
     blob = create_file_blob(filename: "racecar.jpg")
 
     # image/jpg is not recognized by mini_mime (image/jpeg is correct)
