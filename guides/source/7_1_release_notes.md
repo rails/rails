@@ -166,8 +166,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Remove implicit conversion of objects into `String` by `ActiveSupport::SafeBuffer`.
 
-*   Remove deprecated `ActiveSupport::Notifications::Event#children` and  `ActiveSupport::Notifications::Event#parent_of?`.
-
 *   Remove deprecated support to generate incorrect RFC 4122 UUIDs when providing a namespace ID that is not one of the
     constants defined on `Digest::UUID`.
 
