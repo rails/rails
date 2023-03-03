@@ -127,6 +127,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 *   Remove deprecated behavior when assigning to a collection of attachments. Instead of appending to the collection,
     the collection is now replaced.
 
+*   Remove deprecated `purge` and `purge_later` methods from the attachments association.
+
 ### Deprecations
 
 ### Notable changes
