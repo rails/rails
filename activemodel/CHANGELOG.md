@@ -1,3 +1,12 @@
+*   When serializing a record, include keys for singular associations that are nil
+
+    ```ruby
+    user.as_json(include: :phone)
+    # => {name: 'Ben Ehmke', email_address: 'ben.ehmke@email.com', phone: nil}
+    ```
+
+    *Ben Ehmke*
+
 *   Raise `NoMethodError` in `ActiveModel::Type::Value#as_json` to avoid unpredictable
     results.
 
