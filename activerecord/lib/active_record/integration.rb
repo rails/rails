@@ -106,7 +106,7 @@ module ActiveRecord
           timestamp.utc.to_fs(cache_timestamp_format)
         end
       elsif self.class.has_attribute?("updated_at")
-        raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
+        raise ActiveModel::MissingAttributeError, "missing attribute 'updated_at' for #{self.class}"
       end
     end
 

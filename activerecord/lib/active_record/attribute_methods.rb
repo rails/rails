@@ -332,8 +332,8 @@ module ActiveRecord
     #
     #   person = Person.select(:name).first
     #   person[:name]            # => "Francesco"
-    #   person[:date_of_birth]   # => ActiveModel::MissingAttributeError: missing attribute: date_of_birth
-    #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute: organization_id
+    #   person[:date_of_birth]   # => ActiveModel::MissingAttributeError: missing attribute 'date_of_birth' for Person
+    #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute 'organization_id' for Person
     #   person[:id]              # => nil
     def [](attr_name)
       read_attribute(attr_name) { |n| missing_attribute(n, caller) }

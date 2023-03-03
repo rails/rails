@@ -370,7 +370,7 @@ module ActiveRecord
     # except +id+ will throw ActiveModel::MissingAttributeError:
     #
     #   Model.select(:field).first.other_field
-    #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
+    #   # => ActiveModel::MissingAttributeError: missing attribute 'other_field' for Model
     def select(*fields)
       if block_given?
         if fields.any?
