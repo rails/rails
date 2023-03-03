@@ -628,6 +628,12 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "bar", @twz.foo
   end
 
+  def test_method_missing_works_with_kwargs
+    time = @twz.time
+    def time.method_with_kwarg(foo:); foo; end
+    assert_equal "bar", @twz.method_with_kwarg(foo: "bar")
+  end
+
   def test_date_part_value_methods
     twz = ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 19, 18, 17, 500), @time_zone)
     assert_not_called(twz, :method_missing) do
