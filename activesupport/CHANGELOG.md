@@ -31,7 +31,7 @@
 
     *Rafael Mendonça França*
 
-*    Remove deprecated option to passing a format to `#to_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
+*   Remove deprecated option to passing a format to `#to_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
     `BigDecimal`, `Float` and, `Integer`.
 
     *Rafael Mendonça França*
