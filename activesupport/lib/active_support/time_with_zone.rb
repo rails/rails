@@ -535,8 +535,8 @@ module ActiveSupport
 
     # Send the missing method to +time+ instance, and wrap result in a new
     # TimeWithZone with the existing +time_zone+.
-    def method_missing(sym, *args, &block)
-      wrap_with_time_zone time.__send__(sym, *args, &block)
+    def method_missing(...)
+      wrap_with_time_zone time.__send__(...)
     rescue NoMethodError => e
       raise e, e.message.sub(time.inspect, inspect).sub("Time", "ActiveSupport::TimeWithZone"), e.backtrace
     end
