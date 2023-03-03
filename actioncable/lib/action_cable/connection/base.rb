@@ -51,7 +51,7 @@ module ActionCable
       include ActiveSupport::Rescuable
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
-      delegate :event_loop, :pubsub, to: :server
+      delegate :event_loop, :pubsub, :config, to: :server
 
       def initialize(server, env, coder: ActiveSupport::JSON)
         @server, @env, @coder = server, env, coder

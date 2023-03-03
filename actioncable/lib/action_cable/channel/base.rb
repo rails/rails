@@ -286,7 +286,7 @@ module ActionCable
         end
 
         def parameter_filter
-          @parameter_filter ||= ActiveSupport::ParameterFilter.new(connection.server.config.filter_parameters)
+          @parameter_filter ||= ActiveSupport::ParameterFilter.new(connection.config.filter_parameters)
         end
 
         def transmit_subscription_confirmation
