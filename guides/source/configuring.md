@@ -927,13 +927,13 @@ irb> person = Person.new.tap(&:valid?)
 
 irb> person.errors.full_messages
 => [
-  "Invalid Name (can't be blank)",
+  "Invalid Name (can’t be blank)",
   "Please fill in your Age"
 ]
 
 irb> person.errors.messages
 => {
-  :name => ["can't be blank"],
+  :name => ["can’t be blank"],
   :age  => ["Please fill in your Age"]
 }
 ```

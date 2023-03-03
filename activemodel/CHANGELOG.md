@@ -1,3 +1,9 @@
+*   Improve typography of user facing error messages. In English contractions,
+    the Unicode APOSTROPHE (U+0027) is now RIGHT SINGLE QUOTATION MARK
+    (U+2019). For example, “can't be blank” is now “can’t be blank”.
+
+    *Jon Dufresne*
+
 *   Add class to ActiveModel::MissingAttributeError error message.
 
     Show which class is missing the attribute in the error message:
