@@ -16,6 +16,7 @@ module ActionDispatch
 
       included do
         mattr_accessor :ignore_accept_header, default: false
+        mattr_accessor :ignore_format_from_path_extension, default: false
         cattr_accessor :return_only_media_type_on_content_type, default: false
       end
 
@@ -82,7 +83,7 @@ module ActionDispatch
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts.dup
-          elsif extension_format = format_from_path_extension
+          elsif extension_format = use_path_extension && format_from_path_extension
             [extension_format]
           elsif xhr?
             [Mime[:js]]
@@ -185,6 +186,10 @@ module ActionDispatch
 
         def use_accept_header
           !self.class.ignore_accept_header
+        end
+
+        def use_path_extension
+          !self.class.ignore_format_from_path_extension
         end
 
         def format_from_path_extension
