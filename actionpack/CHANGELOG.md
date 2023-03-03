@@ -1,3 +1,7 @@
+*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**
+
+    *Jason Kotchoff*
+
 *   Remove deprecated `poltergeist` and `webkit` (capybara-webkit) driver registration for system testing.
 
     *Rafael Mendonça França*
