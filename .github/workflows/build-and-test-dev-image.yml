@@ -1,5 +1,6 @@
 name: Build and test --dev image
-on: [push]
+
+on: [push, pull_request]
 
 env:
   APP_NAME: devrails
