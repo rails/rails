@@ -33,8 +33,7 @@ passing the `--skip-asset-pipeline` option.
 $ rails new appname --skip-asset-pipeline
 ```
 
-Rails can easily work with Sass by adding the [`dartsass-rails`](https://github.com/rails/dartsass-rails)
-gem to your `Gemfile`, which is used by Sprockets for [Sass](https://sass-lang.com) compilation:
+Rails can easily work with [Sass](https://sass-lang.com) by adding the [`dartsass-rails`](https://github.com/rails/dartsass-rails) gem to your `Gemfile`:
 
 ```ruby
 gem 'dartsass-rails'
@@ -54,9 +53,6 @@ in `production.rb` - [`config.assets.css_compressor`][] for your CSS and
 config.assets.css_compressor = :yui
 config.assets.js_compressor = :terser
 ```
-
-NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
-in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
 [`config.assets.css_compressor`]: configuring.html#config-assets-css-compressor
 [`config.assets.js_compressor`]: configuring.html#config-assets-js-compressor
