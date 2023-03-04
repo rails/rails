@@ -19,7 +19,7 @@ FROM base as build
 
 # Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
 RUN apt-get update -qq && \
-    apt-get install -y <%= dockerfile_build_packages.join(" ") %>
+    apt-get install --no-install-recommends -y <%= dockerfile_build_packages.join(" ") %>
 
 <% if using_node? -%>
 # Install JavaScript dependencies
