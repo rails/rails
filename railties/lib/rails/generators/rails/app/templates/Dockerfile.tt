@@ -13,6 +13,10 @@ ENV RAILS_ENV="production" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development"
 
+# Update gems and bundler
+RUN gem update --system --no-document && \
+    gem install -N bundler
+
 
 # Throw-away build stage to reduce size of final image
 FROM base as build
