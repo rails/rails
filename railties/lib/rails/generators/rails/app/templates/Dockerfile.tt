@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1
 
-# Make sure it matches the Ruby version in .ruby-version and Gemfile
+# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
 FROM ruby:$RUBY_VERSION-slim as base
 
@@ -17,7 +17,7 @@ ENV RAILS_ENV="production" \
 # Throw-away build stage to reduce size of final image
 FROM base as build
 
-# Install packages need to build gems<%= using_node? ? " and node modules" : "" %>
+# Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
 RUN apt-get update -qq && \
     apt-get install -y <%= dockerfile_build_packages.join(" ") %>
 
@@ -25,7 +25,6 @@ RUN apt-get update -qq && \
 # Install JavaScript dependencies
 ARG NODE_VERSION=<%= dockerfile_node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
-
 ENV PATH=/usr/local/node/bin:$PATH
 RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
     /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
@@ -68,6 +67,7 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 # Final stage for app image
 FROM base
 
+# Install packages needed for deployment
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y <%= dockerfile_deploy_packages.join(" ") %> && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
