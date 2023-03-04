@@ -480,6 +480,8 @@ module ActionView
 
       mattr_accessor :multiple_file_field_include_hidden, default: false
 
+      mattr_accessor :nested_form_behaviour, default: nil
+
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:
@@ -752,6 +754,8 @@ module ActionView
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
+        check_for_nested_form!("Forms should not be nested inside forms.")
+
         options = { allow_method_names_outside_object: true, skip_default_ids: !form_with_generates_ids }.merge!(options)
 
         if model
@@ -769,7 +773,12 @@ module ActionView
 
         if block_given?
           builder = instantiate_builder(scope, model, options)
-          output  = capture(builder, &block)
+          output  = begin
+            @_inside_form = true
+            capture(builder, &block)
+          ensure
+            @_inside_form = nil
+          end
           options[:multipart] ||= builder.multipart?
 
           html_options = html_options_for_form_with(url, model, **options)
@@ -1585,6 +1594,18 @@ module ActionView
       end
 
       private
+        def check_for_nested_form!(message)
+          @_inside_form ||= nil
+          return unless @_inside_form && nested_form_behaviour
+
+          case nested_form_behaviour
+          when :raise
+            raise ArgumentError.new(message)
+          when :log
+            ActionView::Base.logger.warn(message)
+          end
+        end
+
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
           skip_enforcing_utf8: nil, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)

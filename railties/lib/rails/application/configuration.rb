@@ -309,6 +309,10 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
           end
+
+          if respond_to?(:action_view)
+            action_view.nested_form_behaviour = :raise if Rails.env.local?
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

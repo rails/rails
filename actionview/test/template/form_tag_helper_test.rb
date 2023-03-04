@@ -980,6 +980,26 @@ class FormTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_form_tag_inside_form_is_fine_by_default
+    form_tag do |f|
+      form_tag
+    end
+  end
+
+  def test_form_tag_inside_form_with_raises_if_enabled
+    old_value = ActionView::Helpers::FormHelper.nested_form_behaviour
+    ActionView::Helpers::FormHelper.nested_form_behaviour = :raise
+
+    assert_raises ArgumentError, match: /Forms should not be nested inside forms./ do
+      form_tag do |f|
+        form_tag
+      end
+    end
+
+  ensure
+    ActionView::Helpers::FormHelper.nested_form_behaviour = old_value
+  end
+
   def protect_against_forgery?
     false
   end

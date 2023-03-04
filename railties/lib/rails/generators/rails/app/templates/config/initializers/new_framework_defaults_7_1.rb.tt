@@ -152,3 +152,9 @@
 # recommended to explicitly define the serialization method for each column
 # rather than to rely on a global default.
 # Rails.application.config.active_record.default_column_serializer = nil
+
+# Raise an error when nesting a <form> inside a <form>.
+# This behaviour is forbidden and will not work as expected.
+# See https://developer.mozilla.org/en-US/docs/Learn/Forms/How_to_structure_a_web_form#the_form_element
+# Set to `:log` to emit a warning instead of raising, or to `nil` to disable checks.
+# Rails.application.config.action_view.nested_form_behaviour = :raise if Rails.env.local?

@@ -4332,6 +4332,74 @@ module ApplicationTests
       end
     end
 
+    test "raises errors on nested forms with 7.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+      add_to_config "config.consider_all_requests_local = true"
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+        end
+      RUBY
+
+      app_file "app/views/posts/index.html.erb", <<-RUBY
+        <%= form_tag { form_tag } %>
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_equal 500, last_response.status
+      assert last_response.body.include?("Forms should not be nested inside forms")
+    end
+
+    test "does not raise errors on nested forms with 7.1 defaults in production" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+        end
+      RUBY
+
+      app_file "app/views/posts/index.html.erb", <<-RUBY
+        <%= form_tag { form_tag } %>
+      RUBY
+
+      app "production"
+
+      get "/posts"
+      assert_equal 200, last_response.status
+      assert_equal %(<form action=\"/posts\" accept-charset=\"UTF-8\" method=\"post\"><form action=\"/posts\" accept-charset=\"UTF-8\" method=\"post\"></form>), last_response.body.strip
+    end
+
+    test "does not raise error on nested forms with 7.1 defaults if opted out" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+      add_to_config "config.consider_all_requests_local = true"
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
+        Rails.application.config.action_view.nested_form_behaviour = nil
+      RUBY
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+        end
+      RUBY
+
+      app_file "app/views/posts/index.html.erb", <<-RUBY
+        <%= form_tag { form_tag } %>
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_equal 200, last_response.status
+      assert_equal %(<form action=\"/posts\" accept-charset=\"UTF-8\" method=\"post\"><form action=\"/posts\" accept-charset=\"UTF-8\" method=\"post\"></form>), last_response.body.strip
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

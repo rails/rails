@@ -75,9 +75,18 @@ module ActionView
       #   # form with custom authenticity token
       #
       def form_tag(url_for_options = {}, options = {}, &block)
+        check_for_nested_form!("Forms should not be nested inside forms.")
+
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
-          form_tag_with_body(html_options, capture(&block))
+          output = begin
+            @_inside_form = true
+            capture(&block)
+          ensure
+            @_inside_form = nil
+          end
+
+          form_tag_with_body(html_options, output)
         else
           form_tag_html(html_options)
         end

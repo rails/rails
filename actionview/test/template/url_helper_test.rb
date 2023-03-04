@@ -46,6 +46,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   include ActionView::Helpers::UrlHelper
+  include ActionView::Helpers::FormHelper
   include routes.url_helpers
 
   include ActionView::Helpers::JavaScriptHelper

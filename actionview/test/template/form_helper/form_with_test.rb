@@ -24,6 +24,15 @@ class FormWithTest < ActionView::TestCase
     ensure
       ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
     end
+
+    def with_nested_form_behaviour(behaviour)
+      old_value = ActionView::Helpers::FormHelper.nested_form_behaviour
+      ActionView::Helpers::FormHelper.nested_form_behaviour = behaviour
+
+      yield
+    ensure
+      ActionView::Helpers::FormHelper.nested_form_behaviour = old_value
+    end
 end
 
 class FormWithActsLikeFormTagTest < FormWithTest
@@ -2503,6 +2512,45 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
 
     assert_dom_equal expected, @rendered
+  end
+
+  def test_form_with_inside_form_is_fine_by_default
+    form_with(model: @post, id: "create-post") do |f|
+      form_with(model: @post, id: "create-post")
+    end
+  end
+
+  def test_form_with_inside_form_with_raises_if_enabled
+    with_nested_form_behaviour :raise do
+      assert_raises ArgumentError, match: /Forms should not be nested inside forms./ do
+        form_with(model: @post, id: "create-post") do |f|
+          form_with(model: @post, id: "create-post")
+        end
+      end
+    end
+  end
+
+  def test_button_to_inside_form_with_is_fine_by_default
+    form_with(model: @post, id: "create-post") do |f|
+      button_to("Hello", "http://www.example.com")
+    end
+  end
+
+  def test_button_to_inside_form_with_raises_if_enabled
+    with_nested_form_behaviour :raise do
+      assert_raises ArgumentError, match: /Forms should not be nested inside forms. button_to uses a form internally, so it cannot be nested inside a form_with./ do
+        form_with(model: @post, id: "create-post") do |f|
+          button_to("Hello", "http://www.example.com")
+        end
+      end
+    end
+  end
+
+  def test_button_to_outside_form_does_not_raise
+    with_nested_form_behaviour :raise do
+      form_with(model: @post, id: "create-post") { }
+      button_to("Hello", "http://www.example.com")
+    end
   end
 
   private

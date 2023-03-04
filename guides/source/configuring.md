@@ -76,6 +76,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.default_message_verifier_serializer`](#config-active-support-default-message-verifier-serializer): `:json`
 - [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
 - [`config.active_support.use_message_serializer_for_metadata`](#config-active-support-use-message-serializer-for-metadata): `true`
+- [`config.action_view.nested_form_behaviour`](#config-action-view-nested-form-nested_form_behaviour): `:raise if Rails.env.local?`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
 - [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
 - [`config.precompile_filter_parameters`](#config-precompile-filter-parameters): `true`
@@ -1962,6 +1963,19 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.action_view.prepend_content_exfiltration_prevention`
 
 Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
+
+#### `config.action_view.nested_form_behaviour`
+
+Alerts you if a `<form>` is nested inside a `<form>`. This is prohibited in the HTML spec.
+
+Accepts `:raise`, `:log`, or `nil` as options.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is          |
+| --------------------- | ----------------------------- |
+| (original)            | `nil`                         |
+| 7.1                   | `:raise if Rails.env.local?`  |
 
 ### Configuring Action Mailbox
 

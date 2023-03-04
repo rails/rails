@@ -331,6 +331,8 @@ module ActionView
       #   #    </form>"
       #
       def button_to(name = nil, options = nil, html_options = nil, &block)
+        check_for_nested_form!("Forms should not be nested inside forms. button_to uses a form internally, so it cannot be nested inside a form_with.")
+
         html_options, options = options, name if block_given?
         html_options ||= {}
         html_options = html_options.stringify_keys

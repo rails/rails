@@ -35,6 +35,11 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      nested_form_behaviour = app.config.action_view.delete(:nested_form_behaviour)
+      ActionView::Helpers::FormHelper.nested_form_behaviour = nested_form_behaviour
+    end
+
+    config.after_initialize do |app|
       default_enforce_utf8 = app.config.action_view.delete(:default_enforce_utf8)
       unless default_enforce_utf8.nil?
         ActionView::Helpers::FormTagHelper.default_enforce_utf8 = default_enforce_utf8

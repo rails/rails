@@ -1,3 +1,12 @@
+*   In development, raise an error if a `<form>` is nested inside a `<form>`
+
+    Doing so is prohibited, per the HTML spec.
+
+    You can control the behaviour with `Rails.application.config.action_view.nested_form_behaviour`.
+    In Rails 7.1 it will `:raise` in development and test. You can also `:log` or set to `nil` to disable checks.
+
+    *Alex Ghiculescu*
+
 *   Remove deprecated support to passing instance variables as locals to partials.
 
     *Rafael Mendonça França*
