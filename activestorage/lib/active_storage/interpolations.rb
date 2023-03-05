@@ -19,8 +19,9 @@ module ActiveStorage
       end
 
       def interpolate(pattern, *args)
+        result = pattern.dup
         self.interpolators_cache.each do |method, token|
-          pattern.gsub!(token) { send(method, *args) } if pattern.include?(token)
+          result.gsub!(token) { send(method, *args) } if pattern.include?(token)
         end
         result
       end
@@ -28,6 +29,18 @@ module ActiveStorage
       def interpolators_cache
         @interpolators_cache ||= all.reverse!.map! { |method| [method, ":#{method}"] }
       end
+    end
+
+    def filename(attachment, style)
+      attachment.filename
+    end
+
+    def id(attachment, style)
+      attachment.id
+    end
+
+    def key(attachment, style)
+      attachment.key
     end
   end
 end
