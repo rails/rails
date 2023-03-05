@@ -75,7 +75,7 @@ TIP: Passing `url: my_specified_path` to `form_with` tells the form where to mak
 
 TIP: For every form input, an ID attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
-IMPORTANT: Use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
+IMPORTANT: Use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it.Generally, Rails encourages you to use the right HTTP verb for an action.
 
 ### Helpers for Generating Form Elements
 
