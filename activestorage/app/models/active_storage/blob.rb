@@ -355,7 +355,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def path_on_service
-    path ? Interpolations.interpolate(path_on_service, self, :original): key
+    path ? ActiveStorage::Interpolations.interpolate(path_on_service, self, :original): key
   end
 
 

@@ -114,6 +114,6 @@ class ActiveStorage::Variant
     end
 
     def path_on_service
-      blob.path ? Interpolations.interpolate(blob.path_on_service, self, variation.key) : key
+      blob.path ? ActiveStorage::Interpolations.interpolate(blob.path_on_service, self, variation.key) : key
     end
 end
