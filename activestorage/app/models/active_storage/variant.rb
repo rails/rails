@@ -37,7 +37,7 @@
 #   avatar.variant(resize_to_limit: [100, 100]).processed.url
 #
 # This will create and process a variant of the avatar blob that's constrained to a height and width of 100.
-# Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
+# Then it'll upload said variant to the service according to a derivative path of the blob and the transformations.
 #
 # You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
 # ImageProcessing gem (such as +resize_to_limit+):
@@ -76,13 +76,13 @@ class ActiveStorage::Variant
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
-    service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
+    service.url path_on_service, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
   # Downloads the file associated with this variant. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
-    service.download key, &block
+    service.download path_on_service, &block
   end
 
   def filename
@@ -102,14 +102,18 @@ class ActiveStorage::Variant
 
   private
     def processed?
-      service.exist?(key)
+      service.exist?(path_on_service)
     end
 
     def process
       blob.open do |input|
         variation.transform(input) do |output|
-          service.upload(key, output, content_type: content_type)
+          service.upload(path_on_service, output, content_type: content_type)
         end
       end
+    end
+
+    def path_on_service
+      blob.path ? Interpolations.interpolate(blob.path_on_service, self, variation.key) : key
     end
 end
