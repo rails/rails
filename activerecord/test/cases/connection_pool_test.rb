@@ -559,15 +559,22 @@ module ActiveRecord
         schema_cache = connection.schema_cache
         assert_equal connection, schema_cache.connection
 
-        Thread.new do
+        new_thread {
           pool.with_connection do |conn|
             assert_not_equal connection, conn
-            assert_equal schema_cache, conn.schema_cache
-            assert_equal conn, conn.schema_cache.connection
+            assert_same schema_cache, conn.schema_cache
+            assert_same conn, conn.schema_cache.connection
           end
-        end.join
+        }.join
 
-        assert_equal connection, schema_cache.connection
+        assert_same connection, schema_cache.connection
+
+        with_single_connection_pool do |pool2|
+          pool2.with_connection do |conn|
+            assert_not_equal schema_cache, conn.schema_cache
+            assert_not_equal schema_cache.connection, conn.schema_cache.connection
+          end
+        end
 
         pool.checkin connection
       end

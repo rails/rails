@@ -33,10 +33,10 @@ module ActiveRecord
       private_class_method :read
 
       attr_reader :version
-      thread_cattr_accessor :connection
+      attr_accessor :connection
 
       def initialize(conn)
-        self.connection = conn
+        @connection = conn
 
         @columns      = {}
         @columns_hash = {}
