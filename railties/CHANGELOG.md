@@ -1,3 +1,28 @@
+*   Autoloading setup honors root directories manually set by the user.
+
+    This is relevant for custom namespaces. For example, if you'd like classes
+    and modules under `app/services` to be defined in the `Services` namespace
+    without an extra `app/services/services` directory, this is now enough:
+
+    ```ruby
+    # config/initializers/autoloading.rb
+
+    # The namespace has to exist.
+    #
+    # In this example we define the module on the spot. Could also be created
+    # elsewhere and its definition loaded here with an ordinary `require`. In
+    # any case, `push_dir` expects a class or module object as second argument.
+    module Services; end
+
+    Rails.autoloaders.main.push_dir("#{Rails.root}/app/services", Services)
+    ```
+
+    Before this change, Rails would later override the configuration. You had to
+    delete `app/services` from `ActiveSupport::Dependencies.autoload_paths` as
+    well.
+
+    *Xavier Noria*
+
 *   Use infinitive form for all rails command descriptions verbs.
 
     *Petrik de Heus*

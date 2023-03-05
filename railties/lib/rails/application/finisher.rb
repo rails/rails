@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "set"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -17,10 +18,15 @@ module Rails
       initializer :setup_main_autoloader do
         autoloader = Rails.autoloaders.main
 
+        # Normally empty, but if the user already defined some, we won't
+        # override them. Important if there are custom namespaces associated.
+        already_configured_dirs = Set.new(autoloader.dirs)
+
         ActiveSupport::Dependencies.autoload_paths.freeze
         ActiveSupport::Dependencies.autoload_paths.uniq.each do |path|
           # Zeitwerk only accepts existing directories in `push_dir`.
           next unless File.directory?(path)
+          next if already_configured_dirs.member?(path.to_s)
 
           autoloader.push_dir(path)
           autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
