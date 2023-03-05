@@ -47,8 +47,9 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, path: nil)
         validate_service_configuration(name, service)
+        validate_path_configuration if path
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -80,7 +81,7 @@ module ActiveStorage
           :has_one_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, path: path },
           self
         )
         yield reflection if block_given?
@@ -126,8 +127,9 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, path: nil)
         validate_service_configuration(name, service)
+        validate_path_configuration if path
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -203,7 +205,7 @@ module ActiveStorage
           :has_many_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, path: path },
           self
         )
         yield reflection if block_given?
@@ -218,6 +220,12 @@ module ActiveStorage
             end
           else
             validate_global_service_configuration
+          end
+        end
+
+        def validate_path_configuration
+          unless ActiveStorage.track_variants
+            raise RuntimeError, "ActiveStorage.track_variants is required to be 'true' to use 'path'"
           end
         end
 

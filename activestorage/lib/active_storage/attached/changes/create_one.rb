@@ -59,13 +59,15 @@ module ActiveStorage
             filename: attachable.original_filename,
             content_type: attachable.content_type,
             record: record,
-            service_name: attachment_service_name
+            service_name: attachment_service_name,
+            path: attachment_path
           )
         when Hash
           ActiveStorage::Blob.build_after_unfurling(
             **attachable.reverse_merge(
               record: record,
-              service_name: attachment_service_name
+              service_name: attachment_service_name,
+              path: attachment_path
             ).symbolize_keys
           )
         when String
@@ -77,6 +79,10 @@ module ActiveStorage
 
       def attachment_service_name
         record.attachment_reflections[name].options[:service_name]
+      end
+
+      def attachment_path
+        record.attachment_reflections[name].options[:path]
       end
   end
 end
