@@ -56,6 +56,48 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert RESTfulController
   end
 
+  test "root directories manually set by the user are honored (once)" do
+    app_file "extras1/x.rb", "ZeitwerkIntegrationTestExtras::X = true"
+    app_file "extras2/y.rb", "ZeitwerkIntegrationTestExtras::Y = true"
+
+    add_to_env_config "development", <<~'RUBY'
+      config.autoload_once_paths << "#{Rails.root}/extras1"
+      config.autoload_once_paths << Rails.root.join("extras2")
+
+      module ZeitwerkIntegrationTestExtras; end
+
+      autoloader = Rails.autoloaders.once
+      autoloader.push_dir("#{Rails.root}/extras1", namespace: ZeitwerkIntegrationTestExtras)
+      autoloader.push_dir("#{Rails.root}/extras2", namespace: ZeitwerkIntegrationTestExtras)
+    RUBY
+
+    boot
+
+    assert ZeitwerkIntegrationTestExtras::X
+    assert ZeitwerkIntegrationTestExtras::Y
+  end
+
+  test "root directories manually set by the user are honored (main)" do
+    app_file "app/services/x.rb", "ZeitwerkIntegrationTestServices::X = true"
+    app_file "extras/x.rb", "ZeitwerkIntegrationTestExtras::X = true"
+
+    app_file "config/initializers/namespaces.rb", <<~'RUBY'
+      module ZeitwerkIntegrationTestServices; end
+      module ZeitwerkIntegrationTestExtras; end
+
+      ActiveSupport::Dependencies.autoload_paths << Rails.root.join("extras")
+
+      Rails.autoloaders.main.tap do |main|
+        main.push_dir("#{Rails.root}/app/services", namespace: ZeitwerkIntegrationTestServices)
+        main.push_dir("#{Rails.root}/extras", namespace: ZeitwerkIntegrationTestExtras)
+      end
+    RUBY
+
+    boot
+
+    assert ZeitwerkIntegrationTestServices::X
+    assert ZeitwerkIntegrationTestExtras::X
+  end
 
   test "the once autoloader can autoload from initializers" do
     app_file "extras0/x.rb", "X = 0"

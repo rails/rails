@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "set"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
@@ -79,10 +80,15 @@ module Rails
       initializer :setup_once_autoloader, after: :set_eager_load_paths, before: :bootstrap_hook do
         autoloader = Rails.autoloaders.once
 
+        # Normally empty, but if the user already defined some, we won't
+        # override them. Important if there are custom namespaces associated.
+        already_configured_dirs = Set.new(autoloader.dirs)
+
         ActiveSupport::Dependencies.autoload_once_paths.freeze
         ActiveSupport::Dependencies.autoload_once_paths.uniq.each do |path|
           # Zeitwerk only accepts existing directories in `push_dir`.
           next unless File.directory?(path)
+          next if already_configured_dirs.member?(path.to_s)
 
           autoloader.push_dir(path)
           autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
