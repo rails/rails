@@ -108,7 +108,7 @@ module ActiveRecord
             oid = row[4]
             comment = row[5]
             valid = row[6]
-            using, expressions, where, include = inddef.scan(/ USING (\w+?) \((.+?)\)(?: NULLS(?: NOT)? DISTINCT)?(?: WHERE (.+?))?(?: INCLUDE \((.+)\))?\z/m).flatten
+            using, expressions, include, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: NULLS(?: NOT)? DISTINCT)?(?: INCLUDE \((.+?)\))?(?: WHERE (.+))?\z/m).flatten
 
             orders = {}
             opclasses = {}
