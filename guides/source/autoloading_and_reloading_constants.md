@@ -20,7 +20,7 @@ Introduction
 
 INFO. This guide documents autoloading, reloading, and eager loading in Rails applications.
 
-In a normal Ruby program, dependencies need to be loaded by hand. For example, the following controller uses classes `ApplicationController` and `Post`, and normally you'd need to put `require` calls for them:
+In an ordinary Ruby program, you explictly load the files that define classes and modules you want to use. For example, the following controller refers to `ApplicationController` and `Post`, and you'd normally issue `require` calls for them:
 
 ```ruby
 # DO NOT DO THIS.
@@ -35,7 +35,7 @@ class PostsController < ApplicationController
 end
 ```
 
-This is not the case in Rails applications, where application classes and modules are just available everywhere:
+This is not the case in Rails applications, where application classes and modules are just available everywhere without `require` calls:
 
 ```ruby
 class PostsController < ApplicationController
@@ -45,9 +45,10 @@ class PostsController < ApplicationController
 end
 ```
 
-Idiomatic Rails applications only issue `require` calls to load stuff from their `lib` directory, the Ruby standard library, Ruby gems, etc. That is, anything that does not belong to their autoload paths, explained below.
+Rails _autoloads_ them on your behalf if needed. This is possible thanks to a couple of [Zeitwerk](https://github.com/fxn/zeitwerk) loaders Rails sets up on your behalf, which provide autoloading, reloading, and eager loading.
 
-To provide this feature, Rails manages a couple of [Zeitwerk](https://github.com/fxn/zeitwerk) loaders on your behalf.
+On the other hand, those loaders do not manage anything else. In particular, they do not manage the Ruby standard library, gem dependencies, Rails components themselves, or even (by default) the application `lib` directory. That code has to be loaded as usual.
+
 
 Project Structure
 -----------------
@@ -231,7 +232,7 @@ While booting, applications can autoload from the autoload once paths, which are
 
 However, you cannot autoload from the autoload paths, which are managed by the `main` autoloader. This applies to code in `config/initializers` as well as application or engines initializers.
 
-Why? Initializers only run once, when the application boots. They do not run again on reloads. If the application used a reloadable class in an initializer, and the class was edited, on reload changes would not be reflected in whatever the initializer did. Therefore, referring to reloadable constants during initialization is disallowed.
+Why? Initializers only run once, when the application boots. They do not run again on reloads. If an initializer used a reloadable class or module, edits to them would not be reflected in that initial code, thus becoming stale. Therefore, referring to reloadable constants during initialization is disallowed.
 
 Let's see what to do instead.
 
