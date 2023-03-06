@@ -64,7 +64,7 @@ module ActionText
     end
 
     def as_json(*)
-      super.merge(attachable_sgid: attachable_sgid)
+      super.merge("attachable_sgid" => persisted? ? attachable_sgid : nil)
     end
 
     def to_trix_content_attachment_partial_path
