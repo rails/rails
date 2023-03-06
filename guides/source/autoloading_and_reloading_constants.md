@@ -20,7 +20,7 @@ Introduction
 
 INFO. This guide documents autoloading, reloading, and eager loading in Rails applications.
 
-In an ordinary Ruby program, you explictly load the files that define classes and modules you want to use. For example, the following controller refers to `ApplicationController` and `Post`, and you'd normally issue `require` calls for them:
+In an ordinary Ruby program, you explicitly load the files that define classes and modules you want to use. For example, the following controller refers to `ApplicationController` and `Post`, and you'd normally issue `require` calls for them:
 
 ```ruby
 # DO NOT DO THIS.
