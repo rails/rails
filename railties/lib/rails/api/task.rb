@@ -167,6 +167,7 @@ module Rails
         ENV["HORO_PROJECT_NAME"]    = "Ruby on Rails"
         ENV["HORO_PROJECT_VERSION"] = rails_version
         ENV["HORO_BADGE_VERSION"]   = badge_version
+        ENV["HORO_CANONICAL_URL"]   = canonical_url
       end
 
       def api_main
@@ -197,6 +198,10 @@ module Rails
       def badge_version
         "edge"
       end
+
+      def canonical_url
+        "https://edgeapi.rubyonrails.org"
+      end
     end
 
     class StableTask < RepoTask
@@ -206,6 +211,10 @@ module Rails
 
       def badge_version
         "v#{rails_version}"
+      end
+
+      def canonical_url
+        "https://api.rubyonrails.org/#{badge_version}"
       end
     end
   end
