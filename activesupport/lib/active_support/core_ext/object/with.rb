@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Object
-  # Sets and restore the provided attributes around a block.
+  # Set and restore public attributes around a block.
   #
   #   client.timeout # => 5
   #   client.with(timeout: 1) do
