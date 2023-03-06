@@ -507,10 +507,10 @@ Zeitwerk supports [custom root namespaces](https://github.com/fxn/zeitwerk#custo
 #
 # In this example we define the module on the spot. Could also be created
 # elsewhere and its definition loaded here with an ordinary `require`. In
-# any case, `push_dir` expects a class or module object as second argument.
+# any case, `push_dir` expects a class or module object.
 module Services; end
 
-Rails.autoloaders.main.push_dir("#{Rails.root}/app/services", Services)
+Rails.autoloaders.main.push_dir("#{Rails.root}/app/services", namespace: Services)
 ```
 
 Applications running on Rails < 7.1 have to additionally delete the directory from `ActiveSupport::Dependencies.autoload_paths`. Just add this line to the same file:
