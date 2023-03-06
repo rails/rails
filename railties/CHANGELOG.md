@@ -21,6 +21,13 @@
 
     *Xavier Noria*
 
+*   Railties now requires the irb gem as a dependency, which means when you install Rails, irb will also
+    be installed as a gem. Rails will then use the installed version of irb for its console instead of
+    relying on Ruby's built-in version.
+    This ensures that Rails has access to the most up-to-date and reliable version of irb for its console.
+
+    *Stan Lo*
+
 *   Use infinitive form for all rails command descriptions verbs.
 
     *Petrik de Heus*
