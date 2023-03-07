@@ -113,7 +113,9 @@ module ActionDispatch
 
       def flag_cookies_as_secure!(headers)
         if cookies = headers["Set-Cookie"]
-          cookies = cookies.split("\n")
+          if cookies.is_a?(String)
+            cookies = cookies.split("\n")
+          end
 
           headers["Set-Cookie"] = cookies.map { |cookie|
             if !/;\s*secure\s*(;|$)/i.match?(cookie)
