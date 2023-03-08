@@ -132,7 +132,7 @@ module ActiveRecord
       def setup_initial_database_yaml
         return {} unless defined?(Rails)
 
-        Rails.application.config.load_database_yaml
+        Rails.application.config.database_configuration
       end
 
       def for_each(databases)
