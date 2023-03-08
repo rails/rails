@@ -129,13 +129,13 @@ module ActiveRecord
         migration_class.establish_connection(db_config)
       end
 
-      def setup_initial_database_yaml
+      def setup_initial_database_yaml # :nodoc:
         return {} unless defined?(Rails)
 
         Rails.application.config.load_database_yaml
       end
 
-      def for_each(databases)
+      def for_each(databases) # :nodoc:
         return {} unless defined?(Rails)
 
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
@@ -150,7 +150,7 @@ module ActiveRecord
         end
       end
 
-      def raise_for_multi_db(environment = env, command:)
+      def raise_for_multi_db(environment = env, command:) # :nodoc:
         db_configs = configs_for(env_name: environment)
 
         if db_configs.count > 1
