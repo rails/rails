@@ -41,10 +41,14 @@ module ActiveRecord
 
       def test_cache_path_can_be_in_directory
         cache = SchemaCache.new @connection
-        filename = "some_dir/schema.json"
+        tmp_dir = Dir.mktmpdir
+        filename = File.join(tmp_dir, "schema.json")
+
+        assert_not File.exist?(filename)
         assert cache.dump_to(filename)
+        assert File.exist?(filename)
       ensure
-        File.delete(filename)
+        FileUtils.rm_r(tmp_dir)
       end
 
       def test_yaml_dump_and_load_with_gzip
