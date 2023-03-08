@@ -1023,6 +1023,41 @@ active_record_validations.html). To learn more about validation error messages,
 see [Active Record Validations § Working with Validation Errors](
 active_record_validations.html#working-with-validation-errors).
 
+#### Setting correct form values
+
+We had earlier put dummy values for the fields of Title and Body. Make the changes to the create method in `app/controllers/articles_controller.rb` as shown below so that the method creates a new Article with the values entered by the user:
+
+```rb
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new 
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(title: params[:article][:title], body: params[:article][:body])
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body)
+    end
+end
+```
+
 #### Finishing Up
 
 We can now create an article by visiting <http://localhost:3000/articles/new>.
