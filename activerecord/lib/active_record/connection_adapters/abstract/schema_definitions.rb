@@ -586,7 +586,7 @@ module ActiveRecord
 
       private
         def valid_column_definition_options
-          ColumnDefinition::OPTION_NAMES
+          @conn.valid_column_definition_options
         end
 
         def create_column_definition(name, type, options)
