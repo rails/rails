@@ -402,8 +402,7 @@ Migrations
 
 Rails provides a convenient way to manage changes to a database schema via
 migrations. Migrations are written in a domain-specific language and stored
-in files which are executed against any database that Active Record supports
-using `rake`.
+in files which are executed against any database that Active Record supports.
 
 Here's a migration that creates a new table called `publications`:
 
@@ -424,13 +423,13 @@ end
 ```
 
 Note that the above code is database-agnostic: it will run in MySQL,
-PostgreSQL, Oracle, and others.
+PostgreSQL, SQLite, and others.
 
 Rails keeps track of which migrations have been committed to the database and stores them
 in a neighboring table in that same database called `schema_migrations`.
 
-To actually create the table, you'd run `bin/rails db:migrate`,
-and to roll it back, `bin/rails db:rollback`.
+To run the migration and create the table, you'd run `bin/rails db:migrate`,
+and to roll it back and delete the table, `bin/rails db:rollback`.
 
 You can learn more about migrations in the [Active Record Migrations
 guide](active_record_migrations.html).

@@ -580,7 +580,7 @@ Contains the paths which are used to look for assets. Appending paths to this co
 
 #### `config.assets.precompile`
 
-Allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `rake assets:precompile` is run.
+Allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `bin/rails assets:precompile` is run.
 
 #### `config.assets.unknown_asset_fallback`
 
