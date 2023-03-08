@@ -1,3 +1,7 @@
+*   Add `Canary Is.` time zone.
+
+    *Javier Aranda*
+
 *   Add `Object#with` to set and restore public attributes around a block
 
     ```ruby
