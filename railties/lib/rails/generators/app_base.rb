@@ -15,6 +15,8 @@ module Rails
       include Database
       include AppName
 
+      NODE_TLS_VERSION = "18.15.0"
+
       attr_accessor :rails_template
       add_shebang_option!
 
@@ -458,10 +460,14 @@ module Rails
         options[:javascript] && options[:javascript] != "importmap"
       end
 
-      def dockerfile_node_version
-        using_node? and `node --version`[/\d+\.\d+\.\d+/]
-      rescue
-        "lts"
+      def node_version
+        if using_node?
+          ENV.fetch("NODE_VERSION") do
+            `node --version`[/\d+\.\d+\.\d+/]
+          rescue
+            NODE_TLS_VERSION
+          end
+        end
       end
 
       def dockerfile_yarn_version
