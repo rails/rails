@@ -265,6 +265,21 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal false, @user.authenticate(" ")
   end
 
+  test "password_salt" do
+    @user.password = "secret"
+    assert_equal @user.password_digest.salt, @user.password_salt
+  end
+
+  test "password_salt should return nil when password is nil" do
+    @user.password = nil
+    assert_nil @user.password_salt
+  end
+
+  test "password_salt should return nil when password digest is nil" do
+    @user.password_digest = nil
+    assert_nil @user.password_salt
+  end
+
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
     ActiveModel::SecurePassword.min_cost = false
 
