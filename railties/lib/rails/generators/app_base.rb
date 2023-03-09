@@ -15,7 +15,7 @@ module Rails
       include Database
       include AppName
 
-      NODE_TLS_VERSION = "18.15.0"
+      NODE_LTS_VERSION = "18.15.0"
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -465,7 +465,7 @@ module Rails
           ENV.fetch("NODE_VERSION") do
             `node --version`[/\d+\.\d+\.\d+/]
           rescue
-            NODE_TLS_VERSION
+            NODE_LTS_VERSION
           end
         end
       end
