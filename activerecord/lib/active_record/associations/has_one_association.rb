@@ -33,8 +33,13 @@ module ActiveRecord
             target.destroy
             throw(:abort) unless target.destroyed?
           when :destroy_async
-            primary_key_column = target.class.primary_key.to_sym
-            id = target.public_send(primary_key_column)
+            if target.class.query_constraints_list
+              primary_key_column = target.class.query_constraints_list.map(&:to_sym)
+              id = primary_key_column.map { |col| target.public_send(col) }
+            else
+              primary_key_column = target.class.primary_key.to_sym
+              id = target.public_send(primary_key_column)
+            end
 
             enqueue_destroy_association(
               owner_model_name: owner.class.to_s,

@@ -33,10 +33,12 @@ module ActiveRecord
 
           unless target.empty?
             association_class = target.first.class
-            primary_key_column = association_class.primary_key.to_sym
-
-            ids = target.collect do |assoc|
-              assoc.public_send(primary_key_column)
+            if association_class.query_constraints_list
+              primary_key_column = association_class.query_constraints_list.map(&:to_sym)
+              ids = target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
+            else
+              primary_key_column = association_class.primary_key.to_sym
+              ids = target.collect { |assoc| assoc.public_send(primary_key_column) }
             end
 
             ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
