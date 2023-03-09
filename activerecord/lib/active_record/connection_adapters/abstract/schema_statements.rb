@@ -1497,6 +1497,18 @@ module ActiveRecord
         non_combinable_operations.each(&:call)
       end
 
+      def valid_table_definition_options
+        [:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation]
+      end
+
+      def valid_column_definition_options
+        ColumnDefinition::OPTION_NAMES
+      end
+
+      def valid_primary_key_options
+        [:limit, :default, :precision]
+      end
+
       private
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
@@ -1593,14 +1605,6 @@ module ActiveRecord
 
         def create_alter_table(name)
           AlterTable.new create_table_definition(name)
-        end
-
-        def valid_table_definition_options
-          [:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation]
-        end
-
-        def valid_primary_key_options
-          [:limit, :default, :precision]
         end
 
         def validate_create_table_options!(options)
