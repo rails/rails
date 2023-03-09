@@ -6,14 +6,30 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
+        def quote(value)
+          case value
+          when String
+            if value.encoding == Encoding::BINARY
+              quoted_binary(value)
+            else
+              "'#{quote_string(value.to_s)}'"
+            end
+          else
+            super
+          end
+        end
+
         def cast_bound_value(value)
           case value
           when Rational
             value.to_f.to_s
+          when BigDecimal
+            # For Ruby 2.7, the string returned by `to_s` is ASCII-8BIT.
+            # We want to avoid that, as that will cause the string to be quoted as
+            # binary. It is safe to force the encoding to US-ASCII.
+            value.to_s("F").force_encoding(Encoding::US_ASCII)
           when Numeric
             value.to_s
-          when BigDecimal
-            value.to_s("F")
           when true
             "1"
           when false
@@ -51,7 +67,11 @@ module ActiveRecord
         end
 
         def quoted_binary(value)
-          "x'#{value.hex}'"
+          if value.is_a? String
+            "x'#{value.unpack1("H*")}'"
+          else
+            "x'#{value.hex}'"
+          end
         end
 
         def unquote_identifier(identifier)
