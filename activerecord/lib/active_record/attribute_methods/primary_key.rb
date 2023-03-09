@@ -16,7 +16,9 @@ module ActiveRecord
 
       # Returns the primary key column's value.
       def id
-        _read_attribute(@primary_key)
+        return _read_attribute(@primary_key) unless @primary_key.is_a?(Array)
+
+        @primary_key.map { |pk| _read_attribute(pk) }
       end
 
       # Sets the primary key column's value.
@@ -120,12 +122,20 @@ module ActiveRecord
           #
           #   Project.primary_key # => "foo_id"
           def primary_key=(value)
-            @primary_key        = value && -value.to_s
+            @primary_key        = derive_primary_key(value)
             @quoted_primary_key = nil
             @attributes_builder = nil
           end
 
           private
+            def derive_primary_key(value)
+              return unless value
+
+              return -value.to_s unless value.is_a?(Array)
+
+              value.map { |v| -v.to_s }.freeze
+            end
+
             def inherited(base)
               super
               base.class_eval do

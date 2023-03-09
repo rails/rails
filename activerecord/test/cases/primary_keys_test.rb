@@ -10,6 +10,7 @@ require "models/keyboard"
 require "models/mixed_case_monkey"
 require "models/dashboard"
 require "models/non_primary_key"
+require "models/cpk"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -331,6 +332,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   self.use_transactional_tests = false
 
+  fixtures :cpk_books, :cpk_orders
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.schema_cache.clear!
@@ -386,6 +389,19 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def test_dumping_composite_primary_key_out_of_order
     schema = dump_table_schema "barcodes_reverse"
     assert_match %r{create_table "barcodes_reverse", primary_key: \["code", "region"\]}, schema
+  end
+
+  def test_model_with_a_composite_primary_key
+    assert_equal(["author_id", "number"], Cpk::Book.primary_key)
+    assert_equal(["shop_id", "id"], Cpk::Order.primary_key)
+  end
+
+  def test_id_is_not_defined_on_a_model_with_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+    order = cpk_orders(:cpk_groceries_order_1)
+
+    assert_equal([book.author_id, book.number], book.id)
+    assert_equal([order.shop_id, order.read_attribute(:id)], order.id)
   end
 end
 

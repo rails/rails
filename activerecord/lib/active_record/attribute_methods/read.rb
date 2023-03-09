@@ -29,7 +29,7 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        name = @primary_key if name == "id" && @primary_key
+        name = @primary_key if name == "id" && @primary_key && !@primary_key.is_a?(Array)
         @attributes.fetch_value(name, &block)
       end
 

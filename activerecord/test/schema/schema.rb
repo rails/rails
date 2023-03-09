@@ -239,6 +239,19 @@ ActiveRecord::Schema.define do
     t.references :citation
   end
 
+  create_table :cpk_books, primary_key: [:author_id, :number], force: true do |t|
+    t.integer :author_id
+    t.integer :number
+    t.string :title
+    t.integer :revision
+  end
+
+  create_table :cpk_orders, primary_key: [:shop_id, :id], force: true do |t|
+    t.integer :shop_id
+    t.integer :id
+    t.string :status
+  end
+
   create_table :clothing_items, force: true do |t|
     t.string :clothing_type
     t.string :color
