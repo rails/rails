@@ -33,5 +33,6 @@ Gem::Specification.new do |s|
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "activesupport", version
+  s.add_dependency "bigdecimal"
   s.add_dependency "globalid", ">= 0.3.6"
 end
