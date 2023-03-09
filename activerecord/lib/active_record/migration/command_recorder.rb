@@ -184,7 +184,17 @@ module ActiveRecord
           [:transaction, args, invertions_proc]
         end
 
+        def invert_create_table(args, &block)
+          if args.last.is_a?(Hash)
+            args.last.delete(:if_not_exists)
+          end
+          super
+        end
+
         def invert_drop_table(args, &block)
+          if args.last.is_a?(Hash)
+            args.last.delete(:if_exists)
+          end
           if args.size == 1 && block == nil
             raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
           end
