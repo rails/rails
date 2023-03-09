@@ -635,7 +635,8 @@ module Rails
 
           run_bundle
 
-          @argv[0] = destination_root
+          @argv.delete_at(@argv.index(app_path))
+          @argv.unshift(destination_root)
           require "shellwords"
           bundle_command("exec rails #{self_command} #{Shellwords.join(@argv)}")
           exit
