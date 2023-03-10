@@ -3,6 +3,8 @@
 module Cpk
   class Order < ActiveRecord::Base
     self.table_name = :cpk_orders
+    # explicit definition is to allow schema definition to be simplified
+    # to be shared between different databases
     self.primary_key = [:shop_id, :id]
 
     has_many :order_agreements, primary_key: :id
