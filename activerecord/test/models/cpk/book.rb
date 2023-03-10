@@ -5,4 +5,7 @@ module Cpk
     self.table_name = :cpk_books
     self.primary_key = [:author_id, :number]
   end
+
+  class BestSeller < Book
+  end
 end
