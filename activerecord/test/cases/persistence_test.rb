@@ -21,6 +21,7 @@ require "models/person"
 require "models/ship"
 require "models/admin"
 require "models/admin/user"
+require "models/cpk"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -1448,25 +1449,14 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_nil klass.query_constraints_list
   end
 
-  def test_query_constraints_uses_primary_key_by_default
-    post = posts(:welcome)
-    assert_uses_query_constraints_on_reload(post, "id")
+  def test_query_constraints_list_is_nil_for_non_cpk_model
+    assert_nil Post.query_constraints_list
+    assert_nil Dashboard.query_constraints_list
   end
 
-  def test_query_constraints_uses_manually_configured_primary_key
-    dashboard = dashboards(:cool_first)
-    assert_uses_query_constraints_on_reload(dashboard, "dashboard_id")
-  end
-
-  def test_child_overriden_primary_key_is_used_as_query_constraint
-    topic = topics(:first)
-    assert_uses_query_constraints_on_reload(topic, "id")
-
-    title_pk_topic = topic.becomes(TitlePrimaryKeyTopic)
-    title_pk_topic.author_name = "Nikita"
-
-    sql = capture_sql { title_pk_topic.save }.first
-    assert_match(/WHERE .*title/, sql)
+  def test_query_constraints_list_equals_to_composite_primary_key
+    assert_equal(["shop_id", "id"], Cpk::Order.query_constraints_list)
+    assert_equal(["author_id", "number"], Cpk::Book.query_constraints_list)
   end
 
   def test_child_keeps_parents_query_constraints
@@ -1475,6 +1465,10 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     used_clothing_item = clothing_items(:used_blue_jeans)
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
+  end
+
+  def test_child_keeps_parents_query_contraints_derived_from_composite_pk
+    assert_equal(["author_id", "number"], Cpk::BestSeller.query_constraints_list)
   end
 
   def assert_uses_query_constraints_on_reload(object, columns)

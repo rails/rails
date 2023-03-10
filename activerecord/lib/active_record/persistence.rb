@@ -493,7 +493,7 @@ module ActiveRecord
 
       def query_constraints_list # :nodoc:
         @query_constraints_list ||= if base_class? || primary_key != base_class.primary_key
-          @_query_constraints_list
+          primary_key.is_a?(Array) ? primary_key : @_query_constraints_list
         else
           base_class.query_constraints_list
         end
