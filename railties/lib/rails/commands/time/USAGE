@@ -1,0 +1,31 @@
+=== Examples
+
+Show all time zones:
+
+  <%= executable %>:zones
+
+Show names of times zones with an offset to the local time zone:
+
+  <%= executable %>:zones 12
+  <%= executable %>:zones -8
+  <%= executable %>:zones 6:30
+
+Filter time zones for a country by passing a two-letter country code:
+
+  <%= executable %>:zones US
+  <%= executable %>:zones JP
+  <%= executable %>:zones KE
+
+To show the system local time zones there is a subcommand:
+
+  <%= executable %>:zones:local
+
+For US time zones there is a subcommand:
+
+  <%= executable %>:zones:us
+
+Results can also be filtered by an offset:
+
+  OFFSET=-7 <%= executable %>:zones:all
+  OFFSET=-5 <%= executable %>:zones:us
+  OFFSET=6  <%= executable %>:zones CN
