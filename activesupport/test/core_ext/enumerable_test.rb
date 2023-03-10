@@ -205,9 +205,7 @@ class EnumerableTests < ActiveSupport::TestCase
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }
 
-    assert_not_deprecated do
-      assert_equal Money.new(3), [Money.new(1), Money.new(2)].sum
-    end
+    assert_equal Money.new(3), [Money.new(1), Money.new(2)].sum
 
     sum = [3, 5.quo(1)].sum
     assert_typed_equal(8, sum, Rational)
