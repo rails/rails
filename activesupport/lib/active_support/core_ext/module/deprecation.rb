@@ -22,7 +22,7 @@ class Module
       ActiveSupport.deprecator.deprecate_methods(self, *method_names, **options, deprecator: deprecator)
     else
       ActiveSupport.deprecator.warn("Module.deprecate without a deprecator is deprecated")
-      ActiveSupport::Deprecation.instance.deprecate_methods(self, *method_names, **options)
+      ActiveSupport::Deprecation._instance.deprecate_methods(self, *method_names, **options)
     end
   end
 end

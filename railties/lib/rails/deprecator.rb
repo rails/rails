@@ -2,6 +2,6 @@
 
 module Rails
   def self.deprecator # :nodoc:
-    ActiveSupport::Deprecation.instance
+    ActiveSupport::Deprecation._instance
   end
 end

@@ -40,7 +40,7 @@ module ActiveSupport
         @object = object
         @message = message
         ActiveSupport.deprecator.warn("DeprecatedObjectProxy without a deprecator is deprecated") unless deprecator
-        @deprecator = deprecator || ActiveSupport::Deprecation.instance
+        @deprecator = deprecator || ActiveSupport::Deprecation._instance
       end
 
       private
@@ -91,7 +91,7 @@ module ActiveSupport
         @method = method
         @var = var
         ActiveSupport.deprecator.warn("DeprecatedInstanceVariableProxy without a deprecator is deprecated") unless deprecator
-        @deprecator = deprecator || ActiveSupport::Deprecation.instance
+        @deprecator = deprecator || ActiveSupport::Deprecation._instance
       end
 
       private
@@ -133,7 +133,7 @@ module ActiveSupport
         @old_const = old_const
         @new_const = new_const
         ActiveSupport.deprecator.warn("DeprecatedConstantProxy without a deprecator is deprecated") unless deprecator
-        @deprecator = deprecator || ActiveSupport::Deprecation.instance
+        @deprecator = deprecator || ActiveSupport::Deprecation._instance
         @message = message
       end
 
