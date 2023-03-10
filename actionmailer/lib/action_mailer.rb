@@ -43,6 +43,7 @@ module ActionMailer
   end
 
   autoload :Base
+  autoload :Callbacks
   autoload :DeliveryMethods
   autoload :InlinePreviewInterceptor
   autoload :MailHelper

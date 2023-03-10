@@ -697,9 +697,10 @@ Action Mailer Callbacks
 -----------------------
 
 Action Mailer allows for you to specify a [`before_action`][], [`after_action`][] and
-[`around_action`][].
+[`around_action`][] to configure the message, and [`before_deliver`][], [`after_deliver`][] and
+[`around_deliver`][] to control the delivery.
 
-* Filters can be specified with a block or a symbol to a method in the mailer
+* Callbacks can be specified with a block or a symbol to a method in the mailer
   class similar to controllers.
 
 * You could use a `before_action` to set instance variables, populate the mail
@@ -776,11 +777,16 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-* Mailer Filters abort further processing if body is set to a non-nil value.
+* You could use an `after_delivery` to record the delivery of the message.
+
+* Mailer callbacks abort further processing if body is set to a non-nil value. `before_deliver` can abort with `throw :abort`.
 
 [`after_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
+[`after_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-after_deliver
 [`around_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
+[`around_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-around_deliver
 [`before_action`]: https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-before_action
+[`before_deliver`]: https://api.rubyonrails.org/classes/ActionMailer/Callbacks/ClassMethods.html#method-i-before_deliver
 
 Using Action Mailer Helpers
 ---------------------------
