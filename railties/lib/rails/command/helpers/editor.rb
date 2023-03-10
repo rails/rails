@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "shellwords"
-require "active_support/encrypted_file"
 
 module Rails
   module Command

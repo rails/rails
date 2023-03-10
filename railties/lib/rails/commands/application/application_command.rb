@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
-require "rails/generators"
-require "rails/generators/rails/app/app_generator"
-
 module Rails
   module Generators
-    class AppGenerator # :nodoc:
+    module ExitOnFailure # :nodoc:
       # We want to exit on failure to be kind to other libraries
       # This is only when accessing via CLI
-      def self.exit_on_failure?
+      def exit_on_failure?
         true
       end
     end
@@ -25,6 +22,9 @@ module Rails
       end
 
       def perform(*args)
+        require "rails/generators"
+        require "rails/generators/rails/app/app_generator"
+        Rails::Generators::AppGenerator.extend(Rails::Generators::ExitOnFailure)
         Rails::Generators::AppGenerator.start \
           Rails::Generators::ARGVScrubber.new(args).prepare!
       end
