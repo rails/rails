@@ -343,6 +343,8 @@ throw :abort
 
 WARNING. Any exception that is not `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` will be re-raised by Rails after the callback chain is halted. Additionally, may break code that does not expect methods like `save` and `update` (which normally try to return `true` or `false`) to raise an exception.
 
+NOTE: If an `ActiveRecord::RecordNotDestroyed` is raised within `after_destroy`, `before_destroy` or `around_destroy` callback, it will not be re-raised and the `destroy` method will return `false`.
+
 Relational Callbacks
 --------------------
 
