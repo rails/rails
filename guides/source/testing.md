@@ -296,7 +296,7 @@ This test should now pass.
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
 Here's an extract of the assertions you can use with
-[`Minitest`](https://github.com/seattlerb/minitest), the default testing library
+[`Minitest`](https://github.com/minitest/minitest), the default testing library
 used by Rails. The `[msg]` parameter is an optional string message you can
 specify to make your test failure messages clearer.
 
