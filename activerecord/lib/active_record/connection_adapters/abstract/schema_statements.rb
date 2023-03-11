@@ -1100,6 +1100,16 @@ module ActiveRecord
       #
       #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_58ca3d3a82 FOREIGN KEY ("author_id") REFERENCES "users" ("lng_id")
       #
+      # ====== Creating a composite foreign key
+      #
+      #   Assuming "carts" table has "(shop_id, user_id)" as a primary key.
+      #
+      #   add_foreign_key :orders, :carts, primary_key: [:shop_id, :user_id]
+      #
+      # generates:
+      #
+      #   ALTER TABLE "orders" ADD CONSTRAINT fk_rails_6f5e4cb3a4 FOREIGN KEY ("cart_shop_id", "cart_user_id") REFERENCES "carts" ("shop_id", "user_id")
+      #
       # ====== Creating a cascading foreign key
       #
       #   add_foreign_key :articles, :authors, on_delete: :cascade
@@ -1110,9 +1120,11 @@ module ActiveRecord
       #
       # The +options+ hash can include the following keys:
       # [<tt>:column</tt>]
-      #   The foreign key column name on +from_table+. Defaults to <tt>to_table.singularize + "_id"</tt>
+      #   The foreign key column name on +from_table+. Defaults to <tt>to_table.singularize + "_id"</tt>.
+      #   Pass an array to create a composite foreign key.
       # [<tt>:primary_key</tt>]
       #   The primary key column name on +to_table+. Defaults to +id+.
+      #   Pass an array to create a composite foreign key.
       # [<tt>:name</tt>]
       #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
       # [<tt>:on_delete</tt>]
@@ -1195,15 +1207,32 @@ module ActiveRecord
         foreign_key_for(from_table, to_table: to_table, **options).present?
       end
 
-      def foreign_key_column_for(table_name) # :nodoc:
+      def foreign_key_column_for(table_name, column_name = "id") # :nodoc:
         name = strip_table_name_prefix_and_suffix(table_name)
-        "#{name.singularize}_id"
+        "#{name.singularize}_#{column_name}"
       end
 
       def foreign_key_options(from_table, to_table, options) # :nodoc:
         options = options.dup
+
+        if options[:primary_key].is_a?(Array)
+          options[:column] ||= options[:primary_key].map do |pk_column|
+            foreign_key_column_for(to_table, pk_column)
+          end
+        end
+
         options[:column] ||= foreign_key_column_for(to_table)
         options[:name]   ||= foreign_key_name(from_table, options)
+
+        if options[:column].is_a?(Array) || options[:primary_key].is_a?(Array)
+          if Array(options[:primary_key]).size != Array(options[:column]).size
+            raise ArgumentError, <<~MSG.squish
+              For composite primary keys, specify :column and :primary_key, where
+              :column must reference all the :primary_key columns from #{to_table.inspect}
+            MSG
+          end
+        end
+
         options
       end
 
@@ -1686,7 +1715,8 @@ module ActiveRecord
 
         def foreign_key_name(table_name, options)
           options.fetch(:name) do
-            identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+            columns = Array(options.fetch(:column)).map(&:to_s)
+            identifier = "#{table_name}_#{columns * '_and_'}_fk"
             hashed_identifier = OpenSSL::Digest::SHA256.hexdigest(identifier).first(10)
 
             "fk_rails_#{hashed_identifier}"
