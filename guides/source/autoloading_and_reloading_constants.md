@@ -514,12 +514,13 @@ module Services; end
 Rails.autoloaders.main.push_dir("#{Rails.root}/app/services", namespace: Services)
 ```
 
-Applications running on Rails < 7.1 have to additionally delete the directory from `ActiveSupport::Dependencies.autoload_paths`. Just add this line to the same file:
+Rails < 7.1 did not support this feature, but you can still add this additional code in the same file and get it working:
 
 ```ruby
-# For applications running on Rails < 7.1.
-# The argument has to be a string.
-ActiveSupport::Dependencies.autoload_paths("#{Rails.root}/app/services")
+# Additional code for applications running on Rails < 7.1.
+app_services_dir = "#{Rails.root}/app/services" # has to be a string
+ActiveSupport::Dependencies.autoload_paths.delete(app_services_dir)
+Rails.application.config.watchable_dirs[app_services_dir] = [:rb]
 ```
 
 Custom namespaces are also supported for the `once` autoloader. However, since that one is set up earlier in the boot process, the configuration cannot be done in an application initializer. Instead, please put it in `config/application.rb`, for example.
