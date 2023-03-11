@@ -22,3 +22,12 @@ jobs:
 
     - name: Run RuboCop
       run: bundle exec rubocop --parallel
+
+  notify:
+    runs-on: ubuntu-latest
+    if: always() && github.ref_name == 'main'
+    needs: build
+    steps:
+      - uses: zzak/action-discord@v4
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
