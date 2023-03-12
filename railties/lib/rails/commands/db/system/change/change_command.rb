@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "rails/generators"
-require "rails/generators/rails/db/system/change/change_generator"
-
 module Rails
   module Command
     module Db
@@ -17,6 +14,9 @@ module Rails
 
           desc "change", "Change `config/database.yml` and your database gem to the target database"
           def perform(*)
+            require "rails/generators"
+            require "rails/generators/rails/db/system/change/change_generator"
+
             Rails::Generators::Db::System::ChangeGenerator.start(@argv)
           end
         end

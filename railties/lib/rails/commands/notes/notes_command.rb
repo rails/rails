@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails/source_annotation_extractor"
-
 module Rails
   module Command
     class NotesCommand < Base # :nodoc:
@@ -9,6 +7,8 @@ module Rails
 
       desc "notes", "Show comments in your code annotated with FIXME, OPTIMIZE, and TODO"
       def perform(*)
+        require "rails/source_annotation_extractor"
+
         boot_application!
 
         display_annotations

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support"
-require "rails/secrets"
 require "rails/command/helpers/editor"
 
 module Rails
@@ -34,6 +33,7 @@ module Rails
 
       desc "show", "Show the decrypted secrets"
       def show
+        require "rails/secrets"
         say Rails::Secrets.read
       end
 

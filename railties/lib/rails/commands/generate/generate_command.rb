@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails/generators"
-
 module Rails
   module Command
     class GenerateCommand < Base # :nodoc:
@@ -15,6 +13,7 @@ module Rails
       end
 
       def perform(*)
+        require "rails/generators"
         generator = args.shift
         return help unless generator
 
