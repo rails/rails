@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
 require "rails/command/environment_argument"
 
 module Rails
@@ -64,6 +63,7 @@ module Rails
       end
 
       def find_cmd_and_exec(commands, *args) # :doc:
+        require "active_support/core_ext/string/filters"
         Rails.deprecator.warn(<<~MSG.squish)
           Rails::DBConsole#find_cmd_and_exec is deprecated and will be removed in Rails 7.2.
           Please use find_cmd_and_exec on the connection adapter class instead.

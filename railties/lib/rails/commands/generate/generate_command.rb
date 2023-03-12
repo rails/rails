@@ -13,7 +13,6 @@ module Rails
       end
 
       def perform(*)
-        require "rails/generators"
         generator = args.shift
         return help unless generator
 

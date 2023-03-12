@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "pathname"
 require "active_support"
 require "rails/command/helpers/editor"
 

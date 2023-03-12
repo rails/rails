@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support"
 require "rails/command/helpers/editor"
 
 module Rails
+  autoload :Secrets, "rails/secrets"
+
   module Command
     class SecretsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
@@ -33,7 +34,6 @@ module Rails
 
       desc "show", "Show the decrypted secrets"
       def show
-        require "rails/secrets"
         say Rails::Secrets.read
       end
 

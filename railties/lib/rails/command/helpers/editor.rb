@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "shellwords"
-
 module Rails
   module Command
     module Helpers
@@ -21,6 +19,7 @@ module Rails
           end
 
           def system_editor(file_path)
+            require "shellwords"
             system(*Shellwords.split(ENV["EDITOR"]), file_path.to_s)
           end
 

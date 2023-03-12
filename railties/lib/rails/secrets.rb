@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "yaml"
-require "active_support/message_encryptor"
+require "active_support"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘

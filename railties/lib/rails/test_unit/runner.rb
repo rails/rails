@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
-require "shellwords"
-require "rake/file_list"
 require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
-require "rails/test_unit/test_parser"
 
 module Rails
   module TestUnit
+    autoload :TestParser, "rails/test_unit/test_parser"
+
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
       PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
@@ -33,6 +32,7 @@ module Rails
         end
 
         def run_from_rake(test_command, argv = [])
+          require "shellwords"
           # Ensure the tests run during the Rake Task action, not when the process exits
           success = system("rails", test_command, *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
           success || exit(false)
@@ -98,6 +98,7 @@ module Rails
           end
 
           def list_tests(patterns)
+            require "rake/file_list"
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
             tests.exclude(default_test_exclude_glob) if patterns.empty?
             tests

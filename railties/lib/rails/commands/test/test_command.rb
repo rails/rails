@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require "rails/command"
-require "rails/commands/rake/rake_command"
 require "rails/test_unit/runner"
-require "rails/test_unit/reporter"
 
 module Rails
+  autoload :TestUnitReporter, "rails/test_unit/reporter"
+
   module Command
     class TestCommand < Base # :nodoc:
       def self.executable(*args)
@@ -70,6 +69,7 @@ module Rails
         EXACT_TEST_ARGUMENT_PATTERN = /^-n|^--name\b|#{Rails::TestUnit::Runner::PATH_ARGUMENT_PATTERN}/
 
         def run_prepare_task
+          require "rails/commands/rake/rake_command"
           Rails::Command::RakeCommand.perform("test:prepare", [], {})
         rescue UnrecognizedCommandError => error
           raise unless error.name == "test:prepare"

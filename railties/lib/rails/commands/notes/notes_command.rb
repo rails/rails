@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module Rails
+  autoload :SourceAnnotationExtractor, "rails/source_annotation_extractor"
+
   module Command
     class NotesCommand < Base # :nodoc:
       class_option :annotations, aliases: "-a", desc: "Filter by specific annotations, e.g. Foobar TODO", type: :array
 
       desc "notes", "Show comments in your code annotated with FIXME, OPTIMIZE, and TODO"
       def perform(*)
-        require "rails/source_annotation_extractor"
-
         boot_application!
 
         display_annotations

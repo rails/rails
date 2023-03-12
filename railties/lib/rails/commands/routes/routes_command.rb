@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails/command"
-
 module Rails
   module Command
     class RoutesCommand < Base # :nodoc:
