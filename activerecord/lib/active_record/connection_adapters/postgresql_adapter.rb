@@ -224,6 +224,10 @@ module ActiveRecord
         true
       end
 
+      def supports_unique_keys?
+        true
+      end
+
       def supports_validate_constraints?
         true
       end

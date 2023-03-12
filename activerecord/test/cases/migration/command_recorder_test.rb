@@ -457,6 +457,22 @@ module ActiveRecord
         end
       end
 
+      def test_invert_remove_unique_key_constraint
+        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"]
+        assert_equal [:add_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"], nil], enable
+      end
+
+      def test_invert_remove_unique_key_constraint_without_options
+        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"]]
+        assert_equal [:add_unique_key, [:dogs, ["speed"]], nil], enable
+      end
+
+      def test_invert_remove_unique_key_constraint_without_columns
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_unique_key, [:dogs, name: "uniq_speed"]
+        end
+      end
+
       def test_invert_create_enum
         drop = @recorder.inverse_of :create_enum, [:color, ["blue", "green"]]
         assert_equal [:drop_enum, [:color, ["blue", "green"]], nil], drop

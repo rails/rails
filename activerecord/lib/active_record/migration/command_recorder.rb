@@ -10,6 +10,7 @@ module ActiveRecord
     # * add_foreign_key
     # * add_check_constraint
     # * add_exclusion_constraint
+    # * add_unique_key
     # * add_index
     # * add_reference
     # * add_timestamps
@@ -30,6 +31,7 @@ module ActiveRecord
     # * remove_foreign_key (must supply a second table)
     # * remove_check_constraint
     # * remove_exclusion_constraint
+    # * remove_unique_key
     # * remove_index
     # * remove_reference
     # * remove_timestamps
@@ -47,6 +49,7 @@ module ActiveRecord
         :change_column_comment, :change_table_comment,
         :add_check_constraint, :remove_check_constraint,
         :add_exclusion_constraint, :remove_exclusion_constraint,
+        :add_unique_key, :remove_unique_key,
         :create_enum, :drop_enum,
       ]
       include JoinTable
@@ -154,6 +157,7 @@ module ActiveRecord
               add_foreign_key:   :remove_foreign_key,
               add_check_constraint: :remove_check_constraint,
               add_exclusion_constraint: :remove_exclusion_constraint,
+              add_unique_key: :remove_unique_key,
               enable_extension:  :disable_extension,
               create_enum:       :drop_enum
             }.each do |cmd, inv|
@@ -301,6 +305,13 @@ module ActiveRecord
 
         def invert_remove_exclusion_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_exclusion_constraint is only reversible if given an expression." if args.size < 2
+          super
+        end
+
+        def invert_remove_unique_key(args)
+          _table, columns = args.dup.tap(&:extract_options!)
+
+          raise ActiveRecord::IrreversibleMigration, "remove_unique_key is only reversible if given an column_name." if columns.blank?
           super
         end
 

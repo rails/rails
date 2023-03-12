@@ -500,6 +500,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating unique constraints?
+      def supports_unique_keys?
+        false
+      end
+
       # Does this adapter support views?
       def supports_views?
         false

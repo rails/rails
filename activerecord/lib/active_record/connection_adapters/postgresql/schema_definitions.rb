@@ -207,14 +207,29 @@ module ActiveRecord
         end
       end
 
+      UniqueKeyDefinition = Struct.new(:table_name, :columns, :options) do
+        def name
+          options[:name]
+        end
+
+        def deferrable
+          options[:deferrable]
+        end
+
+        def export_name_on_schema_dump?
+          !ActiveRecord::SchemaDumper.unique_ignore_pattern.match?(name) if name
+        end
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
-        attr_reader :exclusion_constraints, :unlogged
+        attr_reader :exclusion_constraints, :unique_keys, :unlogged
 
         def initialize(*, **)
           super
           @exclusion_constraints = []
+          @unique_keys = []
           @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
         end
 
@@ -222,9 +237,18 @@ module ActiveRecord
           exclusion_constraints << new_exclusion_constraint_definition(expression, options)
         end
 
+        def unique_key(column_name, **options)
+          unique_keys << new_unique_key_definition(column_name, options)
+        end
+
         def new_exclusion_constraint_definition(expression, options) # :nodoc:
           options = @conn.exclusion_constraint_options(name, expression, options)
           ExclusionConstraintDefinition.new(name, expression, options)
+        end
+
+        def new_unique_key_definition(column_name, options) # :nodoc:
+          options = @conn.unique_key_options(name, column_name, options)
+          UniqueKeyDefinition.new(name, column_name, options)
         end
 
         def new_column_definition(name, type, **options) # :nodoc:
@@ -274,16 +298,36 @@ module ActiveRecord
         def remove_exclusion_constraint(*args)
           @base.remove_exclusion_constraint(name, *args)
         end
+
+        # Adds an unique constraint.
+        #
+        #  t.unique_key(:position, name: 'unique_position', deferrable: :deferred)
+        #
+        # See {connection.add_unique_key}[rdoc-ref:SchemaStatements#add_unique_key]
+        def unique_key(*args)
+          @base.add_unique_key(name, *args)
+        end
+
+        # Removes the given unique constraint from the table.
+        #
+        #  t.remove_unique_key(name: "unique_position")
+        #
+        # See {connection.remove_unique_key}[rdoc-ref:SchemaStatements#remove_unique_key]
+        def remove_unique_key(*args)
+          @base.remove_unique_key(name, *args)
+        end
       end
 
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
-        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops
+        attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops, :unique_key_adds, :unique_key_drops
 
         def initialize(td)
           super
           @constraint_validations = []
           @exclusion_constraint_adds = []
           @exclusion_constraint_drops = []
+          @unique_key_adds = []
+          @unique_key_drops = []
         end
 
         def validate_constraint(name)
@@ -296,6 +340,14 @@ module ActiveRecord
 
         def drop_exclusion_constraint(constraint_name)
           @exclusion_constraint_drops << constraint_name
+        end
+
+        def add_unique_key(column_name, options)
+          @unique_key_adds << @td.new_unique_key_definition(column_name, options)
+        end
+
+        def drop_unique_key(unique_key_name)
+          @unique_key_drops << unique_key_name
         end
       end
     end
