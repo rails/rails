@@ -391,6 +391,20 @@ module ActionDispatch
       Session::Options.set self, options
     end
 
+    if Rack.release >= "3"
+      class QueryParser < ::Rack::QueryParser
+        def missing_value
+          nil
+        end
+      end
+
+      QUERY_PARSER = QueryParser.make_default(32)
+
+      def query_parser
+        QUERY_PARSER
+      end
+    end
+
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
