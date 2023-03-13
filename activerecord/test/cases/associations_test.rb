@@ -34,9 +34,6 @@ require "models/shipping_line"
 require "models/essay"
 require "models/member"
 require "models/membership"
-require "models/sharded/blog"
-require "models/sharded/blog_post"
-require "models/sharded/comment"
 require "models/member_detail"
 require "models/organization"
 
@@ -438,7 +435,7 @@ end
 
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
-           :sharded_blog_posts, :sharded_comments, :members, :member_details, :organizations
+           :members, :member_details, :organizations
 
   def test_preload_with_scope
     post = posts(:welcome)
