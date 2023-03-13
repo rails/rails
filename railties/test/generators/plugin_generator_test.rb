@@ -373,7 +373,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
-      assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
+      assert_match(/ActionDispatch::IntegrationTest\.fixture_paths = ActiveSupport::TestCase\.fixture_pat/, content)
       assert_no_match(/Rails::TestUnitReporter\.executable = "bin\/test"/, content)
     end
     assert_no_file "bin/test"

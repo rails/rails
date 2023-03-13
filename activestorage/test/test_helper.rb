@@ -25,7 +25,7 @@ class ActiveSupport::TestCase
 
   include ActiveRecord::TestFixtures
 
-  self.fixture_path = File.expand_path("fixtures", __dir__)
+  self.fixture_paths = [File.expand_path("fixtures", __dir__)]
 
   setup do
     ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }

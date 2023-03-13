@@ -1,3 +1,18 @@
+*   Introduce `TestFixtures#fixture_paths`.
+
+    Multiple fixture paths can now be specified using the `#fixture_paths` accessor.
+    Apps will continue to have `test/fixtures` as their one fixture path by default,
+    but additional fixture paths can be specified.
+
+    ```ruby
+    ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
+    ActiveSupport::TestCase.fixture_paths << "component2/test/fixtures"
+    ```
+
+    `TestFixtures#fixture_path` is now deprecated.
+
+    *Andrew Novoselac*
+
 *   Respect `foreign_type` option to `delegated_type` for `{role}_class` method.
 
     Usage of `delegated_type` with non-conventional `{role}_type` column names can now be specified with `foreign_type` option.

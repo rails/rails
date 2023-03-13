@@ -17,8 +17,8 @@ module ActiveRecord
 
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
-  # They are stored in YAML files, one file per model, which are placed in the directory
-  # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
+  # They are stored in YAML files, one file per model, which are placed in the directories
+  # appointed by <tt>ActiveSupport::TestCase.fixture_paths=(path)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
   # The fixture file ends with the +.yml+ file extension, for example:
   # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>).
@@ -552,7 +552,7 @@ module ActiveRecord
         end
       end
 
-      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base, &block)
+      def create_fixtures(fixtures_directories, fixture_set_names, class_names = {}, config = ActiveRecord::Base, &block)
         fixture_set_names = Array(fixture_set_names).map(&:to_s)
         class_names = ClassCache.new class_names, config
 
@@ -565,7 +565,7 @@ module ActiveRecord
 
         if fixture_files_to_read.any?
           fixtures_map = read_and_insert(
-            fixtures_directory,
+            Array(fixtures_directories),
             fixture_files_to_read,
             class_names,
             connection,
@@ -591,15 +591,16 @@ module ActiveRecord
       end
 
       private
-        def read_and_insert(fixtures_directory, fixture_files, class_names, connection) # :nodoc:
+        def read_and_insert(fixtures_directories, fixture_files, class_names, connection) # :nodoc:
           fixtures_map = {}
+          directory_glob = "{#{fixtures_directories.join(",")}}"
           fixture_sets = fixture_files.map do |fixture_set_name|
             klass = class_names[fixture_set_name]
             fixtures_map[fixture_set_name] = new( # ActiveRecord::FixtureSet.new
               nil,
               fixture_set_name,
               klass,
-              ::File.join(fixtures_directory, fixture_set_name)
+              ::File.join(directory_glob, fixture_set_name)
             )
           end
           update_all_loaded_fixtures(fixtures_map)
@@ -715,10 +716,13 @@ module ActiveRecord
       # Loads the fixtures from the YAML file at +path+.
       # If the file sets the +model_class+ and current instance value is not set,
       # it uses the file value.
+
       def read_fixture_files(path)
-        yaml_files = Dir["#{path}/{**,*}/*.yml"].select { |f|
+        yaml_files = Dir["#{path}{.yml,/{**,*}/*.yml}"].select { |f|
           ::File.file?(f)
-        } + [yaml_file_path(path)]
+        }
+
+        raise ArgumentError, "No fixture files found for #{@name}" if yaml_files.empty?
 
         yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
@@ -729,10 +733,6 @@ module ActiveRecord
             end
           end
         end
-      end
-
-      def yaml_file_path(path)
-        "#{path}.yml"
       end
   end
 
