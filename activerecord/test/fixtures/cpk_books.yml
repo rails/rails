@@ -2,19 +2,13 @@ _fixture:
   model_class: Cpk::Book
 
 cpk_great_author_first_book:
-  author_id: 1
-  number: 1
   title: "The first book"
   revision: 1
 
 cpk_great_author_second_book:
-  author_id: 1
-  number: 2
   title: "The second book"
   revision: 1
 
 cpk_famous_author_first_book:
-  author_id: 2
-  number: 1
   title: "Ruby on Rails"
   revision: 1

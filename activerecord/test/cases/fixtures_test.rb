@@ -33,6 +33,7 @@ require "models/task"
 require "models/topic"
 require "models/traffic_light"
 require "models/treasure"
+require "models/cpk"
 
 class FixturesTest < ActiveRecord::TestCase
   include ConnectionHelper
@@ -1626,5 +1627,16 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       def readonly_config
         default_config.merge("replica" => true)
       end
+  end
+
+  class CompositePkFixturesTest < ActiveRecord::TestCase
+    fixtures :cpk_orders, :cpk_books
+
+    def test_generates_composite_primary_key_ids
+      assert_not_empty(cpk_orders(:cpk_groceries_order_1).id.compact)
+
+      assert_not_nil(cpk_books(:cpk_great_author_first_book).author_id)
+      assert_not_nil(cpk_books(:cpk_great_author_first_book).number)
+    end
   end
 end
