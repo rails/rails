@@ -115,6 +115,21 @@ module ActiveRecord
       end
     end
 
+    def with_db_warnings_action(action, warnings_to_ignore = [])
+      original_db_warnings_ignore = ActiveRecord.db_warnings_ignore
+
+      ActiveRecord.db_warnings_action = action
+      ActiveRecord.db_warnings_ignore = warnings_to_ignore
+
+      ActiveRecord::Base.connection.disconnect! # Disconnect from the db so that we reconfigure the connection
+
+      yield
+    ensure
+      ActiveRecord.db_warnings_action = @original_db_warnings_action
+      ActiveRecord.db_warnings_ignore = original_db_warnings_ignore
+      ActiveRecord::Base.connection.disconnect!
+    end
+
     def reset_callbacks(klass, kind)
       old_callbacks = {}
       old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup

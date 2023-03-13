@@ -1023,7 +1023,7 @@ Controls the action to be taken when a SQL query produces a warning. The followi
 
 #### `config.active_record.db_warnings_ignore`
 
-Specifies an allowlist of warnings that will be ignored, regardless of the configured `db_warnings_action`.
+Specifies an allowlist of warning codes and messages that will be ignored, regardless of the configured `db_warnings_action`.
 The default behavior is to report all warnings. Warnings to ignore can be specified as Strings or Regexps. For example:
 
   ```ruby
@@ -1032,6 +1032,7 @@ The default behavior is to report all warnings. Warnings to ignore can be specif
   config.active_record.db_warnings_ignore = [
     /Invalid utf8mb4 character string/,
     "An exact warning message",
+    "1062", # MySQL Error 1062: Duplicate entry
   ]
   ```
 

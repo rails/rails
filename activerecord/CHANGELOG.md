@@ -1,3 +1,18 @@
+*   Allow warning codes to be ignore when reporting SQL warnings.
+
+    Active Record config that can ignore warning codes
+
+    ```ruby
+    # Configure allowlist of warnings that should always be ignored
+    config.active_record.db_warnings_ignore = [
+      "1062", # MySQL Error 1062: Duplicate entry
+    ]
+    ```
+
+    This is supported for the MySQL and PostgreSQL adapters.
+
+    *Nick Borromeo*
+
 *   Introduce `:active_record_fixtures` lazy load hook.
 
     Hooks defined with this name will be run whenever `TestFixtures` is included
