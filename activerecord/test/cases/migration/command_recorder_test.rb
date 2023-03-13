@@ -152,6 +152,14 @@ module ActiveRecord
         assert_equal [:drop_table, [:system_settings], nil], drop_table
       end
 
+      def test_invert_create_table_with_if_not_exists
+        @recorder.revert do
+          @recorder.record :create_table, [:system_settings, if_not_exists: true]
+        end
+        drop_table = @recorder.commands.first
+        assert_equal [:drop_table, [:system_settings, {}], nil], drop_table
+      end
+
       def test_invert_create_table_with_options_and_block
         block = Proc.new { }
         drop_table = @recorder.inverse_of :create_table, [:people_reminders, id: false], &block
@@ -161,6 +169,12 @@ module ActiveRecord
       def test_invert_drop_table
         block = Proc.new { }
         create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false], &block
+        assert_equal [:create_table, [:people_reminders, id: false], block], create_table
+      end
+
+      def test_invert_drop_table_with_if_exists
+        block = Proc.new { }
+        create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false, if_exists: true], &block
         assert_equal [:create_table, [:people_reminders, id: false], block], create_table
       end
 
