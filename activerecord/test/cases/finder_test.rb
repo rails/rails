@@ -24,6 +24,7 @@ require "models/tyre"
 require "models/subscriber"
 require "models/non_primary_key"
 require "models/clothing_item"
+require "models/cpk"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
@@ -32,7 +33,7 @@ class FinderTest < ActiveRecord::TestCase
 
   fixtures :companies, :topics, :entrants, :developers, :developers_projects,
     :posts, :comments, :accounts, :authors, :author_addresses, :customers,
-    :categories, :categorizations, :cars, :clothing_items
+    :categories, :categorizations, :cars, :clothing_items, :cpk_books
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -1779,6 +1780,38 @@ class FinderTest < ActiveRecord::TestCase
     assert_sql(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
+  end
+
+  test "#find with a single composite primary key" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal book, Cpk::Book.find(book.id)
+  end
+
+  test "find with a single composite primary key wrapped in an array" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal [book], Cpk::Book.find([book.id])
+  end
+
+  test "find with a multiple sets of composite primary key" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    ids = books.map(&:id)
+    result = Cpk::Book.find(*ids)
+
+    assert_equal ids, result.map(&:id)
+  end
+
+  test "find with a multiple sets of composite primary key wrapped in an array" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_equal books.map(&:id), Cpk::Book.where(revision: 1).find(books.map(&:id)).map(&:id)
+  end
+
+  test "find with a multiple sets of composite primary key wrapped in an array ordered" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
   end
 
   private
