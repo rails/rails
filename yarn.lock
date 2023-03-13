@@ -4,11 +4,11 @@
 
 "@rails/actioncable@file:/Users/jhawthorn/src/rails/actioncable":
   "resolved" "file:actioncable"
-  "version" "6.1.7-2"
+  "version" "6.1.7-3"
 
 "@rails/actiontext@file:/Users/jhawthorn/src/rails/actiontext":
   "resolved" "file:actiontext"
-  "version" "6.1.7-2"
+  "version" "6.1.7-3"
   dependencies:
     "@rails/activestorage" "^6.0.0"
 
@@ -21,13 +21,13 @@
 
 "@rails/activestorage@file:/Users/jhawthorn/src/rails/activestorage":
   "resolved" "file:activestorage"
-  "version" "6.1.7-2"
+  "version" "6.1.7-3"
   dependencies:
     "spark-md5" "^3.0.0"
 
 "@rails/ujs@file:/Users/jhawthorn/src/rails/actionview":
   "resolved" "file:actionview"
-  "version" "6.1.7-2"
+  "version" "6.1.7-3"
 
 "@types/estree@0.0.38":
   "integrity" "sha512-F/v7t1LwS4vnXuPooJQGBRKRGIoxWUTmA4VHfqjOccFsNDThD5bfUNpITive6s352O7o384wcpEaDV8rHCehDA=="
