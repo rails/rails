@@ -264,7 +264,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE TABLE order (
+      #   CREATE TABLE orders (
       #       product_id bigint NOT NULL,
       #       client_id bigint NOT NULL
       #   );
