@@ -205,6 +205,31 @@ partial-local variable:
 <span><%= image_tag user.avatar %> <%= user.name %></span>
 ```
 
+You can also render different partials for emails and the Trix editor with `to_email_attachment_partial_path`
+and `to_trix_content_attachment_partial_path` respectively:
+
+```ruby
+class User < ApplicationRecord
+  def to_email_attachment_partial_path
+    "users/email_attachable"
+  end
+
+  def to_trix_content_attachment_partial_path
+    "users/trix_content_attachable"
+  end
+end
+```
+
+```html+erb
+<%# app/views/users/_email_attachable.html.erb %>
+<%# Partial used when the attachment is rendered in emails %>
+<span><%= user.name %></span>
+
+<%# app/views/users/_trix_content_attachable.html.erb %>
+<%# Partial used when the attachment is rendered in the Trix editor %>
+<span><%= image_tag user.avatar %> <%= user.name %></span>
+```
+
 To integrate with Action Text `<action-text-attachment>` element rendering, a
 class must:
 

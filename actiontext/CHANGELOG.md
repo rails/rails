@@ -1,3 +1,16 @@
+*   Add `to_email_attachment_partial_path` to render `ActionText::Attachable` records in mailers.
+
+        class VideoEmbed < ApplicationRecord
+          include ActionText::Attachable
+
+          # VideoEmbed records will be rendered with this partial in mailers
+          def to_email_attachment_partial_path
+            "video_embeds/email_preview"
+          end
+        end
+
+    *Julian Foo*
+
 *   Update bundled Trix version from `1.3.1` to `2.0.4`.
 
     *Sean Doyle*

@@ -79,9 +79,20 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "returns email partial" do
+    attachable = Person.create! name: "Javan"
+
+    assert_equal "people/email_attachment", attachable.to_email_attachment_partial_path
+  end
+
   test "defaults trix partial to model partial" do
     attachable = Page.create! title: "Homepage"
     assert_equal "pages/page", attachable.to_trix_content_attachment_partial_path
+  end
+
+  test "defaults email partial to model partial" do
+    attachable = Page.create! title: "Homepage"
+    assert_equal "pages/page", attachable.to_email_attachment_partial_path
   end
 
   private
