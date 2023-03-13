@@ -1,6 +1,7 @@
 #= require_tree ../utils
 
 { stopEverything } = Rails
+{ isContentEditable } = Rails
 
 # Handles "data-method" on links such as:
 # <a href="/users/5" data-method="delete" rel="nofollow" data-confirm="Are you sure?">Delete</a>
@@ -8,6 +9,9 @@ Rails.handleMethod = (e) ->
   link = this
   method = link.getAttribute('data-method')
   return unless method
+
+  if isContentEditable(this)
+    return
 
   href = Rails.href(link)
   csrfToken = Rails.csrfToken()

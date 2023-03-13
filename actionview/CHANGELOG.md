@@ -1,3 +1,10 @@
+## Rails 6.1.7.3 (March 13, 2023) ##
+
+*   Ignore certain data-* attributes in rails-ujs when element is contenteditable
+
+    [CVE-2023-23913]
+
+
 ## Rails 6.1.7.2 (January 24, 2023) ##
 
 *   No changes.

@@ -29,6 +29,18 @@ Rails.setData = (element, key, value) ->
   element[expando] ?= {}
   element[expando][key] = value
 
+Rails.isContentEditable = (element) ->
+  isEditable = false
+  loop
+    if(element.isContentEditable)
+      isEditable = true
+      break
+
+    element = element.parentElement
+    break unless(element)
+
+  return isEditable
+
 # a wrapper for document.querySelectorAll
 # returns an Array
 Rails.$ = (selector) ->
