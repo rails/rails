@@ -403,6 +403,14 @@ module ActionDispatch
       def query_parser
         QUERY_PARSER
       end
+
+      def query_hash_key
+        "action_dispatch.request.query_hash"
+      end
+
+      def form_hash_key
+        "action_dispatch.request.form_hash"
+      end
     end
 
     # Override Rack's GET method to support indifferent access.

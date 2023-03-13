@@ -168,7 +168,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
           middleware.use(EarlyParse)
         end
 
-        get "/parse", params: actual
+        get "/parse?#{actual}"
         assert_response :ok
         assert_equal(expected, ::QueryStringParsingTest::TestController.last_query_parameters)
       end
