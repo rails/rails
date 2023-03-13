@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-desc "List versions of all Rails frameworks and the environment"
-task about: :environment do
-  puts Rails::Info
-end
-
 namespace :time do
   desc "List all time zones, list by two-letter country code (`bin/rails time:zones[US]`), or list by UTC offset (`bin/rails time:zones[-8]`)"
   task :zones, :country_or_offset do |t, args|
