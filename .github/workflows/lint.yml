@@ -41,3 +41,12 @@ jobs:
           pip install codespell==2.1.0
       - name: Check spelling with codespell
         run: codespell --ignore-words=codespell.txt --skip="./actionview/test/ujs/public/vendor/qunit.js" || exit 1
+
+  notify:
+    runs-on: ubuntu-latest
+    if: always() && github.ref_name == 'main'
+    needs: [rails-bin, codespell]
+    steps:
+      - uses: zzak/action-discord@v4
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
