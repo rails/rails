@@ -760,11 +760,12 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "warn delegator is deprecated" do
-    assert_deprecated("use your own Deprecation object instead", ActiveSupport.deprecator) do
-      assert_deprecated(ActiveSupport::Deprecation._instance) do
-        ActiveSupport::Deprecation.warn
-      end
+    _, deprecations = collect_deprecations(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.warn "foo"
     end
+    assert_equal 2, deprecations.size
+    assert_match("foo", deprecations.first)
+    assert_match("use your own Deprecation object instead", deprecations.last)
   end
 
   test "deprecate_methods delegator is deprecated" do
@@ -803,7 +804,8 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.behavior
     end
     assert_deprecated("use Rails.application.deprecators.behavior= instead", ActiveSupport.deprecator) do
-      ActiveSupport::Deprecation.behavior = ->(*) { }
+      # we have to keep the same behavior for assert_deprecated to work
+      ActiveSupport::Deprecation.behavior = ActiveSupport.deprecator.behavior
     end
   ensure
     ActiveSupport::Deprecation._instance.behavior = old_behavior
@@ -871,7 +873,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.silenced
     end
     assert_deprecated("use Rails.application.deprecators.silenced= instead", ActiveSupport.deprecator) do
-      ActiveSupport::Deprecation.silenced = true
+      ActiveSupport::Deprecation.silenced = false
     end
   ensure
     ActiveSupport::Deprecation._instance.silenced = old_silenced
@@ -892,7 +894,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.disallowed_warnings
     end
     assert_deprecated("use Rails.application.deprecators.disallowed_warnings= instead", ActiveSupport.deprecator) do
-      ActiveSupport::Deprecation.disallowed_warnings = :all
+      ActiveSupport::Deprecation.disallowed_warnings = []
     end
   ensure
     ActiveSupport::Deprecation._instance.disallowed_warnings = old_disallowed_warnings
