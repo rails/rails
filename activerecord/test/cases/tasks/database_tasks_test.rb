@@ -2,7 +2,8 @@
 
 require "cases/helper"
 require "active_record/tasks/database_tasks"
-require "models/author"
+require "models/course"
+require "models/college"
 
 module ActiveRecord
   module DatabaseTasksSetupper
@@ -1270,14 +1271,15 @@ module ActiveRecord
     unless in_memory_db?
       self.use_transactional_tests = false
 
-      fixtures :authors, :author_addresses
+      fixtures :courses, :colleges
 
       def setup
-        @schema_migration = ActiveRecord::Base.connection.schema_migration
+        connection = ARUnit2Model.connection
+        @schema_migration = connection.schema_migration
         @schema_migration.create_table
         @schema_migration.create_version(@schema_migration.table_name)
 
-        @internal_metadata = ActiveRecord::Base.connection.internal_metadata
+        @internal_metadata = connection.internal_metadata
         @internal_metadata.create_table
         @internal_metadata[@internal_metadata.table_name] = nil
 
@@ -1294,10 +1296,10 @@ module ActiveRecord
       def test_truncate_tables
         assert_operator @schema_migration.count, :>, 0
         assert_operator @internal_metadata.count, :>, 0
-        assert_operator Author.count, :>, 0
-        assert_operator AuthorAddress.count, :>, 0
+        assert_operator Course.count, :>, 0
+        assert_operator College.count, :>, 0
 
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary")
         configurations = { development: db_config.configuration_hash }
         ActiveRecord::Base.configurations = configurations
 
@@ -1309,8 +1311,8 @@ module ActiveRecord
 
         assert_operator @schema_migration.count, :>, 0
         assert_operator @internal_metadata.count, :>, 0
-        assert_equal 0, Author.count
-        assert_equal 0, AuthorAddress.count
+        assert_equal 0, Course.count
+        assert_equal 0, College.count
       end
     end
 

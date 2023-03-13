@@ -10,6 +10,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
   setup do
     @schema_migration = ActiveRecord::Base.connection.schema_migration
     @schema_migration.create_table
+
+    ARUnit2Model.connection.schema_migration.create_table
   end
 
   def standard_dump
@@ -158,9 +160,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_regexp_ignored_table
-    output = dump_all_table_schema([/^account/])
-    assert_no_match %r{create_table "accounts"}, output
-    assert_match %r{create_table "authors"}, output
+    output = dump_all_table_schema([/^courses/], connection: ARUnit2Model.connection)
+    assert_no_match %r{create_table "courses"}, output
+    assert_match %r{create_table "colleges"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
@@ -469,6 +471,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_table_name_prefix_and_suffix
+    ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
     original, $stdout = $stdout, StringIO.new
     ActiveRecord::Base.table_name_prefix = "foo_"
     ActiveRecord::Base.table_name_suffix = "_bar"
@@ -491,9 +494,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
     $stdout = original
+    ActiveRecord::Base.establish_connection(:arunit)
   end
 
   def test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape
+    ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
     original, $stdout = $stdout, StringIO.new
     ActiveRecord::Base.table_name_prefix = "foo$"
     ActiveRecord::Base.table_name_suffix = "$bar"
@@ -516,10 +521,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
     $stdout = original
+    ActiveRecord::Base.establish_connection(:arunit)
   end
 
   def test_schema_dump_with_table_name_prefix_and_ignoring_tables
     original, $stdout = $stdout, StringIO.new
+    ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
 
     create_cat_migration = Class.new(ActiveRecord::Migration::Current) do
       def change
@@ -548,6 +555,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaDumper.ignore_tables = original_schema_dumper_ignore_tables
 
     $stdout = original
+    ActiveRecord::Base.establish_connection(:arunit)
   end
 
   if current_adapter?(:PostgreSQLAdapter)
