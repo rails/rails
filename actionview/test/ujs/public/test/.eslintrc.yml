@@ -19,3 +19,5 @@ rules:
   comma-spacing: 'error'
   comma-dangle: 'off'
   eol-last: 'error'
+parserOptions:
+  ecmaVersion: 6
