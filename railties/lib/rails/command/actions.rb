@@ -34,6 +34,7 @@ module Rails
         end
 
         def load_generators
+          require "rails/generators"
           engine = ::Rails::Engine.find(ENGINE_ROOT)
           Rails::Generators.namespace = engine.railtie_namespace
           engine.load_generators
