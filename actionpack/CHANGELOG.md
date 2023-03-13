@@ -20,6 +20,10 @@
 
     *Nathan Bardoux*
 
+## Rails 7.0.4.3 (March 13, 2023) ##
+
+*   No changes.
+
 
 ## Rails 7.0.4.2 (January 24, 2023) ##
 

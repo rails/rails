@@ -41,6 +41,9 @@ module('data-remote', {
       }))
       .find('form').append($('<input type="text" name="user_name" value="john">'))
 
+    $('#qunit-fixture').append($('<div />', {
+      id: 'edit-div', 'contenteditable': 'true'
+    }))
   }
 })
 
@@ -506,6 +509,23 @@ asyncTest('inputs inside disabled fieldset are not submitted on remote forms', 3
       start()
     })
     .triggerNative('submit')
+})
+
+asyncTest('clicking on a link with contenteditable attribute does not fire ajaxyness', 0, function() {
+  var contenteditable_div = $('#qunit-fixture').find('div')
+  var link = $('a[data-remote]')
+  contenteditable_div.append(link)
+
+  link
+    .bindNative('ajax:beforeSend', function() {
+      ok(false, 'ajax should not be triggered')
+    })
+    .bindNative('click', function(e) {
+      e.preventDefault()
+    })
+    .triggerNative('click')
+
+  setTimeout(function() { start() }, 20)
 })
 
 })()

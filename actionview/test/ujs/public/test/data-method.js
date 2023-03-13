@@ -5,6 +5,10 @@ module('data-method', {
     $('#qunit-fixture').append($('<a />', {
       href: '/echo', 'data-method': 'delete', text: 'destroy!'
     }))
+
+    $('#qunit-fixture').append($('<div />', {
+      id: 'edit-div', 'contenteditable': 'true'
+    }))
   },
   teardown: function() {
     $(document).unbind('iframe:loaded')
@@ -80,6 +84,21 @@ asyncTest('link with "data-method" and cross origin', 1, function() {
   start()
 
   notEqual(data.authenticity_token, 'cf50faa3fe97702ca1ae')
+})
+
+asyncTest('do not interact with contenteditable elements', 6, function() {
+  var contenteditable_div = $('#qunit-fixture').find('div')
+  contenteditable_div.append('<a href="http://www.shouldnevershowindocument.com" data-method="delete">')
+
+  var link = $('#edit-div').find('a')
+  link.triggerNative('click')
+
+  start()
+
+  collection = document.getElementsByTagName('form')
+  for (const item of collection) {
+    notEqual(item.action, "http://www.shouldnevershowindocument.com/")
+  }
 })
 
 })()
