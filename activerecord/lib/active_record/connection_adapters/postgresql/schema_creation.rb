@@ -23,6 +23,12 @@ module ActiveRecord
             end
           end
 
+          def visit_ForeignKeyDefinition(o)
+            super.dup.tap do |sql|
+              sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
+            end
+          end
+
           def visit_CheckConstraintDefinition(o)
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
           end
