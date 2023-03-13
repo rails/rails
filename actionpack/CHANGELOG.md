@@ -1,3 +1,8 @@
+## Rails 6.1.7.3 (March 13, 2023) ##
+
+*   No changes.
+
+
 ## Rails 6.1.7.2 (January 24, 2023) ##
 
 *   Fix `domain: :all` for two letter TLD
