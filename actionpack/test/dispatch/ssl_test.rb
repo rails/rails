@@ -196,6 +196,16 @@ class SecureCookiesTest < SSLTest
     assert_cookies "id=1; path=/; secure", "token=abc; path=/; secure; HttpOnly"
   end
 
+  def test_flag_cookies_as_secure_with_single_cookie_in_array
+    get headers: { "Set-Cookie" => ["id=1"] }
+    assert_cookies "id=1; secure"
+  end
+
+  def test_flag_cookies_as_secure_with_multiple_cookies_in_array
+    get headers: { "Set-Cookie" => ["id=1", "problem=def"] }
+    assert_cookies "id=1; secure", "problem=def; secure"
+  end
+
   def test_flag_cookies_as_secure_at_end_of_line
     get headers: { "Set-Cookie" => "problem=def; path=/; HttpOnly; secure" }
     assert_cookies "problem=def; path=/; HttpOnly; secure"
