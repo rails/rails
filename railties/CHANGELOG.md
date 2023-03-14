@@ -1,3 +1,7 @@
+*   Support prerelease rubies in Gemfile template if RubyGems version is 3.3.16 or higher.
+
+    *Yasuo Honda*, *David Rodríguez*
+
 *   Autoloading setup honors root directories manually set by the user.
 
     This is relevant for custom namespaces. For example, if you'd like classes
