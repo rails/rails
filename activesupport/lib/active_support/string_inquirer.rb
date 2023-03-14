@@ -16,18 +16,20 @@ module ActiveSupport
   #   vehicle = ActiveSupport::StringInquirer.new('car')
   #   vehicle.car?   # => true
   #   vehicle.bike?  # => false
-  class StringInquirer < String
+  class StringInquirer
+    def initialize(method_name)
+      @method_name = method_name
+
+      self.class.send(:define_method, "#{method_name}?") { true }
+    end
+
     private
       def respond_to_missing?(method_name, include_private = false)
         method_name.end_with?("?") || super
       end
 
       def method_missing(method_name, *arguments)
-        if method_name.end_with?("?")
-          self == method_name[0..-2]
-        else
-          super
-        end
+        method_name.end_with?("?") ? false : super
       end
   end
 end
