@@ -399,6 +399,10 @@ module Rails
         end
       end
 
+      def gem_ruby_version
+        Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
+      end
+
       def rails_prerelease?
         options.dev? || options.edge? || options.main?
       end
