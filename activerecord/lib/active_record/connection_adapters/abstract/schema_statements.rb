@@ -1497,15 +1497,15 @@ module ActiveRecord
         non_combinable_operations.each(&:call)
       end
 
-      def valid_table_definition_options
+      def valid_table_definition_options # :nodoc:
         [:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation]
       end
 
-      def valid_column_definition_options
+      def valid_column_definition_options # :nodoc:
         ColumnDefinition::OPTION_NAMES
       end
 
-      def valid_primary_key_options
+      def valid_primary_key_options # :nodoc:
         [:limit, :default, :precision]
       end
 
