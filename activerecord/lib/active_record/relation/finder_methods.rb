@@ -442,7 +442,7 @@ module ActiveRecord
       def find_with_ids(*ids)
         raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
 
-        expects_array = if primary_key.is_a?(Array)
+        expects_array = if klass.composite_primary_key?
           ids.first.first.is_a?(Array)
         else
           ids.first.is_a?(Array)
@@ -476,7 +476,7 @@ module ActiveRecord
           MSG
         end
 
-        relation = if primary_key.is_a?(Array)
+        relation = if klass.composite_primary_key?
           where(primary_key.zip(id).to_h)
         else
           where(primary_key => id)
@@ -492,7 +492,7 @@ module ActiveRecord
       def find_some(ids)
         return find_some_ordered(ids) unless order_values.present?
 
-        relation = if primary_key.is_a?(Array)
+        relation = if klass.composite_primary_key?
           ids.map { |values_set| where(primary_key.zip(values_set).to_h) }.inject(&:or)
         else
           where(primary_key => ids)
@@ -524,7 +524,7 @@ module ActiveRecord
         ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
         relation = except(:limit, :offset)
-        relation = if primary_key.is_a?(Array)
+        relation = if klass.composite_primary_key?
           ids.map { |values_set| relation.where(primary_key.zip(values_set).to_h) }.inject(&:or)
         else
           relation.where(primary_key => ids)

@@ -77,6 +77,10 @@ module ActiveRecord
             @primary_key
           end
 
+          def composite_primary_key? # :nodoc:
+            primary_key.is_a?(Array)
+          end
+
           # Returns a quoted version of the primary key name, used to construct
           # SQL statements.
           def quoted_primary_key
