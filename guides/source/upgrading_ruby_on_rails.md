@@ -328,6 +328,25 @@ I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 Alternatively, you can customise the `I18n.exception_handler`.
 See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers) for more information.
 
+### Chaining Rails commands no longer possible.
+
+Some of the built-in Rails commands have been migrated from Rake to Thor.
+With Thor we can't run multiple commands with a single invocation, as
+additional commands will be seen as arguments to the first command.
+
+The following was previously possible:
+
+```bash
+bin/rails log:clear tmp:clear
+```
+
+These should be called separately instead:
+
+```bash
+bin/rails log:clear
+bin/rails tmp:clear
+```
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 

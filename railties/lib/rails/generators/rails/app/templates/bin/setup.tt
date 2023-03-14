@@ -32,7 +32,8 @@ FileUtils.chdir APP_ROOT do
 <% end -%>
 
   puts "\n== Removing old logs and tempfiles =="
-  system! "bin/rails log:clear tmp:clear"
+  system! "bin/rails log:clear"
+  system! "bin/rails tmp:clear"
 
   puts "\n== Restarting application server =="
   system! "bin/rails restart"
