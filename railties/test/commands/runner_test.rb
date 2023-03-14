@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/runner/runner_command"
 
 class Rails::RunnerTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation

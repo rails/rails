@@ -2,9 +2,8 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/db/system/change/change_command"
 
-class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
+class Rails::Command::DbSystemChangeTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   setup { build_app }

@@ -3,7 +3,6 @@
 require "isolation/abstract_unit"
 require "env_helpers"
 require "rails/command"
-require "rails/commands/encrypted/encrypted_command"
 
 class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers

@@ -3,7 +3,6 @@
 require "isolation/abstract_unit"
 require "env_helpers"
 require "rails/command"
-require "rails/commands/credentials/credentials_command"
 require "fileutils"
 
 class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
