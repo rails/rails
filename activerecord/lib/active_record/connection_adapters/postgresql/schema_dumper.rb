@@ -37,6 +37,7 @@ module ActiveRecord
 
                 parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
                 parts << "using: #{exclusion_constraint.using.inspect}" if exclusion_constraint.using
+                parts << "deferrable: #{exclusion_constraint.deferrable.inspect}" if exclusion_constraint.deferrable
 
                 if exclusion_constraint.export_name_on_schema_dump?
                   parts << "name: #{exclusion_constraint.name.inspect}"

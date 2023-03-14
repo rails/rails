@@ -590,7 +590,7 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           exclusion_info = exec_query(<<-SQL, "SCHEMA")
-            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             JOIN pg_namespace n ON n.oid = c.connamespace
@@ -602,12 +602,16 @@ module ActiveRecord
           exclusion_info.map do |row|
             method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
             method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
+            predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
             predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+
+            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
             options = {
               name: row["conname"],
               using: method_and_elements_parts["using"].to_sym,
-              where: predicate
+              where: predicate,
+              deferrable: deferrable
             }
 
             ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
@@ -630,7 +634,7 @@ module ActiveRecord
           SQL
 
           unique_info.map do |row|
-            deferrable = extract_unique_key_deferrable(row["condeferrable"], row["condeferred"])
+            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
             columns = query_values(<<~SQL, "SCHEMA")
               SELECT a.attname
@@ -660,6 +664,8 @@ module ActiveRecord
         # The +options+ hash can include the following keys:
         # [<tt>:name</tt>]
         #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
+        # [<tt>:deferrable</tt>]
+        #   Specify whether or not the exclusion constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
           at = create_alter_table(table_name)
@@ -669,6 +675,8 @@ module ActiveRecord
         end
 
         def exclusion_constraint_options(table_name, expression, options) # :nodoc:
+          assert_valid_deferrable(options[:deferrable])
+
           options = options.dup
           options[:name] ||= exclusion_constraint_name(table_name, expression: expression, **options)
           options
@@ -939,7 +947,7 @@ module ActiveRecord
             deferrable && (deferred ? :deferred : true)
           end
 
-          def extract_unique_key_deferrable(deferrable, deferred)
+          def extract_constraint_deferrable(deferrable, deferred)
             deferrable && (deferred ? :deferred : :immediate)
           end
 

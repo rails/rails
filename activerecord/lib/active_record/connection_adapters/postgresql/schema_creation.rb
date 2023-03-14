@@ -37,11 +37,12 @@ module ActiveRecord
 
           def visit_ExclusionConstraintDefinition(o)
             sql = ["CONSTRAINT"]
-            sql << o.name
+            sql << quote_column_name(o.name)
             sql << "EXCLUDE"
             sql << "USING #{o.using}" if o.using
             sql << "(#{o.expression})"
             sql << "WHERE (#{o.where})" if o.where
+            sql << "DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
 
             sql.join(" ")
           end
