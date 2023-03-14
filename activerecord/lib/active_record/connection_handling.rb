@@ -48,8 +48,8 @@ module ActiveRecord
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
-      db_config, connection_class = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(db_config, owner_name: connection_class, role: current_role, shard: current_shard)
+      db_config = resolve_config_for_connection(config_or_env)
+      connection_handler.establish_connection(db_config, owner_name: self, role: current_role, shard: current_shard)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
@@ -87,18 +87,18 @@ module ActiveRecord
       connections = []
 
       database.each do |role, database_key|
-        db_config, connection_class = resolve_config_for_connection(database_key)
+        db_config = resolve_config_for_connection(database_key)
 
         self.connection_class = true
-        connections << connection_handler.establish_connection(db_config, owner_name: connection_class, role: role)
+        connections << connection_handler.establish_connection(db_config, owner_name: self, role: role)
       end
 
       shards.each do |shard, database_keys|
         database_keys.each do |role, database_key|
-          db_config, connection_class = resolve_config_for_connection(database_key)
+          db_config = resolve_config_for_connection(database_key)
 
           self.connection_class = true
-          connections << connection_handler.establish_connection(db_config, owner_name: connection_class, role: role, shard: shard.to_sym)
+          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard.to_sym)
         end
       end
 
@@ -343,8 +343,7 @@ module ActiveRecord
         connection_name = primary_class? ? Base.name : name
         self.connection_specification_name = connection_name
 
-        db_config = Base.configurations.resolve(config_or_env)
-        [db_config, self]
+        Base.configurations.resolve(config_or_env)
       end
 
       def with_role_and_shard(role, shard, prevent_writes)
