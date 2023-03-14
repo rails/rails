@@ -261,7 +261,7 @@ class TestCaseTest < ActionController::TestCase
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]
 
-    post :render_body, params: params.dup
+    post :render_body, body: params.to_query
 
     assert_equal params.to_query, @response.body
   end
