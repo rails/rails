@@ -4,19 +4,6 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       module Quoting # :nodoc:
-        def quote(value)
-          case value
-          when String
-            if value.encoding == Encoding::BINARY
-              quoted_binary(value)
-            else
-              "'#{quote_string(value.to_s)}'"
-            end
-          else
-            super
-          end
-        end
-
         def quote_string(s)
           ::SQLite3::Database.quote(s)
         end
@@ -39,11 +26,7 @@ module ActiveRecord
         end
 
         def quoted_binary(value)
-          if value.is_a? String
-            "x'#{value.unpack1("H*")}'"
-          else
-            "x'#{value.hex}'"
-          end
+          "x'#{value.hex}'"
         end
 
         def quoted_true
@@ -79,6 +62,12 @@ module ActiveRecord
           case value
           when BigDecimal
             value.to_f
+          when String
+            if value.encoding == Encoding::ASCII_8BIT
+              super(value.encode(Encoding::UTF_8))
+            else
+              super
+            end
           else
             super
           end

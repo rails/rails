@@ -37,19 +37,4 @@ class BinaryTest < ActiveRecord::TestCase
       assert_equal data, bin.reload.data, "Reloaded data differs from original"
     end
   end
-
-  unless current_adapter?(:PostgreSQLAdapter)
-    def test_does_not_cause_database_warnings
-      original_db_warnings_action = ActiveRecord.db_warnings_action
-      ActiveRecord.db_warnings_action = :raise
-
-      Binary.delete_all
-      binary_data = "\xEE\x49\xC7".b
-      Binary.connection.insert(Arel.sql("INSERT INTO binaries(data) VALUES(?)", binary_data))
-      binary = Binary.first
-      assert_equal binary_data, binary.data
-    ensure
-      ActiveRecord.db_warnings_action = original_db_warnings_action || :ignore
-    end
-  end
 end
