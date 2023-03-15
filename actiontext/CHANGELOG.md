@@ -7,7 +7,11 @@
 
     *Matt Swanson*, *Joel Drapper*
 
-*   Update bundled Trix version from `1.3.1` to `2.0.4`.
+*   Update bundled Trix version from `2.0.0` to `2.0.4`.
+
+    *Sarah Ridge*
+
+*   Update bundled Trix version from `1.3.1` to `2.0.0`.
 
     *Sean Doyle*
 

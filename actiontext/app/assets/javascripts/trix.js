@@ -1,9 +1,9 @@
 /*
-Trix 2.0.0
-Copyright © 2022 Basecamp, LLC
+Trix 2.0.4
+Copyright © 2022 37signals, LLC
  */
 var name = "trix";
-var version = "2.0.0";
+var version = "2.0.4";
 var description = "A rich text editor for everyday writing";
 var main = "dist/trix.umd.min.js";
 var module = "dist/trix.esm.min.js";
@@ -21,7 +21,7 @@ var keywords = [
 	"wysiwyg",
 	"editor"
 ];
-var author = "Basecamp, LLC";
+var author = "37signals, LLC";
 var license = "MIT";
 var bugs = {
 	url: "https://github.com/basecamp/trix/issues"
@@ -39,7 +39,7 @@ var devDependencies = {
 	concurrently: "^7.4.0",
 	eslint: "^7.32.0",
 	esm: "^3.2.25",
-	karma: "6.4.0",
+	karma: "6.4.1",
 	"karma-chrome-launcher": "3.1.1",
 	"karma-qunit": "^4.1.2",
 	"karma-sauce-launcher": "^4.3.6",
@@ -50,6 +50,9 @@ var devDependencies = {
 	"rollup-plugin-includepaths": "^0.2.4",
 	"rollup-plugin-terser": "^7.0.2",
 	svgo: "^2.8.0"
+};
+var resolutions = {
+	webdriverio: "^7.19.5"
 };
 var scripts = {
 	"build-css": "node-sass --functions=./assets/trix/stylesheets/functions assets/trix.scss dist/trix.css",
@@ -83,6 +86,7 @@ var _package = {
 	bugs: bugs,
 	homepage: homepage,
 	devDependencies: devDependencies,
+	resolutions: resolutions,
 	scripts: scripts,
 	dependencies: dependencies
 };
@@ -170,26 +174,21 @@ const tagName$1 = element => {
   return element === null || element === void 0 ? void 0 : (_element$tagName = element.tagName) === null || _element$tagName === void 0 ? void 0 : _element$tagName.toLowerCase();
 };
 
+const androidVersionMatch = navigator.userAgent.match(/android\s([0-9]+.*Chrome)/i);
+const androidVersion = androidVersionMatch && parseInt(androidVersionMatch[1]);
 var browser$1 = {
   // Android emits composition events when moving the cursor through existing text
   // Introduced in Chrome 65: https://bugs.chromium.org/p/chromium/issues/detail?id=764439#c9
   composesExistingText: /Android.*Chrome/.test(navigator.userAgent),
+  // Android 13, especially on Samsung keyboards, emits extra compositionend and beforeinput events
+  // that can make the input handler lose the the current selection or enter an infinite input -> render -> input
+  // loop.
+  recentAndroid: androidVersion && androidVersion > 12,
+  samsungAndroid: androidVersion && navigator.userAgent.match(/Android.*SM-/),
   // IE 11 activates resizing handles on editable elements that have "layout"
   forcesObjectResizing: /Trident.*rv:11/.test(navigator.userAgent),
   // https://www.w3.org/TR/input-events-1/ + https://www.w3.org/TR/input-events-2/
-  supportsInputEvents: function () {
-    if (typeof InputEvent === "undefined") {
-      return false;
-    }
-
-    for (const property of ["data", "getTargetRanges", "inputType"]) {
-      if (!(property in InputEvent.prototype)) {
-        return false;
-      }
-    }
-
-    return true;
-  }()
+  supportsInputEvents: typeof InputEvent !== "undefined" && ["data", "getTargetRanges", "inputType"].every(prop => prop in InputEvent.prototype)
 };
 
 var css$3 = {
@@ -10089,12 +10088,75 @@ class FileVerificationOperation extends Operation {
 
 }
 
+// This class detects when some buggy events are being emmitted and lets know the input controller
+// that they should be ignored.
+
+class FlakyAndroidKeyboardDetector {
+  constructor(element) {
+    this.element = element;
+  }
+
+  shouldIgnore(event) {
+    if (!browser$1.samsungAndroid) return false;
+    this.previousEvent = this.event;
+    this.event = event;
+    this.checkSamsungKeyboardBuggyModeStart();
+    this.checkSamsungKeyboardBuggyModeEnd();
+    return this.buggyMode;
+  } // private
+  // The Samsung keyboard on Android can enter a buggy state in which it emmits a flurry of confused events that,
+  // if processed, corrupts the editor. The buggy mode always starts with an insertText event, right after a
+  // keydown event with for an "Unidentified" key, with the same text as the editor element, except for a few
+  // extra whitespace, or exotic utf8, characters.
+
+
+  checkSamsungKeyboardBuggyModeStart() {
+    if (this.insertingLongTextAfterUnidentifiedChar() && differsInWhitespace(this.element.innerText, this.event.data)) {
+      this.buggyMode = true;
+      this.event.preventDefault();
+    }
+  } // The flurry of buggy events are always insertText. If we see any other type, it means it's over.
+
+
+  checkSamsungKeyboardBuggyModeEnd() {
+    if (this.buggyMode && this.event.inputType !== "insertText") {
+      this.buggyMode = false;
+    }
+  }
+
+  insertingLongTextAfterUnidentifiedChar() {
+    var _this$event$data;
+
+    return this.isBeforeInputInsertText() && this.previousEventWasUnidentifiedKeydown() && ((_this$event$data = this.event.data) === null || _this$event$data === void 0 ? void 0 : _this$event$data.length) > 50;
+  }
+
+  isBeforeInputInsertText() {
+    return this.event.type === "beforeinput" && this.event.inputType === "insertText";
+  }
+
+  previousEventWasUnidentifiedKeydown() {
+    var _this$previousEvent, _this$previousEvent2;
+
+    return ((_this$previousEvent = this.previousEvent) === null || _this$previousEvent === void 0 ? void 0 : _this$previousEvent.type) === "keydown" && ((_this$previousEvent2 = this.previousEvent) === null || _this$previousEvent2 === void 0 ? void 0 : _this$previousEvent2.key) === "Unidentified";
+  }
+
+}
+
+const differsInWhitespace = (text1, text2) => {
+  return normalize(text1) === normalize(text2);
+};
+
+const whiteSpaceNormalizerRegexp = new RegExp("(".concat(OBJECT_REPLACEMENT_CHARACTER, "|").concat(ZERO_WIDTH_SPACE, "|").concat(NON_BREAKING_SPACE, "|\\s)+"), "g");
+
+const normalize = text => text.replace(whiteSpaceNormalizerRegexp, " ").trim();
+
 class InputController extends BasicObject {
   constructor(element) {
     super(...arguments);
     this.element = element;
     this.mutationObserver = new MutationObserver(this.element);
     this.mutationObserver.delegate = this;
+    this.flakyKeyboardDetector = new FlakyAndroidKeyboardDetector(this.element);
 
     for (const eventName in this.constructor.events) {
       handleEvent(eventName, {
@@ -10146,6 +10208,7 @@ class InputController extends BasicObject {
       if (!event.defaultPrevented) {
         this.handleInput(() => {
           if (!innerElementIsActive(this.element)) {
+            if (this.flakyKeyboardDetector.shouldIgnore(event)) return;
             this.eventName = eventName;
             this.constructor.events[eventName].call(this, event);
           }
@@ -11198,12 +11261,12 @@ _defineProperty(Level2InputController, "events", {
 
     if (handler) {
       this.withEvent(event, handler);
-      return this.scheduleRender();
+      this.scheduleRender();
     }
   },
 
   input(event) {
-    return selectionChangeObserver.reset();
+    selectionChangeObserver.reset();
   },
 
   dragstart(event) {
@@ -11273,7 +11336,7 @@ _defineProperty(Level2InputController, "events", {
   compositionend(event) {
     if (this.composing) {
       this.composing = false;
-      return this.scheduleRender();
+      if (!browser$1.recentAndroid) this.scheduleRender();
     }
   }
 
@@ -12996,7 +13059,9 @@ const Trix = {
   operations,
   elements,
   filters
-};
+}; // Expose models under the Trix constant for compatibility with v1
+
+Object.assign(Trix, models);
 
 function start() {
   if (!customElements.get("trix-toolbar")) {

@@ -40,7 +40,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install codespell==2.1.0
       - name: Check spelling with codespell
-        run: codespell --ignore-words=codespell.txt --skip="./actionview/test/ujs/public/vendor/qunit.js" || exit 1
+        run: codespell --ignore-words=codespell.txt --skip="./actionview/test/ujs/public/vendor/qunit.js,./actiontext/app/assets/javascripts/trix.js" || exit 1
 
   notify:
     runs-on: ubuntu-latest
