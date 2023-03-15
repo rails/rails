@@ -937,17 +937,15 @@ end
 
 Each instance of the `Book` model will have these methods:
 
-```ruby
-author
-author=
-build_author
-create_author
-create_author!
-reload_author
-reset_author
-author_changed?
-author_previously_changed?
-```
+* `author`
+* `author=`
+* `build_author`
+* `create_author`
+* `create_author!`
+* `reload_author`
+* `reset_author`
+* `author_changed?`
+* `author_previously_changed?`
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
@@ -1342,15 +1340,13 @@ end
 
 Each instance of the `Supplier` model will have these methods:
 
-```ruby
-account
-account=
-build_account
-create_account
-create_account!
-reload_account
-reset_account
-```
+* `account`
+* `account=`
+* `build_account`
+* `create_account`
+* `create_account!`
+* `reload_account`
+* `reset_account`
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
@@ -2374,7 +2370,7 @@ conditions exists in the collection's table.
 The [`collection.build`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
 
 ```ruby
-@assembly = @part.assemblies.build({assembly_name: "Transmission housing"})
+@assembly = @part.assemblies.build({ assembly_name: "Transmission housing" })
 ```
 
 ##### `collection.create(attributes = {})`
@@ -2382,7 +2378,7 @@ The [`collection.build`][] method returns a new object of the associated type. T
 The [`collection.create`][] method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
-@assembly = @part.assemblies.create({assembly_name: "Transmission housing"})
+@assembly = @part.assemblies.create({ assembly_name: "Transmission housing" })
 ```
 
 ##### `collection.create!(attributes = {})`

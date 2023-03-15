@@ -1729,6 +1729,7 @@ active_record_migrations.html).
 We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
 
 ```ruby
+
   private
     def article_params
       params.require(:article).permit(:title, :body, :status)
@@ -1738,6 +1739,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 and in `app/controllers/comments_controller.rb`:
 
 ```ruby
+
   private
     def comment_params
       params.require(:comment).permit(:commenter, :body, :status)

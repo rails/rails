@@ -975,7 +975,7 @@ If the version specified does not exist, Rails will throw an exception.
 ```bash
 $ bin/rails db:migrate VERSION=zomg
 rails aborted!
-ActiveRecord::UnknownMigrationVersionError: 
+ActiveRecord::UnknownMigrationVersionError:
 
 No migration with version number zomg.
 ```

@@ -303,7 +303,7 @@ only evaluated if the output level is the same as — or included in — the all
 (i.e. lazy loading). The same code rewritten would be:
 
 ```ruby
-logger.debug {"Person attributes hash: #{@person.attributes.inspect}"}
+logger.debug { "Person attributes hash: #{@person.attributes.inspect}" }
 ```
 
 The contents of the block, and therefore the string interpolation, are only

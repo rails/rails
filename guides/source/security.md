@@ -330,7 +330,7 @@ Whenever the user is allowed to pass (parts of) the URL for redirection, it is p
 
 ```ruby
 def legacy
-  redirect_to(params.update(action:'main'))
+  redirect_to(params.update(action: 'main'))
 end
 ```
 
@@ -363,10 +363,10 @@ def sanitize_filename(filename)
   filename.strip.tap do |name|
     # NOTE: File.basename doesn't work right with Windows paths on Unix
     # get only the filename, not the whole path
-    name.sub! /\A.*(\\|\/)/, ''
+    name.sub!(/\A.*(\\|\/)/, '')
     # Finally, replace all non alphanumeric, underscore
     # or periods with underscore
-    name.gsub! /[^\w\.\-]/, '_'
+    name.gsub!(/[^\w.-]/, '_')
   end
 end
 ```
@@ -876,7 +876,7 @@ system("/bin/echo #{user_input}")
 A countermeasure is to _use the `system(command, parameters)` method which passes command line parameters safely_.
 
 ```ruby
-system("/bin/echo","hello; rm *")
+system("/bin/echo", "hello; rm *")
 # prints "hello; rm *" and does not delete files
 ```
 

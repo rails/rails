@@ -2133,7 +2133,7 @@ class ReadOnlyModel < ActiveRecord::Base
 
   private
     def before_save_callback
-      return false
+      false
     end
 end
 ```
