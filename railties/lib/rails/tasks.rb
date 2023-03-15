@@ -7,7 +7,6 @@ require "rake"
   framework
   log
   misc
-  restart
   tmp
   yarn
   zeitwerk

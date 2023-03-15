@@ -108,9 +108,13 @@ module Rails
       def root
         if defined?(ENGINE_ROOT)
           Pathname.new(ENGINE_ROOT)
-        elsif defined?(APP_PATH)
-          Pathname.new(File.expand_path("../..", APP_PATH))
+        else
+          application_root
         end
+      end
+
+      def application_root # :nodoc:
+        Pathname.new(File.expand_path("../..", APP_PATH)) if defined?(APP_PATH)
       end
 
       def printing_commands # :nodoc:

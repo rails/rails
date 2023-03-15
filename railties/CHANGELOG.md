@@ -1,3 +1,13 @@
+*   Allow calling `bin/rails restart` outside of app directory.
+
+    The following would previously fail with a "No Rakefile found" error.
+
+    ```bash
+    blog/bin/rails restart
+    ```
+
+    *Petrik de Heus*
+
 *   Support prerelease rubies in Gemfile template if RubyGems version is 3.3.13 or higher.
 
     *Yasuo Honda*, *David Rodríguez*
