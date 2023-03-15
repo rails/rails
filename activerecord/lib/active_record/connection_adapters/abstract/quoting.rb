@@ -16,10 +16,7 @@ module ActiveRecord
         when false      then quoted_false
         when nil        then "NULL"
         # BigDecimals need to be put in a non-normalized form and quoted.
-        # Additionally, for Ruby 2.7, the string returned by `to_s` is ASCII-8BIT.
-        # We want to avoid that, as that will cause the string to be quoted as
-        # binary. It is safe to force the encoding to US-ASCII.
-        when BigDecimal then value.to_s("F").force_encoding(Encoding::US_ASCII)
+        when BigDecimal then value.to_s("F")
         when Numeric then value.to_s
         when Type::Binary::Data then quoted_binary(value)
         when Type::Time::Value then "'#{quoted_time(value)}'"
