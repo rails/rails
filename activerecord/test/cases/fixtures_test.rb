@@ -482,7 +482,7 @@ class FixturesTest < ActiveRecord::TestCase
     # Ensure that this file never exists
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
-    assert_raise(Errno::ENOENT) do
+    assert_raise(ArgumentError) do
       ActiveRecord::FixtureSet.new(nil, "companies", Company, nonexistent_fixture_path)
     end
   end
@@ -1125,7 +1125,7 @@ end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase
   def test_all_there
-    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixture_paths = [FIXTURES_ROOT + "/all"]
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
@@ -1136,9 +1136,22 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
   end
 end
 
+class LoadAllFixturesWithArrayTest < ActiveRecord::TestCase
+  def test_all_there
+    self.class.fixture_paths = [FIXTURES_ROOT + "/all", FIXTURES_ROOT + "/categories"]
+    self.class.fixtures :all
+
+    if File.symlink? FIXTURES_ROOT + "/all/admin"
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people special_categories subsubdir/arbitrary_filename tasks), fixture_table_names.sort
+    end
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
+  end
+end
+
 class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
   def test_all_there
-    self.class.fixture_path = Pathname.new(FIXTURES_ROOT).join("all")
+    self.class.fixture_paths = [Pathname.new(FIXTURES_ROOT).join("all")]
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
@@ -1482,13 +1495,13 @@ class NilFixturePathTest < ActiveRecord::TestCase
     error = assert_raises(StandardError) do
       TestCase = Class.new(ActiveRecord::TestCase)
       TestCase.class_eval do
-        self.fixture_path = nil
+        self.fixture_paths = nil
         fixtures :all
       end
     end
     assert_equal <<~MSG.squish, error.message
       No fixture path found.
-      Please set `NilFixturePathTest::TestCase.fixture_path`.
+      Please set `NilFixturePathTest::TestCase.fixture_paths`.
     MSG
   end
 end
@@ -1499,7 +1512,7 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
   end
 
   test "ignores file fixtures" do
-    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixture_paths = [FIXTURES_ROOT + "/all"]
     self.class.fixtures :all
 
     assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort

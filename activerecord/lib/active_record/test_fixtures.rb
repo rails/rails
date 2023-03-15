@@ -17,7 +17,7 @@ module ActiveRecord
     end
 
     included do
-      class_attribute :fixture_path, instance_writer: false
+      class_attribute :fixture_paths, instance_writer: false, default: []
       class_attribute :fixture_table_names, default: []
       class_attribute :fixture_class_names, default: {}
       class_attribute :use_transactional_tests, default: true
@@ -40,12 +40,24 @@ module ActiveRecord
         self.fixture_class_names = fixture_class_names.merge(class_names.stringify_keys)
       end
 
+      def fixture_path
+        ActiveRecord.deprecator.warn("TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.")
+        fixture_paths
+      end
+
+      def fixture_path=(path)
+        ActiveRecord.deprecator.warn("TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.")
+        self.fixture_paths = Array(path)
+      end
+
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
-          raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
-          fixture_set_names = Dir[::File.join(fixture_path, "{**,*}/*.{yml}")].uniq
-          fixture_set_names.reject! { |f| f.start_with?(file_fixture_path.to_s) } if defined?(file_fixture_path) && file_fixture_path
-          fixture_set_names.map! { |f| f[fixture_path.to_s.size..-5].delete_prefix("/") }
+          raise StandardError, "No fixture path found. Please set `#{self}.fixture_paths`." if fixture_paths.blank?
+          fixture_set_names = fixture_paths.flat_map do |path|
+            names = Dir[::File.join(path, "{**,*}/*.{yml}")].uniq
+            names.reject! { |f| f.start_with?(file_fixture_path.to_s) } if defined?(file_fixture_path) && file_fixture_path
+            names.map! { |f| f[path.to_s.size..-5].delete_prefix("/") }
+          end.uniq
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
@@ -79,6 +91,11 @@ module ActiveRecord
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.include?(method.to_s)
       end
+    end
+
+    def fixture_path
+      ActiveRecord.deprecator.warn("TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.")
+      fixture_paths
     end
 
     def run_in_transaction?
@@ -215,7 +232,7 @@ module ActiveRecord
       end
 
       def load_fixtures(config)
-        ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config).index_by(&:name)
+        ActiveRecord::FixtureSet.create_fixtures(fixture_paths, fixture_table_names, fixture_class_names, config).index_by(&:name)
       end
 
       def instantiate_fixtures

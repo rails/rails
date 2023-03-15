@@ -6,7 +6,10 @@ require "active_support/json/decoding"
 require "rails/engine"
 
 class TestCaseTest < ActionController::TestCase
-  def self.fixture_path; end
+  def self.fixture_paths
+    []
+  end
+
   self.file_fixture_path = File.expand_path("../fixtures/multipart", __dir__)
 
   class TestController < ActionController::Base
@@ -931,14 +934,14 @@ class TestCaseTest < ActionController::TestCase
     assert_equal "45142", @response.body
   end
 
-  def test_fixture_file_upload_ignores_fixture_path_given_full_path
-    TestCaseTest.stub :fixture_path, __dir__ do
+  def test_fixture_file_upload_ignores_fixture_paths_given_full_path
+    TestCaseTest.stub :fixture_paths, __dir__ do
       uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
       assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
-  def test_fixture_file_upload_ignores_nil_fixture_path
+  def test_fixture_file_upload_ignores_empty_fixture_paths
     uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
     assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
   end

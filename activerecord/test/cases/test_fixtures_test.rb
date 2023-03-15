@@ -32,7 +32,7 @@ class TestFixturesTest < ActiveRecord::TestCase
       klass = Class.new(Minitest::Test) do
         include ActiveRecord::TestFixtures
 
-        self.fixture_path = tmp_dir
+        self.fixture_paths = [tmp_dir]
         self.use_transactional_tests = true
 
         fixtures :all

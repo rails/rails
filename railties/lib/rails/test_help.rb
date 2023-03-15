@@ -24,12 +24,12 @@ if defined?(ActiveRecord::Base)
     include ActiveRecord::TestDatabases
     include ActiveRecord::TestFixtures
 
-    self.fixture_path = "#{Rails.root}/test/fixtures/"
-    self.file_fixture_path = fixture_path + "files"
+    self.fixture_paths << "#{Rails.root}/test/fixtures/"
+    self.file_fixture_path = "#{Rails.root}/test/fixtures/files"
   end
 
   ActiveSupport.on_load(:action_dispatch_integration_test) do
-    self.fixture_path = ActiveSupport::TestCase.fixture_path
+    self.fixture_paths += ActiveSupport::TestCase.fixture_paths
   end
 else
   ActiveSupport.on_load(:active_support_test_case) do

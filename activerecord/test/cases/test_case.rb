@@ -27,12 +27,12 @@ module ActiveRecord
     include LoadSchemaHelper
     extend LoadSchemaHelper
 
-    self.fixture_path = FIXTURES_ROOT
+    self.fixture_paths = [FIXTURES_ROOT]
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
     def create_fixtures(*fixture_set_names, &block)
-      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
+      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_paths, fixture_set_names, fixture_class_names, &block)
     end
 
     def teardown

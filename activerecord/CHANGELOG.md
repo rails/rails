@@ -1,3 +1,18 @@
+*   Introduce `TestFixtures#fixture_paths`.
+
+    Multiple fixture paths can now be specified using the `#fixture_paths` accessor.
+    Apps will continue to have `test/fixtures` as their one fixture path by default,
+    but additional fixture paths can be specified.
+
+    ```ruby
+    ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
+    ActiveSupport::TestCase.fixture_paths << "component2/test/fixtures"
+    ```
+
+    `TestFixtures#fixture_path` is now deprecated.
+
+    *Andrew Novoselac*
+
 *   Adds support for deferrable exclude constraints in PostgreSQL.
 
     By default, exclude constraints in PostgreSQL are checked after each statement.
