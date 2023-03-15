@@ -1,4 +1,4 @@
-*   Support prerelease rubies in Gemfile template if RubyGems version is 3.3.16 or higher.
+*   Support prerelease rubies in Gemfile template if RubyGems version is 3.3.13 or higher.
 
     *Yasuo Honda*, *David Rodríguez*
 
