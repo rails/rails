@@ -213,6 +213,10 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_raises(ActiveModel::MissingAttributeError) { dashboard.id = "1" }
   end
 
+  def composite_primary_key_is_false_for_a_non_cpk_model
+    assert_not_predicate Dashboard, :composite_primary_key?
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_serial_with_quoted_sequence_name
       column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
@@ -402,6 +406,10 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
     assert_equal([book.author_id, book.number], book.id)
     assert_equal([order.shop_id, order.read_attribute(:id)], order.id)
+  end
+
+  def composite_primary_key_is_true_for_a_cpk_model
+    assert_predicate Cpk::Book, :composite_primary_key?
   end
 end
 

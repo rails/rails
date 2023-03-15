@@ -442,10 +442,17 @@ module ActiveRecord
       def find_with_ids(*ids)
         raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
 
-        expects_array = ids.first.kind_of?(Array)
+        expects_array = if klass.composite_primary_key?
+          ids.first.first.is_a?(Array)
+        else
+          ids.first.is_a?(Array)
+        end
+
         return [] if expects_array && ids.first.empty?
 
-        ids = ids.flatten.compact.uniq
+        ids = ids.first if expects_array
+
+        ids = ids.compact.uniq
 
         model_name = @klass.name
 
@@ -469,7 +476,12 @@ module ActiveRecord
           MSG
         end
 
-        relation = where(primary_key => id)
+        relation = if klass.composite_primary_key?
+          where(primary_key.zip(id).to_h)
+        else
+          where(primary_key => id)
+        end
+
         record = relation.take
 
         raise_record_not_found_exception!(id, 0, 1) unless record
@@ -480,7 +492,12 @@ module ActiveRecord
       def find_some(ids)
         return find_some_ordered(ids) unless order_values.present?
 
-        relation = where(primary_key => ids)
+        relation = if klass.composite_primary_key?
+          ids.map { |values_set| where(primary_key.zip(values_set).to_h) }.inject(&:or)
+        else
+          where(primary_key => ids)
+        end
+
         relation = relation.select(table[primary_key]) unless select_values.empty?
         result = relation.to_a
 
@@ -506,7 +523,12 @@ module ActiveRecord
       def find_some_ordered(ids)
         ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
 
-        relation = except(:limit, :offset).where(primary_key => ids)
+        relation = except(:limit, :offset)
+        relation = if klass.composite_primary_key?
+          ids.map { |values_set| relation.where(primary_key.zip(values_set).to_h) }.inject(&:or)
+        else
+          relation.where(primary_key => ids)
+        end
         relation = relation.select(table[primary_key]) unless select_values.empty?
         result = relation.records
 
