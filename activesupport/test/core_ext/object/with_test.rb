@@ -87,4 +87,12 @@ class BlankTest < ActiveSupport::TestCase
     end
     assert_equal :mixed, @object.mixed_attr
   end
+
+  test "basic immediates don't respond to #with" do
+    assert_not_respond_to nil, :with
+    assert_not_respond_to true, :with
+    assert_not_respond_to false, :with
+    assert_not_respond_to 1, :with
+    assert_not_respond_to 1.0, :with
+  end
 end
