@@ -147,6 +147,15 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
   end
 
+  def test_querying_by_whole_associated_records_using_query_constraints
+    comments = [sharded_comments(:great_comment_blog_post_one), sharded_comments(:great_comment_blog_post_two)]
+
+    blog_posts = Sharded::BlogPost.where(comments: comments).to_a
+
+    expected_posts = [sharded_blog_posts(:great_post_blog_one), sharded_blog_posts(:great_post_blog_two)]
+    assert_equal(expected_posts.map(&:id).sort, blog_posts.map(&:id).sort)
+  end
+
   def test_has_many_association_with_composite_foreign_key_loads_records
     blog_post = sharded_blog_posts(:great_post_blog_one)
 

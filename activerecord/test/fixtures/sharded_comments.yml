@@ -18,5 +18,5 @@ unique_comment_blog_post_one:
 
 great_comment_blog_post_two:
   body: "I really enjoyed the post!"
-  blog_post_id: <%= ActiveRecord::FixtureSet.identify(:great_blog_post_two) %>
+  blog_post_id: <%= ActiveRecord::FixtureSet.identify(:great_post_blog_two) %>
   blog_id: <%= ActiveRecord::FixtureSet.identify(:sharded_blog_two) %>
