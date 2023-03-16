@@ -4,7 +4,7 @@ require "isolation/abstract_unit"
 require "env_helpers"
 require "rails/command"
 
-class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
+class Rails::Command::SecretsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
 
   setup :build_app

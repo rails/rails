@@ -5,7 +5,7 @@ require "env_helpers"
 require "rails/command"
 require "fileutils"
 
-class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
+class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
 
   setup :build_app
