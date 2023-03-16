@@ -560,11 +560,13 @@ module Rails
 
           Then boot the development server:
 
-            $ ./bin/rails server
+            $ bin/rails server
 
           You can always get help by running:
 
-            $ ./bin/rails help
+            $ bin/rails help
+
+          More help is available at https://guides.rubyonrails.org/
 
         NEXTSTEP
       end
