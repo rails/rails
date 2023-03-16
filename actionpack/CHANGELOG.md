@@ -1,3 +1,7 @@
+*   Add `without` as an alias of `except` on `ActiveController::Parameters`.
+
+    *Hidde-Jan Jongsma*
+
 *   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**.
 
     *Jason Kotchoff*
