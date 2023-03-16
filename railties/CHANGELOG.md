@@ -1,3 +1,7 @@
+*   Use Thor for `bin/rails tmp:cache:clear`
+
+    *Juan Vasquez*
+
 *   Allow calling `bin/rails restart` outside of app directory.
 
     The following would previously fail with a "No Rakefile found" error.
