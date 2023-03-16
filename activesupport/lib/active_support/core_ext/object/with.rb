@@ -36,3 +36,9 @@ class Object
     end
   end
 end
+
+# #with isn't usable on immediates, so we might as well undefine the
+# method in common immediate classes to avoid potential confusion.
+[NilClass, TrueClass, FalseClass, Integer, Float].each do |klass|
+  klass.undef_method(:with)
+end
