@@ -94,5 +94,6 @@ class BlankTest < ActiveSupport::TestCase
     assert_not_respond_to false, :with
     assert_not_respond_to 1, :with
     assert_not_respond_to 1.0, :with
+    assert_not_respond_to :sym, :with
   end
 end
