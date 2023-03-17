@@ -97,7 +97,7 @@ asyncTest('do not interact with contenteditable elements', 6, function() {
 
   collection = document.getElementsByTagName('form')
   for (const item of collection) {
-    notEqual(item.action, "http://www.shouldnevershowindocument.com/")
+    notEqual(item.action, 'http://www.shouldnevershowindocument.com/')
   }
 })
 
