@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import $ from 'jquery'
 import Rails from '../../../../app/javascript/rails-ujs/index'
 
 $.rails = Rails
