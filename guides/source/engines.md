@@ -1493,6 +1493,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveJob::Base`                    | `active_job`                         |
 | `ActiveJob::TestCase`                | `active_job_test_case`               |
 | `ActiveRecord::Base`                 | `active_record`                      |
+| `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
 | `ActiveStorage::Attachment`          | `active_storage_attachment`          |
 | `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
 | `ActiveStorage::Blob`                | `active_storage_blob`                |

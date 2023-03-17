@@ -25,6 +25,8 @@ module ActiveRecord
       class_attribute :pre_loaded_fixtures, default: false
       class_attribute :lock_threads, default: true
       class_attribute :fixture_sets, default: {}
+
+      ActiveSupport.run_load_hooks(:active_record_fixtures, self)
     end
 
     module ClassMethods

@@ -1,3 +1,21 @@
+*   Introduce `:active_record_fixtures` lazy load hook.
+
+    Hooks defined with this name will be run whenever `TestFixtures` is included
+    in a class.
+
+    ```ruby
+    ActiveSupport.on_load(:active_record_fixtures) do
+      self.fixture_paths << "test/fixtures"
+    end
+
+    klass = Class.new
+    klass.include(ActiveRecord::TestFixtures)
+
+    klass.fixture_paths # => ["test/fixtures"]
+    ```
+
+    *Andrew Novoselac*
+
 *   Introduce `TestFixtures#fixture_paths`.
 
     Multiple fixture paths can now be specified using the `#fixture_paths` accessor.
