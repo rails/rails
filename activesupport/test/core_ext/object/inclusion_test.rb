@@ -9,6 +9,10 @@ class InTest < ActiveSupport::TestCase
     assert_not 3.in?([1, 2])
   end
 
+  def test_not_in_array
+    assert 3.not_in?([1, 2])
+  end
+
   def test_in_hash
     h = { "a" => 100, "b" => 200 }
     assert "a".in?(h)
