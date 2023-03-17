@@ -103,6 +103,6 @@ QUnit.test('do not interact with contenteditable elements', function(assert) {
 
   var collection = document.getElementsByTagName('form')
   for (const item of collection) {
-    assert.notEqual(item.action, "http://www.shouldnevershowindocument.com/")
+    assert.notEqual(item.action, 'http://www.shouldnevershowindocument.com/')
   }
 })

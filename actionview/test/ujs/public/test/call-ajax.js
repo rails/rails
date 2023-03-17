@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import Rails from "../../../../app/javascript/rails-ujs/index"
+import Rails from '../../../../app/javascript/rails-ujs/index'
 
 QUnit.module('call-ajax', {
   beforeEach: function() {
