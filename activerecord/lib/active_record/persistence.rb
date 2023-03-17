@@ -499,6 +499,13 @@ module ActiveRecord
         end
       end
 
+      # Returns an array of column names to be used in queries. The source of column
+      # names is derived from +query_constraints_list+ or +primary_key+. This method
+      # is for internal use when the primary key is to be treated as an array.
+      def composite_query_constraints_list # :nodoc:
+        @composite_query_constraints_list ||= query_constraints_list || Array(primary_key)
+      end
+
       # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
       # therefore all callbacks and filters are fired off before the object is deleted. This method is
       # less efficient than #delete but allows cleanup methods and other actions to be run.
