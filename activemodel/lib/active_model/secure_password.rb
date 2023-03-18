@@ -132,7 +132,21 @@ module ActiveModel
             end
           end
 
-          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+          # Validates that the password does not exceed the maximum allowed characters (72 characters) and
+          # the maximum allowed bytes (72 bytes) for BCrypt. The character length validation is checked first
+          # to provide a more user-friendly error message. However, the byte size validation is still necessary
+          # due to BCrypt's inherent limitation of 72 bytes.
+          validate do |record|
+            password_value = record.public_send(attribute)
+            if password_value.present?
+              if password_value.length > ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+                record.errors.add(attribute, :too_long, count: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED)
+              elsif password_value.bytesize > ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+                record.errors.add(attribute, :too_long_in_bytes, count: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED)
+              end
+            end
+          end
+
           validates_confirmation_of attribute, allow_blank: true
         end
       end
