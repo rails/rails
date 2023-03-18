@@ -174,7 +174,7 @@
     end
     ```
 
-    Then register the config in an inializer:
+    Then register the config in an initializer:
 
     ```ruby
     ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
