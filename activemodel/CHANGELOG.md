@@ -5,12 +5,12 @@
     to consider both character count and byte size while keeping the character length validation in place.
 
     ```ruby
-      user = User.new(password: "𝕒" * 73)  # 73 characters
+      user = User.new(password: "a" * 73)  # 73 characters
       user.valid? # => false
       user.errors[:password] # => ["is too long (maximum is 72 characters)"]
 
 
-      user = User.new(password: "𝕒" * 25)  # 25 characters, 75 bytes
+      user = User.new(password: "あ" * 25)  # 25 characters, 75 bytes
       user.valid? # => false
       user.errors[:password] # => ["is too long (maximum is 72 bytes)"]
     ```
