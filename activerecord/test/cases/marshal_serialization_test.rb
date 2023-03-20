@@ -7,6 +7,14 @@ require "models/reply"
 class MarshalSerializationTest < ActiveRecord::TestCase
   fixtures :topics
 
+  setup do
+    @previous_format_version = ActiveRecord::Marshalling.format_version
+  end
+
+  teardown do
+    ActiveRecord::Marshalling.format_version = @previous_format_version
+  end
+
   def test_deserializing_rails_6_1_marshal_basic
     topic = Marshal.load(marshal_fixture("rails_6_1_topic"))
 
@@ -23,6 +31,52 @@ class MarshalSerializationTest < ActiveRecord::TestCase
     assert_equal 1, topic.id
     assert_equal "The First Topic", topic.title
     assert_equal "Have a nice day", topic.content
+    assert_predicate topic.association(:replies), :loaded?
+  end
+
+  def test_deserializing_rails_7_1_marshal_basic
+    topic = Marshal.load(marshal_fixture("rails_7_1_topic"))
+
+    assert_not_predicate topic, :new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal "Have a nice day", topic.content
+  end
+
+  def test_deserializing_rails_7_1_marshal_with_loaded_association_cache
+    topic = Marshal.load(marshal_fixture("rails_7_1_topic_associations"))
+
+    assert_not_predicate topic, :new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal "Have a nice day", topic.content
+    assert_predicate topic.association(:replies), :loaded?
+  end
+
+  def test_rails_6_1_rountrip
+    topic = Topic.find(1)
+    topic.replies.to_a
+    topic = Marshal.load(Marshal.dump(topic))
+
+    assert_not_predicate topic, :new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal "Have a nice day", topic.content
+    assert_predicate topic.association(:replies), :loaded?
+  end
+
+  def test_rails_7_1_rountrip
+    ActiveRecord::Marshalling.format_version = 7.1
+
+    topic = Topic.find(1)
+    topic.replies.to_a
+    topic = Marshal.load(Marshal.dump(topic))
+
+    assert_not_predicate topic, :new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal "Have a nice day", topic.content
+    assert_predicate topic.association(:replies), :loaded?
   end
 
   private

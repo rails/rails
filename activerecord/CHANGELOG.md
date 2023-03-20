@@ -1,3 +1,9 @@
+*   Introduce a more stable and optimized Marshal serializer for Active Record models.
+
+    Can be enabled with `config.active_record.marshalling_format_version = 7.1`.
+
+    *Jean Boussier*
+
 *   Allow warning codes to be ignore when reporting SQL warnings.
 
     Active Record config that can ignore warning codes

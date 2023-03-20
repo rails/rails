@@ -52,6 +52,7 @@ module ActiveRecord
   autoload :Integration
   autoload :InternalMetadata
   autoload :LogSubscriber
+  autoload :Marshalling
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
@@ -435,6 +436,14 @@ module ActiveRecord
   # to Psych safe_load in the YAML Coder
   singleton_class.attr_accessor :yaml_column_permitted_classes
   self.yaml_column_permitted_classes = [Symbol]
+
+  def self.marshalling_format_version
+    Marshalling.format_version
+  end
+
+  def self.marshalling_format_version=(value)
+    Marshalling.format_version = value
+  end
 
   def self.eager_load!
     super

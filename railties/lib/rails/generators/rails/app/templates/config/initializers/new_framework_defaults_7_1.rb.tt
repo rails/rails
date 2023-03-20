@@ -152,3 +152,12 @@
 # recommended to explicitly define the serialization method for each column
 # rather than to rely on a global default.
 # Rails.application.config.active_record.default_column_serializer = nil
+
+# Enable a performance optimization that serializes Active Record models
+# in a faster and more compact way.
+#
+# To perform a rolling deploy of a Rails 7.1 upgrade, wherein servers that have
+# not yet been upgraded must be able to read caches from upgraded servers,
+# leave this optimization off on the first deploy, then enable it on a
+# subsequent deploy.
+# Rails.application.config.active_record.marshalling_format_version = 7.1
