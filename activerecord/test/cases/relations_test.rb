@@ -475,7 +475,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_sanitized_order
     query = Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]]).to_sql
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_match(/field\(id, '1','3','2'\)/, query)
     else
       assert_match(/field\(id, 1,3,2\)/, query)
@@ -490,7 +490,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_arel_sql_order
     query = Tag.order(Arel.sql("field(id, ?)", [1, 3, 2])).to_sql
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_match(/field\(id, '1', '3', '2'\)/, query)
     else
       assert_match(/field\(id, 1, 3, 2\)/, query)

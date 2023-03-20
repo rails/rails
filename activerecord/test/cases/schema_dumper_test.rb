@@ -125,7 +125,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       # int 3 is 4 bytes in postgresql
       assert_match %r{"c_int_3"(?!.*limit)}, output
       assert_match %r{"c_int_4"(?!.*limit)}, output
-    elsif current_adapter?(:Mysql2Adapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
@@ -169,7 +169,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       if ActiveRecord::Base.connection.supports_index_sort_order?
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
       else
@@ -202,7 +202,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_length
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_description/).first.strip
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description", length: 10', index_definition
     else
       assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description"', index_definition
@@ -212,7 +212,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.supports_check_constraints?
     def test_schema_dumps_check_constraints
       constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         assert_equal 't.check_constraint "`price` > `discounted_price`", name: "products_price_check"', constraint_definition
       else
         assert_equal 't.check_constraint "price > discounted_price", name: "products_price_check"', constraint_definition
@@ -291,7 +291,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       if current_adapter?(:PostgreSQLAdapter)
         assert_match %r{CASE.+lower\(\(name\)::text\).+END\) DESC"\z}i, index_definition
-      elsif current_adapter?(:Mysql2Adapter)
+      elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         assert_match %r{CASE.+lower\(`name`\).+END\) DESC"\z}i, index_definition
       elsif current_adapter?(:SQLite3Adapter)
         assert_match %r{CASE.+lower\(name\).+END\) DESC"\z}i, index_definition
@@ -301,7 +301,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_schema_dump_includes_length_for_mysql_binary_fields
       output = dump_table_schema "binary_fields"
       assert_match %r{t\.binary\s+"var_binary",\s+limit: 255$}, output

@@ -646,7 +646,7 @@ module ActiveRecord
           end
         }.new
 
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           # MySQL does not allow to create table names longer than limit
           error = assert_raises(StandardError) do
             ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
@@ -676,7 +676,7 @@ module ActiveRecord
           end
         }.new
 
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           # MySQL does not allow to create table names longer than limit
           error = assert_raises(StandardError) do
             ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
@@ -758,7 +758,7 @@ module ActiveRecord
         end
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         def test_change_column_on_7_0
           migration = Class.new(ActiveRecord::Migration[7.0]) do
             def up
@@ -774,7 +774,7 @@ module ActiveRecord
 
       private
         def precision_implicit_default
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             { precision: 0 }
           else
             { precision: nil }
@@ -1054,7 +1054,7 @@ module LegacyPrimaryKeyTestCases
       assert_match %r{bigint "banana_id", null: false}, schema
     end
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_legacy_bigint_primary_key_should_be_auto_incremented
         @migration = Class.new(migration_class) {
           def change
@@ -1101,7 +1101,7 @@ module LegacyPrimaryKeyTestCases
         assert_not_predicate legacy_pk, :bigint?
         assert_not legacy_pk.null
 
-        if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
           schema = dump_table_schema "legacy_primary_keys"
           assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
         end

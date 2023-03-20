@@ -143,6 +143,7 @@ class BasicsTest < ActiveRecord::TestCase
     badchar   = {
       "SQLite3Adapter"    => '"',
       "Mysql2Adapter"     => "`",
+      "TrilogyAdapter"    => "`",
       "PostgreSQLAdapter" => '"',
       "OracleAdapter"     => '"',
     }.fetch(classname) {
@@ -878,7 +879,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "たこ焼き仮面", weird.なまえ
   end
 
-  unless current_adapter?(:PostgreSQLAdapter)
+  unless current_adapter?(:PostgreSQLAdapter) || current_adapter?(:TrilogyAdapter)
     def test_respect_internal_encoding
       old_default_internal = Encoding.default_internal
       silence_warnings { Encoding.default_internal = "EUC-JP" }
@@ -1112,7 +1113,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal company, Company.find(company.id)
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :SQLite3Adapter)
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
     def test_default_char_types
       default = Default.new
 
@@ -1120,7 +1121,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal "a varchar field", default.char2
 
       # Mysql text type can't have default value
-      unless current_adapter?(:Mysql2Adapter)
+      unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         assert_equal "a text field", default.char3
       end
     end

@@ -125,7 +125,7 @@ module ActiveRecord
       assert_instance_of(ActiveRecord::Result, result)
     end
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_charset
         assert_not_nil @connection.charset
         assert_not_equal "character_set_database", @connection.charset

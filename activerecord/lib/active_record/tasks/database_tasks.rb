@@ -74,6 +74,7 @@ module ActiveRecord
       end
 
       register_task(/mysql/,        "ActiveRecord::Tasks::MySQLDatabaseTasks")
+      register_task(/trilogy/,      "ActiveRecord::Tasks::MySQLDatabaseTasks")
       register_task(/postgresql/,   "ActiveRecord::Tasks::PostgreSQLDatabaseTasks")
       register_task(/sqlite/,       "ActiveRecord::Tasks::SQLiteDatabaseTasks")
 

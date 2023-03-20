@@ -52,6 +52,7 @@ module ActiveRecord
 
   ADAPTERS_TASKS = {
     mysql2:     :mysql_tasks,
+    trilogy:    :mysql_tasks,
     postgresql: :postgresql_tasks,
     sqlite3:    :sqlite_tasks
   }

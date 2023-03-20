@@ -100,7 +100,7 @@ class DefaultBinaryTest < ActiveRecord::TestCase
       assert_equal "varbinary_default", DefaultBinary.new.varbinary_col
     end
 
-    if current_adapter?(:Mysql2Adapter) && !ActiveRecord::Base.connection.mariadb?
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && !ActiveRecord::Base.connection.mariadb?
       def test_default_binary_string
         assert_equal "binary_default", DefaultBinary.new.binary_col
       end
@@ -165,7 +165,7 @@ class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
 end
 
 class MysqlDefaultExpressionTest < ActiveRecord::TestCase
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     include SchemaDumpingHelper
 
     if supports_default_expression?
@@ -215,7 +215,7 @@ class MysqlDefaultExpressionTest < ActiveRecord::TestCase
 end
 
 class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional tests mode, this will
     # cause Active Record to create a new savepoint. However, since MySQL doesn't

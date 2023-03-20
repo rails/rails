@@ -342,7 +342,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     assert_no_match %r{t\.index \["code"\]}, schema
   end
 
-  if current_adapter?(:Mysql2Adapter) && supports_datetime_with_precision?
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && supports_datetime_with_precision?
     test "schema typed primary key column" do
       @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
       schema = dump_table_schema("scheduled_logs")
@@ -483,7 +483,7 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyIntegerTest < ActiveRecord::TestCase
-  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :TrilogyAdapter)
     include SchemaDumpingHelper
 
     self.use_transactional_tests = false
@@ -519,7 +519,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
       assert_match %r{create_table "widgets", id: :#{@pk_type}, }, schema
     end
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       test "primary key column type with options" do
         @connection.create_table(:widgets, id: :primary_key, limit: 4, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }

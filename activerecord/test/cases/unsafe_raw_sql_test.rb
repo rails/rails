@@ -170,6 +170,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     collation_name = {
       "PostgreSQL" => "C",
       "Mysql2" => "utf8mb4_bin",
+      "Trilogy" => "utf8mb4_bin",
       "SQLite" => "binary"
     }[ActiveRecord::Base.connection.adapter_name]
 

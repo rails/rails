@@ -255,7 +255,7 @@ module ActiveRecord
 
   class AbstractMysqlTestCase < TestCase
     def self.run(*args)
-      super if current_adapter?(:Mysql2Adapter)
+      super if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
     end
   end
 
@@ -264,6 +264,13 @@ module ActiveRecord
       super if current_adapter?(:Mysql2Adapter)
     end
   end
+
+  class TrilogyTestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:TrilogyAdapter)
+    end
+  end
+
 
   class SQLite3TestCase < TestCase
     def self.run(*args)

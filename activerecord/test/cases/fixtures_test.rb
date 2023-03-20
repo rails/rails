@@ -82,7 +82,7 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
     def test_bulk_insert
       subscriber = InsertQuerySubscriber.new
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
@@ -145,12 +145,20 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_bulk_insert_with_multi_statements_enabled
+      orig_connection_class = ActiveRecord::Base.connection.class
       run_without_connection do |orig_connection|
-        ActiveRecord::Base.establish_connection(
-          orig_connection.merge(flags: %w[MULTI_STATEMENTS])
-        )
+        case orig_connection_class::ADAPTER_NAME
+        when "Trilogy"
+          ActiveRecord::Base.establish_connection(
+            orig_connection.merge(multi_statement: true)
+          )
+        else
+          ActiveRecord::Base.establish_connection(
+            orig_connection.merge(flags: %w[MULTI_STATEMENTS])
+          )
+        end
 
         fixtures = {
           "traffic_lights" => [
@@ -161,7 +169,12 @@ class FixturesTest < ActiveRecord::TestCase
         assert_nothing_raised do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          conn.raw_connection.abandon_results!
+          case orig_connection_class::ADAPTER_NAME
+          when "Trilogy"
+            conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
+          else
+            conn.raw_connection.abandon_results!
+          end
         end
 
         assert_difference "TrafficLight.count" do
@@ -176,16 +189,29 @@ class FixturesTest < ActiveRecord::TestCase
         assert_nothing_raised do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          conn.raw_connection.abandon_results!
+          case orig_connection_class::ADAPTER_NAME
+          when "Trilogy"
+            conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
+          else
+            conn.raw_connection.abandon_results!
+          end
         end
       end
     end
 
     def test_bulk_insert_with_multi_statements_disabled
+      orig_connection_class = ActiveRecord::Base.connection.class
       run_without_connection do |orig_connection|
-        ActiveRecord::Base.establish_connection(
-          orig_connection.merge(flags: [])
-        )
+        case orig_connection_class::ADAPTER_NAME
+        when "Trilogy"
+          ActiveRecord::Base.establish_connection(
+            orig_connection.merge(multi_statement: false)
+          )
+        else
+          ActiveRecord::Base.establish_connection(
+            orig_connection.merge(flags: [])
+          )
+        end
 
         fixtures = {
           "traffic_lights" => [
@@ -196,7 +222,12 @@ class FixturesTest < ActiveRecord::TestCase
         assert_raises(ActiveRecord::StatementInvalid) do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          conn.raw_connection.abandon_results!
+          case orig_connection_class::ADAPTER_NAME
+          when "Trilogy"
+            conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
+          else
+            conn.raw_connection.abandon_results!
+          end
         end
 
         assert_difference "TrafficLight.count" do
@@ -207,7 +238,12 @@ class FixturesTest < ActiveRecord::TestCase
         assert_raises(ActiveRecord::StatementInvalid) do
           conn = ActiveRecord::Base.connection
           conn.execute("SELECT 1; SELECT 2;")
-          conn.raw_connection.abandon_results!
+          case orig_connection_class::ADAPTER_NAME
+          when "Trilogy"
+            conn.raw_connection.next_result while conn.raw_connection.more_results_exist?
+          else
+            conn.raw_connection.abandon_results!
+          end
         end
       end
     end
