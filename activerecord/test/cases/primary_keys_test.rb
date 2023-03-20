@@ -217,6 +217,13 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_not_predicate Dashboard, :composite_primary_key?
   end
 
+  def test_primary_key_values_present
+    assert_predicate Topic.new(id: 1), :primary_key_values_present?
+
+    assert_not_predicate Topic.new, :primary_key_values_present?
+    assert_not_predicate Topic.new(title: "Topic A"), :primary_key_values_present?
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_serial_with_quoted_sequence_name
       column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
@@ -410,6 +417,16 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def composite_primary_key_is_true_for_a_cpk_model
     assert_predicate Cpk::Book, :composite_primary_key?
+  end
+
+  def test_primary_key_values_present_for_a_composite_pk_model
+    assert_predicate Cpk::Book.new(author_id: 1, number: 1), :primary_key_values_present?
+
+    assert_not_predicate Cpk::Book.new, :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(author_id: 1), :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(number: 1), :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(title: "Book A"), :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(author_id: 1, title: "Book A"), :primary_key_values_present?
   end
 end
 

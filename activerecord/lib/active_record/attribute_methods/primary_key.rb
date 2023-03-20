@@ -21,6 +21,12 @@ module ActiveRecord
         @primary_key.map { |pk| _read_attribute(pk) }
       end
 
+      def primary_key_values_present? # :nodoc:
+        return id.all? if self.class.composite_primary_key?
+
+        !!id
+      end
+
       # Sets the primary key column's value.
       def id=(value)
         _write_attribute(@primary_key, value)
