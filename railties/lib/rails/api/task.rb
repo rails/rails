@@ -10,6 +10,7 @@ module Rails
         "activesupport" => {
           include: %w(
             README.rdoc
+            lib/active_support.rb
             lib/active_support/**/*.rb
           )
         },
@@ -17,6 +18,7 @@ module Rails
         "activerecord" => {
           include: %w(
             README.rdoc
+            lib/active_record.rb
             lib/active_record/**/*.rb
             lib/arel.rb
           )
@@ -25,6 +27,7 @@ module Rails
         "activemodel" => {
           include: %w(
             README.rdoc
+            lib/active_model.rb
             lib/active_model/**/*.rb
           )
         },
@@ -41,6 +44,7 @@ module Rails
         "actionview" => {
           include: %w(
             README.rdoc
+            lib/action_view.rb
             lib/action_view/**/*.rb
           ),
           exclude: "lib/action_view/vendor/*"
@@ -49,6 +53,7 @@ module Rails
         "actionmailer" => {
           include: %w(
             README.rdoc
+            lib/action_mailer.rb
             lib/action_mailer/**/*.rb
           )
         },
@@ -56,6 +61,7 @@ module Rails
         "activejob" => {
           include: %w(
             README.md
+            lib/active_job.rb
             lib/active_job/**/*.rb
           )
         },
@@ -63,6 +69,7 @@ module Rails
         "actioncable" => {
           include: %w(
             README.md
+            lib/action_cable.rb
             lib/action_cable/**/*.rb
           )
         },
@@ -71,6 +78,7 @@ module Rails
           include: %w(
             README.md
             app/**/active_storage/**/*.rb
+            lib/active_storage.rb
             lib/active_storage/**/*.rb
           )
         },
@@ -79,6 +87,7 @@ module Rails
           include: %w(
             README.md
             app/**/action_mailbox/**/*.rb
+            lib/action_mailbox.rb
             lib/action_mailbox/**/*.rb
           )
         },
@@ -87,6 +96,7 @@ module Rails
           include: %w(
             README.md
             app/**/action_text/**/*.rb
+            lib/action_text.rb
             lib/action_text/**/*.rb
           )
         },

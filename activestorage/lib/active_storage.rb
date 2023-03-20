@@ -34,6 +34,8 @@ require "active_storage/errors"
 
 require "marcel"
 
+# :markup: markdown
+# :include: activestorage/README.md
 module ActiveStorage
   extend ActiveSupport::Autoload
 

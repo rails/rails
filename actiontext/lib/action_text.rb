@@ -8,6 +8,8 @@ require "action_text/deprecator"
 
 require "nokogiri"
 
+# :markup: markdown
+# :include: actiontext/README.md
 module ActionText
   extend ActiveSupport::Autoload
 
