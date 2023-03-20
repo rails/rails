@@ -330,6 +330,7 @@ module ActiveRecord # :nodoc:
     include SignedId
     include Suppressor
     include Normalization
+    include Marshalling::Methods
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
