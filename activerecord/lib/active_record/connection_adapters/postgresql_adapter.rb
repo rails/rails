@@ -72,8 +72,8 @@ module ActiveRecord
             raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
           elsif conn_params && conn_params[:user] && error.message.include?(conn_params[:user])
             raise ActiveRecord::DatabaseConnectionError.username_error(conn_params[:user])
-          elsif conn_params && conn_params[:hostname] && error.message.include?(conn_params[:hostname])
-            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:hostname])
+          elsif conn_params && conn_params[:host] && error.message.include?(conn_params[:host])
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:host])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
