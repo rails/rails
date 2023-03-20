@@ -373,6 +373,22 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_equal ["code", "region"], @connection.primary_keys("barcodes_reverse")
   end
 
+  def test_assigning_a_composite_primary_key
+    book = Cpk::Book.new
+    book.id = [1, 2]
+    book.save!
+
+    assert_equal [1, 2], book.id
+  end
+
+  def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
+    book = Cpk::Book.new
+
+    assert_raises(TypeError) do
+      book.id = 1
+    end
+  end
+
   def test_primary_key_issues_warning
     model = Class.new(ActiveRecord::Base) do
       def self.table_name
