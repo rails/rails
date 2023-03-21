@@ -23,7 +23,11 @@ module ActiveRecord
 
       # Sets the primary key column's value.
       def id=(value)
-        _write_attribute(@primary_key, value)
+        if self.class.composite_primary_key?
+          @primary_key.zip(value) { |attr, value| _write_attribute(attr, value) }
+        else
+          _write_attribute(@primary_key, value)
+        end
       end
 
       # Queries the primary key column's value.
