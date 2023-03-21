@@ -14,6 +14,18 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
     assert_match "Did you mean?  version", output
   end
 
+  test "loads Rake tasks only once on unrecognized command" do
+    app_file "lib/tasks/my_task.rake", <<~RUBY
+      puts "MY_TASK already defined? => \#{!!defined?(MY_TASK)}"
+      MY_TASK = true
+    RUBY
+
+    output = rails "vershen", allow_failure: true
+
+    assert_match "MY_TASK already defined? => false", output
+    assert_no_match "MY_TASK already defined? => true", output
+  end
+
   test "prints help via `X:help` command when running `X` and `X:X` command is not defined" do
     help = rails "dev:help"
     output = rails "dev", allow_failure: true
