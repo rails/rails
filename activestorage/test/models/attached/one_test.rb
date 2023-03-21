@@ -56,6 +56,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
+  test "attaching StringIO attachable to an existing record" do
+    upload = Rack::Test::UploadedFile.new StringIO.new(""), original_filename: "test.txt"
+
+    @user.avatar.attach upload
+
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
+  end
+
   test "attaching a new blob from an uploaded file to an existing record passes record" do
     upload = fixture_file_upload("racecar.jpg")
     def upload.open
