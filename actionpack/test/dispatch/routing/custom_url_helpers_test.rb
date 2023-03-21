@@ -85,6 +85,11 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     get "/profile", to: "users#profile", as: :profile
     get "/media/:id", to: "media#show", as: :media
     get "/pages/:id", to: "pages#show", as: :page
+    get(
+      "/download/:platform" => "download#platform",
+      constraints: { platform: %w[windows linux macos] },
+      as: :download
+    )
 
     resources :categories, :collections, :products, :manufacturers
 
@@ -143,6 +148,10 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
 
   def params
     ActionController::Parameters.new(page: 2, size: 25)
+  end
+
+  def test_constraints_path
+    assert_equal "/download/macos", download_path(platform: "macos")
   end
 
   def test_direct_paths

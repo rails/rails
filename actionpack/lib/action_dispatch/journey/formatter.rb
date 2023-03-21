@@ -175,6 +175,11 @@ module ActionDispatch
                 missing_keys ||= []
                 missing_keys << key
               end
+            when Array
+              unless tests[key].any? { |value| value.match?(parts[key]) }
+                missing_keys ||= []
+                missing_keys << key
+              end
             else
               unless tests[key].match?(parts[key])
                 missing_keys ||= []

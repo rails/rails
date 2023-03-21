@@ -172,8 +172,14 @@ module ActionDispatch
         end
 
         def requirements_for_missing_keys_check
-          @requirements_for_missing_keys_check ||= requirements.transform_values do |regex|
-            /\A#{regex}\Z/
+          @requirements_for_missing_keys_check ||= requirements.transform_values do |object|
+            if object.is_a?(Array)
+              object.map do |element|
+                /\A#{element}\Z/
+              end
+            else
+              /\A#{object}\Z/
+            end
           end
         end
 
