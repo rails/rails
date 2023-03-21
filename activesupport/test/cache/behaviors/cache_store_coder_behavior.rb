@@ -21,6 +21,20 @@ module CacheStoreCoderBehavior
     end
   end
 
+  class FailingCoder
+    class Error < StandardError
+      include ActiveSupport::Cache::DeserializationError
+    end
+
+    def dump(entry)
+      Marshal.dump(entry)
+    end
+
+    def load(payload)
+      raise Error, "Oops"
+    end
+  end
+
   def test_coder_receive_the_entry_on_write
     coder = SpyCoder.new
     @store = lookup_store(coder: coder)
@@ -76,5 +90,12 @@ module CacheStoreCoderBehavior
     @store = lookup_store(coder: coder)
     @store.read("foo")
     assert_equal 0, coder.loaded_entries.size
+  end
+
+  def test_deserialization_error_is_treated_as_a_miss
+    coder = FailingCoder.new
+    @store = lookup_store(coder: coder)
+    @store.write("foo", "bar")
+    assert_nil @store.read("foo")
   end
 end

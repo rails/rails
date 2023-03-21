@@ -12,6 +12,12 @@ require "active_support/core_ext/string/inflections"
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
+    # Any error raised during deserialization of the cache entry
+    # will be treated as a cache miss if it includes this module.
+    # This allows to seamlessly rollout cache format changes.
+    module DeserializationError
+    end
+
     autoload :FileStore,        "active_support/cache/file_store"
     autoload :MemoryStore,      "active_support/cache/memory_store"
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
@@ -688,6 +694,8 @@ module ActiveSupport
 
         def deserialize_entry(payload)
           payload.nil? ? nil : @coder.load(payload)
+        rescue DeserializationError
+          nil
         end
 
         # Reads multiple entries from the cache implementation. Subclasses MAY

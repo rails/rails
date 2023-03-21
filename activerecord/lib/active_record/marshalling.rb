@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "active_support"
+require "active_support/cache"
+
 module ActiveRecord
   module Marshalling
     @format_version = 6.1
@@ -138,7 +141,8 @@ module ActiveRecord
           end
       end
 
-      class Error < StandardError
+      class Error < ActiveRecordError
+        include ActiveSupport::Cache::DeserializationError
       end
 
       class ClassMissingError < Error
