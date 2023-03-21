@@ -20,4 +20,18 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
 
     assert_equal help, output
   end
+
+  test "excludes application Rake tasks from command listing" do
+    app_file "Rakefile", <<~RUBY, "a"
+      desc "my_task"
+      task :my_task_1
+    RUBY
+
+    app_file "lib/tasks/my_task.rake", <<~RUBY
+      desc "my_task"
+      task :my_task_2
+    RUBY
+
+    assert_no_match "my_task", rails("--help")
+  end
 end

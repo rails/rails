@@ -22,25 +22,27 @@ module Rails
               raise UnrecognizedCommandError.new(unrecognized_task)
             end
 
-            if Rails.respond_to?(:root)
-              rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
-            end
+            rake.options.suppress_backtrace_pattern = non_app_file_pattern
             rake.standard_exception_handling { rake.top_level }
           end
         end
 
         private
+          def non_app_file_pattern
+            /\A(?!#{Regexp.quote Rails::Command.root.to_s})/
+          end
+
           def rake_tasks
             require_rake
 
             return @rake_tasks if defined?(@rake_tasks)
 
-            require_application!
-
             Rake::TaskManager.record_task_metadata = true
             Rake.application.instance_variable_set(:@name, "rails")
-            load_tasks
-            @rake_tasks = Rake.application.tasks.select(&:comment)
+            Rake.application.load_rakefile
+            @rake_tasks = Rake.application.tasks.select do |task|
+              task.comment && task.locations.any?(non_app_file_pattern)
+            end
           end
 
           def formatted_rake_tasks

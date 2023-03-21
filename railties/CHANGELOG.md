@@ -1,3 +1,9 @@
+*   `bin/rails --help` will now list only framework and plugin commands. Rake
+    tasks defined in `lib/tasks/*.rake` files will no longer be included. For a
+    list of those tasks, use `rake -T`.
+
+    *Jonathan Hefner*
+
 *   Allow calling `bin/rails restart` outside of app directory.
 
     The following would previously fail with a "No Rakefile found" error.
