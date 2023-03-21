@@ -42,7 +42,7 @@ require "models/organization"
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers, :authors, :author_addresses, :author_favorites,
-           :comments, :posts, :sharded_blogs, :sharded_blog_posts, :sharded_comments
+           :comments, :posts, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_tags, :sharded_blog_posts_tags
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -300,6 +300,17 @@ class AssociationsTest < ActiveRecord::TestCase
 
     assert_includes(blog_post.reload.tags, tag)
     assert_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id, tag_id: tag.id), :exists?
+  end
+
+  def test_nullify_composite_has_many_through_association
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    assert_not_empty(blog_post.tags)
+
+    blog_post.tags = []
+
+    assert_empty(blog_post.tags)
+    assert_empty(blog_post.reload.tags)
+    assert_not_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id), :exists?
   end
 end
 
