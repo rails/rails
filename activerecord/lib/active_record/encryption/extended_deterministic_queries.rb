@@ -44,7 +44,13 @@ module ActiveRecord
             return args if owner.deterministic_encrypted_attributes&.empty?
 
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
-              options = options.stringify_keys
+              options = options.transform_keys do |key|
+                if key.is_a?(Array)
+                  key.map(&:to_s)
+                else
+                  key.to_s
+                end
+              end
               args[0] = options
 
               owner.deterministic_encrypted_attributes&.each do |attribute_name|

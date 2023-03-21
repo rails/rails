@@ -1,3 +1,26 @@
+*   Allow specifying where clauses with column-tuple syntax.
+
+    Querying through `#where` now accepts a new tuple-syntax which accepts, as
+    a key, an array of columns and, as a value, an array of corresponding tuples.
+    The key specifies a list of columns, while the value is an array of
+    ordered-tuples that conform to the column list.
+
+    For instance:
+
+    ```ruby
+    # Cpk::Book => Cpk::Book(author_id: integer, number: integer, title: string, revision: integer)
+    # Cpk::Book.primary_key => ["author_id", "number"]
+
+    book = Cpk::Book.create!(author_id: 1, number: 1)
+    Cpk::Book.where(Cpk::Book.primary_key => [[1, 2]]) # => [book]
+
+    # Topic => Topic(id: integer, title: string, author_name: string...)
+
+    Topic.where([:title, :author_name] => [["The Alchemist", "Paul Coelho"], ["Harry Potter", "J.K Rowling"]])
+    ```
+
+    *Paarth Madan*
+
 *   Allow warning codes to be ignore when reporting SQL warnings.
 
     Active Record config that can ignore warning codes
