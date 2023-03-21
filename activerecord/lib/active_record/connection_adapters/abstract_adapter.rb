@@ -1197,7 +1197,9 @@ module ActiveRecord
         end
 
         def warning_ignored?(warning)
-          ActiveRecord.db_warnings_ignore.any? { |warning_matcher| warning.message.match?(warning_matcher) }
+          ActiveRecord.db_warnings_ignore.any? do |warning_matcher|
+            warning.message.match?(warning_matcher) || warning.code.to_s.match?(warning_matcher)
+          end
         end
     end
   end

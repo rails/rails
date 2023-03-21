@@ -589,6 +589,15 @@ module ActiveRecord
         end
       end
 
+      def test_allowlist_of_warning_codes_to_ignore
+        with_example_table do
+          with_db_warnings_action(:raise, ["01000"]) do
+            result = @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
+            assert_equal [], result.to_a
+          end
+        end
+      end
+
       def test_does_not_raise_notice_level_warnings
         with_db_warnings_action(:raise, [/PostgreSQL SQL warning/]) do
           result = @connection.execute("DROP TABLE IF EXISTS non_existent_table")
@@ -605,20 +614,6 @@ module ActiveRecord
         def connection_without_insert_returning
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
           ActiveRecord::Base.postgresql_connection(db_config.configuration_hash.merge(insert_returning: false))
-        end
-
-        def with_db_warnings_action(action, warnings_to_ignore = [])
-          original_db_warnings_ignore = ActiveRecord.db_warnings_ignore
-
-          ActiveRecord.db_warnings_action = action
-          ActiveRecord.db_warnings_ignore = warnings_to_ignore
-          @connection.disconnect! # Disconnect from the db so that we reconfigure the connection
-
-          yield
-        ensure
-          ActiveRecord.db_warnings_action = @original_db_warnings_action
-          ActiveRecord.db_warnings_ignore = original_db_warnings_ignore
-          @connection.disconnect!
         end
     end
   end
