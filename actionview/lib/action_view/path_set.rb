@@ -32,7 +32,8 @@ module ActionView # :nodoc:
       PathSet.new paths.compact
     end
 
-    def +(array)
+    def +(other)
+      array = Array === other ? other : other.paths
       PathSet.new(paths + array)
     end
 
@@ -67,7 +68,11 @@ module ActionView # :nodoc:
         paths.map do |path|
           case path
           when Pathname, String
-            ActionView::PathRegistry.file_system_resolver(path.to_s)
+            # This path should only be reached by "direct" users of
+            # ActionView::Base (not using the ViewPaths or Renderer modules).
+            # We can't cache/de-dup the file system resolver in this case as we
+            # don't know which compiled_method_container we'll be rendering to.
+            FileSystemResolver.new(path)
           when Resolver
             path
           else

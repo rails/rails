@@ -12,10 +12,7 @@ module ActionView
 
         rebuild_watcher
 
-        _self = self
-        ActionView::PathRegistry.singleton_class.set_callback(:build_file_system_resolver, :after) do
-          _self.send(:rebuild_watcher)
-        end
+        ActionView::PathRegistry.file_system_resolver_hooks << method(:rebuild_watcher)
       end
 
       def updated?
