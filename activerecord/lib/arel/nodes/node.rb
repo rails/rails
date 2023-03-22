@@ -18,7 +18,7 @@ module Arel # :nodoc: all
     # most nodes include a couple of useful factory methods to create subtree structures for common constraints. For
     # a full list of those, please refer to Arel::Predications.
     #
-    # The following example creates a equality constraint where the value of the name column on the users table
+    # The following example creates an equality constraint where the value of the name column on the users table
     # matches the value DHH.
     #
     #   users = Arel::Table.new(:users)
@@ -36,8 +36,8 @@ module Arel # :nodoc: all
     #
     #   "users"."name" = 'DHH'
     #
-    # The constraint fragments can be used with regular ActiveRecord::Relation objects instead of as Hash. The
-    # following two example shows two ways of creating the same query.
+    # The constraint fragments can be used with regular ActiveRecord::Relation objects instead of a Hash. The
+    # following two examples show two ways of creating the same query.
     #
     #   User.where(name: 'DHH')
     #
@@ -51,7 +51,7 @@ module Arel # :nodoc: all
     #
     # == Functions
     #
-    # Arel comes with built in support for SQL functions like +COUNT+, +SUM+, +MIN+, +MAX+, and +AVG+. The
+    # Arel comes with built-in support for SQL functions like +COUNT+, +SUM+, +MIN+, +MAX+, and +AVG+. The
     # Arel::Expressions module includes factory methods for the default functions.
     #
     #   employees = Employee.arel_table
@@ -73,7 +73,7 @@ module Arel # :nodoc: all
     # Values that you pass to Arel nodes need to be quoted or wrapped in bind params. This ensures they are properly
     # converted into the correct format without introducing a possible SQL injection vulnerability. Most factory
     # methods (like +eq+, +gt+, +lteq+, …) quote passed values automatically. When not using a factory method, it’s
-    # possible to convert a value and wrap it in a Arel::Nodes::Quoted node (if necessary) by calling +Arel::Nodes.
+    # possible to convert a value and wrap it in an Arel::Nodes::Quoted node (if necessary) by calling +Arel::Nodes.
     # build_quoted+.
     #
     #   Arel::Nodes.build_quoted("foo") # 'foo'
@@ -98,7 +98,21 @@ module Arel # :nodoc: all
     #
     #   # LOWER("users"."name") = 'dhh'
     #
-    # Please keep in mind that passing data as raw SQL literals might introduce a possible SQL injection.
+    # Please keep in mind that passing data as raw SQL literals might introduce a possible SQL injection. However,
+    # `Arel.sql` supports binding parameters which will ensure proper quoting. This can be useful when you need to
+    # control the exact SQL you run, but you still have potentially user-supplied values.
+    #
+    #   Arel.sql('LOWER("users"."name") = ?', 'dhh')
+    #
+    #   # LOWER("users"."name") = 'dhh'
+    #
+    # You can also combine SQL literals.
+    #
+    #   sql = Arel.sql('SELECT * FROM "users" WHERE ')
+    #   sql += Arel.sql('LOWER("users"."name") = :name', name: 'dhh')
+    #   sql += Arel.sql('AND "users"."age" > :age', age: 35)
+    #
+    #   # SELECT * FROM "users" WHERE LOWER("users"."name") = 'dhh' AND "users"."age" > '35'
     class Node
       include Arel::FactoryMethods
 
