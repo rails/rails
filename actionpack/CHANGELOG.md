@@ -1,5 +1,4 @@
-*   Allow route constraints to be arrays of elements that will be converted to
-    Regexes
+*   Allow route constraints to be arrays converted to Regexes.
 
     ```ruby
     get(
@@ -15,7 +14,7 @@
 
     *Dorian Marié*
 
-*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**
+*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**.
 
     *Jason Kotchoff*
 
