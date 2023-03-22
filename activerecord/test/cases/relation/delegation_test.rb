@@ -9,7 +9,7 @@ require "models/developer"
 module ActiveRecord
   module DelegationTests
     ARRAY_DELEGATES = [
-      :+, :-, :|, :&, :[], :shuffle,
+      :+, :-, :|, :&, :[], :shuffle, :intersects?,
       :all?, :collect, :compact, :detect, :each, :each_cons, :each_with_index,
       :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
       :map, :none?, :one?, :partition, :reject, :reverse, :rotate,
