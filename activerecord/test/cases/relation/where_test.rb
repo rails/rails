@@ -118,8 +118,6 @@ module ActiveRecord
       assert_equal [book_one], Cpk::Book.where([:author_id, :number] => [[1, 2]])
       assert_equal [book_one, book_two].sort, Cpk::Book.where(Cpk::Book.primary_key => [[1, 2], [3, 4]]).sort
       assert_empty Cpk::Book.where([:author_id, :number] => [[1, 4], [3, 2]])
-    ensure
-      Cpk::Book.delete_all
     end
 
     def test_where_with_tuple_syntax_with_incorrect_arity
@@ -143,8 +141,6 @@ module ActiveRecord
       assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist").sort
       assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist", [:author_id, :number] => [[1, 2], [3, 4]]).sort
       assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :number] => [[3, 4]])
-    ensure
-      Cpk::Book.delete_all
     end
 
     def test_belongs_to_shallow_where
