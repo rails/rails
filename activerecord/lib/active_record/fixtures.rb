@@ -467,7 +467,7 @@ module ActiveRecord
 
     cattr_accessor :all_loaded_fixtures, default: {}
 
-    class ClassCache
+    class ClassCache # :nodoc:
       def initialize(class_names, config)
         @class_names = class_names.stringify_keys
         @config      = config
