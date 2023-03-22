@@ -320,7 +320,7 @@ GEM
     mixlib-shellout (3.2.7)
       chef-utils
     mono_logger (1.1.1)
-    msgpack (1.6.0)
+    msgpack (1.7.0)
     multi_json (1.15.0)
     multipart-post (2.2.3)
     mustermann (3.0.0)
@@ -580,6 +580,7 @@ DEPENDENCIES
   minitest-bisect
   minitest-ci
   minitest-retry
+  msgpack (>= 1.7.0)
   mysql2 (~> 0.5)
   nokogiri (>= 1.8.1, != 1.11.0)
   pg (~> 1.3)

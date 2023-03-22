@@ -15,6 +15,13 @@ module ActiveSupport
         Marshal,
       ]
 
+      TIMESTAMP_SERIALIZERS = []
+
+      ActiveSupport.on_load(:message_pack) do
+        ENVELOPE_SERIALIZERS.unshift ActiveSupport::MessagePack
+        TIMESTAMP_SERIALIZERS.unshift ActiveSupport::MessagePack
+      end
+
       private
         def serialize_with_metadata(data, **metadata)
           has_metadata = metadata.any? { |k, v| v }
@@ -80,11 +87,17 @@ module ActiveSupport
         end
 
         def pick_expiry(expires_at, expires_in)
-          if expires_at
-            expires_at.utc.iso8601(3)
+          expiry = if expires_at
+            expires_at.utc
           elsif expires_in
-            Time.now.utc.advance(seconds: expires_in).iso8601(3)
+            Time.now.utc.advance(seconds: expires_in)
           end
+
+          unless Metadata::TIMESTAMP_SERIALIZERS.include?(serializer)
+            expiry = expiry&.iso8601(3)
+          end
+
+          expiry
         end
 
         def parse_expiry(expires_at)

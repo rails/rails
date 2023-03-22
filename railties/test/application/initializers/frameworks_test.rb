@@ -376,5 +376,22 @@ module ApplicationTests
 
       assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post)
     end
+
+    test "ActiveRecord::MessagePack extensions are installed when using ActiveSupport::MessagePack::CacheSerializer" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate)
+
+      add_to_config <<~RUBY
+        require "active_support/message_pack"
+        config.cache_store = :file_store, #{app_path("tmp/cache").inspect},
+          { coder: ActiveSupport::MessagePack::CacheSerializer }
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      post = Post.create!(title: "Hello World")
+      Rails.cache.write("hello", post)
+      assert_equal post, Rails.cache.read("hello")
+    end
   end
 end

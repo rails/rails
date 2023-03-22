@@ -424,5 +424,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
         end
       end
     end
+
+    initializer "active_record.message_pack" do
+      ActiveSupport.on_load(:message_pack) do
+        ActiveSupport.on_load(:active_record) do
+          require "active_record/message_pack"
+          ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
+        end
+      end
+    end
   end
 end
