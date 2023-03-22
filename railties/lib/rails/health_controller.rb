@@ -31,23 +31,25 @@
 # where your application is being restarted due to a third-party service going
 # bad. Ideally, you should design your application to handle those outages
 # gracefully.
-class Rails::HealthController < ActionController::Base
-  rescue_from(Exception) { render_down }
+module Rails
+  class HealthController < ActionController::Base
+    rescue_from(Exception) { render_down }
 
-  def show
-    render_up
+    def show
+      render_up
+    end
+
+    private
+      def render_up
+        render html: html_status(color: "green")
+      end
+
+      def render_down
+        render html: html_status(color: "red"), status: 500
+      end
+
+      def html_status(color:)
+        %(<html><body style="background-color: #{color}"></body></html>).html_safe
+      end
   end
-
-  private
-    def render_up
-      render html: html_status(color: "green")
-    end
-
-    def render_down
-      render html: html_status(color: "red"), status: 500
-    end
-
-    def html_status(color:)
-      %(<html><body style="background-color: #{color}"></body></html>).html_safe
-    end
 end
