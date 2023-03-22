@@ -386,6 +386,10 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     book.save!
 
     assert_equal [1, 2], book.id
+    assert_equal 1, book.author_id
+    assert_equal 2, book.number
+  ensure
+    Cpk::Book.delete_all
   end
 
   def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
