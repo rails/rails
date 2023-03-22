@@ -23,8 +23,10 @@ module ActionView
     end
 
     config.after_initialize do |app|
-      form_with_generates_remote_forms = app.config.action_view.delete(:form_with_generates_remote_forms)
-      ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
+      app.config.action_view.delete(:form_with_generates_remote_forms)
+
+      form_with_generates_local_forms = app.config.action_view.delete(:form_with_generates_local_forms)
+      ActionView::Helpers::FormHelper.form_with_generates_local_forms = form_with_generates_local_forms
     end
 
     config.after_initialize do |app|
@@ -68,7 +70,14 @@ module ActionView
     config.after_initialize do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
-          send "#{k}=", v
+          if k == "form_with_generates_remote_forms"
+            ActionView.deprecator.warn(<<-MSG.squish)
+              config.action_view.form_with_generates_remote_forms is deprecated and will be removed in Rails 7.2.
+              It no longer has any effect and should be replaced with config.action_view.form_with_generates_local_forms instead.
+            MSG
+          else
+            send "#{k}=", v
+          end
         end
       end
     end

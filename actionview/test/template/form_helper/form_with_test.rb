@@ -883,9 +883,9 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
-  def test_form_is_not_remote_by_default_if_form_with_generates_remote_forms_is_false
-    old_value = ActionView::Helpers::FormHelper.form_with_generates_remote_forms
-    ActionView::Helpers::FormHelper.form_with_generates_remote_forms = false
+  def test_form_is_not_remote_by_default_if_form_with_generates_local_forms_is_true
+    old_value = ActionView::Helpers::FormHelper.form_with_generates_local_forms
+    ActionView::Helpers::FormHelper.form_with_generates_local_forms = true
 
     form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
       concat f.text_field(:title)
@@ -902,7 +902,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     assert_dom_equal expected, @rendered
   ensure
-    ActionView::Helpers::FormHelper.form_with_generates_remote_forms = old_value
+    ActionView::Helpers::FormHelper.form_with_generates_local_forms = old_value
   end
 
   def test_form_with_skip_enforcing_utf8_true

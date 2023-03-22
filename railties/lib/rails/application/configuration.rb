@@ -126,7 +126,7 @@ module Rails
           end
 
           if respond_to?(:action_view)
-            action_view.form_with_generates_remote_forms = true
+            action_view.form_with_generates_local_forms = false
           end
         when "5.2"
           load_defaults "5.1"
@@ -191,7 +191,7 @@ module Rails
           end
 
           if respond_to?(:action_view)
-            action_view.form_with_generates_remote_forms = false
+            action_view.form_with_generates_local_forms = true
             action_view.preload_links_header = true
           end
 

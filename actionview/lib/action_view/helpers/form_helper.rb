@@ -474,7 +474,7 @@ module ActionView
       end
       private :apply_form_for_options!
 
-      mattr_accessor :form_with_generates_remote_forms, default: true
+      mattr_accessor :form_with_generates_local_forms, default: false
 
       mattr_accessor :form_with_generates_ids, default: false
 
@@ -619,12 +619,8 @@ module ActionView
       #   When set to <tt>true</tt>, the form is submitted via standard HTTP.
       #   When set to <tt>false</tt>, the form is submitted as a "remote form", which
       #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived
-      #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the
-      #   config's value is actually the inverse of what <tt>local</tt>'s value would be.
-      #   As of Rails 6.1, that configuration option defaults to <tt>false</tt>
-      #   (which has the equivalent effect of passing <tt>local: true</tt>).
-      #   In previous versions of Rails, that configuration option defaults to
-      #   <tt>true</tt> (the equivalent of passing <tt>local: false</tt>).
+      #   from <tt>config.action_view.form_with_generates_local_forms</tt> where the
+      #   default is <tt>true</tt>.
       # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
       #   utf8 is not output.
       # * <tt>:builder</tt> - Override the object used to build the form.
@@ -1585,7 +1581,7 @@ module ActionView
       end
 
       private
-        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
+        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: generate_local_forms,
           skip_enforcing_utf8: nil, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)
           html_options[:remote] = html.delete(:remote) || !local
@@ -1617,6 +1613,10 @@ module ActionView
         def default_form_builder_class
           builder = default_form_builder || ActionView::Base.default_form_builder
           builder.respond_to?(:constantize) ? builder.constantize : builder
+        end
+
+        def generate_local_forms
+          form_with_generates_local_forms
         end
     end
 

@@ -1039,9 +1039,9 @@ module ApplicationTests
       assert_match(/id=('|")post_name('|")/, last_response.body)
     end
 
-    test "form_with can be configured with form_with_generates_remote_forms" do
+    test "form_with can be configured with form_with_generates_local_forms" do
       app_file "config/initializers/form_builder.rb", <<-RUBY
-      Rails.configuration.action_view.form_with_generates_remote_forms = true
+      Rails.configuration.action_view.form_with_generates_local_forms = false
       RUBY
 
       app_file "app/models/post.rb", <<-RUBY

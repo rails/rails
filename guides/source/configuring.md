@@ -109,7 +109,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_mailbox.queues.incineration`](#config-action-mailbox-queues-incineration): `nil`
 - [`config.action_mailbox.queues.routing`](#config-action-mailbox-queues-routing): `nil`
 - [`config.action_mailer.deliver_later_queue_name`](#config-action-mailer-deliver-later-queue-name): `nil`
-- [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `false`
+- [`config.action_view.form_with_generates_local_forms`](#config-action-view-form-with-generates-local-forms): `true`
 - [`config.action_view.preload_links_header`](#config-action-view-preload-links-header): `true`
 - [`config.active_job.retry_jitter`](#config-active-job-retry-jitter): `0.15`
 - [`config.active_record.has_many_inversing`](#config-active-record-has-many-inversing): `true`
@@ -137,7 +137,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 5.1
 
-- [`config.action_view.form_with_generates_remote_forms`](#config-action-view-form-with-generates-remote-forms): `true`
+- [`config.action_view.form_with_generates_local_forms`](#config-action-view-form-with-generates-local-forms): `false`
 - [`config.assets.unknown_asset_fallback`](#config-assets-unknown-asset-fallback): `false`
 
 #### Default Values for Target Version 5.0
@@ -1882,16 +1882,16 @@ defaults to `true`.
 
 Determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
 
-#### `config.action_view.form_with_generates_remote_forms`
+#### `config.action_view.form_with_generates_local_forms`
 
-Determines whether `form_with` generates remote forms or not.
+Determines whether `form_with` generates local forms or not.
 
 The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| 5.1                   | `true`               |
-| 6.1                   | `false`              |
+| 5.1                   | `false`              |
+| 6.1                   | `true`               |
 
 #### `config.action_view.form_with_generates_ids`
 
