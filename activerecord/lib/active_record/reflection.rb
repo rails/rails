@@ -511,13 +511,18 @@ module ActiveRecord
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||= if options[:query_constraints]
+        custom_primary_key = options[:primary_key]
+        @active_record_primary_key ||= if custom_primary_key
+          if custom_primary_key.is_a?(Array)
+            custom_primary_key.map { |pk| pk.to_s.freeze }.freeze
+          else
+            custom_primary_key.to_s.freeze
+          end
+        elsif options[:query_constraints]
           active_record.query_constraints_list
         else
-          -(options[:primary_key]&.to_s || primary_key(active_record))
+          primary_key(active_record).freeze
         end
-
-        @active_record_primary_key
       end
 
       def join_primary_key(klass = nil)

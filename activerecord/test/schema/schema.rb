@@ -272,6 +272,7 @@ ActiveRecord::Schema.define do
   create_table :sharded_blog_posts, force: true do |t|
     t.string :title
     t.integer :blog_id
+    t.integer :revision
   end
 
   create_table :sharded_comments, force: true do |t|
