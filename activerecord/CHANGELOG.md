@@ -1,3 +1,11 @@
+*   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
+
+    `Array#intersect?` is only available on Ruby 3.1 or later.
+
+    This allows the Rubocop `Style/ArrayIntersect` cop to work with `ActiveRecord::Relation` objects.
+
+    *John Harry Kelly*
+
 *   The deferrable foreign key can be passed to `t.references`.
 
     *Hiroyuki Ishii*
