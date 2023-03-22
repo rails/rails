@@ -48,7 +48,7 @@ module ActiveSupport
       include Mutex_m
 
       def initialize
-        @string_subscribers = Hash.new { |h, k| h[k] = [] }
+        @string_subscribers = Concurrent::Map.new { |h, k| h[k] = [] }
         @other_subscribers = []
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
