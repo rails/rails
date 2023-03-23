@@ -16,6 +16,7 @@ require "models/price_estimate"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
+require "models/cpk"
 require "support/stubs/strong_parameters"
 
 module ActiveRecord
@@ -93,6 +94,53 @@ module ActiveRecord
 
     def test_rewhere_on_root
       assert_equal posts(:welcome), Post.rewhere(title: "Welcome to the weblog").first
+    end
+
+    def test_where_with_tuple_syntax
+      first_topic = topics(:first)
+      third_topic = topics(:third)
+
+      key = [:title, :author_name]
+
+      conditions = [
+        [first_topic.title, first_topic.author_name],
+        [third_topic.title, third_topic.author_name],
+      ]
+
+      assert_equal [first_topic], Topic.where([:id] => [[first_topic.id]])
+      assert_equal [first_topic, third_topic].sort, Topic.where(key => conditions).sort
+    end
+
+    def test_where_with_tuple_syntax_on_composite_models
+      book_one = Cpk::Book.create!(author_id: 1, number: 2)
+      book_two = Cpk::Book.create!(author_id: 3, number: 4)
+
+      assert_equal [book_one], Cpk::Book.where([:author_id, :number] => [[1, 2]])
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(Cpk::Book.primary_key => [[1, 2], [3, 4]]).sort
+      assert_empty Cpk::Book.where([:author_id, :number] => [[1, 4], [3, 2]])
+    end
+
+    def test_where_with_tuple_syntax_with_incorrect_arity
+      error = assert_raise ArgumentError do
+        Cpk::Book.where([:one, :two, :three] => [1, 2, 3])
+      end
+
+      assert_match(/Expected corresponding value for.*to be an Array/, error.message)
+
+      error = assert_raise ArgumentError do
+        Cpk::Book.where([:one] => 1)
+      end
+
+      assert_match(/Expected corresponding value for.*to be an Array/, error.message)
+    end
+
+    def test_where_with_tuple_syntax_and_regular_syntax_combined
+      book_one = Cpk::Book.create!(author_id: 1, number: 2, title: "The Alchemist")
+      book_two = Cpk::Book.create!(author_id: 3, number: 4, title: "The Alchemist")
+
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist").sort
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist", [:author_id, :number] => [[1, 2], [3, 4]]).sort
+      assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :number] => [[3, 4]])
     end
 
     def test_belongs_to_shallow_where

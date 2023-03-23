@@ -549,7 +549,7 @@ module ActiveRecord
     def ==(comparison_object)
       super ||
         comparison_object.instance_of?(self.class) &&
-        !id.nil? &&
+        primary_key_values_present? &&
         comparison_object.id == id
     end
     alias :eql? :==
@@ -559,7 +559,7 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if id
+      if primary_key_values_present?
         self.class.hash ^ id.hash
       else
         super
