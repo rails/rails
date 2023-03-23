@@ -693,6 +693,12 @@ module ActiveRecord
       !!@future_result
     end
 
+    # Returns <tt>true</tt> if the relation is pending on the background
+    # thread pool.
+    def async_pending?
+      !!@future_result&.pending?
+    end
+
     # Causes the records to be loaded from the database if they have not
     # been loaded already. You can use this if for some reason you need
     # to explicitly load some records before actually using them. The

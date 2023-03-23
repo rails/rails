@@ -41,6 +41,28 @@ module ActiveRecord
       assert_not_predicate deferred_posts, :scheduled?
     end
 
+    def test_async_pending_predicate_with_async_query
+      unless in_memory_db?
+        deferred_posts = Post.where(author_id: 1).load_async
+        future_results = deferred_posts.instance_variable_get(:@future_result)
+
+        future_results.stub(:pending?, true) do
+          assert_predicate deferred_posts, :async_pending?
+        end
+
+        future_results.stub(:pending?, false) do
+          assert_not_predicate deferred_posts, :async_pending?
+        end
+      end
+    end
+
+    def test_async_pending_predicate_with_synchronous_query
+      unless in_memory_db?
+        posts = Post.where(author_id: 1)
+        assert_not_predicate posts, :async_pending?
+      end
+    end
+
     def test_reset
       deferred_posts = Post.where(author_id: 1).load_async
       if in_memory_db?
