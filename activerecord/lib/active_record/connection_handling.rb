@@ -215,9 +215,6 @@ module ActiveRecord
     #
     # This method does not provide the same protection as a readonly
     # user and is meant to be a safeguard against accidental writes.
-    #
-    # See +READ_QUERY+ for the queries that are blocked by this
-    # method.
     def while_preventing_writes(enabled = true, &block)
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
