@@ -1,3 +1,24 @@
+*   Introduces ActiveRecord::Base#alert
+
+    ```ruby
+    def alert
+      errors.full_messages.to_sentence
+    end
+    ```
+
+    Example:
+
+    ```ruby
+    if @post.update(post_params)
+      redirect_to @post
+    else
+      flash.now.alert = @post.alert
+      render :edit
+    end
+    ```
+
+    *Dorian Marié*
+
 *   Allow warning codes to be ignore when reporting SQL warnings.
 
     Active Record config that can ignore warning codes
