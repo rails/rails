@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  # Extracts duration (seconds) and bit_rate (bits/s) from an audio blob.
+  # Extracts duration (seconds), bit_rate (bits/s) and sample_rate (hertz) from an audio blob.
   #
   # Example:
   #
   #   ActiveStorage::Analyzer::AudioAnalyzer.new(blob).metadata
-  #   # => { duration: 5.0, bit_rate: 320340 }
+  #   # => { duration: 5.0, bit_rate: 320340, sample_rate: 44100 }
   #
   # This analyzer requires the {FFmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
   class Analyzer::AudioAnalyzer < Analyzer
@@ -15,7 +15,7 @@ module ActiveStorage
     end
 
     def metadata
-      { duration: duration, bit_rate: bit_rate }.compact
+      { duration: duration, bit_rate: bit_rate, sample_rate: sample_rate }.compact
     end
 
     private
@@ -27,6 +27,11 @@ module ActiveStorage
       def bit_rate
         bit_rate = audio_stream["bit_rate"]
         Integer(bit_rate) if bit_rate
+      end
+
+      def sample_rate
+        sample_rate = audio_stream["sample_rate"]
+        Integer(sample_rate) if sample_rate
       end
 
       def audio_stream

@@ -1,3 +1,7 @@
+*   Add `sample_rate` to `ActiveStorage::Analyzer::AudioAnalyzer` output
+
+    *Matija Čupić*
+
 *   Remove deprecated `purge` and `purge_later` methods from the attachments association.
 
     *Rafael Mendonça França*
