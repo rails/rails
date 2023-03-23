@@ -962,7 +962,7 @@ module ActiveRecord
       def index_name(table_name, options) # :nodoc:
         if Hash === options
           if options[:column]
-            "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+            generate_index_name(table_name, options[:column])
           elsif options[:name]
             options[:name]
           else
@@ -1509,7 +1509,26 @@ module ActiveRecord
         [:limit, :default, :precision]
       end
 
+      # Returns the maximum length of an index name in bytes.
+      def max_index_name_size
+        62
+      end
+
       private
+        def generate_index_name(table_name, column)
+          name = "index_#{table_name}_on_#{Array(column) * '_and_'}"
+          return name if name.bytesize <= max_index_name_size
+
+          # Fallback to short version, add hash to ensure uniqueness
+          hashed_identifier = "_" + OpenSSL::Digest::SHA256.hexdigest(name).first(10)
+          name = "ix_on_#{Array(column) * '_'}"
+
+          short_limit = max_index_name_size - hashed_identifier.bytesize
+          short_name = name.mb_chars.limit(short_limit).to_s
+
+          "#{short_name}#{hashed_identifier}"
+        end
+
         def validate_change_column_null_argument!(value)
           unless value == true || value == false
             raise ArgumentError, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{value.inspect}"

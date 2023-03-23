@@ -54,6 +54,10 @@ module ActiveRecord
           super
         end
 
+        def add_index(table_name, column_name, **options)
+          options[:name] = legacy_index_name(table_name, column_name) if options[:name].nil?
+          super
+        end
 
         def create_table(table_name, **options)
           options[:_uses_legacy_table_name] = true
@@ -104,6 +108,32 @@ module ActiveRecord
               prepend TableDefinition
             end
             super
+          end
+
+          def legacy_index_name(table_name, options)
+            if Hash === options
+              if options[:column]
+                "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+              elsif options[:name]
+                options[:name]
+              else
+                raise ArgumentError, "You must specify the index name"
+              end
+            else
+              legacy_index_name(table_name, index_name_options(options))
+            end
+          end
+
+          def index_name_options(column_names)
+            if expression_column_name?(column_names)
+              column_names = column_names.scan(/\w+/).join("_")
+            end
+
+            { column: column_names }
+          end
+
+          def expression_column_name?(column_name)
+            column_name.is_a?(String) && /\W/.match?(column_name)
           end
       end
 

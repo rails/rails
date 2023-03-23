@@ -1,3 +1,24 @@
+*   Limit max length of auto generated index names
+
+    Auto generated index names are now limited to 62 bytes, which fits within
+    the default index name length limits for MySQL, Postgres and SQLite.
+
+    Any index name over the limit will fallback to the new short format.
+
+    Before (too long):
+    ```
+    index_testings_on_foo_and_bar_and_first_name_and_last_name_and_administrator
+    ```
+
+    After (short format):
+    ```
+    ix_on_foo_bar_first_name_last_name_administrator_5939248142
+    ```
+
+    The short format includes a hash to ensure the name is unique database-wide.
+
+    *Mike Coutermarsh*
+
 *   Introduce a more stable and optimized Marshal serializer for Active Record models.
 
     Can be enabled with `config.active_record.marshalling_format_version = 7.1`.
