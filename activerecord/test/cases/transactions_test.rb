@@ -9,6 +9,7 @@ require "models/book"
 require "models/author"
 require "models/post"
 require "models/movie"
+require "models/cpk"
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -924,6 +925,32 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert_predicate topic, :previously_new_record?
+  end
+
+  def test_restore_composite_id_after_rollback
+    book = Cpk::Book.create!(author_id: 1, number: 2)
+
+    Cpk::Book.transaction do
+      book.update!(author_id: 42, number: 42)
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal [1, 2], book.id
+  ensure
+    Cpk::Book.delete_all
+  end
+
+  def test_rollback_on_composite_key_model
+    Cpk::Book.create!(author_id: 1, number: 3, title: "Charlotte's Web")
+    book_two_unpersisted = Cpk::Book.new(author_id: 1, number: 3)
+
+    assert_raise(ActiveRecord::RecordNotUnique) do
+      Cpk::Book.transaction do
+        book_two_unpersisted.save!
+      end
+    end
+  ensure
+    Cpk::Book.delete_all
   end
 
   def test_restore_id_after_rollback

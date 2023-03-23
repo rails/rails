@@ -416,8 +416,16 @@ module ActiveRecord
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
-            if @attributes.fetch_value(@primary_key) != restore_state[:id]
-              @attributes.write_from_user(@primary_key, restore_state[:id])
+            if self.class.composite_primary_key?
+              if restore_state[:id] != @primary_key.map { |col| @attributes.fetch_value(col) }
+                @primary_key.zip(restore_state[:id]).each do |col, val|
+                  @attributes.write_from_user(col, val)
+                end
+              end
+            else
+              if @attributes.fetch_value(@primary_key) != restore_state[:id]
+                @attributes.write_from_user(@primary_key, restore_state[:id])
+              end
             end
             freeze if restore_state[:frozen?]
           end
