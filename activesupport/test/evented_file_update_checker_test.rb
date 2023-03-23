@@ -106,8 +106,8 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       [WeakRef.new(checker), Thread.list - threads_before_checker]
     end.value
 
-    # Calling `GC.start` 4 times should trigger a full GC run.
-    4.times do
+    # Calling `GC.start` 30 times should trigger a full GC run.
+    30.times do
       GC.start
     end
 
