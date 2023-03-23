@@ -334,13 +334,16 @@ ActiveRecord::Schema.define do
     t.datetime :deleted_at
     t.integer :comments
     t.integer :company
+    t.string :post_token
+    t.string :uuid
+    t.string :comment_uuid
   end
 
   create_table :companies, force: true do |t|
-    t.string  :type
+    t.string :type
     t.references :firm, index: false
-    t.string  :firm_name
-    t.string  :name
+    t.string :firm_name
+    t.string :name
     t.bigint :client_of
     t.bigint :rating, default: 1
     t.integer :account_id
@@ -926,6 +929,7 @@ ActiveRecord::Schema.define do
       t.text    :body, null: false
     end
     t.string  :type
+    t.string  :token
     t.integer :legacy_comments_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0

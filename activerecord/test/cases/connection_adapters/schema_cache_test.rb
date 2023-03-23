@@ -29,8 +29,8 @@ module ActiveRecord
         cache.connection = connection
 
         assert_no_queries do
-          assert_equal 12, cache.columns("posts").size
-          assert_equal 12, cache.columns_hash("posts").size
+          assert_equal 13, cache.columns("posts").size
+          assert_equal 13, cache.columns_hash("posts").size
           assert cache.data_sources("posts")
           assert_equal "id", cache.primary_keys("posts")
           assert_equal 1, cache.indexes("posts").size

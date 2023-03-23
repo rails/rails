@@ -99,3 +99,18 @@ class CommentWithAfterCreateUpdate < Comment
     update(body: "bar")
   end
 end
+
+class UnconventionalComment < Comment
+  has_many :children,
+    -> { where(label: :child) },
+    class_name: "UnconventionalComment",
+    primary_key: :uuid,
+    foreign_key: :comment_uuid,
+    inverse_of: :parent
+
+  belongs_to :parent,
+    class_name: "UnconventionalComment",
+    primary_key: :uuid,
+    foreign_key: :comment_uuid,
+    inverse_of: :children
+end
