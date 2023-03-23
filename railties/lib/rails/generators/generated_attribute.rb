@@ -43,6 +43,10 @@ module Rails
           type, attr_options = *parse_type_and_options(type)
           type = type.to_sym if type
 
+          if dangerous_name?(name)
+            raise Error, "Could not generate field '#{name}', as it is already defined by Active Record."
+          end
+
           if type && !valid_type?(type)
             raise Error, "Could not generate field '#{name}' with unknown type '#{type}'."
           end
@@ -58,6 +62,10 @@ module Rails
           end
 
           new(name, type, index_type, attr_options)
+        end
+
+        def dangerous_name?(name)
+          ActiveRecord::Base.dangerous_attribute_method?(name)
         end
 
         def valid_type?(type)
