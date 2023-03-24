@@ -119,7 +119,7 @@ module ActiveSupport
         # Wait for the listener to be ready to avoid race conditions
         # Unfortunately this isn't quite enough on macOS because the Darwin backend
         # has an extra private thread we can't wait on.
-        @listener&.wait_for_state(:processing_events)
+        @listener&.wait_for_state(:backend_started, timeout: 0.5)
       end
 
       def stop
