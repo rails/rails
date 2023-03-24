@@ -106,10 +106,8 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       [WeakRef.new(checker), Thread.list - threads_before_checker]
     end.value
 
-    # Calling `GC.start` 4 times should trigger a full GC run.
-    4.times do
-      GC.start
-    end
+    GC.start
+    listener_threads.each { |t| t.join(1) }
 
     assert_not checker_ref.weakref_alive?, "EventedFileUpdateChecker was not garbage collected"
     assert_empty Thread.list & listener_threads
