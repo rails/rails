@@ -164,6 +164,21 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_includes(comments, sharded_comments(:great_comment_blog_post_one))
   end
 
+  def test_has_many_association_from_a_model_with_query_constraints_different_from_the_association
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    blog_post = Sharded::BlogPostWithRevision.find(blog_post.id)
+    comments = []
+    expected_comments = Sharded::Comment.where(blog_id: blog_post.blog_id, blog_post_id: blog_post.id).to_a
+
+    sql = capture_sql do
+      comments = blog_post.comments.to_a
+    end.first
+
+    assert_match(/WHERE .*#{Regexp.escape(Sharded::Comment.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_not_empty(comments)
+    assert_equal(expected_comments.sort, comments.sort)
+  end
+
   def test_model_with_composite_query_constraints_has_many_association_sql
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
