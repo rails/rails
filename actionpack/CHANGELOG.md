@@ -1,4 +1,20 @@
-*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**
+*   Allow route constraints to be arrays converted to Regexes.
+
+    ```ruby
+    get(
+      '/download/:platform' => 'download#platform',
+      constraints: { patform: %w[windows linux macos] },
+      as: :download_platform
+    )
+    ```
+
+    The route will be matched if any element matches.
+
+    Fixes #47726
+
+    *Dorian Marié*
+
+*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**.
 
     *Jason Kotchoff*
 
