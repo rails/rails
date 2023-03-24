@@ -1,4 +1,4 @@
-*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**
+*   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**.
 
     *Jason Kotchoff*
 
