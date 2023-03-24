@@ -310,7 +310,7 @@ module ActiveRecord
     #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.person_id = people.id
     def ids
       if loaded?
-        result = records.pluck(primary_key)
+        result = records.pluck(*Array(primary_key))
         return @async ? Promise::Complete.new(result) : result
       end
 
@@ -319,7 +319,7 @@ module ActiveRecord
         return relation.ids
       end
 
-      columns = arel_columns([primary_key])
+      columns = arel_columns(Array(primary_key))
       relation = spawn
       relation.select_values = columns
       result = if relation.where_clause.contradiction?
