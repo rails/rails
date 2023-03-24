@@ -24,11 +24,12 @@ require "models/rating"
 require "models/too_long_table_name"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
+require "models/cpk/book"
 
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -938,6 +939,25 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_ids
     assert_equal Company.all.map(&:id).sort, Company.all.ids.sort
+  end
+
+  def ids_for_a_composite_primary_key
+    assert_equal Cpk::Book.all.map(&:id).sort, Cpk::Book.all.ids.sort
+  end
+
+  def test_ids_for_a_composite_primary_key_with_scope
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal [[book.author_id, book.number]], Cpk::Book.all.where(title: book.title).ids
+  end
+
+  def test_ids_for_a_composite_primary_key_on_loaded_relation
+    book = cpk_books(:cpk_great_author_first_book)
+    relation = Cpk::Book.where(title: book.title)
+    relation.to_a
+
+    assert_predicate relation, :loaded?
+    assert_equal [[book.author_id, book.number]], relation.ids
   end
 
   def test_ids_with_scope
