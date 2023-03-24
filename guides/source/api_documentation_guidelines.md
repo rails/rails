@@ -162,6 +162,29 @@ On the other hand, regular comments do not use an arrow:
 #   polymorphic_url(record)  # same as comment_url(record)
 ```
 
+### SQL
+
+When documenting SQL statements, the result should not have `=>` before the output.
+
+For example,
+
+```ruby
+#   User.where(name: 'Oscar').to_sql
+#   # SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
+```
+
+### IRB
+
+When documenting the behavior for IRB, Ruby's interactive REPL, always prefix commands with `irb>` and the output should be prefixed with `=>`.
+
+For example,
+
+```
+# Find the customer with primary key (id) 10.
+#   irb> customer = Customer.find(10)
+#   # => #<Customer id: 10, first_name: "Ryan">
+```
+
 Booleans
 --------
 
