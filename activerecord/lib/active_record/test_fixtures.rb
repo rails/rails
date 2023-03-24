@@ -43,8 +43,12 @@ module ActiveRecord
       end
 
       def fixture_path
-        ActiveRecord.deprecator.warn("TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.")
-        fixture_paths
+        ActiveRecord.deprecator.warn(<<~WARNING)
+          TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
+          If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
+          the first path.
+        WARNING
+        fixture_paths.first
       end
 
       def fixture_path=(path)
@@ -96,8 +100,12 @@ module ActiveRecord
     end
 
     def fixture_path
-      ActiveRecord.deprecator.warn("TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.")
-      fixture_paths
+      ActiveRecord.deprecator.warn(<<~WARNING)
+        TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
+        If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
+        the first path.
+      WARNING
+      fixture_paths.first
     end
 
     def run_in_transaction?
