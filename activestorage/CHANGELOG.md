@@ -1,3 +1,11 @@
+*   Allow destroying active storage variants
+
+    ```ruby
+    User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
+    ```
+
+    *Shouichi Kamiya*, *Yuichiro NAKAGAWA*, *Ryohei UEDA*
+
 *   Add `sample_rate` to `ActiveStorage::Analyzer::AudioAnalyzer` output
 
     *Matija Čupić*

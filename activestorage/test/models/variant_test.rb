@@ -273,6 +273,15 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "destroy deletes file from service" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize_to_limit: [100, 100]).processed
+
+    assert_changes -> { blob.service.exist?(variant.key) }, from: true, to: false do
+      variant.destroy
+    end
+  end
+
   private
     def process_variants_with(processor)
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
