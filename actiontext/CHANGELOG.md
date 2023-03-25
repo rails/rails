@@ -1,3 +1,12 @@
+*   Attachables now can override default attachment missing template.
+
+    When rendering ActionText attachments where the underlying attachable model has
+    been removed, a fallback template is used. You now can override this template on
+    a per-model basis. For example, you could render a placeholder image for a file
+    attachment or the text "Deleted User" for a User attachment.
+
+    *Matt Swanson*, *Joel Drapper*
+
 *   Update bundled Trix version from `1.3.1` to `2.0.4`.
 
     *Sean Doyle*
