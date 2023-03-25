@@ -1,3 +1,7 @@
+*   Set `provider_job_id` for Backburner jobs
+
+    *Cameron Matheson*
+
 *   Add `perform_all_later` to enqueue multiple jobs at once
 
     This adds the ability to bulk enqueue jobs, without running callbacks, by
