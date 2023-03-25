@@ -648,7 +648,7 @@ The default matcher for compiling files includes `application.js`,
 automatically) from `app/assets` folders including your gems:
 
 ```ruby
-[ Proc.new { |filename, path| path =~ /app\/assets/ && !%w(.js .css).include?(File.extname(filename)) },
+[ Proc.new { |filename, path| path.include?('app/assets') && !%w(.js .css).include?(File.extname(filename)) },
 /application.(css|js)$/ ]
 ```
 

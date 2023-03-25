@@ -155,10 +155,9 @@ module ApplicationCable
     rescue_from StandardError, with: :report_error
 
     private
-
-    def report_error(e)
-      SomeExternalBugtrackingService.notify(e)
-    end
+      def report_error(e)
+        SomeExternalBugtrackingService.notify(e)
+      end
   end
 end
 ```
@@ -179,11 +178,10 @@ module ApplicationCable
     around_command :set_current_account
 
     private
-
-    def set_current_account
-      # Now all channels could use Current.account
-      Current.set(account: user.account) { yield }
-    end
+      def set_current_account(&block)
+        # Now all channels could use Current.account
+        Current.set(account: user.account, &block)
+      end
   end
 end
 ```

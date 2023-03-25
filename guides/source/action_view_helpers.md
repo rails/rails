@@ -277,7 +277,7 @@ time_ago_in_words(3.minutes.from_now) # => 3 minutes
 Returns a `pre` tag that has object dumped by YAML. This creates a very readable way to inspect an object.
 
 ```ruby
-my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1,2,3] }
+my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1, 2, 3] }
 debug(my_hash)
 ```
 

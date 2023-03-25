@@ -804,7 +804,7 @@ lower case.
 ```ruby
 class Person < ApplicationRecord
   validates_each :name, :surname do |record, attr, value|
-    record.errors.add(attr, 'must start with upper case') if value =~ /\A[[:lower:]]/
+    record.errors.add(attr, 'must start with upper case') if /\A[[:lower:]]/.match?(value)
   end
 end
 ```
@@ -1073,7 +1073,7 @@ Passing an array of symbols is also acceptable.
 
 ```ruby
 class Book
-  include ActiveModel:Validations
+  include ActiveModel::Validations
 
   validates :title, presence: true, on: [:update, :ensure_title]
 end
@@ -1260,7 +1260,7 @@ instance.
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    unless value =~ URI::MailTo::EMAIL_REGEXP
+    unless URI::MailTo::EMAIL_REGEXP.match?(value)
       record.errors.add attribute, (options[:message] || "is not an email")
     end
   end

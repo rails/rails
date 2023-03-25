@@ -518,7 +518,7 @@ class Device < ApplicationRecord
 end
 ```
 
-```ruby
+```irb
 irb> device = Device.create
 irb> device.id
 => "814865cd-5a1d-4771-9306-4268f188fe9e"
@@ -532,15 +532,15 @@ To use the Rails model generator for a table using UUID as the primary key, pass
 
 For example:
 
-```ruby
-rails generate model Device --primary-key-type=uuid kind:string
+```bash
+$ rails generate model Device --primary-key-type=uuid kind:string
 ```
 
 When building a model with a foreign key that will reference this UUID, treat
 `uuid` as the native field type, for example:
 
-```ruby
-rails generate model Case device_id:uuid
+```bash
+$ rails generate model Case device_id:uuid
 ```
 
 
@@ -685,7 +685,7 @@ CREATE VIEW articles AS
          "BL_ARCH" AS archived
   FROM "TBL_ART"
   WHERE "BL_ARCH" = 'f'
-  SQL
+SQL
 ```
 
 ```ruby

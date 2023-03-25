@@ -3,6 +3,7 @@ require:
   - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
+  - rubocop-md
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -19,6 +20,13 @@ AllCops:
     - 'activestorage/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
     - '**/node_modules/**/*'
+    - '**/CHANGELOG.md'
+    - '**/2_*_release_notes.md'
+    - '**/3_*_release_notes.md'
+    - '**/4_*_release_notes.md'
+    - '**/5_*_release_notes.md'
+    - '**/6_*_release_notes.md'
+
 
 Performance:
   Exclude:
@@ -102,6 +110,8 @@ Style/HashSyntax:
 Layout/IndentationConsistency:
   Enabled: true
   EnforcedStyle: indented_internal_methods
+  Exclude:
+    - '**/*.md'
 
 # Two spaces, no tabs (for indentation).
 Layout/IndentationWidth:
@@ -159,6 +169,7 @@ Style/FrozenStringLiteralComment:
     - 'activestorage/db/update_migrate/**/*.rb'
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
+    - '**/*.md'
 
 Style/MapToHash:
   Enabled: true
@@ -344,3 +355,9 @@ Minitest/SkipEnsure:
 
 Minitest/UnreachableAssertion:
   Enabled: true
+
+Markdown:
+  # Whether to run RuboCop against non-valid snippets
+  WarnInvalid: false
+  # Whether to lint codeblocks without code attributes
+  Autodetect: false

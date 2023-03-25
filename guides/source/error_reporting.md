@@ -126,7 +126,7 @@ All 3 reporting APIs (`#handle`, `#record`, and `#report`) support the following
 - `source`: a `String` about the source of the error. The default source is `"application"`. Errors reported by internal libraries may set other sources; the Redis cache library may use `"redis_cache_store.active_support"`, for instance. Your subscriber can use the source to ignore errors you aren't interested in.
 
 ```ruby
-Rails.error.handle(context: {user_id: user.id}, severity: :info) do
+Rails.error.handle(context: { user_id: user.id }, severity: :info) do
   # ...
 end
 ```

@@ -449,15 +449,14 @@ def index
   request.variant = determine_variant
 end
 
-private
+  private
+    def determine_variant
+      variant = nil
+      # some code to determine the variant(s) to use
+      variant = :mobile if session[:use_mobile]
 
-def determine_variant
-  variant = nil
-  # some code to determine the variant(s) to use
-  variant = :mobile if session[:use_mobile]
-
-  variant
-end
+      variant
+    end
 ```
 
 #### Finding Layouts
@@ -506,7 +505,6 @@ class ProductsController < ApplicationController
     def products_layout
       @current_user.special? ? "special" : "products"
     end
-
 end
 ```
 

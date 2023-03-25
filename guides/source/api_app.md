@@ -429,7 +429,7 @@ jQuery.ajax({
 will be:
 
 ```ruby
-{ :person => { :firstName => "Yehuda", :lastName => "Katz" } }
+{ person: { firstName: "Yehuda", lastName: "Katz" } }
 ```
 
 ### Using Session Middlewares

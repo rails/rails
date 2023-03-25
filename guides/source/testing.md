@@ -1042,7 +1042,6 @@ Now you can test your app using multiple different configurations.
 require "mobile_system_test_case"
 
 class PostsTest < MobileSystemTestCase
-
   test "visiting the index" do
     visit posts_url
     assert_selector "h1", text: "Posts"
@@ -1551,7 +1550,6 @@ end
 require "test_helper"
 
 class ProfileControllerTest < ActionDispatch::IntegrationTest
-
   test "should show profile" do
     # helper is now reusable from any controller test case
     sign_in_as users(:david)

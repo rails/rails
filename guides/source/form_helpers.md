@@ -733,7 +733,7 @@ by defining a `LabellingFormBuilder` class similar to the following:
 
 ```ruby
 class LabellingFormBuilder < ActionView::Helpers::FormBuilder
-  def text_field(attribute, options={})
+  def text_field(attribute, options = {})
     label(attribute) + super
   end
 end
@@ -743,7 +743,7 @@ If you reuse this frequently you could define a `labeled_form_with` helper that 
 
 ```ruby
 def labeled_form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
-  options.merge! builder: LabellingFormBuilder
+  options[:builder] = LabellingFormBuilder
   form_with model: model, scope: scope, url: url, format: format, **options, &block
 end
 ```
@@ -774,7 +774,7 @@ The two basic structures are arrays and hashes. Hashes mirror the syntax used fo
 the `params` hash will contain
 
 ```ruby
-{'person' => {'name' => 'Henry'}}
+{ 'person' => { 'name' => 'Henry' } }
 ```
 
 and `params[:person][:name]` will retrieve the submitted value in the controller.
@@ -788,7 +788,7 @@ Hashes can be nested as many levels as required, for example:
 will result in the `params` hash being
 
 ```ruby
-{'person' => {'address' => {'city' => 'New York'}}}
+{ 'person' => { 'address' => { 'city' => 'New York' } } }
 ```
 
 Normally Rails ignores duplicate parameter names. If the parameter name ends with an empty set of square brackets `[]` then they will be accumulated in an array. If you wanted users to be able to input multiple phone numbers, you could place this in the form:
@@ -1074,7 +1074,7 @@ It is often useful to ignore sets of fields that the user has not filled in. You
 ```ruby
 class Person < ApplicationRecord
   has_many :addresses
-  accepts_nested_attributes_for :addresses, reject_if: lambda {|attributes| attributes['kind'].blank?}
+  accepts_nested_attributes_for :addresses, reject_if: lambda { |attributes| attributes['kind'].blank? }
 end
 ```
 

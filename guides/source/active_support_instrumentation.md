@@ -60,7 +60,7 @@ from block arguments like this:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  event = ActiveSupport::Notifications::Event.new *args
+  event = ActiveSupport::Notifications::Event.new(*args)
 
   event.name      # => "process_action.action_controller"
   event.duration  # => 10 (in milliseconds)
@@ -95,7 +95,7 @@ You may also subscribe to events matching a regular expression. This enables you
 multiple events at once. Here's how to subscribe to everything from `ActionController`.
 
 ```ruby
-ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
+ActiveSupport::Notifications.subscribe(/action_controller/) do |*args|
   # inspect all ActionController events
 end
 ```
@@ -238,7 +238,7 @@ INFO. Additional keys may be added by the caller.
 {
   status: 302,
   location: "http://localhost:3000/posts/new",
-  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>
+  request: <ActionDispatch::Request:0x00007ff1cb9bd7b8>
 }
 ```
 
@@ -297,7 +297,7 @@ INFO. Additional keys may be added by the caller.
 {
   identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
   layout: "layouts/application",
-  locals: {foo: "bar"}
+  locals: { foo: "bar" }
 }
 ```
 
@@ -311,7 +311,7 @@ INFO. Additional keys may be added by the caller.
 ```ruby
 {
   identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
-  locals: {foo: "bar"}
+  locals: { foo: "bar" }
 }
 ```
 
@@ -366,8 +366,8 @@ INFO. The adapters will add their own data as well.
 {
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
-  connection: #<ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
-  binds: [#<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
+  connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
+  binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
   statement_name: nil
 }
