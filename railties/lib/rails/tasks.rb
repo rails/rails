@@ -6,7 +6,6 @@ require "rake"
 %w(
   framework
   log
-  misc
   tmp
   yarn
   zeitwerk

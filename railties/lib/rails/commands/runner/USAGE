@@ -1,4 +1,4 @@
-Examples:
+=== Examples
 
 Run `puts Rails.env` after loading the app:
 

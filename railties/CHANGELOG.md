@@ -1,3 +1,26 @@
+*   Use Thor for `bin/rails time:zones` command
+
+    As Thor handles arguments a bit different than Rake, passing `US` or the
+    offset works a bit differently now.
+
+    Before:
+
+      * `bin/rails time:zones[US]` failed with `no matches found: time:zones[US]`
+      * `bin/rails time:zones[-8]` failed with `no matches found: time:zones[-8]`
+      * `bin/rails time:zones:all OFFSET=7` shows only time zones with offset of 7.
+
+    After:
+
+      * `bin/rails time:zones US` shows names of US time zones recognized by Rails.
+      * `bin/rails time:zones -8` shows names of times zones with an offset
+        of -8 to the local time zone.
+      * `bin/rails time:zones:all OFFSET=7` raises an `Thor::InvocationError`.
+      * `bin/rails time:zones:all 7:00` shows us time zones with offset of 7.
+      * `OFFSET=7 bin/rails time:zones:all` shows time zones with offset of 7.
+      * `OFFSET=6 bin/rails time:zones:all CN` shows Chinees time zones with offset of 6.
+
+    *Petrik de Heus*
+
 *   Allow calling `bin/rails restart` outside of app directory.
 
     The following would previously fail with a "No Rakefile found" error.
