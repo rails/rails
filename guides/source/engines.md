@@ -1488,6 +1488,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionText::Content`                | `action_text_content`                |
 | `ActionText::Record`                 | `action_text_record`                 |
 | `ActionText::RichText`               | `action_text_rich_text`              |
+| `ActionText::EncryptedRichText`      | `action_text_encrypted_rich_text`    |
 | `ActionView::Base`                   | `action_view`                        |
 | `ActionView::TestCase`               | `action_view_test_case`              |
 | `ActiveJob::Base`                    | `active_job`                         |
