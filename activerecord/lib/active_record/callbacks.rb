@@ -446,7 +446,7 @@ module ActiveRecord
     end
 
     def _update_record
-      _run_update_callbacks { super }
+      _run_update_callbacks { record_update_timestamps { super } }
     end
   end
 end

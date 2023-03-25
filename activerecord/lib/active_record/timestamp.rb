@@ -115,6 +115,17 @@ module ActiveRecord
     end
 
     def _update_record
+      record_update_timestamps
+
+      super
+    end
+
+    def create_or_update(touch: true, **)
+      @_touch_record = touch
+      super
+    end
+
+    def record_update_timestamps
       if @_touch_record && should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
@@ -124,12 +135,7 @@ module ActiveRecord
         end
       end
 
-      super
-    end
-
-    def create_or_update(touch: true, **)
-      @_touch_record = touch
-      super
+      yield if block_given?
     end
 
     def should_record_timestamps?
