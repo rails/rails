@@ -9,13 +9,13 @@ module Rails
     class SecretsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
 
-      desc "setup", "Deprecated in favor of credentials -- run `bin/rails credentials:help`"
-      def setup
-        deprecate_in_favor_of_credentials_and_exit
-      end
-
-      desc "edit", "Open the secrets in `$EDITOR` for editing"
+      desc "edit", "**deprecated** Open the secrets in `$EDITOR` for editing"
       def edit
+        Rails.deprecator.warn(<<~MSG.squish)
+          `bin/rails secrets:edit` is deprecated in favor of credentials and will be removed in Rails 7.2.
+          Run `bin/rails credentials:help` for more information.
+        MSG
+
         boot_application!
 
         using_system_editor do
@@ -26,24 +26,21 @@ module Rails
         say error.message
       rescue Errno::ENOENT => error
         if error.message.include?("secrets.yml.enc")
-          deprecate_in_favor_of_credentials_and_exit
+          exit 1
         else
           raise
         end
       end
 
-      desc "show", "Show the decrypted secrets"
+      desc "show", "**deprecated** Show the decrypted secrets"
       def show
+        Rails.deprecator.warn(<<~MSG.squish)
+          `bin/rails secrets:show` is deprecated in favor of credentials and will be removed in Rails 7.2.
+          Run `bin/rails credentials:help` for more information.
+        MSG
+
         say Rails::Secrets.read
       end
-
-      private
-        def deprecate_in_favor_of_credentials_and_exit
-          say "Encrypted secrets is deprecated in favor of credentials. Run:"
-          say "bin/rails credentials:help"
-
-          exit 1
-        end
     end
   end
 end
