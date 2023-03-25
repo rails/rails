@@ -253,6 +253,60 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
 
+  def test_saving_an_unchanged_record_with_a_mutating_before_update_callback_updates_its_timestamp
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
+
+      include Developer::TimestampAliases
+
+      before_update :change_name
+
+      private
+        def change_name
+          return if new_record?
+
+          self.name = "Jack Bauer"
+        end
+    end
+
+    @developer = klass.create!
+    @previously_updated_at = @developer.updated_at
+    @previous_name = @developer.name
+
+    travel(1.second) do
+      @developer.save!
+    end
+
+    @developer.reload
+
+    assert_not_equal @previous_name, @developer.name
+    assert_not_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_saving_an_unchanged_record_with_a_non_mutating_before_update_callback_does_not_update_its_timestamp
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
+
+      include Developer::TimestampAliases
+
+      before_update :change_name
+
+      private
+        def change_name; end
+    end
+
+    @developer = klass.create!
+    @previously_updated_at = @developer.updated_at
+
+    travel(1.second) do
+      @developer.save!
+    end
+
+    @developer.reload
+
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_update_the_parent_updated_at
     pet   = Pet.first
     owner = pet.owner
@@ -469,7 +523,7 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal time, pet.updated_at
   end
 
-  def test_timestamp_column_values_are_present_in_the_callbacks
+  def test_timestamp_column_values_are_present_in_create_callbacks
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "people"
 
@@ -479,7 +533,34 @@ class TimestampTest < ActiveRecord::TestCase
     end
 
     person = klass.create first_name: "David"
-    assert_not_equal person.born_at, nil
+    assert_not_nil person.born_at
+  end
+
+  def test_timestamp_column_values_are_present_in_update_callbacks
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      before_update do
+        self.born_at = created_at
+      end
+    end
+
+    person = klass.create first_name: "David"
+    person.update first_name: "John"
+    assert_not_nil person.born_at
+  end
+
+  def test_timestamp_column_values_are_present_in_save_callbacks
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      before_create do
+        self.born_at = created_at
+      end
+    end
+
+    person = klass.create first_name: "David"
+    assert_not_nil person.born_at
   end
 
   def test_timestamp_attributes_for_create_in_model
