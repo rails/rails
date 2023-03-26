@@ -1290,10 +1290,10 @@ the backend server, similar to the following:
 class DirectUploadsController < ActiveStorage::DirectUploadsController
   skip_before_action :verify_authenticity_token
   before_action :authenticate!
-  
+
   def authenticate!
     @token = request.headers['Authorization']&.split&.last
-    
+
     return head :unauthorized unless valid_token?(@token)
   end
 end
