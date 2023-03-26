@@ -94,7 +94,7 @@ module ActiveSupport
         # we need to reopen them otherwise only the parent or the child
         # will be notified.
         # FIXME: this callback is keeping a reference on the instance
-        @after_fork = ActiveSupport::ForkTracker.after_fork { restart }
+        @after_fork = ActiveSupport::ForkTracker.after_fork { start }
       end
 
       def finalizer
