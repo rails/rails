@@ -173,7 +173,7 @@ config.after_initialize do
 end
 ```
 
-### `config.after_routes_loaded`
+#### `config.after_routes_loaded`
 
 Takes a block which will be run after Rails has finished loading the application routes. This block will also be run whenever routes are reloaded.
 
