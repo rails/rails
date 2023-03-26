@@ -195,26 +195,15 @@ module ActiveStorage
       end
 
       def issuer
-        @issuer ||= if @config[:gsa_email]
-          @config[:gsa_email]
-        else
-          uri = URI.parse("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email")
-          http = Net::HTTP.new(uri.host, uri.port)
-          request = Net::HTTP::Get.new(uri.request_uri)
-          request["Metadata-Flavor"] = "Google"
+        @issuer ||= @config[:gsa_email].presence || email_from_metadata_server
+      end
 
-          begin
-            response = http.request(request)
-          rescue SocketError
-            raise MetadataServerNotFoundError
-          end
+      def email_from_metadata_server
+        env = Google::Cloud.env
+        raise MetadataServerNotFoundError if !env.metadata?
 
-          if response.is_a?(Net::HTTPSuccess)
-            response.body
-          else
-            raise MetadataServerError
-          end
-        end
+        email = env.lookup_metadata("instance", "service-accounts/default/email")
+        email.presence or raise MetadataServerError
       end
 
       def signer
