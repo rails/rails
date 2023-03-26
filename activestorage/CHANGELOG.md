@@ -145,7 +145,7 @@
 
     *Luke Lau*
 
-*   Safe for direct upload on Libraries or Frameworks 
+*   Safe for direct upload on Libraries or Frameworks
 
     Enable the use of custom headers during direct uploads, which allows for
     the inclusion of Authorization bearer tokens or other forms of authorization
