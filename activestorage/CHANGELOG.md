@@ -145,4 +145,12 @@
 
     *Luke Lau*
 
+*   Safe for direct upload on Libraries or Frameworks 
+
+    Enable the use of custom headers during direct uploads, which allows for
+    the inclusion of Authorization bearer tokens or other forms of authorization
+    tokens through headers.
+
+    *Radamés Roriz*
+
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activestorage/CHANGELOG.md) for previous changes.
