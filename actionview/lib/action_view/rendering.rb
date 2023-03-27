@@ -80,7 +80,7 @@ module ActionView
       end
 
       def view_context_class
-        klass = ActionView::LookupContext::DetailsKey.view_context_class(ActionView::Base)
+        klass = ActionView::LookupContext::DetailsKey.view_context_class
 
         @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
 
