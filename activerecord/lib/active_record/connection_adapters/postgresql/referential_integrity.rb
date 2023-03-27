@@ -67,8 +67,8 @@ Rails needs superuser privileges to disable referential integrity.
             end
 
             true
-          rescue ActiveRecord::StatementInvalid
-            false
+          rescue ActiveRecord::StatementInvalid => e
+            raise "Foreign key violations found in your fixture data: #{e.message}"
           end
         end
       end
