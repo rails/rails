@@ -25,7 +25,7 @@ require "models/cpk"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
-    :posts, :minivans, :clothing_items
+    :posts, :minivans, :clothing_items, :cpk_books
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
@@ -290,6 +290,40 @@ class PersistenceTest < ActiveRecord::TestCase
     end
 
     assert_equal clients, Client.find([2, 3])
+  end
+
+  def test_destroy_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_difference("Cpk::Book.count", -1) do
+      destroyed = Cpk::Book.destroy(book.id)
+      assert_equal destroyed, book
+    end
+  end
+
+  def test_destroy_with_multiple_composite_primary_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_difference("Cpk::Book.count", -2) do
+      destroyed = Cpk::Book.destroy(books.map(&:id))
+      assert_equal books.sort, destroyed.sort
+      assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
+    end
+  end
+
+  def test_destroy_with_invalid_ids_for_a_model_that_expects_composite_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      ids = books.map { |book| book.id.first }
+      Cpk::Book.destroy(ids)
+    end
   end
 
   def test_becomes
