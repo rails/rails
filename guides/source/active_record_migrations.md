@@ -747,7 +747,7 @@ end
 
 Using `reversible` will ensure that the instructions are executed in the right
 order too. If the previous example migration is reverted, the `down` block will
-be run after the `home_page_url` column is removed and right before the table
+be run after the `home_page_url` column is removed and `email_address` column is renamed and right before the table
 `distributors` is dropped.
 
 [`reversible`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-reversible
