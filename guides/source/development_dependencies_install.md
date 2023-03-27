@@ -172,6 +172,16 @@ Or install everything through ports (these packages are located under the
 NOTE: If you run into problems during the installation of MySQL, please see
 [the MySQL documentation](https://dev.mysql.com/doc/refman/en/freebsd-installation.html).
 
+#### Debian
+
+To install all dependencies run:
+
+```bash
+$ sudo apt-get install sqlite3 libsqlite3-dev default-mysql-server default-libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+```
+
+NOTE: If you are running Debian, MariaDB is the default MySQL server, so be aware there may be differences.
+
 ### Database Configuration
 
 There are couple of additional steps required to configure database engines
