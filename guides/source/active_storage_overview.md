@@ -1163,7 +1163,8 @@ input[type=file][data-direct-upload-url][disabled] {
 ```
 
 ### Custom drag and drop solutions
-you can use the `DirectUpload` class for this purpose. Upon receiving a file from your library
+
+You can use the `DirectUpload` class for this purpose. Upon receiving a file from your library
 of choice, instantiate a DirectUpload and call its create method. Create takes
 a callback to invoke when the upload completes.
 
@@ -1211,9 +1212,10 @@ const uploadFile = (file) => {
 ```
 
 ### Track the progress of the file upload
+
 When using the `DirectUpload` constructor, it is possible to include a third parameter.
-This will allow the `DirectUpload` object to invoke the `directUploadWillStoreFileWithXHR` 
-method during the upload process. 
+This will allow the `DirectUpload` object to invoke the `directUploadWillStoreFileWithXHR`
+method during the upload process.
 You can then attach your own progress handler to the XHR to suit your needs.
 
 ```js
@@ -1247,9 +1249,10 @@ class Uploader {
 ```
 
 ### Integrating with Libraries or Frameworks
+
 Once you receive a file from the library you have selected, you need to create
-a `DirectUpload` instance and use its "create" method to initiate the upload process, 
-adding any required additional headers as necessary. The "create" method also requires 
+a `DirectUpload` instance and use its "create" method to initiate the upload process,
+adding any required additional headers as necessary. The "create" method also requires
 a callback function to be provided that will be triggered once the upload has finished.
 
 ```js
@@ -1285,7 +1288,7 @@ class Uploader {
 ```
 
 To implement customized authentication, a new controller must be created on
-the backend server, similar to the following:
+the Rails application, similar to the following:
 ```ruby
 class DirectUploadsController < ActiveStorage::DirectUploadsController
   skip_before_action :verify_authenticity_token
