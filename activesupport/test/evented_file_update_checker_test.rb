@@ -26,7 +26,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   def wait
-    sleep 1
+    sleep 0.5
   end
 
   def mkdir(dirs)
@@ -60,6 +60,10 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     pid = fork do
       assert_not_predicate checker, :updated?
 
+      # The listen gem start multiple background threads that need to reach a ready state.
+      # Unfortunately, it doesn't look like there is a clean way to block until they are ready.
+      wait
+
       # Fork is booted, ready for file to be touched
       # notify parent process.
       boot_writer.write("booted")
@@ -70,7 +74,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
       assert_predicate checker, :updated?
     rescue Exception => ex
-      result_writer.write(ex.class.name)
+      result_writer.write("#{ex.class.name}: #{ex.message}")
       raise
     ensure
       result_writer.close
