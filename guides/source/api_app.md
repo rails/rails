@@ -548,7 +548,8 @@ Some common modules you might want to add:
       self.cache_store = :mem_cache_store
     end
     ```
-  Rails does *not* pass this configuration automatically.
+
+    Rails does *not* pass this configuration automatically.
 
 The best place to add a module is in your `ApplicationController`, but you can
 also add modules to individual controllers.

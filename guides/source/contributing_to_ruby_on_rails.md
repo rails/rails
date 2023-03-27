@@ -437,6 +437,7 @@ For MySQL and PostgreSQL, it is sufficient to run:
 $ cd activerecord
 $ bundle exec rake db:mysql:build
 ```
+
 Or:
 
 ```bash

@@ -651,28 +651,28 @@ consumer.subscriptions.create("AppearanceChannel", {
 #### Client-Server Interaction
 
 1. **Client** connects to the **Server** via `createConsumer()`. (`consumer.js`). The
-**Server** identifies this connection by `current_user`.
+  **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via
-`consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
+  `consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
 
 3. **Server** recognizes a new subscription has been initiated for the
-appearance channel and runs its `subscribed` callback, calling the `appear`
-method on `current_user`. (`appearance_channel.rb`)
+  appearance channel and runs its `subscribed` callback, calling the `appear`
+  method on `current_user`. (`appearance_channel.rb`)
 
 4. **Client** recognizes that a subscription has been established and calls
-`connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
-`appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
-data hash of `{ appearing_on: this.appearingOn }`. This is
-possible because the server-side channel instance automatically exposes all
-public methods declared on the class (minus the callbacks), so that these can be
-reached as remote procedure calls via a subscription's `perform` method.
+  `connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
+  `appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
+  data hash of `{ appearing_on: this.appearingOn }`. This is
+  possible because the server-side channel instance automatically exposes all
+  public methods declared on the class (minus the callbacks), so that these can be
+  reached as remote procedure calls via a subscription's `perform` method.
 
 5. **Server** receives the request for the `appear` action on the appearance
-channel for the connection identified by `current_user`
-(`appearance_channel.rb`). **Server** retrieves the data with the
-`:appearing_on` key from the data hash and sets it as the value for the `:on`
-key being passed to `current_user.appear`.
+  channel for the connection identified by `current_user`
+  (`appearance_channel.rb`). **Server** retrieves the data with the
+  `:appearing_on` key from the data hash and sets it as the value for the `:on`
+  key being passed to `current_user.appear`.
 
 ### Example 2: Receiving New Web Notifications
 

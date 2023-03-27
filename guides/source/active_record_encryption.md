@@ -265,6 +265,7 @@ When generating the filter parameter, it will use the model name as a prefix. E.
 ```ruby
 config.active_record.encryption.add_to_filter_parameters = false
 ```
+
 In case you want exclude specific columns from this automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`.
 
 ### Encoding
@@ -534,6 +535,7 @@ ActiveRecord::Encryption.without_encryption do
    ...
 end
 ```
+
 This means that reading encrypted text will return the ciphertext, and saved content will be stored unencrypted.
 
 ##### Protect Encrypted Data
@@ -545,4 +547,5 @@ ActiveRecord::Encryption.protecting_encrypted_data do
    ...
 end
 ```
+
 This can be handy if you want to protect encrypted data while still running arbitrary code against it (e.g. in a Rails console).

@@ -23,10 +23,8 @@ At this time the following features are supported:
 
 * Multiple writer databases and a replica for each
 * Automatic connection switching for the model you're working with
-* Automatic swapping between the writer and replica depending on the HTTP verb
-and recent writes
-* Rails tasks for creating, dropping, migrating, and interacting with the multiple
-databases
+* Automatic swapping between the writer and replica depending on the HTTP verb and recent writes
+* Rails tasks for creating, dropping, migrating, and interacting with the multiple databases
 
 The following features are not (yet) supported:
 

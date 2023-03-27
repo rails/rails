@@ -366,6 +366,7 @@ Rails works around this issue by emulating other methods over POST through a com
   <button type="submit" name="button">Update</button>
 </form>
 ```
+
 [formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
 [button-name]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-name
 [button-value]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-value
