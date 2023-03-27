@@ -210,7 +210,8 @@ INFO: You can also use the alias "g" to invoke the generator command: `bin/rails
 
 ```bash
 $ bin/rails generate
-Usage: rails generate GENERATOR [args] [options]
+Usage:
+  bin/rails generate GENERATOR [args] [options]
 
 ...
 ...
@@ -236,7 +237,8 @@ INFO: All Rails console utilities have help text. As with most *nix utilities, y
 
 ```bash
 $ bin/rails generate controller
-Usage: bin/rails generate controller NAME [action action] [options]
+Usage:
+  bin/rails generate controller NAME [action action] [options]
 
 ...
 ...
