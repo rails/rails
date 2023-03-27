@@ -1,3 +1,24 @@
+*   Introduces ActiveRecord::Base#alert
+
+    ```ruby
+    def alert
+      errors.full_messages.to_sentence
+    end
+    ```
+
+    Example:
+
+    ```ruby
+    if @post.update(post_params)
+      redirect_to @post
+    else
+      flash.now.alert = @post.alert
+      render :edit
+    end
+    ```
+
+    *Dorian Marié*
+
 *   Allow specifying where clauses with column-tuple syntax.
 
     Querying through `#where` now accepts a new tuple-syntax which accepts, as
