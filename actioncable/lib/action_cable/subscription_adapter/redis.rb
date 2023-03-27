@@ -207,7 +207,7 @@ module ActionCable
             end
 
             if ::Redis::VERSION < "5"
-              ConnectionError = ::Redis::ConnectionError
+              ConnectionError = ::Redis::BaseConnectionError
 
               class SubscribedClient
                 def initialize(raw_client)
