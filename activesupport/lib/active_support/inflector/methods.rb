@@ -71,7 +71,7 @@ module ActiveSupport
       if !uppercase_first_letter || uppercase_first_letter == :lower
         string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
       elsif string.match?(/\A[a-z\d]*\z/)
-        return inflections.acronyms[string] || string.capitalize
+        return inflections.acronyms[string]&.dup || string.capitalize
       else
         string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
       end
@@ -95,7 +95,7 @@ module ActiveSupport
     #
     #   camelize(underscore('SSLError'))  # => "SslError"
     def underscore(camel_cased_word)
-      return camel_cased_word.to_s unless /[A-Z-]|::/.match?(camel_cased_word)
+      return camel_cased_word.to_s.dup unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::", "/")
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
       word.gsub!(/([A-Z])(?=[A-Z][a-z])|([a-z\d])(?=[A-Z])/) { ($1 || $2) << "_" }
