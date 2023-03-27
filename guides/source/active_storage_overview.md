@@ -1162,11 +1162,8 @@ input[type=file][data-direct-upload-url][disabled] {
 }
 ```
 
-### Integrating with Libraries or Frameworks
-
-If you want to use the Direct Upload feature from a JavaScript framework, or
-you want to integrate custom drag and drop solutions, you can use the
-`DirectUpload` class for this purpose. Upon receiving a file from your library
+### Custom drag and drop solutions
+you can use the `DirectUpload` class for this purpose. Upon receiving a file from your library
 of choice, instantiate a DirectUpload and call its create method. Create takes
 a callback to invoke when the upload completes.
 
@@ -1213,10 +1210,11 @@ const uploadFile = (file) => {
 }
 ```
 
-If you need to track the progress of the file upload, you can pass a third
-parameter to the `DirectUpload` constructor. During the upload, DirectUpload
-will call the object's `directUploadWillStoreFileWithXHR` method. You can then
-bind your own progress handler on the XHR.
+### Track the progress of the file upload
+When using the `DirectUpload` constructor, it is possible to include a third parameter.
+This will allow the `DirectUpload` object to invoke the `directUploadWillStoreFileWithXHR` 
+method during the upload process. 
+You can then attach your own progress handler to the XHR to suit your needs.
 
 ```js
 import { DirectUpload } from "@rails/activestorage"
@@ -1246,6 +1244,59 @@ class Uploader {
     // Use event.loaded and event.total to update the progress bar
   }
 }
+```
+
+### Integrating with Libraries or Frameworks
+Once you receive a file from the library you have selected, you need to create
+a `DirectUpload` instance and use its "create" method to initiate the upload process, 
+adding any required additional headers as necessary. The "create" method also requires 
+a callback function to be provided that will be triggered once the upload has finished.
+
+```js
+import { DirectUpload } from "@rails/activestorage"
+
+class Uploader {
+  constructor(file, url, token) {
+    const headers = { 'Authentication': `Bearer ${token}` }
+    // INFO: Sending headers is an optional parameter. If you choose not to send headers,
+    //       authentication will be performed using cookies or session data.
+    this.upload = new DirectUpload(this.file, this.url, this, headers)
+  }
+
+  upload(file) {
+    this.upload.create((error, blob) => {
+      if (error) {
+        // Handle the error
+      } else {
+        // Use the with blob.signed_id as a file reference in next request
+      }
+    })
+  }
+
+  directUploadWillStoreFileWithXHR(request) {
+    request.upload.addEventListener("progress",
+      event => this.directUploadDidProgress(event))
+  }
+
+  directUploadDidProgress(event) {
+    // Use event.loaded and event.total to update the progress bar
+  }
+}
+```
+
+To implement customized authentication, a new controller must be created on
+the backend server, similar to the following:
+```ruby
+class DirectUploadsController < ActiveStorage::DirectUploadsController
+  skip_before_action :verify_authenticity_token
+  before_action :authenticate!
+
+  def authenticate!
+    @token = request.headers['Authorization']&.split&.last
+
+    return head :unauthorized unless valid_token?(@token)
+  end
+end
 ```
 
 NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file that uploads, but never attaches to a record. Consider [purging unattached uploads](#purging-unattached-uploads).
