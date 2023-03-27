@@ -122,9 +122,11 @@ $ sudo apt-get update
 $ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
 
 # Install Yarn
-$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-$ sudo apt-get install yarn
+# Use this command if you do not have Node.js installed
+$ curl --fail --silent --show-error --location https://deb.nodesource.com/setup_18.x | sudo -E bash -
+$ sudo apt-get install -y nodejs
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Fedora or CentOS
@@ -136,10 +138,10 @@ $ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
-$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-# If you have Node.js installed, use this command instead
-$ curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-$ sudo dnf install yarn
+$ curl --silent --location https://rpm.nodesource.com/setup_18.x | sudo bash -
+$ sudo dnf install -y nodejs
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Arch Linux
