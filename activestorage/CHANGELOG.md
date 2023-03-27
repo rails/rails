@@ -1,3 +1,10 @@
+*   Remove mini_mime usage in favour of marcel.
+
+    We have two libraries that are have similar usage. This change removes
+    dependency on mini_mime and makes use of similar methods from marcel.
+
+    *Vipul A M*
+
 *   Allow destroying active storage variants
 
     ```ruby

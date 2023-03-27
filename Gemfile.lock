@@ -72,7 +72,6 @@ PATH
       activerecord (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
       marcel (~> 1.0)
-      mini_mime (>= 1.1.0)
     activesupport (7.1.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       connection_pool (>= 2.2.5)
