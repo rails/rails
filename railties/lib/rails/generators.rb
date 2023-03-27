@@ -163,7 +163,8 @@ module Rails
 
       # Show help message with available generators.
       def help(command = "generate")
-        puts "Usage: rails #{command} GENERATOR [args] [options]"
+        puts "Usage:"
+        puts "  bin/rails #{command} GENERATOR [args] [options]"
         puts
         puts "General options:"
         puts "  -h, [--help]     # Print generator's options and usage"
