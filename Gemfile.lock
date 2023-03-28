@@ -27,6 +27,13 @@ GIT
     redis-namespace (1.8.1)
       redis (>= 3.0.4)
 
+GIT
+  remote: https://github.com/yahonda/cookiejar.git
+  revision: ebcde134a62ec9dccbc81b71d62e0f6f91b2571f
+  branch: ruby33
+  specs:
+    cookiejar (0.3.3)
+
 PATH
   remote: .
   specs:
@@ -192,7 +199,6 @@ GEM
     coffee-script-source (1.12.2)
     concurrent-ruby (1.1.8)
     connection_pool (2.2.5)
-    cookiejar (0.3.3)
     crack (0.4.5)
       rexml
     crass (1.0.6)
@@ -565,6 +571,7 @@ DEPENDENCIES
   capybara (>= 3.26)
   cgi (>= 0.3.6)
   connection_pool
+  cookiejar!
   dalli
   delayed_job
   delayed_job_active_record
