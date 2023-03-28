@@ -494,6 +494,7 @@ module ActiveRecord
           FROM pg_enum AS enum
           JOIN pg_type AS type ON (type.oid = enum.enumtypid)
           JOIN pg_namespace n ON type.typnamespace = n.oid
+          WHERE n.nspname = ANY (current_schemas(false))
           GROUP BY type.OID, n.nspname, type.typname;
         SQL
 

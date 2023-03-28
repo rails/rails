@@ -190,6 +190,9 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_scoped_to_schemas
+    @connection.create_schema("other_schema")
+    @connection.create_enum("other_schema.mood_in_other_schema", ["sad", "ok", "happy"])
+
     with_test_schema("test_schema") do
       @connection.create_enum("mood_in_test_schema", ["sad", "ok", "happy"])
       @connection.create_table("postgresql_enums_in_test_schema") do |t|
@@ -201,7 +204,10 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
       assert_includes output, 'create_enum "public.mood", ["sad", "ok", "happy"]'
       assert_includes output, 'create_enum "mood_in_test_schema", ["sad", "ok", "happy"]'
       assert_includes output, 't.enum "current_mood", enum_type: "mood_in_test_schema"'
+      assert_not_includes output, 'create_enum "other_schema.mood_in_other_schema"'
     end
+  ensure
+    @connection.drop_schema("other_schema")
   end
 
   def test_schema_load_scoped_to_schemas
@@ -230,7 +236,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     def with_test_schema(name, drop: true)
       old_search_path = @connection.schema_search_path
       @connection.create_schema(name)
-      @connection.schema_search_path = name
+      @connection.schema_search_path = "#{name}, public"
       yield
     ensure
       @connection.drop_schema(name) if drop
