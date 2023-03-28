@@ -1,3 +1,9 @@
+*   Introduce a more stable and optimized Marshal serializer for Active Record models.
+
+    Can be enabled with `config.active_record.marshalling_format_version = 7.1`.
+
+    *Jean Boussier*
+
 *   Allow specifying where clauses with column-tuple syntax.
 
     Querying through `#where` now accepts a new tuple-syntax which accepts, as

@@ -68,6 +68,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_record.marshalling_format_version`](#config-active-record-marshalling-format-version): `7.1`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
@@ -1129,6 +1130,20 @@ to get the parent every time the child record was updated, even when parent has 
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 7.1                   | `false`              |
+
+#### `config.active_record.marshalling_format`
+
+When set to `7.1`, enables a more efficient serialization of Active Record instance with `Marshal.dump`.
+
+This changes the serialization format, so models serialized this
+way cannot be read by older (< 7.1) versions of Rails. However, messages that
+use the old format can still be read, regardless of whether this optimization is
+enabled.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `6.1`                |
+| 7.1                   | `7.1`                |
 
 #### `config.active_record.action_on_strict_loading_violation`
 
