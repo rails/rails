@@ -48,7 +48,7 @@ module ActiveSupport
       include Mutex_m
 
       def initialize
-        @string_subscribers = Concurrent::Map.new { |h, k| h[k] = [] }
+        @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
         @other_subscribers = []
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
