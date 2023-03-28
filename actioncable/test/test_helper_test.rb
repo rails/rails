@@ -14,6 +14,21 @@ class TransmissionsTest < ActionCable::TestCase
     end
   end
 
+  def test_assert_broadcasts_returns_broadcast_messages_if_block_given
+    message = assert_broadcasts("test", 1) do
+      ActionCable.server.broadcast "test", "message"
+    end
+    assert_equal "message", message
+
+    messages = assert_broadcasts("test", 2) do
+      ActionCable.server.broadcast "test", { message: "one" }
+      ActionCable.server.broadcast "test", { message: "two" }
+    end
+    assert_equal 2, messages.length
+    assert_equal({ "message" => "one" }, messages.first)
+    assert_equal({ "message" => "two" }, messages.last)
+  end
+
   def test_assert_broadcasts_with_no_block
     assert_nothing_raised do
       ActionCable.server.broadcast "test", "message"
