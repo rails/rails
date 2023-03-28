@@ -16,7 +16,7 @@ module Rails
           require_rake
 
           Rake.with_application do |rake|
-            rake.init("rails", [task, *args])
+            rake.init("bin/rails", [task, *args])
             rake.load_rakefile
             if unrecognized_task = rake.top_level_tasks.find { |task| !rake.lookup(task[/[^\[]+/]) }
               raise UnrecognizedCommandError.new(unrecognized_task)
