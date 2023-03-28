@@ -9,6 +9,10 @@ namespace :log do
   #   - ENV['LOGS']='test,development' truncates only specified files
   desc "Truncate all/specified *.log files in log/ to zero bytes (specify which logs with LOGS=test,development)"
   task :clear do
+    Rails.deprecator.warn(<<~MSG.squish)
+      `bin/rails log:clear` is deprecated and will be removed in Rails 7.2.
+      Please use `bin/rails clear --logs` instead.
+    MSG
     log_files.each do |file|
       clear_log_file(file)
     end
