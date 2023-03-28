@@ -24,6 +24,12 @@ namespace :guides do
     end
   end
 
+  desc "Lint guides, check for broken links"
+  task :lint do
+    ENV["GUIDES_LINT"] = "1"
+    ruby "-Eutf-8:utf-8", "rails_guides.rb"
+  end
+
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
   task :validate do

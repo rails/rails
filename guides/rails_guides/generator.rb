@@ -18,7 +18,7 @@ module RailsGuides
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
-    def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil)
+    def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:)
       @edge      = edge
       @version   = version
       @all       = all
@@ -26,24 +26,40 @@ module RailsGuides
       @epub      = epub
       @language  = language
       @direction = direction || "ltr"
+      @lint      = lint
       @view = ActionView::Base.with_empty_template_cache
+      @warnings = []
 
       if @epub
         register_special_mime_types
       end
 
       initialize_dirs
-      create_output_dir_if_needed
+      create_output_dir_if_needed if !dry_run?
       initialize_markdown_renderer
     end
 
     def generate
       generate_guides
-      copy_assets
-      generate_epub if @epub
+
+      if @lint
+        if @warnings.any?
+          puts "#{@warnings.join("\n")}"
+          exit 1
+        end
+      end
+
+      if !dry_run?
+        copy_assets
+        generate_epub if @epub
+      end
     end
 
     private
+      def dry_run?
+        [@lint].any?
+      end
+
       def register_special_mime_types
         Mime::Type.register_alias("application/xml", :opf, %w(opf))
         Mime::Type.register_alias("application/xml", :ncx, %w(ncx))
@@ -160,12 +176,15 @@ module RailsGuides
             epub:    @epub
           ).render(body)
 
-          warn_about_broken_links(result)
+          broken = warn_about_broken_links(result)
+          if broken.any?
+            @warnings << "[WARN] BROKEN LINK(s): #{guide}: #{broken.join(", ")}"
+          end
         end
 
         File.open(output_path, "w") do |f|
           f.write(result)
-        end
+        end if !dry_run?
       end
 
       def warn_about_broken_links(html)
@@ -191,13 +210,18 @@ module RailsGuides
       end
 
       def check_fragment_identifiers(html, anchors)
+        broken_links = []
+
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
           next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
           unless anchors.member?(CGI.unescape(fragment_identifier))
             guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
             puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
+            broken_links << "##{fragment_identifier}"
           end
         end
+
+        broken_links
       end
   end
 end
