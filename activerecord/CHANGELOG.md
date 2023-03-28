@@ -1,3 +1,35 @@
+*   Introduce `ActiveRecord::Relation#async_pending?`
+
+    You can now check if an asynchronous `ActiveRecord::Relation` query is *pending* by using
+    the `async_pending?` predicate. This will return `true` if the relation is still pending on the
+    background thread pool; otherwise, it will return `false`.
+
+    For instance:
+
+    Given an asynchronous query
+
+    ```ruby
+    @posts = Post.all.load_async
+    ```
+
+    If you wanted to define a function that would flush a buffer if it was waiting on an asynchronous
+    query, you could check the status of the query like this:
+
+    ```ruby
+    def await(query)
+      flush if query.async_pending?
+      query
+    end
+    ```
+
+    Then you could use it like this:
+
+    ```ruby
+    await(@posts).each { ... }
+    ```
+
+    *Joel Drapper*
+
 *   Allow specifying where clauses with column-tuple syntax.
 
     Querying through `#where` now accepts a new tuple-syntax which accepts, as
