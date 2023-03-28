@@ -705,4 +705,10 @@ $ bin/rails "task_name[value 1,value2,value3]" # separate multiple args with a c
 $ bin/rails db:nothing
 ```
 
-NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+
+```ruby
+task task_that_requires_app_code: [:environment] do
+  User.create!
+end
+```

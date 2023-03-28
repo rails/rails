@@ -195,7 +195,7 @@ The [Webpacker Documentation](https://github.com/rails/webpacker) gives informat
 
 ### Deploying Webpacker
 
-Webpacker adds a `webpacker:compile` task to the `assets:precompile` rake task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
+Webpacker adds a `webpacker:compile` task to the `bin/rails assets:precompile` task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
 
 Additional Documentation
 ------------------------
