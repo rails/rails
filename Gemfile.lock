@@ -21,6 +21,13 @@ GIT
       event_emitter
       websocket
 
+GIT
+  remote: https://github.com/yahonda/cookiejar.git
+  revision: ebcde134a62ec9dccbc81b71d62e0f6f91b2571f
+  branch: ruby33
+  specs:
+    cookiejar (0.3.3)
+
 PATH
   remote: .
   specs:
@@ -187,7 +194,6 @@ GEM
     coffee-script-source (1.12.2)
     concurrent-ruby (1.1.10)
     connection_pool (2.3.0)
-    cookiejar (0.3.3)
     crack (0.4.5)
       rexml
     crass (1.0.6)
@@ -585,6 +591,7 @@ DEPENDENCIES
   capybara (>= 3.26)
   cgi (>= 0.3.6)
   connection_pool
+  cookiejar!
   cssbundling-rails
   dalli (>= 3.0.1)
   debug (>= 1.1.0)
