@@ -1,3 +1,32 @@
+*   Introduce `bin/rails clear` command for clearing logs and more.
+
+    Currently logs and the tmp directory can be cleared with a single invocation:
+
+    ```bash
+    bin/rails log:clear tmp:clear
+    ```
+
+    With Thor we can't run multiple commands with a single invocation, as
+    additional commands will be seen as arguments to the first command.
+
+    This introduces a single `clear` command that will combine the existing
+    `log:clear` and `tmp:clear` commands. For now it's limited to clearing logs:
+
+    ```bash
+    bin/rails clear --logs
+    ```
+
+    The `--logs` option also supports passing `all` or a list of environments:
+
+    ```bash
+    # similar to `bin/rails log:clear LOGS=all`
+    bin/rails log:clear --logs all
+    # similar to `bin/rails log:clear LOGS=development,test`
+    bin/rails log:clear --logs development test
+    ```
+
+    *Petrik de Heus*
+
 *   Allow calling `bin/rails restart` outside of app directory.
 
     The following would previously fail with a "No Rakefile found" error.
