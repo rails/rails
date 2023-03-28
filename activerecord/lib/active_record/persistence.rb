@@ -526,7 +526,13 @@ module ActiveRecord
       #   todos = [1,2,3]
       #   Todo.destroy(todos)
       def destroy(id)
-        if id.is_a?(Array)
+        multiple_ids = if composite_primary_key?
+          id.is_a?(Array) && id.first.is_a?(Array)
+        else
+          id.is_a?(Array)
+        end
+
+        if multiple_ids
           find(id).each(&:destroy)
         else
           find(id).destroy
