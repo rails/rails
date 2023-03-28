@@ -5,7 +5,8 @@ module ActionView
     module Tags # :nodoc:
       class HiddenField < TextField # :nodoc:
         def render
-          @options[:autocomplete] = "off"
+          autocomplete = @options.fetch(:autocomplete, "off")
+          @options[:autocomplete] = autocomplete
           super
         end
       end
