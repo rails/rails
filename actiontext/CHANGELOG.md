@@ -7,13 +7,9 @@
 
     *Matt Swanson*, *Joel Drapper*
 
-*   Update bundled Trix version from `2.0.0` to `2.0.4`.
+*   Update bundled Trix version from `1.3.1` to `2.0.4`.
 
-    *Sarah Ridge*
-
-*   Update bundled Trix version from `1.3.1` to `2.0.0`.
-
-    *Sean Doyle*
+    *Sarah Ridge*, *Sean Doyle*
 
 *   Apply `field_error_proc` to `rich_text_area` form fields.
 
