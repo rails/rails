@@ -1,3 +1,13 @@
+*   Allow calling `bin/rails tmp:clear` outside of app directory.
+
+    The following would previously fail with a "No Rakefile found" error.
+
+    ```bash
+    blog/bin/rails tmp:clear
+    ```
+
+    *Petrik de Heus*, *Juan Vasquez*
+
 *   Allow calling `bin/rails restart` outside of app directory.
 
     The following would previously fail with a "No Rakefile found" error.
