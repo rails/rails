@@ -731,6 +731,8 @@ module ActiveRecord
             "#{name}_id"
           elsif options[:as]
             "#{options[:as]}_id"
+          elsif options[:inverse_of]
+            inverse_of.foreign_key
           else
             active_record.model_name.to_s.foreign_key
           end
