@@ -1,3 +1,11 @@
+*   Change `ActionDispatch::PermissionsPolicy` to generate both the
+    `Permissions-Policy` header and the `Feature-Policy` header.
+
+    This also adds the `interest-cohort` directive to the list of supported directives,
+    to allow for opting out of FLoC (https://web.dev/floc/#how-can-websites-opt-out-of-the-floc-computation).
+
+    *Rasmus Bang Grouleff*
+
 *   Expand search field on `rails/info/routes` to also search **route name**, **http verb** and **controller#action**.
 
     *Jason Kotchoff*
