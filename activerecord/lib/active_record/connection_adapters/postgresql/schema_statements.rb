@@ -176,6 +176,17 @@ module ActiveRecord
           end
         end
 
+        # Returns a comment stored in database for a given table's column
+        def column_comment(table_name, column_name) # :nodoc:
+          query_value(<<~SQL, "SCHEMA")
+            SELECT pgd.description
+            FROM pg_catalog.pg_statio_all_tables AS st
+              INNER JOIN pg_catalog.pg_description pgd ON (pgd.objoid = st.relid)
+              INNER JOIN information_schema.columns c ON (pgd.objsubid = c.ordinal_position AND c.table_schema = st.schemaname AND c.table_name = st.relname)
+            WHERE table_name = '#{table_name}' AND column_name = '#{column_name}'
+          SQL
+        end
+
         # Returns the current database name.
         def current_database
           query_value("SELECT current_database()", "SCHEMA")
