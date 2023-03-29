@@ -375,6 +375,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [ Payment.new(1), Payment.new(5) ], values.in_order_of(:price, [ 1, 5 ])
   end
 
+  def test_in_order_of_preserves_duplicates
+    values = [ Payment.new(5), Payment.new(1), Payment.new(5) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(5) ], values.in_order_of(:price, [ 1, 5 ])
+  end
+
   def test_sole
     expected_raise = Enumerable::SoleItemExpectedError
 
