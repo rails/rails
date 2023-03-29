@@ -103,6 +103,11 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "index_testings_on_foo_and_bar")
       end
 
+      def test_add_index_fallback_to_short_name
+        connection.add_index(table_name, [:foo, :bar, :first_name, :last_name, :administrator])
+        assert connection.index_name_exists?(table_name, "ix_on_foo_bar_first_name_last_name_administrator_5939248142")
+      end
+
       def test_remove_index_which_does_not_exist_doesnt_raise_with_option
         connection.add_index(table_name, "foo")
 
