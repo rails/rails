@@ -517,14 +517,14 @@ Column modifiers can be applied when creating or changing a column:
 * `comment`      Adds a comment for the column.
 * `collation`    Specifies the collation for a `string` or `text` column.
 * `default`      Allows to set a default value on the column. Note that if you
-are using a dynamic value (such as a date), the default will only be calculated
-the first time (i.e. on the date the migration is applied). Use `nil` for `NULL`.
+  are using a dynamic value (such as a date), the default will only be calculated
+  the first time (i.e. on the date the migration is applied). Use `nil` for `NULL`.
 * `limit`        Sets the maximum number of characters for a `string` column
-and the maximum number of bytes for `text/binary/integer` columns.
+  and the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
 * `precision`    Specifies the precision for `decimal/numeric/datetime/time` columns.
 * `scale`        Specifies the scale for the `decimal` and `numeric` columns,
-representing the number of digits after the decimal point.
+  representing the number of digits after the decimal point.
 
 NOTE: For `add_column` or `change_column` there is no option for adding indexes.
 They need to be added separately using `add_index`.

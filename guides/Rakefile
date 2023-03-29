@@ -24,6 +24,14 @@ namespace :guides do
     end
   end
 
+  desc "Lint guides, using `mdl`"
+  task :lint do
+    require "mdl"
+    all = Dir.glob("#{__dir__}/source/*.md")
+    files = all - Dir.glob("#{__dir__}/**/*_release_notes.md") # Ignore release notes
+    MarkdownLint.run files
+  end
+
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
   task :validate do

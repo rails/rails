@@ -827,9 +827,9 @@ do that with `local_variables`.
 ### Settings
 
 * `config.web_console.allowed_ips`: Authorized list of IPv4 or IPv6
-addresses and networks (defaults: `127.0.0.1/8, ::1`).
+  addresses and networks (defaults: `127.0.0.1/8, ::1`).
 * `config.web_console.whiny_requests`: Log a message when a console rendering
-is prevented (defaults: `true`).
+  is prevented (defaults: `true`).
 
 Since `web-console` evaluates plain Ruby code remotely on the server, don't try
 to use it in production.
@@ -869,18 +869,18 @@ There are some Rails plugins to help you to find errors and debug your
 application. Here is a list of useful plugins for debugging:
 
 * [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
-origin tracing to your logs.
+  origin tracing to your logs.
 * [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master)
-Provides a mailer object and a default set of templates for sending email
-notifications when errors occur in a Rails application.
+  Provides a mailer object and a default set of templates for sending email
+  notifications when errors occur in a Rails application.
 * [Better Errors](https://github.com/charliesome/better_errors) Replaces the
-standard Rails error page with a new one containing more contextual information,
-like source code and variable inspection.
+  standard Rails error page with a new one containing more contextual information,
+  like source code and variable inspection.
 * [RailsPanel](https://github.com/dejan/rails_panel) Chrome extension for Rails
-development that will end your tailing of development.log. Have all information
-about your Rails app requests in the browser — in the Developer Tools panel.
-Provides insight to db/rendering/total times, parameter list, rendered views and
-more.
+  development that will end your tailing of development.log. Have all information
+  about your Rails app requests in the browser — in the Developer Tools panel.
+  Provides insight to db/rendering/total times, parameter list, rendered views and
+  more.
 * [Pry](https://github.com/pry/pry) An IRB alternative and runtime developer console.
 
 References

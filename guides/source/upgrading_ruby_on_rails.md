@@ -543,6 +543,7 @@ You will then need to change existing image transformation code to the
 `image_processing` macros, and replace ImageMagick's options with libvips' options.
 
 #### Replace resize with resize_to_limit
+
 ```diff
 - variant(resize: "100x")
 + variant(resize_to_limit: [100, nil])
@@ -551,6 +552,7 @@ You will then need to change existing image transformation code to the
 If you don't do this, when you switch to vips you will see this error: `no implicit conversion to float from string`.
 
 #### Use an array when cropping
+
 ```diff
 - variant(crop: "1920x1080+0+0")
 + variant(crop: [0, 0, 1920, 1080])
@@ -568,6 +570,7 @@ Vips is more strict than ImageMagick when it comes to cropping:
 If you don't do this when migrating to vips, you will see the following error: `extract_area: bad extract area`
 
 #### Adjust the background color used for `resize_and_pad`
+
 Vips uses black as the default background color `resize_and_pad`, instead of white like ImageMagick. Fix that by using the `background` option:
 
 ```diff
@@ -576,6 +579,7 @@ Vips uses black as the default background color `resize_and_pad`, instead of whi
 ```
 
 #### Remove any EXIF based rotation
+
 Vips will auto rotate images using the EXIF value when processing variants. If you were storing rotation values from user uploaded photos to apply rotation with ImageMagick, you must stop doing that:
 
 ```diff
@@ -584,6 +588,7 @@ Vips will auto rotate images using the EXIF value when processing variants. If y
 ```
 
 #### Replace monochrome with colourspace
+
 Vips uses a different option to make monochrome images:
 
 ```diff
@@ -592,6 +597,7 @@ Vips uses a different option to make monochrome images:
 ```
 
 #### Switch to libvips options for compressing images
+
 JPEG
 
 ```diff
@@ -621,6 +627,7 @@ GIF
 ```
 
 #### Deploy to production
+
 Active Storage encodes into the url for the image the list of transformations that must be performed.
 If your app is caching these urls, your images will break after you deploy the new code to production.
 Because of this you must manually invalidate your affected cache keys.
@@ -1895,7 +1902,7 @@ The migration procedure is as follows:
 2. run `bundle install`.
 3. run `bin/rake db:schema:dump`.
 4. make sure that `db/schema.rb` contains every foreign key definition with
-the necessary options.
+  the necessary options.
 
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
@@ -2441,12 +2448,12 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
 * When using the default coder, assigning `nil` to a serialized attribute will save it
-to the database as `NULL` instead of passing the `nil` value through YAML (`"--- \n...\n"`).
+  to the database as `NULL` instead of passing the `nil` value through YAML (`"--- \n...\n"`).
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) for a smooth upgrade path.
 
 * If you are not using Protected Attributes, you can remove any options related to
-this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
+  this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 
 * Rails 4.0 requires that scopes use a callable object such as a Proc or lambda:
 
@@ -2512,7 +2519,7 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 ### Action Pack
 
-*   Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
+* Rails 4.0 introduces `ActiveSupport::KeyGenerator` and uses this as a base from which to generate and verify signed cookies (among other things). Existing signed cookies generated with Rails 3.x will be transparently upgraded if you leave your existing `secret_token` in place and add the new `secret_key_base`.
 
     ```ruby
       # config/initializers/secret_token.rb
@@ -2524,7 +2531,7 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
     If you are relying on the ability for external applications or JavaScript to be able to read your Rails app's signed session cookies (or signed cookies in general) you should not set `secret_key_base` until you have decoupled these concerns.
 
-*   Rails 4.0 encrypts the contents of cookie-based sessions if `secret_key_base` has been set. Rails 3.x signed, but did not encrypt, the contents of cookie-based session. Signed cookies are "secure" in that they are verified to have been generated by your app and are tamper-proof. However, the contents can be viewed by end users, and encrypting the contents eliminates this caveat/concern without a significant performance penalty.
+* Rails 4.0 encrypts the contents of cookie-based sessions if `secret_key_base` has been set. Rails 3.x signed, but did not encrypt, the contents of cookie-based session. Signed cookies are "secure" in that they are verified to have been generated by your app and are tamper-proof. However, the contents can be viewed by end users, and encrypting the contents eliminates this caveat/concern without a significant performance penalty.
 
     Please read [Pull Request #9978](https://github.com/rails/rails/pull/9978) for details on the move to encrypted session cookies.
 
@@ -2543,13 +2550,13 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 * Rails 4.0 deprecates the `dom_id` and `dom_class` methods in controllers (they are fine in views). You will need to include the `ActionView::RecordIdentifier` module in controllers requiring this feature.
 
 * Rails 4.0 deprecates the `:confirm` option for the `link_to` helper. You should
-instead rely on a data attribute (e.g. `data: { confirm: 'Are you sure?' }`).
-This deprecation also concerns the helpers based on this one (such as `link_to_if`
-or `link_to_unless`).
+  instead rely on a data attribute (e.g. `data: { confirm: 'Are you sure?' }`).
+  This deprecation also concerns the helpers based on this one (such as `link_to_if`
+  or `link_to_unless`).
 
 * Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
-*   Rails 4.0 raises an `ArgumentError` if clashing named routes are defined. This can be triggered by explicitly defined named routes or by the `resources` method. Here are two examples that clash with routes named `example_path`:
+* Rails 4.0 raises an `ArgumentError` if clashing named routes are defined. This can be triggered by explicitly defined named routes or by the `resources` method. Here are two examples that clash with routes named `example_path`:
 
     ```ruby
     get 'one' => 'test#example', as: :example
@@ -2566,7 +2573,7 @@ or `link_to_unless`).
     the `resources` method to restrict the routes created as detailed in the
     [Routing Guide](routing.html#restricting-the-routes-created).
 
-*   Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
+* Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
     ```ruby
     get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
@@ -2578,7 +2585,7 @@ or `link_to_unless`).
     get 'こんにちは', controller: 'welcome', action: 'index'
     ```
 
-*   Rails 4.0 requires that routes using `match` must specify the request method. For example:
+* Rails 4.0 requires that routes using `match` must specify the request method. For example:
 
     ```ruby
       # Rails 3.x
@@ -2591,7 +2598,7 @@ or `link_to_unless`).
       get '/' => 'root#index'
     ```
 
-*   Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
+* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
 
     Remember you must also remove any references to the middleware from your application code, for example:
 
@@ -2602,7 +2609,7 @@ or `link_to_unless`).
 
     Also check your environment settings for `config.action_dispatch.best_standards_support` and remove it if present.
 
-*   Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
+* Rails 4.0 allows configuration of HTTP headers by setting `config.action_dispatch.default_headers`. The defaults are as follows:
 
     ```ruby
       config.action_dispatch.default_headers = {

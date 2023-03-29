@@ -49,6 +49,11 @@ group :rubocop do
   gem "rubocop-md", require: false
 end
 
+group :mdl do
+  gem "mdl", require: false
+  gem "rake", ">= 13", require: false
+end
+
 group :doc do
   gem "sdoc", ">= 2.6.0"
   gem "rdoc", "~> 6.5"

@@ -488,6 +488,7 @@ $ bin/rails generate model Oops
       create      test/models/oops_test.rb
       create      test/fixtures/oops.yml
 ```
+
 ```bash
 $ bin/rails destroy model Oops
       invoke  active_record

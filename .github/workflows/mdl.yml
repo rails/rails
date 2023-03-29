@@ -1,0 +1,24 @@
+name: Markdown Lint [Guides]
+
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  mdl:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_ONLY: mdl
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Ruby 3.2
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.2
+        bundler-cache: true
+
+    - name: Run mdl
+      run: bundle exec rake -f guides/Rakefile guides:lint

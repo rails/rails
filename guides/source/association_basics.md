@@ -1131,14 +1131,14 @@ towards the counter. To fix a stale counter cache, use [`reset_counters`][].
 If you set the `:dependent` option to:
 
 * `:destroy`, when the object is destroyed, `destroy` will be called on its
-associated objects.
+  associated objects.
 * `:delete`, when the object is destroyed, all its associated objects will be
-deleted directly from the database without calling their `destroy` method.
+  deleted directly from the database without calling their `destroy` method.
 * `:destroy_async`: when the object is destroyed, an `ActiveRecord::DestroyAssociationAsyncJob`
-job is enqueued which will call destroy on its associated objects. Active Job must be set up
-for this to work. Do not use this option if the association is backed by foreign key
-constraints in your database. The foreign key constraint actions will occur inside the same
-transaction that deletes its owner.
+  job is enqueued which will call destroy on its associated objects. Active Job must be set up
+  for this to work. Do not use this option if the association is backed by foreign key
+  constraints in your database. The foreign key constraint actions will occur inside the same
+  transaction that deletes its owner.
 
 WARNING: You should not specify this option on a `belongs_to` association that is connected with a `has_many` association on the other class. Doing so can lead to orphaned records in your database.
 
@@ -2626,6 +2626,7 @@ def check_credit_limit(book)
   throw(:abort) if limit_reached?
 end
 ```
+
 NOTE: These callbacks are called only when the associated objects are added or removed through the association collection:
 
 ```ruby

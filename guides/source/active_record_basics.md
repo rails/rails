@@ -88,8 +88,7 @@ singularizing) both regular and irregular words. When using class names composed
 of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must use the snake_case form. Examples:
 
-* Model Class - Singular with the first letter of each word capitalized (e.g.,
-`BookClub`).
+* Model Class - Singular with the first letter of each word capitalized (e.g., `BookClub`).
 * Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 
 | Model / Class    | Table / Schema |
