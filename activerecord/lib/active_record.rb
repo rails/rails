@@ -100,6 +100,7 @@ module ActiveRecord
     autoload :FutureResult
     autoload :LegacyYamlAdapter
     autoload :NullRelation
+    autoload :OptimisticUpdate
     autoload :Promise
     autoload :Relation
     autoload :Result

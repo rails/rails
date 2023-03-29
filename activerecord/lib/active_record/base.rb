@@ -311,6 +311,7 @@ module ActiveRecord # :nodoc:
     include Attributes
     include Locking::Optimistic
     include Locking::Pessimistic
+    include OptimisticUpdate
     include Encryption::EncryptableRecord
     include AttributeMethods
     include Callbacks

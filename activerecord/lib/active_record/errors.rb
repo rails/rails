@@ -337,6 +337,24 @@ module ActiveRecord
     end
   end
 
+  class UnexpectedValueInDatabase < ActiveRecordError
+    attr_reader :record, :attempted_action, :constraints
+
+    def initialize(record = nil, attempted_action = nil, constraints = nil)
+      if record && attempted_action && constraints
+        @record = record
+        @attempted_action = attempted_action
+        @constraints = constraints
+
+        super("Failed to #{attempted_action} an object: #{record.class.name}. No rows matching [#{constraints}]")
+      elsif constraints
+        super("Failed to find records. No rows matching [#{constraints}]")
+      else
+        super("Failed to find records.")
+      end
+    end
+  end
+
   # Raised when association is being configured improperly or user tries to use
   # offset and limit together with
   # {ActiveRecord::Base.has_many}[rdoc-ref:Associations::ClassMethods#has_many] or

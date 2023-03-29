@@ -960,7 +960,7 @@ module ActiveRecord
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
+      _increment(id, attribute => change, touch: touch)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -1270,6 +1270,12 @@ module ActiveRecord
         Cannot touch on a new or destroyed record object. Consider using
         persisted?, new_record?, or destroyed? before touching.
       MSG
+    end
+
+    def _increment(id, counters)
+      # This is nececessary because OptimisticUpdate needs to have access to the
+      # result of this call, to raise an exception if affected_rows == 0
+      self.class.update_counters(id, counters)
     end
   end
 end
