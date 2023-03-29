@@ -4,10 +4,10 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class Base # :nodoc:
-        include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
+        include Helpers::ErrorWrappingHelper, Helpers::TagHelper, Helpers::FormTagHelper
         include FormOptionsHelper
 
-        attr_reader :object
+        attr_reader :object, :errors
 
         def initialize(object_name, method_name, template_object, options = {})
           @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
@@ -15,6 +15,7 @@ module ActionView
 
           @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
           @object = retrieve_object(options.delete(:object))
+          @errors = options.delete(:errors) { errors_from_object(@object) }
           @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
           @options = options
@@ -68,6 +69,10 @@ module ActionView
           rescue NameError
             # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
             nil
+          end
+
+          def errors_from_object(object)
+            object.errors if object.respond_to?(:errors)
           end
 
           def retrieve_autoindex(pre_match)
