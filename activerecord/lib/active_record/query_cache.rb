@@ -30,6 +30,7 @@ module ActiveRecord
     end
 
     def self.complete(pools)
+      pools.reject!(&:discarded?)
       pools.each { |pool| pool.disable_query_cache! }
 
       ActiveRecord::Base.connection_handler.each_connection_pool do |pool|

@@ -1,3 +1,14 @@
+*   Handle discarded connection pools when disabling query cache
+
+    If an application forks in the middle of a request of fork, it could cause the following error:
+
+    ```
+    NoMethodError: undefined method `[]' for nil:NilClass
+    active_record/connection_adapters/abstract/connection_pool.rb:190:in `active_connection?'
+    ```
+
+    *Jean Boussier*
+
 *   Limit max length of auto generated index names
 
     Auto generated index names are now limited to 62 bytes, which fits within

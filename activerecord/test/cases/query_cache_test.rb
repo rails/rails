@@ -820,4 +820,15 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
     assert_equal @connection_1, @connection_2
   end
+
+  test ".complete handle flushed pools" do
+    pools = ActiveRecord::QueryCache.run
+    assert_not_empty pools
+    Task.first
+
+    # This may happen if someone forks from a request or job
+    ActiveRecord::ConnectionAdapters::PoolConfig.discard_pools!
+
+    ActiveRecord::QueryCache.complete(pools)
+  end
 end

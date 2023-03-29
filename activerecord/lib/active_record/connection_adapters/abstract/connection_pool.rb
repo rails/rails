@@ -308,7 +308,8 @@ module ActiveRecord
           @connections.each do |conn|
             conn.discard!
           end
-          @connections = @available = @thread_cached_conns = nil
+          @connections = @available = nil
+          @thread_cached_conns = {}
         end
       end
 
