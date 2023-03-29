@@ -1,3 +1,19 @@
+*   Infer `foerign_key` when `inverse_of` is present on `has_one` and `has_many` associations.
+
+    ```ruby
+    has_many :citations, foreign_key: "book1_id", inverse_of: :book
+    ```
+
+    can be simplified to
+
+    ```ruby
+    has_many :citations, inverse_of: :book
+    ```
+
+    and the foreign_key will be read from the corresponding `belongs_to` association
+
+    *Daniel Whitney*
+
 *   Limit max length of auto generated index names
 
     Auto generated index names are now limited to 62 bytes, which fits within
