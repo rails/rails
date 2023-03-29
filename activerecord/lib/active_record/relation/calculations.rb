@@ -188,10 +188,23 @@ module ActiveRecord
     #        ...
     #      end
     def calculate(operation, column_name)
+      operation = operation.to_s.downcase
+
+      if @none
+        case operation
+        when "count", "sum"
+          result = group_values.any? ? Hash.new : 0
+          return @async ? Promise::Complete.new(result) : result
+        when "average", "minimum", "maximum"
+          result = group_values.any? ? Hash.new : nil
+          return @async ? Promise::Complete.new(result) : result
+        end
+      end
+
       if has_include?(column_name)
         relation = apply_join_dependency
 
-        if operation.to_s.downcase == "count"
+        if operation == "count"
           unless distinct_value || distinct_select?(column_name || select_for_count)
             relation.distinct!
             relation.select_values = [ klass.primary_key || table[Arel.star] ]
@@ -241,6 +254,8 @@ module ActiveRecord
     #
     # See also #ids.
     def pluck(*column_names)
+      return [] if @none
+
       if loaded? && all_attributes?(column_names)
         result = records.pluck(*column_names)
         if @async

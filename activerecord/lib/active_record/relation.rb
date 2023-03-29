@@ -35,6 +35,7 @@ module ActiveRecord
       @future_result = nil
       @records = nil
       @async = false
+      @none = false
     end
 
     def initialize_copy(other)
@@ -272,6 +273,8 @@ module ActiveRecord
 
     # Returns true if there are no records.
     def empty?
+      return true if @none
+
       if loaded?
         records.empty?
       else
@@ -281,18 +284,24 @@ module ActiveRecord
 
     # Returns true if there are no records.
     def none?(*args)
+      return true if @none
+
       return super if args.present? || block_given?
       empty?
     end
 
     # Returns true if there are any records.
     def any?(*args)
+      return false if @none
+
       return super if args.present? || block_given?
       !empty?
     end
 
     # Returns true if there is exactly one record.
     def one?(*args)
+      return false if @none
+
       return super if args.present? || block_given?
       return records.one? if loaded?
       limited_count == 1
@@ -300,6 +309,8 @@ module ActiveRecord
 
     # Returns true if there is more than one record.
     def many?
+      return false if @none
+
       return super if block_given?
       return records.many? if loaded?
       limited_count > 1
@@ -473,6 +484,8 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
+      return 0 if @none
+
       if updates.is_a?(Hash)
         if klass.locking_enabled? &&
             !updates.key?(klass.locking_column) &&
@@ -608,6 +621,8 @@ module ActiveRecord
     #   Post.distinct.delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
+      return 0 if @none
+
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
         value = @values[method]
         method == :distinct ? value : value&.any?
@@ -851,10 +866,6 @@ module ActiveRecord
         @loaded = true
       end
 
-      def null_relation? # :nodoc:
-        is_a?(NullRelation)
-      end
-
     private
       def already_in_scope?(registry)
         @delegate_to_klass && registry.current_scope(klass, true)
@@ -939,6 +950,14 @@ module ActiveRecord
       end
 
       def exec_main_query(async: false)
+        if @none
+          if async
+            return Promise::Complete.new([])
+          else
+            return []
+          end
+        end
+
         skip_query_cache_if_necessary do
           if where_clause.contradiction?
             [].freeze

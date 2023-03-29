@@ -99,7 +99,6 @@ module ActiveRecord
     autoload :DisableJoinsAssociationRelation
     autoload :FutureResult
     autoload :LegacyYamlAdapter
-    autoload :NullRelation
     autoload :Promise
     autoload :Relation
     autoload :Result

@@ -1040,7 +1040,11 @@ module ActiveRecord
     #
     def or(other)
       if other.is_a?(Relation)
-        spawn.or!(other)
+        if @none
+          other.spawn
+        else
+          spawn.or!(other)
+        end
       else
         raise ArgumentError, "You have passed #{other.class.name} object to #or. Pass an ActiveRecord::Relation object instead."
       end
@@ -1153,7 +1157,15 @@ module ActiveRecord
     end
 
     def none! # :nodoc:
-      where!("1=0").extending!(NullRelation)
+      unless @none
+        where!("1=0")
+        @none = true
+      end
+      self
+    end
+
+    def null_relation? # :nodoc:
+      @none
     end
 
     # Mark a relation as readonly. Attempting to update a record will result in
