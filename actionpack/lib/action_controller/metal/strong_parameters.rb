@@ -734,6 +734,7 @@ module ActionController
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
+    alias_method :without, :except
 
     # Removes and returns the key/value pairs matching the given keys.
     #
