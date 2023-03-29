@@ -4,7 +4,7 @@ class Book < ActiveRecord::Base
   belongs_to :author
   belongs_to :format_record, polymorphic: true
 
-  has_many :citations, foreign_key: "book1_id", inverse_of: :book
+  has_many :citations, inverse_of: :book
   has_many :references, -> { distinct }, through: :citations, source: :reference_of
 
   has_many :subscriptions
