@@ -326,7 +326,7 @@ GEM
       racc (~> 1.4)
     os (1.1.4)
     parallel (1.22.1)
-    parser (3.2.0.0)
+    parser (3.2.1.1)
       ast (~> 2.4.1)
     path_expander (1.1.1)
     pg (1.4.5)
