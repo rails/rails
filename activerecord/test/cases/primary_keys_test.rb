@@ -34,6 +34,19 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal keyboard.key_number, keyboard.read_attribute(:id)
   end
 
+  def test_read_attribute_with_composite_primary_key
+    book = Cpk::Book.new(author_id: 1, number: 2)
+    assert_equal [1, 2], book.read_attribute(:id)
+  end
+
+  def test_read_attribute_with_composite_primary_key_and_column_named_id
+    order = Cpk::Order.new
+    order.id = [1, 2]
+
+    assert_equal [1, 2], order.read_attribute(:id)
+    assert_equal 2, order.attributes["id"]
+  end
+
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy
@@ -425,14 +438,6 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def test_model_with_a_composite_primary_key
     assert_equal(["author_id", "number"], Cpk::Book.primary_key)
     assert_equal(["shop_id", "id"], Cpk::Order.primary_key)
-  end
-
-  def test_id_is_not_defined_on_a_model_with_composite_primary_key
-    book = cpk_books(:cpk_great_author_first_book)
-    order = cpk_orders(:cpk_groceries_order_1)
-
-    assert_equal([book.author_id, book.number], book.id)
-    assert_equal([order.shop_id, order.read_attribute(:id)], order.id)
   end
 
   def composite_primary_key_is_true_for_a_cpk_model
