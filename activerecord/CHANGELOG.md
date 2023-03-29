@@ -10,7 +10,7 @@
     has_many :citations, inverse_of: :book
     ```
 
-    and the foreign_key will be read from the corresponding `belongs_to` association
+    and the foreign_key will be read from the corresponding `belongs_to` association.
 
     *Daniel Whitney*
 
