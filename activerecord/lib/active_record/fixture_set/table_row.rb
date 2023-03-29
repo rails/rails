@@ -87,7 +87,7 @@ module ActiveRecord
           return unless model_class
           fill_timestamps
           interpolate_label
-          generate_primary_key
+          model_class.composite_primary_key? ? generate_composite_primary_key : generate_primary_key
           resolve_enums
           resolve_sti_reflections
         end
@@ -117,12 +117,26 @@ module ActiveRecord
         end
 
         def generate_primary_key
-          # generate a primary key if necessary
-          Array(model_metadata.primary_key_name).each do |pk|
-            next if !model_metadata.has_column?(pk) || @row.include?(pk)
+          pk = model_metadata.primary_key_name
 
+          unless column_defined?(pk)
             @row[pk] = ActiveRecord::FixtureSet.identify(@label, model_metadata.column_type(pk))
           end
+        end
+
+        def generate_composite_primary_key
+          id = ActiveRecord::FixtureSet.identify(@label)
+          model_metadata.primary_key_name.each_with_index do |column, index|
+            next if column_defined?(column)
+            raise "Automatic key generation assumes columns of type Integer." unless model_metadata.column_type(column) == :integer
+
+            # Shift label identifier index-#-of-times to differentiate sub-components in deterministic manner.
+            @row[column] = (id << index) % ActiveRecord::FixtureSet::MAX_ID
+          end
+        end
+
+        def column_defined?(col)
+          !model_metadata.has_column?(col) || @row.include?(col)
         end
 
         def resolve_enums

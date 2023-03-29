@@ -1643,13 +1643,26 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
   end
 
   class CompositePkFixturesTest < ActiveRecord::TestCase
-    fixtures :cpk_orders, :cpk_books
+    fixtures :cpk_orders, :cpk_books, :authors
+
+    def test_generates_composite_primary_key_for_partially_filled_fixtures
+      david = authors(:david)
+      david_cpk_book = cpk_books(:cpk_known_author_david_book)
+
+      assert_not_empty(david_cpk_book.id.compact)
+      assert_equal david.id, david_cpk_book.author_id
+      assert_not_nil david_cpk_book.number
+    end
 
     def test_generates_composite_primary_key_ids
       assert_not_empty(cpk_orders(:cpk_groceries_order_1).id.compact)
 
       assert_not_nil(cpk_books(:cpk_great_author_first_book).author_id)
       assert_not_nil(cpk_books(:cpk_great_author_first_book).number)
+    end
+
+    def test_generates_composite_primary_key_with_unique_components
+      assert_equal 2, cpk_orders(:cpk_groceries_order_1).id.uniq.size
     end
   end
 end
