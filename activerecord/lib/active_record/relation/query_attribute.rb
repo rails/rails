@@ -24,7 +24,7 @@ module ActiveRecord
       end
 
       def value_for_database
-        @value_for_database = _value_for_database unless defined?(@value_for_database)
+        @value_for_database = _value_for_database if UNDEF.equal?(@value_for_database)
         @value_for_database
       end
 
