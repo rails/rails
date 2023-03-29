@@ -1521,7 +1521,7 @@ module ActiveRecord
 
           # Fallback to short version, add hash to ensure uniqueness
           hashed_identifier = "_" + OpenSSL::Digest::SHA256.hexdigest(name).first(10)
-          name = "ix_on_#{Array(column) * '_'}"
+          name = "idx_on_#{Array(column) * '_'}"
 
           short_limit = max_index_name_size - hashed_identifier.bytesize
           short_name = name.mb_chars.limit(short_limit).to_s

@@ -12,7 +12,7 @@
 
     After (short format):
     ```
-    ix_on_foo_bar_first_name_last_name_administrator_5939248142
+    idx_on_foo_bar_first_name_last_name_administrator_5939248142
     ```
 
     The short format includes a hash to ensure the name is unique database-wide.
