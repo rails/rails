@@ -114,6 +114,7 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
     assert_equal 1.kilobyte**5, 1.petabyte
     assert_equal 1.kilobyte**6, 1.exabyte
+    assert_equal 1.kilobyte**7, 1.zettabyte
   end
 
   def test_units_as_bytes_independently
@@ -129,6 +130,8 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 3377699720527872, 3.petabyte
     assert_equal 3458764513820540928, 3.exabytes
     assert_equal 3458764513820540928, 3.exabyte
+    assert_equal 3541774862152233910272, 3.zettabytes
+    assert_equal 3541774862152233910272, 3.zettabyte
   end
 end
 
@@ -155,6 +158,10 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
   def exabytes(number)
     petabytes(number) * 1024
+  end
+
+  def zettabytes(number)
+    exabytes(number) * 1024
   end
 
   def test_to_fs__phone
@@ -289,7 +296,8 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal "1.12 TB",   1234567890123.to_fs(:human_size)
     assert_equal "1.1 PB",    1234567890123456.to_fs(:human_size)
     assert_equal "1.07 EB",   1234567890123456789.to_fs(:human_size)
-    assert_equal "1030 EB",   exabytes(1026).to_fs(:human_size)
+    assert_equal "1020 EB",   exabytes(1023).to_fs(:human_size)
+    assert_equal "16 ZB",     zettabytes(16).to_fs(:human_size)
     assert_equal "444 KB",    kilobytes(444).to_fs(:human_size)
     assert_equal "1020 MB",   megabytes(1023).to_fs(:human_size)
     assert_equal "3 TB",      terabytes(3).to_fs(:human_size)

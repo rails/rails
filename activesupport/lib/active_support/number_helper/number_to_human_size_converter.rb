@@ -5,7 +5,7 @@ require "active_support/number_helper/number_converter"
 module ActiveSupport
   module NumberHelper
     class NumberToHumanSizeConverter < NumberConverter # :nodoc:
-      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb, :pb, :eb]
+      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb, :pb, :eb, :zb]
 
       self.namespace      = :human
       self.validate_float = true
