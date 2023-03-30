@@ -4,7 +4,7 @@ require "cases/helper"
 require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.connection.supports_virtual_columns?
-  class Mysql2VirtualColumnTest < ActiveRecord::Mysql2TestCase
+  class VirtualColumnTest < ActiveRecord::AbstractMysqlTestCase
     include SchemaDumpingHelper
 
     self.use_transactional_tests = false

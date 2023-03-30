@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class Mysql2BooleanTest < ActiveRecord::Mysql2TestCase
+class MySQLBooleanTest < ActiveRecord::AbstractMysqlTestCase
   self.use_transactional_tests = false
 
   class BooleanType < ActiveRecord::Base
@@ -18,7 +18,7 @@ class Mysql2BooleanTest < ActiveRecord::Mysql2TestCase
     end
     BooleanType.reset_column_information
 
-    @emulate_booleans = ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans
+    @emulate_booleans = @connection.class.emulate_booleans
   end
 
   teardown do
@@ -96,7 +96,7 @@ class Mysql2BooleanTest < ActiveRecord::Mysql2TestCase
   end
 
   def emulate_booleans(value)
-    ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = value
+    @connection.class.emulate_booleans = value
     BooleanType.reset_column_information
   end
 end

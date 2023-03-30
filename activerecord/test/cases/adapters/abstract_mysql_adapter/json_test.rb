@@ -4,7 +4,7 @@ require "cases/helper"
 require "cases/json_shared_test_cases"
 
 if ActiveRecord::Base.connection.supports_json?
-  class Mysql2JSONTest < ActiveRecord::Mysql2TestCase
+  class JSONTest < ActiveRecord::AbstractMysqlTestCase
     include JSONSharedTestCases
     self.use_transactional_tests = false
 

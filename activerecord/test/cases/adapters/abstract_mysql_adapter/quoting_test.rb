@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class Mysql2QuotingTest < ActiveRecord::Mysql2TestCase
+class QuotingTest < ActiveRecord::AbstractMysqlTestCase
   def setup
     super
     @conn = ActiveRecord::Base.connection

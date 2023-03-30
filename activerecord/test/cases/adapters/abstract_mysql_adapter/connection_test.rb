@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/connection_helper"
 
-class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
+class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   include ConnectionHelper
 
   fixtures :comments
@@ -79,7 +79,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_wait_timeout_as_url
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge("url" => "mysql2:///?wait_timeout=60"))
+      ActiveRecord::Base.establish_connection(orig_connection.merge("url" => "#{orig_connection[:adapter]}:///?wait_timeout=60"))
       result = ActiveRecord::Base.connection.select_value("SELECT @@SESSION.wait_timeout")
       assert_equal 60, result
     end

@@ -6,8 +6,8 @@ require "models/post"
 
 module ActiveRecord
   module ConnectionAdapters
-    class Mysql2Adapter
-      class BindParameterTest < ActiveRecord::Mysql2TestCase
+    class AbstractMysqlAdapter
+      class BindParameterTest < ActiveRecord::AbstractMysqlTestCase
         fixtures :topics, :posts
 
         def test_update_question_marks

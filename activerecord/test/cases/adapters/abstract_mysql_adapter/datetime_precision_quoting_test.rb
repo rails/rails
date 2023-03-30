@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class Mysql2DatetimePrecisionQuotingTest < ActiveRecord::Mysql2TestCase
+class DatetimePrecisionQuotingTest < ActiveRecord::AbstractMysqlTestCase
   setup do
     @connection = ActiveRecord::Base.connection
   end
