@@ -14,6 +14,38 @@ module ActiveRecord
       @connection.materialize_transactions
     end
 
+    test ".new_client on db error" do
+      db_config = {}
+      case @connection.class::ADAPTER_NAME
+      when "PostgreSQL"
+        db_config[:dbname] = "unknown"
+      when "Mysql2"
+        db_config[:database] = "unknown"
+      end
+      assert_raises ActiveRecord::NoDatabaseError do
+        @connection.class.new_client(db_config)
+      end
+    end
+
+    test ".new_client on access denied error" do
+      db_config = {}
+      case @connection.class::ADAPTER_NAME
+      when "PostgreSQL"
+        db_config[:user] = "unknown"
+      when "Mysql2"
+        db_config[:username] = "unknown"
+      end
+      assert_raises ActiveRecord::DatabaseConnectionError do
+        @connection.class.new_client(db_config)
+      end
+    end
+
+    test ".new_client on host error" do
+      assert_raises ActiveRecord::DatabaseConnectionError do
+        @connection.class.new_client(host: "unknown")
+      end
+    end
+
     ##
     # PostgreSQL does not support null bytes in strings
     unless current_adapter?(:PostgreSQLAdapter) ||
