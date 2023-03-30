@@ -94,7 +94,10 @@ module ActiveRecord
           end
 
           def integer_like_primary_key_type(type, options)
-            options[:auto_increment] = true
+            unless options[:auto_increment] == false
+              options[:auto_increment] = true
+            end
+
             type
           end
       end
