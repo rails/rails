@@ -31,4 +31,12 @@ class Mysql2AutoIncrementTest < ActiveRecord::Mysql2TestCase
     output = dump_table_schema("auto_increments")
     assert_match(/t\.integer\s+"id",\s+null: false,\s+auto_increment: true$/, output)
   end
+
+  def test_auto_increment_false_with_custom_primary_key
+    @connection.create_table :auto_increments, id: false, force: :cascade do |t|
+      t.primary_key :id, auto_increment: false
+    end
+
+    assert_not_predicate @connection.columns(:auto_increments).first, :auto_increment?
+  end
 end
