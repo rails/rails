@@ -37,7 +37,7 @@ module Rails
 
         IRB::WorkSpace.prepend(BacktraceCleaner)
 
-        if Rails.env.production?
+        if !Rails.env.local?
           ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
         end
 

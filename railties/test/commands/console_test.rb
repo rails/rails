@@ -58,12 +58,13 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_equal "IRB", Rails::Console.new(app).console.name
   end
 
-  def test_console_disables_IRB_auto_completion_in_production
+  def test_console_disables_IRB_auto_completion_in_non_local
     original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
     ENV["IRB_USE_AUTOCOMPLETE"] = nil
 
     with_rack_env "production" do
       app = build_app(nil)
+      assert_not_predicate Rails.env, :local?
       assert_equal "IRB", Rails::Console.new(app).console.name
       assert_equal "false", ENV["IRB_USE_AUTOCOMPLETE"]
     end
@@ -84,12 +85,13 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     ENV["IRB_USE_AUTOCOMPLETE"] = original_use_autocomplete
   end
 
-  def test_console_doesnt_disable_IRB_auto_completion_in_non_production
+  def test_console_doesnt_disable_IRB_auto_completion_in_local
     original_use_autocomplete = ENV["IRB_USE_AUTOCOMPLETE"]
     ENV["IRB_USE_AUTOCOMPLETE"] = nil
 
     with_rails_env nil do
       app = build_app(nil)
+      assert_predicate Rails.env, :local?
       assert_equal "IRB", Rails::Console.new(app).console.name
       assert_nil ENV["IRB_USE_AUTOCOMPLETE"]
     end
