@@ -488,12 +488,12 @@ module ActiveRecord
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
-        @_query_constraints_list = columns_list.map(&:to_s)
+        @query_constraints_list = columns_list.map(&:to_s)
       end
 
       def query_constraints_list # :nodoc:
         @query_constraints_list ||= if base_class? || primary_key != base_class.primary_key
-          primary_key.is_a?(Array) ? primary_key : @_query_constraints_list
+          primary_key if primary_key.is_a?(Array)
         else
           base_class.query_constraints_list
         end
