@@ -260,6 +260,7 @@ ActiveRecord::Schema.define do
     t.string :clothing_type
     t.string :color
     t.string :type
+    t.string :size
     t.text :description
 
     t.index [:clothing_type, :color], unique: true

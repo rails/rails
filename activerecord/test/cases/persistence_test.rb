@@ -1522,4 +1522,8 @@ class QueryConstraintsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_child_class_with_query_constraints_overrides_parents
+    assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
+  end
 end
