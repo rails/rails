@@ -1290,6 +1290,7 @@ class Uploader {
 
 To implement customized authentication, a new controller must be created on
 the Rails application, similar to the following:
+
 ```ruby
 class DirectUploadsController < ActiveStorage::DirectUploadsController
   skip_before_action :verify_authenticity_token
