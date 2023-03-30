@@ -6,23 +6,19 @@ permissions:
   contents: read
 
 jobs:
-  rails-bin:
-    name: Check rails-bin lints
+  rail_inspector:
+    name: Rail Inspector Checks
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_ONLY: rail_inspector
     steps:
     - uses: actions/checkout@v3
-      with:
-        repository: skipkayhil/rails-bin
-        ref: 748f4673a5fe5686b5859e89f814166280e51781
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: 3.2
         bundler-cache: true
-    - uses: actions/checkout@v3
-      with:
-        path: rails
-    - run: bin/check-changelogs ./rails
-    - run: bin/check-config-docs ./rails
+    - run: bundle exec railspect changelogs .
+    - run: bundle exec railspect configuration .
   codespell:
     name: Check spelling all files with codespell
     runs-on: ubuntu-latest
@@ -46,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && github.ref_name == 'main'
     continue-on-error: true
-    needs: [rails-bin, codespell]
+    needs: [rail_inspector, codespell]
     steps:
       - uses: zzak/action-discord@v4
         with:

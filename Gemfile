@@ -53,6 +53,10 @@ group :mdl do
   gem "mdl", require: false
 end
 
+group :rail_inspector do
+  gem "rail_inspector", require: false
+end
+
 group :doc do
   gem "sdoc", ">= 2.6.0"
   gem "rdoc", "~> 6.5"
