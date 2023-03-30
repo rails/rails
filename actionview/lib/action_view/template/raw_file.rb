@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView # :nodoc:
-  # = Action View RawFile Template
   class Template # :nodoc:
+    # = Action View RawFile Template
     class RawFile # :nodoc:
       attr_accessor :type, :format
 
