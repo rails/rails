@@ -600,6 +600,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jbuilder"
   end
 
+  def test_inclusion_of_a_debugger
+    run_generator
+    if defined?(JRUBY_VERSION)
+      assert_no_gem "debug"
+    else
+      assert_gem "debug"
+    end
+  end
+
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
