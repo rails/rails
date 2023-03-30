@@ -12,3 +12,8 @@ cpk_great_author_second_book:
 cpk_famous_author_first_book:
   title: "Ruby on Rails"
   revision: 1
+
+cpk_known_author_david_book:
+  author_id: 1
+  title: "David's CPK Book"
+  revision: 1
