@@ -253,6 +253,12 @@ module ActiveRecord
     end
   end
 
+  class AbstractMysqlTestCase < TestCase
+    def self.run(*args)
+      super if current_adapter?(:Mysql2Adapter)
+    end
+  end
+
   class Mysql2TestCase < TestCase
     def self.run(*args)
       super if current_adapter?(:Mysql2Adapter)

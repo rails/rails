@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-class Mysql2EnumTest < ActiveRecord::Mysql2TestCase
+class MySQLEnumTest < ActiveRecord::AbstractMysqlTestCase
   self.use_transactional_tests = false
 
   include SchemaDumpingHelper

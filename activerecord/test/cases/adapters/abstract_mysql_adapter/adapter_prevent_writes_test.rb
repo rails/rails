@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/ddl_helper"
 
-class Mysql2AdapterPreventWritesTest < ActiveRecord::Mysql2TestCase
+class AdapterPreventWritesTest < ActiveRecord::AbstractMysqlTestCase
   include DdlHelper
 
   def setup

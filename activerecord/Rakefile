@@ -61,9 +61,12 @@ end
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
-      t.test_files = (FileList["test/cases/**/*_test.rb"].reject {
+      files = (FileList["test/cases/**/*_test.rb"].reject {
         |x| x.include?("/adapters/") || x.include?("/encryption/performance")
       } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
+      files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if adapter == "mysql2"
+
+      t.test_files = files
 
       t.warning = true
       t.verbose = true

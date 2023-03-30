@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-class Mysql2SetTest < ActiveRecord::Mysql2TestCase
+class SetTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
 
   class SetTest < ActiveRecord::Base

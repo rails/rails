@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
+class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 
@@ -78,7 +78,7 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   end
 end
 
-class Mysql2DefaultEngineOptionTest < ActiveRecord::Mysql2TestCase
+class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 

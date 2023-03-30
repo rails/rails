@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
+class SchemaMigrationsTest < ActiveRecord::AbstractMysqlTestCase
   self.use_transactional_tests = false
 
   def setup

@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
+class CharsetCollationTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 

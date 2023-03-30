@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-class Mysql2AutoIncrementTest < ActiveRecord::Mysql2TestCase
+class AutoIncrementTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
 
   def setup

@@ -4,7 +4,7 @@ require "cases/helper"
 require "support/connection_helper"
 
 module ActiveRecord
-  class Mysql2NestedDeadlockTest < ActiveRecord::Mysql2TestCase
+  class NestedDeadlockTest < ActiveRecord::AbstractMysqlTestCase
     self.use_transactional_tests = false
 
     class Sample < ActiveRecord::Base

@@ -7,7 +7,7 @@ require "models/bulb"
 require "models/car"
 
 module ActiveRecord
-  class CountDeletedRowsWithLockTest < ActiveRecord::Mysql2TestCase
+  class CountDeletedRowsWithLockTest < ActiveRecord::AbstractMysqlTestCase
     test "delete and create in different threads synchronize correctly" do
       Bulb.unscoped.delete_all
       Bulb.create!(name: "Jimmy", color: "blue")
