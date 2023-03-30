@@ -163,33 +163,33 @@ You can run `bin/rails -T` to see all the commands you're able to run. You shoul
 
 ```bash
 $ bin/rails -T
-rails db:create                          # Create the database from DATABASE_URL or config/database.yml for the ...
-rails db:create:animals                  # Create animals database for current environment
-rails db:create:primary                  # Create primary database for current environment
-rails db:drop                            # Drop the database from DATABASE_URL or config/database.yml for the cu...
-rails db:drop:animals                    # Drop animals database for current environment
-rails db:drop:primary                    # Drop primary database for current environment
-rails db:migrate                         # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
-rails db:migrate:animals                 # Migrate animals database for current environment
-rails db:migrate:primary                 # Migrate primary database for current environment
-rails db:migrate:status                  # Display status of migrations
-rails db:migrate:status:animals          # Display status of migrations for animals database
-rails db:migrate:status:primary          # Display status of migrations for primary database
-rails db:reset                           # Drop and recreates all databases from their schema for the current environment and loads the seeds
-rails db:reset:animals                   # Drop and recreates the animals database from its schema for the current environment and loads the seeds
-rails db:reset:primary                   # Drop and recreates the primary database from its schema for the current environment and loads the seeds
-rails db:rollback                        # Roll the schema back to the previous version (specify steps w/ STEP=n)
-rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
-rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
-rails db:schema:dump                     # Create a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:dump:animals             # Create a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:dump:primary             # Create a db/schema.rb file that is portable against any DB supported  ...
-rails db:schema:load                     # Load a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:load:animals             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:load:primary             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:setup                           # Create all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
-rails db:setup:animals                   # Create the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
-rails db:setup:primary                   # Create the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
+bin/rails db:create                          # Create the database from DATABASE_URL or config/database.yml for the ...
+bin/rails db:create:animals                  # Create animals database for current environment
+bin/rails db:create:primary                  # Create primary database for current environment
+bin/rails db:drop                            # Drop the database from DATABASE_URL or config/database.yml for the cu...
+bin/rails db:drop:animals                    # Drop animals database for current environment
+bin/rails db:drop:primary                    # Drop primary database for current environment
+bin/rails db:migrate                         # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
+bin/rails db:migrate:animals                 # Migrate animals database for current environment
+bin/rails db:migrate:primary                 # Migrate primary database for current environment
+bin/rails db:migrate:status                  # Display status of migrations
+bin/rails db:migrate:status:animals          # Display status of migrations for animals database
+bin/rails db:migrate:status:primary          # Display status of migrations for primary database
+bin/rails db:reset                           # Drop and recreates all databases from their schema for the current environment and loads the seeds
+bin/rails db:reset:animals                   # Drop and recreates the animals database from its schema for the current environment and loads the seeds
+bin/rails db:reset:primary                   # Drop and recreates the primary database from its schema for the current environment and loads the seeds
+bin/rails db:rollback                        # Roll the schema back to the previous version (specify steps w/ STEP=n)
+bin/rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
+bin/rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
+bin/rails db:schema:dump                     # Create a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:dump:animals             # Create a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:dump:primary             # Create a db/schema.rb file that is portable against any DB supported  ...
+bin/rails db:schema:load                     # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:load:animals             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:load:primary             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:setup                           # Create all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
+bin/rails db:setup:animals                   # Create the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
+bin/rails db:setup:primary                   # Create the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
 ```
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.

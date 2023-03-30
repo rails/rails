@@ -167,7 +167,7 @@ ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/model
 Expected true to be nil or false
 
 
-rails test test/models/article_test.rb:6
+bin/rails test test/models/article_test.rb:6
 
 
 
@@ -250,7 +250,7 @@ NameError: undefined local variable or method 'some_undefined_variable' for #<Ar
     test/models/article_test.rb:11:in 'block in <class:ArticleTest>'
 
 
-rails test test/models/article_test.rb:9
+bin/rails test test/models/article_test.rb:9
 
 
 
