@@ -26,7 +26,6 @@ module RailsGuides
       @epub      = epub
       @language  = language
       @direction = direction || "ltr"
-      @view = ActionView::Base.with_empty_template_cache
 
       if @epub
         register_special_mime_types
@@ -133,7 +132,7 @@ module RailsGuides
         puts "Generating #{guide} as #{output_file}"
         layout = @epub ? "epub/layout" : "layout"
 
-        view = @view.with_view_paths(
+        view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
           edge:     @edge,
           version:  @version,

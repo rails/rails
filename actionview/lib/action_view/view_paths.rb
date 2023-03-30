@@ -28,6 +28,13 @@ module ActionView
         end
       end
 
+      def _build_view_paths(paths) # :nodoc:
+        return paths if ActionView::PathSet === paths
+
+        paths = ActionView::PathRegistry.cast_file_system_resolvers(paths)
+        ActionView::PathSet.new(paths)
+      end
+
       # Append a path to the list of view paths for this controller.
       #
       # ==== Parameters
@@ -35,7 +42,7 @@ module ActionView
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def append_view_path(path)
-        self._view_paths = ActionView::PathSet.new(view_paths.to_a + Array(path))
+        self._view_paths = view_paths + _build_view_paths(path)
       end
 
       # Prepend a path to the list of view paths for this controller.
@@ -45,7 +52,7 @@ module ActionView
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def prepend_view_path(path)
-        self._view_paths = ActionView::PathSet.new(Array(path) + view_paths.to_a)
+        self._view_paths = _build_view_paths(path) + view_paths
       end
 
       # A list of all of the default view paths for this controller.
@@ -59,7 +66,7 @@ module ActionView
       # * <tt>paths</tt> - If a PathSet is provided, use that;
       #   otherwise, process the parameter into a PathSet.
       def view_paths=(paths)
-        self._view_paths = ActionView::PathSet.new(Array(paths))
+        self._view_paths = _build_view_paths(paths)
       end
 
       private
@@ -94,7 +101,7 @@ module ActionView
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def append_view_path(path)
-      lookup_context.append_view_paths(Array(path))
+      lookup_context.append_view_paths(self.class._build_view_paths(path))
     end
 
     # Prepend a path to the list of view paths for the current LookupContext.
@@ -104,7 +111,7 @@ module ActionView
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)
-      lookup_context.prepend_view_paths(Array(path))
+      lookup_context.prepend_view_paths(self.class._build_view_paths(path))
     end
   end
 end

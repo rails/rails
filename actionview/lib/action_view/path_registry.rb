@@ -3,11 +3,12 @@
 module ActionView # :nodoc:
   module PathRegistry # :nodoc:
     @view_paths_by_class = {}
-    @file_system_resolvers = Concurrent::Map.new
+    @file_system_resolvers = {}
+    @file_system_resolver_mutex = Mutex.new
+    @file_system_resolver_hooks = []
 
     class << self
-      include ActiveSupport::Callbacks
-      define_callbacks :build_file_system_resolver
+      attr_reader :file_system_resolver_hooks
     end
 
     def self.get_view_paths(klass)
@@ -18,17 +19,29 @@ module ActionView # :nodoc:
       @view_paths_by_class[klass] = paths
     end
 
-    def self.file_system_resolver(path)
-      path = File.expand_path(path)
-      resolver = @file_system_resolvers[path]
-      unless resolver
-        run_callbacks(:build_file_system_resolver) do
-          resolver = @file_system_resolvers.fetch_or_store(path) do
-            FileSystemResolver.new(path)
+    def self.cast_file_system_resolvers(paths)
+      paths = Array(paths)
+
+      @file_system_resolver_mutex.synchronize do
+        built_resolver = false
+        paths = paths.map do |path|
+          case path
+          when String, Pathname
+            path = File.expand_path(path)
+            @file_system_resolvers[path] ||=
+              begin
+                built_resolver = true
+                FileSystemResolver.new(path)
+              end
+          else
+            path
           end
         end
+
+        file_system_resolver_hooks.each(&:call) if built_resolver
       end
-      resolver
+
+      paths
     end
 
     def self.all_resolvers

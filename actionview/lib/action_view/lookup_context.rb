@@ -83,9 +83,9 @@ module ActionView
         @digest_cache.values
       end
 
-      def self.view_context_class(klass)
+      def self.view_context_class
         @view_context_mutex.synchronize do
-          @view_context_class ||= klass.with_empty_template_cache
+          @view_context_class ||= ActionView::Base.with_empty_template_cache
         end
       end
     end
