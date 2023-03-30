@@ -8,6 +8,8 @@ require "action_mailbox/version"
 require "action_mailbox/deprecator"
 require "action_mailbox/mail_ext"
 
+# :markup: markdown
+# :include: actionmailbox/README.md
 module ActionMailbox
   extend ActiveSupport::Autoload
 
