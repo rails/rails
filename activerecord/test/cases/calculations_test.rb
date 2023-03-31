@@ -29,7 +29,8 @@ require "models/cpk/book"
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers,
+    :minivans, :books, :posts, :comments, :cpk_books
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -344,6 +345,29 @@ class CalculationsTest < ActiveRecord::TestCase
     posts = Post.includes(:comments).order("comments.id").distinct
     assert_queries(1) { assert_equal 11, posts.count }
     assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_count_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    assert_equal(1, Cpk::Book.where(author_id: book.author_id, number: book.number).count)
+  end
+
+  if current_adapter?(:Mysql2Adapter)
+    def test_distinct_count_by_two_columns
+      post = posts(:welcome)
+      assert_equal 1, Post.where(id: post.id).select(:id, :title).distinct.count
+    end
+
+    def test_distinct_count_for_a_composite_primary_key_model
+      book = cpk_books(:cpk_great_author_first_book)
+      assert_equal(1, Cpk::Book.where(author_id: book.author_id, number: book.number).distinct.count)
+    end
+  end
+
+  def test_group_by_count_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    expected = { book.author_id => Cpk::Book.where(author_id: book.author_id).count }
+    assert_equal(expected, Cpk::Book.where(author_id: book.author_id).group(:author_id).count)
   end
 
   def test_distinct_count_all_with_custom_select_and_order

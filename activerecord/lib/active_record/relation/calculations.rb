@@ -360,7 +360,11 @@ module ActiveRecord
             if !distinct
               distinct = distinct_select?(select_for_count) if group_values.empty?
             elsif group_values.any? || select_values.empty? && order_values.empty?
-              column_name = primary_key
+              column_name = if klass.composite_primary_key?
+                primary_key.join(", ")
+              else
+                primary_key
+              end
             end
           elsif distinct_select?(column_name)
             distinct = nil
