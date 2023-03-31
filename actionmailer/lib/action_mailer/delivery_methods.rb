@@ -3,6 +3,8 @@
 require "tmpdir"
 
 module ActionMailer
+  # = Action Mailer \DeliveryMethods
+  #
   # This module handles everything related to mail delivery, from registering
   # new delivery methods to configuring the mail object to be sent.
   module DeliveryMethods

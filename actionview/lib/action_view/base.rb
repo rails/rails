@@ -10,7 +10,7 @@ require "action_view/template"
 require "action_view/lookup_context"
 
 module ActionView # :nodoc:
-  # = Action View Base
+  # = Action View \Base
   #
   # Action View templates can be written in several ways.
   # If the template file has a <tt>.erb</tt> extension, then it uses the erubi[https://rubygems.org/gems/erubi]
