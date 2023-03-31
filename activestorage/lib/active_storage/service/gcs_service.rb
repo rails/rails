@@ -5,6 +5,8 @@ require "google/apis/iamcredentials_v1"
 require "google/cloud/storage"
 
 module ActiveStorage
+  # = Active Storage \GCS \Service
+  #
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service

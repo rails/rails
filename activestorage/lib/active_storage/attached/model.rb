@@ -3,6 +3,8 @@
 require "active_support/core_ext/object/try"
 
 module ActiveStorage
+  # = Active Storage \Attached \Model
+  #
   # Provides the class-level DSL for declaring an Active Record model's attachments.
   module Attached::Model
     extend ActiveSupport::Concern

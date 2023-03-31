@@ -3,6 +3,8 @@
 require "active_support/core_ext/module/delegation"
 
 module ActiveStorage
+  # = Active Storage Mirror \Service
+  #
   # Wraps a set of mirror services and provides a single ActiveStorage::Service object that will all
   # have the files uploaded to them. A +primary+ service is designated to answer calls to:
   # * +download+

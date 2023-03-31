@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveStorage
+  # = Active Storage Audio \Analyzer
+  #
   # Extracts duration (seconds), bit_rate (bits/s) and sample_rate (hertz) from an audio blob.
   #
   # Example:

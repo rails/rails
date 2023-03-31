@@ -4,6 +4,8 @@ require "active_support/testing/file_fixtures"
 require "active_record/secure_token"
 
 module ActiveStorage
+  # = Active Storage \FixtureSet
+  #
   # Fixtures are a way of organizing data that you want to test against; in
   # short, sample data.
   #
