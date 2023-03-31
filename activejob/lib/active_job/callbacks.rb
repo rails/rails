@@ -4,7 +4,7 @@ require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveJob
-  # = Active Job Callbacks
+  # = Active Job \Callbacks
   #
   # Active Job provides hooks during the life cycle of a job. Callbacks allow you
   # to trigger logic during this cycle. Available callbacks are:

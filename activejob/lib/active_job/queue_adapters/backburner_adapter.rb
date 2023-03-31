@@ -4,7 +4,7 @@ require "backburner"
 
 module ActiveJob
   module QueueAdapters
-    # == Backburner adapter for Active Job
+    # = Backburner adapter for Active Job
     #
     # Backburner is a beanstalkd-powered job queue that can handle a very
     # high volume of jobs. You create background jobs and place them on
