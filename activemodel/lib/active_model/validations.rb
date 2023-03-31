@@ -3,7 +3,7 @@
 require "active_support/core_ext/array/extract_options"
 
 module ActiveModel
-  # == Active \Model \Validations
+  # = Active \Model \Validations
   #
   # Provides a full validation framework to your objects.
   #
@@ -447,7 +447,7 @@ module ActiveModel
     end
   end
 
-  # = Active Model ValidationError
+  # = Active \Model \ValidationError
   #
   # Raised by <tt>validate!</tt> when the model is invalid. Use the
   # +model+ method to retrieve the record which did not validate.

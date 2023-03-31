@@ -3,7 +3,7 @@
 require "active_model/attribute_mutation_tracker"
 
 module ActiveModel
-  # == Active \Model \Dirty
+  # = Active \Model \Dirty
   #
   # Provides a way to track changes in your object in the same way as
   # Active Record does.

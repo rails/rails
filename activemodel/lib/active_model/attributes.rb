@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveModel
+  # = Active \Model \Attributes
+  #
   # The Attributes module allows models to define attributes beyond simple Ruby
   # readers and writers. Similar to Active Record attributes, which are
   # typically inferred from the database schema, Active Model Attributes are
