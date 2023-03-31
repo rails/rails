@@ -10,6 +10,8 @@ end
 
 module ActionDispatch
   module Session
+    # = Action Dispatch Session \MemCacheStore
+    #
     # A session store that uses MemCache to implement storage.
     #
     # ==== Options

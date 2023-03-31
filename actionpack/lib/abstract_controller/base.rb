@@ -26,6 +26,8 @@ module AbstractController
     end
   end
 
+  # = AbstractController \Base
+  #
   # AbstractController::Base is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
   # expected to provide their own +render+ method, since rendering means

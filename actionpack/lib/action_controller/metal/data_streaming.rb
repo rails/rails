@@ -4,6 +4,8 @@ require "action_controller/metal/exceptions"
 require "action_dispatch/http/content_disposition"
 
 module ActionController # :nodoc:
+  # = Action Controller Data Streaming
+  #
   # Methods for sending arbitrary data and for streaming files to the browser,
   # instead of rendering.
   module DataStreaming

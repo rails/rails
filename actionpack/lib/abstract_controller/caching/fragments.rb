@@ -2,6 +2,8 @@
 
 module AbstractController
   module Caching
+    # = AbstractController Caching \Fragments
+    #
     # Fragment caching is used for caching various blocks within
     # views without caching the entire action as a whole. This is
     # useful when certain elements of an action change frequently or

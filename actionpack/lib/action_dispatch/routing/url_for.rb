@@ -2,6 +2,8 @@
 
 module ActionDispatch
   module Routing
+    # = Action Dispatch Routing \UrlFor
+    #
     # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
     # is also possible: a URL can be generated from one of your routing definitions.
     # URL generation functionality is centralized in this module.

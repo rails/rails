@@ -3,6 +3,8 @@
 require "rack/chunked"
 
 module ActionController # :nodoc:
+  # = Action Controller \Streaming
+  #
   # Allows views to be streamed back to the client as they are rendered.
   #
   # By default, Rails renders views by first rendering the template

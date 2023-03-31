@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller Implicit Render
+  #
   # Handles implicit rendering for a controller action that does not
   # explicitly respond with +render+, +respond_to+, +redirect+, or +head+.
   #

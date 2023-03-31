@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller \Caching
+  #
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
   #

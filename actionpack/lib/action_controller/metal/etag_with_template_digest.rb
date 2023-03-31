@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller Etag With Template Digest
+  #
   # When our views change, they should bubble up into HTTP cache freshness
   # and bust browser caches. So the template digest for the current action
   # is automatically included in the ETag.

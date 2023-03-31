@@ -3,6 +3,8 @@
 require "action_dispatch/middleware/exception_wrapper"
 
 module ActionDispatch
+  # = Action Dispatch \ShowExceptions
+  #
   # This middleware rescues any exception returned by the application
   # and calls an exceptions app that will wrap it in a format for the end user.
   #

@@ -3,6 +3,8 @@
 require "active_support/core_ext/hash/keys"
 
 module ActionDispatch
+  # = Action Dispatch \Flash
+  #
   # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create
   # action that sets <tt>flash[:notice] = "Post successfully created"</tt> before redirecting to a display action that can

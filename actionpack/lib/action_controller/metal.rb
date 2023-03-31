@@ -4,6 +4,8 @@ require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
 
 module ActionController
+  # = Action Controller \MiddlewareStack
+  #
   # Extend ActionDispatch middleware stack to make it aware of options
   # allowing the following syntax in controllers:
   #
@@ -58,6 +60,8 @@ module ActionController
       end
   end
 
+  # = Action Controller \Metal
+  #
   # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
   # ActionController::Base.

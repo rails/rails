@@ -5,6 +5,8 @@ require "action_controller"
 require "action_controller/log_subscriber"
 
 module ActionController
+  # = Action \Controller \Base
+  #
   # API Controller is a lightweight version of ActionController::Base,
   # created for applications that don't require all functionalities that a complete
   # \Rails controller provides, allowing you to create controllers with just the

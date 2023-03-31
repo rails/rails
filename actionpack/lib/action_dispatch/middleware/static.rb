@@ -3,6 +3,8 @@
 require "rack/utils"
 
 module ActionDispatch
+  # = Action Dispatch \Static
+  #
   # This middleware serves static files from disk, if available.
   # If no file is found, it hands off to the main app.
   #
@@ -24,6 +26,8 @@ module ActionDispatch
     end
   end
 
+  # = ActionDispatch \FileHandler
+  #
   # This endpoint serves static files from disk using +Rack::Files+.
   #
   # URL paths are matched with static files according to expected

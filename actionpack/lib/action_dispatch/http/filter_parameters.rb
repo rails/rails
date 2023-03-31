@@ -4,6 +4,8 @@ require "active_support/parameter_filter"
 
 module ActionDispatch
   module Http
+    # = Action Dispatch HTTP Filter Parameters
+    #
     # Allows you to specify sensitive query string and POST parameters to filter
     # from the request log.
     #
