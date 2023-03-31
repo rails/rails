@@ -3,8 +3,8 @@
 require "set"
 
 module ActionView
-  # = Action View Atom Feed Helpers
   module Helpers # :nodoc:
+    # = Action View Atom Feed \Helpers
     module AtomFeedHelper
       # Adds easy defaults to writing Atom feeds with the Builder template engine (this does not work on ERB or any other
       # template languages).

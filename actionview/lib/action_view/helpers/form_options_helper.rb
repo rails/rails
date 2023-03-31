@@ -8,8 +8,9 @@ require "active_support/core_ext/array/wrap"
 require "action_view/helpers/text_helper"
 
 module ActionView
-  # = Action View Form Option Helpers
   module Helpers # :nodoc:
+    # = Action View Form Option \Helpers
+    #
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     #
     # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:

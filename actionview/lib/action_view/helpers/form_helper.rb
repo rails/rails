@@ -13,8 +13,9 @@ require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
 
 module ActionView
-  # = Action View Form Helpers
   module Helpers # :nodoc:
+    # = Action View Form \Helpers
+    #
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #
@@ -1620,6 +1621,8 @@ module ActionView
         end
     end
 
+    # = Action View Form Builder
+    #
     # A +FormBuilder+ object is associated with a particular model object and
     # allows you to generate fields associated with the model object. The
     # +FormBuilder+ object is yielded when using +form_for+ or +fields_for+.

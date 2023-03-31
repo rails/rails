@@ -3,8 +3,9 @@
 require "zlib"
 
 module ActionView
-  # = Action View Asset URL Helpers
   module Helpers # :nodoc:
+    # = Action View Asset URL \Helpers
+    #
     # This module provides methods for generating asset paths and
     # URLs.
     #
