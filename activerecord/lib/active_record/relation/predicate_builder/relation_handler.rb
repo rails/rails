@@ -9,7 +9,11 @@ module ActiveRecord
         end
 
         if value.select_values.empty?
-          value = value.select(value.table[value.klass.primary_key])
+          if value.klass.composite_primary_key?
+            raise ArgumentError, "Cannot map composite primary key #{value.klass.primary_key} to #{attribute.name}"
+          else
+            value = value.select(value.table[value.klass.primary_key])
+          end
         end
 
         attribute.in(value.arel)
