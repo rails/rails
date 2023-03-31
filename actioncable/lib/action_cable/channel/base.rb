@@ -6,6 +6,8 @@ require "active_support/parameter_filter"
 
 module ActionCable
   module Channel
+    # = Action Cable \Channel \Base
+    #
     # The channel provides the basic structure of grouping behavior into logical units when communicating over the WebSocket connection.
     # You can think of a channel like a form of controller, but one that's capable of pushing content to the subscriber in addition to simply
     # responding to the subscriber's direct requests.
