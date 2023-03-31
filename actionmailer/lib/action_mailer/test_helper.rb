@@ -32,20 +32,20 @@ module ActionMailer
     #     end
     #   end
     #
-    # If a block is passed, the method returns the +Mail::Message+s that were
-    # processed, enabling further analysis.
+    # The method returns the +Mail::Message+s that were processed, enabling further
+    # analysis.
     #
     #   def test_emails_more_thoroughly
     #     email = assert_emails 1 do
     #       ContactMailer.welcome.deliver_now
     #     end
-    #     assert_email "Hi there", email.subject
+    #     assert_equal "Hi there", email.subject
     #
     #     emails = assert_emails 2 do
     #       ContactMailer.welcome.deliver_now
     #       ContactMailer.welcome.deliver_later
     #     end
-    #     assert_email "Hi there", emails.first.subject
+    #     assert_equal "Hi there", emails.first.subject
     #   end
     def assert_emails(number, &block)
       if block_given?
