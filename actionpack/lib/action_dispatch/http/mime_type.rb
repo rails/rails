@@ -171,9 +171,11 @@ module Mime
 
       def parse(accept_header)
         if !accept_header.include?(",")
-          accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
-          return [] unless accept_header
-          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
+          if (index = accept_header.index(PARAMETER_SEPARATOR_REGEXP))
+            accept_header = accept_header[0, index]
+          end
+          return [] if accept_header.blank?
+          parse_trailing_star(accept_header) || Array(Mime::Type.lookup(accept_header))
         else
           list, index = [], 0
           accept_header.split(",").each do |header|
@@ -199,10 +201,10 @@ module Mime
       end
 
       # For an input of <tt>'text'</tt>, returns <tt>[Mime[:json], Mime[:xml], Mime[:ics],
-      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]</tt>.
+      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]]</tt>.
       #
       # For an input of <tt>'application'</tt>, returns <tt>[Mime[:html], Mime[:js],
-      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]</tt>.
+      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]]</tt>.
       def parse_data_with_trailing_star(type)
         Mime::SET.select { |m| m.match?(type) }
       end
@@ -291,7 +293,7 @@ module Mime
     end
 
     def html?
-      (symbol == :html) || /html/.match?(@string)
+      (symbol == :html) || @string.include?("html")
     end
 
     def all?; false; end

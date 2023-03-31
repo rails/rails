@@ -8,9 +8,13 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
+    def mysql2_adapter_class
+      ConnectionAdapters::Mysql2Adapter
+    end
+
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
-      ConnectionAdapters::Mysql2Adapter.new(config)
+      mysql2_adapter_class.new(config)
     end
   end
 
@@ -97,10 +101,11 @@ module ActiveRecord
       # QUOTING ==================================================
       #++
 
+      # Quotes strings for use in SQL input.
       def quote_string(string)
-        any_raw_connection.escape(string)
-      rescue Mysql2::Error => error
-        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
+        with_raw_connection(allow_retry: true, uses_transaction: false) do |connection|
+          connection.escape(string)
+        end
       end
 
       #--
@@ -167,7 +172,7 @@ module ActiveRecord
         end
 
         def default_prepared_statements
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord.deprecator.warn(<<-MSG.squish)
             The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
           MSG
           false

@@ -4,16 +4,13 @@ require "rack"
 require "rails"
 require "action_controller/railtie"
 require "action_view/railtie"
-require "blade"
 require "json"
 
 module UJS
   class Server < Rails::Application
     routes.append do
-      get "/rails-ujs.js" => Blade::Assets.environment
-      get "/" => "tests#index"
       match "/echo" => "tests#echo", via: :all
-      get "/error" => proc { |env| [403, {}, []] }
+      get "/error" => proc { |env| [403, { "content-type" => "text/plain" }, []] }
     end
 
     config.enable_reloading = true
@@ -76,7 +73,7 @@ class TestsController < ActionController::Base
       html = <<-HTML
         <script nonce="#{request.content_security_policy_nonce}">
           if (window.top && window.top !== window)
-            window.top.jQuery.event.trigger('iframe:loaded', #{payload})
+            window.parent.jQuery.event.trigger('iframe:loaded', #{payload})
         </script>
         <p>You shouldn't be seeing this. <a href="#{request.env['HTTP_REFERER']}">Go back</a></p>
       HTML
@@ -88,5 +85,4 @@ class TestsController < ActionController::Base
   end
 end
 
-Blade.initialize!
 UJS::Server.initialize!

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_model/forbidden_attributes_protection"
-
 module ActiveRecord
   module AttributeAssignment
     include ActiveModel::AttributeAssignment

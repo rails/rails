@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -29,16 +29,21 @@ require "active_support/core_ext/module/attribute_accessors"
 
 require "action_pack"
 require "rack"
+require "action_dispatch/deprecator"
 
 module Rack
   autoload :Test, "rack/test"
 end
 
 module ActionDispatch
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
   extend ActiveSupport::Autoload
 
-  class IllegalStateError < StandardError
+  class DeprecatedIllegalStateError < StandardError
   end
+  deprecate_constant "IllegalStateError", "ActionDispatch::DeprecatedIllegalStateError",
+    message: "ActionDispatch::IllegalStateError is deprecated without replacement.",
+    deprecator: ActionDispatch.deprecator
 
   class MissingController < NameError
   end
@@ -53,6 +58,7 @@ module ActionDispatch
   end
 
   autoload_under "middleware" do
+    autoload :AssumeSSL
     autoload :HostAuthorization
     autoload :RequestId
     autoload :Callbacks

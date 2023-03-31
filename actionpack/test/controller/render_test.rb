@@ -395,9 +395,7 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_dynamic_render
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      assert_deprecated do
-        get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
-      end
+      get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
     end
   end
 
@@ -856,20 +854,20 @@ class HeadRenderTest < ActionController::TestCase
   def test_head_created_with_application_json_content_type
     post :head_created_with_application_json_content_type
     assert_predicate @response.body, :blank?
-    assert_equal "application/json", @response.header["Content-Type"]
+    assert_equal "application/json", @response.headers["Content-Type"]
     assert_response :created
   end
 
   def test_head_ok_with_image_png_content_type
     post :head_ok_with_image_png_content_type
     assert_predicate @response.body, :blank?
-    assert_equal "image/png", @response.header["Content-Type"]
+    assert_equal "image/png", @response.headers["Content-Type"]
     assert_response :ok
   end
 
   def test_head_respect_string_content_type
     get :head_ok_with_string_key_content_type
-    assert_equal "application/pdf", @response.header["Content-Type"]
+    assert_equal "application/pdf", @response.headers["Content-Type"]
   end
 
   def test_head_with_location_header
@@ -884,7 +882,7 @@ class HeadRenderTest < ActionController::TestCase
       set.draw do
         resources :customers
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -969,7 +967,7 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_default_content_type
     post :head_default_content_type
-    assert_equal "text/html", @response.header["Content-Type"]
+    assert_equal "text/html", @response.headers["Content-Type"]
   end
 end
 

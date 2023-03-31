@@ -73,7 +73,6 @@ module ActiveRecord
           assert_raises(ArgumentError) { setup_shared_connection_pool }
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_fixtures_dont_raise_if_theres_no_writing_pool_config
@@ -90,7 +89,6 @@ module ActiveRecord
           assert_equal rw_conn, ro_conn
         ensure
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_setting_writing_role_while_using_another_named_role_does_not_raise
@@ -104,7 +102,6 @@ module ActiveRecord
         ensure
           ActiveRecord.writing_role = old_role
           ActiveRecord::Base.connection_handler = connection_handler
-          ActiveRecord::Base.establish_connection :arunit
         end
 
         def test_establish_connection_with_primary_works_without_deprecation
@@ -114,7 +111,7 @@ module ActiveRecord
 
           @handler.establish_connection(:primary)
 
-          assert_not_deprecated do
+          assert_not_deprecated(ActiveRecord.deprecator) do
             @handler.retrieve_connection("primary")
             @handler.remove_connection_pool("primary")
           end
@@ -198,19 +195,35 @@ module ActiveRecord
         ActiveRecord::Base.configurations = @prev_configs
       end
 
+      def test_establish_connection_with_string_owner_name
+        config = {
+          "development" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "development_readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3" }
+        }
+        @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+        @handler.establish_connection(:development_readonly, owner_name: "custom_connection")
+
+        assert_not_nil pool = @handler.retrieve_connection_pool("custom_connection")
+        assert_not_predicate pool.connection, :preventing_writes?
+        assert_equal "test/db/readonly.sqlite3", pool.db_config.database
+      ensure
+        ActiveRecord::Base.configurations = @prev_configs
+      end
+
       def test_symbolized_configurations_assignment
         @prev_configs = ActiveRecord::Base.configurations
         config = {
           development: {
             primary: {
               adapter: "sqlite3",
-              database: "test/db/development.sqlite3",
+              database: "test/storage/development.sqlite3",
             },
           },
           test: {
             primary: {
               adapter: "sqlite3",
-              database: "test/db/test.sqlite3",
+              database: "test/storage/test.sqlite3",
             },
           },
         }
@@ -423,38 +436,38 @@ module ActiveRecord
           rd.close
         end
 
-        def test_pool_from_any_process_for_uses_most_recent_spec
-          skip unless current_adapter?(:SQLite3Adapter)
+        if current_adapter?(:SQLite3Adapter)
+          def test_pool_from_any_process_for_uses_most_recent_spec
+            file = Tempfile.new "lol.sqlite3"
 
-          file = Tempfile.new "lol.sqlite3"
+            rd, wr = IO.pipe
+            rd.binmode
+            wr.binmode
 
-          rd, wr = IO.pipe
-          rd.binmode
-          wr.binmode
+            pid = fork do
+              config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(database: file.path)
+              ActiveRecord::Base.establish_connection(config_hash)
 
-          pid = fork do
-            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(database: file.path)
-            ActiveRecord::Base.establish_connection(config_hash)
+              pid2 = fork do
+                wr.write ActiveRecord::Base.connection_db_config.database
+                wr.close
+              end
 
-            pid2 = fork do
-              wr.write ActiveRecord::Base.connection_db_config.database
-              wr.close
+              Process.waitpid pid2
             end
 
-            Process.waitpid pid2
-          end
+            Process.waitpid pid
 
-          Process.waitpid pid
+            wr.close
 
-          wr.close
+            assert_equal file.path, rd.read
 
-          assert_equal file.path, rd.read
-
-          rd.close
-        ensure
-          if file
-            file.close
-            file.unlink
+            rd.close
+          ensure
+            if file
+              file.close
+              file.unlink
+            end
           end
         end
       end

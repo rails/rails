@@ -204,12 +204,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [], reply.history
   end
 
-  def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_new_record
+  def test_no_after_commit_on_destroy_after_transaction_commits_for_destroyed_new_record
     new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     add_transaction_execution_blocks new_record
 
     new_record.destroy
-    assert_equal [:commit_on_destroy], new_record.history
+    assert_equal [], new_record.history
   end
 
   def test_save_in_after_create_commit_wont_invoke_extra_after_create_commit
@@ -674,7 +674,7 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
       def before_save_for_transaction; end
   end
 
-  def test_trigger_once_on_multiple_deletions
+  def test_trigger_once_on_multiple_deletion_within_transaction
     TopicWithCallbacksOnDestroy.clear_history
     topic = TopicWithCallbacksOnDestroy.new
     topic.save
@@ -685,6 +685,19 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
     end
 
     topic.destroy
+
+    assert_equal [:commit_on_destroy], TopicWithCallbacksOnDestroy.history
+  end
+
+  def test_trigger_once_on_multiple_deletions
+    TopicWithCallbacksOnDestroy.clear_history
+    topic = TopicWithCallbacksOnDestroy.new
+    topic.save
+    topic_clone = TopicWithCallbacksOnDestroy.find(topic.id)
+
+    topic.destroy
+    topic.destroy
+    topic_clone.destroy
 
     assert_equal [:commit_on_destroy], TopicWithCallbacksOnDestroy.history
   end

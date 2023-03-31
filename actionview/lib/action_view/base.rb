@@ -205,7 +205,8 @@ module ActionView # :nodoc:
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
-      @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+      @_assigns = new_assigns
+      new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
     # :stopdoc:
@@ -232,9 +233,13 @@ module ActionView # :nodoc:
       @view_renderer = ActionView::Renderer.new @lookup_context
       @current_template = nil
 
-      assign(assigns)
       assign_controller(controller)
       _prepare_context
+
+      super()
+
+      # Assigns must be called last to minimize the number of shapes
+      assign(assigns)
     end
 
     def _run(method, template, locals, buffer, add_to_stack: true, has_strict_locals: false, &block)

@@ -8,6 +8,7 @@
 #
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
+require "active_support/testing/strict_warnings"
 require "fileutils"
 require "shellwords"
 
@@ -119,7 +120,7 @@ module TestHelpers
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\z/
         File.open("#{app_path}/config/routes.rb", "w") do |f|
-          f.puts $` + "\nActiveSupport::Deprecation.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
+          f.puts $` + "\nActionDispatch.deprecator.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
         end
       end
 
@@ -154,13 +155,13 @@ module TestHelpers
           timeout: 5000
         development:
           <<: *default
-          database: db/development.sqlite3
+          database: storage/development.sqlite3
         test:
           <<: *default
-          database: db/test.sqlite3
+          database: storage/test.sqlite3
         production:
           <<: *default
-          database: db/production.sqlite3
+          database: storage/production.sqlite3
       YAML
     end
 
@@ -175,52 +176,52 @@ module TestHelpers
         development:
           primary:
             <<: *default
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
           primary_readonly:
             <<: *default
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
             replica: true
           animals:
             <<: *default
-            database: db/development_animals.sqlite3
+            database: storage/development_animals.sqlite3
             migrations_paths: db/animals_migrate
           animals_readonly:
             <<: *default
-            database: db/development_animals.sqlite3
+            database: storage/development_animals.sqlite3
             migrations_paths: db/animals_migrate
             replica: true
         test:
           primary:
             <<: *default
-            database: db/test.sqlite3
+            database: storage/test.sqlite3
           primary_readonly:
             <<: *default
-            database: db/test.sqlite3
+            database: storage/test.sqlite3
             replica: true
           animals:
             <<: *default
-            database: db/test_animals.sqlite3
+            database: storage/test_animals.sqlite3
             migrations_paths: db/animals_migrate
           animals_readonly:
             <<: *default
-            database: db/test_animals.sqlite3
+            database: storage/test_animals.sqlite3
             migrations_paths: db/animals_migrate
             replica: true
         production:
           primary:
             <<: *default
-            database: db/production.sqlite3
+            database: storage/production.sqlite3
           primary_readonly:
             <<: *default
-            database: db/production.sqlite3
+            database: storage/production.sqlite3
             replica: true
           animals:
             <<: *default
-            database: db/production_animals.sqlite3
+            database: storage/production_animals.sqlite3
             migrations_paths: db/animals_migrate
           animals_readonly:
             <<: *default
-            database: db/production_animals.sqlite3
+            database: storage/production_animals.sqlite3
             migrations_paths: db/animals_migrate
             replica: true
       YAML
@@ -464,7 +465,8 @@ module TestHelpers
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
-    def use_postgresql(multi_db: false, database_name: "railties_#{Process.pid}")
+    def use_postgresql(multi_db: false)
+      database_name = "railties_#{Process.pid}"
       if multi_db
         File.open("#{app_path}/config/database.yml", "w") do |f|
           f.puts <<-YAML
@@ -496,6 +498,7 @@ module TestHelpers
           YAML
         end
       end
+      database_name
     end
   end
 

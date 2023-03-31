@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
+
 ORIG_ARGV = ARGV.dup
 
 require "bundler/setup"
@@ -20,10 +22,10 @@ require "active_support"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActiveSupport.deprecator.debug = true
 
 # Default to Ruby 2.4+ to_time behavior but allow running tests with old behavior
-ActiveSupport::Deprecation.silence do
+ActiveSupport.deprecator.silence do
   ActiveSupport.to_time_preserves_timezone = ENV.fetch("PRESERVE_TIMEZONES", "1") == "1"
 end
 

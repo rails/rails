@@ -6,11 +6,7 @@ require "active_support/concurrency/load_interlock_aware_monitor"
 
 module ActiveSupport
   module Concurrency
-    class LoadInterlockAwareMonitorTest < ActiveSupport::TestCase
-      def setup
-        @monitor = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
-      end
-
+    module LoadInterlockAwareMonitorTests
       def test_entering_with_no_blocking
         assert @monitor.mon_enter
       end
@@ -49,6 +45,33 @@ module ActiveSupport
 
         assert able_to_use_monitor
         assert able_to_load
+      end
+    end
+
+    class LoadInterlockAwareMonitorTest < ActiveSupport::TestCase
+      include LoadInterlockAwareMonitorTests
+
+      def setup
+        @monitor = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+      end
+    end
+
+    class ThreadLoadInterlockAwareMonitorTest < ActiveSupport::TestCase
+      include LoadInterlockAwareMonitorTests
+
+      def setup
+        @monitor = ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+      end
+
+      def test_lock_owned_by_thread
+        @monitor.synchronize do
+          enumerator = Enumerator.new do |yielder|
+            @monitor.synchronize do
+              yielder.yield 42
+            end
+          end
+          assert_equal 42, enumerator.next
+        end
       end
     end
   end

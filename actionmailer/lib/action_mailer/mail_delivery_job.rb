@@ -9,7 +9,10 @@ module ActionMailer
   #
   # Exceptions are rescued and handled by the mailer class.
   class MailDeliveryJob < ActiveJob::Base # :nodoc:
-    queue_as { ActionMailer::Base.deliver_later_queue_name }
+    queue_as do
+      mailer_class = arguments.first.constantize
+      mailer_class.deliver_later_queue_name
+    end
 
     rescue_from StandardError, with: :handle_exception_with_mailer_class
 

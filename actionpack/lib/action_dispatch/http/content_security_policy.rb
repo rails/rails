@@ -32,7 +32,6 @@ module ActionDispatch # :nodoc:
       end
 
       def call(env)
-        request = ActionDispatch::Request.new env
         status, headers, _ = response = @app.call(env)
 
         # Returning CSP headers with a 304 Not Modified is harmful, since nonces in the new
@@ -40,6 +39,8 @@ module ActionDispatch # :nodoc:
         return response if status == 304
 
         return response if policy_present?(headers)
+
+        request = ActionDispatch::Request.new env
 
         if policy = request.content_security_policy
           nonce = request.content_security_policy_nonce

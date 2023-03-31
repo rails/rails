@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2022 David Heinemeier Hansson, Basecamp
+# Copyright (c) David Heinemeier Hansson, 37signals LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -29,10 +29,13 @@ require "active_support/rails"
 require "active_support/core_ext/numeric/time"
 
 require "active_storage/version"
+require "active_storage/deprecator"
 require "active_storage/errors"
 
 require "marcel"
 
+# :markup: markdown
+# :include: activestorage/README.md
 module ActiveStorage
   extend ActiveSupport::Autoload
 
@@ -357,12 +360,25 @@ module ActiveStorage
   mattr_accessor :draw_routes, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
-  mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
-  mattr_accessor :silence_invalid_content_types_warning, default: false
+  def self.replace_on_assign_to_many
+    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
+  end
+
+  def self.replace_on_assign_to_many=(value)
+    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
+  end
+
+  def self.silence_invalid_content_types_warning
+    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
+  end
+
+  def self.silence_invalid_content_types_warning=(value)
+    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
+  end
 
   module Transformers
     extend ActiveSupport::Autoload

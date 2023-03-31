@@ -110,10 +110,10 @@ class FormHelperTest < ActionView::TestCase
     @comment = Comment.new
     def @post.errors
       Class.new {
-        def [](field); field == "author_name" ? ["can't be empty"] : [] end
+        def [](field); field == "author_name" ? ["can’t be empty"] : [] end
         def empty?() false end
         def count() 1 end
-        def full_messages() ["Author name can't be empty"] end
+        def full_messages() ["Author name can’t be empty"] end
       }.new
     end
     def @post.to_key; [123]; end
@@ -1102,6 +1102,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field("post", "written_on", value: value))
   end
 
+  def test_date_field_with_datetime_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
+    value = DateTime.new(2013, 6, 29)
+    assert_dom_equal(expected, date_field("post", "written_on", value: value))
+  end
+
   def test_date_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
@@ -1151,6 +1157,12 @@ class FormHelperTest < ActionView::TestCase
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
     step = 60
     assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value, step: step))
+  end
+
+  def test_time_field_with_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
+    value = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, time_field("post", "written_on", value: value))
   end
 
   def test_time_field_with_timewithzone_value
@@ -1213,7 +1225,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_datetime_field_with_value_attr
-    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2013-06-29T13:37:00+00:00" />}
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2013-06-29T13:37:00" />}
     value = DateTime.new(2013, 6, 29, 13, 37)
     assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
   end
@@ -1285,6 +1297,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, month_field("post", "written_on", min: min_value, max: max_value, step: step))
   end
 
+  def test_month_field_with_datetime_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
+    value = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, month_field("post", "written_on", value: value))
+  end
+
   def test_month_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
@@ -1318,6 +1336,12 @@ class FormHelperTest < ActionView::TestCase
     max_value = DateTime.new(2010, 12, 23)
     step = 2
     assert_dom_equal(expected, week_field("post", "written_on", min: min_value, max: max_value, step: step))
+  end
+
+  def test_week_field_with_datetime_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
+    value = DateTime.new(2004, 6, 15, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on", value: value))
   end
 
   def test_week_field_with_timewithzone_value
@@ -3534,6 +3558,36 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
       '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="hash backed author" />'
     end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_nested_fields_for_with_hash_with_indifferent_access_like_model_and_options
+    @author = HashWithIndifferentAccessBackedAuthor.new
+
+    form_for(@post) do |f|
+      concat f.fields_for(:author, @author, {}) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      '<input id="post_author_attributes_name" name="post[author_attributes][name]" type="text" value="hash backed author" />'
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_nested_fields_for_with_hash_with_indifferent_access_like_model_without_options
+    @author = HashWithIndifferentAccessBackedAuthor.new
+
+    form_for(@post) do |f|
+      concat f.fields_for(:author, @author) { |af|
+        concat af.text_field(:name)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch")
 
     assert_dom_equal expected, @rendered
   end

@@ -57,7 +57,7 @@ module ActiveModel
       #
       #   user.save                                                      # => false, password required
       #   user.password = "vr00m"
-      #   user.save                                                      # => false, confirmation doesn't match
+      #   user.save                                                      # => false, confirmation doesn’t match
       #   user.password_confirmation = "vr00m"
       #   user.save                                                      # => true
       #
@@ -168,6 +168,12 @@ module ActiveModel
         define_method("authenticate_#{attribute}") do |unencrypted_password|
           attribute_digest = public_send("#{attribute}_digest")
           attribute_digest.present? && BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
+        end
+
+        # Returns the salt, a small chunk of random data added to the password before it's hashed.
+        define_method("#{attribute}_salt") do
+          attribute_digest = public_send("#{attribute}_digest")
+          attribute_digest.present? ? BCrypt::Password.new(attribute_digest).salt : nil
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password

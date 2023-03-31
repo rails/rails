@@ -191,7 +191,7 @@ module ActiveRecord
       end
 
       def test_quote_duration
-        expected = assert_deprecated { @quoter.quote(30.minutes) }
+        expected = assert_deprecated(ActiveRecord.deprecator) { @quoter.quote(30.minutes) }
         assert_equal "1800", expected
       end
     end

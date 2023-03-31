@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby <%= "\"#{Gem.ruby_version}\"" -%>
+ruby <%= "\"#{gem_ruby_version}\"" -%>
 
 <% gemfile_entries.each do |gemfile_entry| %>
 <%= gemfile_entry %>
@@ -22,11 +22,6 @@ gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 <% end -%>
-<% unless skip_sprockets? || options.minimal? -%>
-
-# Use Sass to process CSS
-# gem "sassc-rails"
-<% end -%>
 <% unless skip_active_storage? -%>
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
@@ -34,7 +29,7 @@ gem "bootsnap", require: false
 <% end -%>
 <%- if options.api? -%>
 
-# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
+# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
 <%- end -%>
 <% if RUBY_ENGINE == "ruby" -%>

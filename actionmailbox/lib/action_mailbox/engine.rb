@@ -22,6 +22,10 @@ module ActionMailbox
 
     config.action_mailbox.storage_service = nil
 
+    initializer "action_mailbox.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:action_mailbox] = ActionMailbox.deprecator
+    end
+
     initializer "action_mailbox.config" do
       config.after_initialize do |app|
         ActionMailbox.logger = app.config.action_mailbox.logger || Rails.logger

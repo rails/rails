@@ -90,7 +90,6 @@ class SafeBufferTest < ActiveSupport::TestCase
     reverse: nil,
     rstrip: nil,
     scrub: nil,
-    slice: "foo",
     squeeze: nil,
     strip: nil,
     sub: ["foo", "bar"],
@@ -212,28 +211,59 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should continue unsafe on slice" do
-    x = "foo".html_safe.gsub!("f", '<script>alert("lolpwnd");</script>')
+    safe_string = "foo".html_safe.gsub!("f", '<script>alert("lolpwnd");</script>')
 
     # calling gsub! makes the dirty flag true
-    assert_not x.html_safe?, "should not be safe"
-
-    # getting a slice of it
-    y = x[0..-1]
+    assert_not safe_string.html_safe?, "should not be safe"
 
     # should still be unsafe
-    assert_not y.html_safe?, "should not be safe"
+    assert_not safe_string[0..-1].html_safe?, "should not be safe"
+    assert_not safe_string.slice(0..-1).html_safe?, "should not be safe"
+    assert_not safe_string.slice!(0..-1).html_safe?, "should not be safe"
+    # even after slice! safe_string is still unsafe
+    assert_not safe_string.html_safe?, "should not be safe"
   end
 
   test "Should continue safe on slice" do
-    x = "<div>foo</div>".html_safe
+    safe_string = "<div>foo</div>".html_safe
 
-    assert_predicate x, :html_safe?
-
-    # getting a slice of it
-    y = x[0..-1]
+    assert_predicate safe_string, :html_safe?
 
     # should still be safe
-    assert_predicate y, :html_safe?
+    assert_predicate safe_string[0..-1], :html_safe?
+    assert_predicate safe_string.slice(0..-1), :html_safe?
+    assert_predicate safe_string.slice!(0...1), :html_safe?
+
+    # even after slice! safe_string is still safe
+    assert_predicate safe_string, :html_safe?
+  end
+
+  test "Should continue safe on chr" do
+    safe_string = "<div>foo</div>".html_safe
+
+    assert_predicate safe_string, :html_safe?
+    assert_predicate safe_string.chr, :html_safe?
+  end
+
+  test "Should continue unsafe on chr" do
+    safe_string = "<div>foo</div>"
+
+    assert_not safe_string.html_safe?, "should not be safe"
+    assert_not safe_string.chr.html_safe?, "should not be safe"
+  end
+
+  test "Should return a SafeBuffer on slice! if original value was safe" do
+    safe_string = "<div>foo</div>".html_safe
+
+    assert safe_string.slice!(0...1).is_a?(ActiveSupport::SafeBuffer)
+  end
+
+  test "Should return a String on slice! if original value was not safe" do
+    unsafe_string = +'<script>alert("XSS");</script>'
+
+    sliced_string = unsafe_string.slice!(0...1)
+    assert_not sliced_string.is_a?(ActiveSupport::SafeBuffer)
+    assert sliced_string.is_a?(String)
   end
 
   test "Should work with interpolation (array argument)" do

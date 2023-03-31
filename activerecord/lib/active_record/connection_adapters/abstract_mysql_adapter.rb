@@ -51,6 +51,36 @@ module ActiveRecord
           end
       end
 
+      class << self
+        def dbconsole(config, options = {})
+          mysql_config = config.configuration_hash
+
+          args = {
+            host: "--host",
+            port: "--port",
+            socket: "--socket",
+            username: "--user",
+            encoding: "--default-character-set",
+            sslca: "--ssl-ca",
+            sslcert: "--ssl-cert",
+            sslcapath: "--ssl-capath",
+            sslcipher: "--ssl-cipher",
+            sslkey: "--ssl-key",
+            ssl_mode: "--ssl-mode"
+          }.filter_map { |opt, arg| "#{arg}=#{mysql_config[opt]}" if mysql_config[opt] }
+
+          if mysql_config[:password] && options[:include_password]
+            args << "--password=#{mysql_config[:password]}"
+          elsif mysql_config[:password] && !mysql_config[:password].to_s.empty?
+            args << "-p"
+          end
+
+          args << config.database
+
+          find_cmd_and_exec(["mysql", "mysql5"], *args)
+        end
+      end
+
       def get_database_version # :nodoc:
         full_version_string = get_full_version
         version_string = version_string(full_version_string)
@@ -191,11 +221,15 @@ module ActiveRecord
       #++
 
       # Executes the SQL statement in the context of this connection.
-      def execute(sql, name = nil, async: false)
+      #
+      # Setting +allow_retry+ to true causes the db to reconnect and retry
+      # executing the SQL statement in case of a connection-related exception.
+      # This option should only be enabled for known idempotent queries.
+      def execute(sql, name = nil, async: false, allow_retry: false)
         sql = transform_query(sql)
         check_if_write_query(sql)
 
-        raw_execute(sql, name, async: async)
+        raw_execute(sql, name, async: async, allow_retry: allow_retry)
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
@@ -393,8 +427,10 @@ module ActiveRecord
           options[:comment] = column.comment
         end
 
-        unless options.key?(:collation)
-          options[:collation] = column.collation if text_type?(type)
+        if options[:collation] == :no_collation
+          options.delete(:collation)
+        else
+          options[:collation] ||= column.collation if text_type?(type)
         end
 
         unless options.key?(:auto_increment)
@@ -455,7 +491,7 @@ module ActiveRecord
 
         fk_info.map do |row|
           options = {
-            column: row["column"],
+            column: unquote_identifier(row["column"]),
             name: row["name"],
             primary_key: row["primary_key"]
           }
@@ -463,7 +499,7 @@ module ActiveRecord
           options[:on_update] = extract_foreign_key_action(row["on_update"])
           options[:on_delete] = extract_foreign_key_action(row["on_delete"])
 
-          ForeignKeyDefinition.new(table_name, row["to_table"], options)
+          ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
         end
       end
 
@@ -695,9 +731,34 @@ module ActiveRecord
 
           log(sql, name, async: async) do
             with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
-              conn.query(sql)
+              sync_timezone_changes(conn)
+              result = conn.query(sql)
+              handle_warnings(sql)
+              result
             end
           end
+        end
+
+        def handle_warnings(sql)
+          return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+
+          @affected_rows_before_warnings = @raw_connection.affected_rows
+          result = @raw_connection.query("SHOW WARNINGS")
+          result.each do |level, code, message|
+            warning = SQLWarning.new(message, code, level, sql)
+            next if warning_ignored?(warning)
+
+            ActiveRecord.db_warnings_action.call(warning)
+          end
+        end
+
+        def warning_ignored?(warning)
+          warning.level == "Note" || super
+        end
+
+        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
+        # made since we established the connection
+        def sync_timezone_changes(raw_connection)
         end
 
         def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)

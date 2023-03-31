@@ -120,6 +120,10 @@ module ActiveRecord
         end
 
         private
+          def valid_table_definition_options
+            super + [:rename]
+          end
+
           def create_table_definition(name, **options)
             SQLite3::TableDefinition.new(self, name, **options)
           end
@@ -141,7 +145,8 @@ module ActiveRecord
               type_metadata,
               field["notnull"].to_i == 0,
               default_function,
-              collation: field["collation"]
+              collation: field["collation"],
+              auto_increment: field["auto_increment"],
             )
           end
 

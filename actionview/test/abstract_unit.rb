@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/testing/strict_warnings"
+
 $:.unshift File.expand_path("lib", __dir__)
 
 ENV["TMPDIR"] = File.expand_path("tmp", __dir__)
@@ -37,7 +39,7 @@ ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActionView.deprecator.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false

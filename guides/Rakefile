@@ -24,10 +24,31 @@ namespace :guides do
     end
   end
 
+  desc "Lint guides, using `mdl`"
+  task :lint do
+    require "mdl"
+    all = Dir.glob("#{__dir__}/source/*.md")
+    files = all - Dir.glob("#{__dir__}/**/*_release_notes.md") # Ignore release notes
+    MarkdownLint.run files
+  end
+
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
   task :validate do
     ruby "w3c_validator.rb"
+  end
+
+  task :vendor_javascript do
+    module Importmap; end
+    require "importmap/packager"
+
+    packager = Importmap::Packager.new(vendor_path: "assets/javascripts")
+    imports = packager.import("@hotwired/turbo", from: "unpkg")
+    imports.each do |package, url|
+      umd_url = url.gsub("esm.js", "umd.js")
+      puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.js via download from #{umd_url})
+      packager.download(package, umd_url)
+    end
   end
 
   desc "Show help"

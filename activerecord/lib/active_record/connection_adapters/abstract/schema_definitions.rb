@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :comment, :valid
 
       def initialize(
         table, name,
@@ -18,6 +19,7 @@ module ActiveRecord
         where: nil,
         type: nil,
         using: nil,
+        include: nil,
         comment: nil,
         valid: true
       )
@@ -31,6 +33,7 @@ module ActiveRecord
         @where = where
         @type = type
         @using = using
+        @include = include
         @comment = comment
         @valid = valid
       end
@@ -47,11 +50,13 @@ module ActiveRecord
         }
       end
 
-      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, **options)
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, **options)
+        columns = options[:column] if columns.blank?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
-          (valid.nil? || self.valid == valid)
+          (valid.nil? || self.valid == valid) &&
+          (include.nil? || Array(self.include) == Array(include))
       end
 
       private
@@ -69,11 +74,24 @@ module ActiveRecord
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+      self::OPTION_NAMES = [
+        :limit,
+        :precision,
+        :scale,
+        :default,
+        :null,
+        :collation,
+        :comment,
+        :primary_key,
+        :if_exists,
+        :if_not_exists
+      ]
+
       def primary_key?
         options[:primary_key]
       end
 
-      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+      (self::OPTION_NAMES - [:primary_key]).each do |option_name|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{option_name}
             options[:#{option_name}]
@@ -469,15 +487,9 @@ module ActiveRecord
 
         if @columns_hash[name]
           if @columns_hash[name].primary_key?
-            raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+            raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
           else
-            raise ArgumentError, "you can't define an already defined column '#{name}'."
-          end
-        end
-
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
+            raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
           end
         end
 
@@ -547,6 +559,13 @@ module ActiveRecord
           type = integer_like_primary_key_type(type, options)
         end
         type = aliased_types(type.to_s, type)
+
+        if @conn.supports_datetime_with_precision?
+          if type == :datetime && !options.key?(:precision)
+            options[:precision] = 6
+          end
+        end
+
         options[:primary_key] ||= type == :primary_key
         options[:null] = false if options[:primary_key]
         create_column_definition(name, type, options)
@@ -566,7 +585,15 @@ module ActiveRecord
       end
 
       private
+        def valid_column_definition_options
+          @conn.valid_column_definition_options
+        end
+
         def create_column_definition(name, type, options)
+          unless options[:_skip_validate_options]
+            options.except(:_uses_legacy_reference_index_name, :_skip_validate_options).assert_valid_keys(valid_column_definition_options)
+          end
+
           ColumnDefinition.new(name, type, options)
         end
 

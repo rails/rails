@@ -29,7 +29,7 @@ module ActionDispatch
 
       def method_missing(method, *args)
         if @helpers.respond_to?(method)
-          self.class.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          instance_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{method}(*args)
               options = args.extract_options!
               options = url_options.merge((options || {}).symbolize_keys)

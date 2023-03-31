@@ -22,7 +22,7 @@ class UrlRewriterTests < ActionController::TestCase
     @rewriter = Rewriter.new(@request)
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller(/:action(/:id))"
         end
       end

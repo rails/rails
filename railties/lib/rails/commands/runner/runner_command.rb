@@ -7,30 +7,25 @@ module Rails
     class RunnerCommand < Base # :nodoc:
       include EnvironmentArgument
 
-      self.environment_desc = "The environment for the runner to operate under (test/development/production)"
-
       no_commands do
-        def help
+        def help(command_name = nil, *)
           super
-          say self.class.desc
+          if command_name == "runner"
+            say ""
+            say self.class.class_usage
+          end
         end
       end
 
-      def self.banner(*)
-        "#{super} [<'Some.ruby(code)'> | <filename.rb> | -]"
-      end
-
+      desc "runner [<'Some.ruby(code)'> | <filename.rb> | -]",
+        "Run Ruby code in the context of your application"
       def perform(code_or_file = nil, *command_argv)
-        extract_environment_option_from_argument
-
         unless code_or_file
           help
           exit 1
         end
 
-        ENV["RAILS_ENV"] = options[:environment]
-
-        require_application_and_environment!
+        boot_application!
         Rails.application.load_runner
 
         ARGV.replace(command_argv)
@@ -66,9 +61,10 @@ module Rails
         end
       end
 
-      def looks_like_a_file_path?(code_or_file)
-        code_or_file.ends_with?(".rb")
-      end
+      private
+        def looks_like_a_file_path?(code_or_file)
+          code_or_file.ends_with?(".rb")
+        end
     end
   end
 end

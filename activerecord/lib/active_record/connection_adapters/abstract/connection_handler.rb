@@ -93,14 +93,14 @@ module ActiveRecord
       end
 
       def all_connection_pools
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
           The `all_connection_pools` method is deprecated in favor of `connection_pool_list`.
           Call `connection_pool_list(:all)` to get the same behavior as `all_connection_pools`.
         MSG
         connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
       end
 
-      # Returns the pools for a connection handler and  given role. If `:all` is passed,
+      # Returns the pools for a connection handler and  given role. If +:all+ is passed,
       # all pools belonging to the connection handler will be returned.
       def connection_pool_list(role = nil)
         if role.nil?
@@ -127,7 +127,7 @@ module ActiveRecord
       end
 
       def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
-        owner_name = StringConnectionName.new(config.to_s) if config.is_a?(Symbol)
+        owner_name = determine_owner_name(owner_name, config)
 
         pool_config = resolve_pool_config(config, owner_name, role, shard)
         db_config = pool_config.db_config
@@ -288,7 +288,7 @@ module ActiveRecord
           end
 
           if roles.flatten.uniq.count > 1
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            ActiveRecord.deprecator.warn(<<-MSG.squish)
               `#{method}` currently only applies to connection pools in the current
               role (`#{ActiveRecord::Base.current_role}`). In Rails 7.1, this method
               will apply to all known pools, regardless of role. To affect only those
@@ -348,6 +348,16 @@ module ActiveRecord
           end
 
           ConnectionAdapters::PoolConfig.new(connection_name, db_config, role, shard)
+        end
+
+        def determine_owner_name(owner_name, config)
+          if owner_name.is_a?(String) || owner_name.is_a?(Symbol)
+            StringConnectionName.new(owner_name.to_s)
+          elsif config.is_a?(Symbol)
+            StringConnectionName.new(config.to_s)
+          else
+            owner_name
+          end
         end
     end
   end

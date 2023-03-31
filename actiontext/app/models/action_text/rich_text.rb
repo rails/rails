@@ -8,7 +8,7 @@ module ActionText
   class RichText < Record
     self.table_name = "action_text_rich_texts"
 
-    serialize :body, ActionText::Content
+    serialize :body, coder: ActionText::Content
     delegate :to_s, :nil?, to: :body
 
     belongs_to :record, polymorphic: true, touch: true

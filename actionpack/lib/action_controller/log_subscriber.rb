@@ -8,7 +8,10 @@ module ActionController
       return unless logger.info?
 
       payload = event.payload
-      params  = payload[:params].except(*INTERNAL_PARAMS)
+      params = {}
+      payload[:params].each_pair do |k, v|
+        params[k] = v unless INTERNAL_PARAMS.include?(k)
+      end
       format  = payload[:format]
       format  = format.to_s.upcase if format.is_a?(Symbol)
       format  = "*/*" if format.nil?
@@ -30,8 +33,8 @@ module ActionController
 
         additions << "Allocations: #{event.allocations}"
 
-        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
-        message << " (#{additions.join(" | ")})"
+        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms" \
+                   " (#{additions.join(" | ")})"
         message << "\n\n" if defined?(Rails.env) && Rails.env.development?
 
         message

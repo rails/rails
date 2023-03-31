@@ -4,10 +4,11 @@ require "cases/helper"
 require "models/reply"
 require "models/topic"
 require "models/movie"
+require "models/car"
 
 module ActiveRecord
   class DupTest < ActiveRecord::TestCase
-    fixtures :topics
+    fixtures :topics, :cars
 
     def test_dup
       assert_not_predicate Topic.new.freeze.dup, :frozen?
@@ -116,6 +117,27 @@ module ActiveRecord
       new_topic.save
       assert_not_nil new_topic.updated_at
       assert_not_nil new_topic.created_at
+    end
+
+    def test_dup_locking_column_is_cleared
+      car = Car.first
+      car.touch
+      assert_not_equal 0, car.lock_version
+
+      car.lock_version = 1000
+
+      new_car = car.dup
+      assert_equal 0, new_car.lock_version
+    end
+
+    def test_dup_locking_column_is_not_dirty
+      car = Car.first
+      car.touch
+      assert_not_equal 0, car.lock_version
+
+      car.lock_version += 1
+      new_car = car.dup
+      assert_not_predicate new_car, :lock_version_changed?
     end
 
     def test_dup_after_initialize_callbacks

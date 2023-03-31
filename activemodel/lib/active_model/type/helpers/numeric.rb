@@ -8,6 +8,10 @@ module ActiveModel
           cast(value)
         end
 
+        def serialize_cast_value(value)
+          value
+        end
+
         def cast(value)
           # Checks whether the value is numeric. Spaceship operator
           # will return nil if value is not numeric.

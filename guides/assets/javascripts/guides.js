@@ -23,10 +23,7 @@
     for(var i = 0; i < array.length; i++) callback(array[i]);
   }
 
-  // Viewable on local
-  if (window.location.protocol === "file:") Turbolinks.supported = false;
-
-  document.addEventListener("turbolinks:load", function() {
+  document.addEventListener("turbo:load", function() {
     var guidesMenu = document.getElementById("guidesMenu");
     var guides     = document.getElementById("guides");
 
@@ -52,11 +49,7 @@
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1) || 'index.html';
 
     guidesIndexItem.addEventListener("change", function(e) {
-      if (Turbolinks.supported) {
-        Turbolinks.visit(e.target.value);
-      } else {
-        window.location = e.target.value;
-      }
+      Turbo.visit(e.target.value);
     });
 
     var moreInfoButton = document.querySelector(".more-info-button");

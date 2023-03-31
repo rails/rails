@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-Development Dependencies Install
-================================
+Installing Rails Core Development Dependencies
+==============================================
 
 This guide covers how to set up an environment for Ruby on Rails core development.
 
@@ -122,9 +122,11 @@ $ sudo apt-get update
 $ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
 
 # Install Yarn
-$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-$ sudo apt-get install yarn
+# Use this command if you do not have Node.js installed
+$ curl --fail --silent --show-error --location https://deb.nodesource.com/setup_18.x | sudo -E bash -
+$ sudo apt-get install -y nodejs
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Fedora or CentOS
@@ -136,10 +138,10 @@ $ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
-$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-# If you have Node.js installed, use this command instead
-$ curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-$ sudo dnf install yarn
+$ curl --silent --location https://rpm.nodesource.com/setup_18.x | sudo bash -
+$ sudo dnf install -y nodejs
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Arch Linux
@@ -170,6 +172,16 @@ Or install everything through ports (these packages are located under the
 NOTE: If you run into problems during the installation of MySQL, please see
 [the MySQL documentation](https://dev.mysql.com/doc/refman/en/freebsd-installation.html).
 
+#### Debian
+
+To install all dependencies run:
+
+```bash
+$ sudo apt-get install sqlite3 libsqlite3-dev default-mysql-server default-libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+```
+
+NOTE: If you are running Debian, MariaDB is the default MySQL server, so be aware there may be differences.
+
 ### Database Configuration
 
 There are couple of additional steps required to configure database engines
@@ -188,7 +200,7 @@ and for macOS:
 $ createuser --superuser $USER
 ```
 
-MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
+NOTE: MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
 
 Then, you need to create the test databases for both MySQL and PostgreSQL with:
 
@@ -216,7 +228,7 @@ NOTE: Using the Rake task to create the test databases ensures they have the cor
 
 If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine, but you should not push any of those changes back to Rails.
 
-### Install JavaScript dependencies
+### Install JavaScript Dependencies
 
 If you installed Yarn, you will need to install the JavaScript dependencies:
 
@@ -224,7 +236,7 @@ If you installed Yarn, you will need to install the JavaScript dependencies:
 $ yarn install
 ```
 
-### Installing gem dependencies
+### Installing Gem Dependencies
 
 Gems are installed with [Bundler](https://bundler.io/) which ships by default with Ruby.
 

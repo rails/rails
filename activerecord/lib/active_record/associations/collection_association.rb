@@ -119,7 +119,7 @@ module ActiveRecord
       def concat(*records)
         records = records.flatten
         if owner.new_record?
-          load_target
+          skip_strict_loading { load_target }
           concat_records(records)
         else
           transaction { concat_records(records) }
@@ -233,7 +233,7 @@ module ActiveRecord
       # and delete/add only records that have changed.
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch!(val) }
-        original_target = load_target.dup
+        original_target = skip_strict_loading { load_target }.dup
 
         if owner.new_record?
           replace_records(other_array, original_target)
@@ -324,8 +324,8 @@ module ActiveRecord
           persisted.map! do |record|
             if mem_record = memory.delete(record)
 
-              ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save).each do |name|
-                mem_record[name] = record[name]
+              ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save - mem_record.class._attr_readonly).each do |name|
+                mem_record._write_attribute(name, record[name])
               end
 
               mem_record

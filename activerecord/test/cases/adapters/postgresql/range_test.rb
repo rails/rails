@@ -189,6 +189,46 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_timezone_awareness_endless_tzrange
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
+      PostgresqlRange.reset_column_information
+      time_string = Time.current.to_s
+      time = Time.zone.parse(time_string)
+
+      record = PostgresqlRange.new(tstz_range: time_string...)
+      assert_equal time..., record.tstz_range
+      assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
+
+      record.save!
+      record.reload
+
+      assert_equal time..., record.tstz_range
+      assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
+    end
+  end
+
+  def test_timezone_awareness_beginless_tzrange
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
+      PostgresqlRange.reset_column_information
+      time_string = Time.current.to_s
+      time = Time.zone.parse(time_string)
+
+      record = PostgresqlRange.new(tstz_range: ..time_string)
+      assert_equal nil..time, record.tstz_range
+      assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.end.time_zone
+
+      record.save!
+      record.reload
+
+      assert_equal nil..time, record.tstz_range
+      assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.end.time_zone
+    end
+  end
+
   def test_timezone_array_awareness_tzrange
     tz = "Pacific Time (US & Canada)"
 
@@ -200,17 +240,21 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
       to_time_string = (from_time + 1.hour).to_s
       to_time = Time.zone.parse(to_time_string)
 
-      record = PostgresqlRange.new(tstz_ranges: [from_time_string...to_time_string, from_time_string..to_time_string])
-      assert_equal [from_time...to_time, from_time..to_time], record.tstz_ranges
-      assert_equal ActiveSupport::TimeZone[tz], record.tstz_ranges.first.begin.time_zone
-      assert_equal ActiveSupport::TimeZone[tz], record.tstz_ranges.last.begin.time_zone
+      record = PostgresqlRange.new(tstz_ranges: [from_time_string...to_time_string, from_time_string..to_time_string, from_time_string..., ..to_time_string])
+      assert_equal [from_time...to_time, from_time..to_time, from_time..., ..to_time], record.tstz_ranges
+      record.tstz_ranges.each do |range|
+        assert_equal ActiveSupport::TimeZone[tz], range.begin.time_zone if range.begin
+        assert_equal ActiveSupport::TimeZone[tz], range.end.time_zone if range.end
+      end
 
       record.save!
       record.reload
 
-      assert_equal [from_time...to_time, from_time..to_time], record.tstz_ranges
-      assert_equal ActiveSupport::TimeZone[tz], record.tstz_ranges.first.begin.time_zone
-      assert_equal ActiveSupport::TimeZone[tz], record.tstz_ranges.last.begin.time_zone
+      assert_equal [from_time...to_time, from_time..to_time, from_time...nil, nil..to_time], record.tstz_ranges
+      record.tstz_ranges.each do |range|
+        assert_equal ActiveSupport::TimeZone[tz], range.begin.time_zone if range.begin
+        assert_equal ActiveSupport::TimeZone[tz], range.end.time_zone if range.end
+      end
     end
   end
 
@@ -284,6 +328,46 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_timezone_awareness_endless_tsrange
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
+      PostgresqlRange.reset_column_information
+      time_string = Time.current.to_s
+      time = Time.zone.parse(time_string)
+
+      record = PostgresqlRange.new(ts_range: time_string...)
+      assert_equal time..., record.ts_range
+      assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+
+      record.save!
+      record.reload
+
+      assert_equal time..., record.ts_range
+      assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+    end
+  end
+
+  def test_timezone_awareness_beginless_tsrange
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
+      PostgresqlRange.reset_column_information
+      time_string = Time.current.to_s
+      time = Time.zone.parse(time_string)
+
+      record = PostgresqlRange.new(ts_range: ..time_string)
+      assert_equal nil..time, record.ts_range
+      assert_equal ActiveSupport::TimeZone[tz], record.ts_range.end.time_zone
+
+      record.save!
+      record.reload
+
+      assert_equal nil..time, record.ts_range
+      assert_equal ActiveSupport::TimeZone[tz], record.ts_range.end.time_zone
+    end
+  end
+
   def test_timezone_array_awareness_tsrange
     tz = "Pacific Time (US & Canada)"
 
@@ -295,17 +379,21 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
       to_time_string = (from_time + 1.hour).to_s
       to_time = Time.zone.parse(to_time_string)
 
-      record = PostgresqlRange.new(ts_ranges: [from_time_string...to_time_string, from_time_string..to_time_string])
-      assert_equal [from_time...to_time, from_time..to_time], record.ts_ranges
-      assert_equal ActiveSupport::TimeZone[tz], record.ts_ranges.first.begin.time_zone
-      assert_equal ActiveSupport::TimeZone[tz], record.ts_ranges.last.begin.time_zone
+      record = PostgresqlRange.new(ts_ranges: [from_time_string...to_time_string, from_time_string..to_time_string, from_time_string..., ..to_time_string])
+      assert_equal [from_time...to_time, from_time..to_time, from_time..., ..to_time], record.ts_ranges
+      record.ts_ranges.each do |range|
+        assert_equal ActiveSupport::TimeZone[tz], range.begin.time_zone if range.begin
+        assert_equal ActiveSupport::TimeZone[tz], range.end.time_zone if range.end
+      end
 
       record.save!
       record.reload
 
-      assert_equal [from_time...to_time, from_time..to_time], record.ts_ranges
-      assert_equal ActiveSupport::TimeZone[tz], record.ts_ranges.first.begin.time_zone
-      assert_equal ActiveSupport::TimeZone[tz], record.ts_ranges.last.begin.time_zone
+      assert_equal [from_time...to_time, from_time..to_time, from_time..., ..to_time], record.ts_ranges
+      record.ts_ranges.each do |range|
+        assert_equal ActiveSupport::TimeZone[tz], range.begin.time_zone if range.begin
+        assert_equal ActiveSupport::TimeZone[tz], range.end.time_zone if range.end
+      end
     end
   end
 

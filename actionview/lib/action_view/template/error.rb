@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/syntax_error_proxy"
 
 module ActionView
   # = Action View Errors
@@ -156,11 +157,23 @@ module ActionView
       # Override to prevent #cause resetting during re-raise.
       attr_reader :cause
 
+      attr_reader :template
+
       def initialize(template)
         super($!.message)
-        set_backtrace($!.backtrace)
         @cause = $!
+        if @cause.is_a?(SyntaxError)
+          @cause = ActiveSupport::SyntaxErrorProxy.new(@cause)
+        end
         @template, @sub_templates = template, nil
+      end
+
+      def backtrace
+        @cause.backtrace
+      end
+
+      def backtrace_locations
+        @cause.backtrace_locations
       end
 
       def file_name

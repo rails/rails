@@ -73,6 +73,10 @@ module ActionView
       end
     end
 
+    initializer "action_view.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:action_view] = ActionView.deprecator
+    end
+
     initializer "action_view.logger" do
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
     end
@@ -103,7 +107,14 @@ module ActionView
       end
 
       unless enable_caching
-        app.executor.register_hook ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
+        view_reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: app.config.file_watcher)
+
+        app.reloaders << view_reloader
+        view_reloader.execute
+        app.reloader.to_run do
+          require_unload_lock!
+          view_reloader.execute
+        end
       end
     end
 

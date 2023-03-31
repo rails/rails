@@ -31,7 +31,7 @@ const serializeElement = (element, additionalParam) => {
 
 // Helper function that returns form elements that match the specified CSS selector
 // If form is actually a "form" element this will return associated elements outside the from that have
-// the html form attribute set
+// the HTML form attribute set
 const formElements = (form, selector) => {
   if (matches(form, "form")) {
     return toArray(form.elements).filter(el => matches(el, selector))

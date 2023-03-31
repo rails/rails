@@ -79,6 +79,23 @@ end
 
 Note that you can define `perform` with as many arguments as you want.
 
+If you already have an abstract class and its name differs from `ApplicationJob`, you can pass
+the `--parent` option to indicate you want a different abstract class:
+
+```bash
+$ bin/rails generate job process_payment --parent=payment_job
+```
+
+```ruby
+class ProcessPaymentJob < PaymentJob
+  queue_as :default
+
+  def perform(*args)
+    # Do something later
+  end
+end
+```
+
 ### Enqueue the Job
 
 Enqueue a job using [`perform_later`][] and, optionally, [`set`][]. Like so:
@@ -326,7 +343,7 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-### Available callbacks
+### Available Callbacks
 
 * [`before_enqueue`][]
 * [`around_enqueue`][]
@@ -377,7 +394,7 @@ UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
 ```
 
 
-Supported types for arguments
+Supported Types for Arguments
 ----------------------------
 
 ActiveJob supports the following types of arguments by default:
@@ -496,7 +513,7 @@ If an exception from a job is not rescued, then the job is referred to as "faile
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 
-### Retrying or Discarding failed jobs
+### Retrying or Discarding Failed Jobs
 
 A failed job will not be retried, unless configured otherwise.
 

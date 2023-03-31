@@ -60,20 +60,12 @@ module ActiveRecord
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
-      def check_protected_environments!
-        unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
-          current = ActiveRecord::Base.connection.migration_context.current_environment
-          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
+      def check_protected_environments!(environment = env)
+        return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
 
-          if ActiveRecord::Base.connection.migration_context.protected_environment?
-            raise ActiveRecord::ProtectedEnvironmentError.new(stored)
-          end
-
-          if stored && stored != current
-            raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
-          end
+        configs_for(env_name: environment).each do |db_config|
+          check_current_protected_environment!(db_config)
         end
-      rescue ActiveRecord::NoDatabaseError
       end
 
       def register_task(pattern, task)
@@ -130,28 +122,20 @@ module ActiveRecord
       end
 
       def create_all
-        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+        db_config = migration_connection.pool.db_config
+
         each_local_configuration { |db_config| create(db_config) }
-        if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(old_pool.db_config)
-        end
+
+        migration_class.establish_connection(db_config)
       end
 
-      def setup_initial_database_yaml
+      def setup_initial_database_yaml # :nodoc:
         return {} unless defined?(Rails)
 
-        begin
-          Rails.application.config.load_database_yaml
-        rescue
-          unless ActiveRecord.suppress_multiple_database_warning
-            $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
-          end
-
-          {}
-        end
+        Rails.application.config.load_database_yaml
       end
 
-      def for_each(databases)
+      def for_each(databases) # :nodoc:
         return {} unless defined?(Rails)
 
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
@@ -166,7 +150,7 @@ module ActiveRecord
         end
       end
 
-      def raise_for_multi_db(environment = env, command:)
+      def raise_for_multi_db(environment = env, command:) # :nodoc:
         db_configs = configs_for(env_name: environment)
 
         if db_configs.count > 1
@@ -182,38 +166,35 @@ module ActiveRecord
 
       def create_current(environment = env, name = nil)
         each_current_configuration(environment, name) { |db_config| create(db_config) }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+
+        migration_class.establish_connection(environment.to_sym)
       end
 
       def prepare_all
         seed = false
 
         each_current_configuration(env) do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-
-          begin
-            database_initialized = ActiveRecord::Base.connection.schema_migration.table_exists?
-          rescue ActiveRecord::NoDatabaseError
-            create(db_config)
-            retry
-          end
-
-          unless database_initialized
-            if File.exist?(schema_dump_path(db_config))
-              load_schema(
-                db_config,
-                ActiveRecord.schema_format,
-                nil
-              )
+          with_temporary_pool(db_config) do
+            begin
+              database_initialized = migration_connection.schema_migration.table_exists?
+            rescue ActiveRecord::NoDatabaseError
+              create(db_config)
+              retry
             end
-            seed = true
-          end
 
-          migrate
-          dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+            unless database_initialized
+              if File.exist?(schema_dump_path(db_config))
+                load_schema(db_config, ActiveRecord.schema_format, nil)
+              end
+
+              seed = true
+            end
+
+            migrate
+            dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+          end
         end
 
-        ActiveRecord::Base.establish_connection
         load_seed if seed
       end
 
@@ -238,10 +219,9 @@ module ActiveRecord
       end
 
       def truncate_tables(db_config)
-        ActiveRecord::Base.establish_connection(db_config)
-
-        connection = ActiveRecord::Base.connection
-        connection.truncate_tables(*connection.tables)
+        with_temporary_connection(db_config) do |conn|
+          conn.truncate_tables(*conn.tables)
+        end
       end
       private :truncate_tables
 
@@ -257,7 +237,7 @@ module ActiveRecord
 
         check_target_version
 
-        Base.connection.migration_context.migrate(target_version) do |migration|
+        migration_connection.migration_context.migrate(target_version) do |migration|
           if version.blank?
             scope.blank? || scope == migration.scope
           else
@@ -267,7 +247,7 @@ module ActiveRecord
           Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
         end
 
-        ActiveRecord::Base.clear_cache!
+        migration_connection.schema_cache.clear!
       ensure
         Migration.verbose = verbose_was
       end
@@ -275,9 +255,9 @@ module ActiveRecord
       def db_configs_with_versions(db_configs) # :nodoc:
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
-        db_configs.each do |db_config|
-          ActiveRecord::Base.establish_connection(db_config)
-          versions_to_run = ActiveRecord::Base.connection.migration_context.pending_migration_versions
+        with_temporary_connection_for_each do |conn|
+          db_config = conn.pool.db_config
+          versions_to_run = conn.migration_context.pending_migration_versions
           target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
 
           versions_to_run.each do |version|
@@ -290,15 +270,15 @@ module ActiveRecord
       end
 
       def migrate_status
-        unless ActiveRecord::Base.connection.schema_migration.table_exists?
+        unless migration_connection.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."
         end
 
         # output
-        puts "\ndatabase: #{ActiveRecord::Base.connection_db_config.database}\n\n"
+        puts "\ndatabase: #{migration_connection.pool.db_config.database}\n\n"
         puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
         puts "-" * 50
-        ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
+        migration_connection.migration_context.migrations_status.each do |status, version, name|
           puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
         end
         puts
@@ -345,7 +325,8 @@ module ActiveRecord
 
       def purge_current(environment = env)
         each_current_configuration(environment) { |db_config| purge(db_config) }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+
+        migration_class.establish_connection(environment.to_sym)
       end
 
       def structure_dump(configuration, *arguments)
@@ -368,8 +349,6 @@ module ActiveRecord
 
         verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
-        ActiveRecord::Base.establish_connection(db_config)
-        connection = ActiveRecord::Base.connection
 
         case format
         when :ruby
@@ -380,7 +359,7 @@ module ActiveRecord
           raise ArgumentError, "unknown format #{format.inspect}"
         end
 
-        connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
+        migration_connection.internal_metadata.create_table_and_set_flags(db_config.env_name, schema_sha1(file))
       ensure
         Migration.verbose = verbose_was
       end
@@ -392,13 +371,12 @@ module ActiveRecord
 
         return true unless file && File.exist?(file)
 
-        ActiveRecord::Base.establish_connection(db_config)
-        connection = ActiveRecord::Base.connection
+        with_temporary_connection(db_config) do |connection|
+          return false unless connection.internal_metadata.enabled?
+          return false unless connection.internal_metadata.table_exists?
 
-        return false unless connection.internal_metadata.enabled?
-        return false unless connection.internal_metadata.table_exists?
-
-        connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+          connection.internal_metadata[:schema_sha1] == schema_sha1(file)
+        end
       end
 
       def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
@@ -406,52 +384,42 @@ module ActiveRecord
 
         check_schema_file(file) if file
 
-        ActiveRecord::Base.establish_connection(db_config)
-
-        if schema_up_to_date?(db_config, format, file)
-          truncate_tables(db_config)
-        else
-          purge(db_config)
+        with_temporary_pool(db_config) do
+          if schema_up_to_date?(db_config, format, file)
+            truncate_tables(db_config)
+          else
+            purge(db_config)
+            load_schema(db_config, format, file)
+          end
+        rescue ActiveRecord::NoDatabaseError
+          create(db_config)
           load_schema(db_config, format, file)
         end
-      rescue ActiveRecord::NoDatabaseError
-        create(db_config)
-        load_schema(db_config, format, file)
       end
 
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
+        return unless db_config.schema_dump
+
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
         return unless filename
-
-        connection = ActiveRecord::Base.connection
 
         FileUtils.mkdir_p(db_dir)
         case format
         when :ruby
           File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+            ActiveRecord::SchemaDumper.dump(migration_connection, file)
           end
         when :sql
           structure_dump(db_config, filename)
-          if connection.schema_migration.table_exists?
+          if migration_connection.schema_migration.table_exists?
             File.open(filename, "a") do |f|
-              f.puts connection.dump_schema_information
+              f.puts migration_connection.dump_schema_information
               f.print "\n"
             end
           end
         end
       end
-
-      def schema_file_type(format = ActiveRecord.schema_format)
-        case format
-        when :ruby
-          "schema.rb"
-        when :sql
-          "structure.sql"
-        end
-      end
-      deprecate :schema_file_type
 
       def schema_dump_path(db_config, format = ActiveRecord.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]
@@ -478,9 +446,10 @@ module ActiveRecord
 
       def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
         each_current_configuration(environment) do |db_config|
-          load_schema(db_config, format, file)
+          with_temporary_connection(db_config) do
+            load_schema(db_config, format, file)
+          end
         end
-        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)
@@ -503,7 +472,7 @@ module ActiveRecord
 
       # Dumps the schema cache in YAML format for the connection into the file
       #
-      # ==== Examples:
+      # ==== Examples
       #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
       def dump_schema_cache(conn, filename)
         conn.schema_cache.dump_to(filename)
@@ -513,7 +482,41 @@ module ActiveRecord
         FileUtils.rm_f filename, verbose: false
       end
 
+      def with_temporary_connection_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, &block) # :nodoc:
+        if name
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
+          with_temporary_connection(db_config, &block)
+        else
+          ActiveRecord::Base.configurations.configs_for(env_name: env, name: name).each do |db_config|
+            with_temporary_connection(db_config, &block)
+          end
+        end
+      end
+
+      def with_temporary_connection(db_config) # :nodoc:
+        with_temporary_pool(db_config) do |pool|
+          yield pool.connection
+        end
+      end
+
+      def migration_class # :nodoc:
+        ActiveRecord::Base
+      end
+
+      def migration_connection # :nodoc:
+        migration_class.connection
+      end
+
       private
+        def with_temporary_pool(db_config)
+          original_db_config = migration_class.connection_db_config
+          pool = migration_class.establish_connection(db_config)
+
+          yield pool
+        ensure
+          migration_class.establish_connection(original_db_config)
+        end
+
         def configs_for(**options)
           Base.configurations.configs_for(**options)
         end
@@ -592,6 +595,23 @@ module ActiveRecord
             structure_load_flags[adapter.to_sym]
           else
             structure_load_flags
+          end
+        end
+
+        def check_current_protected_environment!(db_config)
+          with_temporary_pool(db_config) do |pool|
+            connection = pool.connection
+            current = connection.migration_context.current_environment
+            stored  = connection.migration_context.last_stored_environment
+
+            if connection.migration_context.protected_environment?
+              raise ActiveRecord::ProtectedEnvironmentError.new(stored)
+            end
+
+            if stored && stored != current
+              raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
+            end
+          rescue ActiveRecord::NoDatabaseError
           end
         end
     end

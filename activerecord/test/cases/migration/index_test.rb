@@ -103,6 +103,11 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "index_testings_on_foo_and_bar")
       end
 
+      def test_add_index_fallback_to_short_name
+        connection.add_index(table_name, [:foo, :bar, :first_name, :last_name, :administrator])
+        assert connection.index_name_exists?(table_name, "idx_on_foo_bar_first_name_last_name_administrator_5939248142")
+      end
+
       def test_remove_index_which_does_not_exist_doesnt_raise_with_option
         connection.add_index(table_name, "foo")
 
@@ -125,6 +130,19 @@ module ActiveRecord
         connection.remove_index(table_name, nil, name: "foo", if_exists: true)
 
         assert_not connection.index_exists?(table_name, :foo, name: "foo")
+      end
+
+      def test_remove_index_with_column_array_which_does_not_exist_doesnt_raise_with_option
+        connection.add_index(table_name, [:foo], name: "foo")
+
+        assert connection.index_exists?(table_name, :foo, name: "foo")
+
+        assert_nothing_raised do
+          connection.remove_index(table_name, column: [:foo, :bar], if_exists: true)
+        end
+
+        assert connection.index_exists?(table_name, :foo, name: "foo")
+        assert_not connection.index_exists?(table_name, nil, column: [:foo, :bar], name: "foo")
       end
 
       def test_internal_index_with_name_matching_database_limit
@@ -159,6 +177,7 @@ module ActiveRecord
       def test_index_exists_with_custom_name_checks_columns
         connection.add_index :testings, [:foo, :bar], name: "my_index"
         assert connection.index_exists?(:testings, [:foo, :bar], name: "my_index")
+        assert connection.index_exists?(:testings, [], name: "my_index")
         assert_not connection.index_exists?(:testings, [:foo], name: "my_index")
       end
 
@@ -255,6 +274,30 @@ module ActiveRecord
 
           connection.remove_index("testings", "last_name")
           assert_not connection.index_exists?("testings", "last_name")
+        end
+
+        def test_add_index_with_included_column
+          connection.add_index("testings", "last_name", include: :foo)
+          assert connection.index_exists?("testings", "last_name", include: :foo)
+
+          connection.remove_index("testings", "last_name")
+          assert_not connection.index_exists?("testings", "last_name")
+        end
+
+        def test_add_index_with_multiple_included_columns
+          connection.add_index("testings", "last_name", include: [:foo, :bar])
+          assert connection.index_exists?("testings", "last_name", include: [:foo, :bar])
+
+          connection.remove_index("testings", "last_name")
+          assert_not connection.index_exists?("testings", "last_name")
+        end
+
+        def test_add_index_with_included_column_and_where_clause
+          connection.add_index("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+          assert connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+
+          connection.remove_index("testings", "last_name")
+          assert_not connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
         end
       end
 

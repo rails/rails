@@ -5,7 +5,7 @@ view helpers that assist when building HTML forms, Atom feeds and more.
 Template formats that Action View handles are ERB (embedded Ruby, typically
 used to inline short Ruby snippets inside HTML), and XML Builder.
 
-You can read more about Action View in the {Action View Overview}[https://edgeguides.rubyonrails.org/action_view_overview.html] guide.
+You can read more about Action View in the {Action View Overview}[https://guides.rubyonrails.org/action_view_overview.html] guide.
 
 == Download and installation
 

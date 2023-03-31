@@ -49,3 +49,4 @@ RUN cd /tmp/rails \
     && bundle install \
     && yarn install \
     && rm -rf /tmp/rails
+RUN chown -R vscode:vscode /usr/local/rvm

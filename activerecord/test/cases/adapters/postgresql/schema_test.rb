@@ -768,3 +768,16 @@ class SchemaJoinTablesTest < ActiveRecord::PostgreSQLTestCase
     assert_not @connection.table_exists?("test_schema.comments_posts")
   end
 end
+
+class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  def test_schema_dumps_index_included_columns
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_include_index/).first.strip
+    if ActiveRecord::Base.connection.supports_index_include?
+      assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: [:name, :account_id]', index_definition
+    else
+      assert_equal 't.index ["firm_ids", "type"], name: "company_include_index"', index_definition
+    end
+  end
+end

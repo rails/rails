@@ -4,9 +4,10 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [])
-          sql = "EXPLAIN #{to_sql(arel, binds)}"
-          PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
+        def explain(arel, binds = [], options = [])
+          sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
+          result = exec_query(sql, "EXPLAIN", binds)
+          PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
         # Queries the database and returns the results in an Array-like object
@@ -33,19 +34,28 @@ module ActiveRecord
 
         # Executes an SQL statement, returning a PG::Result object on success
         # or raising a PG::Error exception otherwise.
+        #
+        # Setting +allow_retry+ to true causes the db to reconnect and retry
+        # executing the SQL statement in case of a connection-related exception.
+        # This option should only be enabled for known idempotent queries.
+        #
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(sql, name = nil)
+        def execute(sql, name = nil, allow_retry: false)
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 
-          with_raw_connection do |conn|
+          with_raw_connection(allow_retry: allow_retry) do |conn|
             log(sql, name) do
-              conn.async_exec(sql)
+              result = conn.async_exec(sql)
+              handle_warnings(sql)
+              result
             end
           end
+        ensure
+          @notice_receiver_sql_warnings = []
         end
 
         def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
@@ -143,9 +153,19 @@ module ActiveRecord
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
 
+        def build_explain_clause(options = [])
+          return "EXPLAIN" if options.empty?
+
+          "EXPLAIN (#{options.join(", ").upcase})"
+        end
+
         private
+          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
+          private_constant :IDLE_TRANSACTION_STATUSES
+
           def cancel_any_running_query
-            return unless @raw_connection && @raw_connection.transaction_status != PG::PQTRANS_IDLE
+            return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
+
             @raw_connection.cancel
             @raw_connection.block
           rescue PG::Error
@@ -166,6 +186,19 @@ module ActiveRecord
 
           def suppress_composite_primary_key(pk)
             pk unless pk.is_a?(Array)
+          end
+
+          def handle_warnings(sql)
+            @notice_receiver_sql_warnings.each do |warning|
+              next if warning_ignored?(warning)
+
+              warning.sql = sql
+              ActiveRecord.db_warnings_action.call(warning)
+            end
+          end
+
+          def warning_ignored?(warning)
+            ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
           end
       end
     end

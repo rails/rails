@@ -74,6 +74,9 @@ module ActiveSupport
     test "#silence does not break custom loggers" do
       new_logger = FakeLogger.new
       custom_logger = CustomLogger.new
+      assert_respond_to new_logger, :silence
+      assert_not_respond_to custom_logger, :silence
+
       custom_logger.extend(Logger.broadcast(new_logger))
 
       custom_logger.silence do
@@ -115,8 +118,6 @@ module ActiveSupport
     end
 
     class CustomLogger
-      include ActiveSupport::LoggerSilence
-
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
 
@@ -168,6 +169,11 @@ module ActiveSupport
     end
 
     class FakeLogger < CustomLogger
+      include ActiveSupport::LoggerSilence
+
+      # LoggerSilence includes LoggerThreadSafeLevel which defines these as
+      # methods, so we need to redefine them
+      attr_accessor :level, :local_level
     end
   end
 end

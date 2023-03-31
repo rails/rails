@@ -178,7 +178,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :dirty
 
         thread_1_connection = ActiveRecord::Base.connection
-        ActiveRecord::Base.clear_active_connections!(:all)
+        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
         assert_cache :off, thread_1_connection
 
         started = Concurrent::Event.new
@@ -200,7 +200,7 @@ class QueryCacheTest < ActiveRecord::TestCase
             started.set
             checked.wait
 
-            ActiveRecord::Base.clear_active_connections!(:all)
+            ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
           }.call({})
         }
 
@@ -401,7 +401,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   def test_cache_is_flat
     Task.cache do
-      assert_queries(1) { Topic.find(1); Topic.find(1); }
+      assert_queries(1) { Topic.find(1); Topic.find(1) }
     end
 
     ActiveRecord::Base.cache do
@@ -522,7 +522,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_does_not_establish_connection_if_unconnected
-    ActiveRecord::Base.clear_active_connections!(:all)
+    ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
     assert_not ActiveRecord::Base.connection_handler.active_connections?(:all) # Double check they are cleared
 
     middleware {
@@ -533,7 +533,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
-    ActiveRecord::Base.clear_active_connections!(:all)
+    ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
     assert_not ActiveRecord::Base.connection_handler.active_connections?(:all) # Double check they are cleared
 
     middleware {
@@ -543,7 +543,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_caching_is_local_to_the_current_thread
-    ActiveRecord::Base.clear_active_connections!(:all)
+    ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
 
     middleware {
       assert ActiveRecord::Base.connection_pool.query_cache_enabled
@@ -565,37 +565,38 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
-  def test_clear_query_cache_is_called_on_all_connections
-    skip "with in memory db, reading role won't be able to see database on writing role" if in_memory_db?
-
-    ActiveRecord::Base.connected_to(role: :reading) do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      ActiveRecord::Base.establish_connection(db_config)
-    end
-
-    mw = middleware { |env|
+  # with in memory db, reading role won't be able to see database on writing role
+  unless in_memory_db?
+    def test_clear_query_cache_is_called_on_all_connections
       ActiveRecord::Base.connected_to(role: :reading) do
-        @topic = Topic.first
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
       end
 
-      assert @topic
+      mw = middleware { |env|
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+        end
 
-      ActiveRecord::Base.connected_to(role: :writing) do
-        @topic.title = "Topic title"
-        @topic.save!
-      end
+        assert @topic
 
-      assert_equal "Topic title", @topic.title
+        ActiveRecord::Base.connected_to(role: :writing) do
+          @topic.title = "Topic title"
+          @topic.save!
+        end
 
-      ActiveRecord::Base.connected_to(role: :reading) do
-        @topic = Topic.first
         assert_equal "Topic title", @topic.title
-      end
-    }
 
-    mw.call({})
-  ensure
-    clean_up_connection_handler
+        ActiveRecord::Base.connected_to(role: :reading) do
+          @topic = Topic.first
+          assert_equal "Topic title", @topic.title
+        end
+      }
+
+      mw.call({})
+    ensure
+      clean_up_connection_handler
+    end
   end
 
   test "query cache is enabled in threads with shared connection" do
@@ -644,6 +645,51 @@ class QueryCacheTest < ActiveRecord::TestCase
         raise "unknown state"
       end
     end
+end
+
+class QueryCacheMutableParamTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class JsonObj < ActiveRecord::Base
+    self.table_name = "json_objs"
+
+    attribute :payload, :json
+  end
+
+  class HashWithFixedHash < Hash
+    # this isn't very realistic, but it is the worst case and therefore a good
+    # case to test
+    def hash
+      1
+    end
+  end
+
+  def setup
+    ActiveRecord::Base.connection.create_table("json_objs", force: true) do |t|
+      if current_adapter?(:PostgreSQLAdapter)
+        t.jsonb "payload"
+      else
+        t.json "payload"
+      end
+    end
+
+    ActiveRecord::Base.connection.enable_query_cache!
+  end
+
+  def test_query_cache_handles_mutated_binds
+    JsonObj.create(payload: { a: 1 })
+
+    search = HashWithFixedHash[a: 1]
+    JsonObj.where(payload: search).first # populate the cache
+
+    search.merge!(b: 2)
+    assert_nil JsonObj.where(payload: search).first, "cache returned a false positive"
+  end
+
+  def teardown
+    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.connection.drop_table("json_objs", if_exists: true)
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase

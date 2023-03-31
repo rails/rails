@@ -3,6 +3,7 @@ import { ajax, isCrossDomain } from "../utils/ajax"
 import { matches, getData, setData } from "../utils/dom"
 import { fire, stopEverything } from "../utils/event"
 import { serializeElement } from "../utils/form"
+import { isContentEditable } from "../utils/dom"
 
 // Checks "data-remote" if true to handle the request through a XHR request.
 const isRemote = function(element) {
@@ -17,6 +18,11 @@ const handleRemoteWithRails = (rails) => function(e) {
 
   if (!isRemote(element)) { return true }
   if (!fire(element, "ajax:before")) {
+    fire(element, "ajax:stopped")
+    return false
+  }
+
+  if (isContentEditable(element)) {
     fire(element, "ajax:stopped")
     return false
   }

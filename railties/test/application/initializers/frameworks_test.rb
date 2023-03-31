@@ -247,7 +247,9 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      require "#{app_path}/config/environment"
+      silence_warnings do
+        require "#{app_path}/config/environment"
+      end
       assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
@@ -260,6 +262,9 @@ module ApplicationTests
       RUBY
 
       switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3::Column objects
+        require "active_record/connection_adapters/sqlite3/column"
+
         require "#{app_path}/config/environment"
 
         assert_nil ActiveRecord::Base.connection_pool.schema_cache
@@ -292,6 +297,9 @@ module ApplicationTests
       RUBY
 
       switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+        # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3::Column objects
+        require "active_record/connection_adapters/sqlite3/column"
+
         require "#{app_path}/config/environment"
 
         assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
@@ -359,8 +367,8 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      A
-      M
+      assert A
+      assert M
       Post.current_scope = Post
       assert_not_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post) # precondition
 

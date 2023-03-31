@@ -196,7 +196,7 @@ Hello, Rails!
 To begin with, let's get some text up on screen quickly. To do this, you need to
 get your Rails application server running.
 
-### Starting up the Web Server
+### Starting Up the Web Server
 
 You actually have a functional Rails application already. To see it, you need to
 start a web server on your development machine. You can do this by running the
@@ -1729,6 +1729,7 @@ active_record_migrations.html).
 We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
 
 ```ruby
+
   private
     def article_params
       params.require(:article).permit(:title, :body, :status)
@@ -1738,6 +1739,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 and in `app/controllers/comments_controller.rb`:
 
 ```ruby
+
   private
     def comment_params
       params.require(:comment).permit(:commenter, :body, :status)

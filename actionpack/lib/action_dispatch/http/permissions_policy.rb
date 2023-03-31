@@ -34,11 +34,12 @@ module ActionDispatch # :nodoc:
       end
 
       def call(env)
-        request = ActionDispatch::Request.new(env)
         _, headers, _ = response = @app.call(env)
 
         return response unless html_response?(headers)
         return response if policy_present?(headers)
+
+        request = ActionDispatch::Request.new(env)
 
         if policy = request.permissions_policy
           headers[POLICY] = policy.build(request.controller_instance)
@@ -54,7 +55,7 @@ module ActionDispatch # :nodoc:
       private
         def html_response?(headers)
           if content_type = headers[CONTENT_TYPE]
-            /html/.match?(content_type)
+            content_type.include?("html")
           end
         end
 
@@ -95,15 +96,18 @@ module ActionDispatch # :nodoc:
       fullscreen:           "fullscreen",
       geolocation:          "geolocation",
       gyroscope:            "gyroscope",
+      hid:                  "hid",
+      idle_detection:       "idle_detection",
       magnetometer:         "magnetometer",
       microphone:           "microphone",
       midi:                 "midi",
       payment:              "payment",
       picture_in_picture:   "picture-in-picture",
-      speaker:              "speaker",
+      screen_wake_lock:     "screen-wake-lock",
+      serial:               "serial",
+      sync_xhr:             "sync-xhr",
       usb:                  "usb",
-      vibrate:              "vibrate",
-      vr:                   "vr",
+      web_share:            "web-share",
     }.freeze
 
     private_constant :MAPPINGS, :DIRECTIVES
@@ -121,6 +125,25 @@ module ActionDispatch # :nodoc:
 
     DIRECTIVES.each do |name, directive|
       define_method(name) do |*sources|
+        if sources.first
+          @directives[directive] = apply_mappings(sources)
+        else
+          @directives.delete(directive)
+        end
+      end
+    end
+
+    %w[speaker vibrate vr].each do |directive|
+      define_method(directive) do |*sources|
+        ActionDispatch.deprecator.warn(<<~MSG)
+          The `#{directive}` permissions policy directive is deprecated
+          and will be removed in Rails 7.2.
+
+          There is no browser support for this directive, and no plan
+          for browser support in the future. You can just remove this
+          directive from your application.
+        MSG
+
         if sources.first
           @directives[directive] = apply_mappings(sources)
         else

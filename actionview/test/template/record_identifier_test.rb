@@ -13,6 +13,10 @@ class RecordIdentifierTest < ActiveSupport::TestCase
     @plural = "comments"
   end
 
+  def test_dom_id_with_class
+    assert_equal "new_#{@singular}", dom_id(@klass)
+  end
+
   def test_dom_id_with_new_record
     assert_equal "new_#{@singular}", dom_id(@record)
   end
@@ -53,7 +57,12 @@ class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
   include ActionView::RecordIdentifier
 
   def setup
-    @record = Plane.new
+    @klass = Plane
+    @record = @klass.new
+  end
+
+  def test_dom_id_with_new_class
+    assert_equal "new_airplane", dom_id(@klass)
   end
 
   def test_dom_id_with_new_record

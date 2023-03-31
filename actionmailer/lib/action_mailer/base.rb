@@ -213,7 +213,7 @@ module ActionMailer
   #       end
   #     end
   #
-  # You can also send attachments with html template, in this case you need to add body, attachments,
+  # You can also send attachments with HTML template, in this case you need to add body, attachments,
   # and custom content type like this:
   #
   #     class NotifierMailer < ApplicationMailer
@@ -439,7 +439,7 @@ module ActionMailer
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
-  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>-i</tt> with <tt>-f sender@address</tt>
+  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>%w[ -i ]</tt> with <tt>-f sender@address</tt>
   #     added automatically before the message is sent.
   #
   # * <tt>file_settings</tt> - Allows you to override options for the <tt>:file</tt> delivery method.
@@ -460,12 +460,14 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Defaults to
-  #   +ActionMailer::MailDeliveryJob+.
+  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Mailers can set this to use a
+  #   custom delivery job. Defaults to +ActionMailer::MailDeliveryJob+.
   #
-  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
+  # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
+  #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue name.
   class Base < AbstractController::Base
     include DeliveryMethods
+    include QueuedDelivery
     include Rescuable
     include Parameterized
     include Previews
@@ -487,7 +489,6 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :delivery_job, default: ::ActionMailer::MailDeliveryJob
     class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
@@ -722,7 +723,7 @@ module ActionMailer
     #  mail.attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
     #
     # If you do this, then Mail will take the file name and work out the mime type.
-    # It will also set the Content-Type, Content-Disposition, Content-Transfer-Encoding
+    # It will also set the +Content-Type+, +Content-Disposition+, and +Content-Transfer-Encoding+,
     # and encode the contents of the attachment in Base64.
     #
     # You can also specify overrides if you want by passing a hash instead of a string:
@@ -783,7 +784,7 @@ module ActionMailer
     #   or an array of addresses.
     # * +:bcc+ - Who you would like to Blind-Carbon-Copy on this email, can be a string of
     #   addresses, or an array of addresses.
-    # * +:reply_to+ - Who to set the Reply-To header of the email to.
+    # * +:reply_to+ - Who to set the +Reply-To+ header of the email to.
     # * +:date+ - The date to say the email was sent on.
     #
     # You can set default values for any of the above headers (except +:date+)

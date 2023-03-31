@@ -71,8 +71,8 @@ module ActionView
       end
 
       def self.clear
-        ActionView::ViewPaths.all_view_paths.each do |path_set|
-          path_set.each(&:clear_cache)
+        ActionView::PathRegistry.all_resolvers.each do |resolver|
+          resolver.clear_cache
         end
         @view_context_class = nil
         @details_keys.clear
@@ -83,9 +83,9 @@ module ActionView
         @digest_cache.values
       end
 
-      def self.view_context_class(klass)
+      def self.view_context_class
         @view_context_mutex.synchronize do
-          @view_context_class ||= klass.with_empty_template_cache
+          @view_context_class ||= ActionView::Base.with_empty_template_cache
         end
       end
     end
@@ -262,12 +262,12 @@ module ActionView
         values.concat(default_formats) if values.delete "*/*"
         values.uniq!
 
-        invalid_values = (values - Template::Types.symbols)
-        unless invalid_values.empty?
+        unless values.all? { |v| Template::Types.symbols.include?(v) }
+          invalid_values = values - Template::Types.symbols
           raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
         end
 
-        if values == [:js]
+        if (values.length == 1) && (values[0] == :js)
           values << :html
           @html_fallback_for_js = true
         end

@@ -120,12 +120,44 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_bulk_alter?
+        def test_bulk_invert_change_table
+          block = Proc.new do |t|
+            t.string :name
+            t.rename :kind, :cultivar
+          end
+
+          @recorder.revert do
+            @recorder.change_table :fruits, bulk: true, &block
+          end
+
+          @recorder.revert do
+            @recorder.revert do
+              @recorder.change_table :fruits, bulk: true, &block
+            end
+          end
+
+          assert_equal [
+            [:change_table, [:fruits]],
+            [:change_table, [:fruits]]
+          ], @recorder.commands.map { |command| command[0...-1] }
+        end
+      end
+
       def test_invert_create_table
         @recorder.revert do
           @recorder.record :create_table, [:system_settings]
         end
         drop_table = @recorder.commands.first
         assert_equal [:drop_table, [:system_settings], nil], drop_table
+      end
+
+      def test_invert_create_table_with_if_not_exists
+        @recorder.revert do
+          @recorder.record :create_table, [:system_settings, if_not_exists: true]
+        end
+        drop_table = @recorder.commands.first
+        assert_equal [:drop_table, [:system_settings, {}], nil], drop_table
       end
 
       def test_invert_create_table_with_options_and_block
@@ -137,6 +169,12 @@ module ActiveRecord
       def test_invert_drop_table
         block = Proc.new { }
         create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false], &block
+        assert_equal [:create_table, [:people_reminders, id: false], block], create_table
+      end
+
+      def test_invert_drop_table_with_if_exists
+        block = Proc.new { }
+        create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false, if_exists: true], &block
         assert_equal [:create_table, [:people_reminders, id: false], block], create_table
       end
 
@@ -430,6 +468,22 @@ module ActiveRecord
       def test_invert_remove_check_constraint_without_expression
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :remove_check_constraint, [:dogs]
+        end
+      end
+
+      def test_invert_remove_unique_key_constraint
+        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"]
+        assert_equal [:add_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"], nil], enable
+      end
+
+      def test_invert_remove_unique_key_constraint_without_options
+        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"]]
+        assert_equal [:add_unique_key, [:dogs, ["speed"]], nil], enable
+      end
+
+      def test_invert_remove_unique_key_constraint_without_columns
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_unique_key, [:dogs, name: "uniq_speed"]
         end
       end
 

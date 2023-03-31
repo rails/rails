@@ -215,18 +215,25 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  test "read attributes_for_database" do
+  test "read_attribute_for_database" do
+    topic = Topic.new(content: ["ok"])
+    assert_equal "---\n- ok\n", topic.read_attribute_for_database("content")
+  end
+
+  test "read_attribute_for_database with aliased attribute" do
+    topic = Topic.new(title: "Hello")
+    assert_equal "Hello", topic.read_attribute_for_database(:heading)
+  end
+
+  test "attributes_for_database" do
     topic = Topic.new
     topic.content = { "one" => 1, "two" => 2 }
 
     db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
-    before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
-
     assert_equal topic.attributes, db_attributes
-    assert_not_equal topic.attributes, before_type_cast_attributes
   end
 
-  test "read attributes_after_type_cast on a date" do
+  test "read attributes after type cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
     in_time_zone tz do
@@ -334,6 +341,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.first
     assert_raises(ActiveModel::MissingAttributeError) { topic.update_columns(no_column_exists: "Hello!") }
     assert_raises(ActiveModel::UnknownAttributeError) { topic.update(no_column_exists: "Hello!") }
+    assert_raises(ActiveModel::MissingAttributeError) { topic[:no_column_exists] = "Hello!" }
+  end
+
+  test "write_attribute does not raise when the attribute isn't selected" do
+    topic = Topic.select(:id).first
+    assert_nothing_raised { topic[:title] = "Hello!" }
   end
 
   test "write_attribute allows writing to aliased attributes" do
@@ -362,12 +375,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:heading]
   end
 
-  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
-    computer = Computer.select("id").first
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:no_column_exists] = "Hello!" }
-    assert_nothing_raised { computer[:developer] = "Hello!" }
+  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
+    computer = Computer.select(:id, :extendedWarranty).first
+    assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'developer' for Computer/) do
+      computer[:developer]
+    end
+    assert_nothing_raised { computer[:extendedWarranty] }
+    assert_nothing_raised { computer[:no_column_exists] }
   end
 
   test "read_attribute when false" do
@@ -652,7 +666,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "raises ActiveRecord::DangerousAttributeError when defining an AR method or dangerous Object method in a model" do
-    %w(save create_or_update hash dup).each do |method|
+    %w(save create_or_update hash dup frozen?).each do |method|
       klass = Class.new(ActiveRecord::Base)
       klass.class_eval "def #{method}() 'defined #{method}' end"
       assert_raise ActiveRecord::DangerousAttributeError do

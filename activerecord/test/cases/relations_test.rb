@@ -487,6 +487,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_match(/field\(id, NULL\)/, query)
   end
 
+  def test_finding_with_arel_sql_order
+    query = Tag.order(Arel.sql("field(id, ?)", [1, 3, 2])).to_sql
+    if current_adapter?(:Mysql2Adapter)
+      assert_match(/field\(id, '1', '3', '2'\)/, query)
+    else
+      assert_match(/field\(id, 1, 3, 2\)/, query)
+    end
+
+    query = Tag.order(Arel.sql("field(id, ?)", [])).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+
+    query = Tag.order(Arel.sql("field(id, ?)", nil)).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+  end
+
   def test_finding_with_order_limit_and_offset
     entrants = Entrant.order("id ASC").limit(2).offset(1)
 
@@ -544,7 +559,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   %w( references includes preload eager_load group order reorder reselect unscope
-      joins left_joins left_outer_joins optimizer_hints annotate ).each do |method|
+      joins left_joins left_outer_joins optimizer_hints annotate regroup ).each do |method|
     class_eval <<~RUBY
       def test_no_arguments_to_#{method}_raise_errors
         error = assert_raises(ArgumentError) { Topic.#{method}() }
@@ -1157,6 +1172,9 @@ class RelationTest < ActiveRecord::TestCase
 
       assert posts.any? { |p| p.id > 0 }
       assert_not posts.any? { |p| p.id <= 0 }
+
+      assert posts.any?(Post)
+      assert_not posts.any?(Comment)
     end
 
     assert_predicate posts, :loaded?
@@ -1196,6 +1214,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) do
       assert posts.none? { |p| p.id < 0 }
       assert_not posts.none? { |p| p.id == 1 }
+
+      assert posts.none?(Comment)
+      assert_not posts.none?(Post)
     end
 
     assert_predicate posts, :loaded?
@@ -1212,6 +1233,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) do
       assert_not posts.one? { |p| p.id < 3 }
       assert posts.one? { |p| p.id == 1 }
+
+      assert_not posts.one?(Post)
+      assert_not posts.one?(Comment)
     end
 
     assert_predicate posts, :loaded?

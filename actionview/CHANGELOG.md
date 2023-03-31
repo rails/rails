@@ -1,3 +1,90 @@
+*   Remove deprecated support to passing instance variables as locals to partials.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated constant `ActionView::Path`.
+
+    *Rafael Mendonça França*
+
+*   Guard `token_list` calls from escaping HTML too often
+
+    *Sean Doyle*
+
+*   `select` can now be called with a single hash containing options and some HTML options
+
+    Previously this would not work as expected:
+
+    ```erb
+    <%= select :post, :author, authors, required: true %>
+    ```
+
+    Instead you needed to do this:
+
+    ```erb
+    <%= select :post, :author, authors, {}, required: true %>
+    ```
+
+    Now, either form is accepted, for the following HTML attributes: `required`, `multiple`, `size`.
+
+    *Alex Ghiculescu*
+
+*   Datetime form helpers (`time_field`, `date_field`, `datetime_field`, `week_field`, `month_field`) now accept an instance of Time/Date/DateTime as `:value` option.
+
+    Before:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current.strftime("%Y-%m-%dT%T") %>
+    ```
+
+    After:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current %>
+    ```
+
+    *Andrey Samsonov*
+
+*   Choices of `select` can optionally contain html attributes as the last element
+    of the child arrays when using grouped/nested collections
+
+    ```erb
+    <%= form.select :foo, [["North America", [["United States","US"],["Canada","CA"]], { disabled: "disabled" }]] %>
+    # => <select><optgroup label="North America" disabled="disabled"><option value="US">United States</option><option value="CA">Canada</option></optgroup></select>
+    ```
+
+    *Chris Gunther*
+
+*   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument
+
+    This is to make the API more consistent with the `FormHelper` variants. You can now
+    provide `checked` as a positional or keyword argument:
+
+    ```erb
+    = check_box_tag "admin", "1", false
+    = check_box_tag "admin", "1", checked: false
+
+    = radio_button_tag 'favorite_color', 'maroon', false
+    = radio_button_tag 'favorite_color', 'maroon', checked: false
+    ```
+
+    *Alex Ghiculescu*
+
+*   Allow passing a class to `dom_id`.
+    You no longer need to call `new` when passing a class to `dom_id`.
+    This makes `dom_id` behave like `dom_class` in this regard.
+    Apart from saving a few keystrokes, it prevents Ruby from needing
+    to instantiate a whole new object just to generate a string.
+
+    Before:
+    ```ruby
+    dom_id(Post) # => NoMethodError: undefined method `to_key' for Post:Class
+    ```
+
+    After:
+    ```ruby
+    dom_id(Post) # => "new_post"
+    ```
+
+    *Goulven Champenois*
+
 *   Report `:locals` as part of the data returned by ActionView render instrumentation.
 
     Before:

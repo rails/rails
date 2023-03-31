@@ -18,6 +18,11 @@ module ActiveStorage
 
     alias_method :service_streaming_download, :service_download
 
+    def preview(event)
+      info event, color("Previewed file from key: #{key_in(event)}", BLUE)
+    end
+    subscribe_log_level :preview, :info
+
     def service_delete(event)
       info event, color("Deleted file from key: #{key_in(event)}", RED)
     end

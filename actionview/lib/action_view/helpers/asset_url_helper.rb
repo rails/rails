@@ -196,7 +196,7 @@ module ActionView
           source = "#{source}#{extname}"
         end
 
-        if source[0] != ?/
+        unless source.start_with?(?/)
           if options[:skip_pipeline]
             source = public_compute_asset_path(source, options)
           else

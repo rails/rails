@@ -33,11 +33,16 @@ passing the `--skip-asset-pipeline` option.
 $ rails new appname --skip-asset-pipeline
 ```
 
-Rails can easily work with Sass by adding the [`sassc-rails`](https://github.com/sass/sassc-rails)
-gem to your `Gemfile`, which is used by Sprockets for [Sass](https://sass-lang.com) compilation:
+Rails can easily work with [Sass](https://sass-lang.com) by adding the [`dartsass-rails`](https://github.com/rails/dartsass-rails) gem to your `Gemfile`:
 
 ```ruby
-gem 'sassc-rails'
+gem 'dartsass-rails'
+```
+
+After bundling the gem, run the following to complete the installation:
+
+```bash
+$ rails dartsass:install
 ```
 
 To set asset compression methods, set the appropriate configuration options
@@ -48,9 +53,6 @@ in `production.rb` - [`config.assets.css_compressor`][] for your CSS and
 config.assets.css_compressor = :yui
 config.assets.js_compressor = :terser
 ```
-
-NOTE: The `sassc-rails` gem is automatically used for CSS compression if included
-in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
 [`config.assets.css_compressor`]: configuring.html#config-assets-css-compressor
 [`config.assets.js_compressor`]: configuring.html#config-assets-js-compressor
@@ -111,26 +113,17 @@ with a built-in helper. In the source the generated code looked like this:
 
 The query string strategy has several disadvantages:
 
-1. **Not all caches will reliably cache content where the filename only differs by
-query parameters**
+1. **Not all caches will reliably cache content where the filename only differs by query parameters**
 
-    [Steve Souders recommends](https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/),
-"...avoiding a querystring for cacheable resources". He found that in this
-case 5-20% of requests will not be cached. Query strings in particular do not
-work at all with some CDNs for cache invalidation.
+    [Steve Souders recommends][], "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
 
 2. **The file name can change between nodes in multi-server environments.**
 
-    The default query string in Rails 2.x is based on the modification time of
-the files. When assets are deployed to a cluster, there is no guarantee that the
-timestamps will be the same, resulting in different values being used depending
-on which server handles the request.
+    The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
 
 3. **Too much cache invalidation**
 
-    When static assets are deployed with each new release of code, the mtime
-(time of last modification) of _all_ these files changes, forcing all remote
-clients to fetch them again, even when the content of those assets has not changed.
+    When static assets are deployed with each new release of code, the mtime (time of last modification) of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring
 that filenames are consistent based on their content.
@@ -145,7 +138,7 @@ More reading:
 * [Revving Filenames: don't use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
 
 [`config.assets.digest`]: configuring.html#config-assets-digest
-
+[Steve Souders recommends]: https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/
 
 How to Use the Asset Pipeline
 -----------------------------
@@ -205,15 +198,15 @@ Pipeline assets can be placed inside an application in one of three locations:
 `app/assets`, `lib/assets` or `vendor/assets`.
 
 * `app/assets` is for assets that are owned by the application, such as custom
-images, JavaScript files, or stylesheets.
+  images, JavaScript files, or stylesheets.
 
 * `lib/assets` is for your own libraries' code that doesn't really fit into the
-scope of the application or those libraries which are shared across applications.
+  scope of the application or those libraries which are shared across applications.
 
 * `vendor/assets` is for assets that are owned by outside entities, such as
-code for JavaScript plugins and CSS frameworks. Keep in mind that third party
-code with references to other files also processed by the asset Pipeline (images,
-stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
+  code for JavaScript plugins and CSS frameworks. Keep in mind that third party
+  code with references to other files also processed by the asset Pipeline (images,
+  stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
 
 #### Search Paths
 
@@ -646,7 +639,7 @@ The default matcher for compiling files includes `application.js`,
 automatically) from `app/assets` folders including your gems:
 
 ```ruby
-[ Proc.new { |filename, path| path =~ /app\/assets/ && !%w(.js .css).include?(File.extname(filename)) },
+[ Proc.new { |filename, path| path.include?('app/assets') && !%w(.js .css).include?(File.extname(filename)) },
 /application.(css|js)$/ ]
 ```
 
@@ -656,34 +649,45 @@ JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and
 `.scss` files are **not** automatically included as they compile to JS/CSS.
 
 If you have other manifests or individual stylesheets and JavaScript files to
-include, you can add them to the `precompile` array in `config/initializers/assets.rb`:
+include, you can add them yourself.
+
+When you are using **Sprockets 3**, add the files to the `precompile` array in
+`config/initializers/assets.rb`:
 
 ```ruby
 Rails.application.config.assets.precompile += %w( admin.js admin.css )
 ```
 
+When you are using **Sprockets 4**, add the files or directories to
+`app/assets/config/manifest.js`:
+
+```js
+//= link_tree ../images
+//= link admin.js
+//= link admin.css
+// Or link whole directories:
+//= link_directory ../javascripts .js
+//= link_directory ../stylesheets .css
+```
+
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
-even if you want to add Sass or CoffeeScript files to the precompile array.
+even if you want to add Sass or CoffeeScript files to the precompile array or manifest file.
+
+NOTE. More information on the differences between Sprockets 3 and 4 please can be found in the [Sprockets Upgrading Guide](https://github.com/rails/sprockets/blob/main/UPGRADING.md#manifestjs)
 
 The command also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
 a 16-byte random hex string) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
 mapping requests back to Sprockets. A typical manifest file looks like:
 
-```ruby
-{"files":{"application-aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b.js":{"logical_path":"application.js","mtime":"2016-12-23T20:12:03-05:00","size":412383,
-"digest":"aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b","integrity":"sha256-ruS+cfEogDeueLmX3ziDMu39JGRxtTPc7aqPn+FWRCs="},
-"application-86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18.css":{"logical_path":"application.css","mtime":"2016-12-23T19:12:20-05:00","size":2994,
-"digest":"86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18","integrity":"sha256-hqKStQcHk8N+LA5fOfc7s4dkTq6tp/lub8BAoCixbBg="},
-"favicon-8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda.ico":{"logical_path":"favicon.ico","mtime":"2016-12-23T20:11:00-05:00","size":8629,
-"digest":"8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda","integrity":"sha256-jSOHuNTTLOzZP6OQDfDp/4nQGqzYT1DngMF8n2s9Dto="},
-"my_image-f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493.png":{"logical_path":"my_image.png","mtime":"2016-12-23T20:10:54-05:00","size":23414,
-"digest":"f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493","integrity":"sha256-9AKBVv1+ygNYTV8vwEcN8eDbxzaequY4sv8DP5iOxJM="}},
-"assets":{"application.js":"application-aee4be71f1288037ae78b997df388332edfd246471b533dcedaa8f9fe156442b.js",
-"application.css":"application-86a292b5070793c37e2c0e5f39f73bb387644eaeada7f96e6fc040a028b16c18.css",
-"favicon.ico":"favicon-8d2387b8d4d32cecd93fa3900df0e9ff89d01aacd84f50e780c17c9f6b3d0eda.ico",
-"my_image.png":"my_image-f4028156fd7eca03584d5f2fc0470df1e0dbc7369eaae638b2ff033f988ec493.png"}}
+```json
+{"files":{"application-<fingerprint>.js":{"logical_path":"application.js","mtime":"2016-12-23T20:12:03-05:00","size":412383,
+"digest":"<fingerprint>","integrity":"sha256-<random-string>"}},
+"assets":{"application.js":"application-<fingerprint>.js"}}
 ```
+
+In your application, there will be more files and assets listed in the manifest,
+`<fingerprint>` and `<random-string>` will also be generated.
 
 The default location for the manifest is the root of the location specified in
 `config.assets.prefix` ('/assets' by default).
@@ -747,9 +751,9 @@ $ RAILS_ENV=production rails assets:precompile
 
 Note the following caveats:
 
-*   If precompiled assets are available, they will be served — even if they no
-    longer match the original (uncompiled) assets, _even on the development
-    server._
+* If precompiled assets are available, they will be served — even if they no
+  longer match the original (uncompiled) assets, _even on the development
+  server._
 
     To ensure that the development server always compiles assets on-the-fly (and
     thus always reflects the most recent state of the code), the development
@@ -764,10 +768,20 @@ Note the following caveats:
     ```ruby
     config.assets.prefix = "/dev-assets"
     ```
+
 * The asset precompile task in your deployment tool (_e.g.,_ Capistrano) should
   be disabled.
 * Any necessary compressors or minifiers must be available on your development
   system.
+
+You can also set `ENV["SECRET_KEY_BASE_DUMMY"]` to trigger the use of a randomly
+generated `secret_key_base` that's stored in a temporary file. This is useful
+when precompiling assets for production as part of a build step that otherwise
+does not need access to the production secrets.
+
+```bash
+$ SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
+```
 
 ### Live Compilation
 
@@ -831,7 +845,7 @@ To set up your CDN you have to have your application running in production on
 the internet at a publicly available URL, for example `example.com`. Next
 you'll need to sign up for a CDN service from a cloud hosting provider. When you
 do this you need to configure the "origin" of the CDN to point back at your
-website `example.com`, check your provider for documentation on configuring the
+website `example.com`. Check your provider for documentation on configuring the
 origin server.
 
 The CDN you provisioned should give you a custom subdomain for your application
@@ -895,16 +909,16 @@ option your asset helper, which overwrites value set in
 
 A CDN works by caching content. If the CDN has stale or bad content, then it is
 hurting rather than helping your application. The purpose of this section is to
-describe general caching behavior of most CDNs, your specific provider may
+describe general caching behavior of most CDNs. Your specific provider may
 behave slightly differently.
 
 ##### CDN Request Caching
 
-While a CDN is described as being good for caching assets, in reality caches the
+While a CDN is described as being good for caching assets, it actually caches the
 entire request. This includes the body of the asset as well as any headers. The
-most important one being `Cache-Control` which tells the CDN (and web browsers)
+most important one being `Cache-Control`, which tells the CDN (and web browsers)
 how to cache contents. This means that if someone requests an asset that does
-not exist `/assets/i-dont-exist.png` and your Rails application returns a 404,
+not exist, such as `/assets/i-dont-exist.png`, and your Rails application returns a 404,
 then your CDN will likely cache the 404 page if a valid `Cache-Control` header
 is present.
 
@@ -929,7 +943,7 @@ Content-Length: 126560
 Via: 1.1 vegur
 ```
 
-Versus the CDN copy.
+Versus the CDN copy:
 
 ```bash
 $ curl -I http://mycdnsubdomain.fictional-cdn.com/application-
@@ -958,16 +972,14 @@ such as `X-Cache` or for any additional headers they may add.
 
 ##### CDNs and the Cache-Control Header
 
-The [cache control
-header](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
-specification that describes how a request can be cached. When no CDN is used, a
+The [`Cache-Control`][] header describes how a request can be cached. When no CDN is used, a
 browser will use this information to cache contents. This is very helpful for
 assets that are not modified so that a browser does not need to re-download a
 website's CSS or JavaScript on every request. Generally we want our Rails server
-to tell our CDN (and browser) that the asset is "public", that means any cache
+to tell our CDN (and browser) that the asset is "public". That means any cache
 can store the request. Also we commonly want to set `max-age` which is how long
 the cache will store the object before invalidating the cache. The `max-age`
-value is set to seconds with a maximum possible value of `31536000` which is one
+value is set to seconds with a maximum possible value of `31536000`, which is one
 year. You can do this in your Rails application by setting
 
 ```ruby
@@ -978,9 +990,11 @@ config.public_file_server.headers = {
 
 Now when your application serves an asset in production, the CDN will store the
 asset for up to a year. Since most CDNs also cache headers of the request, this
-`Cache-Control` will be passed along to all future browsers seeking this asset,
-the browser then knows that it can store this asset for a very long time before
+`Cache-Control` will be passed along to all future browsers seeking this asset.
+The browser then knows that it can store this asset for a very long time before
 needing to re-request it.
+
+[`Cache-Control`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
 
 ##### CDNs and URL-based Cache Invalidation
 
@@ -1050,7 +1064,7 @@ NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
 supported runtime in order to use `terser`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
 
-### GZipping your assets
+### GZipping Your Assets
 
 By default, gzipped version of compiled assets will be generated, along with
 the non-gzipped version of assets. Gzipped assets help reduce the transmission
@@ -1119,6 +1133,7 @@ and any other environments you define with production behavior (not
 `application.rb`).
 
 TIP: For further details have a look at the docs of your production web server:
+
 - [Apache](https://tn123.org/mod_xsendfile/)
 - [NGINX](https://www.nginx.com/resources/wiki/start/topics/examples/xsendfile/)
 
@@ -1173,7 +1188,7 @@ end
 ```
 
 Now that you have a module that modifies the input data, it's time to register
-it as a preprocessor for your mime type.
+it as a preprocessor for your MIME type.
 
 ```ruby
 Sprockets.register_preprocessor 'text/css', AddComment

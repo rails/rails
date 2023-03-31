@@ -38,7 +38,22 @@ module ActiveSupport
       #   end
       #   # => nil
       def silence(&block)
-        @silenced_thread.bind(true, &block)
+        begin_silence
+        block.call
+      ensure
+        end_silence
+      end
+
+      def begin_silence # :nodoc:
+        @silence_counter.value += 1
+      end
+
+      def end_silence # :nodoc:
+        @silence_counter.value -= 1
+      end
+
+      def silenced
+        @silenced || @silence_counter.value.nonzero?
       end
 
       # Allow previously disallowed deprecation warnings within the block.
@@ -77,10 +92,6 @@ module ActiveSupport
         else
           yield
         end
-      end
-
-      def silenced
-        @silenced || @silenced_thread.value
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)

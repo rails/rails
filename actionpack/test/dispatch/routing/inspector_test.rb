@@ -130,7 +130,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_dynamic_action_route
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get "api/:action" => "api"
           end
         end
@@ -143,7 +143,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_controller_and_action_only_route
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller/:action"
           end
         end
@@ -156,7 +156,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_controller_and_action_route_with_constraints
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller(/:action(/:id))", id: /\d+/
           end
         end
@@ -400,7 +400,7 @@ module ActionDispatch
 
       def test_regression_route_with_controller_regexp
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller(/:action)", controller: /api\/[^\/]+/, format: false
           end
         end

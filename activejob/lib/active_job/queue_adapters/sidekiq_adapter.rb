@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+gem "sidekiq", ">= 4.1.0"
 require "sidekiq"
 
 module ActiveJob
@@ -18,21 +19,44 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
     class SidekiqAdapter
       def enqueue(job) # :nodoc:
-        # Sidekiq::Client does not support symbols as keys
-        job.provider_job_id = Sidekiq::Client.push \
-          "class"   => JobWrapper,
-          "wrapped" => job.class,
-          "queue"   => job.queue_name,
-          "args"    => [ job.serialize ]
+        job.provider_job_id = JobWrapper.set(
+          wrapped: job.class,
+          queue: job.queue_name
+        ).perform_async(job.serialize)
       end
 
       def enqueue_at(job, timestamp) # :nodoc:
-        job.provider_job_id = Sidekiq::Client.push \
-          "class"   => JobWrapper,
-          "wrapped" => job.class,
-          "queue"   => job.queue_name,
-          "args"    => [ job.serialize ],
-          "at"      => timestamp
+        job.provider_job_id = JobWrapper.set(
+          wrapped: job.class,
+          queue: job.queue_name,
+        ).perform_at(timestamp, job.serialize)
+      end
+
+      def enqueue_all(jobs) # :nodoc:
+        jobs.group_by(&:class).each do |job_class, same_class_jobs|
+          same_class_jobs.group_by(&:queue_name).each do |queue, same_class_and_queue_jobs|
+            immediate_jobs, scheduled_jobs = same_class_and_queue_jobs.partition { |job| job.scheduled_at.nil? }
+
+            if immediate_jobs.any?
+              Sidekiq::Client.push_bulk(
+                "class" => JobWrapper,
+                "wrapped" => job_class,
+                "queue" => queue,
+                "args" => immediate_jobs.map { |job| [job.serialize] },
+              )
+            end
+
+            if scheduled_jobs.any?
+              Sidekiq::Client.push_bulk(
+                "class" => JobWrapper,
+                "wrapped" => job_class,
+                "queue" => queue,
+                "args" => scheduled_jobs.map { |job| [job.serialize] },
+                "at" => scheduled_jobs.map { |job| job.scheduled_at }
+              )
+            end
+          end
+        end
       end
 
       class JobWrapper # :nodoc:

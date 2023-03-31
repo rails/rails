@@ -19,8 +19,6 @@ module ActiveRecord
 
           if value.is_a?(Hash)
             set_time_zone_without_conversion(super)
-          elsif value.is_a?(Range)
-            Range.new(user_input_in_time_zone(value.begin), user_input_in_time_zone(value.end), value.exclude_end?)
           elsif value.respond_to?(:in_time_zone)
             begin
               super(user_input_in_time_zone(value)) || super
@@ -42,8 +40,6 @@ module ActiveRecord
               value.in_time_zone
             elsif value.respond_to?(:infinite?) && value.infinite?
               value
-            elsif value.is_a?(Range)
-              Range.new(convert_time_to_time_zone(value.begin), convert_time_to_time_zone(value.end), value.exclude_end?)
             else
               map_avoiding_infinite_recursion(value) { |v| convert_time_to_time_zone(v) }
             end

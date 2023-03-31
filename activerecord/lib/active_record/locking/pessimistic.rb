@@ -80,8 +80,8 @@ module ActiveRecord
         self
       end
 
-      # Wraps the passed block in a transaction, locking the object
-      # before yielding. You can pass the SQL locking clause
+      # Wraps the passed block in a transaction, reloading the object with a
+      # lock before yielding. You can pass the SQL locking clause
       # as an optional argument (see #lock!).
       #
       # You can also pass options like <tt>requires_new:</tt>, <tt>isolation:</tt>,

@@ -85,6 +85,17 @@ class ReloaderTest < ActiveSupport::TestCase
     assert_equal [:before_unload, :unload, :after_unload, :body], called
   end
 
+  def test_report_errors_once
+    reports = ErrorCollector.record do
+      assert_raises RuntimeError do
+        reloader.wrap do
+          raise "Oops"
+        end
+      end
+    end
+    assert_equal 1, reports.size
+  end
+
   private
     def new_reloader(&check)
       Class.new(ActiveSupport::Reloader).tap do |r|

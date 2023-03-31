@@ -155,15 +155,36 @@ module ApplicationCable
     rescue_from StandardError, with: :report_error
 
     private
-
-    def report_error(e)
-      SomeExternalBugtrackingService.notify(e)
-    end
+      def report_error(e)
+        SomeExternalBugtrackingService.notify(e)
+      end
   end
 end
 ```
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
+
+#### Connection Callbacks
+
+There are `before_command`, `after_command`, and `around_command` callbacks available to be invoked before, after or around every command received by a client respectively.
+The term "command" here refers to any interaction received by a client (subscribing, unsubscribing or performing actions):
+
+```ruby
+# app/channels/application_cable/connection.rb
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    identified_by :user
+
+    around_command :set_current_account
+
+    private
+      def set_current_account(&block)
+        # Now all channels could use Current.account
+        Current.set(account: user.account, &block)
+      end
+  end
+end
+```
 
 ### Channels
 
@@ -227,10 +248,40 @@ class ChatChannel < ApplicationCable::Channel
   rescue_from 'MyError', with: :deliver_error_message
 
   private
+    def deliver_error_message(e)
+      broadcast_to(...)
+    end
+end
+```
 
-  def deliver_error_message(e)
-    broadcast_to(...)
-  end
+#### Channel Callbacks
+
+`ApplicationCable::Channel` provides a number of callbacks that can be used to trigger logic
+during the life cycle of a channel. Available callbacks are:
+
+- `before_subscribe`
+- `after_subscribe` (also aliased as: `on_subscribe`)
+- `before_unsubscribe`
+- `after_unsubscribe` (also aliased as: `on_unsubscribe`)
+
+NOTE: The `after_subscribe` callback is triggered whenever the `subscribed` method is called,
+even if subscription was rejected with the `reject` method. To trigger `after_subscribe`
+only on successful subscriptions, use `after_subscribe :send_welcome_message, unless: :subscription_rejected?`
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  after_subscribe :send_welcome_message, unless: :subscription_rejected?
+  after_subscribe :track_subscription
+
+  private
+    def send_welcome_message
+      broadcast_to(...)
+    end
+
+    def track_subscription
+      # ...
+    end
 end
 ```
 
@@ -600,28 +651,28 @@ consumer.subscriptions.create("AppearanceChannel", {
 #### Client-Server Interaction
 
 1. **Client** connects to the **Server** via `createConsumer()`. (`consumer.js`). The
-**Server** identifies this connection by `current_user`.
+  **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via
-`consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
+  `consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
 
 3. **Server** recognizes a new subscription has been initiated for the
-appearance channel and runs its `subscribed` callback, calling the `appear`
-method on `current_user`. (`appearance_channel.rb`)
+  appearance channel and runs its `subscribed` callback, calling the `appear`
+  method on `current_user`. (`appearance_channel.rb`)
 
 4. **Client** recognizes that a subscription has been established and calls
-`connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
-`appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
-data hash of `{ appearing_on: this.appearingOn }`. This is
-possible because the server-side channel instance automatically exposes all
-public methods declared on the class (minus the callbacks), so that these can be
-reached as remote procedure calls via a subscription's `perform` method.
+  `connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
+  `appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
+  data hash of `{ appearing_on: this.appearingOn }`. This is
+  possible because the server-side channel instance automatically exposes all
+  public methods declared on the class (minus the callbacks), so that these can be
+  reached as remote procedure calls via a subscription's `perform` method.
 
 5. **Server** receives the request for the `appear` action on the appearance
-channel for the connection identified by `current_user`
-(`appearance_channel.rb`). **Server** retrieves the data with the
-`:appearing_on` key from the data hash and sets it as the value for the `:on`
-key being passed to `current_user.appear`.
+  channel for the connection identified by `current_user`
+  (`appearance_channel.rb`). **Server** retrieves the data with the
+  `:appearing_on` key from the data hash and sets it as the value for the `:on`
+  key being passed to `current_user.appear`.
 
 ### Example 2: Receiving New Web Notifications
 
@@ -792,7 +843,7 @@ connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least 4 database connections available.
 You can change that in `config/database.yml` through the `pool` attribute.
 
-### Client-side logging
+### Client-side Logging
 
 Client-side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
 
@@ -821,6 +872,10 @@ For a full list of all configuration options, see the
 
 ## Running Standalone Cable Servers
 
+Action Cable can either run as part of your Rails application, or as
+a standalone server. In development, running as part of your Rails app
+is generally fine, but in production you should run it as a standalone.
+
 ### In App
 
 Action Cable can run alongside your Rails application. For example, to
@@ -835,7 +890,7 @@ end
 ```
 
 You can use `ActionCable.createConsumer()` to connect to the cable
-server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
+server if [`action_cable_meta_tag`][] is invoked in the layout. Otherwise, a path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create, and for every worker your server
@@ -843,6 +898,7 @@ spawns, you will also have a new instance of Action Cable, but the Redis or
 PostgreSQL adapter keeps messages synced across connections.
 
 [`config.action_cable.mount_path`]: configuring.html#config-action-cable-mount-path
+[`action_cable_meta_tag`]: https://api.rubyonrails.org/classes/ActionCable/Helpers/ActionCableHelper.html#method-i-action_cable_meta_tag
 
 ### Standalone
 
@@ -858,14 +914,24 @@ Rails.application.eager_load!
 run ActionCable.server
 ```
 
-Then you start the server using a binstub in `bin/cable` ala:
+Then to start the server:
 
 ```
-#!/bin/bash
 bundle exec puma -p 28080 cable/config.ru
 ```
 
-The above will start a cable server on port 28080.
+This starts a cable server on port 28080. To tell Rails to use this
+server, update your config:
+
+```ruby
+# config/environments/development.rb
+Rails.application.configure do
+  config.action_cable.mount_path = nil
+  config.action_cable.url = "ws://localhost:28080" # use wss:// in production
+end
+```
+
+Finally, ensure you have [configured the consumer correctly](#consumer-configuration).
 
 ### Notes
 

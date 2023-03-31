@@ -222,8 +222,8 @@ module ActiveRecord
     end
   end
 
-  unless in_memory_db?
-    class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       self.use_transactional_tests = false
 
       fixtures :posts, :comments
@@ -342,8 +342,10 @@ module ActiveRecord
         assert_predicate deferred_posts, :loaded?
       end
     end
+  end
 
-    class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       include WaitForAsyncTestHelper
 
       self.use_transactional_tests = false
@@ -354,24 +356,28 @@ module ActiveRecord
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
 
-        config_hash1 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash
-        new_config1 = config_hash1.merge(min_threads: 0, max_threads: 10)
-        db_config1 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", new_config1)
+        config_hash1 = ActiveRecord::Base.connection_pool.db_config.configuration_hash.merge(min_threads: 0, max_threads: 10)
+        config_hash2 = ARUnit2Model.connection_pool.db_config.configuration_hash.merge(min_threads: 0, max_threads: 10)
 
-        config_hash2 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary").configuration_hash
-        new_config2 = config_hash2.merge(min_threads: 0, max_threads: 10)
-        db_config2 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit2", "primary", new_config2)
-
-        ActiveRecord::Base.establish_connection(db_config1)
-        ARUnit2Model.establish_connection(db_config2)
-      ensure
-        ActiveRecord::Base.establish_connection(:arunit)
-        ARUnit2Model.establish_connection(:arunit2)
+        ActiveRecord::Base.establish_connection(config_hash1)
+        ARUnit2Model.establish_connection(config_hash2)
       end
 
       def teardown
         ActiveRecord.async_query_executor = @old_config
         clean_up_connection_handler
+        ActiveRecord::Base.establish_connection(:arunit)
+        ARUnit2Model.establish_connection(:arunit2)
+      end
+
+      def test_async_query_executor_and_configuration
+        assert_equal :multi_thread_pool, ActiveRecord.async_query_executor
+
+        assert_equal 0, ActiveRecord::Base.connection_pool.db_config.configuration_hash[:min_threads]
+        assert_equal 0, ARUnit2Model.connection_pool.db_config.configuration_hash[:min_threads]
+
+        assert_equal 10, ActiveRecord::Base.connection_pool.db_config.configuration_hash[:max_threads]
+        assert_equal 10, ARUnit2Model.connection_pool.db_config.configuration_hash[:max_threads]
       end
 
       def test_scheduled?
@@ -477,8 +483,10 @@ module ActiveRecord
         assert_predicate deferred_posts, :loaded?
       end
     end
+  end
 
-    class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       include WaitForAsyncTestHelper
 
       self.use_transactional_tests = false

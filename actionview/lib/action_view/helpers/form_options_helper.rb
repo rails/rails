@@ -500,6 +500,8 @@ module ActionView
       #   <tt><optgroup></tt> label while the second value must be an array of options. The second value can be a
       #   nested array of text-value pairs. See <tt>options_for_select</tt> for more info.
       #    Ex. ["North America",[["United States","US"],["Canada","CA"]]]
+      #   An optional third value can be provided as HTML attributes for the <tt>optgroup</tt>.
+      #    Ex. ["North America",[["United States","US"],["Canada","CA"]], { disabled: "disabled" }]
       # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
       #   which will have the +selected+ attribute set. Note: It is possible for this value to match multiple options
       #   as you might have the same option in multiple groups. Each will then get <tt>selected="selected"</tt>.

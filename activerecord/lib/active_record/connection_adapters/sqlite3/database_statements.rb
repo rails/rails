@@ -15,19 +15,20 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def explain(arel, binds = [])
-          sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-          SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
+        def explain(arel, binds = [], _options = [])
+          sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
+          result = exec_query(sql, "EXPLAIN", [])
+          SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def execute(sql, name = nil) # :nodoc:
+        def execute(sql, name = nil, allow_retry: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 
           log(sql, name) do
-            with_raw_connection do |conn|
+            with_raw_connection(allow_retry: allow_retry) do |conn|
               conn.execute(sql)
             end
           end

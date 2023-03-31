@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -25,6 +25,7 @@
 
 require "abstract_controller"
 require "action_mailer/version"
+require "action_mailer/deprecator"
 
 # Common Active Support usage in Action Mailer
 require "active_support"
@@ -34,6 +35,7 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
+# :include: actionmailer/README.rdoc
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
@@ -52,6 +54,7 @@ module ActionMailer
   autoload :TestHelper
   autoload :MessageDelivery
   autoload :MailDeliveryJob
+  autoload :QueuedDelivery
 
   def self.eager_load!
     super

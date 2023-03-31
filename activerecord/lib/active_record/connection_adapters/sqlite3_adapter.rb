@@ -2,6 +2,7 @@
 
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
+require "active_record/connection_adapters/sqlite3/column"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
 require "active_record/connection_adapters/sqlite3/database_statements"
@@ -15,8 +16,12 @@ require "sqlite3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
+    def sqlite3_adapter_class
+      ConnectionAdapters::SQLite3Adapter
+    end
+
     def sqlite3_connection(config)
-      ConnectionAdapters::SQLite3Adapter.new(config)
+      sqlite3_adapter_class.new(config)
     end
   end
 
@@ -39,6 +44,16 @@ module ActiveRecord
           else
             raise
           end
+        end
+
+        def dbconsole(config, options = {})
+          args = []
+
+          args << "-#{options[:mode]}" if options[:mode]
+          args << "-header" if options[:header]
+          args << File.expand_path(config.database, Rails.respond_to?(:root) ? Rails.root : nil)
+
+          find_cmd_and_exec("sqlite3", *args)
         end
       end
 
@@ -513,12 +528,21 @@ module ActiveRecord
                 default = type.deserialize(column.default)
               end
 
-              @definition.column(column_name, column.type,
-                limit: column.limit, default: default,
-                precision: column.precision, scale: column.scale,
-                null: column.null, collation: column.collation,
+              column_options = {
+                limit: column.limit,
+                precision: column.precision,
+                scale: column.scale,
+                null: column.null,
+                collation: column.collation,
                 primary_key: column_name == from_primary_key
-              )
+              }
+
+              unless column.auto_increment?
+                column_options[:default] = default
+              end
+
+              column_type = column.bigint? ? :bigint : column.type
+              @definition.column(column_name, column_type, **column_options)
             end
 
             yield @definition if block_given?
@@ -588,10 +612,12 @@ module ActiveRecord
           end
         end
 
-        COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i.freeze
+        COLLATE_REGEX = /.*"(\w+)".*collate\s+"(\w+)".*/i
+        PRIMARY_KEY_AUTOINCREMENT_REGEX = /.*"(\w+)".+PRIMARY KEY AUTOINCREMENT/i
 
         def table_structure_with_collation(table_name, basic_structure)
           collation_hash = {}
+          auto_increments = {}
           sql = <<~SQL
             SELECT sql FROM
               (SELECT * FROM sqlite_master UNION ALL
@@ -613,6 +639,7 @@ module ActiveRecord
               # This regex will match the column name and collation type and will save
               # the value in $1 and $2 respectively.
               collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
+              auto_increments[$1] = true if PRIMARY_KEY_AUTOINCREMENT_REGEX =~ column_string
             end
 
             basic_structure.map do |column|
@@ -620,6 +647,10 @@ module ActiveRecord
 
               if collation_hash.has_key? column_name
                 column["collation"] = collation_hash[column_name]
+              end
+
+              if auto_increments.has_key?(column_name)
+                column["auto_increment"] = true
               end
 
               column

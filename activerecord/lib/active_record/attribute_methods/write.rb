@@ -25,9 +25,8 @@ module ActiveRecord
           end
       end
 
-      # Updates the attribute identified by <tt>attr_name</tt> with the
-      # specified +value+. Empty strings for Integer and Float columns are
-      # turned into +nil+.
+      # Updates the attribute identified by +attr_name+ using the specified
+      # +value+. The attribute value will be type cast upon being read.
       def write_attribute(attr_name, value)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name

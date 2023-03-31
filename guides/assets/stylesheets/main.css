@@ -252,7 +252,12 @@ body {
   padding: 2px 10px;
   position: absolute;
   bottom: 2px;
-  right: 2px
+  right: 2px;
+  cursor: pointer;
+}
+
+.clipboard-button:hover {
+  color: #005cc5;
 }
 
 .clipboard-button:active {

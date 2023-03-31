@@ -176,6 +176,20 @@ module ActiveRecord
             t.remove_exclusion_constraint name: "date_overlap"
           end
         end
+
+        def test_unique_key_creates_unique_key
+          with_change_table do |t|
+            expect :add_unique_key, nil, [:delete_me, :foo, deferrable: :deferred, name: "unique_key"]
+            t.unique_key :foo, deferrable: :deferred, name: "unique_key"
+          end
+        end
+
+        def test_remove_unique_key_removes_unique_key
+          with_change_table do |t|
+            expect :remove_unique_key, nil, [:delete_me, name: "unique_key"]
+            t.remove_unique_key name: "unique_key"
+          end
+        end
       end
 
       def test_column_creates_column

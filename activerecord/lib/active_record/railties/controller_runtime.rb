@@ -16,6 +16,11 @@ module ActiveRecord
         end
       end
 
+      def initialize(...) # :nodoc:
+        super
+        self.db_runtime = nil
+      end
+
       private
         attr_internal :db_runtime
 

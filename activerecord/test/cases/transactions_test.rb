@@ -9,6 +9,7 @@ require "models/book"
 require "models/author"
 require "models/post"
 require "models/movie"
+require "models/cpk"
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -51,7 +52,7 @@ class TransactionTest < ActiveRecord::TestCase
       assert_not connection.active?
       assert_not Topic.connection_pool.connections.include?(connection)
     ensure
-      ActiveRecord::Base.clear_all_connections!(:all)
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
 
     def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
@@ -77,7 +78,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       assert_equal "The Fifth Topic of the day", topic.reload.title
     ensure
-      ActiveRecord::Base.clear_all_connections!(:all)
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
   end
 
@@ -211,7 +212,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       transaction_with_shallow_return
     end
     assert committed
@@ -226,7 +227,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_deprecation_on_ruby_timeout_outside_inner_transaction
-    assert_deprecated do
+    assert_deprecated(ActiveRecord.deprecator) do
       catch do |timeout|
         Topic.transaction do
           Topic.transaction(requires_new: true) do
@@ -279,7 +280,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_early_return_from_transaction
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       @first.with_lock do
         break
       end
@@ -926,6 +927,32 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate topic, :previously_new_record?
   end
 
+  def test_restore_composite_id_after_rollback
+    book = Cpk::Book.create!(author_id: 1, number: 2)
+
+    Cpk::Book.transaction do
+      book.update!(author_id: 42, number: 42)
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal [1, 2], book.id
+  ensure
+    Cpk::Book.delete_all
+  end
+
+  def test_rollback_on_composite_key_model
+    Cpk::Book.create!(author_id: 1, number: 3, title: "Charlotte's Web")
+    book_two_unpersisted = Cpk::Book.new(author_id: 1, number: 3)
+
+    assert_raise(ActiveRecord::RecordNotUnique) do
+      Cpk::Book.transaction do
+        book_two_unpersisted.save!
+      end
+    end
+  ensure
+    Cpk::Book.delete_all
+  end
+
   def test_restore_id_after_rollback
     topic = Topic.new
 
@@ -1346,8 +1373,11 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
-  class ConcurrentTransactionTest < TransactionTest
+class ConcurrentTransactionTest < ActiveRecord::TestCase
+  if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+    self.use_transactional_tests = false
+    fixtures :topics, :developers
+
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
     def test_transaction_per_thread

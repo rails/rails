@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files = ["README.md"]
+  s.files = ["README.md", "MIT-LICENSE"]
 
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",

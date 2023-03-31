@@ -18,6 +18,12 @@ require "models/dl_keyed_has_one"
 require "models/dl_keyed_join"
 require "models/dl_keyed_has_many"
 require "models/dl_keyed_has_many_through"
+require "models/sharded/blog_post_destroy_async"
+require "models/sharded/comment_destroy_async"
+require "models/sharded/tag"
+require "models/sharded/blog_post"
+require "models/sharded/blog_post_tag"
+require "models/sharded/blog"
 
 class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -41,6 +47,39 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     Tag.delete_all
     BookDestroyAsync.delete_all
+  end
+
+  test "destroying a record destroys has_many :through associated by composite primary key using a job" do
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
+
+    tag1 = Sharded::Tag.create!(name: "Short Read", blog_id: blog.id)
+    tag2 = Sharded::Tag.create!(name: "Science", blog_id: blog.id)
+
+    blog_post.tags << [tag1, tag2]
+
+    blog_post.save!
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      blog_post.destroy
+    end
+
+    sql = capture_sql do
+      assert_difference -> { Sharded::Tag.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+
+    delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
+    assert_equal 2, delete_sqls.count
+
+    delete_sqls.each do |sql|
+      assert_match(/#{Regexp.escape(Sharded::Tag.connection.quote_table_name("sharded_tags.blog_id"))} =/, sql)
+    end
+  ensure
+    Sharded::Tag.delete_all
+    Sharded::BlogPostDestroyAsync.delete_all
+    Sharded::Blog.delete_all
   end
 
   test "destroying a scoped has_many through only deletes within the scope deleted" do
@@ -126,6 +165,33 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     EssayDestroyAsync.delete_all
     BookDestroyAsync.delete_all
+  end
+
+  test "belongs to associated by composite primary key" do
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
+    comment = Sharded::CommentDestroyAsync.create!(body: "Great post! :clap:")
+
+    comment.blog_post = blog_post
+    comment.save!
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      comment.destroy
+    end
+
+    sql = capture_sql do
+      assert_difference -> { Sharded::BlogPostDestroyAsync.count }, -1 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+
+    delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
+    assert_equal 1, delete_sqls.count
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
+  ensure
+    Sharded::BlogPostDestroyAsync.delete_all
+    Sharded::CommentDestroyAsync.delete_all
+    Sharded::Blog.delete_all
   end
 
   test "enqueues belongs_to to be deleted with custom primary key" do
@@ -216,6 +282,39 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     DlKeyedHasMany.delete_all
     DestroyAsyncParent.delete_all
+  end
+
+  test "has_many associated with composite primary key" do
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
+
+    comment1 = Sharded::CommentDestroyAsync.create!(body: "Great post! :clap:")
+    comment2 = Sharded::CommentDestroyAsync.create!(body: "Terrible post! :thumbs-down:")
+
+    blog_post.comments << [comment1, comment2]
+
+    blog_post.save!
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      blog_post.destroy
+    end
+
+    sql = capture_sql do
+      assert_difference -> { Sharded::CommentDestroyAsync.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+
+    delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
+    assert_equal 2, delete_sqls.count
+
+    delete_sqls.each do |sql|
+      assert_match(/#{Regexp.escape(Sharded::Tag.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    end
+  ensure
+    Sharded::CommentDestroyAsync.delete_all
+    Sharded::BlogPostDestroyAsync.delete_all
+    Sharded::Blog.delete_all
   end
 
   test "not enqueue the job if transaction is not committed" do
@@ -327,8 +426,8 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
     assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+  ensure
+    Tag.delete_all
+    BookDestroyAsync.delete_all
   end
-ensure
-  Tag.delete_all
-  BookDestroyAsync.delete_all
 end

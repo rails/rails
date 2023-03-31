@@ -220,7 +220,7 @@ module JSONSharedTestCases
 
   def test_not_compatible_with_serialize_json
     new_klass = Class.new(klass) do
-      serialize :payload, JSON
+      serialize :payload, coder: JSON
     end
     assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
       new_klass.new
@@ -236,7 +236,7 @@ module JSONSharedTestCases
 
   def test_json_with_serialized_attributes
     new_klass = Class.new(klass) do
-      serialize :settings, MySettings
+      serialize :settings, coder: MySettings
     end
 
     new_klass.create!(settings: MySettings.new("one" => "two"))

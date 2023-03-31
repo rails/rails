@@ -15,6 +15,8 @@ module Rails
       include Database
       include AppName
 
+      NODE_LTS_VERSION = "18.15.0"
+
       attr_accessor :rails_template
       add_shebang_option!
 
@@ -36,6 +38,9 @@ module Rails
 
         class_option :skip_git,            type: :boolean, aliases: "-G", default: nil,
                                            desc: "Skip git init, .gitignore and .gitattributes"
+
+        class_option :skip_docker,         type: :boolean, default: nil,
+                                           desc: "Skip Dockerfile, .dockerignore and bin/docker-entrypoint"
 
         class_option :skip_keeps,          type: :boolean, default: nil,
                                            desc: "Skip source control .keep files"
@@ -154,9 +159,9 @@ module Rails
         )
 
         deduction_order.each do |name|
-          reasons = option_reasons[name]&.select(&active).presence
-          active[name] ||= reasons if reasons
-          irrevocable << name if reasons&.any?(irrevocable)
+          active_reasons = option_reasons[name].to_a.select(&active)
+          active[name] ||= active_reasons if active_reasons.any?
+          irrevocable << name if active_reasons.any?(irrevocable)
         end
 
         revoked = options.select { |name, value| value == false }.keys.to_set - irrevocable
@@ -166,8 +171,9 @@ module Rails
         revoked -= meta_options
 
         active.filter_map do |name, reasons|
-          reasons -= revoked.to_a
-          [name, reasons] unless revoked.include?(name) || reasons.empty?
+          unless revoked.include?(name) || reasons.all?(revoked)
+            [name, reasons - revoked.to_a]
+          end
         end.to_h
       end
 
@@ -178,6 +184,24 @@ module Rails
         skip_javascript:     [:skip_hotwire],
       }
 
+      # ==== Options
+      #
+      # [+:meta_options+]
+      #   A list of generator options which only serve to trigger other options.
+      #   These options should have no other effects, and will be treated
+      #   transparently when revoking other options.
+      #
+      #   For example: --minimal implies both --skip-active-job and
+      #   --skip-active-storage. Also, --skip-active-job by itself implies
+      #   --skip-active-storage. If --skip-active-job is explicitly
+      #   specified, --no-skip-active-storage should raise an error. But, if
+      #   only --minimal is specified, --no-skip-active-storage should "undo"
+      #   the implied --skip-active-job. This can be accomplished by passing
+      #   <tt>meta_options: [:minimal]</tt>.
+      #
+      #   In contrast, --api is not a meta option because it does other things
+      #   besides implying options such as --skip-asset-pipeline. (And so --api
+      #   with --no-skip-asset-pipeline should raise an error.)
       def imply_options(option_implications = OPTION_IMPLICATIONS, meta_options: [])
         option_reasons = {}
         option_implications.each do |reason, implications|
@@ -243,7 +267,7 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", "~> 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+        GemfileEntry.new "puma", ">= 5.0", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def asset_pipeline_gemfile_entry
@@ -257,17 +281,40 @@ module Rails
         end
       end
 
+      def required_railties
+        @required_railties ||= {
+          "active_model/railtie"      => true,
+          "active_job/railtie"        => !options[:skip_active_job],
+          "active_record/railtie"     => !options[:skip_active_record],
+          "active_storage/engine"     => !options[:skip_active_storage],
+          "action_controller/railtie" => true,
+          "action_mailer/railtie"     => !options[:skip_action_mailer],
+          "action_mailbox/engine"     => !options[:skip_action_mailbox],
+          "action_text/engine"        => !options[:skip_action_text],
+          "action_view/railtie"       => true,
+          "action_cable/engine"       => !options[:skip_action_cable],
+          "rails/test_unit/railtie"   => !options[:skip_test],
+        }
+      end
+
       def include_all_railties? # :doc:
-        options.values_at(
-          :skip_action_cable,
-          :skip_action_mailbox,
-          :skip_action_mailer,
-          :skip_action_text,
-          :skip_active_job,
-          :skip_active_record,
-          :skip_active_storage,
-          :skip_test,
-        ).none?
+        required_railties.values.all?
+      end
+
+      def rails_require_statement
+        if include_all_railties?
+          %(require "rails/all")
+        else
+          require_statements = required_railties.map do |railtie, required|
+            %(#{"# " if !required}require "#{railtie}")
+          end
+
+          <<~RUBY.strip
+            require "rails"
+            # Pick the frameworks you want:
+            #{require_statements.join("\n")}
+          RUBY
+        end
       end
 
       def comment_if(value) # :doc:
@@ -352,6 +399,10 @@ module Rails
         end
       end
 
+      def gem_ruby_version
+        Gem::Version.new(Gem::VERSION) >= Gem::Version.new("3.3.13") ? Gem.ruby_version : RUBY_VERSION
+      end
+
       def rails_prerelease?
         options.dev? || options.edge? || options.main?
       end
@@ -413,10 +464,102 @@ module Rails
         options[:javascript] && options[:javascript] != "importmap"
       end
 
-      # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
+      def node_version
+        if using_node?
+          ENV.fetch("NODE_VERSION") do
+            `node --version`[/\d+\.\d+\.\d+/]
+          rescue
+            NODE_LTS_VERSION
+          end
+        end
+      end
+
+      def dockerfile_yarn_version
+        using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
+      rescue
+        "latest"
+      end
+
+      def dockerfile_binfile_fixups
+        # binfiles may have OS specific paths to ruby.  Normalize them.
+        shebangs = Dir["bin/*"].map { |file| IO.read(file).lines.first }.join
+        rubies = shebangs.scan(%r{#!/usr/bin/env (ruby.*)}).flatten.uniq
+
+        binfixups = (rubies - %w(ruby)).map do |ruby|
+          "sed -i 's/#{Regexp.quote(ruby)}$/ruby/' bin/*"
+        end
+
+        # Windows line endings will cause scripts to fail.  If any
+        # or found OR this generation is run on a windows platform
+        # and there are other binfixups required, then convert
+        # line endings.  This avoids adding unnecessary fixups if
+        # none are required, but prepares for the need to do the
+        # fix line endings if other fixups are required.
+        has_cr = Dir["bin/*"].any? { |file| IO.read(file).include? "\r" }
+        if has_cr || (Gem.win_platform? && !binfixups.empty?)
+          binfixups.unshift 'sed -i "s/\r$//g" bin/*'
+        end
+
+        # Windows file systems may not have the concept of executable.
+        # In such cases, fix up during the build.
+        unless Dir["bin/*"].all? { |file| File.executable? file }
+          binfixups.unshift "chmod +x bin/*"
+        end
+
+        binfixups
+      end
+
+      def dockerfile_build_packages
+        # start with the essentials
+        packages = %w(build-essential git)
+
+        # add databases: sqlite3, postgres, mysql
+        packages += %w(pkg-config libpq-dev default-libmysqlclient-dev)
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
+
+        # node support, including support for building native modules
+        if using_node?
+          packages += %w(curl node-gyp) # pkg-config already listed above
+
+          # module build process depends on Python, and debian changed
+          # how python is installed with the bullseye release.  Below
+          # is based on debian release included with the Ruby images on
+          # Dockerhub.
+          case Gem.ruby_version.to_s
+          when /^2\.7/
+            bullseye = Gem.ruby_version >= Gem::Version.new("2.7.4")
+          when /^3\.0/
+            bullseye = Gem.ruby_version >= Gem::Version.new("3.0.2")
+          else
+            bullseye = true
+          end
+
+          if bullseye
+            packages << "python-is-python3"
+          else
+            packages << "python"
+          end
+        end
+
+        packages.sort
+      end
+
+      def dockerfile_deploy_packages
+        # start with databases: sqlite3, postgres, mysql
+        packages = %w(libsqlite3-0 postgresql-client default-mysql-client)
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
+
+        packages.sort
+      end
+
+      # CSS processors other than Tailwind and Sass require a node-based JavaScript environment. So overwrite the normal JS default
       # if one such processor has been specified.
       def adjusted_javascript_option
-        if options[:css] && options[:css] != "tailwind" && options[:javascript] == "importmap"
+        if options[:css] && options[:css] != "tailwind" && options[:css] != "sass" && options[:javascript] == "importmap"
           "esbuild"
         else
           options[:javascript]
@@ -428,6 +571,8 @@ module Rails
 
         if !using_node? && options[:css] == "tailwind"
           GemfileEntry.floats "tailwindcss-rails", "Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]"
+        elsif !using_node? && options[:css] == "sass"
+          GemfileEntry.floats "dartsass-rails", "Use Dart SASS [https://github.com/rails/dartsass-rails]"
         else
           GemfileEntry.floats "cssbundling-rails", "Bundle and process CSS [https://github.com/rails/cssbundling-rails]"
         end
@@ -437,7 +582,7 @@ module Rails
         return if options[:skip_action_cable]
 
         comment = "Use Redis adapter to run Action Cable in production"
-        GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
+        GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
       end
 
       def bundle_command(command, env = {})
@@ -494,7 +639,8 @@ module Rails
 
           run_bundle
 
-          @argv[0] = destination_root
+          @argv.delete_at(@argv.index(app_path))
+          @argv.unshift(destination_root)
           require "shellwords"
           bundle_command("exec rails #{self_command} #{Shellwords.join(@argv)}")
           exit
@@ -505,7 +651,19 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
+        if bundle_install?
+          bundle_command("install", "BUNDLE_IGNORE_MESSAGES" => "1")
+
+          # The vast majority of Rails apps will be deployed on `x86_64-linux`.
+          platforms = ["--add-platform=x86_64-linux"]
+
+          # Users that develop on M1 mac may use docker and would need `aarch64-linux` as well.
+          platforms << "--add-platform=aarch64-linux" if RUBY_PLATFORM.start_with?("arm64")
+
+          platforms.each do |platform|
+            bundle_command("lock #{platform}", "BUNDLE_IGNORE_MESSAGES" => "1")
+          end
+        end
       end
 
       def run_javascript
@@ -528,6 +686,8 @@ module Rails
 
         if !using_node? && options[:css] == "tailwind"
           rails_command "tailwindcss:install"
+        elsif !using_node? && options[:css] == "sass"
+          rails_command "dartsass:install"
         else
           rails_command "css:install:#{options[:css]}"
         end

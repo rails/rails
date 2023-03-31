@@ -253,58 +253,81 @@ The type can be mapped as a normal text column, or to an [`ActiveRecord::Enum`](
 
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
-def up
-  create_enum :article_status, ["draft", "published"]
+def change
+  create_enum :article_status, ["draft", "published", "archived"]
 
   create_table :articles do |t|
     t.enum :status, enum_type: :article_status, default: "draft", null: false
   end
 end
+```
 
-# The above migration is reversible (using #change), but you can
-# also define a #down method:
+You can also create an enum type and add an enum column to an existing table:
+
+```ruby
+# db/migrate/20230113024409_add_status_to_articles.rb
+def change
+  create_enum :article_status, ["draft", "published", "archived"]
+
+  add_column :articles, :status, :enum, enum_type: :article_status, default: "draft", null: false
+end
+```
+
+The above migrations are both reversible, but you can define separate `#up` and `#down` methods if required. Make sure you remove any columns or tables that depend on the enum type before dropping it:
+
+```ruby
 def down
   drop_table :articles
 
+  # OR: remove_column :articles, :status
   drop_enum :article_status
 end
 ```
+
+Declaring an enum attribute in the model adds helper methods and prevents invalid values from being assigned to instances of the class:
 
 ```ruby
 # app/models/article.rb
 class Article < ApplicationRecord
   enum status: {
-    draft: "draft", published: "published"
+    draft: "draft", published: "published", archived: "archived"
   }, _prefix: true
 end
 ```
 
 ```irb
-irb> Article.create status: "draft"
-irb> article = Article.first
-irb> article.status_draft!
+irb> article = Article.create
 irb> article.status
-=> "draft"
+=> "draft" # default status from PostgreSQL, as defined in migration above
 
-irb> article.status_published?
+irb> article.status_published!
+irb> article.status
+=> "published"
+
+irb> article.status_archived?
 => false
+
+irb> article.status = "deleted"
+ArgumentError: 'deleted' is not a valid status
 ```
 
-To add a new value before/after existing one you should use [ALTER TYPE](https://www.postgresql.org/docs/current/static/sql-altertype.html):
+To add a new value (before or after an existing one) or to rename a value you should use [ALTER TYPE](https://www.postgresql.org/docs/current/static/sql-altertype.html):
 
 ```ruby
 # db/migrate/20150720144913_add_new_state_to_articles.rb
-# NOTE: ALTER TYPE ... ADD VALUE cannot be executed inside of a transaction block so here we are using disable_ddl_transaction!
 disable_ddl_transaction!
 
 def up
   execute <<-SQL
-    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'archived' AFTER 'published';
+    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'deleted' AFTER 'archived';
+    ALTER TYPE article_status RENAME VALUE 'archived' TO 'hidden';
   SQL
 end
 ```
 
-NOTE: Enum values can't be dropped. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+NOTE: `ALTER TYPE ... ADD VALUE` cannot be executed inside of a transaction block so here we are using `disable_ddl_transaction!`
+
+WARNING. Enum values [can't be dropped or reordered](https://www.postgresql.org/docs/current/datatype-enum.html). Adding a value is not easily reversed.
 
 Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
 
@@ -495,14 +518,31 @@ class Device < ApplicationRecord
 end
 ```
 
-```ruby
+```irb
 irb> device = Device.create
 irb> device.id
 => "814865cd-5a1d-4771-9306-4268f188fe9e"
 ```
 
-NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option was
-passed to `create_table`.
+NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option
+was passed to `create_table`.
+
+To use the Rails model generator for a table using UUID as the primary key, pass
+`--primary-key-type=uuid` to the model generator.
+
+For example:
+
+```bash
+$ rails generate model Device --primary-key-type=uuid kind:string
+```
+
+When building a model with a foreign key that will reference this UUID, treat
+`uuid` as the native field type, for example:
+
+```bash
+$ rails generate model Case device_id:uuid
+```
+
 
 Generated Columns
 -----------------
@@ -645,7 +685,7 @@ CREATE VIEW articles AS
          "BL_ARCH" AS archived
   FROM "TBL_ART"
   WHERE "BL_ARCH" = 'f'
-  SQL
+SQL
 ```
 
 ```ruby
@@ -672,7 +712,7 @@ irb> Article.count
 NOTE: This application only cares about non-archived `Articles`. A view also
 allows for conditions so we can exclude the archived `Articles` directly.
 
-Structure dumps
+Structure Dumps
 --------------
 
 If your `config.active_record.schema_format` is `:sql`, Rails will call `pg_dump` to generate a

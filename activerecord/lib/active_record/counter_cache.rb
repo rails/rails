@@ -5,6 +5,10 @@ module ActiveRecord
   module CounterCache
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :_counter_cache_columns, instance_accessor: false, default: []
+    end
+
     module ClassMethods
       # Resets one or more counter caches to their correct value using an SQL
       # count query. This is useful when adding new counter caches, or if the
@@ -161,6 +165,10 @@ module ActiveRecord
       #   DiscussionBoard.decrement_counter(:posts_count, 5, touch: true)
       def decrement_counter(counter_name, id, touch: nil)
         update_counters(id, counter_name => -1, touch: touch)
+      end
+
+      def counter_cache_column?(name) # :nodoc:
+        _counter_cache_columns.include?(name)
       end
     end
 

@@ -48,7 +48,7 @@ module ActiveSupport
       include Mutex_m
 
       def initialize
-        @string_subscribers = Hash.new { |h, k| h[k] = [] }
+        @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
         @other_subscribers = []
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
@@ -210,11 +210,11 @@ module ActiveSupport
         groups
       end
 
-      # A Handle is used to record the start and finish time of event
+      # A +Handle+ is used to record the start and finish time of event
       #
-      # Both `#start` and `#finish` must each be called exactly once
+      # Both #start and #finish must each be called exactly once
       #
-      # Where possible, it's best to the block form, +ActiveSupport::Notifications.instrument+
+      # Where possible, it's best to the block form, ActiveSupport::Notifications.instrument.
       # +Handle+ is a low-level API intended for cases where the block form can't be used.
       #
       #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})

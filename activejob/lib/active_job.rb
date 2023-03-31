@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2014-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -26,8 +26,11 @@
 require "active_support"
 require "active_support/rails"
 require "active_job/version"
+require "active_job/deprecator"
 require "global_id"
 
+# :markup: markdown
+# :include: activejob/README.md
 module ActiveJob
   extend ActiveSupport::Autoload
 

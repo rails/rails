@@ -17,6 +17,10 @@ module ActiveRecord
         "#{adapter}_connection"
       end
 
+      def adapter_class_method
+        "#{adapter}_adapter_class"
+      end
+
       def host
         raise NotImplementedError
       end

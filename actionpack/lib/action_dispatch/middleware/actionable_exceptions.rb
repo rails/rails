@@ -32,7 +32,7 @@ module ActionDispatch
         if uri.relative? || uri.scheme == "http" || uri.scheme == "https"
           body = ""
         else
-          return [400, { "Content-Type" => "text/plain" }, ["Invalid redirection URI"]]
+          return [400, { "Content-Type" => "text/plain; charset=utf-8" }, ["Invalid redirection URI"]]
         end
 
         [302, {

@@ -41,6 +41,10 @@ module ActionView
       template
     end
 
+    def built_templates # :nodoc:
+      @templates.values
+    end
+
     private
       def build_template(locals)
         Template.new(

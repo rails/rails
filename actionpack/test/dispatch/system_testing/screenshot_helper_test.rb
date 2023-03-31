@@ -158,12 +158,12 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     end
   end
 
-  test "slashes and backslashes are replaced with dashes in paths" do
-    slash_test = DrivenBySeleniumWithChrome.new("x/y\\z")
+  test "Non word characters are replaced with dashes in paths" do
+    non_word_chars_test = DrivenBySeleniumWithChrome.new("x/y\\z?<br>-span")
 
     Rails.stub :root, Pathname.getwd do
-      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z.png").to_s, slash_test.send(:image_path)
-      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z.html").to_s, slash_test.send(:html_path)
+      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z-br-span.png").to_s, non_word_chars_test.send(:image_path)
+      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z-br-span.html").to_s, non_word_chars_test.send(:html_path)
     end
   end
 end

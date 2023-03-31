@@ -15,7 +15,7 @@ module ActionText
         elsif attachable = ActionText::Attachables::RemoteImage.from_node(node)
           attachable
         else
-          ActionText::Attachables::MissingAttachable
+          ActionText::Attachables::MissingAttachable.new(node["sgid"])
         end
       end
 
@@ -36,6 +36,10 @@ module ActionText
     class_methods do
       def from_attachable_sgid(sgid)
         ActionText::Attachable.from_attachable_sgid(sgid, only: self)
+      end
+
+      def to_missing_attachable_partial_path
+        ActionText::Attachables::MissingAttachable::DEFAULT_PARTIAL_PATH
       end
     end
 
@@ -64,7 +68,7 @@ module ActionText
     end
 
     def as_json(*)
-      super.merge(attachable_sgid: attachable_sgid)
+      super.merge("attachable_sgid" => persisted? ? attachable_sgid : nil)
     end
 
     def to_trix_content_attachment_partial_path

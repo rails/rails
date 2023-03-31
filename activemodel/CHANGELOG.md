@@ -1,3 +1,69 @@
+*   `has_secure_password` now generates an `#{attribute}_salt` method that returns the salt
+    used to compute the password digest. The salt will change whenever the password is changed,
+    so it can be used to create single-use password reset tokens with `generates_token_for`:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password
+
+      generates_token_for :password_reset, expires_in: 15.minutes do
+        password_salt&.last(10)
+      end
+    end
+    ```
+
+    *Lázaro Nixon*
+
+*   Improve typography of user facing error messages. In English contractions,
+    the Unicode APOSTROPHE (`U+0027`) is now RIGHT SINGLE QUOTATION MARK
+    (`U+2019`). For example, "can't be blank" is now "can’t be blank".
+
+    *Jon Dufresne*
+
+*   Add class to `ActiveModel::MissingAttributeError` error message.
+
+    Show which class is missing the attribute in the error message:
+
+    ```ruby
+    user = User.first
+    user.pets.select(:id).first.user_id
+    # => ActiveModel::MissingAttributeError: missing attribute 'user_id' for Pet
+    ```
+
+    *Petrik de Heus*
+
+*   Raise `NoMethodError` in `ActiveModel::Type::Value#as_json` to avoid unpredictable
+    results.
+
+    *Vasiliy Ermolovich*
+
+*   Custom attribute types that inherit from Active Model built-in types and do
+    not override the `serialize` method will now benefit from an optimization
+    when serializing attribute values for the database.
+
+    For example, with a custom type like the following:
+
+    ```ruby
+    class DowncasedString < ActiveModel::Type::String
+      def cast(value)
+        super&.downcase
+      end
+    end
+
+    ActiveRecord::Type.register(:downcased_string, DowncasedString)
+
+    class User < ActiveRecord::Base
+      attribute :email, :downcased_string
+    end
+
+    user = User.new(email: "FooBar@example.com")
+    ```
+
+    Serializing the `email` attribute for the database will be roughly twice as
+    fast.  More expensive `cast` operations will likely see greater improvements.
+
+    *Jonathan Hefner*
+
 *   `has_secure_password` now supports password challenges via a
     `password_challenge` accessor and validation.
 

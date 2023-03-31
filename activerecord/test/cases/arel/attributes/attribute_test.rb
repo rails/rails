@@ -658,6 +658,16 @@ module Arel
           )
         end
 
+        it "can be constructed with an exclusive range implicitly ending at Infinity" do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(0...)
+
+          _(node).must_equal Nodes::GreaterThanOrEqual.new(
+            attribute,
+            Nodes::Casted.new(0, attribute)
+          )
+        end
+
         it "can be constructed with a quoted range ending at Infinity" do
           attribute = Attribute.new nil, nil
           node = attribute.between(quoted_range(0, ::Float::INFINITY, false))

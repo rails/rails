@@ -11,13 +11,13 @@ After reading this guide, you will know:
 
 * How to use Rails without the need for a Node.js, Yarn, or a JavaScript bundler.
 * How to create a new Rails application using import maps, esbuild, rollup, or webpack to bundle
-your JavaScript.
+  your JavaScript.
 * What Turbo is, and how to use it.
 * How to use the Turbo HTML helpers provided by Rails.
 
 --------------------------------------------------------------------------------
 
-Import maps
+Import Maps
 -----------
 
 [Import maps](https://github.com/rails/importmap-rails) let you import JavaScript modules using
@@ -130,13 +130,10 @@ that you should choose a traditional bundler include:
 
 * If your code requires a transpilation step, such as JSX or TypeScript.
 * If you need to use JavaScript libraries that include CSS or otherwise rely on
-[Webpack loaders](https://webpack.js.org/loaders/).
+  [Webpack loaders](https://webpack.js.org/loaders/).
 * If you are absolutely sure that you need
-[tree-shaking](https://webpack.js.org/guides/tree-shaking/).
-* If you will install Bootstrap, Bulma, PostCSS, or Dart CSS through the
-[cssbundling-rails gem](https://github.com/rails/cssbundling-rails). All options provided by this
-gem except Tailwind will automatically install `esbuild` for you if you do not specify a different
-option in `rails new`.
+  [tree-shaking](https://webpack.js.org/guides/tree-shaking/).
+* If you will install Bootstrap, Bulma, PostCSS, or Dart CSS through the [cssbundling-rails gem](https://github.com/rails/cssbundling-rails). All options provided by this gem except Tailwind and Sass will automatically install `esbuild` for you if you do not specify a different option in `rails new`.
 
 Turbo
 -----
@@ -171,7 +168,7 @@ like this:
 ```erb
 <%= turbo_frame_tag dom_id(post) do %>
   <div>
-     <%= link_to post.title, post_path(path) %>
+     <%= link_to post.title, post_path(post) %>
   </div>
 <% end %>
 ```
@@ -274,19 +271,29 @@ non-GET action.
 
 ### Confirmations
 
-You can ask for an extra confirmation of the user by adding a `data-turbo-confirm` attribute on
-links and forms. The user will be presented with a JavaScript `confirm()` dialog containing the
-attribute’s text. If the user chooses to cancel, the action doesn't take place.
+You can ask for an extra confirmation from the user by adding a `data-turbo-confirm`
+attribute on links and forms. On link click or form submit, the user will be
+presented with a JavaScript `confirm()` dialog containing the attribute's text.
+If the user chooses to cancel, the action doesn't take place.
 
-Adding this attribute on links will trigger the dialog on click, and adding it on forms will
-trigger it on submit. For example:
+For example, with the `link_to` helper:
 
 ```erb
 <%= link_to "Delete post", post_path(post), data: { turbo_method: "delete", turbo_confirm: "Are you sure?" } %>
 ```
 
-This generates:
+Which generates:
 
 ```html
 <a href="..." data-turbo-confirm="Are you sure?" data-turbo-method="delete">Delete post</a>
+```
+
+When the user clicks on the "Delete post" link, they will be presented with an
+"Are you sure?" confirmation dialog.
+
+The attribute can also be used with the `button_to` helper, however it must be
+added to the form that the `button_to` helper renders internally:
+
+```erb
+<%= button_to "Delete post", post, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } } %>
 ```

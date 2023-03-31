@@ -19,7 +19,7 @@ module ActiveRecord
         #
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
-        def all
+        def all(all_queries: nil)
           scope = current_scope
 
           if scope
@@ -29,7 +29,7 @@ module ActiveRecord
               relation.merge!(scope)
             end
           else
-            default_scoped
+            default_scoped(all_queries: all_queries)
           end
         end
 

@@ -203,7 +203,7 @@ class Person
 end
 ```
 
-#### Querying object directly for its list of all changed attributes.
+#### Querying an Object Directly for its List of All Changed Attributes
 
 ```irb
 irb> person = Person.new
@@ -231,7 +231,7 @@ irb> person.changes
 => {"first_name"=>[nil, "First Name"]}
 ```
 
-#### Attribute-based accessor methods
+#### Attribute-based Accessor Methods
 
 Track whether the particular attribute has been changed or not.
 
@@ -354,7 +354,7 @@ class Person
   attr_accessor :name
 
   def attributes
-    {'name' => nil}
+    { 'name' => nil }
   end
 end
 ```
@@ -388,7 +388,7 @@ class Person
   attr_accessor :name
 
   def attributes
-    {'name' => nil}
+    { 'name' => nil }
   end
 end
 ```
@@ -421,7 +421,7 @@ class Person
   end
 
   def attributes
-    {'name' => nil}
+    { 'name' => nil }
   end
 end
 ```

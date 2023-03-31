@@ -7,7 +7,7 @@ and scalable. It's a full-stack offering that provides both a client-side
 JavaScript framework and a server-side Ruby framework. You have access to your full
 domain model written with Active Record or your ORM of choice.
 
-You can read more about Action Cable in the [Action Cable Overview](https://edgeguides.rubyonrails.org/action_cable_overview.html) guide.
+You can read more about Action Cable in the [Action Cable Overview](https://guides.rubyonrails.org/action_cable_overview.html) guide.
 
 ## Support
 

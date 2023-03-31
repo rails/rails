@@ -6,7 +6,7 @@ The inbound emails are turned into `InboundEmail` records using Active Record an
 
 These inbound emails are routed asynchronously using Active Job to one or several dedicated mailboxes, which are capable of interacting directly with the rest of your domain model.
 
-You can read more about Action Mailbox in the [Action Mailbox Basics](https://edgeguides.rubyonrails.org/action_mailbox_basics.html) guide.
+You can read more about Action Mailbox in the [Action Mailbox Basics](https://guides.rubyonrails.org/action_mailbox_basics.html) guide.
 
 ## License
 

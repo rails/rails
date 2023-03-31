@@ -237,8 +237,8 @@ module ActiveSupport
       #
       # Raises an error if invalid event name type is passed:
       #
-      #  ActiveSupport::Notifications.subscribe(:render) {|*args| ...}
-      #  #=> ArgumentError (pattern must be specified as a String, Regexp or empty)
+      #   ActiveSupport::Notifications.subscribe(:render) {|*args| ...}
+      #   #=> ArgumentError (pattern must be specified as a String, Regexp or empty)
       #
       def subscribe(pattern = nil, callback = nil, &block)
         notifier.subscribe(pattern, callback, monotonic: false, &block)

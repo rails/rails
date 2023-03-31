@@ -96,7 +96,7 @@ module ActiveModel
       # Example:
       #
       #   validates :password, presence: true, confirmation: true, if: :password_required?
-      #   validates :token, length: 24, strict: TokenLengthException
+      #   validates :token, length: { is: 24 }, strict: TokenLengthException
       #
       #
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
@@ -144,7 +144,7 @@ module ActiveModel
       #   person = Person.new
       #   person.name = ''
       #   person.valid?
-      #   # => ActiveModel::StrictValidationFailed: Name can't be blank
+      #   # => ActiveModel::StrictValidationFailed: Name can’t be blank
       def validates!(*attributes)
         options = attributes.extract_options!
         options[:strict] = true

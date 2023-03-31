@@ -196,7 +196,7 @@ module ActiveSupport
             else
               {}.tap do |pool_options|
                 if options[:pool_size]
-                  ActiveSupport::Deprecation.warn(<<~MSG)
+                  ActiveSupport.deprecator.warn(<<~MSG)
                     Using :pool_size is deprecated and will be removed in Rails 7.2.
                     Use `pool: { size: #{options[:pool_size].inspect} }` instead.
                   MSG
@@ -204,7 +204,7 @@ module ActiveSupport
                 end
 
                 if options[:pool_timeout]
-                  ActiveSupport::Deprecation.warn(<<~MSG)
+                  ActiveSupport.deprecator.warn(<<~MSG)
                     Using :pool_timeout is deprecated and will be removed in Rails 7.2.
                     Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
                   MSG
@@ -362,12 +362,14 @@ module ActiveSupport
           key = normalize_key(name, options)
 
           entry = nil
-          instrument(:read, name, options) do |payload|
-            cached_entry = read_entry(key, **options, event: payload) unless options[:force]
-            entry = handle_expired_entry(cached_entry, key, options)
-            entry = nil if entry && entry.mismatched?(normalize_version(name, options))
-            payload[:super_operation] = :fetch if payload
-            payload[:hit] = !!entry if payload
+          unless options[:force]
+            instrument(:read, name, options) do |payload|
+              cached_entry = read_entry(key, **options, event: payload)
+              entry = handle_expired_entry(cached_entry, key, options)
+              entry = nil if entry && entry.mismatched?(normalize_version(name, options))
+              payload[:super_operation] = :fetch if payload
+              payload[:hit] = !!entry if payload
+            end
           end
 
           if entry
@@ -392,6 +394,7 @@ module ActiveSupport
       #
       # ==== Options
       #
+      # * +:namespace+ - Replace the store namespace for this call.
       # * +:version+ - Specifies a version for the cache entry. If the cached
       #   version does not match the requested version, the read will be treated
       #   as a cache miss. This feature is used to support recyclable cache keys.

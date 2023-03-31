@@ -46,6 +46,7 @@ module ActionMailbox
   #    content in JSON payload"*. Action Mailbox needs the raw email content to work.
   class Ingresses::Postmark::InboundEmailsController < ActionMailbox::BaseController
     before_action :authenticate_by_password
+    param_encoding :create, "RawEmail", Encoding::ASCII_8BIT
 
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! params.require("RawEmail")

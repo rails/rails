@@ -26,12 +26,13 @@ STATS_DIRECTORIES ||= [
   %w(Channel\ tests     test/channels),
   %w(Integration\ tests test/integration),
   %w(System\ tests      test/system),
-].collect do |name, dir|
-  [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
-end.select { |name, dir| File.directory?(dir) }
+]
 
 desc "Report code statistics (KLOCs, etc) from the application or engine"
 task :stats do
   require "rails/code_statistics"
-  CodeStatistics.new(*STATS_DIRECTORIES).to_s
+  stat_directories = STATS_DIRECTORIES.collect do |name, dir|
+    [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
+  end.select { |name, dir| File.directory?(dir) }
+  CodeStatistics.new(*stat_directories).to_s
 end

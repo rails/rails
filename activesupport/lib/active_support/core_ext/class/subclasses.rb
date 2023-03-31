@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/ruby_features"
+require "active_support/descendants_tracker"
 
 class Class
   if ActiveSupport::RubyFeatures::CLASS_SUBCLASSES
@@ -26,16 +27,18 @@ class Class
         k.singleton_class? || k == self
       end
     end
+
+    # Returns an array with the direct children of +self+.
+    #
+    #   class Foo; end
+    #   class Bar < Foo; end
+    #   class Baz < Bar; end
+    #
+    #   Foo.subclasses # => [Bar]
+    def subclasses
+      descendants.select { |descendant| descendant.superclass == self }
+    end
   end
 
-  # Returns an array with the direct children of +self+.
-  #
-  #   class Foo; end
-  #   class Bar < Foo; end
-  #   class Baz < Bar; end
-  #
-  #   Foo.subclasses # => [Bar]
-  def subclasses
-    descendants.select { |descendant| descendant.superclass == self }
-  end unless ActiveSupport::RubyFeatures::CLASS_SUBCLASSES
+  prepend ActiveSupport::DescendantsTracker::ReloadedClassesFiltering
 end

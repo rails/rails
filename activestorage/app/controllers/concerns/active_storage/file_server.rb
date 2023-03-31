@@ -5,7 +5,7 @@ require "active_support/core_ext/hash/except"
 module ActiveStorage::FileServer # :nodoc:
   private
     def serve_file(path, content_type:, disposition:)
-      Rack::File.new(nil).serving(request, path).tap do |(status, headers, body)|
+      ::Rack::Files.new(nil).serving(request, path).tap do |(status, headers, body)|
         self.status = status
         self.response_body = body
 

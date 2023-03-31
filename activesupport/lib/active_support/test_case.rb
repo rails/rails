@@ -68,7 +68,7 @@ module ActiveSupport
       # The default parallelization method is to fork processes. If you'd like to
       # use threads instead you can pass <tt>with: :threads</tt> to the +parallelize+
       # method. Note the threaded parallelization does not create multiple
-      # database and will not work with system tests at this time.
+      # databases and will not work with system tests.
       #
       #   parallelize(workers: :number_of_processors, with: :threads)
       #

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "strscan"
+require "active_support/core_ext/erb/util"
+
 module ActionView
   class Template
     module Handlers
@@ -31,6 +34,24 @@ module ActionView
 
         def handles_encoding?
           true
+        end
+
+        # Translate an error location returned by ErrorHighlight to the correct
+        # source location inside the template.
+        def translate_location(spot, backtrace_location, source)
+          # Tokenize the source line
+          tokens = ::ERB::Util.tokenize(source.lines[backtrace_location.lineno - 1])
+          new_first_column = find_offset(spot[:snippet], tokens, spot[:first_column])
+          lineno_delta = spot[:first_lineno] - backtrace_location.lineno
+          spot[:first_lineno] -= lineno_delta
+          spot[:last_lineno] -= lineno_delta
+
+          column_delta = spot[:first_column] - new_first_column
+          spot[:first_column] -= column_delta
+          spot[:last_column] -= column_delta
+          spot[:script_lines] = source.lines
+
+          spot
         end
 
         def call(template, source)
@@ -78,6 +99,45 @@ module ActionView
 
           # Otherwise, raise an exception
           raise WrongEncodingError.new(string, string.encoding)
+        end
+
+        def find_offset(compiled, source_tokens, error_column)
+          compiled = StringScanner.new(compiled)
+
+          passed_tokens = []
+
+          while tok = source_tokens.shift
+            tok_name, str = *tok
+            case tok_name
+            when :TEXT
+              raise unless compiled.scan(str)
+            when :CODE
+              raise "We went too far" if compiled.pos > error_column
+
+              if compiled.pos + str.bytesize >= error_column
+                offset = error_column - compiled.pos
+                return passed_tokens.map(&:last).join.bytesize + offset
+              else
+                raise unless compiled.scan(str)
+              end
+            when :OPEN
+              next_tok = source_tokens.first.last
+              loop do
+                break if compiled.match?(next_tok)
+                compiled.getch
+              end
+            when :CLOSE
+              next_tok = source_tokens.first.last
+              loop do
+                break if compiled.match?(next_tok)
+                compiled.getch
+              end
+            else
+              raise NotImplemented, tok.first
+            end
+
+            passed_tokens << tok
+          end
         end
       end
     end

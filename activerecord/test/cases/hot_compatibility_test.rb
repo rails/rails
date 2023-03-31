@@ -136,7 +136,7 @@ class HotCompatibilityTest < ActiveRecord::TestCase
             ActiveRecord::Base.connection_pool.checkin ddl_connection
           end
         ensure
-          ActiveRecord::Base.clear_all_connections!(:all)
+          ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
         end
       end
     end

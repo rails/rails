@@ -277,7 +277,7 @@ module ActionController
         permitted? == other.permitted? && parameters == other.parameters
       else
         if self.class.allow_deprecated_parameters_hash_equality && Hash === other
-          ActiveSupport::Deprecation.warn <<-WARNING.squish
+          ActionController.deprecator.warn <<-WARNING.squish
             Comparing equality between `ActionController::Parameters` and a
             `Hash` is deprecated and will be removed in Rails 7.2. Please only do
             comparisons between instances of `ActionController::Parameters`. If
@@ -734,6 +734,7 @@ module ActionController
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
+    alias_method :without, :except
 
     # Removes and returns the key/value pairs matching the given keys.
     #

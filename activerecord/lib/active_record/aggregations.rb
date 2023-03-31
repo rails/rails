@@ -4,7 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Aggregations::ClassMethods for documentation
   module Aggregations
     def initialize_dup(*) # :nodoc:
-      @aggregation_cache = {}
+      @aggregation_cache = @aggregation_cache.dup
       super
     end
 
@@ -19,8 +19,8 @@ module ActiveRecord
       end
 
       def init_internals
-        @aggregation_cache = {}
         super
+        @aggregation_cache = {}
       end
 
       # Active Record implements aggregation through a macro-like class method called #composed_of
@@ -250,7 +250,7 @@ module ActiveRecord
                 object = constructor.respond_to?(:call) ?
                   constructor.call(*attrs) :
                   class_name.constantize.send(constructor, *attrs)
-                @aggregation_cache[name] = object
+                @aggregation_cache[name] = object.freeze
               end
               @aggregation_cache[name]
             end
@@ -276,7 +276,7 @@ module ActiveRecord
                 @aggregation_cache[name] = nil
               else
                 mapping.each { |key, value| write_attribute(key, part.send(value)) }
-                @aggregation_cache[name] = part.freeze
+                @aggregation_cache[name] = part.dup.freeze
               end
             end
           end

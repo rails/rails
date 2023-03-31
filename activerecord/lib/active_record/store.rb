@@ -70,7 +70,7 @@ module ActiveRecord
   #
   # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
   #
-  #   User.stored_attributes[:settings] # [:color, :homepage, :two_factor_auth, :login_retry]
+  #   User.stored_attributes[:settings] # => [:color, :homepage, :two_factor_auth, :login_retry]
   #
   # == Overwriting default accessors
   #
@@ -102,7 +102,8 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
+        coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
+        serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
         store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
@@ -225,10 +226,7 @@ module ActiveRecord
 
         def self.write(object, attribute, key, value)
           prepare(object, attribute)
-          if value != read(object, attribute, key)
-            object.public_send :"#{attribute}_will_change!"
-            object.public_send(attribute)[key] = value
-          end
+          object.public_send(attribute)[key] = value if value != read(object, attribute, key)
         end
 
         def self.prepare(object, attribute)

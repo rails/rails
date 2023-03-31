@@ -561,6 +561,27 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
+      def test_auto_increment_preserved_on_table_changes
+        connection = Barcode.connection
+        connection.create_table :barcodes, force: true do |t|
+          t.string :code
+        end
+
+        pk_column = connection.columns("barcodes").find { |col| col.name == "id" }
+        sql = connection.exec_query("SELECT sql FROM sqlite_master WHERE tbl_name='barcodes'").rows.first.first
+
+        assert(pk_column.auto_increment?)
+        assert(sql.match?("PRIMARY KEY AUTOINCREMENT"))
+
+        connection.change_column(:barcodes, :code, :integer)
+
+        pk_column = connection.columns("barcodes").find { |col| col.name == "id" }
+        sql = connection.exec_query("SELECT sql FROM sqlite_master WHERE tbl_name='barcodes'").rows.first.first
+
+        assert(pk_column.auto_increment?)
+        assert(sql.match?("PRIMARY KEY AUTOINCREMENT"))
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end

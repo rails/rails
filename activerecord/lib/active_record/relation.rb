@@ -35,6 +35,7 @@ module ActiveRecord
       @future_result = nil
       @records = nil
       @async = false
+      @none = false
     end
 
     def initialize_copy(other)
@@ -45,7 +46,7 @@ module ActiveRecord
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
         name = reflection.foreign_key
-        value = value.read_attribute(reflection.klass.primary_key) unless value.nil?
+        value = value.read_attribute(reflection.association_primary_key) unless value.nil?
       end
 
       attr = table[name]
@@ -241,8 +242,8 @@ module ActiveRecord
     #
     # Please see further details in the
     # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
-    def explain
-      exec_explain(collecting_queries_for_explain { exec_queries })
+    def explain(*options)
+      exec_explain(collecting_queries_for_explain { exec_queries }, options)
     end
 
     # Converts relation objects to Array.
@@ -272,6 +273,8 @@ module ActiveRecord
 
     # Returns true if there are no records.
     def empty?
+      return true if @none
+
       if loaded?
         records.empty?
       else
@@ -280,26 +283,34 @@ module ActiveRecord
     end
 
     # Returns true if there are no records.
-    def none?
-      return super if block_given?
+    def none?(*args)
+      return true if @none
+
+      return super if args.present? || block_given?
       empty?
     end
 
     # Returns true if there are any records.
-    def any?
-      return super if block_given?
+    def any?(*args)
+      return false if @none
+
+      return super if args.present? || block_given?
       !empty?
     end
 
     # Returns true if there is exactly one record.
-    def one?
-      return super if block_given?
+    def one?(*args)
+      return false if @none
+
+      return super if args.present? || block_given?
       return records.one? if loaded?
       limited_count == 1
     end
 
     # Returns true if there is more than one record.
     def many?
+      return false if @none
+
       return super if block_given?
       return records.many? if loaded?
       limited_count > 1
@@ -414,7 +425,7 @@ module ActiveRecord
     #   Comment.where(post_id: 1).scoping do
     #     Comment.first
     #   end
-    #   # => SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
+    #   # SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = 1 ORDER BY "comments"."id" ASC LIMIT 1
     #
     # If <tt>all_queries: true</tt> is passed, scoping will apply to all queries
     # for the relation including +update+ and +delete+ on instances.
@@ -472,6 +483,8 @@ module ActiveRecord
     #   Book.where('title LIKE ?', '%Rails%').update_all(title: Arel.sql("title + ' - volume 1'"))
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
+
+      return 0 if @none
 
       if updates.is_a?(Hash)
         if klass.locking_enabled? &&
@@ -608,6 +621,8 @@ module ActiveRecord
     #   Post.distinct.delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
+      return 0 if @none
+
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
         value = @values[method]
         method == :distinct ? value : value&.any?
@@ -729,7 +744,7 @@ module ActiveRecord
     # Returns sql statement for the relation.
     #
     #   User.where(name: 'Oscar').to_sql
-    #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
+    #   # SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= if eager_loading?
         apply_join_dependency do |relation, join_dependency|
@@ -851,10 +866,6 @@ module ActiveRecord
         @loaded = true
       end
 
-      def null_relation? # :nodoc:
-        is_a?(NullRelation)
-      end
-
     private
       def already_in_scope?(registry)
         @delegate_to_klass && registry.current_scope(klass, true)
@@ -939,6 +950,14 @@ module ActiveRecord
       end
 
       def exec_main_query(async: false)
+        if @none
+          if async
+            return Promise::Complete.new([])
+          else
+            return []
+          end
+        end
+
         skip_query_cache_if_necessary do
           if where_clause.contradiction?
             [].freeze

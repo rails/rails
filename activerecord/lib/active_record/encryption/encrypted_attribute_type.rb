@@ -28,6 +28,10 @@ module ActiveRecord
         @default = default
       end
 
+      def cast(value)
+        cast_type.cast(value)
+      end
+
       def deserialize(value)
         cast_type.deserialize decrypt(value)
       end

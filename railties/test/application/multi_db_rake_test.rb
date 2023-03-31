@@ -43,10 +43,10 @@ module ApplicationTests
         development:
           primary:
             <<: *default
-            database: db/development.sqlite3
+            database: storage/development.sqlite3
           animals:
             <<: *default
-            database: db/development_animals.sqlite3
+            database: storage/development_animals.sqlite3
             migrations_paths:
               - db/animals_migrate
               - db/common

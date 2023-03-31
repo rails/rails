@@ -42,6 +42,7 @@ module ActiveSupport
 
                 if ActiveSupport.error_reporter
                   ActiveSupport.error_reporter.subscribe(self)
+                  @subscribed = true
                 else
                   raise Minitest::Assertion, "No error reporter is configured"
                 end

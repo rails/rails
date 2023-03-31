@@ -21,9 +21,13 @@ require "active_record/connection_adapters/postgresql/utils"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
+    def postgresql_adapter_class
+      ConnectionAdapters::PostgreSQLAdapter
+    end
+
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config)
-      ConnectionAdapters::PostgreSQLAdapter.new(config)
+      postgresql_adapter_class.new(config)
     end
   end
 
@@ -62,15 +66,36 @@ module ActiveRecord
         def new_client(conn_params)
           PG.connect(**conn_params)
         rescue ::PG::Error => error
-          if conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
+          if conn_params && conn_params[:dbname] == "postgres"
+            raise ActiveRecord::ConnectionNotEstablished, error.message
+          elsif conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
             raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
           elsif conn_params && conn_params[:user] && error.message.include?(conn_params[:user])
             raise ActiveRecord::DatabaseConnectionError.username_error(conn_params[:user])
-          elsif conn_params && conn_params[:hostname] && error.message.include?(conn_params[:hostname])
-            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:hostname])
+          elsif conn_params && conn_params[:host] && error.message.include?(conn_params[:host])
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:host])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
+        end
+
+        def dbconsole(config, options = {})
+          pg_config = config.configuration_hash
+
+          ENV["PGUSER"]         = pg_config[:username] if pg_config[:username]
+          ENV["PGHOST"]         = pg_config[:host] if pg_config[:host]
+          ENV["PGPORT"]         = pg_config[:port].to_s if pg_config[:port]
+          ENV["PGPASSWORD"]     = pg_config[:password].to_s if pg_config[:password] && options[:include_password]
+          ENV["PGSSLMODE"]      = pg_config[:sslmode].to_s if pg_config[:sslmode]
+          ENV["PGSSLCERT"]      = pg_config[:sslcert].to_s if pg_config[:sslcert]
+          ENV["PGSSLKEY"]       = pg_config[:sslkey].to_s if pg_config[:sslkey]
+          ENV["PGSSLROOTCERT"]  = pg_config[:sslrootcert].to_s if pg_config[:sslrootcert]
+          if pg_config[:variables]
+            ENV["PGOPTIONS"] = pg_config[:variables].filter_map do |name, value|
+              "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
+            end.join(" ")
+          end
+          find_cmd_and_exec("psql", config.database)
         end
       end
 
@@ -175,6 +200,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_include?
+        database_version >= 11_00_00 # >= 11.0
+      end
+
       def supports_expression_index?
         true
       end
@@ -192,6 +221,10 @@ module ActiveRecord
       end
 
       def supports_exclusion_constraints?
+        true
+      end
+
+      def supports_unique_keys?
         true
       end
 
@@ -288,6 +321,8 @@ module ActiveRecord
 
         @max_identifier_length = nil
         @type_map = nil
+        @raw_connection = nil
+        @notice_receiver_sql_warnings = []
 
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -418,9 +453,11 @@ module ActiveRecord
       end
 
       def enable_extension(name, **)
-        exec_query("CREATE EXTENSION IF NOT EXISTS \"#{name}\"").tap {
-          reload_type_map
-        }
+        schema, name = name.to_s.split(".").values_at(-2, -1)
+        sql = +"CREATE EXTENSION IF NOT EXISTS \"#{name}\""
+        sql << " SCHEMA #{schema}" if schema
+
+        exec_query(sql).tap { reload_type_map }
       end
 
       # Removes an extension from the database.
@@ -457,6 +494,7 @@ module ActiveRecord
           FROM pg_enum AS enum
           JOIN pg_type AS type ON (type.oid = enum.enumtypid)
           JOIN pg_namespace n ON type.typnamespace = n.oid
+          WHERE n.nspname = ANY (current_schemas(false))
           GROUP BY type.OID, n.nspname, type.typname;
         SQL
 
@@ -917,6 +955,15 @@ module ActiveRecord
           self.client_min_messages = @config[:min_messages] || "warning"
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
+          unless ActiveRecord.db_warnings_action.nil?
+            @raw_connection.set_notice_receiver do |result|
+              message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
+              code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
+              level = result.error_field(PG::Result::PG_DIAG_SEVERITY)
+              @notice_receiver_sql_warnings << SQLWarning.new(message, code, level)
+            end
+          end
+
           # Use standard-conforming strings so we don't have to do the E'...' dance.
           set_standard_conforming_strings
 
@@ -1007,23 +1054,28 @@ module ActiveRecord
         end
 
         def can_perform_case_insensitive_comparison_for?(column)
-          @case_insensitive_cache ||= {}
-          @case_insensitive_cache[column.sql_type] ||= begin
-            sql = <<~SQL
-              SELECT exists(
-                SELECT * FROM pg_proc
-                WHERE proname = 'lower'
-                  AND proargtypes = ARRAY[#{quote column.sql_type}::regtype]::oidvector
-              ) OR exists(
-                SELECT * FROM pg_proc
-                INNER JOIN pg_cast
-                  ON ARRAY[casttarget]::oidvector = proargtypes
-                WHERE proname = 'lower'
-                  AND castsource = #{quote column.sql_type}::regtype
-              )
-            SQL
-            execute_and_clear(sql, "SCHEMA", [], allow_retry: true, uses_transaction: false) do |result|
-              result.getvalue(0, 0)
+          # NOTE: citext is an exception. It is possible to perform a
+          #       case-insensitive comparison using `LOWER()`, but it is
+          #       unnecessary, as `citext` is case-insensitive by definition.
+          @case_insensitive_cache ||= { "citext" => false }
+          @case_insensitive_cache.fetch(column.sql_type) do
+            @case_insensitive_cache[column.sql_type] = begin
+              sql = <<~SQL
+                SELECT exists(
+                  SELECT * FROM pg_proc
+                  WHERE proname = 'lower'
+                    AND proargtypes = ARRAY[#{quote column.sql_type}::regtype]::oidvector
+                ) OR exists(
+                  SELECT * FROM pg_proc
+                  INNER JOIN pg_cast
+                    ON ARRAY[casttarget]::oidvector = proargtypes
+                  WHERE proname = 'lower'
+                    AND castsource = #{quote column.sql_type}::regtype
+                )
+              SQL
+              execute_and_clear(sql, "SCHEMA", [], allow_retry: true, uses_transaction: false) do |result|
+                result.getvalue(0, 0)
+              end
             end
           end
         end

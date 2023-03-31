@@ -213,15 +213,19 @@ module ActiveSupport
         # If the key is not found it is created and set to +amount+.
         def modify_value(name, amount, options)
           options = merged_options(options)
-          synchronize do
-            if num = read(name, options)
-              num = num.to_i + amount
-              write(name, num, options)
-              num
-            else
-              write(name, Integer(amount), options)
-              amount
-            end
+          key     = normalize_key(name, options)
+          version = normalize_version(name, options)
+
+          entry = read_entry(key, **options)
+
+          if !entry || entry.expired? || entry.mismatched?(version)
+            write(name, Integer(amount), options)
+            amount
+          else
+            num = entry.value.to_i + amount
+            entry = Entry.new(num, expires_at: entry.expires_at, version: entry.version)
+            write_entry(key, entry)
+            num
           end
         end
     end

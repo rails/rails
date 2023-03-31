@@ -4,8 +4,7 @@ module ActionText
   # Fixtures are a way of organizing data that you want to test against; in
   # short, sample data.
   #
-  # To learn more about fixtures, read the
-  # {ActiveRecord::FixtureSet}[rdoc-ref:ActiveRecord::FixtureSet] documentation.
+  # To learn more about fixtures, read the ActiveRecord::FixtureSet documentation.
   #
   # === YAML
   #

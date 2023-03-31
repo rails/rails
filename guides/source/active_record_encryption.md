@@ -8,10 +8,10 @@ This guide covers encrypting your database information using Active Record.
 After reading this guide, you will know:
 
 * How to set up database encryption with Active Record.
-* How to migrate unencrypted data
-* How to make different encryption schemes coexist
-* How to use the API
-* How to configure the library and how to extend it
+* How to migrate unencrypted data.
+* How to make different encryption schemes coexist.
+* How to use the API.
+* How to configure the library and how to extend it.
 
 --------------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ But, under the hood, the executed SQL looks like this:
 INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
 ```
 
-#### Important: About storage and column size
+#### Important: About Storage and Column Size
 
 Encryption requires extra space because of Base64 encoding and the metadata stored along with the encrypted payloads. When using the built-in envelope encryption key provider, you can estimate the worst-case overhead at around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
 
@@ -74,7 +74,7 @@ There is an important concern about string column sizes: in modern databases the
 
 In practice, this means:
 
-* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size. 
+* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
 * When encrypting short texts written in non-western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
 * When encrypting long texts, you can ignore column size concerns.
 
@@ -111,7 +111,7 @@ NOTE: You can disable deterministic encryption by omitting a `deterministic_key`
 
 ### Action Text
 
-You can encrypt action text attributes by passing `encrypted: true` in their declaration.
+You can encrypt Action Text attributes by passing `encrypted: true` in their declaration.
 
 ```ruby
 class Message < ApplicationRecord
@@ -119,7 +119,7 @@ class Message < ApplicationRecord
 end
 ```
 
-NOTE: Passing individual encryption options to action text attributes is not supported yet. It will use non-deterministic encryption with the global encryption options configured.
+NOTE: Passing individual encryption options to Action Text attributes is not supported yet. It will use non-deterministic encryption with the global encryption options configured.
 
 ### Fixtures
 
@@ -133,7 +133,7 @@ When enabled, all the encryptable attributes will be encrypted according to the 
 
 #### Action Text Fixtures
 
-To encrypt action text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
+To encrypt Action Text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
 
 ### Supported Types
 
@@ -144,14 +144,14 @@ If you need to support a custom type, the recommended way is using a [serialized
 ```ruby
 # CORRECT
 class Article < ApplicationRecord
-  serialize :title, Title
+  serialize :title, type: Title
   encrypts :title
 end
 
 # INCORRECT
 class Article < ApplicationRecord
   encrypts :title
-  serialize :title, Title
+  serialize :title, type: Title
 end
 ```
 
@@ -179,7 +179,7 @@ end
 
 To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
 
-* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error
+* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
 * Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
 
 **This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
@@ -265,6 +265,7 @@ When generating the filter parameter, it will use the model name as a prefix. E.
 ```ruby
 config.active_record.encryption.add_to_filter_parameters = false
 ```
+
 In case you want exclude specific columns from this automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`.
 
 ### Encoding
@@ -373,12 +374,11 @@ Active Record uses the key to derive the key used to encrypt and decrypt the dat
 - All the keys will be tried when decrypting content until one works.
 
 ```yml
-active_record
-  encryption:
-    primary_key:
-        - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
-        - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
-    key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
+active_record_encryption:
+  primary_key:
+    - a1cc4d7b9f420e40a337b9e68c5ecec6 # Previous keys can still decrypt existing content
+    - bc17e7b413fd4720716a7633027f8cc4 # Active, encrypts new content
+  key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
 ```
 
 This enables workflows in which you keep a short list of keys by adding new keys, re-encrypting content, and deleting old keys.
@@ -476,6 +476,10 @@ The salt used when deriving keys. It's preferred to configure it via the `active
 
 The default encoding for attributes encrypted deterministically. You can disable forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default.
 
+#### `config.active_record.encryption.hash_digest_class`
+
+The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
+
 ### Encryption Contexts
 
 An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can configure a custom context for a given attribute or when running a specific block of code.
@@ -531,6 +535,7 @@ ActiveRecord::Encryption.without_encryption do
    ...
 end
 ```
+
 This means that reading encrypted text will return the ciphertext, and saved content will be stored unencrypted.
 
 ##### Protect Encrypted Data
@@ -542,4 +547,5 @@ ActiveRecord::Encryption.protecting_encrypted_data do
    ...
 end
 ```
+
 This can be handy if you want to protect encrypted data while still running arbitrary code against it (e.g. in a Rails console).

@@ -1,6 +1,6 @@
 Description:
-    The `rails plugin new` command creates a Rails plugin with ability
-    to run tests using dummy Rails application. A plugin is a gem with
+    The `rails plugin new` command creates a Rails plugin with the ability
+    to run tests using a dummy Rails application. A plugin is a gem with
     either a railtie or an engine.
 
 Examples:
@@ -12,7 +12,7 @@ Examples:
     `rails plugin new blog --full`
 
     This generates a full Rails engine gem in ./blog. The `--mountable`
-    option may also be used to generate mountable, namespaced isolated
+    option may also be used to generate a mountable, namespace-isolated
     engine with assets and layouts.
 
     `rails plugin new blog --mountable --skip-asset-pipeline`

@@ -10,6 +10,7 @@ require "models/keyboard"
 require "models/mixed_case_monkey"
 require "models/dashboard"
 require "models/non_primary_key"
+require "models/cpk"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -31,6 +32,19 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_read_attribute_with_custom_primary_key
     keyboard = Keyboard.create!
     assert_equal keyboard.key_number, keyboard.read_attribute(:id)
+  end
+
+  def test_read_attribute_with_composite_primary_key
+    book = Cpk::Book.new(author_id: 1, number: 2)
+    assert_equal [1, 2], book.read_attribute(:id)
+  end
+
+  def test_read_attribute_with_composite_primary_key_and_column_named_id
+    order = Cpk::Order.new
+    order.id = [1, 2]
+
+    assert_equal [1, 2], order.read_attribute(:id)
+    assert_equal 2, order.attributes["id"]
   end
 
   def test_to_key_with_primary_key_after_destroy
@@ -212,6 +226,17 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_raises(ActiveModel::MissingAttributeError) { dashboard.id = "1" }
   end
 
+  def composite_primary_key_is_false_for_a_non_cpk_model
+    assert_not_predicate Dashboard, :composite_primary_key?
+  end
+
+  def test_primary_key_values_present
+    assert_predicate Topic.new(id: 1), :primary_key_values_present?
+
+    assert_not_predicate Topic.new, :primary_key_values_present?
+    assert_not_predicate Topic.new(title: "Topic A"), :primary_key_values_present?
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_serial_with_quoted_sequence_name
       column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
@@ -331,6 +356,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   self.use_transactional_tests = false
 
+  fixtures :cpk_books, :cpk_orders
+
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.schema_cache.clear!
@@ -366,6 +393,26 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_equal ["code", "region"], @connection.primary_keys("barcodes_reverse")
   end
 
+  def test_assigning_a_composite_primary_key
+    book = Cpk::Book.new
+    book.id = [1, 2]
+    book.save!
+
+    assert_equal [1, 2], book.id
+    assert_equal 1, book.author_id
+    assert_equal 2, book.number
+  ensure
+    Cpk::Book.delete_all
+  end
+
+  def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
+    book = Cpk::Book.new
+
+    assert_raises(TypeError) do
+      book.id = 1
+    end
+  end
+
   def test_primary_key_issues_warning
     model = Class.new(ActiveRecord::Base) do
       def self.table_name
@@ -386,6 +433,25 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def test_dumping_composite_primary_key_out_of_order
     schema = dump_table_schema "barcodes_reverse"
     assert_match %r{create_table "barcodes_reverse", primary_key: \["code", "region"\]}, schema
+  end
+
+  def test_model_with_a_composite_primary_key
+    assert_equal(["author_id", "number"], Cpk::Book.primary_key)
+    assert_equal(["shop_id", "id"], Cpk::Order.primary_key)
+  end
+
+  def composite_primary_key_is_true_for_a_cpk_model
+    assert_predicate Cpk::Book, :composite_primary_key?
+  end
+
+  def test_primary_key_values_present_for_a_composite_pk_model
+    assert_predicate Cpk::Book.new(author_id: 1, number: 1), :primary_key_values_present?
+
+    assert_not_predicate Cpk::Book.new, :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(author_id: 1), :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(number: 1), :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(title: "Book A"), :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(author_id: 1, title: "Book A"), :primary_key_values_present?
   end
 end
 
@@ -416,8 +482,8 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
-  class PrimaryKeyIntegerTest < ActiveRecord::TestCase
+class PrimaryKeyIntegerTest < ActiveRecord::TestCase
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     include SchemaDumpingHelper
 
     self.use_transactional_tests = false

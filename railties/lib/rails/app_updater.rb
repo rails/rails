@@ -21,6 +21,7 @@ module Rails
       private
         def generator_options
           options = { api: !!Rails.application.config.api_only, update: true }
+          options[:name]                = Rails.application.class.name.chomp("::Application").underscore
           options[:skip_active_job]     = !defined?(ActiveJob::Railtie)
           options[:skip_active_record]  = !defined?(ActiveRecord::Railtie)
           options[:skip_active_storage] = !defined?(ActiveStorage::Engine)

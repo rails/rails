@@ -46,6 +46,7 @@ module ActionMailbox
   #    full MIME message."* Action Mailbox needs the raw MIME message to work.
   class Ingresses::Sendgrid::InboundEmailsController < ActionMailbox::BaseController
     before_action :authenticate_by_password
+    param_encoding :create, :email, Encoding::ASCII_8BIT
 
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail

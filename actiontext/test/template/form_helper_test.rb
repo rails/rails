@@ -69,6 +69,25 @@ class ActionText::FormHelperTest < ActionView::TestCase
       output_buffer
   end
 
+  test "form with rich text area and error wrapper" do
+    message = Message.new
+    message.errors.add(:content, :blank)
+
+    form_with model: message, scope: :message do |form|
+      form.rich_text_area :content
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" method="post">' \
+        '<div class="field_with_errors">' \
+            '<input type="hidden" name="message[content]" id="message_content_trix_input_message" autocomplete="off" />' \
+            '<trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+            "</trix-editor>" \
+          "</div>" \
+      "</form>",
+      output_buffer
+  end
+
   test "form with rich text area for non-attribute" do
     form_with model: Message.new, scope: :message do |form|
       form.rich_text_area :not_an_attribute

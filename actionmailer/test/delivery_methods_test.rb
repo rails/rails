@@ -41,7 +41,7 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
   test "default sendmail settings" do
     settings = {
       location:  "/usr/sbin/sendmail",
-      arguments: "-i"
+      arguments: %w[ -i ]
     }
     assert_equal settings, ActionMailer::Base.sendmail_settings
   end

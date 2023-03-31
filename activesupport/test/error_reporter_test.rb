@@ -68,6 +68,23 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal [], @subscriber.events
   end
 
+  test "#handle can be scoped to several exception classes" do
+    assert_raises ArgumentError do
+      @reporter.handle(NameError, NoMethodError) do
+        raise ArgumentError
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#handle swallows and reports matching errors" do
+    error = ArgumentError.new("Oops")
+    @reporter.handle(NameError, ArgumentError) do
+      raise error
+    end
+    assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
+  end
+
   test "#handle passes through the return value" do
     result = @reporter.handle do
       2 + 2
@@ -125,6 +142,25 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal [], @subscriber.events
   end
 
+  test "#record can be scoped to several exception classes" do
+    assert_raises ArgumentError do
+      @reporter.record(NameError, NoMethodError) do
+        raise ArgumentError
+      end
+    end
+    assert_equal [], @subscriber.events
+  end
+
+  test "#record report any matching, unhandled error and re-raise them" do
+    error = ArgumentError.new("Oops")
+    assert_raises ArgumentError do
+      @reporter.record(NameError, ArgumentError) do
+        raise error
+      end
+    end
+    assert_equal [[error, false, :error, "application", {}]], @subscriber.events
+  end
+
   test "#record passes through the return value" do
     result = @reporter.record do
       2 + 2
@@ -176,6 +212,24 @@ class ErrorReporterTest < ActiveSupport::TestCase
   test "unhandled errors default to :error severity" do
     @reporter.report(@error, handled: false)
     assert_equal :error, @subscriber.events.dig(0, 2)
+  end
+
+  test "report errors only once" do
+    assert_difference -> { @subscriber.events.size }, +1 do
+      @reporter.report(@error, handled: false)
+    end
+
+    assert_no_difference -> { @subscriber.events.size } do
+      3.times do
+        @reporter.report(@error, handled: false)
+      end
+    end
+  end
+
+  test "can report frozen exceptions" do
+    assert_difference -> { @subscriber.events.size }, +1 do
+      @reporter.report(@error.freeze, handled: false)
+    end
   end
 
   class FailingErrorSubscriber

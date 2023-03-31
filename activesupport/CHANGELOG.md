@@ -1,3 +1,393 @@
+*   Add `Object#with` to set and restore public attributes around a block
+
+    ```ruby
+    client.timeout # => 5
+    client.with(timeout: 1) do
+      client.timeout # => 1
+    end
+    client.timeout # => 5
+    ```
+
+    *Jean Boussier*
+
+*   Remove deprecated support to generate incorrect RFC 4122 UUIDs when providing a namespace ID that is not one of the
+    constants defined on `Digest::UUID`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.use_rfc4122_namespaced_uuids`.
+
+    *Rafael Mendonça França*
+
+*   Remove implicit conversion of objects into `String` by `ActiveSupport::SafeBuffer`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `active_support/core_ext/range/include_time_with_zone` file.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.remove_deprecated_time_with_zone_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated override of `ActiveSupport::TimeWithZone.name`.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.disable_to_s_conversion`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated option to passing a format to `#to_s` in `Array`, `Range`, `Date`, `DateTime`, `Time`,
+    `BigDecimal`, `Float` and, `Integer`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::PerThreadRegistry`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated override of `Enumerable#sum`.
+
+    *Rafael Mendonça França*
+
+*   Deprecated initializing a `ActiveSupport::Cache::MemCacheStore` with an instance of `Dalli::Client`.
+
+    Deprecate the undocumented option of providing an already-initialized instance of `Dalli::Client` to `ActiveSupport::Cache::MemCacheStore`. Such clients could be configured with unrecognized options, which could lead to unexpected behavior. Instead, provide addresses as documented.
+
+    *aledustet*
+
+*   Stub `Time.new()` in `TimeHelpers#travel_to`
+
+      ```ruby
+      travel_to Time.new(2004, 11, 24) do
+        # Inside the `travel_to` block `Time.new` is stubbed
+        assert_equal Time.new.year, 2004
+      end
+      ```
+
+    *fatkodima*
+
+*   Raise `ActiveSupport::MessageEncryptor::InvalidMessage` from
+    `ActiveSupport::MessageEncryptor#decrypt_and_verify` regardless of cipher.
+    Previously, when a `MessageEncryptor` was using a non-AEAD cipher such as
+    AES-256-CBC, a corrupt or tampered message would raise
+    `ActiveSupport::MessageVerifier::InvalidSignature`.  Now, all ciphers raise
+    the same error:
+
+      ```ruby
+      encryptor = ActiveSupport::MessageEncryptor.new("x" * 32, cipher: "aes-256-gcm")
+      message = encryptor.encrypt_and_sign("message")
+      encryptor.decrypt_and_verify(message.next)
+      # => raises ActiveSupport::MessageEncryptor::InvalidMessage
+
+      encryptor = ActiveSupport::MessageEncryptor.new("x" * 32, cipher: "aes-256-cbc")
+      message = encryptor.encrypt_and_sign("message")
+      encryptor.decrypt_and_verify(message.next)
+      # BEFORE:
+      # => raises ActiveSupport::MessageVerifier::InvalidSignature
+      # AFTER:
+      # => raises ActiveSupport::MessageEncryptor::InvalidMessage
+      ```
+
+    *Jonathan Hefner*
+
+*   Support `nil` original values when using `ActiveSupport::MessageVerifier#verify`.
+    Previously, `MessageVerifier#verify` did not work with `nil` original
+    values, though both `MessageVerifier#verified` and
+    `MessageEncryptor#decrypt_and_verify` do:
+
+      ```ruby
+      encryptor = ActiveSupport::MessageEncryptor.new(secret)
+      message = encryptor.encrypt_and_sign(nil)
+
+      encryptor.decrypt_and_verify(message)
+      # => nil
+
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      message = verifier.generate(nil)
+
+      verifier.verified(message)
+      # => nil
+
+      verifier.verify(message)
+      # BEFORE:
+      # => raises ActiveSupport::MessageVerifier::InvalidSignature
+      # AFTER:
+      # => nil
+      ```
+
+    *Jonathan Hefner*
+
+*   Maintain `html_safe?` on html_safe strings when sliced with `slice`, `slice!`, or `chr` method.
+
+    Previously, `html_safe?` was only maintained when the html_safe strings were sliced
+    with `[]` method. Now, `slice`, `slice!`, and `chr` methods will maintain `html_safe?` like `[]` method.
+
+    ```ruby
+    string = "<div>test</div>".html_safe
+    string.slice(0, 1).html_safe? # => true
+    string.slice!(0, 1).html_safe? # => true
+    # maintain html_safe? after the slice!
+    string.html_safe? # => true
+    string.chr # => true
+    ```
+
+    *Michael Go*
+
+*   Add `Object#in?` support for open ranges.
+
+    ```ruby
+    assert Date.today.in?(..Date.tomorrow)
+    assert_not Date.today.in?(Date.tomorrow..)
+    ```
+
+    *Ignacio Galindo*
+
+*   `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
+
+    Previously it would only raise when called in a view or controller. Now it will raise
+    anytime `I18n.t` is provided an unrecognised key.
+
+    If you do not want this behaviour, you can customise the i18n exception handler. See the
+    upgrading guide or i18n guide for more information.
+
+    *Alex Ghiculescu*
+
+*   `ActiveSupport::CurrentAttributes` now raises if a restricted attribute name is used.
+
+    Attributes such as `set` and `reset` cannot be used as they clash with the
+    `CurrentAttributes` public API.
+
+    *Alex Ghiculescu*
+
+*   `HashWithIndifferentAccess#transform_keys` now takes a Hash argument, just
+    as Ruby's `Hash#transform_keys` does.
+
+    *Akira Matsuda*
+
+*   `delegate` now defines method with proper arity when delegating to a Class.
+    With this change, it defines faster method (3.5x faster with no argument).
+    However, in order to gain this benefit, the delegation target method has to
+    be defined before declaring the delegation.
+
+    ```ruby
+    # This defines 3.5 times faster method than before
+    class C
+      def self.x() end
+      delegate :x, to: :class
+    end
+
+    class C
+      # This works but silently falls back to old behavior because
+      # `delegate` cannot find the definition of `x`
+      delegate :x, to: :class
+      def self.x() end
+    end
+    ```
+
+    *Akira Matsuda*
+
+*   `assert_difference` message now includes what changed.
+
+    This makes it easier to debug non-obvious failures.
+
+    Before:
+
+    ```
+    "User.count" didn't change by 32.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    After:
+
+    ```
+    "User.count" didn't change by 32, but by 0.
+    Expected: 1611
+      Actual: 1579
+    ```
+
+    *Alex Ghiculescu*
+
+*   Add ability to match exception messages to `assert_raises` assertion
+
+    Instead of this
+    ```ruby
+    error = assert_raises(ArgumentError) do
+      perform_service(param: 'exception')
+    end
+    assert_match(/incorrect param/i, error.message)
+    ```
+
+    you can now write this
+    ```ruby
+    assert_raises(ArgumentError, match: /incorrect param/i) do
+      perform_service(param: 'exception')
+    end
+    ```
+
+    *fatkodima*
+
+*   Add `Rails.env.local?` shorthand for `Rails.env.development? || Rails.env.test?`.
+
+    *DHH*
+
+*   `ActiveSupport::Testing::TimeHelpers` now accepts named `with_usec` argument
+    to `freeze_time`, `travel`, and `travel_to` methods. Passing true prevents
+    truncating the destination time with `change(usec: 0)`.
+
+    *KevSlashNull*, and *serprex*
+
+*   `ActiveSupport::CurrentAttributes.resets` now accepts a method name
+
+    The block API is still the recommended approach, but now both APIs are supported:
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      resets { Time.zone = nil }
+      resets :clear_time_zone
+    end
+    ```
+
+    *Alex Ghiculescu*
+
+*   Ensure `ActiveSupport::Testing::Isolation::Forking` closes pipes
+
+    Previously, `Forking.run_in_isolation` opened two ends of a pipe. The fork
+    process closed the read end, wrote to it, and then terminated (which
+    presumably closed the file descriptors on its end). The parent process
+    closed the write end, read from it, and returned, never closing the read
+    end.
+
+    This resulted in an accumulation of open file descriptors, which could
+    cause errors if the limit is reached.
+
+    *Sam Bostock*
+
+*   Fix `Time#change` and `Time#advance` for times around the end of Daylight
+    Saving Time.
+
+    Previously, when `Time#change` or `Time#advance` constructed a time inside
+    the final stretch of Daylight Saving Time (DST), the non-DST offset would
+    always be chosen for local times:
+
+    ```ruby
+    # DST ended just before 2021-11-07 2:00:00 AM in US/Eastern.
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    And the DST offset would always be chosen for times with a `TimeZone`
+    object:
+
+    ```ruby
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0400
+    ```
+
+    Now, `Time#change` and `Time#advance` will choose the offset that matches
+    the original time's offset when possible:
+
+    ```ruby
+    ENV["TZ"] = "US/Eastern"
+
+    time = Time.local(2021, 11, 07, 00, 59, 59) + 1
+    # => 2021-11-07 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0400
+
+    time = Time.local(2021, 11, 06, 01, 00, 00)
+    # => 2021-11-06 01:00:00 -0400
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0400
+    time.advance(days: 1)
+    # => 2021-11-07 01:00:00 -0400
+
+    Time.zone = "US/Eastern"
+
+    time = Time.new(2021, 11, 07, 02, 00, 00, Time.zone) - 3600
+    # => 2021-11-07 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(seconds: 0)
+    # => 2021-11-07 01:00:00 -0500
+
+    time = Time.new(2021, 11, 8, 01, 00, 00, Time.zone)
+    # => 2021-11-08 01:00:00 -0500
+    time.change(day: 07)
+    # => 2021-11-07 01:00:00 -0500
+    time.advance(days: -1)
+    # => 2021-11-07 01:00:00 -0500
+    ```
+
+    *Kevin Hall*, *Takayoshi Nishida*, and *Jonathan Hefner*
+
+*   Fix MemoryStore to preserve entries TTL when incrementing or decrementing
+
+    This is to be more consistent with how MemCachedStore and RedisCacheStore behaves.
+
+    *Jean Boussier*
+
+*   `Rails.error.handle` and `Rails.error.record` filter now by multiple error classes.
+
+    ```ruby
+    Rails.error.handle(IOError, ArgumentError) do
+      1 + '1' # raises TypeError
+    end
+    1 + 1 # TypeErrors are not IOErrors or ArgumentError, so this will *not* be handled
+    ```
+
+    *Martin Spickermann*
+
+*   `Class#subclasses` and `Class#descendants` now automatically filter reloaded classes.
+
+    Previously they could return old implementations of reloadable classes that have been
+    dereferenced but not yet garbage collected.
+
+    They now automatically filter such classes like `DescendantTracker#subclasses` and
+    `DescendantTracker#descendants`.
+
+    *Jean Boussier*
+
+*   `Rails.error.report` now marks errors as reported to avoid reporting them twice.
+
+    In some cases, users might want to report errors explicitly with some extra context
+    before letting it bubble up.
+
+    This also allows to safely catch and report errors outside of the execution context.
+
+    *Jean Boussier*
+
 *   Add `assert_error_reported` and `assert_no_error_reported`
 
     Allows to easily asserts an error happened but was handled

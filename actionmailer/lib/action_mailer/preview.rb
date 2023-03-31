@@ -26,7 +26,7 @@ module ActionMailer
     end
 
     def preview_path
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      ActionMailer.deprecator.warn(<<-MSG.squish)
         Using preview_path option is deprecated and will be removed in Rails 7.2.
         Please use preview_paths instead.
       MSG
@@ -35,7 +35,7 @@ module ActionMailer
 
     module ClassMethods
       def preview_path=(value)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActionMailer.deprecator.warn(<<-MSG.squish)
           Using preview_path= option is deprecated and will be removed in Rails 7.2.
           Please use preview_paths= instead.
         MSG
@@ -43,7 +43,7 @@ module ActionMailer
       end
 
       def preview_path
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        ActionMailer.deprecator.warn(<<-MSG.squish)
           Using preview_path option is deprecated and will be removed in Rails 7.2.
           Please use preview_paths instead.
         MSG

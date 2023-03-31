@@ -34,7 +34,7 @@ module ActionView
           #   [nil, []]
           #   { nil => [] }
           def grouped_choices?
-            !@choices.blank? && @choices.first.respond_to?(:last) && Array === @choices.first.last
+            !@choices.blank? && @choices.first.respond_to?(:second) && Array === @choices.first.second
           end
       end
     end

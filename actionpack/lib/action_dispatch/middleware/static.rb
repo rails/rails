@@ -24,22 +24,22 @@ module ActionDispatch
     end
   end
 
-  # This endpoint serves static files from disk using Rack::File.
+  # This endpoint serves static files from disk using +Rack::Files+.
   #
   # URL paths are matched with static files according to expected
   # conventions: +path+, +path+.html, +path+/index.html.
   #
   # Precompressed versions of these files are checked first. Brotli (.br)
   # and gzip (.gz) files are supported. If +path+.br exists, this
-  # endpoint returns that file with a <tt>Content-Encoding: br</tt> header.
+  # endpoint returns that file with a <tt>content-encoding: br</tt> header.
   #
-  # If no matching file is found, this endpoint responds 404 Not Found.
+  # If no matching file is found, this endpoint responds <tt>404 Not Found</tt>.
   #
   # Pass the +root+ directory to search for matching files, an optional
   # <tt>index: "index"</tt> to change the default +path+/index.html, and optional
   # additional response headers.
   class FileHandler
-    # Accept-Encoding value -> file extension
+    # +Accept-Encoding+ value -> file extension
     PRECOMPRESSED = {
       "br" => ".br",
       "gzip" => ".gz",
@@ -53,7 +53,7 @@ module ActionDispatch
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
 
-      @file_server = ::Rack::File.new(@root, headers)
+      @file_server = ::Rack::Files.new(@root, headers)
     end
 
     def call(env)
@@ -76,7 +76,7 @@ module ActionDispatch
           request.path_info, ::Rack::Utils.escape_path(filepath).b
 
         @file_server.call(request.env).tap do |status, headers, body|
-          # Omit Content-Encoding/Type/etc headers for 304 Not Modified
+          # Omit content-encoding/type/etc headers for 304 Not Modified
           if status != 304
             headers.update(content_headers)
           end
@@ -104,7 +104,7 @@ module ActionDispatch
       end
 
       def try_files(filepath, content_type, accept_encoding:)
-        headers = { "Content-Type" => content_type }
+        headers = { "content-type" => content_type }
 
         if compressible? content_type
           try_precompressed_files filepath, headers, accept_encoding: accept_encoding
@@ -124,10 +124,10 @@ module ActionDispatch
             if content_encoding == "identity"
               return precompressed_filepath, headers
             else
-              headers["Vary"] = "Accept-Encoding"
+              headers["vary"] = "accept-encoding"
 
               if accept_encoding.any? { |enc, _| /\b#{content_encoding}\b/i.match?(enc) }
-                headers["Content-Encoding"] = content_encoding
+                headers["content-encoding"] = content_encoding
                 return precompressed_filepath, headers
               end
             end

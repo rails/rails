@@ -69,7 +69,7 @@ class OutputSafetyHelperTest < ActionView::TestCase
     assert_equal("&amp;lt;script&amp;gt;", to_sentence(["&lt;script&gt;"]))
   end
 
-  test "to_sentence connector words are checked for html safety" do
+  test "to_sentence connector words are checked for HTML safety" do
     assert_equal "one & two, and three", to_sentence(["one", "two", "three"], words_connector: " & ".html_safe)
     assert_equal "one & two", to_sentence(["one", "two"], two_words_connector: " & ".html_safe)
     assert_equal "one, two &lt;script&gt;alert(1)&lt;/script&gt; three", to_sentence(["one", "two", "three"], last_word_connector: " <script>alert(1)</script> ")

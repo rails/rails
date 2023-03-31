@@ -114,6 +114,21 @@ class OptionMergerTest < ActiveSupport::TestCase
     assert_equal expected, @options
   end
 
+  def test_with_options_hash_like
+    hash_like = Class.new do
+      delegate :to_hash, :deep_merge, to: :@hash
+
+      def initialize(hash)
+        @hash = hash
+      end
+    end
+    local_options = { "cool" => true }
+    scope = with_options(hash_like.new(@options))
+
+    assert_equal local_options, method_with_options(local_options)
+    assert_equal @options.merge(local_options), scope.method_with_options(local_options)
+  end
+
   def test_with_options_no_block
     local_options = { "cool" => true }
     scope = with_options(@options)

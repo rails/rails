@@ -174,22 +174,6 @@ module SharedGeneratorTests
     end
   end
 
-  def test_gitignore_when_sqlite3
-    run_generator
-
-    assert_file ".gitignore" do |content|
-      assert_match(/sqlite3/, content)
-    end
-  end
-
-  def test_gitignore_when_non_sqlite3_db
-    run_generator([destination_root, "-d", "mysql"])
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/sqlite/i, content)
-    end
-  end
-
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_directory "#{application_path}/db/"
@@ -201,9 +185,6 @@ module SharedGeneratorTests
     end
     assert_file "#{application_path}/bin/setup" do |setup_content|
       assert_no_match(/db:prepare/, setup_content)
-    end
-    assert_file ".gitignore" do |content|
-      assert_no_match(/sqlite/i, content)
     end
   end
 
@@ -225,10 +206,6 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/storage.yml"
     assert_directory "#{application_path}/storage"
     assert_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_if_skip_active_storage_is_given
@@ -249,12 +226,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
@@ -275,12 +246,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_if_skip_action_mailer_is_given
@@ -401,9 +366,11 @@ module SharedGeneratorTests
 
       assert_file File.expand_path("Gemfile", project_path) do |gemfile|
         assert_equal "install", @bundle_commands[0]
+        assert_match "lock --add-platform", @bundle_commands[1]
+
         assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[0]
 
-        assert_match %r"^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}", @bundle_commands[1]
+        assert_match %r"^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}", @bundle_commands[2]
         assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[1]
       end
     end
@@ -417,7 +384,12 @@ module SharedGeneratorTests
     end
 
     def assert_gem(name, constraint = nil)
-      constraint_pattern = /, #{Regexp.escape constraint}/ if constraint
+      constraint_pattern =
+        if constraint.is_a?(String)
+          /, #{Regexp.escape constraint}/
+        elsif constraint
+          /, #{constraint}/
+        end
       assert_file "Gemfile", %r/^\s*gem ["']#{name}["']#{constraint_pattern}/
     end
 

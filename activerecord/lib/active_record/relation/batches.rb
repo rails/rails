@@ -171,7 +171,7 @@ module ActiveRecord
     # * <tt>:use_ranges</tt> - Specifies whether to use range iteration (id >= x AND id <= y).
     #   It can make iterating over the whole or almost whole tables several times faster.
     #   Only whole table iterations use this style of iteration by default. You can disable this behavior by passing +false+.
-    #   If you iterate over the table and the only condition is, e.g., `archived_at: nil` (and only a tiny fraction
+    #   If you iterate over the table and the only condition is, e.g., <tt>archived_at: nil</tt> (and only a tiny fraction
     #   of the records are archived), it makes sense to opt in to this approach.
     #
     # Limits are honored, and if present there is no requirement for the batch

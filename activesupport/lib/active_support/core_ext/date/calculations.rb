@@ -109,6 +109,21 @@ class Date
 
   # Provides precise Date calculations for years, months, and days. The +options+ parameter takes a hash with
   # any of these keys: <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>.
+  #
+  # The increments are applied in order of time units from largest to smallest.
+  # In other words, the date is incremented first by +:years+, then by
+  # +:months+, then by +:weeks+, then by +:days+. This order can affect the
+  # result around the end of a month. For example, incrementing first by months
+  # then by days:
+  #
+  #   Date.new(2004, 9, 30).advance(months: 1, days: 1)
+  #   # => Sun, 31 Oct 2004
+  #
+  # Whereas incrementing first by days then by months yields a different result:
+  #
+  #   Date.new(2004, 9, 30).advance(days: 1).advance(months: 1)
+  #   # => Mon, 01 Nov 2004
+  #
   def advance(options)
     d = self
 

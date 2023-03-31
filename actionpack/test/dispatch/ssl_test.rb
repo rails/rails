@@ -3,7 +3,7 @@
 require "abstract_unit"
 
 class SSLTest < ActionDispatch::IntegrationTest
-  HEADERS = Rack::Utils::HeaderHash.new "Content-Type" => "text/html"
+  HEADERS = { "Content-Type" => "text/html" }
 
   attr_accessor :app
 
@@ -194,6 +194,16 @@ class SecureCookiesTest < SSLTest
   def test_flag_cookies_as_secure
     get headers: { "Set-Cookie" => DEFAULT }
     assert_cookies "id=1; path=/; secure", "token=abc; path=/; secure; HttpOnly"
+  end
+
+  def test_flag_cookies_as_secure_with_single_cookie_in_array
+    get headers: { "Set-Cookie" => ["id=1"] }
+    assert_cookies "id=1; secure"
+  end
+
+  def test_flag_cookies_as_secure_with_multiple_cookies_in_array
+    get headers: { "Set-Cookie" => ["id=1", "problem=def"] }
+    assert_cookies "id=1; secure", "problem=def; secure"
   end
 
   def test_flag_cookies_as_secure_at_end_of_line
