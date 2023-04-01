@@ -7,8 +7,9 @@ require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 
 module ActionView
-  # = Action View Asset Tag Helpers
   module Helpers # :nodoc:
+    # = Action View Asset Tag \Helpers
+    #
     # This module provides methods for generating HTML that links views to assets such
     # as images, JavaScripts, stylesheets, and feeds. These methods do not verify
     # the assets exist before linking to them:

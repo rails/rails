@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView
-  # = Action View CSRF Helper
   module Helpers # :nodoc:
+    # = Action View CSRF \Helpers
     module CsrfHelper
       # Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
       # request forgery protection parameter and token, respectively.

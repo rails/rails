@@ -7,8 +7,9 @@ require "action_view/helpers/capture_helper"
 require "action_view/helpers/output_safety_helper"
 
 module ActionView
-  # = Action View Tag Helpers
   module Helpers # :nodoc:
+    # = Action View Tag \Helpers
+    #
     # Provides methods to generate HTML tags programmatically both as a modern
     # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper

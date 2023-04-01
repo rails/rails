@@ -7,8 +7,9 @@ require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/tag_helper"
 
 module ActionView
-  # = Action View URL Helpers
   module Helpers # :nodoc:
+    # = Action View URL \Helpers
+    #
     # Provides a set of methods for making links and getting URLs that
     # depend on the routing subsystem (see ActionDispatch::Routing).
     # This allows you to use the same format for links in views
