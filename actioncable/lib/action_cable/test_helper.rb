@@ -29,17 +29,21 @@ module ActionCable
     #   end
     #
     # If a block is passed, that block should cause the specified number of
-    # messages to be broadcasted.
+    # messages to be broadcasted. It returns the messages that were broadcasted.
     #
     #   def test_broadcasts_again
-    #     assert_broadcasts('messages', 1) do
+    #     message = assert_broadcasts('messages', 1) do
     #       ActionCable.server.broadcast 'messages', { text: 'hello' }
     #     end
+    #     assert_equal({ text: 'hello' }, message)
     #
-    #     assert_broadcasts('messages', 2) do
+    #     messages = assert_broadcasts('messages', 2) do
     #       ActionCable.server.broadcast 'messages', { text: 'hi' }
     #       ActionCable.server.broadcast 'messages', { text: 'how are you?' }
     #     end
+    #     assert_equal 2, messages.length
+    #     assert_equal({ text: 'hi' }, messages.first)
+    #     assert_equal({ text: 'how are you?' }, messages.last)
     #   end
     #
     def assert_broadcasts(stream, number, &block)
