@@ -3,7 +3,7 @@
 require "active_support/core_ext/module/anonymous"
 
 module ActiveModel
-  # == Active \Model \Validator
+  # = Active \Model \Validator
   #
   # A simple base class that can be used along with
   # ActiveModel::Validations::ClassMethods.validates_with

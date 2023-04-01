@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveModel
-  # == Active \Model \Basic \Model
+  # = Active \Model \Basic \Model
   #
   # Allows implementing models similar to ActiveRecord::Base.
   # Includes ActiveModel::API for the required interface for an

@@ -4,7 +4,7 @@ require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
-  # == Active \Model \Callbacks
+  # = Active \Model \Callbacks
   #
   # Provides an interface for any class to have Active Record like callbacks.
   #
