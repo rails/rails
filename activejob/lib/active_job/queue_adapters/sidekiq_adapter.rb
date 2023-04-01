@@ -5,7 +5,7 @@ require "sidekiq"
 
 module ActiveJob
   module QueueAdapters
-    # == Sidekiq adapter for Active Job
+    # = Sidekiq adapter for Active Job
     #
     # Simple, efficient background processing for Ruby. Sidekiq uses threads to
     # handle many jobs at the same time in the same process. It does not

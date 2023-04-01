@@ -7,7 +7,7 @@ require "concurrent/utility/processor_counter"
 
 module ActiveJob
   module QueueAdapters
-    # == Active Job Async adapter
+    # = Active Job Async adapter
     #
     # The Async adapter runs jobs with an in-process thread pool.
     #

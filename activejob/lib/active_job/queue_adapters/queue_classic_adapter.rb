@@ -4,7 +4,7 @@ require "queue_classic"
 
 module ActiveJob
   module QueueAdapters
-    # == queue_classic adapter for Active Job
+    # = queue_classic adapter for Active Job
     #
     # queue_classic provides a simple interface to a PostgreSQL-backed message
     # queue. queue_classic specializes in concurrent locking and minimizing
