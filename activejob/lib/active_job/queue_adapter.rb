@@ -3,6 +3,8 @@
 require "active_support/core_ext/string/inflections"
 
 module ActiveJob
+  # = Active Job Queue adapter
+  #
   # The <tt>ActiveJob::QueueAdapter</tt> module is used to load the
   # correct adapter. The default queue adapter is the +:async+ queue.
   module QueueAdapter # :nodoc:

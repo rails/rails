@@ -4,7 +4,7 @@
 
     *Christian Schmidt*
 
-*   Infer `foerign_key` when `inverse_of` is present on `has_one` and `has_many` associations.
+*   Infer `foreign_key` when `inverse_of` is present on `has_one` and `has_many` associations.
 
     ```ruby
     has_many :citations, foreign_key: "book1_id", inverse_of: :book

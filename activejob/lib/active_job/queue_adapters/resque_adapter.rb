@@ -16,7 +16,7 @@ end
 
 module ActiveJob
   module QueueAdapters
-    # == Resque adapter for Active Job
+    # = Resque adapter for Active Job
     #
     # Resque (pronounced like "rescue") is a Redis-backed library for creating
     # background jobs, placing those jobs on multiple queues, and processing

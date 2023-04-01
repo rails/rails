@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveJob
+  # = Active Job \Core
+  #
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
   module Core

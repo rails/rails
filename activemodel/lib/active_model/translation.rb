@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveModel
-  # == Active \Model \Translation
+  # = Active \Model \Translation
   #
   # Provides integration between your object and the Rails internationalization
   # (i18n) framework.

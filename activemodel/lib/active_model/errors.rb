@@ -9,7 +9,7 @@ require "active_model/nested_error"
 require "forwardable"
 
 module ActiveModel
-  # == Active \Model \Errors
+  # = Active \Model \Errors
   #
   # Provides error related functionalities you can include in your object
   # for handling error messages and interacting with Action View helpers.

@@ -15,7 +15,7 @@ module ActiveModel
   class MissingAttributeError < NoMethodError
   end
 
-  # == Active \Model \Attribute \Methods
+  # = Active \Model \Attribute \Methods
   #
   # Provides a way to add prefixes and suffixes to your methods as
   # well as handling the creation of <tt>ActiveRecord::Base</tt>-like
