@@ -31,6 +31,7 @@ module ActiveJob
             rescue EnqueueError => e
               job.enqueue_error = e
             end
+            adapter_jobs.count(&:successfully_enqueued?)
           end
         end
       end
