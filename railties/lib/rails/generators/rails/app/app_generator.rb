@@ -92,6 +92,7 @@ module Rails
       directory "app"
 
       empty_directory_with_keep_file "app/assets/images"
+      empty_directory_with_keep_file "app/lib"
 
       keep_file  "app/controllers/concerns"
       keep_file  "app/models/concerns"

@@ -1,3 +1,7 @@
+*   Create an `app/lib` directory when generating a new Rails project.
+
+    *Ben Sheldon*
+
 *   `bin/rails --help` will now list only framework and plugin commands. Rake
     tasks defined in `lib/tasks/*.rake` files will no longer be included. For a
     list of those tasks, use `rake -T`.

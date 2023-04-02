@@ -35,7 +35,7 @@ class PostsController < ApplicationController
 end
 ```
 
-This is not the case in Rails applications, where application classes and modules are just available everywhere without `require` calls:
+This is not the case in Rails applications, where application classes and modules within `app` are just available everywhere without `require` calls:
 
 ```ruby
 class PostsController < ApplicationController
@@ -47,7 +47,7 @@ end
 
 Rails _autoloads_ them on your behalf if needed. This is possible thanks to a couple of [Zeitwerk](https://github.com/fxn/zeitwerk) loaders Rails sets up on your behalf, which provide autoloading, reloading, and eager loading.
 
-On the other hand, those loaders do not manage anything else. In particular, they do not manage the Ruby standard library, gem dependencies, Rails components themselves, or even (by default) the application `lib` directory. That code has to be loaded as usual.
+On the other hand, those loaders do not manage anything else. In particular, they do not manage the Ruby standard library, gem dependencies, Rails components themselves, or even (by default) the project `lib` directory. That code has to be loaded as usual.
 
 
 Project Structure
