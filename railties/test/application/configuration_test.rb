@@ -2830,6 +2830,20 @@ module ApplicationTests
       assert ActiveJob.use_big_decimal_serializer, "use_big_decimal_serializer should be enabled if set in config"
     end
 
+    test "config.active_job.verbose_enqueue_logs defaults to true in development" do
+      build_app
+      app "development"
+
+      assert ActiveJob.verbose_enqueue_logs
+    end
+
+    test "config.active_job.verbose_enqueue_logs defaults to false in production" do
+      build_app
+      app "production"
+
+      assert_not ActiveJob.verbose_enqueue_logs
+    end
+
     test "active record job queue is set" do
       app "development"
 

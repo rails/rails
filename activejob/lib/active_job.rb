@@ -52,4 +52,12 @@ module ActiveJob
   # Legacy serialization will be removed in Rails 7.2, along with this config.
   singleton_class.attr_accessor :use_big_decimal_serializer
   self.use_big_decimal_serializer = false
+
+  ##
+  # :singleton-method:
+  #
+  # Specifies if the methods calling background job enqueue should be logged below
+  # their relevant enqueue log lines. Defaults to false.
+  singleton_class.attr_accessor :verbose_enqueue_logs
+  self.verbose_enqueue_logs = false
 end

@@ -1,3 +1,20 @@
+*   Log background job enqueue callers
+
+    Add `verbose_enqueue_logs` configuration option to display the caller
+    of background job enqueue in the log to help with debugging.
+
+    Example log line:
+
+    ```
+    Enqueued AvatarThumbnailsJob (Job ID: ab528951-41fb-4c48-9129-3171791c27d6) to Sidekiq(default) with arguments: 1092412064
+    ↳ app/models/user.rb:421:in `generate_avatar_thumbnails'
+    ```
+
+    Enabled in development only for new and upgraded applications. Not recommended for use
+    in the production environment since it relies on Ruby's `Kernel#caller` which is fairly slow.
+
+    *fatkodima*
+
 *   Set `provider_job_id` for Backburner jobs
 
     *Cameron Matheson*

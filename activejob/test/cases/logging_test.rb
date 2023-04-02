@@ -297,4 +297,18 @@ class LoggingTest < ActiveSupport::TestCase
       assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
     end
   end
+
+  def test_verbose_enqueue_logs
+    ActiveJob.verbose_enqueue_logs = true
+
+    LoggingJob.perform_later "Dummy"
+    assert_match("↳", @logger.messages)
+  ensure
+    ActiveJob.verbose_enqueue_logs = false
+  end
+
+  def test_verbose_enqueue_logs_disabled_by_default
+    LoggingJob.perform_later "Dummy"
+    assert_no_match("↳", @logger.messages)
+  end
 end

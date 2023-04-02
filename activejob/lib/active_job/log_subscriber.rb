@@ -5,6 +5,8 @@ require "active_support/log_subscriber"
 
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
     def enqueue(event)
       job = event.payload[:job]
       ex = event.payload[:exception_object]
@@ -140,6 +142,34 @@ module ActiveJob
 
       def logger
         ActiveJob::Base.logger
+      end
+
+      def info(progname = nil, &block)
+        return unless super
+
+        if ActiveJob.verbose_enqueue_logs
+          log_enqueue_source
+        end
+      end
+
+      def error(progname = nil, &block)
+        return unless super
+
+        if ActiveJob.verbose_enqueue_logs
+          log_enqueue_source
+        end
+      end
+
+      def log_enqueue_source
+        source = extract_enqueue_source_location(caller)
+
+        if source
+          logger.info("↳ #{source}")
+        end
+      end
+
+      def extract_enqueue_source_location(locations)
+        backtrace_cleaner.clean(locations.lazy).first
       end
   end
 end
