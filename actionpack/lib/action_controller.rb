@@ -6,6 +6,13 @@ require "action_controller/deprecator"
 require "action_controller/metal/strong_parameters"
 require "action_controller/metal/exceptions"
 
+# = Action Controller
+#
+# Action Controller is a module of Action Pack.
+#
+# Action Controller provides a base controller class that can be subclassed to
+# implement filters and actions to handle requests. The result of an action is
+# typically content generated from views.
 module ActionController
   extend ActiveSupport::Autoload
 
