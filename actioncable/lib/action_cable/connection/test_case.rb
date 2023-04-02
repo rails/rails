@@ -56,6 +56,8 @@ module ActionCable
       end
     end
 
+    # = Action Cable \Connection \TestCase
+    #
     # Unit test Action Cable connections.
     #
     # Useful to check whether a connection's +identified_by+ gets assigned properly
@@ -116,7 +118,7 @@ module ActionCable
     #     assert_equal "1", connection.user_id
     #   end
     #
-    # == Connection is automatically inferred
+    # == \Connection is automatically inferred
     #
     # ActionCable::Connection::TestCase will automatically infer the connection under test
     # from the test class name. If the channel cannot be inferred from the test

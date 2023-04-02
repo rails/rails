@@ -2,6 +2,8 @@
 
 module ActionCable
   module Connection
+    # = Action Cable \InternalChannel
+    #
     # Makes it possible for the RemoteConnection to disconnect a specific connection.
     module InternalChannel
       extend ActiveSupport::Concern

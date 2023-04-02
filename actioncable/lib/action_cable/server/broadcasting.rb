@@ -2,6 +2,8 @@
 
 module ActionCable
   module Server
+    # = Action Cable \Server \Broadcasting
+    #
     # Broadcasting is how other parts of your application can send messages to a channel's subscribers. As explained in Channel, most of the time, these
     # broadcastings are streamed directly to the clients subscribed to the named broadcasting. Let's explain with a full-stack example:
     #

@@ -2,6 +2,8 @@
 
 module ActionCable
   module Server
+    # = Action Cable \Server \Configuration
+    #
     # An instance of this configuration object is available via ActionCable.server.config, which allows you to tweak Action Cable configuration
     # in a Rails config initializer.
     class Configuration

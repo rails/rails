@@ -4,6 +4,8 @@ require "monitor"
 
 module ActionCable
   module Server
+    # = Action Cable \Server \Base
+    #
     # A singleton ActionCable::Server instance is available via ActionCable.server. It's used by the Rack process that starts the Action Cable server, but
     # is also used by the user to reach the RemoteConnections object, which is used for finding and disconnecting connections across all servers.
     #
