@@ -216,7 +216,7 @@ Released under the MIT license
   const toArray = e => Array.prototype.slice.call(e);
   const serializeElement = (element, additionalParam) => {
     let inputs = [ element ];
-    if (matches(element, "form")) {
+    if (element.matches("form")) {
       inputs = toArray(element.elements);
     }
     const params = [];
@@ -224,10 +224,10 @@ Released under the MIT license
       if (!input.name || input.disabled) {
         return;
       }
-      if (matches(input, "fieldset[disabled] *")) {
+      if (input.matches("fieldset[disabled] *")) {
         return;
       }
-      if (matches(input, "select")) {
+      if (input.matches("select")) {
         toArray(input.options).forEach((function(option) {
           if (option.selected) {
             params.push({
@@ -255,8 +255,8 @@ Released under the MIT license
     })).join("&");
   };
   const formElements = (form, selector) => {
-    if (matches(form, "form")) {
-      return toArray(form.elements).filter((el => matches(el, selector)));
+    if (form.matches("form")) {
+      return toArray(form.elements).filter((el => el.matches(selector)));
     } else {
       return toArray(form.querySelectorAll(selector));
     }
@@ -298,21 +298,21 @@ Released under the MIT license
     } else {
       element = e;
     }
-    if (matches(element, linkDisableSelector)) {
+    if (element.matches(linkDisableSelector)) {
       return enableLinkElement(element);
-    } else if (matches(element, buttonDisableSelector) || matches(element, formEnableSelector)) {
+    } else if (element.matches(buttonDisableSelector) || element.matches(formEnableSelector)) {
       return enableFormElement(element);
-    } else if (matches(element, formSubmitSelector)) {
+    } else if (element.matches(formSubmitSelector)) {
       return enableFormElements(element);
     }
   };
   const disableElement = e => {
     const element = e instanceof Event ? e.target : e;
-    if (matches(element, linkDisableSelector)) {
+    if (element.matches(linkDisableSelector)) {
       return disableLinkElement(element);
-    } else if (matches(element, buttonDisableSelector) || matches(element, formDisableSelector)) {
+    } else if (element.matches(buttonDisableSelector) || element.matches(formDisableSelector)) {
       return disableFormElement(element);
-    } else if (matches(element, formSubmitSelector)) {
+    } else if (element.matches(formSubmitSelector)) {
       return disableFormElements(element);
     }
   };
@@ -344,7 +344,7 @@ Released under the MIT license
     }
     const replacement = element.getAttribute("data-disable-with");
     if (replacement != null) {
-      if (matches(element, "button")) {
+      if (element.matches("button")) {
         setData(element, "ujs:enable-with", element.innerHTML);
         element.innerHTML = replacement;
       } else {
@@ -359,7 +359,7 @@ Released under the MIT license
   var enableFormElement = function(element) {
     const originalText = getData(element, "ujs:enable-with");
     if (originalText != null) {
-      if (matches(element, "button")) {
+      if (element.matches("button")) {
         element.innerHTML = originalText;
       } else {
         element.value = originalText;
@@ -413,7 +413,7 @@ Released under the MIT license
     }
     const withCredentials = element.getAttribute("data-with-credentials");
     const dataType = element.getAttribute("data-type") || "script";
-    if (matches(element, formSubmitSelector)) {
+    if (element.matches(formSubmitSelector)) {
       const button = getData(element, "ujs:submit-button");
       method = getData(element, "ujs:submit-button-formmethod") || element.getAttribute("method") || "get";
       url = getData(element, "ujs:submit-button-formaction") || element.getAttribute("action") || location.href;
@@ -431,7 +431,7 @@ Released under the MIT license
       setData(element, "ujs:submit-button", null);
       setData(element, "ujs:submit-button-formmethod", null);
       setData(element, "ujs:submit-button-formaction", null);
-    } else if (matches(element, buttonClickSelector) || matches(element, inputChangeSelector)) {
+    } else if (matches(element, buttonClickSelector) || element.matches(inputChangeSelector)) {
       method = element.getAttribute("data-method");
       url = element.getAttribute("data-url");
       data = serializeElement(element, element.getAttribute("data-params"));

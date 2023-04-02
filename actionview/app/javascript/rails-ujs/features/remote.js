@@ -30,7 +30,7 @@ const handleRemoteWithRails = (rails) => function(e) {
   const withCredentials = element.getAttribute("data-with-credentials")
   const dataType = element.getAttribute("data-type") || "script"
 
-  if (matches(element, formSubmitSelector)) {
+  if (element.matches(formSubmitSelector)) {
     // memoized value from clicked submit button
     const button = getData(element, "ujs:submit-button")
     method = getData(element, "ujs:submit-button-formmethod") || element.getAttribute("method") || "get"
@@ -49,7 +49,7 @@ const handleRemoteWithRails = (rails) => function(e) {
     setData(element, "ujs:submit-button", null)
     setData(element, "ujs:submit-button-formmethod", null)
     setData(element, "ujs:submit-button-formaction", null)
-  } else if (matches(element, buttonClickSelector) || matches(element, inputChangeSelector)) {
+  } else if (matches(element, buttonClickSelector) || element.matches(inputChangeSelector)) {
     method = element.getAttribute("data-method")
     url = element.getAttribute("data-url")
     data = serializeElement(element, element.getAttribute("data-params"))

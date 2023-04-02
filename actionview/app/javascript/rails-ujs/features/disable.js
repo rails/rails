@@ -5,7 +5,7 @@ import {
   formEnableSelector,
   formSubmitSelector
 } from "../utils/constants"
-import { matches, getData, setData } from "../utils/dom"
+import { getData, setData } from "../utils/dom"
 import { stopEverything } from "../utils/event"
 import { formElements } from "../utils/form"
 import { isContentEditable } from "../utils/dom"
@@ -29,11 +29,11 @@ const enableElement = (e) => {
     return
   }
 
-  if (matches(element, linkDisableSelector)) {
+  if (element.matches(linkDisableSelector)) {
     return enableLinkElement(element)
-  } else if (matches(element, buttonDisableSelector) || matches(element, formEnableSelector)) {
+  } else if (element.matches(buttonDisableSelector) || element.matches(formEnableSelector)) {
     return enableFormElement(element)
-  } else if (matches(element, formSubmitSelector)) {
+  } else if (element.matches(formSubmitSelector)) {
     return enableFormElements(element)
   }
 }
@@ -46,11 +46,11 @@ const disableElement = (e) => {
     return
   }
 
-  if (matches(element, linkDisableSelector)) {
+  if (element.matches(linkDisableSelector)) {
     return disableLinkElement(element)
-  } else if (matches(element, buttonDisableSelector) || matches(element, formDisableSelector)) {
+  } else if (element.matches(buttonDisableSelector) || element.matches(formDisableSelector)) {
     return disableFormElement(element)
-  } else if (matches(element, formSubmitSelector)) {
+  } else if (element.matches(formSubmitSelector)) {
     return disableFormElements(element)
   }
 }
@@ -89,7 +89,7 @@ var disableFormElement = function(element) {
   if (getData(element, "ujs:disabled")) { return }
   const replacement = element.getAttribute("data-disable-with")
   if (replacement != null) {
-    if (matches(element, "button")) {
+    if (element.matches("button")) {
       setData(element, "ujs:enable-with", element.innerHTML)
       element.innerHTML = replacement
     } else {
@@ -109,7 +109,7 @@ var enableFormElements = form => formElements(form, formEnableSelector).forEach(
 var enableFormElement = function(element) {
   const originalText = getData(element, "ujs:enable-with")
   if (originalText != null) {
-    if (matches(element, "button")) {
+    if (element.matches("button")) {
       element.innerHTML = originalText
     } else {
       element.value = originalText

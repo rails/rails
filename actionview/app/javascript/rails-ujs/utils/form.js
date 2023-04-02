@@ -1,16 +1,14 @@
-import { matches } from "./dom"
-
 const toArray = e => Array.prototype.slice.call(e)
 
 const serializeElement = (element, additionalParam) => {
   let inputs = [element]
-  if (matches(element, "form")) { inputs = toArray(element.elements) }
+  if (element.matches("form")) { inputs = toArray(element.elements) }
   const params = []
 
   inputs.forEach(function(input) {
     if (!input.name || input.disabled) { return }
-    if (matches(input, "fieldset[disabled] *")) { return }
-    if (matches(input, "select")) {
+    if (input.matches("fieldset[disabled] *")) { return }
+    if (input.matches("select")) {
       toArray(input.options).forEach(function(option) {
         if (option.selected) { params.push({name: input.name, value: option.value}) }
       })
@@ -33,8 +31,8 @@ const serializeElement = (element, additionalParam) => {
 // If form is actually a "form" element this will return associated elements outside the from that have
 // the HTML form attribute set
 const formElements = (form, selector) => {
-  if (matches(form, "form")) {
-    return toArray(form.elements).filter(el => matches(el, selector))
+  if (form.matches("form")) {
+    return toArray(form.elements).filter(el => el.matches(selector))
   } else {
     return toArray(form.querySelectorAll(selector))
   }
