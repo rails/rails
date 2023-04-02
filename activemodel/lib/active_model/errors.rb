@@ -472,6 +472,8 @@ module ActiveModel
       end
   end
 
+  # = Active \Model \Validator
+  #
   # Raised when a validation cannot be corrected by end users and are considered
   # exceptional.
   #
@@ -490,10 +492,14 @@ module ActiveModel
   class StrictValidationFailed < StandardError
   end
 
+  # = Active \Model \RangeError
+  #
   # Raised when attribute values are out of range.
   class RangeError < ::RangeError
   end
 
+  # = Active \Model \UnknownAttributeError
+  #
   # Raised when unknown attributes are supplied via mass assignment.
   #
   #   class Person

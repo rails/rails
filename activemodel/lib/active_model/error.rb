@@ -3,7 +3,7 @@
 require "active_support/core_ext/class/attribute"
 
 module ActiveModel
-  # == Active \Model \Error
+  # = Active \Model \Error
   #
   # Represents one single error
   class Error
