@@ -45,6 +45,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     if: always() && github.ref_name == 'main'
+    continue-on-error: true
     needs: [rails-bin, codespell]
     steps:
       - uses: zzak/action-discord@v4

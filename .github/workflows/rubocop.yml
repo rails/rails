@@ -26,6 +26,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     if: always() && github.ref_name == 'main'
+    continue-on-error: true
     needs: build
     steps:
       - uses: zzak/action-discord@v4
