@@ -3,7 +3,8 @@
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=<%= Gem.ruby_version %>
 ARG BASE_IMAGE_REPOSITORY=ruby
-FROM $BASE_IMAGE_REPOSITORY:$RUBY_VERSION-slim as base
+ARG BASE_IMAGE_TAG=$RUBY_VERSION-slim
+FROM $BASE_IMAGE_REPOSITORY:$BASE_IMAGE_TAG as base
 
 # Rails app lives here
 WORKDIR /rails
