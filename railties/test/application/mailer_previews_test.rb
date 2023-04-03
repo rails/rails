@@ -26,14 +26,14 @@ module ApplicationTests
 
     test "/rails/mailers is not accessible in production" do
       app("production")
-      get "/rails/mailers"
+      get("/rails/mailers", {}, { "HTTPS" => "on" })
       assert_equal 404, last_response.status
     end
 
     test "/rails/mailers is accessible with correct configuration" do
       add_to_config "config.action_mailer.show_previews = true"
       app("production")
-      get "/rails/mailers", {}, { "REMOTE_ADDR" => "4.2.42.42" }
+      get "/rails/mailers", {}, { "REMOTE_ADDR" => "4.2.42.42", "HTTPS" => "on" }
       assert_equal 200, last_response.status
     end
 

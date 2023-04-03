@@ -1,3 +1,8 @@
+*   Enable force_ssl=true in production by default: Force all access to the app over SSL,
+    use Strict-Transport-Security, and use secure cookies
+
+    *Justin Searls*, *Aaron Patterson*, *Guillermo Iguaran*, *Vinícius Bispo*
+
 *   Add engine's draw paths to application route set, so that the application
     can draw route files defined in engine paths.
 
