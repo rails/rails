@@ -238,6 +238,18 @@ Verbose query logs are enabled by default in the development environment logs af
 
 WARNING: We recommend against using this setting in production environments. It relies on Ruby's `Kernel#caller` method which tends to allocate a lot of memory in order to generate stacktraces of method calls. Use query log tags (see below) instead.
 
+### Verbose Enqueue Logs
+
+Similar to the "Verbose Query Logs" above, allows to print source locations of methods that enqueue background jobs.
+
+It is enabled by default in development. To enable in other environments, add in `application.rb` or any environment initializer:
+
+```rb
+config.active_job.verbose_enqueue_logs = true
+```
+
+As verbose query logs, it is not recommended for use in production environments.
+
 SQL Query Comments
 ------------------
 

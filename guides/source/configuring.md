@@ -2459,6 +2459,10 @@ Allows to set custom argument serializers. Defaults to `[]`.
 
 Controls if the arguments of a job are logged. Defaults to `true`.
 
+#### `config.active_job.verbose_enqueue_logs`
+
+Specifies if source locations of methods that enqueue background jobs should be logged below relevant enqueue log lines. By default, the flag is `true` in development and `false` in all other environments.
+
 #### `config.active_job.retry_jitter`
 
 Controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs.
