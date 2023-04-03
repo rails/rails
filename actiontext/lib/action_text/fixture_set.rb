@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionText
+  # = Action Text \FixtureSet
+  #
   # Fixtures are a way of organizing data that you want to test against; in
   # short, sample data.
   #

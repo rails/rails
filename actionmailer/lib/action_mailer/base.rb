@@ -10,6 +10,8 @@ require "action_mailer/log_subscriber"
 require "action_mailer/rescuable"
 
 module ActionMailer
+  # = Action Mailer \Base
+  #
   # Action Mailer allows you to send email from your application using a mailer model and views.
   #
   # = Mailer Models

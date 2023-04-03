@@ -4,6 +4,8 @@ require "active_support/core_ext/module"
 require "action_view/model_naming"
 
 module ActionView
+  # = Action View \Record \Identifier
+  #
   # RecordIdentifier encapsulates methods used by various ActionView helpers
   # to associate records with DOM elements.
   #

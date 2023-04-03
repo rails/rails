@@ -3,6 +3,8 @@
 require "delegate"
 
 module ActionMailer
+  # = Action Mailer \MessageDelivery
+  #
   # The <tt>ActionMailer::MessageDelivery</tt> class is used by
   # ActionMailer::Base when creating a new mailer.
   # <tt>MessageDelivery</tt> is a wrapper (+Delegator+ subclass) around a lazy

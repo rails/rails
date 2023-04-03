@@ -6,6 +6,8 @@ require "action_mailbox/callbacks"
 require "action_mailbox/routing"
 
 module ActionMailbox
+  # = Action Mailbox \Base
+  #
   # The base class for all application mailboxes. Not intended to be inherited from directly. Inherit from
   # +ApplicationMailbox+ instead, as that's where the app-specific routing is configured. This routing
   # is specified in the following ways:
