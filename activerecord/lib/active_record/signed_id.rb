@@ -94,7 +94,6 @@ module ActiveRecord
       end
     end
 
-
     # Returns a signed id that's generated using a preconfigured +ActiveSupport::MessageVerifier+ instance.
     # This signed id is tamper proof, so it's safe to send in an email or otherwise share with the outside world.
     # It can furthermore be set to expire (the default is not to expire), and scoped down with a specific purpose.

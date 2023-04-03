@@ -45,7 +45,6 @@ class DateTime
     deprecate to_default_s: :to_s, deprecator: ActiveSupport.deprecator
   end
 
-
   # Returns a formatted string of the offset from UTC, or an alternative
   # string if the time zone is already UTC.
   #

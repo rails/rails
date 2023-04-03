@@ -158,7 +158,6 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match %r/foo: bar: bad/, run_edit_command
   end
 
-
   test "show credentials" do
     assert_match DEFAULT_CREDENTIALS_PATTERN, run_show_command
   end
@@ -188,7 +187,6 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     assert_match %r/foo: bar/, run_show_command(environment: "prod")
   end
-
 
   test "diff enroll diffing" do
     FileUtils.rm(app_path(".gitattributes"))
@@ -282,7 +280,6 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     assert_match(encrypted_content, run_diff_command(content_path))
   end
-
 
   test "respects config.credentials.content_path when set in config/application.rb" do
     content_path = "my_secrets/credentials.yml.enc"

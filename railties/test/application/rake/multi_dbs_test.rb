@@ -555,7 +555,6 @@ module ApplicationTests
           end
         MIGRATION
 
-
         Dir.chdir(app_path) do
           rails "db:migrate:up:primary", "VERSION=01_one_migration.rb"
           rails "db:migrate:up:primary", "VERSION=03_three_migration.rb"

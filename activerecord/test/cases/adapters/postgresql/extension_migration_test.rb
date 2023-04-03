@@ -68,7 +68,6 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "other_schema", if_exists: true
   end
 
-
   def test_disable_extension_migration_ignores_prefix_and_suffix
     @connection.enable_extension("hstore")
 

@@ -51,7 +51,6 @@ module ActiveStorage
       perform_across_services :delete_prefixed, prefix
     end
 
-
     # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
     def mirror(key, checksum:)
       instrument :mirror, key: key, checksum: checksum do

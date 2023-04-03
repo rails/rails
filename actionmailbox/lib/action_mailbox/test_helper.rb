@@ -73,7 +73,6 @@ module ActionMailbox
       ActionMailbox::InboundEmail.create_and_extract_message_id! source, status: status
     end
 
-
     # Create an InboundEmail from fixture using the same arguments as create_inbound_email_from_fixture
     # and immediately route it to processing.
     def receive_inbound_email_from_fixture(*args)

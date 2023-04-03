@@ -57,7 +57,6 @@ module ActiveRecord
       Array(connection.schema_cache.primary_keys(model.table_name))
     end
 
-
     def skip_duplicates?
       on_duplicate == :skip
     end
@@ -165,7 +164,6 @@ module ActiveRecord
         connection.schema_cache.indexes(model.table_name).select(&:unique)
       end
 
-
       def ensure_valid_options_for_connection!
         if returning && !connection.supports_insert_returning?
           raise ArgumentError, "#{connection.class} does not support :returning"
@@ -184,11 +182,9 @@ module ActiveRecord
         end
       end
 
-
       def to_sql
         connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
       end
-
 
       def readonly_columns
         primary_keys + model.readonly_attributes.to_a
@@ -197,7 +193,6 @@ module ActiveRecord
       def unique_by_columns
         Array(unique_by&.columns)
       end
-
 
       def verify_attributes(attributes)
         if keys_including_timestamps != attributes.keys.to_set

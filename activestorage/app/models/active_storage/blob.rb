@@ -228,7 +228,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
   end
 
-
   # Uploads the +io+ to the service on the +key+ for this blob. Blobs are intended to be immutable, so you shouldn't be
   # using this method after a file has already been uploaded to fit with a blob. If you want to create a derivative blob,
   # you should instead simply create a new blob based on the old one.

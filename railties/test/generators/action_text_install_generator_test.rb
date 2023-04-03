@@ -68,7 +68,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-
   test "appends @import 'actiontext.css'; to base css file" do
     FileUtils.touch("#{destination_root}/app/assets/stylesheets/application.postcss.css")
 

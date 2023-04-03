@@ -68,7 +68,6 @@ module ActiveStorage::Service::SharedServiceTests
       end
     end
 
-
     test "downloading in chunks" do
       key = SecureRandom.base58(24)
       expected_chunks = [ "a" * 5.megabytes, "b" ]
@@ -93,7 +92,6 @@ module ActiveStorage::Service::SharedServiceTests
       end
     end
 
-
     test "downloading partially" do
       assert_equal "\x10\x00\x00", @service.download_chunk(@key, 19..21)
       assert_equal "\x10\x00\x00", @service.download_chunk(@key, 19...22)
@@ -104,7 +102,6 @@ module ActiveStorage::Service::SharedServiceTests
         @service.download_chunk(SecureRandom.base58(24), 19..21)
       end
     end
-
 
     test "existing" do
       assert @service.exist?(@key)
