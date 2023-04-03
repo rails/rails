@@ -204,7 +204,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_not_predicate firm.account, :valid?
     assert_not_predicate firm, :valid?
     assert_not firm.save
-    assert_equal ["can't be blank"], firm.errors["account.credit_limit"]
+    assert_equal ["can’t be blank"], firm.errors["account.credit_limit"]
   end
 
   def test_save_succeeds_for_invalid_has_one_with_validate_false
