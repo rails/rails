@@ -27,9 +27,10 @@ require "models/category"
 require "models/categorization"
 require "models/edge"
 require "models/subscriber"
+require "models/cpk"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans, :cpk_orders
 
   def test_do_not_double_quote_string_id
     van = Minivan.last
@@ -943,6 +944,21 @@ class RelationTest < ActiveRecord::TestCase
       relation = Minivan.where(minivan_id: Minivan.where(name: cool_first.name))
       assert_equal [cool_first], relation.to_a
     }
+  end
+
+  def test_find_all_using_where_with_relation_with_no_selects_and_composite_primary_key_raises
+    order = cpk_orders(:cpk_groceries_order_1)
+    subquery = Cpk::Order.where(Cpk::Order.primary_key => [order.id])
+
+    assert_nothing_raised do
+      Cpk::Order.where(id: subquery.select(:id)).to_a
+    end
+
+    error = assert_raise(ArgumentError) do
+      Cpk::Order.where(id: subquery).to_a
+    end
+
+    assert_equal "Cannot map composite primary key [\"shop_id\", \"id\"] to id", error.message
   end
 
   def test_find_all_using_where_with_relation_does_not_alter_select_values
