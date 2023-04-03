@@ -2,6 +2,8 @@
 
 module ActiveStorage
   module Transformers
+    # = Active Storage \Transformers \Transformer
+    #
     # A Transformer applies a set of transformations to an image.
     #
     # The following concrete subclasses are included in Active Storage:

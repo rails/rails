@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# = Active Storage \Preview
+#
 # Some non-image blobs can be previewed: that is, they can be presented as images. A video blob can be previewed by
 # extracting its first frame, and a PDF blob can be previewed by extracting its first page.
 #

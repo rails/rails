@@ -2,6 +2,8 @@
 
 require "marcel"
 
+# = Active Storage \Variation
+#
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
 # the ActiveStorage::Blob#variant method and should rarely be used directly.
 #

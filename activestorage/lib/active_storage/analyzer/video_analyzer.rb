@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveStorage
+  # = Active Storage Video \Analyzer
+  #
   # Extracts the following from a video blob:
   #
   # * Width (pixels)
