@@ -7,63 +7,9 @@ module ActionDispatch
   module Http
     module URL
       class << self
-        def tld_length=(tld_length)
-          ActionDispatch::Http::URI.tld_length = tld_length
-        end
-
-        def tld_length
-          ActionDispatch::Http::URI.tld_length
-        end
-
-        def secure_protocol=(secure_protocol)
-          ActionDispatch::Http::URI.secure_protocol = secure_protocol
-        end
-
-        def secure_protocol
-          ActionDispatch::Http::URI.secure_protocol
-        end
-
-        # Returns the domain part of a host given the domain level.
-        #
-        #    # Top-level domain example
-        #    extract_domain('www.example.com', 1) # => "example.com"
-        #    # Second-level domain example
-        #    extract_domain('dev.www.example.co.uk', 2) # => "example.co.uk"
-        def extract_domain(host, tld_length)
-          ActionDispatch::Http::URI.extract_domain(host, tld_length)
-        end
-
-        # Returns the subdomains of a host as an Array given the domain level.
-        #
-        #    # Top-level domain example
-        #    extract_subdomains('www.example.com', 1) # => ["www"]
-        #    # Second-level domain example
-        #    extract_subdomains('dev.www.example.co.uk', 2) # => ["dev", "www"]
-        def extract_subdomains(host, tld_length)
-          ActionDispatch::Http::URI.extract_subdomains(host, tld_length)
-        end
-
-        # Returns the subdomains of a host as a String given the domain level.
-        #
-        #    # Top-level domain example
-        #    extract_subdomain('www.example.com', 1) # => "www"
-        #    # Second-level domain example
-        #    extract_subdomain('dev.www.example.co.uk', 2) # => "dev.www"
-        def extract_subdomain(host, tld_length)
-          extract_subdomains(host, tld_length).join(".")
-        end
-
-        def url_for(options)
-          ActionDispatch::Http::URI.url_for(options)
-        end
-
-        def full_url_for(options)
-          ActionDispatch::Http::URI.full_url_for(options)
-        end
-
-        def path_for(options)
-          ActionDispatch::Http::URI.path_for(options)
-        end
+        delegate :tld_length, :tld_length=, :secure_protocol, :secure_protocol=,
+          :extract_domain, :extract_subdomain, :extract_subdomains, :url_for,
+          :full_url_for, :path_for, to: ActionDispatch::Http::URI
       end
 
       def initialize
@@ -209,7 +155,7 @@ module ActionDispatch
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
       # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
       def domain(tld_length = ActionDispatch::Http::URI.tld_length)
-        ActionDispatch::Http::URL.extract_domain(host, tld_length)
+        ActionDispatch::Http::URI.extract_domain(host, tld_length)
       end
 
       # Returns all the \subdomains as an array, so <tt>["dev", "www"]</tt> would be
@@ -217,7 +163,7 @@ module ActionDispatch
       # such as 2 to catch <tt>["www"]</tt> instead of <tt>["www", "rubyonrails"]</tt>
       # in "www.rubyonrails.co.uk".
       def subdomains(tld_length = ActionDispatch::Http::URI.tld_length)
-        ActionDispatch::Http::URL.extract_subdomains(host, tld_length)
+        ActionDispatch::Http::URI.extract_subdomains(host, tld_length)
       end
 
       # Returns all the \subdomains as a string, so <tt>"dev.www"</tt> would be
@@ -225,7 +171,7 @@ module ActionDispatch
       # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = ActionDispatch::Http::URI.tld_length)
-        ActionDispatch::Http::URL.extract_subdomain(host, tld_length)
+        ActionDispatch::Http::URI.extract_subdomain(host, tld_length)
       end
     end
   end
