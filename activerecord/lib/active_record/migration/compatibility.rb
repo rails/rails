@@ -33,7 +33,36 @@ module ActiveRecord
       V7_1 = Current
 
       class V7_0 < V7_1
+        module LegacyIndexName
+          private
+            def legacy_index_name(table_name, options)
+              if Hash === options
+                if options[:column]
+                  "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+                elsif options[:name]
+                  options[:name]
+                else
+                  raise ArgumentError, "You must specify the index name"
+                end
+              else
+                legacy_index_name(table_name, index_name_options(options))
+              end
+            end
+
+            def index_name_options(column_names)
+              if expression_column_name?(column_names)
+                column_names = column_names.scan(/\w+/).join("_")
+              end
+
+              { column: column_names }
+            end
+
+            def expression_column_name?(column_name)
+              column_name.is_a?(String) && /\W/.match?(column_name)
+            end
+        end
         module TableDefinition
+          include LegacyIndexName
           def column(name, type, **options)
             options[:_skip_validate_options] = true
             super
@@ -44,10 +73,17 @@ module ActiveRecord
             super
           end
 
+          def index(column_name, **options)
+            options[:name] = legacy_index_name(name, column_name) if options[:name].nil?
+            super
+          end
+
           private
             def raise_on_if_exist_options(options)
             end
         end
+
+        include LegacyIndexName
 
         def add_column(table_name, column_name, type, **options)
           options[:_skip_validate_options] = true
@@ -108,32 +144,6 @@ module ActiveRecord
               prepend TableDefinition
             end
             super
-          end
-
-          def legacy_index_name(table_name, options)
-            if Hash === options
-              if options[:column]
-                "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
-              elsif options[:name]
-                options[:name]
-              else
-                raise ArgumentError, "You must specify the index name"
-              end
-            else
-              legacy_index_name(table_name, index_name_options(options))
-            end
-          end
-
-          def index_name_options(column_names)
-            if expression_column_name?(column_names)
-              column_names = column_names.scan(/\w+/).join("_")
-            end
-
-            { column: column_names }
-          end
-
-          def expression_column_name?(column_name)
-            column_name.is_a?(String) && /\W/.match?(column_name)
           end
       end
 
