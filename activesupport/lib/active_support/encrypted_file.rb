@@ -36,7 +36,6 @@ module ActiveSupport
       @expected_key_length ||= generate_key.length
     end
 
-
     attr_reader :content_path, :key_path, :env_key, :raise_if_missing_key
 
     def initialize(content_path:, key_path:, env_key:, raise_if_missing_key:)
@@ -84,7 +83,6 @@ module ActiveSupport
       writing read, &block
     end
 
-
     private
       def writing(contents)
         tmp_file = "#{Process.pid}.#{content_path.basename.to_s.chomp('.enc')}"
@@ -100,7 +98,6 @@ module ActiveSupport
         FileUtils.rm(tmp_path) if tmp_path&.exist?
       end
 
-
       def encrypt(contents)
         check_key_length
         encryptor.encrypt_and_sign contents
@@ -113,7 +110,6 @@ module ActiveSupport
       def encryptor
         @encryptor ||= ActiveSupport::MessageEncryptor.new([ key ].pack("H*"), cipher: CIPHER, serializer: Marshal)
       end
-
 
       def read_env_key
         ENV[env_key].presence

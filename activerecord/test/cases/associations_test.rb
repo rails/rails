@@ -38,7 +38,6 @@ require "models/sharded"
 require "models/member_detail"
 require "models/organization"
 
-
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers, :authors, :author_addresses, :author_favorites,

@@ -149,7 +149,6 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
   end
 
-
   private
     def assert_aead_not_decrypted(encryptor, value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do

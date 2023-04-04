@@ -557,7 +557,6 @@ module RequestForgeryProtectionTests
     ActionController::Base.logger = old_logger
   end
 
-
   def test_should_warn_on_missing_csrf_token
     old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new

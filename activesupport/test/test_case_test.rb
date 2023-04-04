@@ -552,7 +552,6 @@ class TestOrderTest < ActiveSupport::TestCase
   end
 end
 
-
 class ConstStubbable
   CONSTANT = 1
 end

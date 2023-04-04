@@ -1268,7 +1268,6 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
-
       # Checks to see if a check constraint exists on a table for a given check constraint definition.
       #
       #   check_constraint_exists?(:products, name: "price_check")

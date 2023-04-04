@@ -126,7 +126,6 @@ module ActiveStorage
         object_for(key).public_url(**client_opts)
       end
 
-
       MAXIMUM_UPLOAD_PARTS_COUNT = 10000
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
@@ -143,7 +142,6 @@ module ActiveStorage
           IO.copy_stream(io, out)
         end
       end
-
 
       def object_for(key)
         bucket.object(key)

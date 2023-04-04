@@ -206,6 +206,10 @@ Layout/IndentationStyle:
 Layout/TrailingEmptyLines:
   Enabled: true
 
+# Checks for two or more consecutive blank lines.
+Layout/EmptyLines:
+  Enabled: true
+
 # No trailing whitespace.
 Layout/TrailingWhitespace:
   Enabled: true

@@ -141,7 +141,6 @@ module ActiveStorage
         url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
       end
 
-
       def stream(key)
         File.open(path_for(key), "rb") do |file|
           while data = file.read(5.megabytes)

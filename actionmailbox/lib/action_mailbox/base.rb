@@ -100,7 +100,6 @@ module ActionMailbox
       inbound_email.delivered? || inbound_email.bounced?
     end
 
-
     # Enqueues the given +message+ for delivery and changes the inbound email's status to +:bounced+.
     def bounce_with(message)
       inbound_email.bounced!
