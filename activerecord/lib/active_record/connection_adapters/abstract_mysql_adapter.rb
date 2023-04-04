@@ -526,7 +526,8 @@ module ActiveRecord
               name: row["name"]
             }
             expression = row["expression"]
-            expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
+            expression = strip_whitespace_characters(expression)
             CheckConstraintDefinition.new(table_name, expression, options)
           end
         else
@@ -714,6 +715,12 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        def strip_whitespace_characters(expression)
+          expression = expression.gsub(/\\n|\\\\/, "")
+          expression = expression.gsub(/\s{2,}/, " ")
+          expression
+        end
+
         def text_type?(type)
           TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
         end
