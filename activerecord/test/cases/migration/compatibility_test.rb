@@ -566,6 +566,28 @@ module ActiveRecord
         assert_match(/is too long/i, error.message)
       end
 
+      def test_create_table_add_index_errors_on_too_long_name_7_0
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.integer :foo
+              t.integer :bar
+              t.integer :very_long_column_name_to_test_with
+              t.index [:foo, :bar, :very_long_column_name_to_test_with]
+            end
+          end
+        }.new
+
+        error = assert_raises(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert_match(/index_more_testings_on_foo_and_bar_and_very_long_column_name_to_test_with/i, error.message)
+        assert_match(/is too long/i, error.message)
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
+
       def test_add_reference_on_6_0
         create_migration = Class.new(ActiveRecord::Migration[6.0]) {
           def version; 100 end
