@@ -70,4 +70,24 @@ class QueuingTest < ActiveSupport::TestCase
     ActiveJob.perform_all_later([HelloJob.new("Jamie"), MultipleKwargsJob.new(argument1: "John", argument2: 42)])
     assert_equal ["Jamie says hello", "Job with argument1: John, argument2: 42"], JobBuffer.values.sort
   end
+
+  test "perform_all_later instrumentation" do
+    jobs = HelloJob.new("Jamie"), HelloJob.new("John")
+    called = false
+
+    subscriber = lambda do |*args|
+      called = true
+      event = ActiveSupport::Notifications::Event.new(*args)
+      payload = event.payload
+      assert payload[:adapter]
+      assert_equal jobs, payload[:jobs]
+      assert_equal 2, payload[:enqueued_count]
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "enqueue_all.active_job") do
+      ActiveJob.perform_all_later(jobs)
+    end
+
+    assert called
+  end
 end
