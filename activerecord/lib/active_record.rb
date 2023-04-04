@@ -457,6 +457,11 @@ module ActiveRecord
     ActiveRecord::ConnectionAdapters.eager_load!
     ActiveRecord::Encryption.eager_load!
   end
+
+  # Explicitly closes all database connections in all pools.
+  def self.disconnect_all!
+    ConnectionAdapters::PoolConfig.disconnect_all!
+  end
 end
 
 ActiveSupport.on_load(:active_record) do

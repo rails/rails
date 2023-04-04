@@ -15,6 +15,10 @@ module ActiveRecord
         def discard_pools!
           INSTANCES.each_key(&:discard_pool!)
         end
+
+        def disconnect_all!
+          INSTANCES.each_key(&:disconnect!)
+        end
       end
 
       def initialize(connection_class, db_config, role, shard)
