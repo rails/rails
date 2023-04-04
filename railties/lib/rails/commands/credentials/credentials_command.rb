@@ -70,8 +70,12 @@ module Rails
           @key_path ||= relative_path(config.key_path)
         end
 
+        def env_key
+          @env_key ||= config.env_key
+        end
+
         def credentials
-          @credentials ||= Rails.application.encrypted(content_path, key_path: key_path)
+          @credentials ||= Rails.application.encrypted(content_path, key_path: key_path, env_key: env_key)
         end
 
         def ensure_encryption_key_has_been_added

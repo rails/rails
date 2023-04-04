@@ -278,6 +278,15 @@ Defaults to `config/credentials/#{Rails.env}.key` if it exists, or
 NOTE: In order for the `bin/rails credentials` commands to recognize this value,
 it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
+#### `config.credentials.env_key`
+
+The environment key name where the encrypted credential key exists.
+
+Defaults to `RAILS_MASTER_KEY`.
+
+NOTE: In order for the `bin/rails credentials` commands to recognize this value,
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
+
 #### `config.debug_exception_response_format`
 
 Sets the format used in responses when errors occur in the development environment. Defaults to `:api` for API only apps and `:default` for normal apps.

@@ -81,6 +81,16 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_edit_command(key: "config/tokens.key"))
   end
 
+  test "edit encrypts file with custom env_key" do
+    master_key = read_file("config/master.key")
+    remove_file "config/master.key"
+
+    switch_env("RAILS_MAIN_KEY", master_key) do
+      assert_match(/access_key_id: 123/, run_edit_command(env_key: "RAILS_MAIN_KEY"))
+      assert_no_file "config/master.key"
+    end
+  end
+
   test "edit command does not display save confirmation message if interrupted" do
     assert_match %r/file encrypted and saved/i, run_edit_command
 
@@ -103,6 +113,18 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
     run_edit_command(key: "config/tokens.key")
 
     assert_match(/access_key_id: 123/, run_show_command(key: "config/tokens.key"))
+  end
+
+  test "show encrypted file with custom env_key" do
+    run_edit_command(key: "config/master.key")
+
+    master_key = read_file "config/master.key"
+
+    remove_file("config/master.key")
+
+    switch_env("RAILS_MAIN_KEY", master_key) do
+      assert_match(/access_key_id: 123/, run_show_command(env_key: "RAILS_MAIN_KEY"))
+    end
   end
 
   test "show command raise error when require_master_key is specified and key does not exist" do
@@ -139,19 +161,20 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
   end
 
   private
-    def run_edit_command(file = @encrypted_file, key: nil, editor: "cat", **options)
+    def run_edit_command(file = @encrypted_file, key: nil, env_key: nil, editor: "cat", **options)
       switch_env("EDITOR", editor) do
-        rails "encrypted:edit", prepare_args(file, key), **options
+        rails "encrypted:edit", prepare_args(file, key, env_key), **options
       end
     end
 
-    def run_show_command(file = @encrypted_file, key: nil, **options)
-      rails "encrypted:show", prepare_args(file, key), **options
+    def run_show_command(file = @encrypted_file, key: nil, env_key: nil, **options)
+      rails "encrypted:show", prepare_args(file, key, env_key), **options
     end
 
-    def prepare_args(file, key)
+    def prepare_args(file, key, env_key)
       args = [ file ]
       args.push("--key", key) if key
+      args.push("--env-key", env_key) if env_key
       args
     end
 

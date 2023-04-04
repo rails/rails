@@ -549,7 +549,7 @@ module Rails
           key_path = root.join("config/credentials/#{Rails.env}.key")
           key_path = root.join("config/master.key") if !key_path.exist?
 
-          { content_path: content_path, key_path: key_path }
+          { content_path: content_path, key_path: key_path, env_key: "RAILS_MASTER_KEY" }
         end
     end
   end

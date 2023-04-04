@@ -37,6 +37,17 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
     end
   end
 
+  test "reads credentials using customized environment variable key" do
+    write_credentials_override(:production, with_key: false)
+    add_to_env_config("production", "config.credentials.env_key = 'RAILS_MAIN_KEY'")
+
+    switch_env("RAILS_MAIN_KEY", credentials_key) do
+      app("production")
+
+      assert_equal "revealed", Rails.application.credentials.mystery
+    end
+  end
+
   private
     def write_credentials_override(name, with_key: true)
       Dir.chdir(app_path) do

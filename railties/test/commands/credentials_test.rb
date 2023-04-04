@@ -302,6 +302,19 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
   end
 
+  test "respects config.credentials.env_key when set in config/application.rb" do
+    env_key = "RAILS_MAIN_KEY"
+    add_to_config "config.credentials.env_key = #{env_key.inspect}"
+
+    master_key = read_file("config/master.key")
+    remove_file "config/master.key"
+
+    switch_env(env_key, master_key) do
+      assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
+      assert_no_file "config/master.key"
+    end
+  end
+
   test "respects config.credentials.content_path when set in config/environments/*.rb" do
     content_path = "my_secrets/credentials.yml.enc"
     add_to_env_config "production", "config.credentials.content_path = #{content_path.inspect}"
@@ -322,6 +335,23 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     end
 
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
+  end
+
+  test "respects config.credentials.env_key when set in config/environments/*.rb" do
+    env_key = "RAILS_PROD_KEY"
+    add_to_env_config "production", "config.credentials.env_key = #{env_key.inspect}"
+
+    content = "foo: #{env_key}"
+
+    write_credentials(content, environment: "production")
+
+    production_key = read_file("config/credentials/production.key")
+    remove_file "config/credentials/production.key"
+
+    switch_env(env_key, production_key) do
+      assert_match content, run_show_command(environment: "production")
+      assert_no_file "config/credentials/production.key"
+    end
   end
 
   private

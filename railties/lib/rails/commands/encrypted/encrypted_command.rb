@@ -12,6 +12,9 @@ module Rails
       class_option :key, aliases: "-k", type: :string,
         default: "config/master.key", desc: "The Rails.root relative path to the encryption key"
 
+      class_option :'env-key', type: :string,
+        default: "RAILS_MASTER_KEY", desc: "The environment variable name to the encryption key"
+
       desc "edit", "Open the decrypted file in `$EDITOR` for editing"
       def edit(*)
         load_environment_config!
@@ -38,8 +41,12 @@ module Rails
           options[:key]
         end
 
+        def env_key
+          options[:'env-key']
+        end
+
         def encrypted_configuration
-          @encrypted_configuration ||= Rails.application.encrypted(content_path, key_path: key_path)
+          @encrypted_configuration ||= Rails.application.encrypted(content_path, key_path: key_path, env_key: env_key)
         end
 
         def ensure_encryption_key_has_been_added
@@ -49,7 +56,7 @@ module Rails
         end
 
         def ensure_encrypted_configuration_has_been_added
-          encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
+          encrypted_file_generator.add_encrypted_file_silently(content_path, key_path, env_key)
         end
 
         def change_encrypted_configuration_in_system_editor

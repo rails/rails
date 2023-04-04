@@ -1,3 +1,9 @@
+*   The default environment variable key name for credentials and encrypted key (`RAILS_MASTER_KEY`)
+    is now configurable by using `config.credentials.env_key`, or by passing in `--env-key` to
+    `rails encrypted` command. For usage, see `rails credentials:help` and `rails encrypted:help`.
+
+    *Arian Faurtosh*
+
 *   Deprecate `secrets:edit/show` and remove `secrets:setup`
 
     `bin/rails secrets:setup` has been deprecated since Rails 5.2 in favor of

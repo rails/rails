@@ -6,12 +6,12 @@ require "active_support/encrypted_file"
 module Rails
   module Generators
     class EncryptedFileGenerator < Base # :nodoc:
-      def add_encrypted_file_silently(file_path, key_path, template = encrypted_file_template)
+      def add_encrypted_file_silently(file_path, key_path, env_key = "RAILS_MASTER_KEY", template = encrypted_file_template)
         unless File.exist?(file_path)
           ActiveSupport::EncryptedFile.new(
             content_path: file_path,
             key_path: key_path,
-            env_key: "RAILS_MASTER_KEY",
+            env_key: env_key,
             raise_if_missing_key: true
           ).write(template)
         end

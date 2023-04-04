@@ -8,6 +8,10 @@ Encryption Keys:
 
         <%= executable(:edit) %> config/encrypted_file.yml.enc --key config/encrypted_file.key
 
+    The environment variable key can also be overridden using `--env-key`:
+
+        <%= executable(:edit) %> config/encrypted_file.yml.enc --env-key RAILS_MAIN_KEY
+
     Don't commit the key! Add it to your source control's ignore file. If you use
     Git, Rails handles this for you.
 
