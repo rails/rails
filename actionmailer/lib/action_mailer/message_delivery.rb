@@ -110,7 +110,9 @@ module ActionMailer
     #
     def deliver_now!
       processed_mailer.handle_exceptions do
-        message.deliver!
+        processed_mailer.run_callbacks(:deliver) do
+          message.deliver!
+        end
       end
     end
 
@@ -120,13 +122,15 @@ module ActionMailer
     #
     def deliver_now
       processed_mailer.handle_exceptions do
-        message.deliver
+        processed_mailer.run_callbacks(:deliver) do
+          message.deliver
+        end
       end
     end
 
     private
       # Returns the processed Mailer instance. We keep this instance
-      # on hand so we can delegate exception handling to it.
+      # on hand so we can run callbacks and delegate exception handling to it.
       def processed_mailer
         @processed_mailer ||= @mailer_class.new.tap do |mailer|
           mailer.process @action, *@args

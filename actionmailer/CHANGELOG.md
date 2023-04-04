@@ -1,3 +1,17 @@
+*   Added `*_deliver` callbacks to `ActionMailer::Base` that wrap mail message delivery.
+
+    Example:
+
+    ```ruby
+    class EventsMailer < ApplicationMailer
+      after_deliver do
+        User.find_by(email: message.to.first).update(email_provider_id: message.message_id, emailed_at: Time.current)
+      end
+    end
+    ```
+
+    *Ben Sheldon*
+
 *   Added `deliver_enqueued_emails` to `ActionMailer::TestHelper`. This method
     delivers all enqueued email jobs.
 

@@ -318,12 +318,14 @@ module ActionMailer
   #
   # = Callbacks
   #
-  # You can specify callbacks using <tt>before_action</tt> and <tt>after_action</tt> for configuring your messages.
-  # This may be useful, for example, when you want to add default inline attachments for all
-  # messages sent out by a certain mailer class:
+  # You can specify callbacks using <tt>before_action</tt> and <tt>after_action</tt> for configuring your messages,
+  # and using <tt>before_deliver</tt> and <tt>after_deliver</tt> for wrapping the delivery process.
+  # For example, when you want to add default inline attachments and log delivery for all messages
+  # sent out by a certain mailer class:
   #
   #   class NotifierMailer < ApplicationMailer
   #     before_action :add_inline_attachment!
+  #     after_deliver :log_delivery
   #
   #     def welcome
   #       mail
@@ -333,9 +335,13 @@ module ActionMailer
   #       def add_inline_attachment!
   #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
   #       end
+  #
+  #       def log_delivery
+  #         Rails.logger.info "Sent email with message id '#{message.message_id}' at #{Time.current}."
+  #       end
   #   end
   #
-  # Callbacks in Action Mailer are implemented using
+  # Action callbacks in Action Mailer are implemented using
   # AbstractController::Callbacks, so you can define and configure
   # callbacks in the same manner that you would use callbacks in classes that
   # inherit from ActionController::Base.
@@ -468,6 +474,7 @@ module ActionMailer
   # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
   #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue name.
   class Base < AbstractController::Base
+    include Callbacks
     include DeliveryMethods
     include QueuedDelivery
     include Rescuable
