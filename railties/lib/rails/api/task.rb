@@ -36,7 +36,9 @@ module Rails
           include: %w(
             README.rdoc
             lib/abstract_controller/**/*.rb
+            lib/action_controller.rb
             lib/action_controller/**/*.rb
+            lib/action_dispatch.rb
             lib/action_dispatch/**/*.rb
           )
         },

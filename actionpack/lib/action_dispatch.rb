@@ -35,6 +35,14 @@ module Rack
   autoload :Test, "rack/test"
 end
 
+# = Action Dispatch
+#
+# Action Dispatch is a module of Action Pack.
+#
+# Action Dispatch parses information about the web request, handles
+# routing as defined by the user, and does advanced processing related to HTTP
+# such as MIME-type negotiation, decoding parameters in POST, PATCH, or PUT
+# bodies, handling HTTP caching logic, cookies and sessions.
 module ActionDispatch
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor
   extend ActiveSupport::Autoload
