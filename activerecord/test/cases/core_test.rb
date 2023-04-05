@@ -7,9 +7,28 @@ require "pp"
 require "models/cpk"
 
 class NonExistentTable < ActiveRecord::Base; end
+class PkWithDefault < ActiveRecord::Base; end
 
 class CoreTest < ActiveRecord::TestCase
   fixtures :topics
+
+  def test_eql_on_default_pk
+    saved_record = PkWithDefault.new
+    saved_record.save!
+    assert_equal 123, saved_record.id
+
+    record = PkWithDefault.new
+    assert_equal 123, record.id
+
+    record2 = PkWithDefault.new
+    assert_equal 123, record2.id
+
+    assert     record.eql?(record),       "record should eql? itself"
+    assert_not record.eql?(saved_record), "new record should not eql? saved"
+    assert_not saved_record.eql?(record), "saved record should not eql? new"
+    assert_not record.eql?(record2),      "new record should not eql? new record"
+    assert_not record2.eql?(record),      "new record should not eql? new record"
+  end
 
   def test_inspect_class
     assert_equal "ActiveRecord::Base", ActiveRecord::Base.inspect
