@@ -507,7 +507,11 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
-      @attributes.reset(@primary_key)
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| @attributes.reset(key) }
+      else
+        @attributes.reset(@primary_key)
+      end
 
       _run_initialize_callbacks
 
