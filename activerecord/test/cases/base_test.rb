@@ -28,6 +28,7 @@ require "models/car"
 require "models/bulb"
 require "models/pet"
 require "models/owner"
+require "models/cpk/book"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
@@ -101,7 +102,9 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts,
+    :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories,
+    :posts, :cpk_books
 
   def test_generated_association_methods_module_name
     mod = Post.send(:generated_association_methods)
@@ -1000,6 +1003,15 @@ class BasicsTest < ActiveRecord::TestCase
 
     duped_topic.reload
     assert_equal("c", duped_topic.title)
+  end
+
+  def test_dup_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    new_book = book.dup
+
+    assert_equal "The first book", new_book.title
+    assert_nil new_book.author_id
+    assert_nil new_book.number
   end
 
   DeveloperSalary = Struct.new(:amount)
