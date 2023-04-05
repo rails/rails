@@ -22,7 +22,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@rails/activestorage": ">= 7.0.0-alpha1",
+    "@rails/activestorage": ">= 7.1.0-alpha",
     "webpack": "^4.17.1"
   },
   "peerDependencies": {
