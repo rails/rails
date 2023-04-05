@@ -555,7 +555,8 @@ module ActiveRecord
       super ||
         comparison_object.instance_of?(self.class) &&
         primary_key_values_present? &&
-        comparison_object.id == id
+        comparison_object.id == id &&
+        !comparison_object.new_record?
     end
     alias :eql? :==
 
