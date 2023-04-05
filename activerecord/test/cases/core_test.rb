@@ -10,7 +10,7 @@ class NonExistentTable < ActiveRecord::Base; end
 class PkWithDefault < ActiveRecord::Base; end
 
 class CoreTest < ActiveRecord::TestCase
-  fixtures :topics
+  fixtures :topics, :cpk_books
 
   def test_eql_on_default_pk
     saved_record = PkWithDefault.new
@@ -174,12 +174,12 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_composite_pk_models_added_to_a_set
     library = Set.new
-    # with primary key present
+    # new record with primary key present
     library << Cpk::Book.new(author_id: 1, number: 2)
 
     # duplicate
-    library << Cpk::Book.new(author_id: 1, number: 3)
-    library << Cpk::Book.new(author_id: 1, number: 3)
+    library << cpk_books(:cpk_great_author_first_book)
+    library << cpk_books(:cpk_great_author_first_book)
 
     # without primary key being set
     library << Cpk::Book.new(title: "Book A")
@@ -189,22 +189,34 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_composite_pk_models_equality
-    assert Cpk::Book.new(author_id: 1, number: 2) == Cpk::Book.new(author_id: 1, number: 2)
+    book = cpk_books(:cpk_great_author_first_book)
+    book_instance_1 = Cpk::Book.find_by(author_id: book.author_id, number: book.number)
+    book_instance_2 = Cpk::Book.find_by(author_id: book.author_id, number: book.number)
 
-    assert_not Cpk::Book.new(author_id: 1, number: 2) == Cpk::Book.new(author_id: 1, number: 3)
+    assert book_instance_1 == book_instance_1
+    assert book_instance_1 == book_instance_2
+
+    # two new records with the same primary key
+    assert_not Cpk::Book.new(author_id: 1, number: 2) == Cpk::Book.new(author_id: 1, number: 2)
+    # two new records with an empty primary key values
     assert_not Cpk::Book.new == Cpk::Book.new
-    assert_not Cpk::Book.new(title: "Book A") == Cpk::Book.new(title: "Book B")
-    assert_not Cpk::Book.new(author_id: 1) == Cpk::Book.new(author_id: 1)
-    assert_not Cpk::Book.new(author_id: 1, title: "Same title") == Cpk::Book.new(author_id: 1, title: "Same title")
+    # two persisted records with a different primary key
+    assert_not cpk_books(:cpk_great_author_first_book) == cpk_books(:cpk_great_author_second_book)
   end
 
   def test_composite_pk_models_hash
-    assert_equal Cpk::Book.new(author_id: 1, number: 2).hash, Cpk::Book.new(author_id: 1, number: 2).hash
+    book = cpk_books(:cpk_great_author_first_book)
+    book_instance_1 = Cpk::Book.find_by(author_id: book.author_id, number: book.number)
+    book_instance_2 = Cpk::Book.find_by(author_id: book.author_id, number: book.number)
 
-    assert_not_equal Cpk::Book.new(author_id: 1, number: 2).hash, Cpk::Book.new(author_id: 1, number: 3).hash
+    assert_equal book_instance_1.hash, book_instance_1.hash
+    assert_equal book_instance_1.hash, book_instance_2.hash
+
+    # two new records with the same primary key
+    assert_not_equal Cpk::Book.new(author_id: 1, number: 2).hash, Cpk::Book.new(author_id: 1, number: 2).hash
+    # two new records with an empty primary key values
     assert_not_equal Cpk::Book.new.hash, Cpk::Book.new.hash
-    assert_not_equal Cpk::Book.new(title: "Book A").hash, Cpk::Book.new(title: "Book B").hash
-    assert_not_equal Cpk::Book.new(author_id: 1).hash, Cpk::Book.new(author_id: 1).hash
-    assert_not_equal Cpk::Book.new(author_id: 1, title: "Same title").hash, Cpk::Book.new(author_id: 1, title: "Same title").hash
+    # two persisted records with a different primary key
+    assert_not_equal cpk_books(:cpk_great_author_first_book).hash, cpk_books(:cpk_great_author_second_book).hash
   end
 end
