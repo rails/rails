@@ -8,8 +8,6 @@ permissions:
 jobs:
   mdl:
     runs-on: ubuntu-latest
-    env:
-      BUNDLE_ONLY: mdl
 
     steps:
     - uses: actions/checkout@v3
