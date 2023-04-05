@@ -550,3 +550,8 @@ Job Testing
 
 You can find detailed instructions on how to test your jobs in the
 [testing guide](testing.html#testing-jobs).
+
+Debugging
+---------
+
+If you need help figuring out where jobs are coming from, you can enable [verbose logging](debugging_rails_applications.html#verbose-enqueue-logs).
