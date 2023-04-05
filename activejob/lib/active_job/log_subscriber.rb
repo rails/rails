@@ -8,7 +8,7 @@ module ActiveJob
 
     def enqueue(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object]
+      ex = event.payload[:exception_object] || job.enqueue_error
 
       if ex
         error do
@@ -28,7 +28,7 @@ module ActiveJob
 
     def enqueue_at(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object]
+      ex = event.payload[:exception_object] || job.enqueue_error
 
       if ex
         error do
