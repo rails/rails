@@ -7,7 +7,7 @@ module ActiveSupport
     class Codec # :nodoc:
       include Metadata
 
-      def initialize(serializer:, url_safe:)
+      def initialize(serializer:, url_safe:, force_legacy_metadata_serializer: false)
         @serializer =
           case serializer
           when :marshal
@@ -21,6 +21,7 @@ module ActiveSupport
           end
 
         @url_safe = url_safe
+        @force_legacy_metadata_serializer = force_legacy_metadata_serializer
       end
 
       private
@@ -59,6 +60,10 @@ module ActiveSupport
           end
           error = as.new(error.to_s) if as
           raise error
+        end
+
+        def use_message_serializer_for_metadata?
+          !@force_legacy_metadata_serializer && super
         end
     end
   end

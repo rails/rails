@@ -123,21 +123,48 @@ module ActiveSupport
     # key by using ActiveSupport::KeyGenerator or a similar key
     # derivation function.
     #
-    # First additional parameter is used as the signature key for MessageVerifier.
-    # This allows you to specify keys to encrypt and sign data.
+    # The first additional parameter is used as the signature key for
+    # MessageVerifier. This allows you to specify keys to encrypt and sign
+    # data. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     #
     #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
     #
-    # Options:
-    # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
-    #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-gcm'.
-    # * <tt>:digest</tt> - String of digest to use for signing. Default is
-    #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
-    # * <tt>:serializer</tt> - Object serializer to use. Default is +JSON+.
-    # * <tt>:url_safe</tt> - Whether to encode messages using a URL-safe
-    #   encoding. Default is +false+ for backward compatibility.
-    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, url_safe: false)
-      super(serializer: serializer || @@default_message_encryptor_serializer, url_safe: url_safe)
+    # ==== Options
+    #
+    # [+:cipher+]
+    #   Cipher to use. Can be any cipher returned by +OpenSSL::Cipher.ciphers+.
+    #   Default is 'aes-256-gcm'.
+    #
+    # [+:digest+]
+    #   Digest used for signing. Ignored when using an AEAD cipher like
+    #   'aes-256-gcm'.
+    #
+    # [+:serializer+]
+    #   By default, MessageEncryptor uses JSON to serialize the message. If
+    #   you want to use another serialization method, you can pass an object
+    #   that responds to +load+ and +dump+, like +Marshal+ or +YAML+.
+    #   +:marshal+, +:hybrid+, and +:json+ are also supported.
+    #
+    # [+:url_safe+]
+    #   By default, MessageEncryptor generates RFC 4648 compliant strings
+    #   which are not URL-safe. In other words, they can contain "+" and "/".
+    #   If you want to generate URL-safe strings (in compliance with "Base 64
+    #   Encoding with URL and Filename Safe Alphabet" in RFC 4648), you can
+    #   pass +true+.
+    #
+    # [+:force_legacy_metadata_serializer+]
+    #   Whether to use the legacy metadata serializer, which serializes the
+    #   message first, then wraps it in an envelope which is also serialized. This
+    #   was the default in \Rails 7.0 and below.
+    #
+    #   If you don't pass a truthy value, the default is set using
+    #   +config.active_support.use_message_serializer_for_metadata+.
+    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil, url_safe: false, force_legacy_metadata_serializer: false)
+      super(
+        serializer: serializer || @@default_message_encryptor_serializer,
+        url_safe: url_safe,
+        force_legacy_metadata_serializer: force_legacy_metadata_serializer,
+      )
       @secret = secret
       @cipher = cipher || self.class.default_cipher
       @aead_mode = new_cipher.authenticated?

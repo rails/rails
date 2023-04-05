@@ -70,20 +70,6 @@ module ActiveSupport
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
   #
-  # === Alternative serializers
-  #
-  # By default MessageVerifier uses JSON to serialize the message. If you want to use
-  # another serialization method, you can set the serializer in the options
-  # hash upon initialization:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", serializer: YAML)
-  #
-  # +MessageVerifier+ creates HMAC signatures using the SHA1 hash algorithm by default.
-  # If you want to use a different hash algorithm, you can change it by providing
-  # +:digest+ key as an option while initializing the verifier:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", digest: "SHA256")
-  #
   # === Rotating keys
   #
   # MessageVerifier also supports rotating out old configurations by falling
@@ -107,17 +93,6 @@ module ActiveSupport
   # Though the above would most likely be combined into one rotation:
   #
   #   verifier.rotate(old_secret, digest: "SHA256", serializer: Marshal)
-  #
-  # === Generating URL-safe strings
-  #
-  # By default MessageVerifier generates RFC 4648 compliant strings which are
-  # not URL-safe. In other words, they can contain "+" and "/". If you want to
-  # generate URL-safe strings (in compliance with "Base 64 Encoding with URL and
-  # Filename Safe Alphabet" in RFC 4648), you can pass <tt>url_safe: true</tt>
-  # to the constructor:
-  #
-  #   @verifier = ActiveSupport::MessageVerifier.new("secret", url_safe: true)
-  #   @verifier.generate("signed message") #=> URL-safe string
   class MessageVerifier < Messages::Codec
     prepend Messages::Rotator
 
@@ -128,9 +103,40 @@ module ActiveSupport
 
     cattr_accessor :default_message_verifier_serializer, instance_accessor: false, default: :marshal
 
-    def initialize(secret, digest: nil, serializer: nil, url_safe: false)
+    # Initialize a new MessageVerifier with a secret for the signature.
+    #
+    # ==== Options
+    #
+    # [+:digest+]
+    #   Digest used for signing. The default is +"SHA1"+. See +OpenSSL::Digest+
+    #   for alternatives.
+    #
+    # [+:serializer+]
+    #   By default, MessageVerifier uses JSON to serialize the message. If you want
+    #   to use another serialization method, you can pass an object that responds
+    #   to +load+ and +dump+, like +Marshal+ or +YAML+.
+    #   +:marshal+, +:hybrid+, and +:json+ are also supported.
+    #
+    # [+:url_safe+]
+    #   By default, MessageVerifier generates RFC 4648 compliant strings which are
+    #   not URL-safe. In other words, they can contain "+" and "/". If you want to
+    #   generate URL-safe strings (in compliance with "Base 64 Encoding with URL
+    #   and Filename Safe Alphabet" in RFC 4648), you can pass +true+.
+    #
+    # [+:force_legacy_metadata_serializer+]
+    #   Whether to use the legacy metadata serializer, which serializes the
+    #   message first, then wraps it in an envelope which is also serialized. This
+    #   was the default in \Rails 7.0 and below.
+    #
+    #   If you don't pass a truthy value, the default is set using
+    #   +config.active_support.use_message_serializer_for_metadata+.
+    def initialize(secret, digest: nil, serializer: nil, url_safe: false, force_legacy_metadata_serializer: false)
       raise ArgumentError, "Secret should not be nil." unless secret
-      super(serializer: serializer || @@default_message_verifier_serializer, url_safe: url_safe)
+      super(
+        serializer: serializer || @@default_message_verifier_serializer,
+        url_safe: url_safe,
+        force_legacy_metadata_serializer: force_legacy_metadata_serializer,
+      )
       @secret = secret
       @digest = digest&.to_s || "SHA1"
     end
