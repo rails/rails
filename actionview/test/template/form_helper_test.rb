@@ -1165,6 +1165,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, time_field("post", "written_on", value: value))
   end
 
+  def test_time_field_with_value_attr_that_excludes_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:45" />}
+    assert_dom_equal(expected, time_field("post", "written_on", value: "01:45"))
+  end
+
   def test_time_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
@@ -1269,6 +1274,11 @@ class FormHelperTest < ActionView::TestCase
   def test_datetime_local_field_without_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
     assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false))
+  end
+
+  def test_datetime_local_field_with_value_attr_that_excludes_seconds
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", value: "2004-06-15T00:00"))
   end
 
   def test_month_field
