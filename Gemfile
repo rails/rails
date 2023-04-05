@@ -51,7 +51,6 @@ end
 
 group :mdl do
   gem "mdl", require: false
-  gem "rake", ">= 13", require: false
 end
 
 group :doc do
