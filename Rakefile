@@ -50,6 +50,19 @@ else
   Rails::API::StableTask.new("rdoc")
 end
 
+task :preview_docs do
+  load "guides/Rakefile"
+  Rake::Task[:rdoc].invoke
+
+  Dir.chdir("guides") do
+    Rake::Task[:"guides:generate"].invoke
+  end
+
+  FileUtils.mkdir_p("preview")
+  FileUtils.cp_r("doc/rdoc", "preview/api")
+  FileUtils.cp_r("guides/output", "preview/guides")
+end
+
 desc "Bump all versions to match RAILS_VERSION"
 task update_versions: "all:update_versions"
 

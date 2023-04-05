@@ -1,0 +1,4 @@
+[build]
+  environment = { BUNDLE_WITHOUT = "db job cable storage ujs test" }
+  command = "bundle exec rake preview_docs"
+  publish = "preview"

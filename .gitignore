@@ -9,6 +9,8 @@
 /dist/
 /doc/
 /guides/output/
+/preview/
+/.netlify
 Brewfile.lock.json
 debug.log*
 node_modules/
