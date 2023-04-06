@@ -146,12 +146,24 @@ module ActiveModel
     #
     #   person.errors.merge!(other)
     #
-    def merge!(other)
+    def merge!(other, **options)
       return errors if equal?(other)
 
-      other.errors.each { |error|
-        import(error)
-      }
+      base_attribute = options[:base_attribute]
+      index = options[:index]
+      indexed = index && options[:indexed]
+
+      other.errors.each do |error|
+        if base_attribute
+          if indexed
+            options[:attribute] = "#{base_attribute}[#{index}].#{error.attribute}"
+          else
+            options[:attribute] = "#{base_attribute}.#{error.attribute}"
+          end
+        end
+
+        import(error, options)
+      end
     end
 
     # Search for errors matching +attribute+, +type+, or +options+.
