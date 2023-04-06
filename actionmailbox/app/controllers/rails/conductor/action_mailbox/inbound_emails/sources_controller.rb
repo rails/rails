@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :enddoc:
+
 module Rails
   class Conductor::ActionMailbox::InboundEmails::SourcesController < Rails::Conductor::BaseController # :nodoc:
     def new
