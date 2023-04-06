@@ -10,10 +10,9 @@ module ActiveSupport
       # Name of gem where method is deprecated
       attr_accessor :gem_name
 
-      # Outputs a deprecation warning to the output configured by
-      # <tt>ActiveSupport::Deprecation.behavior</tt>.
+      # Outputs a deprecation warning to the output configured by <tt>ActiveSupport::Deprecation#behavior</tt>.
       #
-      #   ActiveSupport::Deprecation.warn('something broke!')
+      #   ActiveSupport::Deprecation.new.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       def warn(message = nil, callstack = nil)
         return if silenced
@@ -30,11 +29,12 @@ module ActiveSupport
 
       # Silence deprecation warnings within the block.
       #
-      #   ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator = ActiveSupport::Deprecation.new
+      #   deprecator.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       #
-      #   ActiveSupport::Deprecation.silence do
-      #     ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.silence do
+      #     deprecator.warn('something broke!')
       #   end
       #   # => nil
       def silence(&block)
@@ -61,27 +61,28 @@ module ActiveSupport
       # expressions. (Symbols are treated as strings). These are compared against
       # the text of deprecation warning messages generated within the block.
       # Matching warnings will be exempt from the rules set by
-      # +ActiveSupport::Deprecation.disallowed_warnings+
+      # +ActiveSupport::Deprecation#disallowed_warnings+
       #
       # The optional <tt>if:</tt> argument accepts a truthy/falsy value or an object that
       # responds to <tt>.call</tt>. If truthy, then matching warnings will be allowed.
       # If falsey then the method yields to the block without allowing the warning.
       #
-      #   ActiveSupport::Deprecation.disallowed_behavior = :raise
-      #   ActiveSupport::Deprecation.disallowed_warnings = [
+      #   deprecator = ActiveSupport::Deprecation.new
+      #   deprecator.disallowed_behavior = :raise
+      #   deprecator.disallowed_warnings = [
       #     "something broke"
       #   ]
       #
-      #   ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.warn('something broke!')
       #   # => ActiveSupport::DeprecationException
       #
-      #   ActiveSupport::Deprecation.allow ['something broke'] do
-      #     ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.allow ['something broke'] do
+      #     deprecator.warn('something broke!')
       #   end
       #   # => nil
       #
-      #   ActiveSupport::Deprecation.allow ['something broke'], if: Rails.env.production? do
-      #     ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.allow ['something broke'], if: Rails.env.production? do
+      #     deprecator.warn('something broke!')
       #   end
       #   # => ActiveSupport::DeprecationException for dev/test, nil for production
       def allow(allowed_warnings = :all, if: true, &block)

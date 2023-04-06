@@ -39,9 +39,23 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "assert_deprecated is deprecated without a deprecator" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_deprecated do
+        ActiveSupport::Deprecation._instance.warn
+      end
+    end
+  end
+
   test "assert_not_deprecated" do
     assert_not_deprecated(@deprecator) do
       1 + 1
+    end
+  end
+
+  test "assert_not_deprecated is deprecated without a deprecator" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_not_deprecated { }
     end
   end
 
@@ -53,6 +67,12 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal 2, result.size
     assert_equal :result, result.first
     assert_match "DEPRECATION WARNING:", result.last.sole
+  end
+
+  test "collect_deprecations is deprecated without a deprecator" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      collect_deprecations { }
+    end
   end
 
   test "Module::deprecate" do
@@ -88,9 +108,26 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "Module::deprecate without a deprecator is deprecated" do
+    klass = Class.new(Deprecatee)
+    _, deprecations = collect_deprecations(ActiveSupport.deprecator) do
+      klass.deprecate :zero
+    end
+    assert_match "Module.deprecate without a deprecator is deprecated", deprecations.sole
+    assert_deprecated(/zero is deprecated/, ActiveSupport::Deprecation._instance) do
+      klass.new.zero
+    end
+  end
+
   test "DeprecatedObjectProxy" do
     deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:", @deprecator)
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
+  end
+
+  test "DeprecatedObjectProxy without a deprecator is deprecated" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
+    end
   end
 
   test "nil behavior is ignored" do
@@ -265,6 +302,12 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_equal instance.foo_bar.inspect, fubar_inspected
   end
 
+  test "DeprecatedInstanceVariableProxy without a deprecator is deprecated" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(Deprecatee.new, :foobar, "@fubar")
+    end
+  end
+
   test "DeprecatedConstantProxy" do
     proxy = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("FUBAR", "Undeprecated::Foo::BAR", @deprecator)
 
@@ -292,6 +335,12 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "DeprecatedConstantProxy without a deprecator is deprecated" do
+    assert_deprecated(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Fuu", "Undeprecated::Foo")
+    end
+  end
+
   test "deprecate_constant" do
     legacy = Module.new { def self.name; "Legacy"; end }
     legacy.include ActiveSupport::Deprecation::DeprecatedConstantAccessor
@@ -315,6 +364,13 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "deprecate_constant is deprecated without a deprecator" do
+    legacy = Module.new.include(ActiveSupport::Deprecation::DeprecatedConstantAccessor)
+    assert_deprecated("DeprecatedConstantAccessor.deprecate_constant without a deprecator is deprecated", ActiveSupport.deprecator) do
+      legacy.deprecate_constant "OLD", "NEW"
+    end
+  end
+
   test "assert_deprecated raises when no deprecation warning" do
     assert_raises(Minitest::Assertion) do
       assert_deprecated(@deprecator) { 1 + 1 }
@@ -328,8 +384,8 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   test "assert_deprecated without match argument" do
-    assert_deprecated do
-      ActiveSupport::Deprecation.warn
+    assert_deprecated(@deprecator) do
+      @deprecator.warn
     end
   end
 
@@ -703,6 +759,180 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test "warn delegator is deprecated" do
+    _, deprecations = collect_deprecations(ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.warn "foo"
+    end
+    assert_equal 2, deprecations.size
+    assert_match("foo", deprecations.first)
+    assert_match("use your own Deprecation object instead", deprecations.last)
+  end
+
+  test "deprecate_methods delegator is deprecated" do
+    assert_deprecated("use your own Deprecation object instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.deprecate_methods(Deprecatee)
+    end
+  end
+
+  test "silence delegator is deprecated" do
+    assert_deprecated("use Rails.application.deprecators.silence instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.silence { }
+    end
+  end
+
+  test "silence delegator is deprecated and delegates to the application's deprecators when available" do
+    with_rails_application_deprecators do
+      assert_deprecated("use Rails.application.deprecators.silence instead", ActiveSupport.deprecator) do
+        ActiveSupport::Deprecation.silence do
+          assert_not_deprecated(@deprecator) do
+            @deprecator.warn
+          end
+        end
+      end
+    end
+  end
+
+  test "allow delegator is deprecated" do
+    assert_deprecated("use Rails.application.deprecators[framework].allow", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.allow { }
+    end
+  end
+
+  test "behavior delegators are deprecated" do
+    old_behavior = ActiveSupport::Deprecation._instance.behavior
+    assert_deprecated("use Rails.application.deprecators[framework].behavior", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.behavior
+    end
+    assert_deprecated("use Rails.application.deprecators.behavior= instead", ActiveSupport.deprecator) do
+      # we have to keep the same behavior for assert_deprecated to work
+      ActiveSupport::Deprecation.behavior = ActiveSupport.deprecator.behavior
+    end
+  ensure
+    ActiveSupport::Deprecation._instance.behavior = old_behavior
+  end
+
+  test "behavior= delegator is deprecated and delegates to the application's deprecators when available" do
+    with_rails_application_deprecators do
+      called = false
+      assert_deprecated("use Rails.application.deprecators.behavior= instead", ActiveSupport.deprecator) do
+        ActiveSupport::Deprecation.behavior = ->(*) { called = true }
+        @deprecator.warn
+      end
+      assert called
+    end
+  end
+
+  test "disallowed_behavior delegators are deprecated" do
+    old_behavior = ActiveSupport::Deprecation._instance.disallowed_behavior
+    assert_deprecated("use Rails.application.deprecators[framework].disallowed_behavior", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.disallowed_behavior
+    end
+    assert_deprecated("use Rails.application.deprecators.disallowed_behavior= instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.disallowed_behavior = ->(*) { }
+    end
+  ensure
+    ActiveSupport::Deprecation._instance.disallowed_behavior = old_behavior
+  end
+
+  test "disallowed_behavior= delegators is deprecated and delegates to the application's deprecators when available" do
+    with_rails_application_deprecators do
+      called = false
+      assert_deprecated("use Rails.application.deprecators.disallowed_behavior= instead", ActiveSupport.deprecator) do
+        ActiveSupport::Deprecation.disallowed_behavior = ->(*) { called = true }
+      end
+      @deprecator.disallowed_warnings = :all
+      @deprecator.warn
+      assert called
+    end
+  end
+
+  test "debug delegators are deprecated" do
+    old_debug = ActiveSupport::Deprecation._instance.debug
+    assert_deprecated("use Rails.application.deprecators[framework].debug", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.debug
+    end
+    assert_deprecated("use Rails.application.deprecators.debug= instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.debug = true
+    end
+  ensure
+    ActiveSupport::Deprecation._instance.debug = old_debug
+  end
+
+  test "debug= delegator is deprecated and delegates to the application's deprecators when available" do
+    with_rails_application_deprecators do
+      assert_deprecated("use Rails.application.deprecators.debug= instead", ActiveSupport.deprecator) do
+        ActiveSupport::Deprecation.debug = true
+      end
+      assert @deprecator.debug
+    end
+  end
+
+  test "silenced delegators are deprecated" do
+    old_silenced = ActiveSupport::Deprecation._instance.silenced
+    assert_deprecated("use Rails.application.deprecators[framework].silenced", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.silenced
+    end
+    assert_deprecated("use Rails.application.deprecators.silenced= instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.silenced = false
+    end
+  ensure
+    ActiveSupport::Deprecation._instance.silenced = old_silenced
+  end
+
+  test "silenced= delegator is deprecated and delegates to the application's deprecators when available" do
+    with_rails_application_deprecators do
+      assert_deprecated("use Rails.application.deprecators.silenced= instead", ActiveSupport.deprecator) do
+        ActiveSupport::Deprecation.silenced = true
+      end
+      assert @deprecator.silenced
+    end
+  end
+
+  test "disallowed_warnings delegators are deprecated" do
+    old_disallowed_warnings = ActiveSupport::Deprecation._instance.disallowed_warnings
+    assert_deprecated("use Rails.application.deprecators[framework].disallowed_warnings", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.disallowed_warnings
+    end
+    assert_deprecated("use Rails.application.deprecators.disallowed_warnings= instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.disallowed_warnings = []
+    end
+  ensure
+    ActiveSupport::Deprecation._instance.disallowed_warnings = old_disallowed_warnings
+  end
+
+  test "disallowed_warnings= delegator is deprecated and delegates to the application's deprecators when available" do
+    with_rails_application_deprecators do
+      assert_deprecated("use Rails.application.deprecators.disallowed_warnings= instead", ActiveSupport.deprecator) do
+        ActiveSupport::Deprecation.disallowed_warnings = :all
+      end
+      assert_equal :all, @deprecator.disallowed_warnings
+    end
+  end
+
+  test "gem_name delegators are deprecated" do
+    old_gem_name = ActiveSupport::Deprecation._instance.gem_name
+    assert_deprecated("use your own Deprecation object instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.gem_name
+    end
+    assert_deprecated("use your own Deprecation object instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.gem_name = "MyGem"
+    end
+  ensure
+    ActiveSupport::Deprecation._instance.gem_name = old_gem_name
+  end
+
+  test "deprecation_horizon delegators are deprecated" do
+    old_deprecation_horizon = ActiveSupport::Deprecation._instance.deprecation_horizon
+    assert_deprecated("use your own Deprecation object instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.deprecation_horizon
+    end
+    assert_deprecated("use your own Deprecation object instead", ActiveSupport.deprecator) do
+      ActiveSupport::Deprecation.deprecation_horizon = "2.0"
+    end
+  ensure
+    ActiveSupport::Deprecation._instance.deprecation_horizon = old_deprecation_horizon
+  end
+
   test "warn deprecation skips the internal caller locations" do
     @deprecator.behavior = ->(_, callstack, *) { @callstack = callstack }
     method_that_emits_deprecation(@deprecator)
@@ -713,6 +943,13 @@ class DeprecationTest < ActiveSupport::TestCase
   private
     def method_that_emits_deprecation(deprecator)
       deprecator.warn
+    end
+
+    def with_rails_application_deprecators(&block)
+      application = Struct.new(:deprecators).new(ActiveSupport::Deprecation::Deprecators.new)
+      rails = Struct.new(:application).new(application)
+      rails.application.deprecators[:deprecator] = @deprecator
+      stub_const(Object, :Rails, rails, &block)
     end
 
     def deprecator_with_messages

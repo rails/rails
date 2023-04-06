@@ -88,10 +88,11 @@ module ActiveSupport
       # Deprecation warnings raised by gems are not affected by this setting
       # because they happen before Rails boots up.
       #
-      #   ActiveSupport::Deprecation.behavior = :stderr
-      #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
-      #   ActiveSupport::Deprecation.behavior = MyCustomHandler
-      #   ActiveSupport::Deprecation.behavior = ->(message, callstack, deprecation_horizon, gem_name) {
+      #   deprecator = ActiveSupport::Deprecation.new
+      #   deprecator.behavior = :stderr
+      #   deprecator.behavior = [:stderr, :log]
+      #   deprecator.behavior = MyCustomHandler
+      #   deprecator.behavior = ->(message, callstack, deprecation_horizon, gem_name) {
       #     # custom stuff
       #   }
       #
@@ -102,7 +103,7 @@ module ActiveSupport
       end
 
       # Sets the behavior for disallowed deprecations (those configured by
-      # ActiveSupport::Deprecation.disallowed_warnings=) to the specified
+      # ActiveSupport::Deprecation#disallowed_warnings=) to the specified
       # value. As with +behavior=+, this can be a single value, array, or an
       # object that responds to +call+.
       def disallowed_behavior=(behavior)

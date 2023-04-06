@@ -1,3 +1,39 @@
+*   Deprecate usage of the singleton `ActiveSupport::Deprecation`.
+
+    All usage of `ActiveSupport::Deprecation` as a singleton is deprecated, the most common one being
+    `ActiveSupport::Deprecation.warn`. Gem authors should now create their own deprecator (`ActiveSupport::Deprecation`
+    object), and use it to emit deprecation warnings.
+
+    Calling any of the following without specifying a deprecator argument is also deprecated:
+      * Module.deprecate
+      * deprecate_constant
+      * DeprecatedObjectProxy
+      * DeprecatedInstanceVariableProxy
+      * DeprecatedConstantProxy
+      * deprecation-related test assertions
+
+    Use of `ActiveSupport::Deprecation.silence` and configuration methods like `behavior=`, `disallowed_behavior=`,
+    `disallowed_warnings=` should now be aimed at the [application's deprecators](https://api.rubyonrails.org/classes/Rails/Application.html#method-i-deprecators).
+
+    ```ruby
+    Rails.application.deprecators.silence do
+      # code that emits deprecation warnings
+    end
+    ```
+
+    If your gem has a Railtie or Engine, it's encouraged to add your deprecator to the application's deprecators, that
+    way the deprecation related configuration options will apply to it as well, e.g.
+    `config.active_support.report_deprecations` set to `false` in the production environment will also disable your
+    deprecator.
+
+    ```ruby
+    initializer "my_gem.deprecator" do |app|
+      app.deprecators[:my_gem] = MyGem.deprecator
+    end
+    ```
+
+    *Étienne Barrié*
+
 *   Add `Object#with` to set and restore public attributes around a block
 
     ```ruby
@@ -458,6 +494,9 @@
     deprecator.warn("foo")                 # => print "DEPRECATION WARNING: foo"
     deprecator.warn("bar")                 # => raise ActiveSupport::DeprecationException
     ```
+
+    Note that global `ActiveSupport::Deprecation` methods such as `ActiveSupport::Deprecation.warn`
+    and `ActiveSupport::Deprecation.disallowed_warnings` have been deprecated.
 
     *Jonathan Hefner*
 

@@ -12,8 +12,7 @@ namespace :guides do
 
     desc "Generate .mobi file"
     task :kindle do
-      require "active_support/deprecation"
-      ActiveSupport::Deprecation.warn("The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead")
+      warn("DEPRECATION WARNING: The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead.")
       Rake::Task["guides:generate:epub"].invoke
     end
 

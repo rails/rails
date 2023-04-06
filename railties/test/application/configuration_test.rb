@@ -4008,7 +4008,7 @@ module ApplicationTests
     test "Rails.application.deprecators includes framework deprecators" do
       app "production"
 
-      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation.instance
+      assert_includes Rails.application.deprecators.each, ActiveSupport::Deprecation._instance
       assert_equal ActionCable.deprecator, Rails.application.deprecators[:action_cable]
       assert_equal AbstractController.deprecator, Rails.application.deprecators[:action_controller]
       assert_equal ActionController.deprecator, Rails.application.deprecators[:action_controller]

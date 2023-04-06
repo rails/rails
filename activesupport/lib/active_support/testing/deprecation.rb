@@ -7,8 +7,6 @@ module ActiveSupport
     module Deprecation
       ##
       # :call-seq:
-      #   assert_deprecated(&block)
-      #   assert_deprecated(match, &block)
       #   assert_deprecated(deprecator, &block)
       #   assert_deprecated(match, deprecator, &block)
       #
@@ -29,14 +27,12 @@ module ActiveSupport
       #   assert_deprecated(CustomDeprecator) do
       #     CustomDeprecator.warn "foo should no longer be used"
       #   end
-      #
-      # If no +deprecator+ is given, defaults to ActiveSupport::Deprecation.
-      #
-      #   assert_deprecated do
-      #     ActiveSupport::Deprecation.warn "foo should no longer be used"
-      #   end
       def assert_deprecated(match = nil, deprecator = nil, &block)
         match, deprecator = nil, match if match.is_a?(ActiveSupport::Deprecation)
+        unless deprecator
+          ActiveSupport.deprecator.warn("assert_deprecated without a deprecator is deprecated")
+          deprecator = ActiveSupport::Deprecation._instance
+        end
         result, warnings = collect_deprecations(deprecator, &block)
         assert !warnings.empty?, "Expected a deprecation warning within the block but received none"
         if match
@@ -52,16 +48,14 @@ module ActiveSupport
       #     CustomDeprecator.warn "message" # fails assertion
       #   end
       #
-      # If no +deprecator+ is given, defaults to ActiveSupport::Deprecation.
-      #
-      #   assert_not_deprecated do
-      #     ActiveSupport::Deprecation.warn "message" # fails assertion
-      #   end
-      #
-      #   assert_not_deprecated do
-      #     CustomDeprecator.warn "message" # passes assertion
+      #   assert_not_deprecated(ActiveSupport::Deprecation.new) do
+      #     CustomDeprecator.warn "message" # passes assertion, different deprecator
       #   end
       def assert_not_deprecated(deprecator = nil, &block)
+        unless deprecator
+          ActiveSupport.deprecator.warn("assert_not_deprecated without a deprecator is deprecated")
+          deprecator = ActiveSupport::Deprecation._instance
+        end
         result, deprecations = collect_deprecations(deprecator, &block)
         assert deprecations.empty?, "Expected no deprecation warning within the block but received #{deprecations.size}: \n  #{deprecations * "\n  "}"
         result
@@ -72,18 +66,14 @@ module ActiveSupport
       #
       #   collect_deprecations(CustomDeprecator) do
       #     CustomDeprecator.warn "message"
-      #     :result
-      #   end # => [:result, ["message"]]
-      #
-      # If no +deprecator+ is given, defaults to ActiveSupport::Deprecation.
-      #
-      #   collect_deprecations do
-      #     CustomDeprecator.warn "custom message"
-      #     ActiveSupport::Deprecation.warn "message"
+      #     ActiveSupport::Deprecation.new.warn "other message"
       #     :result
       #   end # => [:result, ["message"]]
       def collect_deprecations(deprecator = nil)
-        deprecator ||= ActiveSupport::Deprecation
+        unless deprecator
+          ActiveSupport.deprecator.warn("collect_deprecations without a deprecator is deprecated")
+          deprecator = ActiveSupport::Deprecation._instance
+        end
         old_behavior = deprecator.behavior
         deprecations = []
         deprecator.behavior = Proc.new do |message, callstack|
