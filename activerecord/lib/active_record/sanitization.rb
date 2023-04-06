@@ -5,8 +5,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Accepts an array or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a WHERE clause.
+      # Accepts an array of SQL conditions and sanitizes them into a valid
+      # SQL fragment for a WHERE clause.
       #
       #   sanitize_sql_for_conditions(["name=? and group_id=?", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id=4"
@@ -16,6 +16,9 @@ module ActiveRecord
       #
       #   sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
+      #
+      # This method will NOT sanitize a SQL string since it won't contain
+      # any conditions in it and will return the string as is.
       #
       #   sanitize_sql_for_conditions("name='foo''bar' and group_id='4'")
       #   # => "name='foo''bar' and group_id='4'"
@@ -37,8 +40,8 @@ module ActiveRecord
       end
       alias :sanitize_sql :sanitize_sql_for_conditions
 
-      # Accepts an array, hash, or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a SET clause.
+      # Accepts an array or hash of SQL conditions and sanitizes them into
+      # a valid SQL fragment for a SET clause.
       #
       #   sanitize_sql_for_assignment(["name=? and group_id=?", nil, 4])
       #   # => "name=NULL and group_id=4"
@@ -48,6 +51,9 @@ module ActiveRecord
       #
       #   Post.sanitize_sql_for_assignment({ name: nil, group_id: 4 })
       #   # => "`posts`.`name` = NULL, `posts`.`group_id` = 4"
+      #
+      # This method will NOT sanitize a SQL string since it won't contain
+      # any conditions in it and will return the string as is.
       #
       #   sanitize_sql_for_assignment("name=NULL and group_id='4'")
       #   # => "name=NULL and group_id='4'"
