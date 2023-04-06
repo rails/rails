@@ -31,7 +31,7 @@ require "action_pack"
 require "rack"
 require "action_dispatch/deprecator"
 
-module Rack
+module Rack # :nodoc:
   autoload :Test, "rack/test"
 end
 
