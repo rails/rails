@@ -1127,7 +1127,7 @@ module ActiveRecord
         ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
-          specific connection, instaniate MigrationContext with the connection's schema
+          specific connection, instantiate MigrationContext with the connection's schema
           migration, for example `MigrationContext.new(path, Dog.connection.schema_migration)`.
         MSG
 
@@ -1138,7 +1138,7 @@ module ActiveRecord
         ActiveRecord.deprecator.warn(<<-MSG.squish)
           SchemaMigration no longer inherits from ActiveRecord::Base. If you want
           to use the default connection, remove this argument. If you want to use a
-          specific connection, instaniate MigrationContext with the connection's internal
+          specific connection, instantiate MigrationContext with the connection's internal
           metadata, for example `MigrationContext.new(path, nil, Dog.connection.internal_metadata)`.
         MSG
 
