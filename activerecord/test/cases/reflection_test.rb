@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/topic"
 require "models/customer"
+require "models/comment"
 require "models/company"
 require "models/company_in_module"
 require "models/ship"
@@ -461,6 +462,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_foreign_key
     assert_equal "author_id", Author.reflect_on_association(:posts).foreign_key.to_s
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
+    assert_equal "comment_id", FirstPost.reflect_on_association(:comment_with_inverse).foreign_key.to_s
   end
 
   def test_foreign_key_is_inferred_from_model_name
