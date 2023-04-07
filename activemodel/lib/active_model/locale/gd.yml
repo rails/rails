@@ -1,0 +1,37 @@
+﻿en:
+  errors:
+    # The default format to use in full error messages.
+    format: "%{attribute}: %{message}"
+
+    # The values :model, :attribute and :value are always available for interpolation
+    # The value :count is available when applicable. Can be used for pluralization.
+    messages:
+      model_invalid: "Dh’fhàillig leis an dearbhadh: %{errors}"
+      inclusion: "chan eil seo am broinn na liosta"
+      exclusion: "tha seo glèidhte"
+      invalid: "chan eil seo dligheach"
+      confirmation: "chan eil e ’na mhaids dha %{attribute}"
+      accepted: "feumach air aontachadh"
+      empty: "chan fhaod seo a bhith falamh"
+      blank: "chan fhaod seo a bhith bàn"
+      present: "feumaidh seo a bhith bàn"
+      too_long:
+        one: "tha seo ro fhada (tha 1 charactar ceadaichte air a char as motha)"
+        other: "tha seo ro fhada (tha %{count} caractar(an) ceadaichte air a char as motha)"
+      too_short:
+        one: "tha seo ro ghoirid (tha 1 charactar ceadaichte air a char as lugha)"
+        other: "tha seo ro ghoirid (tha %{count} caractar(an) ceadaichte air a char as lugha)"
+      wrong_length:
+        one: "chan eil an fhaide mar bu chòir (bu chòir dha a bhith 1 charactar)"
+        other: "chan eil an fhaide mar bu chòir (bu chòir dha a bhith %{count} caractaran)"
+      not_a_number: "chan eil seo ’na àireamh"
+      not_an_integer: "feumaidh seo a bhith ’na àireamh shlàn"
+      greater_than: "feumaidh seo a bhith nas motha na %{count}"
+      greater_than_or_equal_to: "feumaidh seo a bhith nas motha na no co-ionann ri %{count}"
+      equal_to: "feumaidh seo a bhith co-ionnan ri %{count}"
+      less_than: "feumaidh seo a bhith nas lugha na %{count}"
+      less_than_or_equal_to: "feumaidh seo a bhith nas lugha na no co-ionann ri %{count}"
+      other_than: "chan fhaod seo a bhith %{count}"
+      in: "feumaidh seo a bhith am broinn {count}"
+      odd: "feumaidh seo a bhith ’na àireamh chòrr"
+      even: "feumaidh seo a bhith ’na àireamh chothrom"
