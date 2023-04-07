@@ -313,6 +313,9 @@ module ActiveRecord
   singleton_class.attr_accessor :before_committed_on_all_records
   self.before_committed_on_all_records = false
 
+  singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
+  self.run_after_transaction_callbacks_in_order_defined = false
+
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of
