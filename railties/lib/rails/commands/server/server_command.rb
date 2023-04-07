@@ -6,10 +6,10 @@ require "rails"
 require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
-require "rack/server"
+require "rails/rackup/server"
 
 module Rails
-  class Server < ::Rack::Server
+  class Server < Rackup::Server
     class Options
       def parse!(args)
         Rails::Command::ServerCommand.new([], args).server_options
