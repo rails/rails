@@ -1,0 +1,56 @@
+﻿"en":
+  # Used in distance_of_time_in_words(), distance_of_time_in_words_to_now(), time_ago_in_words()
+  datetime:
+    distance_in_words:
+      half_a_minute: "leth-mhionaid"
+      less_than_x_seconds:
+        one:   "nas lugha na diog"
+        other: "nas lugha na %{count} diog(an)"
+      x_seconds:
+        one:   "Diog"
+        other: "%{count} diog(an)"
+      less_than_x_minutes:
+        one:   "nas lugha na mionaid"
+        other: "nas lugha na %{count} mionaid(ean)"
+      x_minutes:
+        one:   "Mionaid"
+        other: "%{count} mionaid(ean)"
+      about_x_hours:
+        one:   "mu uair a thìde"
+        other: "mu %{count} uair(ean) a thìde"
+      x_days:
+        one:   "Latha"
+        other: "%{count} là(ithean)"
+      about_x_months:
+        one:   "mu mhìos"
+        other: "mu %{count} mìos(an)"
+      x_months:
+        one:   "Mìos"
+        other: "%{count} mìos(an)"
+      about_x_years:
+        one:   "mu bhliadhna"
+        other: "mu %{count} bliadhna(ichean)"
+      over_x_years:
+        one:   "còrr is bliadhna"
+        other: "còrr is %{count} bliadhna(ichean)"
+      almost_x_years:
+        one:   "cha mhòr bliadhna"
+        other: "cha mhòr %{count} bliadhna(ichean)"
+    prompts:
+      year:   "Bliadhna"
+      month:  "Mìos"
+      day:    "Latha"
+      hour:   "Uair a thìde"
+      minute: "Mionaid"
+      second: "Diogan"
+
+  helpers:
+    select:
+      # Default value for :prompt => true in FormOptionsHelper
+      prompt: "Tagh"
+
+    # Default translation keys for submit and button FormHelper
+    submit:
+      create: 'Cruthaich %{model}'
+      update: 'Ùraich %{model}'
+      submit: 'Sàbhail %{model}'
