@@ -644,9 +644,7 @@ module ActiveRecord
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
-        if pending_migrations = connection.migration_context.pending_migrations
-          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
-        end
+        raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
       end
 
       def load_schema_if_pending!

@@ -89,6 +89,10 @@ module ActiveRecord
         private
           def assert_pending_migrations(*expected_migrations)
             2.times do
+              assert_raises ActiveRecord::PendingMigrationError do
+                ActiveRecord::Migration.check_pending!
+              end
+
               error = assert_raises ActiveRecord::PendingMigrationError do
                 CheckPending.new(proc { flunk }).call({})
               end
@@ -105,6 +109,10 @@ module ActiveRecord
             check_pending = CheckPending.new(app)
 
             2.times do
+              assert_nothing_raised do
+                ActiveRecord::Migration.check_pending!
+              end
+
               app.expect :call, nil, [{}]
               check_pending.call({})
               app.verify
