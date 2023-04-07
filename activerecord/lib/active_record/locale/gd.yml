@@ -1,0 +1,48 @@
+﻿en:
+  # Attributes names common to most models
+  #attributes:
+    #created_at: "Air a chruthachadh"
+    #updated_at: "Air ùrachadh"
+
+  # Default error messages
+  errors:
+    messages:
+      required: "feumaidh seo a bhith ann"
+      taken: "tha seo aig rud eile mu thràth"
+
+  # Active Record models configuration
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "Dh’fhàillig leis an dearbhadh: %s"
+        restrict_dependent_destroy:
+          has_one: "Cha b’ urrainn dhuinn an reacord a sguabadh às on a tha %{record} ann a tha an eisimeil air"
+          has_many: "Cha b’ urrainn dhuinn an reacord a sguabadh às on a tha %{record} ann a tha an eisimeil air"
+        # Append your own errors here or at the model/attributes scope.
+
+      # You can define own errors for models or model attributes.
+      # The values :model, :attribute and :value are always available for interpolation.
+      #
+      # For example,
+      #   models:
+      #     user:
+      #       blank: "This is a custom blank message for %{model}: %{attribute}"
+      #       attributes:
+      #         login:
+      #           blank: "This is a custom blank message for User login"
+      # Will define custom blank validation message for User model and
+      # custom blank validation message for login attribute of User model.
+      #models:
+
+    # Translate model names. Used in Model.human_name().
+    #models:
+      # For example,
+      #   user: "Dude"
+      # will translate User model name to "Dude"
+
+    # Translate model attribute names. Used in Model.human_attribute_name(attribute).
+    #attributes:
+      # For example,
+      #   user:
+      #     login: "Handle"
+      # will translate User attribute "login" as "Handle"
