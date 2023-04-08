@@ -139,6 +139,144 @@ module ActiveRecord
       end
     end
 
+    # Yields each set of values corresponding to the specified columns that was found
+    # by the passed options. If one column specified - returns its value, if an array of columns -
+    # returns an array of values.
+    #
+    # See #pluck_in_batches for all the details.
+    def pluck_each(*columns, start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: :asc, &block)
+      check_if_method_has_arguments!(__callee__, columns, "Call `pluck_each' with at least one column.")
+
+      if block_given?
+        pluck_in_batches(*columns, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore, order: order) do |batch|
+          batch.each(&block)
+        end
+      else
+        enum_for(__callee__, *columns, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore, order: order) do
+          relation = self
+          apply_limits(relation, start, finish, order).size
+        end
+      end
+    end
+
+    # Yields each batch of values corresponding to the specified columns that was found
+    # by the passed options as an array.
+    #
+    #   Person.where("age > 21").pluck_in_batches(:email) do |emails|
+    #     jobs = emails.map { |email| PartyReminderJob.new(email) }
+    #     ActiveJob.perform_all_later(jobs)
+    #   end
+    #
+    # If you do not provide a block to #pluck_in_batches, it will return an Enumerator
+    # for chaining with other methods:
+    #
+    #   Person.pluck_in_batches(:name, :email).with_index do |group, index|
+    #     puts "Processing group ##{index}"
+    #     jobs = group.map { |name, email| PartyReminderJob.new(name, email) }
+    #     ActiveJob.perform_all_later(jobs)
+    #   end
+    #
+    # ==== Options
+    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
+    # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
+    # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
+    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    #   an order is present in the relation.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    #
+    # Limits are honored, and if present there is no requirement for the batch
+    # size: it can be less than, equal to, or greater than the limit.
+    #
+    # The options +start+ and +finish+ are especially useful if you want
+    # multiple workers dealing with the same processing queue. You can make
+    # worker 1 handle all the records between id 1 and 9999 and worker 2
+    # handle from 10000 and beyond by setting the +:start+ and +:finish+
+    # option on each worker.
+    #
+    #   # Let's process from record 10_000 on.
+    #   Person.pluck_in_batches(:email, start: 10_000) do |emails|
+    #     jobs = emails.map { |email| PartyReminderJob.new(email) }
+    #     ActiveJob.perform_all_later(jobs)
+    #   end
+    #
+    # NOTE: Order can be ascending (:asc) or descending (:desc). It is automatically set to
+    # ascending on the primary key ("id ASC").
+    # This also means that this method only works when the primary key is
+    # orderable (e.g. an integer or string).
+    #
+    # NOTE: By its nature, batch processing is subject to race conditions if
+    # other processes are modifying the database.
+    def pluck_in_batches(*columns, start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: :asc)
+      check_if_method_has_arguments!(__callee__, columns, "Call `pluck_in_batches' with at least one column.")
+
+      pluck_columns = columns.map(&:to_s)
+      primary_key_index = primary_key_index(pluck_columns)
+      pluck_columns << primary_key unless primary_key_index
+
+      relation = self
+
+      unless [:asc, :desc].include?(order)
+        raise ArgumentError, ":order must be :asc or :desc, got #{order.inspect}"
+      end
+
+      unless block_given?
+        return to_enum(__callee__, *columns, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore, order: order) do
+          total = apply_limits(relation, start, finish, order).size
+          (total - 1).div(batch_size) + 1
+        end
+      end
+
+      if arel.orders.present?
+        act_on_ignored_order(error_on_ignore)
+      end
+
+      batch_limit = batch_size
+      if limit_value
+        remaining   = limit_value
+        batch_limit = remaining if remaining < batch_limit
+      end
+
+      relation = relation.reorder(batch_order(order)).limit(batch_limit)
+      relation = apply_limits(relation, start, finish, order)
+      relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
+      batch_relation = relation
+
+      loop do
+        batch = batch_relation.pluck(*pluck_columns)
+        break if batch.empty?
+
+        primary_key_offset =
+          if pluck_columns.size == 1
+            batch.last
+          else
+            batch.last[primary_key_index || -1]
+          end
+
+        batch.each { |values| values.pop } unless primary_key_index
+        batch.flatten! if columns.size == 1
+
+        yield batch
+
+        break if batch.length < batch_limit
+
+        if limit_value
+          remaining -= batch.length
+
+          if remaining == 0
+            # Saves a useless iteration when the limit is a multiple of the
+            # batch size.
+            break
+          elsif remaining < batch_limit
+            relation = relation.limit(remaining)
+          end
+        end
+
+        batch_relation = relation.where(
+          predicate_builder[primary_key, primary_key_offset, order == :desc ? :lt : :gt]
+        )
+      end
+    end
+
     # Yields ActiveRecord::Relation objects to work with a batch of records.
     #
     #   Person.where("age > 21").in_batches do |relation|
@@ -296,6 +434,12 @@ module ActiveRecord
 
       def batch_order(order)
         table[primary_key].public_send(order)
+      end
+
+      def primary_key_index(columns)
+        columns.index(primary_key) ||
+          columns.index("#{table_name}.#{primary_key}") ||
+          columns.index("#{quoted_table_name}.#{quoted_primary_key}")
       end
 
       def act_on_ignored_order(error_on_ignore)
