@@ -115,14 +115,7 @@ In test and development applications get a `secret_key_base` derived from the ap
 secret_key_base: 492f...
 ```
 
-WARNING: If your application's secrets may have been exposed, strongly consider
-changing them. Note that changing `secret_key_base` will expire currently active
-sessions and require all users to log in again. In addition to session data, the
-following things may also be affected:
-
-* Encrypted cookies
-* Signed cookies
-* Active Storage Files
+WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing `secret_key_base` will expire currently active sessions and require all users to log in again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
 
 ### Rotating Encrypted and Signed Cookies Configurations
 
