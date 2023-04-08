@@ -62,6 +62,8 @@ module ActiveRecord
     #
     # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
     # {new_record?}[rdoc-ref:Persistence#new_record?] is +true+, and to <tt>:update</tt> if it is not.
+    # If the argument is an array of contexts, <tt>post.valid?([:create, :update])</tt>, the validations are
+    # run within multiple contexts.
     #
     # \Validations with no <tt>:on</tt> option will run no matter the context. \Validations with
     # some <tt>:on</tt> option will only run in the specified context.
