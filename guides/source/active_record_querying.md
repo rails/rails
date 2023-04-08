@@ -1658,7 +1658,13 @@ user = User.strict_loading.first
 user.comments.to_a # raises an ActiveRecord::StrictLoadingViolationError
 ```
 
+To configure strict loading for an Active Record model class, invoke
+[`.strict_loading!`][]. To configure strict loading for a particular instance,
+invoke [`#strict_loading!`][].
+
 [`strict_loading`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-strict_loading
+[`.strict_loading!`]: https://api.rubyonrails.org/classes/ActiveRecord/Core/ClassMethods.html#method-i-strict_loading-21
+[`#strict_loading!`]: https://api.rubyonrails.org/classes/ActiveRecord/Core.html#method-i-strict_loading-21
 
 Scopes
 ------

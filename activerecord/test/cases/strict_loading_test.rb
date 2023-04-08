@@ -39,6 +39,126 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert developer.strict_loading_n_plus_one_only?
   end
 
+  def test_class_strict_loading_no_argument
+    assert_changes -> { Developer.first.strict_loading? }, from: false, to: true do
+      assert Developer.strict_loading!
+
+      developer = Developer.first
+      assert_predicate developer, :strict_loading?
+      assert_raises(ActiveRecord::StrictLoadingViolationError) { developer.firms.to_a }
+    end
+  ensure
+    Developer.strict_loading_by_default = false
+  end
+
+  def test_class_strict_loading_true_argument
+    assert_changes -> { Developer.first.strict_loading? }, from: false, to: true do
+      assert Developer.strict_loading!
+
+      developer = Developer.first
+      assert_predicate developer, :strict_loading?
+      assert_raises(ActiveRecord::StrictLoadingViolationError) { developer.firms.to_a }
+    end
+  ensure
+    Developer.strict_loading_by_default = false
+  end
+
+  def test_class_strict_loading_false_argument
+    assert_no_changes -> { Developer.first.strict_loading? }, from: false do
+      assert_not Developer.strict_loading!(false)
+
+      developer = Developer.first
+      assert_not_predicate developer, :strict_loading?
+      developer.firms.to_a
+    end
+  ensure
+    Developer.strict_loading_by_default = false
+  end
+
+  def test_class_strict_loading_with_block
+    assert_no_changes -> { Developer.first.strict_loading? }, from: false do
+      assert_not(Developer.strict_loading! do
+        developer = Developer.first
+
+        assert_predicate developer, :strict_loading?
+        assert_raises(ActiveRecord::StrictLoadingViolationError) { developer.firms.to_a }
+      end)
+    end
+
+    assert_no_changes -> { Developer.first.strict_loading? }, from: false do
+      assert_not(Developer.strict_loading!(true) do
+        developer = Developer.first
+
+        assert_predicate developer, :strict_loading?
+        assert_raises(ActiveRecord::StrictLoadingViolationError) { developer.firms.to_a }
+      end)
+    end
+
+    assert_no_changes -> { Developer.first.strict_loading? }, from: false do
+      assert_not(Developer.strict_loading!(false) do
+        developer = Developer.first
+
+        assert_not_predicate developer, :strict_loading?
+        developer.firms.to_a
+      end)
+    end
+  end
+
+  def test_class_strict_loading_with_block_does_not_cascade
+    assert_no_changes -> { Developer.first.strict_loading? }, from: false do
+      assert_not(ActiveRecord::Base.strict_loading! do
+        assert_not_predicate Developer.first, :strict_loading?
+      end)
+    end
+
+    assert_no_changes -> { Developer.first.strict_loading? }, from: false do
+      assert_not(ActiveRecord::Base.strict_loading!(true) do
+        assert_not_predicate Developer.first, :strict_loading?
+      end)
+    end
+  end
+
+  def test_model_strict_loading_with_block
+    developer = Developer.first
+
+    assert_no_changes -> { developer.strict_loading? }, from: false do
+      assert_not(developer.strict_loading! do
+        assert_predicate developer, :strict_loading?
+        assert_raises(ActiveRecord::StrictLoadingViolationError) { developer.firms.to_a }
+      end)
+    end
+
+    assert_no_changes -> { developer.strict_loading? }, from: false do
+      assert_not(developer.strict_loading!(true) do
+        assert_predicate developer, :strict_loading?
+        assert_raises(ActiveRecord::StrictLoadingViolationError) { developer.firms.to_a }
+      end)
+    end
+
+    assert_no_changes -> { developer.strict_loading? }, from: false do
+      assert_not(developer.strict_loading!(false) do
+        assert_not_predicate developer, :strict_loading?
+        developer.firms.to_a
+      end)
+    end
+  end
+
+  def test_model_strict_loading_with_mode_and_block
+    developer = Developer.first
+
+    assert_no_changes -> { developer.strict_loading_n_plus_one_only? }, from: false do
+      developer.strict_loading!(true, mode: :all) do
+        assert_not_predicate developer, :strict_loading_n_plus_one_only?
+      end
+    end
+
+    assert_no_changes -> { developer.strict_loading_n_plus_one_only? }, from: false do
+      developer.strict_loading!(true, mode: :n_plus_one_only) do
+        assert_predicate developer, :strict_loading_n_plus_one_only?
+      end
+    end
+  end
+
   def test_strict_loading_n_plus_one_only_mode
     developer = Developer.first
     ship = Ship.first

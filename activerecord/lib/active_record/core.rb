@@ -222,6 +222,56 @@ module ActiveRecord
       self.default_role = ActiveRecord.writing_role
       self.default_shard = :default
 
+      # Sets instances of the class to strict_loading mode. This will raise an error
+      # if a record tries to lazily load an association.
+      #
+      #   User.strict_loading! # => true
+      #   user = User.first
+      #   user.comments
+      #   => ActiveRecord::StrictLoadingViolationError
+      #
+      # ==== Parameters
+      #
+      # * +value+ - Boolean specifying whether to enable or disable strict loading.
+      # * +block+ - Proc within the block, instances of the class will set their
+      #   strict loading configuration to <tt>value</tt>. Their configuration will
+      #   be reverted to its original value outside the Proc.
+      #
+      # ==== Examples
+      #
+      #   User.strict_loading!(false) # => false
+      #   user = User.first
+      #   user.comments
+      #   => #<ActiveRecord::Associations::CollectionProxy>
+      #
+      #   User.strict_loading!(true) do
+      #     user = User.first
+      #     user.comments
+      #      => ActiveRecord::StrictLoadingViolationError
+      #   end
+      #   user = User.first
+      #   user.comments
+      #   => #<ActiveRecord::Associations::CollectionProxy>
+      #
+      #   User.strict_loading!(true) # => true
+      #   user = User.first
+      #   user.comments
+      #      => ActiveRecord::StrictLoadingViolationError
+      def self.strict_loading!(value = true, &block)
+        original_strict_loading_by_default = strict_loading_by_default
+        self.strict_loading_by_default = value
+
+        if block
+          begin
+            block.call
+          ensure
+            self.strict_loading_by_default = original_strict_loading_by_default
+          end
+        end
+
+        strict_loading_by_default
+      end
+
       def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
         case ActiveRecord.action_on_strict_loading_violation
         when :raise
@@ -626,6 +676,9 @@ module ActiveRecord
     # * <tt>:mode</tt> - Symbol specifying strict loading mode. Defaults to :all. Using
     #   :n_plus_one_only mode will only raise an error if an association that
     #   will lead to an n plus one query is lazily loaded.
+    # * +block+ - Proc within the block, the instance's strict loading will be
+    #   set to <tt>value</tt>, and will be reverted to the original value
+    #   outside the Proc.
     #
     # ==== Examples
     #
@@ -634,17 +687,38 @@ module ActiveRecord
     #   user.comments
     #   => #<ActiveRecord::Associations::CollectionProxy>
     #
+    #   user = User.first
+    #   user.strict_loading! do
+    #     user.comments
+    #      => ActiveRecord::StrictLoadingViolationError
+    #   end
+    #   user.comments
+    #   => #<ActiveRecord::Associations::CollectionProxy>
+    #
     #   user.strict_loading!(mode: :n_plus_one_only)
     #   user.address.city # => "Tatooine"
     #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
-    def strict_loading!(value = true, mode: :all)
+    def strict_loading!(value = true, mode: :all, &block)
       unless [:all, :n_plus_one_only].include?(mode)
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."
       end
 
+      original_strict_loading_mode = @strict_loading_mode
+      original_strict_loading = @strict_loading
       @strict_loading_mode = mode
       @strict_loading = value
+
+      if block
+        begin
+          block.call
+        ensure
+          @strict_loading_mode = original_strict_loading_mode
+          @strict_loading = original_strict_loading
+        end
+      end
+
+      @strict_loading
     end
 
     attr_reader :strict_loading_mode

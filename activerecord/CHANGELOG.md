@@ -1,3 +1,30 @@
+*   Extend `ActiveRecord::Core#strict_loading!` to accept a block
+
+    For parity, introduce `ActiveRecord::Core.strict_loading!` to configure
+    `strict_loading_by_default` with the same support for a self-contained
+    block:
+
+    ```ruby
+    # instance-level
+
+    user = User.first
+    user.strict_loading! do
+      user.comments # => raises ActiveRecord::StrictLoadingViolationError
+    end
+    user.comments   # => #<ActiveRecord::Associations::CollectionProxy>
+
+    # class-level
+
+    User.strict_loading!(true) do
+      user = User.first
+      user.comments # => raises ActiveRecord::StrictLoadingViolationError
+    end
+    user = User.first
+    user.comments   # => #<ActiveRecord::Associations::CollectionProxy>
+    ```
+
+    *Sean Doyle*
+
 *   `after_commit` callbacks defined on models now execute in the correct order.
 
     ```ruby
