@@ -227,7 +227,7 @@ module ActiveRecord
         batch_limit = remaining if remaining < batch_limit
       end
 
-      relation = relation.reorder(batch_order(order)).limit(batch_limit)
+      relation = relation.reorder(*batch_order(order)).limit(batch_limit)
       relation = apply_limits(relation, start, finish, order)
       relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
       batch_relation = relation
@@ -240,7 +240,7 @@ module ActiveRecord
           yielded_relation = where(primary_key => ids)
           yielded_relation.load_records(records)
         elsif (empty_scope && use_ranges != false) || use_ranges
-          ids = batch_relation.pluck(primary_key)
+          ids = batch_relation.ids
           finish = ids.last
           if finish
             yielded_relation = apply_finish_limit(batch_relation, finish, order)
@@ -248,7 +248,7 @@ module ActiveRecord
             yielded_relation.skip_query_cache!(false)
           end
         else
-          ids = batch_relation.pluck(primary_key)
+          ids = batch_relation.ids
           yielded_relation = where(primary_key => ids)
         end
 
@@ -273,8 +273,8 @@ module ActiveRecord
           end
         end
 
-        batch_relation = relation.where(
-          predicate_builder[primary_key, primary_key_offset, order == :desc ? :lt : :gt]
+        batch_relation = batch_condition(
+          relation, primary_key, primary_key_offset, order == :desc ? :lt : :gt
         )
       end
     end
@@ -287,15 +287,32 @@ module ActiveRecord
       end
 
       def apply_start_limit(relation, start, order)
-        relation.where(predicate_builder[primary_key, start, order == :desc ? :lteq : :gteq])
+        batch_condition(relation, primary_key, start, order == :desc ? :lteq : :gteq)
       end
 
       def apply_finish_limit(relation, finish, order)
-        relation.where(predicate_builder[primary_key, finish, order == :desc ? :gteq : :lteq])
+        batch_condition(relation, primary_key, finish, order == :desc ? :gteq : :lteq)
+      end
+
+      def batch_condition(relation, columns, values, operator)
+        columns = Array(columns)
+        values = Array(values)
+        cursor_positions = columns.zip(values)
+
+        first_clause_column, first_clause_value = cursor_positions.pop
+        where_clause = predicate_builder[first_clause_column, first_clause_value, operator]
+
+        cursor_positions.reverse_each do |column_name, value|
+          where_clause = predicate_builder[column_name, value, operator == :lteq ? :lt : :gt].or(
+            predicate_builder[column_name, value, :eq].and(where_clause)
+          )
+        end
+
+        relation.where(where_clause)
       end
 
       def batch_order(order)
-        table[primary_key].public_send(order)
+        Array(primary_key).map { |column| table[column].public_send(order) }
       end
 
       def act_on_ignored_order(error_on_ignore)
