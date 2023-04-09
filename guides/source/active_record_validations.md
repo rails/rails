@@ -1004,6 +1004,7 @@ class Person < ApplicationRecord
   # with the actual value of the attribute. %{attribute} and %{model}
   # are also available.
   validates :age, numericality: { message: "%{value} seems wrong" }
+end
 ```
 
 A `Proc` `:message` value is given two arguments: the object being validated, and
