@@ -304,6 +304,8 @@ added to the form that the `button_to` helper renders internally:
 When making non-GET requests from JavaScript the `X-CSRF-Token` header is required.
 Without this header requests won't be accepted by Rails.
 
+NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSRF) attacks. Read more in the [security guide](security.html#cross-site-request-forgery-csrf).
+
 [Rails Request.JS](https://github.com/rails/request.js) encapsulates the logic
 of adding the request headers that are required by Rails. Just
 import the `FetchRequest` class from the package and instantiate it
