@@ -238,17 +238,18 @@ With a WebSocket connection set up on the page that should receive the updates l
 Replacements for Rails/UJS Functionality
 ----------------------------------------
 
-Rails 6 shipped with a tool called UJS that allows developers to override the method of `<a>` tags
-to perform non-GET requests after a hyperlink click and to add confirmation dialogs before
-executing an action. This was the default before Rails 7, but it is now recommended to use Turbo
-instead.
+Rails 6 shipped with a tool called UJS (Unobtrusive JavaScript). UJS allows
+developers to override the HTTP request method of `<a>` tags, to add confirmation
+dialogs before executing an action, and more. UJS was the default before Rails
+7, but it is now recommended to use Turbo instead.
 
 ### Method
 
 Clicking links always results in an HTTP GET request. If your application is
 [RESTful](https://en.wikipedia.org/wiki/Representational_State_Transfer), some links are in fact
-actions that change data on the server, and should be performed with non-GET requests. This
-attribute allows marking up such links with an explicit method such as "post", "put", or "delete".
+actions that change data on the server, and should be performed with non-GET
+requests. The `data-turbo-method` attribute allows marking up such links with
+an explicit method such as "post", "put", or "delete".
 
 Turbo will scan `<a>` tags in your application for the `turbo-method` data attribute and use the
 specified method when present, overriding the default GET action.
@@ -297,3 +298,43 @@ added to the form that the `button_to` helper renders internally:
 ```erb
 <%= button_to "Delete post", post, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } } %>
 ```
+
+### Ajax Requests
+
+When making non-GET requests from JavaScript the `X-CSRF-Token` header is required.
+Without this header requests won't be accepted by Rails.
+
+[Rails Request.JS](https://github.com/rails/request.js) encapsulates the logic
+of adding the request headers that are required by Rails. Just
+import the `FetchRequest` class from the package and instantiate it
+passing the request method, url, options, then call `await request.perform()`
+and do what do you need with the response.
+
+For example:
+
+```javascript
+import { FetchRequest } from '@rails/request.js'
+
+....
+
+async myMethod () {
+  const request = new FetchRequest('post', 'localhost:3000/posts', {
+    body: JSON.stringify({ name: 'Request.JS' })
+  })
+  const response = await request.perform()
+  if (response.ok) {
+    const body = await response.text
+  }
+}
+```
+
+When using another library to make Ajax calls, it is necessary to add the
+security token as a default header yourself. To get the token, have a look at
+`<meta name='csrf-token' content='THE-TOKEN'>` tag printed by
+[`csrf_meta_tags`][] in your application view. You could do something like:
+
+```javascript
+document.head.querySelector("meta[name=csrf-token]")?.content
+```
+
+[`csrf_meta_tags`]: https://api.rubyonrails.org/classes/ActionView/Helpers/CsrfHelper.html#method-i-csrf_meta_tags
