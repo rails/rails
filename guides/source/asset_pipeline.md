@@ -321,8 +321,7 @@ When doing this, ensure you are not using the `require_tree` directive in your `
 Pipeline assets can be placed inside an application in one of three locations:
 `app/assets`, `lib/assets` or `vendor/assets`.
 
-* `app/assets` is for assets that are owned by the application, such as custom
-images or stylesheets.
+* `app/assets` is for assets that are owned by the application, such as custom images or stylesheets.
 
 * `app/javascript` is for your JavaScript code
 
@@ -1064,8 +1063,6 @@ Webpacker was the default JavaScript pre-processor and bundler for Rails 5 and 6
 Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files. Read the [Webpacker guide](https://guides.rubyonrails.org/webpacker.html) to learn more.
 
 NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-rails/blob/main/docs/comparison_with_webpacker.md) document to understand the differences between `jsbundling-rails` and `webpacker`/`shakapacker`.
-
-***
 
 ### [cssbundling-rails](https://github.com/rails/cssbundling-rails)
 
