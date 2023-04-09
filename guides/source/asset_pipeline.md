@@ -18,74 +18,49 @@ After reading this guide, you will know:
 What is the Asset Pipeline?
 ---------------------------
 
-The asset pipeline provides a framework to concatenate and minify or compress
-JavaScript and CSS assets. It also adds the ability to write these assets in
-other languages and pre-processors such as CoffeeScript, Sass, and ERB.
-It allows assets in your application to be automatically combined with assets
-from other gems.
+The asset pipeline provides a framework to handle the delivery of JavaScript and
+CSS assets. This is done by leveraging technologies like HTTP/2 and techniques like
+concatenation and minification. Finally, it allows your
+application to be automatically combined with assets from other gems.
 
-The asset pipeline is implemented by the
-[sprockets-rails](https://github.com/rails/sprockets-rails) gem,
-and is enabled by default. You can disable it while creating a new application by
+The asset pipeline is implemented by the [importmap-rails](https://github.com/rails/importmap-rails), [sprockets](https://github.com/rails/sprockets) and [sprockets-rails](https://github.com/rails/sprockets-rails) gems, and is enabled by default. You can disable it while creating a new application by
 passing the `--skip-asset-pipeline` option.
 
 ```bash
 $ rails new appname --skip-asset-pipeline
 ```
 
-Rails can easily work with [Sass](https://sass-lang.com) by adding the [`dartsass-rails`](https://github.com/rails/dartsass-rails) gem to your `Gemfile`:
+NOTE: This guide is focusing on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like `Babel`, `Typescript`, `Sass`, `React JSX format` or `TailwindCSS`. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
 
-```ruby
-gem 'dartsass-rails'
-```
+## Main Features
 
-After bundling the gem, run the following to complete the installation:
+The asset pipeline's first feature is inserting a SHA256 fingerprinting
+into each filename so that the file is cached by the web browser and CDN. This
+fingerprint is automatically updated when you change the file contents, which
+invalidates the cache.
 
-```bash
-$ rails dartsass:install
-```
+The second feature of the asset pipeline is to use [import maps](https://github.com/WICG/import-maps)
+when serving JavaScript files. This lets you build modern applications using
+Javascript libraries made for ES modules (ESM) without the need for transpiling
+and bundling. In turn, **this eliminates the need for Webpack, yarn, node or any
+other part of the JavaScript toolchain**.
 
-To set asset compression methods, set the appropriate configuration options
-in `production.rb` - [`config.assets.css_compressor`][] for your CSS and
-[`config.assets.js_compressor`][] for your JavaScript:
+The third feature of the asset pipeline is to concatenate all CSS files into
+one main `.css` file, which is then minified or compressed.
+As you'll learn later in this guide, you can customize this strategy to group
+files any way you like. In production, Rails inserts a SHA256 fingerprint into
+each filename so that the file is cached by the web browser. You can invalidate
+the cache by altering this fingerprint, which happens automatically whenever you
+change the file contents.
 
-```ruby
-config.assets.css_compressor = :yui
-config.assets.js_compressor = :terser
-```
-
-[`config.assets.css_compressor`]: configuring.html#config-assets-css-compressor
-[`config.assets.js_compressor`]: configuring.html#config-assets-js-compressor
-
-### Main Features
-
-The first feature of the pipeline is to concatenate assets, which can reduce the
-number of requests that a browser makes to render a web page. Web browsers are
-limited in the number of requests that they can make in parallel, so fewer
-requests can mean faster loading for your application.
-
-Sprockets concatenates all JavaScript files into one master `.js` file and all
-CSS files into one master `.css` file. As you'll learn later in this guide, you
-can customize this strategy to group files any way you like. In production,
-Rails inserts an SHA256 fingerprint into each filename so that the file is
-cached by the web browser. You can invalidate the cache by altering this
-fingerprint, which happens automatically whenever you change the file contents.
-
-The second feature of the asset pipeline is asset minification or compression.
-For CSS files, this is done by removing whitespace and comments. For JavaScript,
-more complex processes can be applied. You can choose from a set of built in
-options or specify your own.
-
-The third feature of the asset pipeline is it allows coding assets via a
-higher-level language, with precompilation down to the actual assets. Supported
-languages include Sass for CSS, CoffeeScript for JavaScript, and ERB for both by
-default.
+The fourth feature of the asset pipeline is it allows coding assets via a
+higher-level language for CSS.
 
 ### What is Fingerprinting and Why Should I Care?
 
 Fingerprinting is a technique that makes the name of a file dependent on the
 contents of the file. When the file contents change, the filename is also
-changed. For content that is static or infrequently changed, this provides an
+changed. For static or infrequently changed content, this provides an
 easy way to tell whether two versions of a file are identical, even across
 different servers or deployment dates.
 
@@ -104,183 +79,279 @@ global-908e25f4bf641868d8683022a5b62f54.css
 
 This is the strategy adopted by the Rails asset pipeline.
 
-Rails' old strategy was to append a date-based query string to every asset linked
-with a built-in helper. In the source the generated code looked like this:
-
-```
-/stylesheets/global.css?1309495796
-```
-
-The query string strategy has several disadvantages:
-
-1. **Not all caches will reliably cache content where the filename only differs by query parameters**
-
-    [Steve Souders recommends][], "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
-
-2. **The file name can change between nodes in multi-server environments.**
-
-    The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
-
-3. **Too much cache invalidation**
-
-    When static assets are deployed with each new release of code, the mtime (time of last modification) of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
-
-Fingerprinting fixes these problems by avoiding query strings, and by ensuring
-that filenames are consistent based on their content.
-
 Fingerprinting is enabled by default for both the development and production
 environments. You can enable or disable it in your configuration through the
 [`config.assets.digest`][] option.
 
-More reading:
+### What are Import Maps and Why Should I Care?
 
-* [Optimize caching](https://developers.google.com/speed/docs/insights/LeverageBrowserCaching)
-* [Revving Filenames: don't use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
+Import maps let you import JavaScript modules using logical names that map to versioned/digested files – directly from the browser. So you can build modern JavaScript applications using JavaScript libraries made for ES modules (ESM) without the need for transpiling or bundling.
 
-[`config.assets.digest`]: configuring.html#config-assets-digest
-[Steve Souders recommends]: https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/
+With this approach, you'll ship many small JavaScript files instead of one big JavaScript file. Thanks to HTTP/2 that no longer carries a material performance penalty during the initial transport, and in fact offers substantial benefits over the long run due to better caching dynamics.
 
-How to Use the Asset Pipeline
+How to use Import Maps as Javascript Asset Pipeline
 -----------------------------
 
-In previous versions of Rails, all assets were located in subdirectories of
-`public` such as `images`, `javascripts` and `stylesheets`. With the asset
-pipeline, the preferred location for these assets is now the `app/assets`
-directory. Files in this directory are served by the Sprockets middleware.
+Import Maps are the default Javascript processor, the logic of generating import maps is handled by the [`importmap-rails`](https://github.com/rails/importmap-rails) gem.
+
+WARNING: Import maps are used only for Javascript files and can not be used for CSS delivery. Check the [Sprockets section](#how-to-use-sprockets) to learn about CSS.
+
+You can find detailed usage instructions on the Gem homepage, but it's important to understand the basics of `importmap-rails`.
+
+### How it works
+
+Import maps are essentially a string substitution for what is referred to as "bare module specifiers". They allow you to standardize the names of JavaScript module imports.
+
+Take for example such an import definition, it won't work without an import map:
+
+```javascript
+import React from "react"
+```
+
+You would have to define it like this to make it work:
+
+```javascript
+import React from "https://ga.jspm.io/npm:react@17.0.2/index.js"
+```
+
+Here comes the import map, we define the `react` name to be pinned to the `https://ga.jspm.io/npm:react@17.0.2/index.js` address. With such information our browser accepts the simplified `import React from "react"` definition. Think of import map as about an alias for the library source address.
+
+### Usage
+
+With `importmap-rails` you create the importmap configuration file pinning the library path to a name:
+
+```ruby
+# config/importmap.rb
+pin "application"
+pin "react", to: "https://ga.jspm.io/npm:react@17.0.2/index.js"
+```
+
+All of the configured import maps should be attached in `<head>` element of your application by adding  `<%= javascript_importmap_tags %>` . The `javascript_importmap_tags` renders a bunch of scripts in the `head` element:
+
+- JSON with all configured import maps:
+
+```html
+<script type="importmap">
+{
+  "imports": {
+    "application": "/assets/application-39f16dc3f3....js"
+    "react": "https://ga.jspm.io/npm:react@17.0.2/index.js"
+  }
+}
+</script>
+```
+
+- [`Es-module-shims`](https://github.com/guybedford/es-module-shims) acting as polyfill ensuring support for `import maps` on older browsers:
+
+```html
+<script src="/assets/es-module-shims.min" async="async" data-turbo-track="reload"></script>
+```
+
+- Entrypoint for loading JavaScript from `app/javascript/application.js`:
+
+```html
+<script type="module">import "application"</script>
+```
+
+### Using npm packages via JavaScript CDNs
+
+You can use the `./bin/importmap` command that's added as part of the `importmap-rails` install to pin, unpin, or update npm packages in your import map. The binstub uses [`JSPM.org`](https://jspm.org/).
+
+It works like so:
+
+```sh
+./bin/importmap pin react react-dom
+Pinning "react" to https://ga.jspm.io/npm:react@17.0.2/index.js
+Pinning "react-dom" to https://ga.jspm.io/npm:react-dom@17.0.2/index.js
+Pinning "object-assign" to https://ga.jspm.io/npm:object-assign@4.1.1/index.js
+Pinning "scheduler" to https://ga.jspm.io/npm:scheduler@0.20.2/index.js
+
+./bin/importmap json
+
+{
+  "imports": {
+    "application": "/assets/application-37f365cbecf1fa2810a8303f4b6571676fa1f9c56c248528bc14ddb857531b95.js",
+    "react": "https://ga.jspm.io/npm:react@17.0.2/index.js",
+    "react-dom": "https://ga.jspm.io/npm:react-dom@17.0.2/index.js",
+    "object-assign": "https://ga.jspm.io/npm:object-assign@4.1.1/index.js",
+    "scheduler": "https://ga.jspm.io/npm:scheduler@0.20.2/index.js"
+  }
+}
+```
+
+As you can see, the two packages react and react-dom resolve to a total of four dependencies, when resolved via the jspm default.
+
+Now you can use these in your `application.js` entrypoint like you would any other module:
+
+```javascript
+import React from "react"
+import ReactDOM from "react-dom"
+```
+
+You can also designate a specific version to pin:
+
+```sh
+./bin/importmap pin react@17.0.1
+Pinning "react" to https://ga.jspm.io/npm:react@17.0.1/index.js
+Pinning "object-assign" to https://ga.jspm.io/npm:object-assign@4.1.1/index.js
+```
+
+Or even remove pins:
+
+```sh
+./bin/importmap unpin react
+Unpinning "react"
+Unpinning "object-assign"
+```
+
+You can control the environment of the package for packages with separate "production" (the default) and "development" builds:
+
+```sh
+./bin/importmap pin react --env development
+Pinning "react" to https://ga.jspm.io/npm:react@17.0.2/dev.index.js
+Pinning "object-assign" to https://ga.jspm.io/npm:object-assign@4.1.1/index.js
+```
+
+You can also pick an alternative, supported CDN provider when pinning, like [`unpkg`](https://unpkg.com/) or [`jsdelivr`](https://www.jsdelivr.com/) ([`jspm`](https://jspm.org/) is the default):
+
+```sh
+./bin/importmap pin react --from jsdelivr
+Pinning "react" to https://cdn.jsdelivr.net/npm/react@17.0.2/index.js
+```
+
+Remember, though, that if you switch a pin from one provider to another, you may have to clean up dependencies added by the first provider that isn't used by the second provider.
+
+Run `./bin/importmap` to see all options.
+
+Note that this command is merely a convenience wrapper to resolving logical package names to CDN URLs. You can also just lookup the CDN URLs yourself, and then pin those. For example, if you wanted to use Skypack for React, you could just add the following to `config/importmap.rb`:
+
+```ruby
+pin "react", to: "https://cdn.skypack.dev/react"
+```
+
+### Preloading pinned modules
+
+To avoid the waterfall effect where the browser has to load one file after another before it can get to the deepest nested import, importmap-rails supports [modulepreload links](https://developers.google.com/web/updates/2017/12/modulepreload). Pinned modules can be preloaded by appending `preload: true` to the pin.
+
+It's a good idea to preload libraries or frameworks that are used throughout your app, as this will tell the browser to download them sooner.
+
+Example:
+
+```ruby
+# config/importmap.rb
+pin "@github/hotkey", to: "https://ga.jspm.io/npm:@github/hotkey@1.4.4/dist/index.js", preload: true
+pin "md5", to: "https://cdn.jsdelivr.net/npm/md5@2.3.0/md5.js"
+
+# app/views/layouts/application.html.erb
+<%= javascript_importmap_tags %>
+
+# will include the following link before the importmap is setup:
+<link rel="modulepreload" href="https://ga.jspm.io/npm:@github/hotkey@1.4.4/dist/index.js">
+...
+```
+
+NOTE: Refer to [`importmap-rails`](https://github.com/rails/importmap-rails) repository for the most up-to-date documentation.
+
+How to Use Sprockets
+-----------------------------
+
+The naive approach to expose your application assets to the web would be to store them in
+subdirectories of `public` folder such as `images` and `stylesheets`. Doing so manually would be difficult as most of the modern web applications require the assets to be processed in specific way for eg. compressing and adding fingerprints to the assets.
+
+Sprockets is designed to automatically preprocess your assets stored in the configured directories and after processing expose them in the `public/assets` folder with fingerprinting, compression, source maps generation and other configurable features.
 
 Assets can still be placed in the `public` hierarchy. Any assets under `public`
 will be served as static files by the application or web server when
-[`config.public_file_server.enabled`][] is set to true. You should use `app/assets` for
-files that must undergo some pre-processing before they are served.
+[`config.public_file_server.enabled`][] is set to true. You must define `manifest.js` directives
+for files that must undergo some pre-processing before they are served.
 
 In production, Rails precompiles these files to `public/assets` by default. The
 precompiled copies are then served as static assets by the web server. The files
-in `app/assets` are never served directly in production.
+in the `app/assets` are never served directly in production.
 
 [`config.public_file_server.enabled`]: configuring.html#config-public-file-server-enabled
+
+### Manifest Files and Directives
+
+When compiling assets with Sprockets, Sprockets needs to decide which top-level targets to compile, usually `application.css` and images. The top-level targets are defined in the Sprockets `manifest.js` file, by default it looks like this:
+
+```js
+//= link_tree ../images
+//= link_directory ../stylesheets .css
+//= link_tree ../../javascript .js
+//= link_tree ../../../vendor/javascript .js
+```
+
+It contains _directives_ - instructions that tell Sprockets
+which files to require in order to build a single CSS or JavaScript file.
+
+This is meant to include the contents of all files found in the `./app/assets/images` directory or any subdirectories as well as any file recognized as JS directly at `./app/javascript` or `./vendor/javascript`.
+
+It will load any CSS from the `./app/assets/stylesheets` directory (not including subdirectories). Assuming that you have `application.css` and `marketing.css` files in the `./app/assets/stylesheets` folder it will allow you to load those stylesheets with `<%= stylesheet_link_tag "application" %>` or `<%= stylesheet_link_tag "marketing" %>` from your views.
+
+You might notice that our JavaScript files aren't loaded from the `assets` directory by default, it's because `./app/javascript` is the default entry point for `importmap-rails` gem and the `vendor` folder is the place where downloaded JS packages would be stored.
+
+In the `manifest.js` you could also specify the `link` directive to load a specific file instead of the whole directory. `link` directive requires providing explicit file extension.
+
+Sprockets load the files specified, processes them if
+necessary, concatenates them into one single file, and then compresses them
+(based on the value of `config.assets.css_compressor` or `config.assets.js_compressor`).
+Compression reduces file size, enabling the browser to download the files faster.
 
 ### Controller Specific Assets
 
 When you generate a scaffold or a controller, Rails also generates a
-Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`)
-for that controller. Additionally, when generating a scaffold, Rails generates
-the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
-`Gemfile`.)
+Cascading Style Sheet file for that controller. Additionally, when generating a scaffold, Rails generates the file `scaffolds.css`.
 
 For example, if you generate a `ProjectsController`, Rails will also add a new
-file at `app/assets/stylesheets/projects.scss`. By default these files will be
-ready to use by your application immediately using the `require_tree` directive. See
-[Manifest Files and Directives](#manifest-files-and-directives) for more details
-on require_tree.
+file at `app/assets/stylesheets/projects.css`. By default, these files will be
+ready to use by your application immediately using the `link_directory` directive in the `manifest.js` file.
 
-You can also opt to include controller specific stylesheets and JavaScript files
+You can also opt to include controller-specific stylesheets files
 only in their respective controllers using the following:
 
-`<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag
-params[:controller] %>`
+```html+erb
+<%= stylesheet_link_tag params[:controller] %>
+```
 
-When doing this, ensure you are not using the `require_tree` directive, as that
-will result in your assets being included more than once.
-
-WARNING: When using asset precompilation, you will need to ensure that your
-controller assets will be precompiled when loading them on a per page basis. By
-default `.coffee` and `.scss` files will not be precompiled on their own. See
-[Precompiling Assets](#precompiling-assets) for more information on how
-precompiling works.
-
-NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript.
-If you are using macOS or Windows, you have a JavaScript runtime installed in
-your operating system. Check [ExecJS](https://github.com/rails/execjs#readme) documentation to know all supported JavaScript runtimes.
+When doing this, ensure you are not using the `require_tree` directive in your `application.css`, as that could result in your controller-specific assets being included more than once.
 
 ### Asset Organization
 
 Pipeline assets can be placed inside an application in one of three locations:
 `app/assets`, `lib/assets` or `vendor/assets`.
 
-* `app/assets` is for assets that are owned by the application, such as custom
-  images, JavaScript files, or stylesheets.
+* `app/assets` is for assets that are owned by the application, such as custom images or stylesheets.
 
-* `lib/assets` is for your own libraries' code that doesn't really fit into the
-  scope of the application or those libraries which are shared across applications.
+* `app/javascript` is for your JavaScript code
 
-* `vendor/assets` is for assets that are owned by outside entities, such as
-  code for JavaScript plugins and CSS frameworks. Keep in mind that third party
-  code with references to other files also processed by the asset Pipeline (images,
-  stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
+* `vendor/[assets|javascript]` is for assets that are owned by outside entities, such as CSS frameworks or Javascript libraries. Keep in mind that third-party code with references to other files also processed by the asset Pipeline (images, stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
+
+Other locations could by configured in the `manifest.js` file, refer to the [Manifest Files and Directives](#manifest-files-and-directives).
 
 #### Search Paths
 
-When a file is referenced from a manifest or a helper, Sprockets searches the
-three default asset locations for it.
+When a file is referenced from a manifest or a helper, Sprockets searches all of the locations specified in `manifest.js` for it. You can view the search path by inspecting
+[`Rails.application.config.assets.paths`](`config.assets.paths`) in the Rails console.
 
-The default locations are: the `images`, `javascripts` and `stylesheets`
-directories under the `app/assets` folder, but these subdirectories
-are not special - any path under `assets/*` will be searched.
-
-For example, these files:
-
-```
-app/assets/javascripts/home.js
-lib/assets/javascripts/moovinator.js
-vendor/assets/javascripts/slider.js
-vendor/assets/somepackage/phonebox.js
-```
-
-would be referenced in a manifest like this:
-
-```js
-//= require home
-//= require moovinator
-//= require slider
-//= require phonebox
-```
-
-Assets inside subdirectories can also be accessed.
-
-```
-app/assets/javascripts/sub/something.js
-```
-
-is referenced as:
-
-```js
-//= require sub/something
-```
-
-You can view the search path by inspecting
-[`Rails.application.config.assets.paths`][`config.assets.paths`] in the Rails console.
-
-Besides the standard `assets/*` paths, additional (fully qualified) paths can be
-added to the pipeline in `config/initializers/assets.rb`. For example:
-
-```ruby
-Rails.application.config.assets.paths << Rails.root.join("lib", "videoplayer", "flash")
-```
-
-Paths are traversed in the order they occur in the search path. By default,
-this means the files in `app/assets` take precedence, and will mask
-corresponding paths in `lib` and `vendor`.
-
-It is important to note that files you want to reference outside a manifest must
-be added to the precompile array or they will not be available in the production
-environment.
-
-[`config.assets.paths`]: configuring.html#config-assets-paths
-
-#### Using Index Files
+#### Using Index Files as proxies for folders
 
 Sprockets uses files named `index` (with the relevant extensions) for a special
 purpose.
 
-For example, if you have a jQuery library with many modules, which is stored in
-`lib/assets/javascripts/library_name`, the file `lib/assets/javascripts/library_name/index.js` serves as
+For example, if you have a CSS library with many modules, which is stored in
+`lib/assets/stylesheets/library_name`, the file `lib/assets/stylesheets/library_name/index.css` serves as
 the manifest for all files in this library. This file could include a list of
 all the required files in order, or a simple `require_tree` directive.
 
-The library as a whole can be accessed in the application manifest like so:
+It is also somewhat similar to the way that a file in `public/library_name/index.html` can be reached by a request to `/library_name`. This means that you cannot directly use an index file.
 
-```js
-//= require library_name
+The library as a whole can be accessed in the `.css` files like so:
+
+```css
+/* ...
+*= require library_name
+*/
 ```
 
 This simplifies maintenance and keeps things clean by allowing related code to
@@ -289,20 +360,18 @@ be grouped before inclusion elsewhere.
 ### Coding Links to Assets
 
 Sprockets does not add any new methods to access your assets - you still use the
-familiar `javascript_include_tag` and `stylesheet_link_tag`:
+familiar `stylesheet_link_tag`:
 
 ```erb
 <%= stylesheet_link_tag "application", media: "all" %>
-<%= javascript_include_tag "application" %>
 ```
 
-If using the turbolinks gem, which is included by default in Rails, then
-include the 'data-turbo-track' option which causes Turbo to check if
+If using the [`turbo-rails`](https://github.com/hotwired/turbo-rails) gem, which is included by default in Rails, then
+include the `data-turbo-track` option which causes Turbo to check if
 an asset has been updated and if so loads it into the page:
 
 ```erb
-<%= stylesheet_link_tag "application", media: "all", "data-turbo-track" => "reload" %>
-<%= javascript_include_tag "application", "data-turbo-track" => "reload" %>
+<%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
 ```
 
 In regular views you can access images in the `app/assets/images` directory
@@ -320,10 +389,6 @@ Alternatively, a request for a file with an SHA256 hash such as
 `public/assets/rails-f90d8a84c707a8dc923fca1ca1895ae8ed0a09237f6992015fef1e11be77c023.png`
 is treated the same way. How these hashes are generated is covered in the [In
 Production](#in-production) section later on in this guide.
-
-Sprockets will also look through the paths specified in [`config.assets.paths`][],
-which includes the standard application paths and any paths added by Rails
-engines.
 
 Images can also be organized into subdirectories if required, and then can be
 accessed by specifying the directory's name in the tag:
@@ -364,167 +429,6 @@ the `asset_data_uri` helper.
 This inserts a correctly-formatted data URI into the CSS source.
 
 Note that the closing tag cannot be of the style `-%>`.
-
-#### CSS and Sass
-
-When using the asset pipeline, paths to assets must be re-written and
-`sass-rails` provides `-url` and `-path` helpers (hyphenated in Sass,
-underscored in Ruby) for the following asset classes: image, font, video, audio,
-JavaScript and stylesheet.
-
-* `image-url("rails.png")` returns `url(/assets/rails.png)`
-* `image-path("rails.png")` returns `"/assets/rails.png"`
-
-The more generic form can also be used:
-
-* `asset-url("rails.png")` returns `url(/assets/rails.png)`
-* `asset-path("rails.png")` returns `"/assets/rails.png"`
-
-#### JavaScript/CoffeeScript and ERB
-
-If you add an `erb` extension to a JavaScript asset, making it something such as
-`application.js.erb`, you can then use the `asset_path` helper in your
-JavaScript code:
-
-```js
-document.getElementById('logo').src = "<%= asset_path('logo.png') %>"
-```
-
-This writes the path to the particular asset being referenced.
-
-### Manifest Files and Directives
-
-Sprockets uses manifest files to determine which assets to include and serve.
-These manifest files contain _directives_ - instructions that tell Sprockets
-which files to require in order to build a single CSS or JavaScript file. With
-these directives, Sprockets loads the files specified, processes them if
-necessary, concatenates them into one single file, and then compresses them
-(based on value of `Rails.application.config.assets.js_compressor`). By serving
-one file rather than many, the load time of pages can be greatly reduced because
-the browser makes fewer requests. Compression also reduces file size, enabling
-the browser to download them faster.
-
-For example, with a `app/assets/javascripts/application.js` file containing the
-following lines:
-
-```js
-// ...
-//= require rails-ujs
-//= require turbolinks
-//= require_tree .
-```
-
-In JavaScript files, Sprockets directives begin with `//=`. In the above case,
-the file is using the `require` and the `require_tree` directives. The `require`
-directive is used to tell Sprockets the files you wish to require. Here, you are
-requiring the files `rails-ujs.js` and `turbolinks.js` that are available somewhere
-in the search path for Sprockets. You need not supply the extensions explicitly.
-Sprockets assumes you are requiring a `.js` file when done from within a `.js`
-file.
-
-The `require_tree` directive tells Sprockets to recursively include _all_
-JavaScript files in the specified directory into the output. These paths must be
-specified relative to the manifest file. You can also use the
-`require_directory` directive which includes all JavaScript files only in the
-directory specified, without recursion.
-
-Directives are processed top to bottom, but the order in which files are
-included by `require_tree` is unspecified. You should not rely on any particular
-order among those. If you need to ensure some particular JavaScript ends up
-above some other in the concatenated file, require the prerequisite file first
-in the manifest. Note that the family of `require` directives prevents files
-from being included twice in the output.
-
-Rails also creates a default `app/assets/stylesheets/application.css` file
-which contains these lines:
-
-```css
-/* ...
- *= require_self
- *= require_tree .
- */
-```
-
-Rails creates `app/assets/stylesheets/application.css` regardless of whether the
-`--skip-asset-pipeline` option is used when creating a new Rails application. This is
-so you can easily add asset pipelining later if you like.
-
-The directives that work in JavaScript files also work in stylesheets
-(though obviously including stylesheets rather than JavaScript files). The
-`require_tree` directive in a CSS manifest works the same way as the JavaScript
-one, requiring all stylesheets from the current directory.
-
-In this example, `require_self` is used. This puts the CSS contained within the
-file (if any) at the precise location of the `require_self` call.
-
-NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](https://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import)
-instead of these Sprockets directives. When using Sprockets directives, Sass files exist within
-their own scope, making variables or mixins only available within the document they were defined in.
-
-You can do file globbing as well using `@import "*"`, and `@import "**/*"` to add the whole tree which is equivalent to how `require_tree` works. Check the [sass-rails documentation](https://github.com/rails/sass-rails#features) for more info and important caveats.
-
-You can have as many manifest files as you need. For example, the `admin.css`
-and `admin.js` manifest could contain the JS and CSS files that are used for the
-admin section of an application.
-
-The same remarks about ordering made above apply. In particular, you can specify
-individual files and they are compiled in the order specified. For example, you
-might concatenate three CSS files together this way:
-
-```js
-/* ...
- *= require reset
- *= require layout
- *= require chrome
- */
-```
-
-### Preprocessing
-
-The file extensions used on an asset determine what preprocessing is applied.
-When a controller or a scaffold is generated with the default Rails gemset, an
-SCSS file is generated in place of a regular CSS file. The example used before
-was a controller called "projects", which generated an
-`app/assets/stylesheets/projects.scss` file.
-
-In development mode, or if the asset pipeline is disabled, when this file is
-requested it is processed by the processor provided by the `sass-rails` gem and
-then sent back to the browser as CSS. When asset pipelining is enabled, this
-file is preprocessed and placed in the `public/assets` directory for serving by
-either the Rails app or web server.
-
-Additional layers of preprocessing can be requested by adding other extensions,
-where each extension is processed in a right-to-left manner. These should be
-used in the order the processing should be applied. For example, a stylesheet
-called `app/assets/stylesheets/projects.scss.erb` is first processed as ERB,
-then SCSS, and finally served as CSS. The same applies to a JavaScript file -
-`app/assets/javascripts/projects.coffee.erb` is processed as ERB, then
-CoffeeScript, and served as JavaScript.
-
-Keep in mind the order of these preprocessors is important. For example, if
-you called your JavaScript file `app/assets/javascripts/projects.erb.coffee`
-then it would be processed with the CoffeeScript interpreter first, which
-wouldn't understand ERB and therefore you would run into problems.
-
-
-In Development
---------------
-
-In development mode, assets are served as a concatenated file.
-
-This manifest `app/assets/javascripts/application.js`:
-
-```js
-//= require core
-//= require projects
-//= require tickets
-```
-
-would generate this HTML:
-
-```html
-<script src="/assets/application-728742f3b9daa182fe7c831f6a3b8fa87609b4007fdc2f87c134a07b19ad93fb.js"></script>
-```
 
 ### Raise an Error When an Asset is Not Found
 
@@ -577,7 +481,7 @@ In the production environment Sprockets uses the fingerprinting scheme outlined
 above. By default Rails assumes assets have been precompiled and will be
 served as static assets by your web server.
 
-During the precompilation phase an SHA256 is generated from the contents of the
+During the precompilation phase a SHA256 is generated from the contents of the
 compiled files, and inserted into the filenames as they are written to disk.
 These fingerprinted names are used by the Rails helpers in place of the manifest
 name.
@@ -585,20 +489,14 @@ name.
 For example this:
 
 ```erb
-<%= javascript_include_tag "application" %>
 <%= stylesheet_link_tag "application" %>
 ```
 
 generates something like this:
 
 ```html
-<script src="/assets/application-908e25f4bf641868d8683022a5b62f54.js"></script>
 <link href="/assets/application-4dd5b109ee3439da54f5bdfd78a80473.css" rel="stylesheet" />
 ```
-
-NOTE: with the Asset Pipeline the `:cache` and `:concat` options aren't used
-anymore, delete these options from the `javascript_include_tag` and
-`stylesheet_link_tag`.
 
 The fingerprinting behavior is controlled by the [`config.assets.digest`][]
 initialization option (which defaults to `true`).
@@ -607,6 +505,8 @@ NOTE: Under normal circumstances the default `config.assets.digest` option
 should not be changed. If there are no digests in the filenames, and far-future
 headers are set, remote clients will never know to refetch the files when their
 content changes.
+
+[`config.assets.digest`]: configuring.html#config-assets-digest
 
 ### Precompiling Assets
 
@@ -634,51 +534,12 @@ It is important that this folder is shared between deployments so that remotely
 cached pages referencing the old compiled assets still work for the life of
 the cached page.
 
-The default matcher for compiling files includes `application.js`,
-`application.css` and all non-JS/CSS files (this will include all image assets
-automatically) from `app/assets` folders including your gems:
-
-```ruby
-[ Proc.new { |filename, path| path.include?('app/assets') && !%w(.js .css).include?(File.extname(filename)) },
-/application.(css|js)$/ ]
-```
-
-NOTE: The matcher (and other members of the precompile array; see below) is
-applied to final compiled file names. This means anything that compiles to
-JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and
-`.scss` files are **not** automatically included as they compile to JS/CSS.
-
-If you have other manifests or individual stylesheets and JavaScript files to
-include, you can add them yourself.
-
-When you are using **Sprockets 3**, add the files to the `precompile` array in
-`config/initializers/assets.rb`:
-
-```ruby
-Rails.application.config.assets.precompile += %w( admin.js admin.css )
-```
-
-When you are using **Sprockets 4**, add the files or directories to
-`app/assets/config/manifest.js`:
-
-```js
-//= link_tree ../images
-//= link admin.js
-//= link admin.css
-// Or link whole directories:
-//= link_directory ../javascripts .js
-//= link_directory ../stylesheets .css
-```
-
-NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
-even if you want to add Sass or CoffeeScript files to the precompile array or manifest file.
-
-NOTE. More information on the differences between Sprockets 3 and 4 please can be found in the [Sprockets Upgrading Guide](https://github.com/rails/sprockets/blob/main/UPGRADING.md#manifestjs)
+NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`.
 
 The command also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
 a 16-byte random hex string) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
-mapping requests back to Sprockets. A typical manifest file looks like:
+mapping requests back to Sprockets. A typical manifest file looks like this:
 
 ```json
 {"files":{"application-<fingerprint>.js":{"logical_path":"application.js","mtime":"2016-12-23T20:12:03-05:00","size":412383,
@@ -807,15 +668,6 @@ of being in the local browser cache or some intermediate cache.
 This mode uses more memory, performs more poorly than the default, and is not
 recommended.
 
-If you are deploying a production application to a system without any
-pre-existing JavaScript runtimes, you may want to add one to your `Gemfile`:
-
-```ruby
-group :production do
-  gem 'mini_racer'
-end
-```
-
 ### CDNs
 
 CDN stands for [Content Delivery
@@ -830,8 +682,8 @@ A common pattern for using a CDN is to set your production application as the
 there is a cache miss, it will grab the file from your server on the fly and
 then cache it. For example if you are running a Rails application on
 `example.com` and have a CDN configured at `mycdnsubdomain.fictional-cdn.com`,
-then when a request is made to `mycdnsubdomain.fictional-
-cdn.com/assets/smile.png`, the CDN will query your server once at
+then when a request is made to `mycdnsubdomain.fictional-cdn.com/assets/smile.png`,
+the CDN will query your server once at
 `example.com/assets/smile.png` and cache the request. The next request to the
 CDN that comes in to the same URL will hit the cached copy. When the CDN can
 serve an asset directly the request never touches your Rails server. Since the
@@ -873,8 +725,6 @@ staging copy of your site easier:
 ```ruby
 config.asset_host = ENV['CDN_HOST']
 ```
-
-
 
 NOTE: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
 .fictional-cdn.com` for this to work.
@@ -1036,12 +886,6 @@ gem.
 config.assets.css_compressor = :yui
 ```
 
-The other option for compressing CSS if you have the sass-rails gem installed is
-
-```ruby
-config.assets.css_compressor = :sass
-```
-
 ### JavaScript Compression
 
 Possible options for JavaScript compression are `:terser`, `:closure` and
@@ -1064,7 +908,9 @@ NOTE: You will need an [ExecJS](https://github.com/rails/execjs#readme)
 supported runtime in order to use `terser`. If you are using macOS or
 Windows you have a JavaScript runtime installed in your operating system.
 
-### GZipping Your Assets
+NOTE: The JavaScript compression will also work for your JavaScript files when you are loading your assets through `importmap-rails` or `jsbundling-rails` gems.
+
+### GZipping your assets
 
 By default, gzipped version of compiled assets will be generated, along with
 the non-gzipped version of assets. Gzipped assets help reduce the transmission
@@ -1193,3 +1039,49 @@ it as a preprocessor for your MIME type.
 ```ruby
 Sprockets.register_preprocessor 'text/css', AddComment
 ```
+
+
+Alternative Libraries
+------------------------------------------
+
+Over the years there have been multiple default approaches for handling the assets. The web evolved and we started to see more and more Javascript-heavy applications. In The Rails Doctrine we believe that [The Menu Is Omakase](https://rubyonrails.org/doctrine#omakase) so we focused on the default setup: **Sprockets with Import Maps**.
+
+We are aware that there are no one-size-fits-it-all solutions for the various JavaScript and CSS frameworks/extensions available. There are other bundling libraries in the Rails ecosystem that should empower you in the cases where the default setup isn't enough.
+
+### [jsbundling-rails](https://github.com/rails/jsbundling-rails)
+
+A Node.js dependent alternative to the `importmap-rails` way of bundling JavaScript with [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/).
+
+The gem provides `yarn build --watch` process to automatically generate output in development. For production, it automatically hooks `javascript:build` task into `assets:precompile` task to ensure that all your package dependencies have been installed and JavaScript has been built for all entry points.
+
+**When to use instead of `importmap-rails`?** If your JavaScript code depends on transpiling so if you are using [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/) or React `JSX` format then `jsbundling-rails` is the correct way to go.
+
+### [Webpacker/Shakapacker](webpacker.html)
+
+Webpacker was the default JavaScript pre-processor and bundler for Rails 5 and 6. It has now been retired. A successor called [`shakapacker`](https://github.com/shakacode/shakapacker) exists, but is not maintained by the Rails team or project.
+
+Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files. Read the [Webpacker guide](https://guides.rubyonrails.org/webpacker.html) to learn more.
+
+NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-rails/blob/main/docs/comparison_with_webpacker.md) document to understand the differences between `jsbundling-rails` and `webpacker`/`shakapacker`.
+
+### [cssbundling-rails](https://github.com/rails/cssbundling-rails)
+
+Allows bundling and processing of your CSS using [Tailwind CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/), [Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart Sass](https://sass-lang.com/), then delivers the CSS via the asset pipeline.
+
+It works in a similar way to `jsbundling-rails` so adds the Node.js dependency to your application with `yarn build:css --watch` process to regenerate your stylesheets in development and hooks into `assets:precompile` task in production.
+
+**What's the difference between Sprockets?** Sprockets on their own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
+
+NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your Javascripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
+
+### [dartsass-rails](https://github.com/rails/dartsass-rails)
+
+If you want to use [`Sass`](https://sass-lang.com/) in your application, `dartsass-rails` comes as a replacement for the legacy `sassc-rails` gem. `dartsass-rails` uses the `Dart Sass` implementation in favour of deprecated in 2020 [`LibSass`](https://sass-lang.com/blog/libsass-is-deprecated) used by `sassc-rails`.
+
+Unlike `sassc-rails` the new gem is not directly integrated with `Sprockets`. Please refer to the [gem homepage](https://github.com/rails/dartsass-rails) for installation/migration instructions.
+
+WARNING: The popular `sassc-rails` gem is unmaintained since 2019.
+
+### [tailwindcss-rails](https://github.com/rails/tailwindcss-rails)
+
+Wrapper gem for [the standalone executable version](https://tailwindcss.com/blog/standalone-cli) of Tailwind CSS v3 framework. Used for new applications when `--css tailwind` is provided to the `rails new` command. Provides a `watch` process to automatically generate Tailwind output in development. For production it hooks into `assets:precompile` task.
