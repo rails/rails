@@ -91,7 +91,7 @@ module ActiveSupport
       begin
         yield
       rescue => error
-        error_reporter.report(error, handled: false, source: source)
+        error_reporter&.report(error, handled: false, source: source)
         raise
       ensure
         instance.complete!
@@ -108,8 +108,8 @@ module ActiveSupport
       end
     end
 
-    def self.error_reporter
-      @error_reporter ||= ActiveSupport::ErrorReporter.new
+    def self.error_reporter # :nodoc:
+      ActiveSupport.error_reporter
     end
 
     def self.active_key # :nodoc:

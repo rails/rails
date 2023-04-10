@@ -8,7 +8,7 @@ class ActiveRecord::Encryption::ReadOnlyNullEncryptorTest < ActiveRecord::Encryp
   end
 
   test "decrypt returns the encrypted message" do
-    assert "some text", @encryptor.decrypt("some text")
+    assert_equal "some text", @encryptor.decrypt("some text")
   end
 
   test "encrypt raises an Encryption" do

@@ -3,6 +3,8 @@
 require "active_support/log_subscriber"
 
 module ActionMailer
+  # = Action Mailer \LogSubscriber
+  #
   # Implements the ActiveSupport::LogSubscriber for logging notifications when
   # email is delivered or received.
   class LogSubscriber < ActiveSupport::LogSubscriber
@@ -19,6 +21,7 @@ module ActionMailer
 
       debug { event.payload[:mail] }
     end
+    subscribe_log_level :deliver, :debug
 
     # An email was generated.
     def process(event)
@@ -28,6 +31,7 @@ module ActionMailer
         "#{mailer}##{action}: processed outbound mail in #{event.duration.round(1)}ms"
       end
     end
+    subscribe_log_level :process, :debug
 
     # Use the logger configured for ActionMailer::Base.
     def logger

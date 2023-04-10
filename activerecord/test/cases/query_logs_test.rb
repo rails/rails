@@ -6,10 +6,6 @@ require "models/dashboard"
 class QueryLogsTest < ActiveRecord::TestCase
   fixtures :dashboards
 
-  ActiveRecord::QueryLogs.taggings[:application] = -> {
-    "active_record"
-  }
-
   def setup
     # ActiveSupport::ExecutionContext context is automatically reset in Rails app via an executor hooks set in railtie
     # But not in Active Record's own test suite.
@@ -19,19 +15,26 @@ class QueryLogsTest < ActiveRecord::TestCase
     @original_transformers = ActiveRecord.query_transformers
     @original_prepend = ActiveRecord::QueryLogs.prepend_comment
     @original_tags = ActiveRecord::QueryLogs.tags
+    @original_taggings = ActiveRecord::QueryLogs.taggings
     ActiveRecord.query_transformers += [ActiveRecord::QueryLogs]
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
     ActiveRecord::QueryLogs.cached_comment = nil
+    ActiveRecord::QueryLogs.taggings[:application] = -> {
+      "active_record"
+    }
   end
 
   def teardown
     ActiveRecord.query_transformers = @original_transformers
     ActiveRecord::QueryLogs.prepend_comment = @original_prepend
     ActiveRecord::QueryLogs.tags = @original_tags
+    ActiveRecord::QueryLogs.taggings = @original_taggings
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
-    ActiveRecord::QueryLogs.cached_comment = nil
+    ActiveRecord::QueryLogs.clear_cache
+    ActiveRecord::QueryLogs.update_formatter(:legacy)
+
     # ActiveSupport::ExecutionContext context is automatically reset in Rails app via an executor hooks set in railtie
     # But not in Active Record's own test suite.
     ActiveSupport::ExecutionContext.clear
@@ -41,9 +44,15 @@ class QueryLogsTest < ActiveRecord::TestCase
     assert_equal "app:foo", ActiveRecord::QueryLogs.send(:escape_sql_comment, "app:foo")
   end
 
+  def test_escaping_good_comment_with_custom_separator
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    assert_equal "app='foo'", ActiveRecord::QueryLogs.send(:escape_sql_comment, "app='foo'")
+  end
+
   def test_escaping_bad_comments
-    assert_equal "; DROP TABLE USERS;", ActiveRecord::QueryLogs.send(:escape_sql_comment, "*/; DROP TABLE USERS;/*")
-    assert_equal "; DROP TABLE USERS;", ActiveRecord::QueryLogs.send(:escape_sql_comment, "**//; DROP TABLE USERS;/*")
+    assert_equal "* /; DROP TABLE USERS;/ *", ActiveRecord::QueryLogs.send(:escape_sql_comment, "*/; DROP TABLE USERS;/*")
+    assert_equal "** //; DROP TABLE USERS;/ *", ActiveRecord::QueryLogs.send(:escape_sql_comment, "**//; DROP TABLE USERS;/*")
+    assert_equal "* * //; DROP TABLE USERS;// * *", ActiveRecord::QueryLogs.send(:escape_sql_comment, "* *//; DROP TABLE USERS;//* *")
   end
 
   def test_basic_commenting
@@ -107,12 +116,15 @@ class QueryLogsTest < ActiveRecord::TestCase
 
   def test_retrieves_comment_from_cache_when_enabled_and_set
     ActiveRecord::QueryLogs.cache_query_log_tags = true
-    ActiveRecord::QueryLogs.tags = [ :application ]
+    i = 0
+    ActiveRecord::QueryLogs.tags = [ { query_counter: -> { i += 1 } } ]
 
-    assert_equal "/*application:active_record*/", ActiveRecord::QueryLogs.call("")
+    assert_sql("SELECT 1 /*query_counter:1*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
 
-    ActiveRecord::QueryLogs.stub(:cached_comment, "/*cached_comment*/") do
-      assert_equal "/*cached_comment*/", ActiveRecord::QueryLogs.call("")
+    assert_sql("SELECT 1 /*query_counter:1*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
     end
   end
 
@@ -121,12 +133,15 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveSupport::ExecutionContext[:temporary] = "value"
     ActiveRecord::QueryLogs.tags = [ temporary_tag: ->(context) { context[:temporary] } ]
 
-    assert_equal "/*temporary_tag:value*/", ActiveRecord::QueryLogs.call("")
+    assert_sql("SELECT 1 /*temporary_tag:value*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
 
     ActiveSupport::ExecutionContext[:temporary] = "new_value"
 
-    assert_nil ActiveRecord::QueryLogs.cached_comment
-    assert_equal "/*temporary_tag:new_value*/", ActiveRecord::QueryLogs.call("")
+    assert_sql("SELECT 1 /*temporary_tag:new_value*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
   end
 
   def test_default_tag_behavior
@@ -141,10 +156,36 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_connection_is_passed_to_tagging_proc
+    connection = ActiveRecord::Base.connection
+    ActiveRecord::QueryLogs.tags = [ same_connection: ->(context) { context[:connection] == connection } ]
+
+    assert_sql("SELECT 1 /*same_connection:true*/") do
+      connection.execute "SELECT 1"
+    end
+  end
+
+  def test_connection_does_not_override_already_existing_connection_in_context
+    fake_connection = Object.new
+    ActiveSupport::ExecutionContext[:connection] = fake_connection
+    ActiveRecord::QueryLogs.tags = [ fake_connection: ->(context) { context[:connection] == fake_connection } ]
+
+    assert_sql("SELECT 1 /*fake_connection:true*/") do
+      ActiveRecord::Base.connection.execute "SELECT 1"
+    end
+  end
+
   def test_empty_comments_are_not_added
     ActiveRecord::QueryLogs.tags = [ empty: -> { nil } ]
     assert_sql(%r{select id from posts$}) do
       ActiveRecord::Base.connection.execute "select id from posts"
+    end
+  end
+
+  def test_sql_commenter_format
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+    assert_sql(%r{/\*application='active_record'\*/}) do
+      Dashboard.first
     end
   end
 
@@ -172,6 +213,42 @@ class QueryLogsTest < ActiveRecord::TestCase
 
     assert_sql(%r{/\*application:active_record,custom_proc:test content,another_proc:more test content\*/}) do
       Dashboard.first
+    end
+  end
+
+  def test_sqlcommenter_format_value
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { tracestate: "congo=t61rcWkgMzE,rojo=00f067aa0ba902b7", custom_proc: -> { "Joe's Shack" } },
+    ]
+
+    assert_sql(%r{custom_proc='Joe%27s%20Shack',tracestate='congo%3Dt61rcWkgMzE%2Crojo%3D00f067aa0ba902b7'\*/}) do
+      Dashboard.first
+    end
+  end
+
+  def test_sqlcommenter_format_value_string_coercible
+    ActiveRecord::QueryLogs.update_formatter(:sqlcommenter)
+
+    ActiveRecord::QueryLogs.tags = [
+      :application,
+      { custom_proc: -> { 1234 } },
+    ]
+
+    assert_sql(%r{custom_proc='1234'\*/}) do
+      Dashboard.first
+    end
+  end
+
+  # Postgres does validate the query encoding. Other adapters don't care.
+  unless current_adapter?(:PostgreSQLAdapter)
+    def test_invalid_encoding_query
+      ActiveRecord::QueryLogs.tags = [ :application ]
+      assert_nothing_raised do
+        ActiveRecord::Base.connection.execute "select 1 as '\xFF'"
+      end
     end
   end
 

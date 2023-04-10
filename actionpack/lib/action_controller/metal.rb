@@ -137,6 +137,17 @@ module ActionController
       false
     end
 
+    class << self
+      private
+        def inherited(subclass)
+          super
+          subclass.middleware_stack = middleware_stack.dup
+          subclass.class_eval do
+            @controller_name = nil
+          end
+        end
+    end
+
     # Delegates to the class's ::controller_name.
     def controller_name
       self.class.controller_name
@@ -152,7 +163,7 @@ module ActionController
     # :attr_reader: response
     #
     # The ActionDispatch::Response instance for the current response.
-    attr_internal :response
+    attr_internal_reader :response
 
     delegate :session, to: "@_request"
 
@@ -166,7 +177,9 @@ module ActionController
     def initialize
       @_request = nil
       @_response = nil
+      @_response_body = nil
       @_routes = nil
+      @_params = nil
       super
     end
 
@@ -186,11 +199,13 @@ module ActionController
     end
 
     def response_body=(body)
-      body = [body] unless body.nil? || body.respond_to?(:each)
-      response.reset_body!
-      return unless body
-      response.body = body
-      super
+      if body
+        body = [body] if body.is_a?(String)
+        response.body = body
+        super
+      else
+        response.reset_body!
+      end
     end
 
     # Tests if render or redirect has already happened.
@@ -207,7 +222,20 @@ module ActionController
     end
 
     def set_response!(response) # :nodoc:
+      if @_response
+        _, _, body = @_response
+        body.close if body.respond_to?(:close)
+      end
+
       @_response = response
+    end
+
+    # Assign the response and mark it as committed. No further processing will occur.
+    def response=(response)
+      set_response!(response)
+
+      # Force `performed?` to return true:
+      @_response_body = true
     end
 
     def set_request!(request) # :nodoc:
@@ -224,11 +252,6 @@ module ActionController
     end
 
     class_attribute :middleware_stack, default: ActionController::MiddlewareStack.new
-
-    def self.inherited(base) # :nodoc:
-      base.middleware_stack = middleware_stack.dup
-      super
-    end
 
     class << self
       # Pushes the given Rack middleware and its arguments to the bottom of the

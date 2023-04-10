@@ -23,7 +23,8 @@ ol { list-style-type: decimal; }
 
 dl { margin: 0 0 1.5em 0; }
 dl dt { font-weight: bold; }
-dd { margin-left: 1.5em;}
+:where(body[dir="ltr"]) dd { margin-left: 1.5em; }
+:where(body[dir="rtl"]) dd { margin-right: 1.5em; }
 
 pre, code {
   font-size: 1em;
@@ -120,11 +121,12 @@ body {
 }
 
 .wrapper {
-  text-align: left;
   margin: 0 auto;
   max-width: 960px;
   padding: 0 1em;
 }
+:where(body[dir="ltr"]) .wrapper { text-align: left; }
+:where(body[dir="rtl"]) .wrapper { text-align: right; }
 
 .red-button {
   display: inline-block;
@@ -250,7 +252,12 @@ body {
   padding: 2px 10px;
   position: absolute;
   bottom: 2px;
-  right: 2px
+  right: 2px;
+  cursor: pointer;
+}
+
+.clipboard-button:hover {
+  color: #005cc5;
 }
 
 .clipboard-button:active {
@@ -283,14 +290,14 @@ body {
   position: absolute;
   z-index: 0;
   top: 21px;
-  right: 0;
   background: #FFF;
   padding: 1em 1.5em 1em 1.25em;
   width: 20em;
   font-size: 0.9285em;
   line-height: 1.3846;
-  margin-right: 1em;
 }
+:where(body[dir="ltr"]) #subCol { right: 0; margin-right: 1em; }
+:where(body[dir="rtl"]) #subCol { left: 0; margin-left: 1em; }
 
 
 @media screen and (max-width: 800px) {
@@ -299,8 +306,9 @@ body {
     width: inherit;
     margin-left: -1em;
     margin-right: -1em;
-    padding-right: 1.25em;
   }
+  :where(body[dir="ltr"]) #subCol { padding-right: 1.25em; }
+  :where(body[dir="rtl"]) #subCol { padding-left: 1.25em; }
 }
 
 #footer {
@@ -308,23 +316,31 @@ body {
   background: #222 url(../images/footer_tile.gif) repeat-x;
 }
 #footer .wrapper {
-  padding-left: 1em;
   max-width: 960px;
 }
+:where(body[dir="ltr"]) #footer .wrapper { padding-left: 1em; }
+:where(body[dir="rtl"]) #footer .wrapper { padding-right: 1em; }
 
 #footer p:last-child {
   margin-bottom: 0;
 }
 
-#header .wrapper, #topNav .wrapper, #feature .wrapper {padding-left: 1em; max-width: 960px;}
-#feature .wrapper {max-width: 720px; padding-right: 23em; position: relative; z-index: 0;}
+#header .wrapper, #topNav .wrapper { max-width: 960px; }
+:where(body[dir="ltr"]) :is(#header .wrapper, #topNav .wrapper) { padding-left: 1em; }
+:where(body[dir="rtl"]) :is(#header .wrapper, #topNav .wrapper) { padding-right: 1em; }
+
+#feature .wrapper { max-width: 720px; position: relative; z-index: 0; }
+:where(body[dir="ltr"]) #feature .wrapper { padding-left: 1em; padding-right: 23em; }
+:where(body[dir="rtl"]) #feature .wrapper { padding-left: 23em; padding-right: 1em; }
 
 @media screen and (max-width: 960px) {
-  #container .wrapper { padding-right: 23em; }
+  :where(body[dir="ltr"]) #container .wrapper { padding-right: 23em; }
+  :where(body[dir="rtl"]) #container .wrapper { padding-left: 23em; }
 }
 
 @media screen and (max-width: 800px) {
-  #feature .wrapper, #container .wrapper { padding-right: 1em; }
+  :where(body[dir="ltr"]) :is(#feature .wrapper, #container .wrapper) { padding-right: 1em; }
+  :where(body[dir="rtl"]) :is(#feature .wrapper, #container .wrapper) { padding-left: 1em; }
 }
 
 /* Links
@@ -349,10 +365,11 @@ a, a:link, a:visited {
   margin: 0;
   padding: 0;
   list-style: none;
-  float: right;
   margin-top: 1.5em;
   font-size: 1.2857em;
 }
+:where(body[dir="ltr"]) .nav { float: right; }
+:where(body[dir="rtl"]) .nav { float: left; }
 
 .nav .nav-item {color: #FFF; text-decoration: none;}
 .nav .nav-item:hover {text-decoration: underline;}
@@ -368,28 +385,34 @@ a, a:link, a:visited {
 }
 
 .guides-index .guides-index-item {
-  background: #980905 url(../images/nav_arrow.gif) no-repeat right top;
-  padding-right: 1em;
+  background: #980905 url(../images/nav_arrow.gif) no-repeat;
   position: relative;
   z-index: 15;
   padding-bottom: 0.125em;
 }
+:where(body[dir="ltr"]) .guides-index .guides-index-item { background-position: right top; padding-right: 1em; }
+:where(body[dir="rtl"]) .guides-index .guides-index-item { background-position: left top; padding-left: 1em; }
 
-.guides-index:hover .guides-index-item, .guides-index .guides-index-item:hover {
-  background-position: right -81px;
+.guides-index:hover .guides-index-item {
   text-decoration: underline !important;
 }
+:where(body[dir="ltr"]) .guides-index:hover .guides-index-item { background-position: right -81px; }
+:where(body[dir="rtl"]) .guides-index:hover .guides-index-item { background-position: left -81px; }
 
 @media screen and (min-width: 481px) {
   .nav {
-    float: right;
     margin-top: 1.5em;
     font-size: 1.2857em;
   }
+  :where(body[dir="ltr"]) .nav { float: right; }
+  :where(body[dir="rtl"]) .nav { float: left; }
+
   .nav>li {
     display: inline;
-    margin-left: 0.5em;
   }
+  :where(body[dir="ltr"]) .nav>li { margin-left: 0.5em; }
+  :where(body[dir="rtl"]) .nav>li { margin-right: 0.5em; }
+
   .guides-index.guides-index-small {
     display: none;
   }
@@ -426,11 +449,13 @@ a, a:link, a:visited {
   }
   .guides-index-small .guides-index-item {
     font: inherit;
-    padding-left: .75em;
     font-size: .95em;
     background-position: 96% 16px;
     -webkit-appearance: none;
   }
+  :where(body[dir="ltr"]) .guides-index-small .guides-index-item { padding-left: .75em; }
+  :where(body[dir="rtl"]) .guides-index-small .guides-index-item { padding-right: .75em; }
+
   .guides-index-small .guides-index-item:hover{
     background-position: 96% -65px;
   }
@@ -446,9 +471,10 @@ a, a:link, a:visited {
   position: absolute;
   z-index: 10;
   top: -0.25em;
-  right: 0;
   padding-top: 2em;
 }
+:where(body[dir="ltr"]) #guides { right: 0; }
+:where(body[dir="rtl"]) #guides { left: 0; }
 
 #guides.visible {
   display: block !important;
@@ -569,17 +595,20 @@ h6 {
   margin: 0 2em 2em 0;
 }
 
-#topNav strong {color: #999; margin-right: 0.5em;}
+#topNav strong { color: #999; }
+:where(body[dir="ltr"]) #topNav strong { margin-right: 0.5em; }
+:where(body[dir="rtl"]) #topNav strong { margin-left: 0.5em; }
 #topNav strong a {color: #FFF;}
 
 #header h1 {
-  float: left;
   background: url(../images/rails_guides_logo_1x.png) no-repeat;
   width: 297px;
   text-indent: -9999em;
   margin: 0;
   padding: 0;
 }
+:where(body[dir="ltr"]) #header h1 { float: left; }
+:where(body[dir="rtl"]) #header h1 { float: right; }
 
 @media
 only screen and (-webkit-min-device-pixel-ratio: 2),
@@ -617,23 +646,26 @@ only screen and (                min-resolution: 2dppx) {
   }
 }
 
-#feature ul {margin-left: 0;}
+:where(body[dir="ltr"]) #feature ul { margin-left: 0; }
+:where(body[dir="rtl"]) #feature ul { margin-right: 0; }
+
 #feature ul li {
   list-style: none;
-  background: url(../images/check_bullet.gif) no-repeat left 0.5em;
+  background: url(../images/check_bullet.gif) no-repeat;
   padding: 0.5em 1.75em 0.5em 1.75em;
   font-size: 1.1428em;
   font-weight: bold;
 }
+:where(body[dir="ltr"]) #feature ul li { background-position: left 0.5em }
+:where(body[dir="rtl"]) #feature ul li { background-position: right 0.5em }
 
 #mainCol dd, #subCol dd {
   padding: 0.25em 0 1em;
   border-bottom: 1px solid #CCC;
   margin-bottom: 1em;
-  margin-left: 0;
-  /*padding-left: 28px;*/
-  padding-left: 0;
 }
+:where(body[dir="ltr"]) :is(#mainCol dd, #subCol dd) { margin-left: 0; padding-left: 0; }
+:where(body[dir="rtl"]) :is(#mainCol dd, #subCol dd) { margin-right: 0; padding-right: 0; }
 
 #mainCol dt, #subCol dt {
   font-size: 1.2857em;
@@ -651,25 +683,28 @@ only screen and (                min-resolution: 2dppx) {
   background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
   border: none;
   padding: 1.25em 1em 1.25em 48px;
-  margin-left: 0;
   margin-top: 0.25em;
 }
+:where(body[dir="ltr"]) :is(#mainCol dd.work-in-progress, #subCol dd.work-in-progress) { margin-left: 0; }
+:where(body[dir="rtl"]) :is(#mainCol dd.work-in-progress, #subCol dd.work-in-progress) { margin-right: 0; }
 
 #mainCol dd.kindle, #subCol dd.kindle {
   background: #d5e9f6 url(../images/tab_info.gif) no-repeat left top;
   border: none;
   padding: 1.25em 1em 1.25em 48px;
-  margin-left: 0;
   margin-top: 0.25em;
 }
+:where(body[dir="ltr"]) :is(#mainCol dd.kindle, #subCol dd.kindle) { margin-left: 0; }
+:where(body[dir="rtl"]) :is(#mainCol dd.kindle, #subCol dd.kindle) { margin-right: 0; }
 
 #mainCol div.warning, #subCol dd.warning {
   background: #f9d9d8 url(../images/tab_red.gif) no-repeat left top;
   border: none;
   padding: 1.25em 1.25em 0.25em 48px;
-  margin-left: 0;
   margin-top: 0.25em;
 }
+:where(body[dir="ltr"]) :is(#mainCol div.warning, #subCol dd.warning) { margin-left: 0; }
+:where(body[dir="rtl"]) :is(#mainCol div.warning, #subCol dd.warning) { margin-right: 0; }
 
 #subCol .chapters {color: #980905;}
 #subCol .chapters a {font-weight: bold;}
@@ -677,44 +712,59 @@ only screen and (                min-resolution: 2dppx) {
 #subCol .chapters li {margin-bottom: 0.75em;}
 #subCol h3.chapter {margin-top: 0.25em;}
 #subCol h3.chapter img {vertical-align: text-bottom;}
-#subCol .chapters ul {margin-left: 0; margin-top: 0.5em;}
+#subCol .chapters ul { margin-top: 0.5em; }
+:where(body[dir="ltr"]) #subCol .chapters ul { margin-left: 0; }
+:where(body[dir="rtl"]) #subCol .chapters ul { margin-right: 0; }
 #subCol .chapters ul li {
   list-style: none;
-  padding: 0 0 0 1em;
-  background: url(../images/bullet.gif) no-repeat left 0.45em;
-  margin-left: 0;
+  padding: 0;
+  background: url(../images/bullet.gif) no-repeat;
   font-size: 1em;
   font-weight: normal;
 }
+:where(body[dir="ltr"]) #subCol .chapters ul li { background-position: left 0.45em; padding-left: 1em; margin-left: 0; }
+:where(body[dir="rtl"]) #subCol .chapters ul li { background-position: right 0.45em; padding-right: 1em; margin-right: 0; }
 
 #subCol li ul, li ol { margin:0 1.5em; }
 
 div.code_container {
-  background: #EEE url(../images/tab_grey.gif) no-repeat left top;
-  padding: 0.25em 1em 0.5em 48px;
+  background: #EEE url(../images/tab_grey.gif) no-repeat;
+  padding-top: 0.25em;
+  padding-bottom: 0.5em;
   position: relative;
 }
+:where(body[dir="ltr"]) div.code_container { background-position: left top; padding-right: 1em; padding-left: 48px; }
+:where(body[dir="rtl"]) div.code_container { background-position: right top; padding-right: 48px; padding-left: 1em; }
 
 .note {
-  background: #fff9d8 url(../images/tab_note.gif) no-repeat left top;
+  background: #fff9d8 url(../images/tab_note.gif) no-repeat;
   border: none;
-  padding: 1em 1em 0.25em 48px;
+  padding-top: 1em;
+  padding-bottom: 0.25em;
   margin: 0.25em 0 1.5em 0;
 }
+:where(body[dir="ltr"]) .note { background-position: left top; padding-right: 1em; padding-left: 48px; }
+:where(body[dir="rtl"]) .note { background-position: right top; padding-right: 48px; padding-left: 1em; }
 
 .info {
-  background: #d5e9f6 url(../images/tab_info.gif) no-repeat left top;
+  background: #d5e9f6 url(../images/tab_info.gif) no-repeat;
   border: none;
-  padding: 1em 1em 0.25em 48px;
+  padding-top: 1em;
+  padding-bottom: 0.25em;
   margin: 0.25em 0 1.5em 0;
 }
+:where(body[dir="ltr"]) .info { background-position: left top; padding-right: 1em; padding-left: 48px; }
+:where(body[dir="rtl"]) .info { background-position: right top; padding-right: 48px; padding-left: 1em; }
 
 #mainCol div.todo {
-  background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
+  background: #fff9d8 url(../images/tab_yellow.gif) no-repeat;
   border: none;
-  padding: 1em 1em 0.25em 48px;
+  padding-top: 1em;
+  padding-bottom: 0.25em;
   margin: 0.25em 0 1.5em 0;
 }
+:where(body[dir="ltr"]) #mainCol div.todo { background-position: left top; padding-right: 1em; padding-left: 48px; }
+:where(body[dir="rtl"]) #mainCol div.todo { background-position: right top; padding-right: 48px; padding-left: 1em; }
 
 .note code, .info code, .todo code {
   background: #fff;
@@ -722,10 +772,10 @@ div.code_container {
 
 #mainCol ul li {
   list-style:none;
-  background: url(../images/grey_bullet.gif) no-repeat left 0.5em;
-  padding-left: 1em;
-  margin-left: 0;
+  background: url(../images/grey_bullet.gif) no-repeat;
 }
+:where(body[dir="ltr"]) #mainCol ul li { background-position: left 0.5em; padding-left: 1em; margin-left: 0; }
+:where(body[dir="rtl"]) #mainCol ul li { background-position: right 0.5em; padding-right: 1em; margin-right: 0; }
 
 #subCol .content {
   font-size: 0.7857em;

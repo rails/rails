@@ -8,7 +8,7 @@ module AbstractController
       class W
         include ActionDispatch::Routing::RouteSet.new.tap { |r|
           r.draw {
-            ActiveSupport::Deprecation.silence {
+            ActionDispatch.deprecator.silence {
               get ":controller(/:action(/:id(.:format)))"
             }
           }
@@ -268,7 +268,7 @@ module AbstractController
         w = Class.new {
           config = ActionDispatch::Routing::RouteSet::Config.new "/subdir"
           r = ActionDispatch::Routing::RouteSet.new(config)
-          r.draw { ActiveSupport::Deprecation.silence { get ":controller(/:action(/:id(.:format)))" } }
+          r.draw { ActionDispatch.deprecator.silence { get ":controller(/:action(/:id(.:format)))" } }
           include r.url_helpers
         }
         add_host!(w)
@@ -324,7 +324,7 @@ module AbstractController
           set.draw do
             get "home/sweet/home/:user", to: "home#index", as: :home
 
-            ActiveSupport::Deprecation.silence do
+            ActionDispatch.deprecator.silence do
               get ":controller/:action/:id"
             end
           end

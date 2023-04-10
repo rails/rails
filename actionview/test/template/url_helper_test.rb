@@ -402,6 +402,15 @@ class UrlHelperTest < ActiveSupport::TestCase
     ActionView::Helpers::UrlHelper.button_to_generates_button_tag = old_value
   end
 
+  def test_button_to_with_content_exfiltration_prevention
+    with_prepend_content_exfiltration_prevention(true) do
+      assert_dom_equal(
+        %{<!-- '"` --><!-- </textarea></xmp> --></option></form><form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+        button_to("Hello", "http://www.example.com")
+      )
+    end
+  end
+
   class FakeParams
     def initialize(permitted = true)
       @permitted = permitted
@@ -1036,6 +1045,16 @@ class UrlHelperTest < ActiveSupport::TestCase
   def request_forgery_protection_token
     "form_token"
   end
+
+  private
+    def with_prepend_content_exfiltration_prevention(value)
+      old_value = ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = value
+
+      yield
+    ensure
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = old_value
+    end
 end
 
 class UrlHelperControllerTest < ActionController::TestCase
@@ -1053,7 +1072,7 @@ class UrlHelperControllerTest < ActionController::TestCase
         to: "url_helper_controller_test/url_helper#show_named_route",
         as: :show_named_route
 
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get "/:controller(/:action(/:id))"
       end
 

@@ -4,7 +4,8 @@ require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
-require "active_support/message_verifier"
+require "active_support/message_verifiers"
+require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
@@ -111,7 +112,9 @@ module Rails
       @app_env_config    = nil
       @ordered_railties  = nil
       @railties          = nil
-      @message_verifiers = {}
+      @key_generators    = {}
+      @message_verifiers = nil
+      @deprecators       = nil
       @ran_load_hooks    = false
 
       @executor          = Class.new(ActiveSupport::Executor)
@@ -149,13 +152,51 @@ module Rails
       routes_reloader.reload!
     end
 
-    # Returns the application's KeyGenerator
-    def key_generator
+    # Returns a key generator (ActiveSupport::CachingKeyGenerator) for a
+    # specified +secret_key_base+. The return value is memoized, so additional
+    # calls with the same +secret_key_base+ will return the same key generator
+    # instance.
+    def key_generator(secret_key_base = self.secret_key_base)
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @caching_key_generator ||= ActiveSupport::CachingKeyGenerator.new(
+      @key_generators[secret_key_base] ||= ActiveSupport::CachingKeyGenerator.new(
         ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
       )
+    end
+
+    # Returns a message verifier factory (ActiveSupport::MessageVerifiers). This
+    # factory can be used as a central point to configure and create message
+    # verifiers (ActiveSupport::MessageVerifier) for your application.
+    #
+    # By default, message verifiers created by this factory will generate
+    # messages using the default ActiveSupport::MessageVerifier options. You can
+    # override these options with a combination of
+    # ActiveSupport::MessageVerifiers#clear_rotations and
+    # ActiveSupport::MessageVerifiers#rotate. However, this must be done prior
+    # to building any message verifier instances. For example, in a
+    # +before_initialize+ block:
+    #
+    #   # Use `url_safe: true` when generating messages
+    #   config.before_initialize do |app|
+    #     app.message_verifiers.clear_rotations
+    #     app.message_verifiers.rotate(url_safe: true)
+    #   end
+    #
+    # Message verifiers created by this factory will always use a secret derived
+    # from #secret_key_base when generating messages. +clear_rotations+ will not
+    # affect this behavior. However, older +secret_key_base+ values can be
+    # rotated for verifying messages:
+    #
+    #   # Fall back to old `secret_key_base` when verifying messages
+    #   config.before_initialize do |app|
+    #     app.message_verifiers.rotate(secret_key_base: "old secret_key_base")
+    #   end
+    #
+    def message_verifiers
+      @message_verifiers ||=
+        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
+          key_generator(secret_key_base).generate_key(salt)
+        end.rotate_defaults
     end
 
     # Returns a message verifier object.
@@ -177,9 +218,20 @@ module Rails
     #
     # See the ActiveSupport::MessageVerifier documentation for more information.
     def message_verifier(verifier_name)
-      @message_verifiers[verifier_name] ||= begin
-        secret = key_generator.generate_key(verifier_name.to_s)
-        ActiveSupport::MessageVerifier.new(secret)
+      message_verifiers[verifier_name]
+    end
+
+    # A managed collection of deprecators (ActiveSupport::Deprecation::Deprecators).
+    # The collection's configuration methods affect all deprecators in the
+    # collection. Additionally, the collection's +silence+ method silences all
+    # deprecators in the collection for the duration of a given block.
+    #
+    # The collection is prepopulated with a default deprecator, which can be
+    # accessed via <tt>deprecators[:rails]</tt>. More deprecators can be added
+    # via <tt>deprecators[name] = deprecator</tt>.
+    def deprecators
+      @deprecators ||= ActiveSupport::Deprecation::Deprecators.new.tap do |deprecators|
+        deprecators[:rails] = Rails.deprecator
       end
     end
 
@@ -249,7 +301,7 @@ module Rails
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= super.merge(
-          "action_dispatch.parameter_filter" => config.filter_parameters,
+          "action_dispatch.parameter_filter" => filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_key_base" => secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
@@ -409,11 +461,17 @@ module Rails
     # In development and test, this is randomly generated and stored in a
     # temporary file in <tt>tmp/development_secret.txt</tt>.
     #
+    # You can also set <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt> to trigger the use of a randomly generated
+    # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
+    # production as part of a build step that otherwise does not need access to the production secrets.
+    #
+    # Dockerfile example: <tt>RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile</tt>.
+    #
     # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
     # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.development? || Rails.env.test?
+      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
         secrets.secret_key_base ||= generate_development_secret
       else
         validate_secret_key_base(
@@ -422,44 +480,39 @@ module Rails
       end
     end
 
-    # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
-    # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
-    # +config/master.key+.
-    # If specific credentials file exists for current environment, it takes precedence, thus for +production+
-    # environment look first for +config/credentials/production.yml.enc+ with master key taken
-    # from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading +config/credentials/production.key+.
-    # Default behavior can be overwritten by setting +config.credentials.content_path+ and +config.credentials.key_path+.
+    # Returns an ActiveSupport::EncryptedConfiguration instance for the
+    # credentials file specified by +config.credentials.content_path+.
+    #
+    # By default, +config.credentials.content_path+ will point to either
+    # <tt>config/credentials/#{environment}.yml.enc</tt> for the current
+    # environment (for example, +config/credentials/production.yml.enc+ for the
+    # +production+ environment), or +config/credentials.yml.enc+ if that file
+    # does not exist.
+    #
+    # The encryption key is taken from either <tt>ENV["RAILS_MASTER_KEY"]</tt>,
+    # or from the file specified by +config.credentials.key_path+. By default,
+    # +config.credentials.key_path+ will point to either
+    # <tt>config/credentials/#{environment}.key</tt> for the current
+    # environment, or +config/master.key+ if that file does not exist.
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
 
-    # Shorthand to decrypt any encrypted configurations or files.
+    # Returns an ActiveSupport::EncryptedConfiguration instance for an encrypted
+    # file. By default, the encryption key is taken from either
+    # <tt>ENV["RAILS_MASTER_KEY"]</tt>, or from the +config/master.key+ file.
     #
-    # For any file added with <tt>rails encrypted:edit</tt> call +read+ to decrypt
-    # the file with the master key.
-    # The master key is either stored in +config/master.key+ or <tt>ENV["RAILS_MASTER_KEY"]</tt>.
+    #   my_config = Rails.application.encrypted("config/my_config.enc")
     #
-    #   Rails.application.encrypted("config/mystery_man.txt.enc").read
-    #   # => "We've met before, haven't we?"
+    #   my_config.read
+    #   # => "foo:\n  bar: 123\n"
     #
-    # It's also possible to interpret encrypted YAML files with +config+.
+    #   my_config.foo.bar
+    #   # => 123
     #
-    #   Rails.application.encrypted("config/credentials.yml.enc").config
-    #   # => { next_guys_line: "I don't think so. Where was it you think we met?" }
-    #
-    # Any top-level configs are also accessible directly on the return value:
-    #
-    #   Rails.application.encrypted("config/credentials.yml.enc").next_guys_line
-    #   # => "I don't think so. Where was it you think we met?"
-    #
-    # The files or configs can also be encrypted with a custom key. To decrypt with
-    # a key in the +ENV+, use:
-    #
-    #   Rails.application.encrypted("config/special_tokens.yml.enc", env_key: "SPECIAL_TOKENS")
-    #
-    # Or to decrypt with a file, that should be version control ignored, relative to +Rails.root+:
-    #
-    #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
+    # Encrypted files can be edited with the <tt>bin/rails encrypted:edit</tt>
+    # command. (See the output of <tt>bin/rails encrypted:edit --help</tt> for
+    # more information.)
     def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
@@ -491,6 +544,11 @@ module Rails
     # +railties_order+.
     def migration_railties # :nodoc:
       ordered_railties.flatten - [self]
+    end
+
+    def load_generators(app = self) # :nodoc:
+      app.ensure_generator_templates_added
+      super
     end
 
     # Eager loads the application code.
@@ -582,6 +640,11 @@ module Rails
       end
     end
 
+    def ensure_generator_templates_added
+      configured_paths = config.generators.templates
+      configured_paths.unshift(*(paths["lib/templates"].existent - configured_paths))
+    end
+
     private
       def generate_development_secret
         if secrets.secret_key_base.nil?
@@ -612,6 +675,14 @@ module Rails
 
       def coerce_same_site_protection(protection)
         protection.respond_to?(:call) ? protection : proc { protection }
+      end
+
+      def filter_parameters
+        if config.precompile_filter_parameters
+          ActiveSupport::ParameterFilter.precompile_filters(config.filter_parameters)
+        else
+          config.filter_parameters
+        end
       end
   end
 end

@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/runner/runner_command"
 
 class Rails::RunnerTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -30,6 +29,13 @@ class Rails::RunnerTest < ActiveSupport::TestCase
     assert_equal <<~OUTPUT, run_runner_command("foo.rb")
       Hello world
     OUTPUT
+  end
+
+  def test_rails_runner_with_file_path_that_does_not_exist
+    command_output = run_runner_command("no-file-here.rb", allow_failure: true)
+
+    assert_match(/The file no-file-here.rb could not be found/, command_output)
+    assert_equal 1, $?.exitstatus
   end
 
   def test_rails_runner_with_ruby_code

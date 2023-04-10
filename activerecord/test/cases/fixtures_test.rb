@@ -22,6 +22,7 @@ require "models/doubloon"
 require "models/essay"
 require "models/joke"
 require "models/matey"
+require "models/organization"
 require "models/other_dog"
 require "models/parrot"
 require "models/pirate"
@@ -32,6 +33,7 @@ require "models/task"
 require "models/topic"
 require "models/traffic_light"
 require "models/treasure"
+require "models/cpk"
 
 class FixturesTest < ActiveRecord::TestCase
   include ConnectionHelper
@@ -322,9 +324,9 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_create_fixtures
-    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "parrots")
-    assert Parrot.find_by_name("Curious George"), "George is not in the database"
-    assert fixtures.detect { |f| f.name == "parrots" }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
+    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "organizations")
+    assert Organization.find_by_name("No Such Agency"), "'No Such Agency' is not in the database"
+    assert fixtures.detect { |f| f.name == "organizations" }, "no fixtures named 'organizations' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_multiple_clean_fixtures
@@ -439,9 +441,14 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_logger_level_invariant
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
+
     level = ActiveRecord::Base.logger.level
     create_fixtures("topics")
     assert_equal level, ActiveRecord::Base.logger.level
+  ensure
+    ActiveRecord::Base.logger = previous_logger
   end
 
   def test_instantiation
@@ -475,7 +482,7 @@ class FixturesTest < ActiveRecord::TestCase
     # Ensure that this file never exists
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
-    assert_raise(Errno::ENOENT) do
+    assert_raise(ArgumentError) do
       ActiveRecord::FixtureSet.new(nil, "companies", Company, nonexistent_fixture_path)
     end
   end
@@ -995,7 +1002,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); end
     end.new
 
-    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
+    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
       fire_connection_notification(connection)
     end
   end
@@ -1035,19 +1042,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); end
     end.new
 
-    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
+    assert_called_with(connection, :begin_transaction, [], joinable: false, _lazy: false) do
       fire_connection_notification(connection, shard: :shard_two)
     end
   end
 
   private
     def fire_connection_notification(connection, shard: ActiveRecord::Base.default_shard)
-      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book", { shard: shard }], returns: connection) do
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection, shard: shard) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
-          spec_name: "book",
+          connection_name: "book",
           shard: shard,
-          config: nil,
+          config: nil
         }
 
         message_bus.instrument("!connection.active_record", payload) { }
@@ -1118,7 +1125,7 @@ end
 
 class LoadAllFixturesTest < ActiveRecord::TestCase
   def test_all_there
-    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixture_paths = [FIXTURES_ROOT + "/all"]
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
@@ -1129,9 +1136,22 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
   end
 end
 
+class LoadAllFixturesWithArrayTest < ActiveRecord::TestCase
+  def test_all_there
+    self.class.fixture_paths = [FIXTURES_ROOT + "/all", FIXTURES_ROOT + "/categories"]
+    self.class.fixtures :all
+
+    if File.symlink? FIXTURES_ROOT + "/all/admin"
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people special_categories subsubdir/arbitrary_filename tasks), fixture_table_names.sort
+    end
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
+  end
+end
+
 class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
   def test_all_there
-    self.class.fixture_path = Pathname.new(FIXTURES_ROOT).join("all")
+    self.class.fixture_paths = [Pathname.new(FIXTURES_ROOT).join("all")]
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
@@ -1350,12 +1370,12 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 end
 
 class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
-  fixtures :parrots
+  fixtures :organizations
 
   # This seemingly useless assertion catches a bug that caused the fixtures
   # setup code call nil[]
   def test_foo
-    assert_equal parrots(:louis), Parrot.find_by_name("King Louis")
+    assert_equal organizations(:nsa), Organization.find_by_name("No Such Agency")
   end
 end
 
@@ -1391,7 +1411,7 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
 end
 
 class IgnoreFixturesTest < ActiveRecord::TestCase
-  fixtures :other_books, :parrots
+  fixtures :other_books, :parrots, :parrots_pirates, :pirates, :treasures
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # without interfering with other tests that use the same `model_class`.
@@ -1475,13 +1495,13 @@ class NilFixturePathTest < ActiveRecord::TestCase
     error = assert_raises(StandardError) do
       TestCase = Class.new(ActiveRecord::TestCase)
       TestCase.class_eval do
-        self.fixture_path = nil
+        self.fixture_paths = nil
         fixtures :all
       end
     end
     assert_equal <<~MSG.squish, error.message
       No fixture path found.
-      Please set `NilFixturePathTest::TestCase.fixture_path`.
+      Please set `NilFixturePathTest::TestCase.fixture_paths`.
     MSG
   end
 end
@@ -1492,7 +1512,7 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
   end
 
   test "ignores file fixtures" do
-    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixture_paths = [FIXTURES_ROOT + "/all"]
     self.class.fixtures :all
 
     assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort
@@ -1509,8 +1529,8 @@ class PrimaryKeyErrorTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:SQLite3Adapter) && !in_memory_db?
-  class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
+class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
+  if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     include ActiveRecord::TestFixtures
 
     fixtures :dogs
@@ -1620,5 +1640,29 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def readonly_config
         default_config.merge("replica" => true)
       end
+  end
+
+  class CompositePkFixturesTest < ActiveRecord::TestCase
+    fixtures :cpk_orders, :cpk_books, :authors
+
+    def test_generates_composite_primary_key_for_partially_filled_fixtures
+      david = authors(:david)
+      david_cpk_book = cpk_books(:cpk_known_author_david_book)
+
+      assert_not_empty(david_cpk_book.id.compact)
+      assert_equal david.id, david_cpk_book.author_id
+      assert_not_nil david_cpk_book.number
+    end
+
+    def test_generates_composite_primary_key_ids
+      assert_not_empty(cpk_orders(:cpk_groceries_order_1).id.compact)
+
+      assert_not_nil(cpk_books(:cpk_great_author_first_book).author_id)
+      assert_not_nil(cpk_books(:cpk_great_author_first_book).number)
+    end
+
+    def test_generates_composite_primary_key_with_unique_components
+      assert_equal 2, cpk_orders(:cpk_groceries_order_1).id.uniq.size
+    end
   end
 end

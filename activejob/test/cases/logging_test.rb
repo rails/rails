@@ -11,6 +11,7 @@ require "jobs/rescue_job"
 require "jobs/retry_job"
 require "jobs/disable_log_job"
 require "jobs/abort_before_enqueue_job"
+require "jobs/enqueue_error_job"
 require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
@@ -296,5 +297,46 @@ class LoggingTest < ActiveSupport::TestCase
       RetryJob.perform_later "DiscardableError", 2
       assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
     end
+  end
+
+  def test_enqueue_all_job_logging_some_jobs_failed_enqueuing
+    EnqueueErrorJob.disable_test_adapter
+
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = [false, true]
+
+    ActiveJob.perform_all_later(EnqueueErrorJob.new, EnqueueErrorJob.new)
+    assert_match(/Enqueued 1 job to .+ \(1 EnqueueErrorJob\)\. Failed enqueuing 1 job/, @logger.messages)
+  ensure
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = []
+  end
+
+  def test_enqueue_all_job_logging_all_jobs_failed_enqueuing
+    EnqueueErrorJob.disable_test_adapter
+
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = [true, true]
+
+    ActiveJob.perform_all_later(EnqueueErrorJob.new, EnqueueErrorJob.new)
+    assert_match(/Failed enqueuing 2 jobs to .+/, @logger.messages)
+  ensure
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = []
+  end
+
+  def test_verbose_enqueue_logs
+    ActiveJob.verbose_enqueue_logs = true
+
+    LoggingJob.perform_later "Dummy"
+    assert_match("↳", @logger.messages)
+  ensure
+    ActiveJob.verbose_enqueue_logs = false
+  end
+
+  def test_verbose_enqueue_logs_disabled_by_default
+    LoggingJob.perform_later "Dummy"
+    assert_no_match("↳", @logger.messages)
+  end
+
+  def test_enqueue_all_job_logging
+    ActiveJob.perform_all_later(LoggingJob.new("Dummy"), HelloJob.new("Jamie"), HelloJob.new("John"))
+    assert_match(/Enqueued 3 jobs to .+ \(2 HelloJob, 1 LoggingJob\)/, @logger.messages)
   end
 end

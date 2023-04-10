@@ -105,6 +105,32 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_all_foreign_keys_valid_having_foreign_keys_in_multiple_schemas
+    @connection.execute <<~SQL
+      CREATE SCHEMA referential_integrity_test_schema;
+
+      CREATE TABLE referential_integrity_test_schema.nodes (
+        id          INT      GENERATED ALWAYS AS IDENTITY,
+        parent_id   INT      NOT NULL,
+        PRIMARY KEY(id),
+        CONSTRAINT fk_parent_node FOREIGN KEY(parent_id)
+                                  REFERENCES referential_integrity_test_schema.nodes(id)
+      );
+    SQL
+
+    result = @connection.execute <<~SQL
+      SELECT count(*) AS count
+        FROM information_schema.table_constraints
+       WHERE constraint_schema = 'referential_integrity_test_schema'
+         AND constraint_type = 'FOREIGN KEY';
+    SQL
+
+    assert_equal 1, result.first["count"], "referential_integrity_test_schema should have 1 foreign key"
+    assert @connection.all_foreign_keys_valid?
+  ensure
+    @connection.drop_schema "referential_integrity_test_schema", if_exists: true
+  end
+
   private
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")

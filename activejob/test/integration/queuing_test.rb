@@ -77,14 +77,24 @@ class QueuingTest < ActiveSupport::TestCase
     skip
   end
 
+  test "should run job bulk enqueued in the future at the specified time" do
+    ActiveJob.perform_all_later([TestJob.new(@id).set(wait: 5.seconds)])
+    wait_for_jobs_to_finish_for(2.seconds)
+    assert_job_not_executed
+    wait_for_jobs_to_finish_for(10.seconds)
+    assert_job_executed
+  rescue NotImplementedError
+    skip
+  end
+
   test "should supply a provider_job_id when available for immediate jobs" do
-    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :que, :queue_classic)
+    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :queue_classic)
     test_job = TestJob.perform_later @id
     assert test_job.provider_job_id, "Provider job id should be set by provider"
   end
 
   test "should supply a provider_job_id when available for delayed jobs" do
-    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :que, :queue_classic)
+    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :queue_classic)
     delayed_test_job = TestJob.set(wait: 1.minute).perform_later @id
     assert delayed_test_job.provider_job_id, "Provider job id should by set for delayed jobs by provider"
   end
@@ -123,7 +133,7 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test "should run job with higher priority first" do
-    skip unless adapter_is?(:delayed_job, :que)
+    skip unless adapter_is?(:delayed_job)
 
     wait_until = Time.now + 3.seconds
     TestJob.set(wait_until: wait_until, priority: 20).perform_later "#{@id}.1"

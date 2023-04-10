@@ -149,7 +149,7 @@ module ActiveRecord
 
     class DisableExtension2 < SilentMigration
       def change
-        disable_extension "hstore"
+        disable_extension "hstore", force: :cascade
       end
     end
 

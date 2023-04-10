@@ -21,6 +21,13 @@ class JobGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_job_parent_param
+    run_generator ["refresh_counters", "--parent", "awesome_job"]
+    assert_file "app/jobs/refresh_counters_job.rb" do |job|
+      assert_match(/class RefreshCountersJob < AwesomeJob/, job)
+    end
+  end
+
   def test_job_namespace
     run_generator ["admin/refresh_counters", "--queue", "admin"]
     assert_file "app/jobs/admin/refresh_counters_job.rb" do |job|

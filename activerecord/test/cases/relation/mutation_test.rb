@@ -116,8 +116,8 @@ module ActiveRecord
 
     test "none!" do
       assert relation.none!.equal?(relation)
-      assert_equal [NullRelation], relation.extending_values
-      assert relation.is_a?(NullRelation)
+      assert_predicate relation, :none?
+      assert_predicate relation, :null_relation?
     end
 
     test "distinct!" do
@@ -133,6 +133,13 @@ module ActiveRecord
     test "skip_preloading!" do
       relation.skip_preloading!
       assert relation.skip_preloading_value
+    end
+
+    test "#regroup!" do
+      @relation = relation.group("foo")
+
+      assert relation.regroup!("bar").equal?(relation)
+      assert_equal ["bar"], relation.group_values
     end
 
     private

@@ -61,7 +61,7 @@ module ActiveRecord
 
         # Given a attribute name, it returns the name of the source attribute when it's a preserved one.
         def source_attribute_from_preserved_attribute(attribute_name)
-          attribute_name.to_s.sub(ORIGINAL_ATTRIBUTE_PREFIX, "") if /^#{ORIGINAL_ATTRIBUTE_PREFIX}/.match?(attribute_name)
+          attribute_name.to_s.sub(ORIGINAL_ATTRIBUTE_PREFIX, "") if attribute_name.start_with?(ORIGINAL_ATTRIBUTE_PREFIX)
         end
 
         private
@@ -82,8 +82,9 @@ module ActiveRecord
           def encrypt_attribute(name, attribute_scheme)
             encrypted_attributes << name.to_sym
 
-            attribute name, default: -> { columns_hash[name.to_s]&.default } do |cast_type|
-              ActiveRecord::Encryption::EncryptedAttributeType.new scheme: attribute_scheme, cast_type: cast_type
+            attribute name do |cast_type|
+              ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: attribute_scheme, cast_type: cast_type,
+                                                                    default: -> { columns_hash[name.to_s]&.default })
             end
 
             preserve_original_encrypted(name) if attribute_scheme.ignore_case?
@@ -139,12 +140,16 @@ module ActiveRecord
 
       # Returns whether a given attribute is encrypted or not.
       def encrypted_attribute?(attribute_name)
-        ActiveRecord::Encryption.encryptor.encrypted? ciphertext_for(attribute_name)
+        ActiveRecord::Encryption.encryptor.encrypted? read_attribute_before_type_cast(attribute_name)
       end
 
       # Returns the ciphertext for +attribute_name+.
       def ciphertext_for(attribute_name)
-        read_attribute_before_type_cast(attribute_name)
+        if encrypted_attribute?(attribute_name)
+          read_attribute_before_type_cast(attribute_name)
+        else
+          read_attribute_for_database(attribute_name)
+        end
       end
 
       # Encrypts all the encryptable attributes and saves the changes.
@@ -159,6 +164,15 @@ module ActiveRecord
 
       private
         ORIGINAL_ATTRIBUTE_PREFIX = "original_"
+
+        def _create_record(attribute_names = self.attribute_names)
+          if has_encrypted_attributes?
+            # Always persist encrypted attributes, because an attribute might be
+            # encrypting a column default value.
+            attribute_names |= self.class.encrypted_attributes.map(&:to_s)
+          end
+          super
+        end
 
         def encrypt_attributes
           validate_encryption_allowed

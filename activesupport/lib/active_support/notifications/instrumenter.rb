@@ -155,7 +155,8 @@ module ActiveSupport
       # Returns the idle time time (in milliseconds) passed since the call to
       # +start!+ and the call to +finish!+
       def idle_time
-        duration - cpu_time
+        diff = duration - cpu_time
+        diff > 0.0 ? diff : 0.0
       end
 
       # Returns the number of allocations made since the call to +start!+ and
@@ -165,7 +166,7 @@ module ActiveSupport
       end
 
       def children # :nodoc:
-        ActiveSupport::Deprecation.warn <<~EOM
+        ActiveSupport.deprecator.warn <<~EOM
           ActiveSupport::Notifications::Event#children is deprecated and will
           be removed in Rails 7.2.
         EOM
@@ -173,7 +174,7 @@ module ActiveSupport
       end
 
       def parent_of?(event) # :nodoc:
-        ActiveSupport::Deprecation.warn <<~EOM
+        ActiveSupport.deprecator.warn <<~EOM
           ActiveSupport::Notifications::Event#parent_of? is deprecated and will
           be removed in Rails 7.2.
         EOM

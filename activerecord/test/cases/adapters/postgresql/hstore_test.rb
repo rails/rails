@@ -41,7 +41,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
   def test_disable_enable_hstore
     assert @connection.extension_enabled?("hstore")
-    @connection.disable_extension "hstore"
+    @connection.disable_extension "hstore", force: :cascade
     assert_not @connection.extension_enabled?("hstore")
     @connection.enable_extension "hstore"
     assert @connection.extension_enabled?("hstore")
@@ -320,7 +320,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   class HstoreWithSerialize < Hstore
-    serialize :tags, TagCollection
+    serialize :tags, coder: TagCollection
   end
 
   def test_hstore_with_serialized_attributes

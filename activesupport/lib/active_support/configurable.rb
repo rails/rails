@@ -125,6 +125,14 @@ module ActiveSupport
         end
       end
       private :config_accessor
+
+      private
+        def inherited(subclass)
+          super
+          subclass.class_eval do
+            @_config = nil
+          end
+        end
     end
 
     # Reads and writes attributes from a configuration OrderedOptions.

@@ -20,7 +20,7 @@ Introduction
 
 INFO. This guide documents autoloading, reloading, and eager loading in Rails applications.
 
-In a normal Ruby program, dependencies need to be loaded by hand. For example, the following controller uses classes `ApplicationController` and `Post`, and normally you'd need to put `require` calls for them:
+In an ordinary Ruby program, you explicitly load the files that define classes and modules you want to use. For example, the following controller refers to `ApplicationController` and `Post`, and you'd normally issue `require` calls for them:
 
 ```ruby
 # DO NOT DO THIS.
@@ -35,7 +35,7 @@ class PostsController < ApplicationController
 end
 ```
 
-This is not the case in Rails applications, where application classes and modules are just available everywhere:
+This is not the case in Rails applications, where application classes and modules are just available everywhere without `require` calls:
 
 ```ruby
 class PostsController < ApplicationController
@@ -45,9 +45,10 @@ class PostsController < ApplicationController
 end
 ```
 
-Idiomatic Rails applications only issue `require` calls to load stuff from their `lib` directory, the Ruby standard library, Ruby gems, etc. That is, anything that does not belong to their autoload paths, explained below.
+Rails _autoloads_ them on your behalf if needed. This is possible thanks to a couple of [Zeitwerk](https://github.com/fxn/zeitwerk) loaders Rails sets up on your behalf, which provide autoloading, reloading, and eager loading.
 
-To provide this feature, Rails manages a couple of [Zeitwerk](https://github.com/fxn/zeitwerk) loaders on your behalf.
+On the other hand, those loaders do not manage anything else. In particular, they do not manage the Ruby standard library, gem dependencies, Rails components themselves, or even (by default) the application `lib` directory. That code has to be loaded as usual.
+
 
 Project Structure
 -----------------
@@ -80,7 +81,7 @@ $ bin/rails runner 'p UsersHelper'
 UsersHelper
 ```
 
-Rails adds custom directories under `app` to the autoload paths automatically. For example, if your application has `app/presenters`, you don't need to configure anything in order to autoload presenters, it works out of the box.
+Rails adds custom directories under `app` to the autoload paths automatically. For example, if your application has `app/presenters`, you don't need to configure anything in order to autoload presenters; it works out of the box.
 
 The array of default autoload paths can be extended by pushing to `config.autoload_paths`, in `config/application.rb` or `config/environments/*.rb`. For example:
 
@@ -231,13 +232,15 @@ While booting, applications can autoload from the autoload once paths, which are
 
 However, you cannot autoload from the autoload paths, which are managed by the `main` autoloader. This applies to code in `config/initializers` as well as application or engines initializers.
 
-Why? Initializers only run once, when the application boots. If you reboot the server, they run again in a new process, but reloading does not reboot the server, and initializers don't run again. Let's see the two main use cases.
+Why? Initializers only run once, when the application boots. They do not run again on reloads. If an initializer used a reloadable class or module, edits to them would not be reflected in that initial code, thus becoming stale. Therefore, referring to reloadable constants during initialization is disallowed.
 
-### Use case 1: During boot, load reloadable code
+Let's see what to do instead.
 
-#### Autoload on boot and on each reload
+### Use Case 1: During Boot, Load Reloadable Code
 
-Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by the `main` autoloader and you need to configure its endpoint while the application boots:
+#### Autoload on Boot and on Each Reload
+
+Let's imagine `ApiGateway` is a reloadable class and you need to configure its endpoint while the application boots:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
@@ -257,7 +260,7 @@ end
 
 NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
 
-#### Autoload on boot only
+#### Autoload on Boot Only
 
 Reloadable classes and modules can be autoloaded in `after_initialize` blocks too. These run on boot, but do not run again on reload. In some exceptional cases this may be what you want.
 
@@ -272,7 +275,7 @@ Rails.application.config.after_initialize do
 end
 ```
 
-### Use case 2: During boot, load code that remains cached
+### Use Case 2: During Boot, Load Code that Remains Cached
 
 Some configurations take a class or module object, and they store it in a place that is not reloaded.
 
@@ -309,7 +312,31 @@ Corollary: Those classes or modules **cannot be reloadable**.
 
 The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it.
 
-As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#config-autoload-once-paths) for details.
+As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](#config-autoload-once-paths) for details.
+
+### Use Case 3: Configure Application Classes for Engines
+
+Let's suppose an engine works with the reloadable application class that models users, and has a configuration point for it:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = User # DO NOT DO THIS
+end
+```
+
+On reload, `config.user_model` would be pointing to a stale object, because the reloaded `User` class would not be reset in the engine configuration. Therefore, edits to `User` would be missed by the engine.
+
+In order to play well with reloadable application code, the engine instead needs applications to configure the _name_ of that class:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = "User" # OK
+end
+```
+
+Then, at run time, `config.user_model.constantize` gives you the current class object.
 
 Eager Loading
 -------------
@@ -327,75 +354,90 @@ During eager loading, Rails invokes `Zeitwerk::Loader.eager_load_all`. That ensu
 Single Table Inheritance
 ------------------------
 
-Single Table Inheritance is a feature that doesn't play well with lazy loading. The reason is that its API generally needs to be able to enumerate the STI hierarchy to work correctly, whereas lazy loading defers loading classes until they are referenced. You can't enumerate what you haven't referenced yet.
+Single Table Inheritance doesn't play well with lazy loading: Active Record has to be aware of STI hierarchies to work correctly, but when lazy loading, classes are precisely loaded only on demand!
 
-In a sense, applications need to eager load STI hierarchies regardless of the loading mode.
+To address this fundamental mismatch we need to preload STIs. There are a few options to accomplish this, with different trade-offs. Let's see them.
 
-Of course, if the application eager loads on boot, that is already accomplished. When it does not, it is in practice enough to instantiate the existing types in the database, which in development or test modes is usually fine. One way to do that is to include an STI preloading module in your `lib` directory:
+### Option 1: Enable Eager Loading
+
+The easiest way to preload STIs is to enable eager loading by setting:
 
 ```ruby
-module StiPreload
-  unless Rails.application.config.eager_load
-    extend ActiveSupport::Concern
+config.eager_load = true
+```
 
-    included do
-      cattr_accessor :preloaded, instance_accessor: false
-    end
+in `config/environments/development.rb` and `config/environments/test.rb`.
 
-    class_methods do
-      def descendants
-        preload_sti unless preloaded
-        super
-      end
+This is simple, but may be costly because it eager loads the entire application on boot and on every reload. The trade-off may be worthwhile for small applications, though.
 
-      # Constantizes all types present in the database. There might be more on
-      # disk, but that does not matter in practice as far as the STI API is
-      # concerned.
-      #
-      # Assumes store_full_sti_class is true, the default.
-      def preload_sti
-        types_in_db = \
-          base_class.
-            unscoped.
-            select(inheritance_column).
-            distinct.
-            pluck(inheritance_column).
-            compact
+### Option 2: Preload a Collapsed Directory
 
-        types_in_db.each do |type|
-          logger.debug("Preloading STI type #{type}")
-          type.constantize
-        end
+Store the files that define the hierarchy in a dedicated directory, which makes sense also conceptually. The directory is not meant to represent a namespace, its sole purpose is to group the STI:
 
-        self.preloaded = true
-      end
-    end
+```
+app/models/shapes/shape.rb
+app/models/shapes/circle.rb
+app/models/shapes/square.rb
+app/models/shapes/triangle.rb
+```
+
+In this example, we still want `app/models/shapes/circle.rb` to define `Circle`, not `Shapes::Circle`. This may be your personal preference to keep things simple, and also avoids refactors in existing code bases. The [collapsing](https://github.com/fxn/zeitwerk#collapsing-directories) feature of Zeitwerk allows us to do that:
+
+```ruby
+# config/initializers/preload_stis.rb
+
+shapes = "#{Rails.root}/app/models/shapes"
+Rails.autoloaders.main.collapse(shapes) # Not a namespace.
+
+unless Rails.application.config.eager_load
+  Rails.application.config.to_prepare do
+    Rails.autoloaders.main.eager_load_dir(shapes)
   end
 end
 ```
 
-and then include it in the STI root classes of your project:
+In this option, we eager load these few files on boot and reload even if the STI is not used. However, unless your application has a lot of STIs, this won't have any measurable impact.
+
+INFO: The method `Zeitwerk::Loader#eager_load_dir` was added in Zeitwerk 2.6.2. For older versions, you can still list the `app/models/shapes` directory and invoke `require_dependency` on its contents.
+
+WARNING: If models are added, modified, or deleted from the STI, reloading works as expected. However, if a new separate STI hierarchy is added to the application, you'll need to edit the initializer and restart the server.
+
+### Option 3: Preload a Regular Directory
+
+Similar to the previous one, but the directory is meant to be a namespace. That is, `app/models/shapes/circle.rb` is expected to define `Shapes::Circle`.
+
+For this one, the initializer is the same except no collapsing is configured:
 
 ```ruby
-# app/models/shape.rb
-require "sti_preload"
+# config/initializers/preload_stis.rb
 
-class Shape < ApplicationRecord
-  include StiPreload # Only in the root class.
+unless Rails.application.config.eager_load
+  Rails.application.config.to_prepare do
+    Rails.autoloaders.main.eager_load_dir("#{Rails.root}/app/models/shapes")
+  end
 end
 ```
 
+Same trade-offs.
+
+### Option 4: Preload Types from the Database
+
+In this option we do not need to organize the files in any way, but we hit the database:
+
 ```ruby
-# app/models/polygon.rb
-class Polygon < Shape
+# config/initializers/preload_stis.rb
+
+unless Rails.application.config.eager_load
+  Rails.application.config.to_prepare do
+    types = Shape.unscoped.select(:type).distinct.pluck(:type)
+    types.compact.each(&:constantize)
+  end
 end
 ```
 
-```ruby
-# app/models/triangle.rb
-class Triangle < Polygon
-end
-```
+WARNING: The STI will work correctly even if the table does not have all the types, but methods like `subclasses` or `descendants` won't return the missing types.
+
+WARNING: If models are added, modified, or deleted from the STI, reloading works as expected. However, if a new separate STI hierarchy is added to the application, you'll need to edit the initializer and restart the server.
 
 Customizing Inflections
 -----------------------
@@ -404,7 +446,7 @@ By default, Rails uses `String#camelize` to know which constant a given file or 
 
 It could be the case that some particular file or directory name does not get inflected as you want. For instance, `html_parser.rb` is expected to define `HtmlParser` by default. What if you prefer the class to be `HTMLParser`? There are a few ways to customize this.
 
-The easiest way is to define acronyms in `config/initializers/inflections.rb`:
+The easiest way is to define acronyms:
 
 ```ruby
 ActiveSupport::Inflector.inflections(:en) do |inflect|
@@ -416,7 +458,6 @@ end
 Doing so affects how Active Support inflects globally. That may be fine in some applications, but you can also customize how to camelize individual basenames independently from Active Support by passing a collection of overrides to the default inflectors:
 
 ```ruby
-# config/initializers/zeitwerk.rb
 Rails.autoloaders.each do |autoloader|
   autoloader.inflector.inflect(
     "html_parser" => "HTMLParser",
@@ -428,7 +469,6 @@ end
 That technique still depends on `String#camelize`, though, because that is what the default inflectors use as fallback. If you instead prefer not to depend on Active Support inflections at all and have absolute control over inflections, configure the inflectors to be instances of `Zeitwerk::Inflector`:
 
 ```ruby
-# config/initializers/zeitwerk.rb
 Rails.autoloaders.each do |autoloader|
   autoloader.inflector = Zeitwerk::Inflector.new
   autoloader.inflector.inflect(
@@ -441,6 +481,49 @@ end
 There is no global configuration that can affect said instances; they are deterministic.
 
 You can even define a custom inflector for full flexibility. Please check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
+
+### Where Should Inflection Customization Go?
+
+If an application does not use the `once` autoloader, the snippets above can go in `config/initializers`. For example, `config/initializers/inflections.rb` for the Active Support use case, or `config/initializers/zeitwerk.rb` for the other ones.
+
+Applications using the `once` autoloader have to move or load this configuration from the body of the application class in `config/application.rb`, because the `once` autoloader uses the inflector early in the boot process.
+
+Custom Namespaces
+-----------------
+
+As we saw above, autoload paths represent the top-level namespace: `Object`.
+
+Let's consider `app/services`, for example. This directory is not generated by default, but if it exists, Rails automatically adds it to the autoload paths.
+
+By default, the file `app/services/users/signup.rb` is expected to define `Users::Signup`, but what if you prefer that entire subtree to be under a `Services` namespace? Well, with default settings, that can be accomplished by creating a subdirectory: `app/services/services`.
+
+However, depending on your taste, that just might not feel right to you. You might prefer that `app/services/users/signup.rb` simply defines `Services::Users::Signup`.
+
+Zeitwerk supports [custom root namespaces](https://github.com/fxn/zeitwerk#custom-root-namespaces) to address this use case, and you can customize the `main` autoloader to accomplish that:
+
+```ruby
+# config/initializers/autoloading.rb
+
+# The namespace has to exist.
+#
+# In this example we define the module on the spot. Could also be created
+# elsewhere and its definition loaded here with an ordinary `require`. In
+# any case, `push_dir` expects a class or module object.
+module Services; end
+
+Rails.autoloaders.main.push_dir("#{Rails.root}/app/services", namespace: Services)
+```
+
+Rails < 7.1 did not support this feature, but you can still add this additional code in the same file and get it working:
+
+```ruby
+# Additional code for applications running on Rails < 7.1.
+app_services_dir = "#{Rails.root}/app/services" # has to be a string
+ActiveSupport::Dependencies.autoload_paths.delete(app_services_dir)
+Rails.application.config.watchable_dirs[app_services_dir] = [:rb]
+```
+
+Custom namespaces are also supported for the `once` autoloader. However, since that one is set up earlier in the boot process, the configuration cannot be done in an application initializer. Instead, please put it in `config/application.rb`, for example.
 
 Autoloading and Engines
 -----------------------

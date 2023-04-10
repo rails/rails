@@ -127,7 +127,7 @@ class NestedPerson < ActiveRecord::Base
   end
 end
 
-class Insure
+module Insure
   INSURES = %W{life annuality}
 
   def self.load(mask)
@@ -145,5 +145,5 @@ end
 class SerializedPerson < ActiveRecord::Base
   self.table_name = "people"
 
-  serialize :insures, Insure
+  serialize :insures, coder: Insure
 end

@@ -414,7 +414,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
     assert_equal "Odegy", odegy_account.firm.name
 
-    assert_equal "ODEGY", odegy_account.reload_firm.name
+    assert_queries(1) { odegy_account.reload_firm }
+
+    assert_no_queries { odegy_account.firm }
+    assert_equal "ODEGY", odegy_account.firm.name
   end
 
   def test_reload_the_belonging_object_with_query_cache
@@ -439,6 +442,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { Account.find(odegy_account_id) }
   ensure
     ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  def test_resetting_the_association
+    odegy_account = accounts(:odegy_account)
+
+    assert_equal "Odegy", odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
+    assert_equal "Odegy", odegy_account.firm.name
+
+    assert_no_queries { odegy_account.reset_firm }
+    assert_queries(1) { odegy_account.firm }
+    assert_equal "ODEGY", odegy_account.firm.name
   end
 
   def test_natural_assignment_to_nil
@@ -1428,6 +1443,31 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.id, client.client_of
   end
 
+  def test_should_set_foreign_key_on_create_association_with_unpersisted_owner
+    tagging = Tagging.new
+    tag = tagging.create_tag
+
+    assert_not_predicate tagging, :persisted?
+    assert_predicate tag, :persisted?
+    assert_equal tag.id, tagging.tag_id
+  end
+
+  def test_should_set_foreign_key_on_save
+    client = Client.create! name: "fuu"
+    firm   = client.build_firm name: "baa"
+
+    firm.save
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_should_set_foreign_key_on_save!
+    client = Client.create! name: "fuu"
+    firm   = client.build_firm name: "baa"
+
+    firm.save!
+    assert_equal firm.id, client.client_of
+  end
+
   def test_self_referential_belongs_to_with_counter_cache_assigning_nil
     comment = Comment.create! post: posts(:thinking), body: "fuu"
     comment.parent = nil
@@ -1650,6 +1690,61 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_not comment.author_changed?
     assert comment.author_previously_changed?
   end
+
+  class ShipRequired < ActiveRecord::Base
+    self.table_name = "ships"
+    belongs_to :developer, required: true
+  end
+
+  test "runs parent presence check if parent changed or nil" do
+    david = developers(:david)
+    jamis = developers(:jamis)
+
+    ship = ShipRequired.create!(name: "Medusa", developer: david)
+    assert_equal david, ship.developer
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(developer_id: jamis.id)
+    end
+
+    ship.update_column(:developer_id, nil)
+    ship.reload
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(developer_id: david.id)
+    end
+  end
+
+  test "skips parent presence check if parent has not changed" do
+    david = developers(:david)
+    ship = ShipRequired.create!(name: "Medusa", developer: david)
+    ship.reload # unload developer association
+
+    assert_queries(1) do # UPDATE only, no SELECT to check developer presence
+      ship.update!(name: "Leviathan")
+    end
+  end
+
+  test "runs parent presence check if parent has not changed and belongs_to_required_validates_foreign_key is set" do
+    original_value = ActiveRecord.belongs_to_required_validates_foreign_key
+    ActiveRecord.belongs_to_required_validates_foreign_key = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, required: true
+    end
+
+    david = developers(:david)
+    ship = model.create!(name: "Medusa", developer: david)
+    ship.reload # unload developer association
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(name: "Leviathan")
+    end
+  ensure
+    ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
@@ -1660,5 +1755,8 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
     author = Author.create! name: "Author", author_address_id: address.id
 
     author.destroy!
+
+    assert_not AuthorAddress.exists?(address.id)
+    assert_not Author.exists?(author.id)
   end
 end

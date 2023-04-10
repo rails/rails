@@ -65,7 +65,8 @@ module ActionView
         ActiveSupport::Notifications.instrument(
           "render_template.action_view",
           identifier: template.identifier,
-          layout: layout && layout.virtual_path
+          layout: layout && layout.virtual_path,
+          locals: locals
         ) do
           outer_config = I18n.config
           fiber = Fiber.new do

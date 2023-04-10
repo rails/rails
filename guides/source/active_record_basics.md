@@ -13,39 +13,40 @@ After reading this guide, you will know:
 * How to use Active Record models to manipulate data stored in a relational
   database.
 * Active Record schema naming conventions.
-* The concepts of database migrations, validations, and callbacks.
+* The concepts of database migrations, validations, callbacks, and associations.
 
 --------------------------------------------------------------------------------
 
 What is Active Record?
 ----------------------
 
-Active Record is the M in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
-model - which is the layer of the system responsible for representing business
-data and logic. Active Record facilitates the creation and use of business
-objects whose data requires persistent storage to a database. It is an
-implementation of the Active Record pattern which itself is a description of an
-Object Relational Mapping system.
+Active Record is the M in [MVC][] - the model - which is the layer of the system
+responsible for representing business data and logic. Active Record facilitates
+the creation and use of business objects whose data requires persistent storage
+to a database. It is an implementation of the Active Record pattern which itself
+is a description of an Object Relational Mapping system.
 
 ### The Active Record Pattern
 
-[Active Record was described by Martin Fowler](https://www.martinfowler.com/eaaCatalog/activeRecord.html)
-in his book _Patterns of Enterprise Application Architecture_. In
-Active Record, objects carry both persistent data and behavior which
-operates on that data. Active Record takes the opinion that ensuring
-data access logic as part of the object will educate users of that
-object on how to write to and read from the database.
+[Active Record was described by Martin Fowler][MFAR] in his book _Patterns of
+Enterprise Application Architecture_. In Active Record, objects carry both
+persistent data and behavior which operates on that data. Active Record takes
+the opinion that ensuring data access logic as part of the object will educate
+users of that object on how to write to and read from the database.
 
 ### Object Relational Mapping
 
-[Object Relational Mapping](https://en.wikipedia.org/wiki/Object-relational_mapping), commonly referred to as its abbreviation ORM, is
-a technique that connects the rich objects of an application to tables in
-a relational database management system. Using ORM, the properties and
+[Object Relational Mapping][ORM], commonly referred to as its abbreviation ORM,
+is a technique that connects the rich objects of an application to tables in a
+relational database management system. Using ORM, the properties and
 relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
 
-NOTE: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful in order to fully understand Active Record. Please refer to [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means if you would like to learn more.
+NOTE: Basic knowledge of relational database management systems (RDBMS) and
+structured query language (SQL) is helpful in order to fully understand Active
+Record. Please refer to [this tutorial][sqlcourse] (or [this one][rdbmsinfo]) or
+study them by other means if you would like to learn more.
 
 ### Active Record as an ORM Framework
 
@@ -57,6 +58,12 @@ to:
 * Represent inheritance hierarchies through related models.
 * Validate models before they get persisted to the database.
 * Perform database operations in an object-oriented fashion.
+
+[MVC]: https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller
+[MFAR]: https://www.martinfowler.com/eaaCatalog/activeRecord.html
+[ORM]: https://en.wikipedia.org/wiki/Object-relational_mapping
+[sqlcourse]: https://www.khanacademy.org/computing/computer-programming/sql
+[rdbmsinfo]: https://www.devart.com/what-is-rdbms/
 
 Convention over Configuration in Active Record
 ----------------------------------------------
@@ -81,8 +88,7 @@ singularizing) both regular and irregular words. When using class names composed
 of two or more words, the model class name should follow the Ruby conventions,
 using the CamelCase form, while the table name must use the snake_case form. Examples:
 
-* Model Class - Singular with the first letter of each word capitalized (e.g.,
-`BookClub`).
+* Model Class - Singular with the first letter of each word capitalized (e.g., `BookClub`).
 * Database Table - Plural with underscores separating words (e.g., `book_clubs`).
 
 | Model / Class    | Table / Schema |
@@ -131,6 +137,11 @@ NOTE: While these column names are optional, they are in fact reserved by Active
 Creating Active Record Models
 -----------------------------
 
+When generating an application, an abstract `ApplicationRecord` class will be
+created in `app/models/application_record.rb`. This is the base class for all
+models in an app, and it's what turns a regular ruby class into an Active Record
+model.
+
 To create Active Record models, subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
@@ -168,9 +179,10 @@ What if you need to follow a different naming convention or need to use your
 Rails application with a legacy database? No problem, you can easily override
 the default conventions.
 
-`ApplicationRecord` inherits from `ActiveRecord::Base`, which defines a
-number of helpful methods. You can use the `ActiveRecord::Base.table_name=`
-method to specify the table name that should be used:
+Since `ApplicationRecord` inherits from `ActiveRecord::Base`, your application's
+models will have a number of helpful methods available to them. For example, you
+can use the `ActiveRecord::Base.table_name=` method to customize the table name
+that should be used:
 
 ```ruby
 class Product < ApplicationRecord
@@ -178,11 +190,12 @@ class Product < ApplicationRecord
 end
 ```
 
-If you do so, you will have to define manually the class name that is hosting
-the fixtures (my_products.yml) using the `set_fixture_class` method in your test
-definition:
+If you do so, you will have to manually define the class name that is hosting
+the fixtures (`my_products.yml`) using the `set_fixture_class` method in your
+test definition:
 
 ```ruby
+# test/models/product_test.rb
 class ProductTest < ActiveSupport::TestCase
   set_fixture_class my_products: Product
   fixtures :my_products
@@ -199,7 +212,12 @@ class Product < ApplicationRecord
 end
 ```
 
-NOTE: Active Record does not support using non-primary key columns named `id`.
+NOTE: **Active Record does not support using non-primary key columns named `id`.**
+
+NOTE: If you try to create a column named `id` which is not the primary key,
+Rails will throw an error during migrations such as:
+`you can't redefine the primary key column 'id' on 'my_products'.`
+`To define a custom primary key, pass { id: false } to create_table.`
 
 CRUD: Reading and Writing Data
 ------------------------------
@@ -232,7 +250,8 @@ user.occupation = "Code Artist"
 A call to `user.save` will commit the record to the database.
 
 Finally, if a block is provided, both `create` and `new` will yield the new
-object to that block for initialization:
+object to that block for initialization, while only `create` will persist
+the resulting object to the database:
 
 ```ruby
 user = User.new do |u|
@@ -288,23 +307,18 @@ user = User.find_by(name: 'David')
 user.update(name: 'Dave')
 ```
 
-This is most useful when updating several attributes at once. If, on the other
-hand, you'd like to update several records in bulk, you may find the
-`update_all` class method useful:
+This is most useful when updating several attributes at once.
+
+If you'd like to update several records in bulk **without callbacks or
+validations**, you can update the database directly using `update_all`:
 
 ```ruby
-User.update_all "max_login_attempts = 3, must_change_password = 'true'"
-```
-
-This is the same as if you wrote:
-
-```ruby
-User.update(:all, max_login_attempts: 3, must_change_password: true)
+User.update_all max_login_attempts: 3, must_change_password: true
 ```
 
 ### Delete
 
-Likewise, once retrieved an Active Record object can be destroyed which removes
+Likewise, once retrieved, an Active Record object can be destroyed, which removes
 it from the database.
 
 ```ruby
@@ -331,12 +345,11 @@ into the database. There are several methods that you can use to check your
 models and validate that an attribute value is not empty, is unique and not
 already in the database, follows a specific format, and many more.
 
-Validation is a very important issue to consider when persisting to the database, so
-the methods `save` and `update` take it into account when
-running: they return `false` when validation fails and they don't actually
-perform any operations on the database. All of these have a bang counterpart (that
-is, `save!` and `update!`), which are stricter in that
-they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
+Methods like `save`, `create` and `update` validate a model before persisting
+it to the database. When a model is invalid these methods return `false` and no
+database operations are performed. All of these methods have a bang counterpart
+(that is, `save!`, `create!` and `update!`), which are stricter in that they
+raise an `ActiveRecord::RecordInvalid` exception when validation fails.
 A quick example to illustrate:
 
 ```ruby
@@ -350,7 +363,7 @@ irb> user = User.new
 irb> user.save
 => false
 irb> user.save!
-ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
 ```
 
 You can learn more about validations in the [Active Record Validations
@@ -362,16 +375,35 @@ Callbacks
 Active Record callbacks allow you to attach code to certain events in the
 life-cycle of your models. This enables you to add behavior to your models by
 transparently executing code when those events occur, like when you create a new
-record, update it, destroy it, and so on. You can learn more about callbacks in
-the [Active Record Callbacks guide](active_record_callbacks.html).
+record, update it, destroy it, and so on.
+
+```ruby
+class User < ApplicationRecord
+  after_create :log_new_user
+
+  private
+    def log_new_user
+      puts "A new user was registered"
+    end
+end
+```
+
+```irb
+irb> @user = User.create
+A new user was registered
+```
+
+You can learn more about callbacks in the [Active Record Callbacks
+guide](active_record_callbacks.html).
 
 Migrations
 ----------
 
-Rails provides a domain-specific language for managing a database schema called
-migrations. Migrations are stored in files which are executed against any
-database that Active Record supports using `rake`. Here's a migration that
-creates a table:
+Rails provides a convenient way to manage changes to a database schema via
+migrations. Migrations are written in a domain-specific language and stored
+in files which are executed against any database that Active Record supports.
+
+Here's a migration that creates a new table called `publications`:
 
 ```ruby
 class CreatePublications < ActiveRecord::Migration[7.1]
@@ -380,21 +412,43 @@ class CreatePublications < ActiveRecord::Migration[7.1]
       t.string :title
       t.text :description
       t.references :publication_type
-      t.integer :publisher_id
-      t.string :publisher_type
+      t.references :publisher, polymorphic: true
       t.boolean :single_issue
 
       t.timestamps
     end
-    add_index :publications, :publication_type_id
   end
 end
 ```
 
-Rails keeps track of which files have been committed to the database and
-provides rollback features. To actually create the table, you'd run `bin/rails db:migrate`,
-and to roll it back, `bin/rails db:rollback`.
-
 Note that the above code is database-agnostic: it will run in MySQL,
-PostgreSQL, Oracle, and others. You can learn more about migrations in the
-[Active Record Migrations guide](active_record_migrations.html).
+PostgreSQL, SQLite, and others.
+
+Rails keeps track of which migrations have been committed to the database and stores them
+in a neighboring table in that same database called `schema_migrations`.
+
+To run the migration and create the table, you'd run `bin/rails db:migrate`,
+and to roll it back and delete the table, `bin/rails db:rollback`.
+
+You can learn more about migrations in the [Active Record Migrations
+guide](active_record_migrations.html).
+
+Associations
+------------
+
+Active Record associations allow you to define relationships between models.
+Associations can be used to describe one-to-one, one-to-many, and many-to-many
+relationships. For example, a relationship like “Author has many Books” can be
+defined as follows:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :books
+end
+```
+
+The Author class now has methods to add and remove books to an author, and much
+more.
+
+You can learn more about associations in the [Active Record Associations
+guide](association_basics.html).

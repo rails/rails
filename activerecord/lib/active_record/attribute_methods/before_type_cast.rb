@@ -52,6 +52,23 @@ module ActiveRecord
         attribute_before_type_cast(name)
       end
 
+      # Returns the value of the attribute identified by +attr_name+ after
+      # serialization.
+      #
+      #   class Book < ActiveRecord::Base
+      #     enum status: { draft: 1, published: 2 }
+      #   end
+      #
+      #   book = Book.new(status: "published")
+      #   book.read_attribute(:status)              # => "published"
+      #   book.read_attribute_for_database(:status) # => 2
+      def read_attribute_for_database(attr_name)
+        name = attr_name.to_s
+        name = self.class.attribute_aliases[name] || name
+
+        attribute_for_database(name)
+      end
+
       # Returns a hash of attributes before typecasting and deserialization.
       #
       #   class Task < ActiveRecord::Base

@@ -1,22 +1,6 @@
 require_relative "boot"
 
-<% if include_all_railties? -%>
-require "rails/all"
-<% else -%>
-require "rails"
-# Pick the frameworks you want:
-require "active_model/railtie"
-<%= comment_if :skip_active_job %>require "active_job/railtie"
-<%= comment_if :skip_active_record %>require "active_record/railtie"
-<%= comment_if :skip_active_storage %>require "active_storage/engine"
-require "action_controller/railtie"
-<%= comment_if :skip_action_mailer %>require "action_mailer/railtie"
-<%= comment_if :skip_action_mailbox %>require "action_mailbox/engine"
-<%= comment_if :skip_action_text %>require "action_text/engine"
-require "action_view/railtie"
-<%= comment_if :skip_action_cable %>require "action_cable/engine"
-<%= comment_if :skip_test %>require "rails/test_unit/railtie"
-<% end -%>
+<%= rails_require_statement %>
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

@@ -58,7 +58,7 @@ module Render
     test "render with blank" do
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller", action: "index"
           end
         end
@@ -73,7 +73,7 @@ module Render
     test "rendering more than once raises an exception" do
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller", action: "index"
           end
         end

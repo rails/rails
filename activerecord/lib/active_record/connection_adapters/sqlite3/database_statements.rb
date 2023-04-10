@@ -15,21 +15,21 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def explain(arel, binds = [])
-          sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-          SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
+        def explain(arel, binds = [], _options = [])
+          sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
+          result = exec_query(sql, "EXPLAIN", [])
+          SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def execute(sql, name = nil) # :nodoc:
+        def execute(sql, name = nil, allow_retry: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
-          materialize_transactions
           mark_transaction_written_if_write(sql)
 
           log(sql, name) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @raw_connection.execute(sql)
+            with_raw_connection(allow_retry: allow_retry) do |conn|
+              conn.execute(sql)
             end
           end
         end
@@ -38,16 +38,15 @@ module ActiveRecord
           sql = transform_query(sql)
           check_if_write_query(sql)
 
-          materialize_transactions
           mark_transaction_written_if_write(sql)
 
           type_casted_binds = type_casted_binds(binds)
 
           log(sql, name, binds, type_casted_binds, async: async) do
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            with_raw_connection do |conn|
               # Don't cache statements if they are not prepared
               unless prepare
-                stmt = @raw_connection.prepare(sql)
+                stmt = conn.prepare(sql)
                 begin
                   cols = stmt.columns
                   unless without_prepared_statement?(binds)
@@ -58,7 +57,7 @@ module ActiveRecord
                   stmt.close
                 end
               else
-                stmt = @statements[sql] ||= @raw_connection.prepare(sql)
+                stmt = @statements[sql] ||= conn.prepare(sql)
                 cols = stmt.columns
                 stmt.reset!
                 stmt.bind_params(type_casted_binds)
@@ -80,22 +79,36 @@ module ActiveRecord
           raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
           raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
 
-          ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = @raw_connection.get_first_value("PRAGMA read_uncommitted")
-          @raw_connection.read_uncommitted = true
-          begin_db_transaction
+          with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+            ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = conn.get_first_value("PRAGMA read_uncommitted")
+            conn.read_uncommitted = true
+            begin_db_transaction
+          end
         end
 
         def begin_db_transaction # :nodoc:
-          log("begin transaction", "TRANSACTION") { @raw_connection.transaction }
+          log("begin transaction", "TRANSACTION") do
+            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+              conn.transaction
+            end
+          end
         end
 
         def commit_db_transaction # :nodoc:
-          log("commit transaction", "TRANSACTION") { @raw_connection.commit }
+          log("commit transaction", "TRANSACTION") do
+            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+              conn.commit
+            end
+          end
           reset_read_uncommitted
         end
 
         def exec_rollback_db_transaction # :nodoc:
-          log("rollback transaction", "TRANSACTION") { @raw_connection.rollback }
+          log("rollback transaction", "TRANSACTION") do
+            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+              conn.rollback
+            end
+          end
           reset_read_uncommitted
         end
 
@@ -113,7 +126,7 @@ module ActiveRecord
             read_uncommitted = ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted]
             return unless read_uncommitted
 
-            @raw_connection.read_uncommitted = read_uncommitted
+            @raw_connection&.read_uncommitted = read_uncommitted
           end
 
           def execute_batch(statements, name = nil)
@@ -121,13 +134,11 @@ module ActiveRecord
             sql = combine_multi_statements(statements)
 
             check_if_write_query(sql)
-
-            materialize_transactions
             mark_transaction_written_if_write(sql)
 
             log(sql, name) do
-              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                @raw_connection.execute_batch2(sql)
+              with_raw_connection do |conn|
+                conn.execute_batch2(sql)
               end
             end
           end

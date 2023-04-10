@@ -96,7 +96,7 @@ $ ruby --version
 ruby 2.7.0
 ```
 
-Rails requires Ruby version 2.7.0 or later. It is preferred to use latest Ruby version.
+Rails requires Ruby version 2.7.0 or later. It is preferred to use the latest Ruby version.
 If the version number returned is less than that number (such as 2.3.7, or 1.8.7),
 you'll need to install a fresh copy of Ruby.
 
@@ -196,7 +196,7 @@ Hello, Rails!
 To begin with, let's get some text up on screen quickly. To do this, you need to
 get your Rails application server running.
 
-### Starting up the Web Server
+### Starting Up the Web Server
 
 You actually have a functional Rails application already. To see it, you need to
 start a web server on your development machine. You can do this by running the
@@ -343,7 +343,7 @@ You may have noticed that `ArticlesController` inherits from `ApplicationControl
 require "application_controller" # DON'T DO THIS.
 ```
 
-Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](https://guides.rubyonrails.org/autoloading_and_reloading_constants.html).
+Application classes and modules are available everywhere, you do not need and **should not** load anything under `app` with `require`. This feature is called _autoloading_, and you can learn more about it in [_Autoloading and Reloading Constants_](autoloading_and_reloading_constants.html).
 
 You only need `require` calls for two use cases:
 
@@ -1729,6 +1729,7 @@ active_record_migrations.html).
 We also have to permit the `:status` key as part of the strong parameter, in `app/controllers/articles_controller.rb`:
 
 ```ruby
+
   private
     def article_params
       params.require(:article).permit(:title, :body, :status)
@@ -1738,6 +1739,7 @@ We also have to permit the `:status` key as part of the strong parameter, in `ap
 and in `app/controllers/comments_controller.rb`:
 
 ```ruby
+
   private
     def comment_params
       params.require(:comment).permit(:commenter, :body, :status)
@@ -1944,22 +1946,24 @@ So first, let's add the delete link in the
 `app/views/comments/_comment.html.erb` partial:
 
 ```html+erb
-<p>
-  <strong>Commenter:</strong>
-  <%= comment.commenter %>
-</p>
+<% unless comment.archived? %>
+  <p>
+    <strong>Commenter:</strong>
+    <%= comment.commenter %>
+  </p>
 
-<p>
-  <strong>Comment:</strong>
-  <%= comment.body %>
-</p>
+  <p>
+    <strong>Comment:</strong>
+    <%= comment.body %>
+  </p>
 
-<p>
-  <%= link_to "Destroy Comment", [comment.article, comment], data: {
-                turbo_method: :delete,
-                turbo_confirm: "Are you sure?"
-              } %>
-</p>
+  <p>
+    <%= link_to "Destroy Comment", [comment.article, comment], data: {
+                  turbo_method: :delete,
+                  turbo_confirm: "Are you sure?"
+                } %>
+  </p>
+<% end %>
 ```
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE

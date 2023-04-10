@@ -45,6 +45,8 @@ module ActiveRecord
 
         reset
         reset_scope
+
+        @skip_strict_loading = nil
       end
 
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
@@ -216,7 +218,7 @@ module ActiveRecord
         end
 
         def find_target
-          if violates_strict_loading? && owner.validation_context.nil?
+          if violates_strict_loading?
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
@@ -239,7 +241,19 @@ module ActiveRecord
           end
         end
 
+        def skip_strict_loading(&block)
+          skip_strict_loading_was = @skip_strict_loading
+          @skip_strict_loading = true
+          yield
+        ensure
+          @skip_strict_loading = skip_strict_loading_was
+        end
+
         def violates_strict_loading?
+          return if @skip_strict_loading
+
+          return unless owner.validation_context.nil?
+
           return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
           owner.strict_loading? && !owner.strict_loading_n_plus_one_only?

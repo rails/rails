@@ -20,7 +20,7 @@ module ActionDispatch
       #
       # You can also pass an explicit status number like <tt>assert_response(501)</tt>
       # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
-      # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list.
+      # See +Rack::Utils::SYMBOL_TO_STATUS_CODE+ for a full list.
       #
       #   # Asserts that the response was a redirection
       #   assert_response :redirect
@@ -30,7 +30,7 @@ module ActionDispatch
       def assert_response(type, message = nil)
         message ||= generate_response_message(type)
 
-        if RESPONSE_PREDICATES.keys.include?(type)
+        if RESPONSE_PREDICATES.key?(type)
           assert @response.public_send(RESPONSE_PREDICATES[type]), message
         else
           assert_equal AssertionResponse.new(type).code, @response.response_code, message
@@ -50,12 +50,19 @@ module ActionDispatch
       #
       #   # Asserts that the redirection matches the regular expression
       #   assert_redirected_to %r(\Ahttp://example.org)
-      def assert_redirected_to(options = {}, message = nil)
-        assert_response(:redirect, message)
-        return true if options === @response.location
+      #
+      #   # Asserts that the redirection has the HTTP status code 301 (Moved
+      #   # Permanently).
+      #   assert_redirected_to "/some/path", status: :moved_permanently
+      def assert_redirected_to(url_options = {}, options = {}, message = nil)
+        options, message = {}, options unless options.is_a?(Hash)
+
+        status = options[:status] || :redirect
+        assert_response(status, message)
+        return true if url_options === @response.location
 
         redirect_is       = normalize_argument_to_redirection(@response.location)
-        redirect_expected = normalize_argument_to_redirection(options)
+        redirect_expected = normalize_argument_to_redirection(url_options)
 
         message ||= "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
         assert_operator redirect_expected, :===, redirect_is, message
@@ -93,7 +100,7 @@ module ActionDispatch
         end
 
         def code_with_name(code_or_name)
-          if RESPONSE_PREDICATES.values.include?("#{code_or_name}?".to_sym)
+          if RESPONSE_PREDICATES.value?("#{code_or_name}?".to_sym)
             code_or_name = RESPONSE_PREDICATES.invert["#{code_or_name}?".to_sym]
           end
 

@@ -2,6 +2,7 @@
 
 require "active_storage/analyzer/null_analyzer"
 
+# = Active Storage \Blob \Analyzable
 module ActiveStorage::Blob::Analyzable
   # Extracts and stores metadata from the file associated with this blob using a relevant analyzer. Active Storage comes
   # with built-in analyzers for images and videos. See ActiveStorage::Analyzer::ImageAnalyzer and

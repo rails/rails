@@ -830,7 +830,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries(3) do
+    assert_queries(4) do
       firm.clients.find_each(batch_size: 1) { |c| assert_equal firm.id, c.firm_id }
     end
 
@@ -840,7 +840,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_each_with_conditions
     firm = companies(:first_firm)
 
-    assert_queries(1) do
+    assert_queries(2) do
       firm.clients.where(name: "Microsoft").find_each(batch_size: 1) do |c|
         assert_equal firm.id, c.firm_id
         assert_equal "Microsoft", c.name
@@ -2828,7 +2828,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate pirate, :valid?
     assert_not pirate.valid?(:conference)
-    assert_equal "can't be blank", ship.errors[:name].first
+    assert_equal "can’t be blank", ship.errors[:name].first
   end
 
   test "association with instance dependent scope" do

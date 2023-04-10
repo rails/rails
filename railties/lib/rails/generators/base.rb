@@ -208,6 +208,7 @@ module Rails
         remove_invocation(*names)
 
         names.each do |name|
+          singleton_class.undef_method("#{name}_generator")
           hooks.delete(name)
         end
       end
@@ -326,7 +327,7 @@ module Rails
 
         # Use Rails default banner.
         def self.banner # :doc:
-          "rails generate #{namespace.delete_prefix("rails:")} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
+          "bin/rails generate #{namespace.delete_prefix("rails:")} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
         end
 
         # Sets the base_name taking into account the current class namespace.

@@ -5,7 +5,7 @@ require "stubs/user"
 class TestConnection
   attr_reader :identifiers, :logger, :current_user, :server, :subscriptions, :transmissions
 
-  delegate :pubsub, to: :server
+  delegate :pubsub, :config, to: :server
 
   def initialize(user = User.new("lifo"), coder: ActiveSupport::JSON, subscription_adapter: SuccessAdapter)
     @coder = coder

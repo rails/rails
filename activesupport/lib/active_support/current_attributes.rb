@@ -90,6 +90,8 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
+    INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all] # :nodoc:
+
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
@@ -98,6 +100,11 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       def attribute(*names)
+        invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
+        if invalid_attribute_names.any?
+          raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
+        end
+
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|
@@ -133,14 +140,14 @@ module ActiveSupport
         end
       end
 
-      # Calls this block before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
-      def before_reset(&block)
-        set_callback :reset, :before, &block
+      # Calls this callback before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
+      def before_reset(*methods, &block)
+        set_callback :reset, :before, *methods, &block
       end
 
-      # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
-      def resets(&block)
-        set_callback :reset, :after, &block
+      # Calls this callback after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
+      def resets(*methods, &block)
+        set_callback :reset, :after, *methods, &block
       end
       alias_method :after_reset, :resets
 

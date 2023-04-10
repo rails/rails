@@ -2,11 +2,13 @@
 
 require "active_support/core_ext/module/delegation"
 
+# = Active Storage \Attachment
+#
 # Attachments associate records with blobs. Usually that's a one record-many blobs relationship,
 # but it is possible to associate many different records with the same blob. A foreign-key constraint
 # on the attachments table prevents blobs from being purged if they’re still attached to any records.
 #
-# Attachments also have access to all methods from {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob].
+# Attachments also have access to all methods from ActiveStorage::Blob.
 #
 # If you wish to preload attachments or blobs, you can use these scopes:
 #
@@ -49,21 +51,59 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
   # Returns an ActiveStorage::Variant or ActiveStorage::VariantWithRecord
   # instance for the attachment with the set of +transformations+ provided.
+  # Example:
+  #
+  #   avatar.variant(resize_to_limit: [100, 100]).processed.url
+  #
+  # or if you are using pre-defined variants:
+  #
+  #   avatar.variant(:thumb).processed.url
+  #
   # See ActiveStorage::Blob::Representable#variant for more information.
   #
   # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
   # unknown pre-defined variant of the attachment.
   def variant(transformations)
-    case transformations
-    when Symbol
-      variant_name = transformations
-      transformations = variants.fetch(variant_name) do
-        record_model_name = record.to_model.model_name.name
-        raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
-      end
-    end
-
+    transformations = transformations_by_name(transformations)
     blob.variant(transformations)
+  end
+
+  # Returns an ActiveStorage::Preview instance for the attachment with the set
+  # of +transformations+ provided.
+  # Example:
+  #
+  #   video.preview(resize_to_limit: [100, 100]).processed.url
+  #
+  # or if you are using pre-defined variants:
+  #
+  #   video.preview(:thumb).processed.url
+  #
+  # See ActiveStorage::Blob::Representable#preview for more information.
+  #
+  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # unknown pre-defined variant of the attachment.
+  def preview(transformations)
+    transformations = transformations_by_name(transformations)
+    blob.preview(transformations)
+  end
+
+  # Returns an ActiveStorage::Preview or an ActiveStorage::Variant for the
+  # attachment with set of +transformations+ provided.
+  # Example:
+  #
+  #   avatar.representation(resize_to_limit: [100, 100]).processed.url
+  #
+  # or if you are using pre-defined variants:
+  #
+  #   avatar.representation(:thumb).processed.url
+  #
+  # See ActiveStorage::Blob::Representable#representation for more information.
+  #
+  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # unknown pre-defined variant of the attachment.
+  def representation(transformations)
+    transformations = transformations_by_name(transformations)
+    blob.representation(transformations)
   end
 
   private
@@ -85,6 +125,19 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
     def variants
       record.attachment_reflections[name]&.variants
+    end
+
+    def transformations_by_name(transformations)
+      case transformations
+      when Symbol
+        variant_name = transformations
+        variants.fetch(variant_name) do
+          record_model_name = record.to_model.model_name.name
+          raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
+        end
+      else
+        transformations
+      end
     end
 end
 

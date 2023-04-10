@@ -43,7 +43,7 @@ permitted: false
       }
     }
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActionController.deprecator) do
       post :permit_params, params: params
     end
     assert_response :ok

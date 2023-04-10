@@ -3,7 +3,7 @@
 require "active_support/core_ext/class/attribute"
 
 module ActiveModel
-  # == Active \Model \Error
+  # = Active \Model \Error
   #
   # Represents one single error
   class Error
@@ -121,9 +121,10 @@ module ActiveModel
     attr_reader :attribute
     # The type of error, defaults to +:invalid+ unless specified
     attr_reader :type
-    # The raw value provided as the second parameter when calling +errors#add+
+    # The raw value provided as the second parameter when calling
+    # <tt>errors#add</tt>
     attr_reader :raw_type
-    # The options provided when calling +errors#add+
+    # The options provided when calling <tt>errors#add</tt>
     attr_reader :options
 
     # Returns the error message.

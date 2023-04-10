@@ -3,8 +3,8 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if supports_datetime_with_precision?
-  class DateTimePrecisionTest < ActiveRecord::TestCase
+class DateTimePrecisionTest < ActiveRecord::TestCase
+  if supports_datetime_with_precision?
     include SchemaDumpingHelper
     self.use_transactional_tests = false
 

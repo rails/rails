@@ -6,8 +6,7 @@ module ActiveSupport
     # hooking +const_missing+.
     #
     # It takes the names of an old (deprecated) constant and of a new constant
-    # (both in string form) and optionally a deprecator. The deprecator defaults
-    # to +ActiveSupport::Deprecator+ if none is specified.
+    # (both in string form) and a deprecator.
     #
     # The deprecated constant now returns the same object as the new one rather
     # than a proxy object, so it can be used transparently in +rescue+ blocks
@@ -19,7 +18,7 @@ module ActiveSupport
     #
     #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
     #   include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-    #   deprecate_constant 'PLANETS', 'PLANETS_POST_2006'
+    #   deprecate_constant 'PLANETS', 'PLANETS_POST_2006', deprecator: ActiveSupport::Deprecation.new
     #
     #   PLANETS.map { |planet| planet.capitalize }
     #   # => DEPRECATION WARNING: PLANETS is deprecated! Use PLANETS_POST_2006 instead.
@@ -40,7 +39,9 @@ module ActiveSupport
             super
           end
 
-          def deprecate_constant(const_name, new_constant, message: nil, deprecator: ActiveSupport::Deprecation.instance)
+          def deprecate_constant(const_name, new_constant, message: nil, deprecator: nil)
+            ActiveSupport.deprecator.warn("DeprecatedConstantAccessor.deprecate_constant without a deprecator is deprecated") unless deprecator
+            deprecator ||= ActiveSupport::Deprecation._instance
             class_variable_set(:@@_deprecated_constants, {}) unless class_variable_defined?(:@@_deprecated_constants)
             class_variable_get(:@@_deprecated_constants)[const_name.to_s] = { new: new_constant, message: message, deprecator: deprecator }
           end

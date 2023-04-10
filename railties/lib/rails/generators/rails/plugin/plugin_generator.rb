@@ -124,10 +124,6 @@ module Rails
     def test_dummy_config
       template "rails/boot.rb", "#{dummy_path}/config/boot.rb", force: true
 
-      insert_into_file "#{dummy_path}/config/application.rb", <<~RUBY, after: /^Bundler\.require.+\n/
-        require #{namespaced_name.inspect}
-      RUBY
-
       if mountable?
         template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
       end
@@ -218,12 +214,14 @@ module Rails
       def initialize(*args)
         @dummy_path = nil
         super
+        imply_options
 
         if !engine? || !with_dummy_app?
           self.options = options.merge(skip_asset_pipeline: true).freeze
         end
       end
 
+      public_task :report_implied_options
       public_task :set_default_accessors!
       public_task :create_root
 
@@ -309,6 +307,7 @@ module Rails
         [
           rails_gemfile_entry,
           simplify_gemfile_entries(
+            web_server_gemfile_entry,
             database_gemfile_entry,
             asset_pipeline_gemfile_entry,
           ),

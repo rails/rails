@@ -17,19 +17,21 @@ module ActionController
     #   return head(:bad_request) unless valid_request?
     #   render
     #
-    # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list of valid +status+ symbols.
-    def head(status, options = {})
+    # See +Rack::Utils::SYMBOL_TO_STATUS_CODE+ for a full list of valid +status+ symbols.
+    def head(status, options = nil)
       if status.is_a?(Hash)
         raise ArgumentError, "#{status.inspect} is not a valid value for `status`."
       end
 
       status ||= :ok
 
-      location = options.delete(:location)
-      content_type = options.delete(:content_type)
+      if options
+        location = options.delete(:location)
+        content_type = options.delete(:content_type)
 
-      options.each do |key, value|
-        headers[key.to_s.split(/[-_]/).each { |v| v[0] = v[0].upcase }.join("-")] = value.to_s
+        options.each do |key, value|
+          headers[key.to_s.split(/[-_]/).each { |v| v[0] = v[0].upcase }.join("-")] = value.to_s
+        end
       end
 
       self.status = status
@@ -37,7 +39,7 @@ module ActionController
 
       if include_content?(response_code)
         unless self.media_type
-          self.content_type = content_type || (Mime[formats.first] if formats) || Mime[:html]
+          self.content_type = content_type || ((f = formats) && Mime[f.first]) || Mime[:html]
         end
 
         response.charset = false

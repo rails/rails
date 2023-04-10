@@ -25,10 +25,11 @@ module ApplicationTests
         end
       RUBY
 
-      get "/foo"
-      assert_equal 500, last_response.status
+      log = capture(:stdout) do
+        get "/foo"
+        assert_equal 500, last_response.status
+      end
 
-      log = File.read(Rails.application.config.paths["log"].first)
       assert_no_match(/action_dispatch/, log, log)
       assert_match(/oops/, log, log)
     end
@@ -197,6 +198,25 @@ module ApplicationTests
       app.config.consider_all_requests_local = true
 
       get "/foo?x[y]=1&x[y][][w]=2"
+      assert_equal 400, last_response.status
+      assert_match "Invalid query parameters", last_response.body
+    end
+
+    test "displays diagnostics message when too deep query parameters are provided" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
+      limit = Rack::Utils.param_depth_limit + 1
+      malicious_url = "/foo?#{'[test]' * limit}=test"
+
+      get malicious_url
       assert_equal 400, last_response.status
       assert_match "Invalid query parameters", last_response.body
     end

@@ -3,11 +3,12 @@
 require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"
+require "rails_guides/markdown/epub_renderer"
 require "rails-html-sanitizer"
 
 module RailsGuides
   class Markdown
-    def initialize(view:, layout:, edge:, version:)
+    def initialize(view:, layout:, edge:, version:, epub:)
       @view          = view
       @layout        = layout
       @edge          = edge
@@ -15,6 +16,7 @@ module RailsGuides
       @index_counter = Hash.new(0)
       @raw_header    = ""
       @node_ids      = {}
+      @epub          = epub
     end
 
     def render(body)
@@ -59,7 +61,8 @@ module RailsGuides
       end
 
       def engine
-        @engine ||= Redcarpet::Markdown.new(Renderer,
+        renderer = @epub ? EpubRenderer : Renderer
+        @engine ||= Redcarpet::Markdown.new(renderer,
           no_intra_emphasis: true,
           fenced_code_blocks: true,
           autolink: true,
@@ -91,7 +94,7 @@ module RailsGuides
       def generate_structure
         @headings_for_index = []
         if @body.present?
-          @body = Nokogiri::HTML.fragment(@body).tap do |doc|
+          document = Nokogiri::HTML.fragment(@body).tap do |doc|
             hierarchy = []
 
             doc.children.each do |node|
@@ -117,7 +120,8 @@ module RailsGuides
             doc.css("h3, h4, h5, h6").each do |node|
               node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
             end
-          end.to_html
+          end
+          @body = @epub ? document.to_xhtml : document.to_html
         end
       end
 

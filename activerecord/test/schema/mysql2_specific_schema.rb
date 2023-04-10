@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-  if supports_datetime_with_precision?
+  if connection.supports_datetime_with_precision?
     create_table :datetime_defaults, force: true do |t|
       t.datetime :modified_datetime, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
       t.datetime :precise_datetime, default: -> { "CURRENT_TIMESTAMP(6)" }
@@ -21,7 +21,7 @@ ActiveRecord::Schema.define do
     t.datetime :fixed_time, default: "2004-01-01 00:00:00"
     t.column :char1, "char(1)", default: "Y"
     t.string :char2, limit: 50, default: "a varchar field"
-    if supports_default_expression?
+    if ActiveRecord::TestCase.supports_default_expression?
       t.binary :uuid, limit: 36, default: -> { "(uuid())" }
     end
   end

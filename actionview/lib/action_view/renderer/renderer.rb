@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView
+  # = Action View \Renderer
+  #
   # This is the main entry point for rendering. It basically delegates
   # to other objects like TemplateRenderer and PartialRenderer which
   # actually renders the template.

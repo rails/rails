@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveModel
-  # == Active \Model \Conversion
+  # = Active \Model \Conversion
   #
   # Handles default conversions: to_model, to_key, to_param, and to_partial_path.
   #

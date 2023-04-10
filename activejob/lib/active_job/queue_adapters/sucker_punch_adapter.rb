@@ -4,7 +4,7 @@ require "sucker_punch"
 
 module ActiveJob
   module QueueAdapters
-    # == Sucker Punch adapter for Active Job
+    # = Sucker Punch adapter for Active Job
     #
     # Sucker Punch is a single-process Ruby asynchronous processing library.
     # This reduces the cost of hosting on a service like Heroku along

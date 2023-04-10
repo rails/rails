@@ -62,7 +62,7 @@ module ActionDispatch
           end
 
           def image_name
-            sanitized_method_name = method_name.tr("/\\", "--")
+            sanitized_method_name = method_name.gsub(/[^\w]+/, "-")
             name = "#{unique}_#{sanitized_method_name}"
             name[0...225]
           end

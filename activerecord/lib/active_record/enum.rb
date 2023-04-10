@@ -111,14 +111,25 @@ module ActiveRecord
   #
   #   conversation.comments_inactive!
   #   conversation.comments_active? # => false
+  #
+  # If you want to disable the auto-generated methods on the model, you can do
+  # so by setting the +:instance_methods+ option to false:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ], instance_methods: false
+  #   end
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
     end
 
-    def inherited(base) # :nodoc:
-      base.defined_enums = defined_enums.deep_dup
-      super
+    def load_schema! # :nodoc:
+      attributes_to_define_after_schema_loads.each do |name, (cast_type, _default)|
+        unless columns_hash.key?(name)
+          cast_type = cast_type[type_for_attribute(name)] if Proc === cast_type
+          raise "Unknown enum attribute '#{name}' for #{self.name}" if Enum::EnumType === cast_type
+        end
+      end
     end
 
     class EnumType < Type::Value # :nodoc:
@@ -170,14 +181,19 @@ module ActiveRecord
         return _enum(name, values, **options)
       end
 
-      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default)
+      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default, :_instance_methods)
       options.transform_keys! { |key| :"#{key[1..-1]}" }
 
       definitions.each { |name, values| _enum(name, values, **options) }
     end
 
     private
-      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, **options)
+      def inherited(base)
+        base.defined_enums = defined_enums.deep_dup
+        super
+      end
+
+      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, **options)
         assert_valid_enum_definition_values(values)
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -213,14 +229,14 @@ module ActiveRecord
 
             value_method_name = "#{prefix}#{label}#{suffix}"
             value_method_names << value_method_name
-            define_enum_methods(name, value_method_name, value, scopes)
+            define_enum_methods(name, value_method_name, value, scopes, instance_methods)
 
             method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
             value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
 
             if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
               value_method_names << value_method_alias
-              define_enum_methods(name, value_method_alias, value, scopes)
+              define_enum_methods(name, value_method_alias, value, scopes, instance_methods)
             end
           end
         end
@@ -236,21 +252,23 @@ module ActiveRecord
         private
           attr_reader :klass
 
-          def define_enum_methods(name, value_method_name, value, scopes)
-            # def active?() status_for_database == 0 end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
+          def define_enum_methods(name, value_method_name, value, scopes, instance_methods)
+            if instance_methods
+              # def active?() status_for_database == 0 end
+              klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
+              define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
 
-            # def active!() update!(status: 0) end
-            klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-            define_method("#{value_method_name}!") { update!(name => value) }
+              # def active!() update!(status: 0) end
+              klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
+              define_method("#{value_method_name}!") { update!(name => value) }
+            end
 
-            # scope :active, -> { where(status: 0) }
-            # scope :not_active, -> { where.not(status: 0) }
             if scopes
+              # scope :active, -> { where(status: 0) }
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(name => value) }
 
+              # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
             end

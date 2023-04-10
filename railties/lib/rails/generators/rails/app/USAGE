@@ -1,15 +1,24 @@
 Description:
-    The 'rails new' command creates a new Rails application with a default
+    The `rails new` command creates a new Rails application with a default
     directory structure and configuration at the path you specify.
 
     You can specify extra command-line arguments to be used every time
-    'rails new' runs in the .railsrc configuration file in your home directory,
+    `rails new` runs in the .railsrc configuration file in your home directory,
     or in $XDG_CONFIG_HOME/rails/railsrc if XDG_CONFIG_HOME is set.
 
     Note that the arguments specified in the .railsrc file don't affect the
     default values shown above in this help message.
 
-Example:
-    rails new ~/Code/Ruby/weblog
+Examples:
+    `rails new ~/Code/Ruby/weblog`
 
-    This generates a skeletal Rails installation in ~/Code/Ruby/weblog.
+    This generates a new Rails app in ~/Code/Ruby/weblog.
+
+    `rails new weblog --api`
+
+    This generates a new Rails app in API mode in ./weblog.
+
+    `rails new weblog --skip-action-mailer`
+
+    This generates a new Rails app without Action Mailer in ./weblog.
+    Any part of Rails can be skipped during app generation.

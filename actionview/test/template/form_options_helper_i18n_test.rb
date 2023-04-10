@@ -16,7 +16,7 @@ class FormOptionsHelperI18nTests < ActionView::TestCase
   end
 
   def test_select_with_prompt_true_translates_prompt_message
-    assert_called_with(I18n, :translate, ["helpers.select.prompt", { default: "Please select" }]) do
+    assert_called_with(I18n, :translate, ["helpers.select.prompt"], default: "Please select") do
       select("post", "category", [], prompt: true)
     end
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module FilterPredications
     def filter(expr)
       Nodes::Filter.new(self, expr)

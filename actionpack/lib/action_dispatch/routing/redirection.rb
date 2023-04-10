@@ -18,10 +18,19 @@ module ActionDispatch
       def redirect?; true; end
 
       def call(env)
-        serve Request.new env
+        ActiveSupport::Notifications.instrument("redirect.action_dispatch") do |payload|
+          request = Request.new(env)
+          response = build_response(request)
+
+          payload[:status] = @status
+          payload[:location] = response.headers["Location"]
+          payload[:request] = request
+
+          response.to_a
+        end
       end
 
-      def serve(req)
+      def build_response(req)
         uri = URI.parse(path(req.path_parameters, req))
 
         unless uri.host
@@ -42,11 +51,11 @@ module ActionDispatch
 
         headers = {
           "Location" => uri.to_s,
-          "Content-Type" => "text/html",
+          "Content-Type" => "text/html; charset=#{ActionDispatch::Response.default_charset}",
           "Content-Length" => body.length.to_s
         }
 
-        [ status, headers, [body] ]
+        ActionDispatch::Response.new(status, headers, body)
       end
 
       def path(params, request)

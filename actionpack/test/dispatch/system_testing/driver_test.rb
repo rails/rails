@@ -37,24 +37,6 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ url: "http://example.com/wd/hub" }), driver.instance_variable_get(:@options)
   end
 
-  test "initializing the driver with a poltergeist" do
-    driver = assert_deprecated do
-      ActionDispatch::SystemTesting::Driver.new(:poltergeist, screen_size: [1400, 1400], options: { js_errors: false })
-    end
-    assert_equal :poltergeist, driver.instance_variable_get(:@driver_type)
-    assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
-    assert_equal ({ js_errors: false }), driver.instance_variable_get(:@options)
-  end
-
-  test "initializing the driver with a webkit" do
-    driver = assert_deprecated do
-      ActionDispatch::SystemTesting::Driver.new(:webkit, screen_size: [1400, 1400], options: { skip_image_loading: true })
-    end
-    assert_equal :webkit, driver.instance_variable_get(:@driver_type)
-    assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
-    assert_equal ({ skip_image_loading: true }), driver.instance_variable_get(:@options)
-  end
-
   test "initializing the driver with a cuprite" do
     driver = ActionDispatch::SystemTesting::Driver.new(:cuprite, screen_size: [1400, 1400], options: { js_errors: false })
     assert_equal :cuprite, driver.instance_variable_get(:@driver_type)
@@ -69,7 +51,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_preference(:detach, true)
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "goog:chromeOptions" => {
@@ -79,7 +60,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "chrome"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "define extra capabilities using headless_chrome" do
@@ -89,7 +70,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_preference(:detach, true)
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "goog:chromeOptions" => {
@@ -99,7 +79,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "chrome"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "define extra capabilities using firefox" do
@@ -108,7 +88,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_argument("--host=127.0.0.1")
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "moz:firefoxOptions" => {
@@ -117,7 +96,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "firefox"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "define extra capabilities using headless_firefox" do
@@ -126,7 +105,6 @@ class DriverTest < ActiveSupport::TestCase
       option.add_argument("--host=127.0.0.1")
     end
     driver.use
-    browser_options = driver.__send__(:browser_options)
 
     expected = {
       "moz:firefoxOptions" => {
@@ -135,7 +113,7 @@ class DriverTest < ActiveSupport::TestCase
       },
       "browserName" => "firefox"
     }
-    assert_equal expected, browser_options[:capabilities].as_json
+    assert_driver_capabilities driver, expected
   end
 
   test "does not define extra capabilities" do
@@ -176,4 +154,11 @@ class DriverTest < ActiveSupport::TestCase
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, options: { name: :best_driver })
     assert_equal :best_driver, driver.name
   end
+
+  private
+    def assert_driver_capabilities(driver, expected_capabilities)
+      capabilities = driver.__send__(:browser_options)[:options].as_json
+
+      assert_equal expected_capabilities, capabilities.slice(*expected_capabilities.keys)
+    end
 end

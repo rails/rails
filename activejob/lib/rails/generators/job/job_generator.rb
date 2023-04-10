@@ -7,6 +7,8 @@ module Rails # :nodoc:
     class JobGenerator < Rails::Generators::NamedBase # :nodoc:
       class_option :queue, type: :string, default: "default", desc: "The queue name for the generated job"
 
+      class_option :parent, type: :string, default: "ApplicationJob", desc: "The parent class for the generated job"
+
       check_class_collision suffix: "Job"
 
       hook_for :test_framework
@@ -26,6 +28,10 @@ module Rails # :nodoc:
       end
 
       private
+        def parent_class_name
+          options[:parent]
+        end
+
         def file_name
           @_file_name ||= super.sub(/_job\z/i, "")
         end

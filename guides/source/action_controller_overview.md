@@ -5,16 +5,17 @@ Action Controller Overview
 
 In this guide, you will learn how controllers work and how they fit into the request cycle in your application.
 
-After reading this guide, you will know:
+After reading this guide, you will know how to:
 
-* How to follow the flow of a request through a controller.
-* How to restrict parameters passed to your controller.
-* How and why to store data in the session or cookies.
-* How to work with filters to execute code during request processing.
-* How to use Action Controller's built-in HTTP authentication.
-* How to stream data directly to the user's browser.
-* How to filter sensitive parameters, so they do not appear in the application's log.
-* How to deal with exceptions that may be raised during request processing.
+* Follow the flow of a request through a controller.
+* Restrict parameters passed to your controller.
+* Store data in the session or cookies, and why.
+* Work with filters to execute code during request processing.
+* Use Action Controller's built-in HTTP authentication.
+* Stream data directly to the user's browser.
+* Filter sensitive parameters, so they do not appear in the application's log.
+* Deal with exceptions that may be raised during request processing.
+* Use the built-in health check end-point for load balancers and uptime monitors.
 
 --------------------------------------------------------------------------------
 
@@ -70,7 +71,7 @@ WARNING: Some method names are reserved by Action Controller. Accidentally redef
 NOTE: If you must use a reserved method as an action name, one workaround is to use a custom route to map the reserved method name to your non-reserved action method.
 
 [`ActionController::Base`]: https://api.rubyonrails.org/classes/ActionController/Base.html
-[Resource Routing]: https://guides.rubyonrails.org/routing.html#resource-routing-the-rails-default
+[Resource Routing]: routing.html#resource-routing-the-rails-default
 
 Parameters
 ----------
@@ -142,9 +143,9 @@ When this form is submitted, the value of `params[:client]` will be `{ "name" =>
 
 The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
 
-### JSON parameters
+### JSON Parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
+If your application exposes an API, you are likely to be accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -378,8 +379,11 @@ Your application has a session for each user in which you can store small amount
 
 * [`ActionDispatch::Session::CookieStore`][] - Stores everything on the client.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails cache.
-* `ActionDispatch::Session::ActiveRecordStore` - Stores the data in a database using Active Record (requires the `activerecord-session_store` gem).
 * [`ActionDispatch::Session::MemCacheStore`][] - Stores the data in a memcached cluster (this is a legacy implementation; consider using `CacheStore` instead).
+* [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
+  Stores the data in a database using Active Record (requires the
+  [`activerecord-session_store`][activerecord-session_store] gem)
+* A custom store or a store provided by a third party gem
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
@@ -394,11 +398,11 @@ Read more about session storage in the [Security Guide](security.html).
 If you need a different session storage mechanism, you can change it in an initializer:
 
 ```ruby
-# Use the database for sessions instead of the cookie-based default,
-# which shouldn't be used to store highly confidential information
-# (create the session table with "rails g active_record:session_migration")
-# Rails.application.config.session_store :active_record_store
+Rails.application.config.session_store :cache_store
 ```
+
+See [`config.session_store`](configuring.html#config-session-store) in the
+configuration guide for more information.
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in an initializer:
 
@@ -430,6 +434,8 @@ NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate 
 [`ActionDispatch::Session::CookieStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
 [`ActionDispatch::Session::CacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CacheStore.html
 [`ActionDispatch::Session::MemCacheStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/MemCacheStore.html
+[activerecord-session_store]: https://github.com/rails/activerecord-session_store
+
 
 ### Accessing the Session
 
@@ -441,17 +447,15 @@ Session values are stored using key/value pairs like a hash:
 
 ```ruby
 class ApplicationController < ActionController::Base
-
   private
-
-  # Finds the User with the ID stored in the session with the key
-  # :current_user_id This is a common way to handle user login in
-  # a Rails application; logging in sets the session value and
-  # logging out removes it.
-  def current_user
-    @_current_user ||= session[:current_user_id] &&
-      User.find_by(id: session[:current_user_id])
-  end
+    # Finds the User with the ID stored in the session with the key
+    # :current_user_id This is a common way to handle user login in
+    # a Rails application; logging in sets the session value and
+    # logging out removes it.
+    def current_user
+      @_current_user ||= session[:current_user_id] &&
+        User.find_by(id: session[:current_user_id])
+    end
 end
 ```
 
@@ -481,7 +485,7 @@ class LoginsController < ApplicationController
     session.delete(:current_user_id)
     # Clear the memoized current user
     @_current_user = nil
-    redirect_to root_url
+    redirect_to root_url, status: :see_other
   end
 end
 ```
@@ -503,7 +507,7 @@ class LoginsController < ApplicationController
   def destroy
     session.delete(:current_user_id)
     flash[:notice] = "You have successfully logged out."
-    redirect_to root_url
+    redirect_to root_url, status: :see_other
   end
 end
 ```
@@ -675,10 +679,10 @@ If you use the cookie session store, this would apply to the `session` and
 
 [`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
-Rendering XML and JSON data
----------------------------
+Rendering
+---------
 
-ActionController makes it extremely easy to render `XML` or `JSON` data. If you've generated a controller using scaffolding, it would look something like this:
+ActionController makes rendering HTML, XML, or JSON data effortless. If you've generated a controller using scaffolding, it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -695,6 +699,9 @@ end
 
 You may notice in the above code that we're using `render xml: @users`, not `render xml: @users.to_xml`. If the object is not a String, then Rails will automatically invoke `to_xml` for us.
 
+You can learn more about rendering in the [Layouts and Rendering
+Guide](layouts_and_rendering.html).
+
 Filters
 -------
 
@@ -709,13 +716,12 @@ class ApplicationController < ActionController::Base
   before_action :require_login
 
   private
-
-  def require_login
-    unless logged_in?
-      flash[:error] = "You must be logged in to access this section"
-      redirect_to new_login_url # halts request cycle
+    def require_login
+      unless logged_in?
+        flash[:error] = "You must be logged in to access this section"
+        redirect_to new_login_url # halts request cycle
+      end
     end
-  end
 end
 ```
 
@@ -752,16 +758,15 @@ class ChangesController < ApplicationController
   around_action :wrap_in_transaction, only: :show
 
   private
-
-  def wrap_in_transaction
-    ActiveRecord::Base.transaction do
-      begin
-        yield
-      ensure
-        raise ActiveRecord::Rollback
+    def wrap_in_transaction
+      ActiveRecord::Base.transaction do
+        begin
+          yield
+        ensure
+          raise ActiveRecord::Rollback
+        end
       end
     end
-  end
 end
 ```
 
@@ -920,7 +925,7 @@ Rails comes with three built-in HTTP authentication mechanisms:
 
 ### HTTP Basic Authentication
 
-HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, [`http_basic_authenticate_with`][].
+HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username, and a password into the browser's HTTP basic dialog window. Using the built-in authentication only requires you to use one method, [`http_basic_authenticate_with`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -934,7 +939,7 @@ With this in place, you can create namespaced controllers that inherit from `Adm
 
 ### HTTP Digest Authentication
 
-HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_digest`][].
+HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails only requires using one method, [`authenticate_or_request_with_http_digest`][].
 
 ```ruby
 class AdminsController < ApplicationController
@@ -959,7 +964,7 @@ As seen in the example above, the `authenticate_or_request_with_http_digest` blo
 
 HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
 
-As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails is quite easy and only requires using one method, [`authenticate_or_request_with_http_token`][].
+As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails only requires using one method, [`authenticate_or_request_with_http_token`][].
 
 ```ruby
 class PostsController < ApplicationController
@@ -1041,7 +1046,7 @@ TIP: It is not recommended that you stream static files through Rails if you can
 
 ### RESTful Downloads
 
-While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
+While `send_data` works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides a slick way of doing "RESTful" downloads. Here's how you can rewrite the example so that the PDF download is a part of the `show` action, without any streaming:
 
 ```ruby
 class ClientsController < ApplicationController
@@ -1269,7 +1274,7 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 
 [`rescue_from`]: https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
 
-Force HTTPS protocol
+Force HTTPS Protocol
 --------------------
 
 If you'd like to ensure that communication to your controller is only possible
@@ -1278,3 +1283,25 @@ via HTTPS, you should do so by enabling the [`ActionDispatch::SSL`][] middleware
 
 [`config.force_ssl`]: configuring.html#config-force-ssl
 [`ActionDispatch::SSL`]: https://api.rubyonrails.org/classes/ActionDispatch/SSL.html
+
+Built-in Health Check Endpoint
+------------------------------
+
+Rails also comes with a built-in health check endpoint that is reachable at the `/up` path. This endpoint will return a 200 status code if the app has booted with no exceptions, and a 500 status code otherwise.
+
+In production, many applications are required to report their status upstream, whether it's to an uptime monitor that will page an engineer when things go wrong, or a load balancer or Kubernetes controller used to determine a pod's health. This health check is designed to be a one-size fits all that will work in many situations.
+
+While any newly generated Rails applications will have the health check at `/up`, you can configure the path to be anything you'd like in your "config/routes.rb":
+
+```ruby
+Rails.application.routes.draw do
+  get "healthz" => "rails/health#show", as: :rails_health_check
+end
+```
+
+The health check will now be accessible via the `/healthz` path.
+
+NOTE: This endpoint does not reflect the status of all of your application's dependencies, such as the database or redis cluster. Replace "rails/health#show" with your own controller action if you have application specific needs.
+
+Think carefully about what you want to check as it can lead to situations where your application is being restarted due to a third-party service going bad. Ideally, you should design your application to handle those outages gracefully.
+

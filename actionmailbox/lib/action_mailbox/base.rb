@@ -6,6 +6,8 @@ require "action_mailbox/callbacks"
 require "action_mailbox/routing"
 
 module ActionMailbox
+  # = Action Mailbox \Base
+  #
   # The base class for all application mailboxes. Not intended to be inherited from directly. Inherit from
   # +ApplicationMailbox+ instead, as that's where the app-specific routing is configured. This routing
   # is specified in the following ways:
@@ -29,7 +31,7 @@ module ActionMailbox
   #
   # Application mailboxes need to override the #process method, which is invoked by the framework after
   # callbacks have been run. The callbacks available are: +before_processing+, +after_processing+, and
-  # +around_processing+. The primary use case is ensure certain preconditions to processing are fulfilled
+  # +around_processing+. The primary use case is to ensure that certain preconditions to processing are fulfilled
   # using +before_processing+ callbacks.
   #
   # If a precondition fails to be met, you can halt the processing using the +#bounced!+ method,

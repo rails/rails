@@ -53,7 +53,7 @@ module ActionPack
 
       get "news(.:format)" => "news#index"
 
-      ActiveSupport::Deprecation.silence {
+      ActionDispatch.deprecator.silence {
         get "comment/:id(/:action)" => "comments#show"
         get "ws/:controller(/:action(/:id))", ws: true
         get "account(/:action)" => "account#subscription"

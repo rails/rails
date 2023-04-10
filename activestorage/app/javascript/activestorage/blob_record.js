@@ -1,7 +1,7 @@
 import { getMetaValue } from "./helpers"
 
 export class BlobRecord {
-  constructor(file, checksum, url) {
+  constructor(file, checksum, url, customHeaders = {}) {
     this.file = file
 
     this.attributes = {
@@ -17,6 +17,9 @@ export class BlobRecord {
     this.xhr.setRequestHeader("Content-Type", "application/json")
     this.xhr.setRequestHeader("Accept", "application/json")
     this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+    Object.keys(customHeaders).forEach((headerKey) => {
+      this.xhr.setRequestHeader(headerKey, customHeaders[headerKey])
+    })
 
     const csrfToken = getMetaValue("csrf-token")
     if (csrfToken != undefined) {

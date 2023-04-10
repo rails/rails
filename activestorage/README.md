@@ -6,7 +6,7 @@ Files can be uploaded from the server to the cloud or directly from the client t
 
 Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
 
-You can read more about Active Storage in the [Active Storage Overview](https://edgeguides.rubyonrails.org/active_storage_overview.html) guide.
+You can read more about Active Storage in the [Active Storage Overview](https://guides.rubyonrails.org/active_storage_overview.html) guide.
 
 ## Compared to other storage solutions
 
@@ -144,11 +144,11 @@ Active Storage, with its included JavaScript library, supports uploading directl
 
 1. Include the Active Storage JavaScript in your application's JavaScript bundle or reference it directly.
 
-    Requiring directly without bundling through the asset pipeline in the application html with autostart:
+    Requiring directly without bundling through the asset pipeline in the application HTML with autostart:
     ```html
     <%= javascript_include_tag "activestorage" %>
     ```
-    Requiring via importmap-rails without bundling through the asset pipeline in the application html without autostart as ESM:
+    Requiring via importmap-rails without bundling through the asset pipeline in the application HTML without autostart as ESM:
     ```ruby
     # config/importmap.rb
     pin "@rails/activestorage", to: "activestorage.esm.js"

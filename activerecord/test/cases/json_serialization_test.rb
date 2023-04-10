@@ -33,7 +33,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
       avatar: "binarydata",
       created_at: Time.utc(2006, 8, 1),
       awesome: true,
-      preferences: { shows: "anime" }
+      preferences: { "shows" => "anime" }
     )
   end
 

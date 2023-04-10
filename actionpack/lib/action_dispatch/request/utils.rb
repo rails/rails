@@ -55,9 +55,11 @@ module ActionDispatch
             if params.has_key?(:tempfile)
               ActionDispatch::Http::UploadedFile.new(params)
             else
-              params.transform_values do |val|
-                normalize_encode_params(val)
-              end.with_indifferent_access
+              hwia = ActiveSupport::HashWithIndifferentAccess.new
+              params.each_pair do |key, val|
+                hwia[key] = normalize_encode_params(val)
+              end
+              hwia
             end
           else
             params

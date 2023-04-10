@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView
-  # = Action View Cache Helper
   module Helpers # :nodoc:
+    # = Action View Cache \Helpers
     module CacheHelper
       class UncacheableFragmentError < StandardError; end
 
@@ -281,14 +281,8 @@ module ActionView
         controller.read_fragment(name, options)
       end
 
-      def write_fragment_for(name, options)
-        pos = output_buffer.length
-        yield
-        output_safe = output_buffer.html_safe?
-        fragment = output_buffer.slice!(pos..-1)
-        if output_safe
-          self.output_buffer = output_buffer.class.new(output_buffer)
-        end
+      def write_fragment_for(name, options, &block)
+        fragment = output_buffer.capture(&block)
         controller.write_fragment(name, fragment, options)
       end
 

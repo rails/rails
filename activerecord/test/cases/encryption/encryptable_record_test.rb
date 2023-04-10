@@ -42,13 +42,13 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   end
 
   test "encrypts serialized attributes" do
-    states = %i[ green red ]
+    states = ["green", "red"]
     traffic_light = EncryptedTrafficLight.create!(state: states, long_state: states)
     assert_encrypted_attribute(traffic_light, :state, states)
   end
 
   test "encrypts store attributes with accessors" do
-    traffic_light = EncryptedTrafficLightWithStoreState.create!(color: "red", long_state: %i[ green red ])
+    traffic_light = EncryptedTrafficLightWithStoreState.create!(color: "red", long_state: ["green", "red"])
     assert_equal "red", traffic_light.color
     assert_encrypted_attribute(traffic_light, :state, { "color" => "red" })
   end
@@ -295,6 +295,12 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   test "support encrypted attributes defined on columns with default values" do
     book = EncryptedBook.create!
     assert_encrypted_attribute(book, :name, "<untitled>")
+  end
+
+  test "loading records with encrypted attributes defined on columns with default values" do
+    EncryptedBook.insert({ format: "ebook" })
+    book = EncryptedBook.last
+    assert_equal "<untitled>", book.name
   end
 
   private

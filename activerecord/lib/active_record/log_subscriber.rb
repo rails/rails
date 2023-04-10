@@ -7,16 +7,24 @@ module ActiveRecord
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     def self.runtime=(value)
+      ActiveRecord.deprecator.warn(<<-MSG.squish)
+        ActiveRecord::LogSubscriber.runtime= is deprecated and will be removed in Rails 7.2.
+      MSG
       ActiveRecord::RuntimeRegistry.sql_runtime = value
     end
 
     def self.runtime
-      ActiveRecord::RuntimeRegistry.sql_runtime ||= 0
+      ActiveRecord.deprecator.warn(<<-MSG.squish)
+        ActiveRecord::LogSubscriber.runtime is deprecated and will be removed in Rails 7.2.
+      MSG
+      ActiveRecord::RuntimeRegistry.sql_runtime
     end
 
     def self.reset_runtime
-      rt, self.runtime = runtime, 0
-      rt
+      ActiveRecord.deprecator.warn(<<-MSG.squish)
+        ActiveRecord::LogSubscriber.reset_runtime is deprecated and will be removed in Rails 7.2.
+      MSG
+      ActiveRecord::RuntimeRegistry.reset
     end
 
     def strict_loading_violation(event)
@@ -26,11 +34,9 @@ module ActiveRecord
         color(reflection.strict_loading_violation_message(owner), RED)
       end
     end
+    subscribe_log_level :strict_loading_violation, :debug
 
     def sql(event)
-      self.class.runtime += event.duration
-      return unless logger.debug?
-
       payload = event.payload
 
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
@@ -66,10 +72,11 @@ module ActiveRecord
       end
 
       name = colorize_payload_name(name, payload[:name])
-      sql  = color(sql, sql_color(sql), true) if colorize_logging
+      sql  = color(sql, sql_color(sql), bold: true) if colorize_logging
 
       debug "  #{name}  #{sql}#{binds}"
     end
+    subscribe_log_level :sql, :debug
 
     private
       def type_casted_binds(casted_binds)
@@ -93,9 +100,9 @@ module ActiveRecord
 
       def colorize_payload_name(name, payload_name)
         if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
-          color(name, MAGENTA, true)
+          color(name, MAGENTA, bold: true)
         else
-          color(name, CYAN, true)
+          color(name, CYAN, bold: true)
         end
       end
 

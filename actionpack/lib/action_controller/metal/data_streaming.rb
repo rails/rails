@@ -15,10 +15,10 @@ module ActionController # :nodoc:
     DEFAULT_SEND_FILE_DISPOSITION = "attachment" # :nodoc:
 
     private
-      # Sends the file. This uses a server-appropriate method (such as X-Sendfile)
-      # via the Rack::Sendfile middleware. The header to use is set via
+      # Sends the file. This uses a server-appropriate method (such as +X-Sendfile+)
+      # via the +Rack::Sendfile+ middleware. The header to use is set via
       # +config.action_dispatch.x_sendfile_header+.
-      # Your server can also configure this for you by setting the X-Sendfile-Type header.
+      # Your server can also configure this for you by setting the +X-Sendfile-Type+ header.
       #
       # Be careful to sanitize the path parameter if it is coming from a web
       # page. <tt>send_file(params[:path])</tt> allows a malicious user to
@@ -28,17 +28,17 @@ module ActionController # :nodoc:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
       #   Defaults to <tt>File.basename(path)</tt>.
       # * <tt>:type</tt> - specifies an HTTP content type.
-      #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example :json.
+      #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example +:json+.
       #   If omitted, the type will be inferred from the file extension specified in <tt>:filename</tt>.
-      #   If no content type is registered for the extension, the default type 'application/octet-stream' will be used.
+      #   If no content type is registered for the extension, the default type +application/octet-stream+ will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
-      #   Valid values are 'inline' and 'attachment' (default).
+      #   Valid values are <tt>"inline"</tt> and <tt>"attachment"</tt> (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
       # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser to guess the filename from
       #   the URL, which is necessary for i18n filenames on certain browsers
       #   (setting <tt>:filename</tt> overrides this option).
       #
-      # The default Content-Type and Content-Disposition headers are
+      # The default +Content-Type+ and +Content-Disposition+ headers are
       # set to download arbitrary binary files in as many browsers as
       # possible. IE versions 4, 5, 5.5, and 6 are all known to have
       # a variety of quirks (especially when downloading over SSL).
@@ -55,17 +55,17 @@ module ActionController # :nodoc:
       #
       #   send_file '/path/to/404.html', type: 'text/html; charset=utf-8', disposition: 'inline', status: 404
       #
-      # Read about the other Content-* HTTP headers if you'd like to
-      # provide the user with more information (such as Content-Description) in
-      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11.
+      # You can use other <tt>Content-*</tt> HTTP headers to provide additional
+      # information to the client. See MDN for a
+      # {list of HTTP headers}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers].
       #
       # Also be aware that the document may be cached by proxies and browsers.
-      # The Pragma and Cache-Control headers declare how the file may be cached
+      # The +Pragma+ and +Cache-Control+ headers declare how the file may be cached
       # by intermediaries. They default to require clients to validate with
       # the server before releasing cached responses. See
       # https://www.mnot.net/cache_docs/ for an overview of web caching and
-      # https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
-      # for the Cache-Control header spec.
+      # {RFC 9111}[https://www.rfc-editor.org/rfc/rfc9111.html#name-cache-control]
+      # for the +Cache-Control+ header spec.
       def send_file(path, options = {}) # :doc:
         raise MissingFile, "Cannot read file #{path}" unless File.file?(path) && File.readable?(path)
 
@@ -85,12 +85,12 @@ module ActionController # :nodoc:
       #
       # Options:
       # * <tt>:filename</tt> - suggests a filename for the browser to use.
-      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to 'application/octet-stream'.
-      #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example :json.
+      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to +application/octet-stream+.
+      #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example +:json+.
       #   If omitted, type will be inferred from the file extension specified in <tt>:filename</tt>.
-      #   If no content type is registered for the extension, the default type 'application/octet-stream' will be used.
+      #   If no content type is registered for the extension, the default type +application/octet-stream+ will be used.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
-      #   Valid values are 'inline' and 'attachment' (default).
+      #   Valid values are <tt>"inline"</tt> and <tt>"attachment"</tt> (default).
       # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
       #
       # Generic data download:
@@ -105,7 +105,7 @@ module ActionController # :nodoc:
       #
       #   send_data image.data, type: image.content_type, disposition: 'inline'
       #
-      # See +send_file+ for more information on HTTP Content-* headers and caching.
+      # See +send_file+ for more information on HTTP <tt>Content-*</tt> headers and caching.
       def send_data(data, options = {}) # :doc:
         send_file_headers! options
         render options.slice(:status, :content_type).merge(body: data)

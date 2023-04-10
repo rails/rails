@@ -31,5 +31,30 @@ module ApplicationTests
     def test_creates_a_directory_for_migrations
       assert_match %r{db/animals_migrate/}, @output
     end
+
+    def test_migrations_paths_takes_first
+      app_file "config/database.yml", <<-YAML
+        default: &default
+          adapter: sqlite3
+          pool: 5
+          timeout: 5000
+          variables:
+            statement_timeout: 1000
+        development:
+          primary:
+            <<: *default
+            database: storage/development.sqlite3
+          animals:
+            <<: *default
+            database: storage/development_animals.sqlite3
+            migrations_paths:
+              - db/animals_migrate
+              - db/common
+      YAML
+
+      output = rails("generate", "scaffold", "Dog", "name:string", "--database=animals")
+      assert_match %r{db/animals_migrate/}, output
+      assert_no_match %r{db/common/}, output
+    end
   end
 end

@@ -256,9 +256,9 @@ module ActiveRecord
       posts_with_joins_and_merges = Post.joins(:author, :categorizations)
                                         .merge(Author.select(:id)).merge(categorizations_with_authors)
 
-      author_with_posts = Author.joins(:posts).ids
-      categorizations_with_author = Categorization.joins(:author).ids
-      posts_with_author_and_categorizations = Post.joins(:categorizations).where(author_id: author_with_posts, categorizations: { id: categorizations_with_author }).ids
+      author_with_posts = Author.joins(:posts).pluck(:id)
+      categorizations_with_author = Categorization.joins(:author).pluck(:id)
+      posts_with_author_and_categorizations = Post.joins(:categorizations).where(author_id: author_with_posts, categorizations: { id: categorizations_with_author }).pluck(:id)
 
       assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.count
       assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.to_a.size
@@ -345,7 +345,7 @@ module ActiveRecord
 
     def test_relation_with_annotation_filters_sql_comment_delimiters
       post_with_annotation = Post.where(id: 1).annotate("**//foo//**")
-      assert_match %r{= 1 /\* foo \*/}, post_with_annotation.to_sql
+      assert_includes post_with_annotation.to_sql, "= 1 /* ** //foo// ** */"
     end
 
     def test_relation_with_annotation_includes_comment_in_count_query
@@ -367,13 +367,9 @@ module ActiveRecord
 
     def test_relation_with_optimizer_hints_filters_sql_comment_delimiters
       post_with_hint = Post.where(id: 1).optimizer_hints("**//BADHINT//**")
-      assert_match %r{BADHINT}, post_with_hint.to_sql
-      assert_no_match %r{\*/BADHINT}, post_with_hint.to_sql
-      assert_no_match %r{\*//BADHINT}, post_with_hint.to_sql
-      assert_no_match %r{BADHINT/\*}, post_with_hint.to_sql
-      assert_no_match %r{BADHINT//\*}, post_with_hint.to_sql
+      assert_includes post_with_hint.to_sql, "/*+ ** //BADHINT// ** */"
       post_with_hint = Post.where(id: 1).optimizer_hints("/*+ BADHINT */")
-      assert_match %r{/\*\+ BADHINT \*/}, post_with_hint.to_sql
+      assert_includes post_with_hint.to_sql, "/*+ BADHINT */"
     end
 
     def test_does_not_duplicate_optimizer_hints_on_merge

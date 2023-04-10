@@ -710,7 +710,7 @@ module ActiveJob
 
       def instantiate_job(payload, skip_deserialize_arguments: false)
         job = payload[:job].deserialize(payload)
-        job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
+        job.scheduled_at = payload[:at].to_f if payload.key?(:at)
         job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
       end

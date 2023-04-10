@@ -204,12 +204,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [], reply.history
   end
 
-  def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_new_record
+  def test_no_after_commit_on_destroy_after_transaction_commits_for_destroyed_new_record
     new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     add_transaction_execution_blocks new_record
 
     new_record.destroy
-    assert_equal [:commit_on_destroy], new_record.history
+    assert_equal [], new_record.history
   end
 
   def test_save_in_after_create_commit_wont_invoke_extra_after_create_commit
@@ -640,6 +640,99 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
   end
 end
 
+class CallbackOrderTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  module Behaviour
+    extend ActiveSupport::Concern
+
+    included do
+      self.table_name = :topics
+
+      after_commit { |record| record.history << 3 }
+      after_commit { |record| record.history << 4 }
+      after_save_commit { |record| record.history << "save" }
+      after_create_commit { |record| record.history << "create" }
+      after_update_commit { |record| record.history << "update" }
+      after_destroy_commit { |record| record.history << "destroy" }
+
+      after_rollback { |record| record.history << "rollback1" }
+      after_rollback { |record| record.history << "rollback2" }
+
+      before_commit { |record| record.history << 1 }
+      before_commit { |record| record.history << 2 }
+    end
+
+    def clear_history
+      @history = []
+    end
+
+    def history
+      @history ||= []
+    end
+  end
+
+  run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
+  ActiveRecord.run_after_transaction_callbacks_in_order_defined = true
+  class TopicWithCallbacksWithSpecificOrderWithSettingTrue < ActiveRecord::Base
+    include Behaviour
+  end
+  ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
+
+  run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
+  ActiveRecord.run_after_transaction_callbacks_in_order_defined = false
+  class TopicWithCallbacksWithSpecificOrderWithSettingFalse < ActiveRecord::Base
+    include Behaviour
+  end
+  ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
+
+  def test_callbacks_run_in_order_defined_in_model_if_using_run_after_transaction_callbacks_in_order_defined
+    topic = TopicWithCallbacksWithSpecificOrderWithSettingTrue.new
+    topic.save
+    assert_equal [1, 2, 3, 4, "save", "create"], topic.history
+
+    topic.clear_history
+    topic.approved = true
+    topic.save
+    assert_equal [1, 2, 3, 4, "save", "update"], topic.history
+
+    topic.clear_history
+    topic.transaction do
+      topic.approved = false
+      topic.save
+      raise ActiveRecord::Rollback
+    end
+    assert_equal ["rollback1", "rollback2"], topic.history
+
+    topic.clear_history
+    topic.destroy
+    assert_equal [1, 2, 3, 4, "destroy"], topic.history
+  end
+
+  def test_callbacks_run_in_order_defined_in_model_if_not_using_run_after_transaction_callbacks_in_order_defined
+    topic = TopicWithCallbacksWithSpecificOrderWithSettingFalse.new
+    topic.save
+    assert_equal [1, 2, "create", "save", 4, 3], topic.history
+
+    topic.clear_history
+    topic.approved = true
+    topic.save
+    assert_equal [1, 2, "update", "save", 4, 3], topic.history
+
+    topic.clear_history
+    topic.transaction do
+      topic.approved = false
+      topic.save
+      raise ActiveRecord::Rollback
+    end
+    assert_equal ["rollback2", "rollback1"], topic.history
+
+    topic.clear_history
+    topic.destroy
+    assert_equal [1, 2, "destroy", 4, 3], topic.history
+  end
+end
+
 class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
@@ -674,7 +767,7 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
       def before_save_for_transaction; end
   end
 
-  def test_trigger_once_on_multiple_deletions
+  def test_trigger_once_on_multiple_deletion_within_transaction
     TopicWithCallbacksOnDestroy.clear_history
     topic = TopicWithCallbacksOnDestroy.new
     topic.save
@@ -685,6 +778,19 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
     end
 
     topic.destroy
+
+    assert_equal [:commit_on_destroy], TopicWithCallbacksOnDestroy.history
+  end
+
+  def test_trigger_once_on_multiple_deletions
+    TopicWithCallbacksOnDestroy.clear_history
+    topic = TopicWithCallbacksOnDestroy.new
+    topic.save
+    topic_clone = TopicWithCallbacksOnDestroy.find(topic.id)
+
+    topic.destroy
+    topic.destroy
+    topic_clone.destroy
 
     assert_equal [:commit_on_destroy], TopicWithCallbacksOnDestroy.history
   end

@@ -364,7 +364,9 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     Account.where(id: odegy.account.id).update_all(credit_limit: 80)
     assert_equal 53, odegy.account.credit_limit
 
-    assert_equal 80, odegy.reload_account.credit_limit
+    assert_queries(1) { odegy.reload_account }
+    assert_no_queries { odegy.account }
+    assert_equal 80, odegy.account.credit_limit
   end
 
   def test_reload_association_with_query_cache
@@ -388,6 +390,19 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { Company.find(odegy_id) }
   ensure
     ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  def test_reset_assocation
+    odegy = companies(:odegy)
+
+    assert_equal 53, odegy.account.credit_limit
+    Account.where(id: odegy.account.id).update_all(credit_limit: 80)
+    assert_equal 53, odegy.account.credit_limit
+
+    assert_no_queries { odegy.reset_account }
+
+    assert_queries(1) { odegy.account }
+    assert_equal 80, odegy.account.credit_limit
   end
 
   def test_build

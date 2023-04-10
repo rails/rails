@@ -254,4 +254,16 @@ module ResolverSharedTests
   ensure
     I18n.reload!
   end
+
+  def test_strict_locals_reuses_same_template
+    with_file "test/hello_world.html.erb", %q{<%# locals: (message: "hello")%>\n<%= message %>}
+
+    template = context.find_all("hello_world", "test", false, [:message], {})[0]
+    template2 = context.find_all("hello_world", "test", false, [], {})[0]
+
+    assert_same template, template2
+
+    assert_predicate template, :strict_locals?
+    assert_nil template.locals
+  end
 end

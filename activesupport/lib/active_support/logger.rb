@@ -22,10 +22,6 @@ module ActiveSupport
     # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
-        define_singleton_method(:extended) do |base|
-          base.public_send(:broadcast_to, logger) if base.respond_to?(:broadcast_to)
-        end
-
         define_method(:add) do |*args, &block|
           logger.add(*args, &block)
           super(*args, &block)
@@ -44,6 +40,11 @@ module ActiveSupport
         define_method(:progname=) do |name|
           logger.progname = name
           super(name)
+        end
+
+        define_method(:formatter=) do |formatter|
+          logger.formatter = formatter
+          super(formatter)
         end
 
         define_method(:level=) do |level|

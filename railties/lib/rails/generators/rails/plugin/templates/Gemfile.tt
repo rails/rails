@@ -13,7 +13,7 @@ gemspec
 # Start debugger with binding.b [https://github.com/ruby/debug]
 # gem "debug", ">= 1.0.0"
 <% end -%>
-<% if RUBY_PLATFORM.match?(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
+<% if RUBY_PLATFORM.match?(/mingw|mswin|java/) -%>
 
-gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
 <% end -%>

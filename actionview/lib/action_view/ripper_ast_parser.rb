@@ -63,7 +63,7 @@ module ActionView
         end
 
         def call_method_name
-          self.last.first
+          self[2].first
         end
 
         def to_string

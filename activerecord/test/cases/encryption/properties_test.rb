@@ -60,7 +60,10 @@ class ActiveRecord::EncryptionPropertiesTest < ActiveRecord::EncryptionTestCase
 
   MyClass = Struct.new(:some_value)
 
+  class EncryptionMessageSubClass < ActiveRecord::Encryption::Message
+  end
+
   def example_of_valid_values
-    ["a string", 123, 123.5, true, false, nil, :a_symbol, ActiveRecord::Encryption::Message.new]
+    ["a string", 123, 123.5, true, false, nil, :a_symbol, ActiveRecord::Encryption::Message.new, EncryptionMessageSubClass.new]
   end
 end

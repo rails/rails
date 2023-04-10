@@ -54,13 +54,12 @@ module ActiveRecord
       def define(info, &block) # :nodoc:
         instance_eval(&block)
 
+        connection.schema_migration.create_table
         if info[:version].present?
-          connection.schema_migration.create_table
           connection.assume_migrated_upto_version(info[:version])
         end
 
-        ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetadata[:environment] = connection.migration_context.current_environment
+        connection.internal_metadata.create_table_and_set_flags(connection.migration_context.current_environment)
       end
     end
 

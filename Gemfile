@@ -1,19 +1,20 @@
 # frozen_string_literal: true
 
 source "https://rubygems.org"
-
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
-
 gemspec
 
-gem "minitest", ">= 5.15.0", "< 5.16.0"
+if RUBY_VERSION < "3"
+  gem "minitest", ">= 5.15.0", "< 5.16"
+else
+  gem "minitest", ">= 5.15.0"
+end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 11.1"
+gem "rake", ">= 13"
 
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
-gem "capybara", ">= 3.26"
+gem "capybara", ">= 3.38"
 gem "selenium-webdriver", ">= 4.0.0"
 
 gem "rack-cache", "~> 1.2"
@@ -23,6 +24,7 @@ gem "jsbundling-rails"
 gem "cssbundling-rails"
 gem "importmap-rails"
 gem "tailwindcss-rails"
+gem "dartsass-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -35,20 +37,29 @@ gem "terser", ">= 1.1.4", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
+# Workaround until Ruby ships with cgi version 0.3.6 or higher.
+gem "cgi", ">= 0.3.6", require: false
+
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
+  gem "rubocop-md", require: false
+end
+
+group :mdl do
+  gem "mdl", require: false
 end
 
 group :doc do
-  gem "sdoc", ">= 2.4.0"
+  gem "sdoc", ">= 2.6.0"
+  gem "rdoc", "~> 6.5"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
-  gem "kindlerb", "~> 1.2.0"
   gem "rouge"
+  gem "rubyzip", "~> 2.0"
 end
 
 # Active Support
@@ -61,6 +72,12 @@ gem "rexml", require: false
 # for railties
 gem "bootsnap", ">= 1.4.4", require: false
 gem "webrick", require: false
+gem "jbuilder", require: false
+gem "web-console", require: false
+
+# Action Pack and railties
+rack_version = ENV.fetch("RACK", "~> 2.0") # Change to ~> 3 after #46594 is merged.
+gem "rack", rack_version
 
 # Active Job
 group :job do
@@ -71,18 +88,15 @@ group :job do
   gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
-  gem "que", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
-  gem "sequel", require: false
 end
 
 # Action Cable
 group :cable do
-  gem "puma", require: false
+  gem "puma", ">= 5.0.3", require: false
 
-  gem "hiredis", require: false
-  gem "redis", "~> 4.0", require: false
+  gem "redis", ">= 4.0.1", require: false
 
   gem "redis-namespace"
 
@@ -106,12 +120,6 @@ group :ujs do
   gem "webdrivers"
 end
 
-# Action View
-group :view do
-  gem "blade", require: false, platforms: [:ruby]
-  gem "sprockets-export", require: false
-end
-
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
@@ -129,7 +137,7 @@ group :test do
   gem "benchmark-ips"
 end
 
-platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
+platforms :ruby, :windows do
   gem "nokogiri", ">= 1.8.1", "!= 1.11.0"
 
   # Needed for compiling the ActionDispatch::Journey parser.
@@ -160,12 +168,6 @@ platforms :jruby do
   end
 end
 
-platforms :rbx do
-  # The rubysl-yaml gem doesn't ship with Psych by default as it needs
-  # libyaml that isn't always available.
-  gem "psych", "~> 3.0"
-end
-
 # Gems that are necessary for Active Record tests with Oracle.
 if ENV["ORACLE_ENHANCED"]
   platforms :ruby do
@@ -174,5 +176,12 @@ if ENV["ORACLE_ENHANCED"]
   gem "activerecord-oracle_enhanced-adapter", github: "rsim/oracle-enhanced", branch: "master"
 end
 
-gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
-gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
+gem "tzinfo-data", platforms: [:windows, :jruby]
+gem "wdm", ">= 0.1.0", platforms: [:windows]
+
+# The error_highlight gem only works on CRuby 3.1 or later.
+# Also, Rails depends on a new API available since error_highlight 0.4.0.
+# (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
+if RUBY_VERSION >= "3.1"
+  gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
+end

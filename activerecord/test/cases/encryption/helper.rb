@@ -9,11 +9,21 @@ end
 
 module ActiveRecord::Encryption
   module EncryptionHelpers
+    def assert_ciphertext_decrypts_to(model, attribute_name, ciphertext)
+      assert_not_equal model.public_send(attribute_name), ciphertext
+      assert_not_equal model.read_attribute(attribute_name), ciphertext
+      cleartext = model.type_for_attribute(attribute_name).deserialize(ciphertext)
+      assert_equal model.read_attribute(attribute_name), cleartext
+    end
+
     def assert_encrypted_attribute(model, attribute_name, expected_value)
-      encrypted_content = model.ciphertext_for(attribute_name)
-      assert_not_equal expected_value, encrypted_content
+      assert_ciphertext_decrypts_to model, attribute_name, model.read_attribute_before_type_cast(attribute_name)
       assert_equal expected_value, model.public_send(attribute_name)
-      assert_equal expected_value, model.reload.public_send(attribute_name) unless model.new_record?
+      unless model.new_record?
+        model.reload
+        assert_ciphertext_decrypts_to model, attribute_name, model.read_attribute_before_type_cast(attribute_name)
+        assert_equal expected_value, model.public_send(attribute_name)
+      end
     end
 
     def assert_invalid_key_cant_read_attribute(model, attribute_name)
@@ -26,7 +36,7 @@ module ActiveRecord::Encryption
 
     def assert_not_encrypted_attribute(model, attribute_name, expected_value)
       assert_equal expected_value, model.send(attribute_name)
-      assert_equal expected_value, model.ciphertext_for(attribute_name)
+      assert_equal expected_value, model.read_attribute_before_type_cast(attribute_name)
     end
 
     def assert_encrypted_record(model)
@@ -146,7 +156,7 @@ class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
   include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
 
   ENCRYPTION_PROPERTIES_TO_RESET = {
-    config: %i[ primary_key deterministic_key key_derivation_salt store_key_references
+    config: %i[ primary_key deterministic_key key_derivation_salt store_key_references hash_digest_class
       key_derivation_salt support_unencrypted_data encrypt_fixtures
       forced_encoding_for_deterministic_encryption ],
     context: %i[ key_provider ]

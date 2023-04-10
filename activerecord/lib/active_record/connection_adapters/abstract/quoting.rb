@@ -17,11 +17,14 @@ module ActiveRecord
         when nil        then "NULL"
         # BigDecimals need to be put in a non-normalized form and quoted.
         when BigDecimal then value.to_s("F")
-        when Numeric, ActiveSupport::Duration then value.to_s
+        when Numeric then value.to_s
         when Type::Binary::Data then quoted_binary(value)
         when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
         when Class      then "'#{value}'"
+        when ActiveSupport::Duration
+          warn_quote_duration_deprecated
+          value.to_s
         else raise TypeError, "can't quote #{value.class.name}"
         end
       end
@@ -47,8 +50,23 @@ module ActiveRecord
       # Quote a value to be used as a bound parameter of unknown type. For example,
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
+      #
+      # Deprecated: Consider `Arel.sql("... ? ...", value)` or
+      # +sanitize_sql+ instead.
       def quote_bound_value(value)
-        quote(value)
+        ActiveRecord.deprecator.warn(<<~MSG.squish)
+          #quote_bound_value is deprecated and will be removed in Rails 7.2.
+          Consider Arel.sql(".. ? ..", value) or #sanitize_sql instead.
+        MSG
+
+        quote(cast_bound_value(value))
+      end
+
+      # Cast a value to be used as a bound parameter of unknown type. For example,
+      # MySQL might perform dangerous castings when comparing a string to a number,
+      # so this method will cast numbers to string.
+      def cast_bound_value(value) # :nodoc:
+        value
       end
 
       # If you are having to call this function, you are likely doing something
@@ -146,7 +164,16 @@ module ActiveRecord
       end
 
       def sanitize_as_sql_comment(value) # :nodoc:
-        value.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
+        # Sanitize a string to appear within a SQL comment
+        # For compatibility, this also surrounding "/*+", "/*", and "*/"
+        # charcacters, possibly with single surrounding space.
+        # Then follows that by replacing any internal "*/" or "/ *" with
+        # "* /" or "/ *"
+        comment = value.to_s.dup
+        comment.gsub!(%r{\A\s*/\*\+?\s?|\s?\*/\s*\Z}, "")
+        comment.gsub!("*/", "* /")
+        comment.gsub!("/*", "/ *")
+        comment
       end
 
       def column_name_matcher # :nodoc:
@@ -167,7 +194,7 @@ module ActiveRecord
         (
           (?:
             # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
           )
           (?:(?:\s+AS)?\s+\w+)?
         )
@@ -191,7 +218,7 @@ module ActiveRecord
         (
           (?:
             # table_name.column_name | function(one or no argument)
-            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+            ((?:\w+\.)?\w+ | \w+\((?:|\g<2>)\))
           )
           (?:\s+ASC|\s+DESC)?
           (?:\s+NULLS\s+(?:FIRST|LAST))?
@@ -215,6 +242,22 @@ module ActiveRecord
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
+        end
+
+        def warn_quote_duration_deprecated
+          ActiveRecord.deprecator.warn(<<~MSG)
+            Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+            string template is deprecated. To avoid this warning, you should explicitly
+            convert the duration to a more specific database type. For example, if you
+            want to use a duration as an integer number of seconds:
+            ```
+            Record.where("duration = ?", 1.hour.to_i)
+            ```
+            If you want to use a duration as an ISO 8601 string:
+            ```
+            Record.where("duration = ?", 1.hour.iso8601)
+            ```
+          MSG
         end
     end
   end

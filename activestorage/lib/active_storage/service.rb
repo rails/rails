@@ -6,6 +6,8 @@ require "action_dispatch"
 require "action_dispatch/http/content_disposition"
 
 module ActiveStorage
+  # = Active Storage \Service
+  #
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:

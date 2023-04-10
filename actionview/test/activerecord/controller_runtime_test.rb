@@ -19,7 +19,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     end
 
     def create
-      ActiveRecord::LogSubscriber.runtime += 100
+      ActiveRecord::RuntimeRegistry.sql_runtime += 100.0
       Project.last
       redirect_to "/"
     end
@@ -32,7 +32,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     def db_after_render
       render inline: "Hello world"
       Project.all
-      ActiveRecord::LogSubscriber.runtime += 100
+      ActiveRecord::RuntimeRegistry.sql_runtime += 100.0
     end
   end
 
@@ -72,7 +72,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   end
 
   def test_runtime_reset_before_requests
-    ActiveRecord::LogSubscriber.runtime += 12345
+    ActiveRecord::RuntimeRegistry.sql_runtime += 12345.0
     get :zero
     wait
 

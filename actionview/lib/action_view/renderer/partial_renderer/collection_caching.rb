@@ -59,6 +59,7 @@ module ActionView
         seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
 
         digest_path = view.digest_path_from_template(template)
+        collection.preload! if callable_cache_key?
 
         collection.each_with_object([{}, []]) do |item, (hash, ordered_keys)|
           key = expanded_cache_key(seed.call(item), view, template, digest_path)

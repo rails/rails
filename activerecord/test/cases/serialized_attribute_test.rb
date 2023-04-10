@@ -7,6 +7,10 @@ require "models/post"
 require "models/binary_field"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
+  def setup
+    ActiveRecord.use_yaml_unsafe_load = true
+  end
+
   fixtures :topics, :posts
 
   MyObject = Struct.new :attribute1, :attribute2
@@ -16,7 +20,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   class ImportantTopic < Topic
-    serialize :important, Hash
+    serialize :important, type: Hash
   end
 
   teardown do
@@ -31,7 +35,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute
-    Topic.serialize("content", MyObject)
+    Topic.serialize("content", type: MyObject)
 
     myobj = MyObject.new("value1", "value2")
     topic = Topic.create("content" => myobj)
@@ -45,7 +49,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
       alias_attribute :object, :content
-      serialize :object, MyObject
+      serialize :object, type: MyObject
     end
 
     myobj = MyObject.new("value1", "value2")
@@ -59,7 +63,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_serialized_attribute_with_default
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
-      serialize(:content, Hash, default: { key: "value" })
+      serialize(:content, type: Hash, default: { key: "value" })
     end
 
     t = klass.new
@@ -70,7 +74,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
       attribute :content, default: { key: "value" }
-      serialize :content, Hash
+      serialize :content, type: Hash
     end
 
     t = klass.new
@@ -78,7 +82,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_in_base_class
-    Topic.serialize("content", Hash)
+    Topic.serialize("content", type: Hash)
 
     hash = { "content1" => "value1", "content2" => "value2" }
     important_topic = ImportantTopic.create("content" => hash)
@@ -89,7 +93,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attributes_from_database_on_subclass
-    Topic.serialize :content, Hash
+    Topic.serialize :content, type: Hash
 
     t = ImportantTopic.new(content: { foo: :bar })
     assert_equal({ foo: :bar }, t.content)
@@ -99,7 +103,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_calling_dup_method
-    Topic.serialize :content, JSON
+    Topic.serialize :content, coder: JSON
 
     orig = Topic.new(content: { foo: :bar })
     clone = orig.dup
@@ -107,7 +111,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_json_attribute_returns_unserialized_value
-    Topic.serialize :content, JSON
+    Topic.serialize :content, coder: JSON
     my_post = posts(:welcome)
 
     t = Topic.new(content: my_post)
@@ -120,7 +124,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_json_read_legacy_null
-    Topic.serialize :content, JSON
+    Topic.serialize :content, coder: JSON
 
     # Force a row to have a JSON "null" instead of a database NULL (this is how
     # null values are saved on 4.1 and before)
@@ -131,7 +135,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_json_read_db_null
-    Topic.serialize :content, JSON
+    Topic.serialize :content, coder: JSON
 
     # Force a row to have a database NULL instead of a JSON "null"
     id = Topic.connection.insert "INSERT INTO topics (content) VALUES(NULL)"
@@ -173,13 +177,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_nil_not_serialized_with_class_constraint
-    Topic.serialize :content, Hash
+    Topic.serialize :content, type: Hash
     assert Topic.new(content: nil).save
     assert_equal 1, Topic.where(content: nil).count
   end
 
   def test_serialized_attribute_should_raise_exception_on_assignment_with_wrong_type
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     assert_raise(ActiveRecord::SerializationTypeMismatch) do
       Topic.new(content: "string")
     end
@@ -189,13 +193,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     myobj = MyObject.new("value1", "value2")
     topic = Topic.new(content: myobj)
     assert topic.save
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
   end
 
   def test_serialized_attribute_with_class_constraint
     settings = { "color" => "blue" }
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     topic = Topic.new(content: settings)
     assert topic.save
     assert_equal(settings, Topic.find(topic.id).content)
@@ -203,27 +207,27 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_where_by_serialized_attribute_with_array
     settings = [ "color" => "green" ]
-    Topic.serialize(:content, Array)
+    Topic.serialize(:content, type: Array)
     topic = Topic.create!(content: settings)
     assert_equal topic, Topic.where(content: settings).take
   end
 
   def test_where_by_serialized_attribute_with_hash
     settings = { "color" => "green" }
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     topic = Topic.create!(content: settings)
     assert_equal topic, Topic.where(content: settings).take
   end
 
   def test_where_by_serialized_attribute_with_hash_in_array
     settings = { "color" => "green" }
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     topic = Topic.create!(content: settings)
     assert_equal topic, Topic.where(content: [settings]).take
   end
 
   def test_serialized_default_class
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     topic = Topic.new
     assert_equal Hash, topic.content.class
     assert_equal Hash, topic.read_attribute(:content).class
@@ -264,7 +268,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
       end
     end
 
-    Topic.serialize(:content, some_class)
+    Topic.serialize(:content, coder: some_class)
     topic = Topic.new(content: some_class.new("my value"))
     topic.save!
     topic.reload
@@ -274,7 +278,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_serialize_attribute_via_select_method_when_time_zone_available
     with_timezone_config aware_attributes: true do
-      Topic.serialize(:content, MyObject)
+      Topic.serialize(:content, type: MyObject)
 
       myobj = MyObject.new("value1", "value2")
       topic = Topic.create(content: myobj)
@@ -299,10 +303,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_unexpected_serialized_type
-    Topic.serialize :content, Hash
+    Topic.serialize :content, type: Hash
     topic = Topic.create!(content: { zomg: true })
 
-    Topic.serialize :content, Array
+    Topic.serialize :content, type: Array
 
     topic.reload
     error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
@@ -331,7 +335,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_nil_is_not_changed_when_serialized_with_a_class
-    Topic.serialize(:content, Array)
+    Topic.serialize(:content, type: Array)
 
     topic = Topic.new(content: nil)
 
@@ -340,12 +344,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   def test_classes_without_no_arg_constructors_are_not_supported
     assert_raises(ArgumentError) do
-      Topic.serialize(:content, Regexp)
+      Topic.serialize(:content, type: Regexp)
     end
   end
 
   def test_newly_emptied_serialized_hash_is_changed
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     topic = Topic.create(content: { "things" => "stuff" })
     topic.content.delete("things")
     topic.save!
@@ -373,7 +377,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
           super&.freeze
         end
       end
-      serialize :normal_blob, FrozenCoder.new(:normal_blob, Array)
+      serialize(:normal_blob, coder: FrozenCoder.new(:normal_blob, Array))
     end
 
     def test_is_not_changed_when_stored_in_mysql_blob_frozen_payload
@@ -392,15 +396,29 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     #
     # model.attribute = value
     # assert_equal model.attribute, model.tap(&:save).reload.attribute
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
     topic = Topic.create!(content: {})
     topic2 = Topic.create!(content: nil)
 
     assert_equal [topic, topic2], Topic.where(content: nil).sort_by(&:id)
   end
 
+  def test_serialized_attribute_can_be_defined_in_abstract_classes
+    klass = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      self.table_name = nil
+      serialize(:content, type: Hash)
+    end
+
+    subclass = Class.new(klass) do
+      self.table_name = "posts"
+    end
+
+    subclass.define_attribute_methods
+  end
+
   def test_nil_is_always_persisted_as_null
-    Topic.serialize(:content, Hash)
+    Topic.serialize(:content, type: Hash)
 
     topic = Topic.create!(content: { foo: "bar" })
     topic.update_attribute :content, nil
@@ -446,7 +464,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
-      store :content
+      store :content, coder: ActiveRecord::Coders::JSON
       attribute :content, :encrypted, subtype: type_for_attribute(:content)
     end
 
@@ -460,7 +478,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   def test_decorated_type_with_decorator_block
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
-      store :content
+      store :content, coder: ActiveRecord::Coders::JSON
       attribute(:content) { |subtype| EncryptedType.new(subtype: subtype) }
     end
 
@@ -494,7 +512,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end.new
     model = Class.new(Topic) do
       attribute :foo, type
-      serialize :foo, coder
+      serialize :foo, coder: coder
     end
 
     topic = model.create!(foo: "bar")
@@ -508,7 +526,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = model.create!
     topic.update group: "1"
 
-    model.serialize :group, JSON
+    model.serialize :group, coder: JSON
     model.reset_column_information
 
     # This isn't strictly necessary for the test, but a little bit of
@@ -528,5 +546,142 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     # thus decode it. If this fails, some threads will instead see the
     # raw string ("1"), or raise an exception.
     assert_equal [1] * threads.size, threads.map(&:value)
+  end
+end
+
+class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
+  def setup
+    ActiveRecord.use_yaml_unsafe_load = false
+  end
+
+  def test_serialized_attribute
+    Topic.serialize("content", type: String)
+
+    myobj = String.new("value1")
+    topic = Topic.create("content" => myobj)
+    assert_equal(myobj, topic.content)
+
+    topic.reload
+    assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_attribute_on_custom_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      attribute :content, default: { "key" => "value" }
+      serialize :content, type: Hash
+    end
+
+    t = klass.new
+    assert_equal({ "key" => "value" }, t.content)
+  end
+
+  def test_nil_is_always_persisted_as_null
+    Topic.serialize(:content, type: Hash)
+
+    topic = Topic.create!(content: { "foo" => "bar" })
+    topic.update_attribute :content, nil
+    assert_equal [topic], Topic.where(content: nil)
+  end
+
+  def test_serialized_attribute_with_default
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      serialize(:content, type: Hash, default: { "key" => "value" })
+    end
+
+    t = klass.new
+    assert_equal({ "key" => "value" }, t.content)
+  end
+
+  def test_serialized_attributes_from_database_on_subclass
+    Topic.serialize :content, type: Hash
+
+    t = ImportantTopic.new(content: { "foo" => "bar" })
+    assert_equal({ "foo" => "bar" }, t.content)
+    t.save!
+    t = ImportantTopic.last
+    assert_equal({ "foo" => "bar" }, t.content)
+  end
+
+  def test_serialized_attribute_on_alias_attribute
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+      alias_attribute :object, :content
+      serialize :object, type: Hash
+    end
+
+    myobj = { "somevalue" => "thevalue" }
+    topic = klass.create!(object: myobj)
+    assert_equal(myobj, topic.object)
+
+    topic.reload
+    assert_equal(myobj, topic.object)
+  end
+
+  def test_unexpected_serialized_type
+    Topic.serialize :content, type: Hash
+    topic = Topic.create!(content: { "zomg" => true })
+
+    Topic.serialize :content, type: Array
+
+    topic.reload
+    error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
+      topic.content
+    end
+    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- {\"zomg\"=>true}"
+    assert_equal expected, error.to_s
+  end
+
+  def test_serialize_attribute_via_select_method_when_time_zone_available
+    with_timezone_config aware_attributes: true do
+      Topic.serialize(:content, type: Hash)
+
+      myobj = { "somevalue" => "thevalue" }
+      topic = Topic.create(content: myobj)
+
+      assert_equal(myobj, Topic.select(:content).find(topic.id).content)
+      assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
+    end
+  end
+
+  def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
+    myobj = { "somevalue" => "thevalue" }
+    topic = Topic.new(content: myobj)
+    assert topic.save
+    Topic.serialize(:content, type: String)
+    assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
+  end
+
+  def test_serialized_time_attribute
+    skip "Time is a DisallowedClass in Psych safe_load()."
+  end
+
+  def test_supports_permitted_classes_for_default_column_serializer
+    Topic.serialize(:content, yaml: { permitted_classes: [Time] })
+    topic = Topic.new(content: Time.now)
+    assert topic.save
+  end
+
+  def test_recognizes_coder_as_deprecated_positional_argument
+    some_coder = Struct.new(:foo) do
+      def self.dump(value)
+        value.foo
+      end
+
+      def self.load(value)
+        new(value)
+      end
+    end
+
+    assert_deprecated(/Please pass the coder as a keyword argument/, ActiveRecord.deprecator) do
+      Topic.serialize(:content, some_coder)
+    end
+  end
+
+  def test_recognizes_type_as_deprecated_positional_argument
+    assert_deprecated(/Please pass the class as a keyword argument/, ActiveRecord.deprecator) do
+      Topic.serialize(:content, Hash)
+    end
   end
 end

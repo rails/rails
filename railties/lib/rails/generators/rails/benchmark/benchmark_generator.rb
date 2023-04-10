@@ -6,6 +6,7 @@ module Rails
   module Generators
     class BenchmarkGenerator < NamedBase
       IPS_GEM_NAME = "benchmark-ips"
+      IPS_GEM_USED_REGEXP = /gem.*\b#{IPS_GEM_NAME}\b.*/
 
       argument :reports, type: :array, default: ["before", "after"]
 
@@ -21,7 +22,7 @@ module Rails
 
       def ips_installed?
         in_root do
-          return File.read("Gemfile").match?(/gem.*\b#{IPS_GEM_NAME}\b.*/)
+          return File.read("Gemfile").match?(IPS_GEM_USED_REGEXP)
         end
       end
     end

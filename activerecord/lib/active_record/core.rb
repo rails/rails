@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
 require "concurrent/map"
@@ -19,11 +20,20 @@ module ActiveRecord
       # retrieved on both a class and instance level by calling +logger+.
       class_attribute :logger, instance_writer: false
 
-      ##
-      # :singleton-method:
-      #
-      # Specifies the job used to destroy associations in the background
-      class_attribute :destroy_association_async_job, instance_writer: false, instance_predicate: false, default: false
+      class_attribute :_destroy_association_async_job, instance_accessor: false, default: "ActiveRecord::DestroyAssociationAsyncJob"
+
+      # The job class used to destroy associations in the background.
+      def self.destroy_association_async_job
+        if _destroy_association_async_job.is_a?(String)
+          self._destroy_association_async_job = _destroy_association_async_job.constantize
+        end
+        _destroy_association_async_job
+      rescue NameError => error
+        raise NameError, "Unable to load destroy_association_async_job: #{error.message}"
+      end
+
+      singleton_class.alias_method :destroy_association_async_job=, :_destroy_association_async_job=
+      delegate :destroy_association_async_job, to: :class
 
       ##
       # :singleton-method:
@@ -43,19 +53,19 @@ module ActiveRecord
       #
       #   development:
       #     adapter: sqlite3
-      #     database: db/development.sqlite3
+      #     database: storage/development.sqlite3
       #
       #   production:
       #     adapter: sqlite3
-      #     database: db/production.sqlite3
+      #     database: storage/production.sqlite3
       #
       # ...would result in ActiveRecord::Base.configurations to look like this:
       #
       #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-      #       @name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
+      #       @name="primary", @config={adapter: "sqlite3", database: "storage/development.sqlite3"}>,
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
-      #       @name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
+      #       @name="primary", @config={adapter: "sqlite3", database: "storage/production.sqlite3"}>
       #   ]>
       def self.configurations=(config)
         @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
@@ -229,19 +239,6 @@ module ActiveRecord
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
-      def inherited(child_class) # :nodoc:
-        # initialize cache at class definition for thread safety
-        child_class.initialize_find_by_cache
-        unless child_class.base_class?
-          klass = self
-          until klass.base_class?
-            klass.initialize_find_by_cache
-            klass = klass.superclass
-          end
-        end
-        super
-      end
-
       def find(*ids) # :nodoc:
         # We don't have cache keys for this stuff yet
         return super unless ids.length == 1
@@ -291,31 +288,6 @@ module ActiveRecord
         find_by(*args) || where(*args).raise_record_not_found_exception!
       end
 
-      %w(
-        reading_role writing_role default_timezone index_nested_attribute_errors
-        verbose_query_logs queues warn_on_records_fetched_greater_than maintain_test_schema
-        application_record_class action_on_strict_loading_violation schema_format error_on_ignored_order
-        timestamped_migrations dump_schema_after_migration dump_schemas suppress_multiple_database_warning
-      ).each do |attr|
-        module_eval(<<~RUBY, __FILE__, __LINE__ + 1)
-          def #{attr}
-            ActiveSupport::Deprecation.warn(<<~MSG)
-              ActiveRecord::Base.#{attr} is deprecated and will be removed in Rails 7.1.
-              Use `ActiveRecord.#{attr}` instead.
-            MSG
-            ActiveRecord.#{attr}
-          end
-
-          def #{attr}=(value)
-            ActiveSupport::Deprecation.warn(<<~MSG)
-              ActiveRecord::Base.#{attr}= is deprecated and will be removed in Rails 7.1.
-              Use `ActiveRecord.#{attr}=` instead.
-            MSG
-            ActiveRecord.#{attr} = value
-          end
-        RUBY
-      end
-
       def initialize_generated_modules # :nodoc:
         generated_association_methods
       end
@@ -332,10 +304,10 @@ module ActiveRecord
 
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
-        if defined?(@filter_attributes)
-          @filter_attributes
-        else
+        if @filter_attributes.nil?
           superclass.filter_attributes
+        else
+          @filter_attributes
         end
       end
 
@@ -346,13 +318,13 @@ module ActiveRecord
       end
 
       def inspection_filter # :nodoc:
-        if defined?(@filter_attributes)
+        if @filter_attributes.nil?
+          superclass.inspection_filter
+        else
           @inspection_filter ||= begin
             mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
             ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
           end
-        else
-          superclass.inspection_filter
         end
       end
 
@@ -396,6 +368,28 @@ module ActiveRecord
       end
 
       private
+        def inherited(subclass)
+          super
+
+          # initialize cache at class definition for thread safety
+          subclass.initialize_find_by_cache
+          unless subclass.base_class?
+            klass = self
+            until klass.base_class?
+              klass.initialize_find_by_cache
+              klass = klass.superclass
+            end
+          end
+
+          subclass.class_eval do
+            @arel_table = nil
+            @predicate_builder = nil
+            @inspection_filter = nil
+            @filter_attributes = nil
+            @generated_association_methods = nil
+          end
+        end
+
         def relation
           relation = Relation.create(self)
 
@@ -429,7 +423,7 @@ module ActiveRecord
     # In both instances, valid attribute keys are determined by the column names of the associated table --
     # hence you can't have attributes that aren't part of the table columns.
     #
-    # ==== Example:
+    # ==== Example
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
@@ -507,12 +501,17 @@ module ActiveRecord
     # only, not its associations. The extent of a "deep" copy is application
     # specific and is therefore left to the application to implement according
     # to its need.
-    # The dup method does not preserve the timestamps (created|updated)_(at|on).
+    # The dup method does not preserve the timestamps (created|updated)_(at|on)
+    # and locking column.
 
     ##
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
-      @attributes.reset(@primary_key)
+      if self.class.composite_primary_key?
+        @primary_key.each { |key| @attributes.reset(key) }
+      else
+        @attributes.reset(@primary_key)
+      end
 
       _run_initialize_callbacks
 
@@ -552,10 +551,12 @@ module ActiveRecord
     # Note also that destroying a record preserves its ID in the model instance, so deleted
     # models are still comparable.
     def ==(comparison_object)
+      return super if new_record?
       super ||
         comparison_object.instance_of?(self.class) &&
-        !id.nil? &&
-        comparison_object.id == id
+        primary_key_values_present? &&
+        comparison_object.id == id &&
+        !comparison_object.new_record?
     end
     alias :eql? :==
 
@@ -564,8 +565,8 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if id
-        self.class.hash ^ id.hash
+      if primary_key_values_present? && !new_record?
+        [self.class, id].hash
       else
         super
       end
@@ -619,19 +620,24 @@ module ActiveRecord
     #   user.comments
     #   => ActiveRecord::StrictLoadingViolationError
     #
-    # === Parameters:
+    # ==== Parameters
     #
-    # * value - Boolean specifying whether to enable or disable strict loading.
-    # * mode - Symbol specifying strict loading mode. Defaults to :all. Using
-    #          :n_plus_one_only mode will only raise an error if an association
-    #          that will lead to an n plus one query is lazily loaded.
+    # * +value+ - Boolean specifying whether to enable or disable strict loading.
+    # * <tt>:mode</tt> - Symbol specifying strict loading mode. Defaults to :all. Using
+    #   :n_plus_one_only mode will only raise an error if an association that
+    #   will lead to an n plus one query is lazily loaded.
     #
-    # === Example:
+    # ==== Examples
     #
     #   user = User.first
     #   user.strict_loading!(false) # => false
     #   user.comments
     #   => #<ActiveRecord::Associations::CollectionProxy>
+    #
+    #   user.strict_loading!(mode: :n_plus_one_only)
+    #   user.address.city # => "Tatooine"
+    #   user.comments
+    #   => ActiveRecord::StrictLoadingViolationError
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."

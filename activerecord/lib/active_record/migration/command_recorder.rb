@@ -10,25 +10,28 @@ module ActiveRecord
     # * add_foreign_key
     # * add_check_constraint
     # * add_exclusion_constraint
+    # * add_unique_key
     # * add_index
     # * add_reference
     # * add_timestamps
-    # * change_column
     # * change_column_default (must supply a +:from+ and +:to+ option)
     # * change_column_null
     # * change_column_comment (must supply a +:from+ and +:to+ option)
     # * change_table_comment (must supply a +:from+ and +:to+ option)
+    # * create_enum
     # * create_join_table
     # * create_table
     # * disable_extension
+    # * drop_enum (must supply a list of values)
     # * drop_join_table
     # * drop_table (must supply a block)
     # * enable_extension
     # * remove_column (must supply a type)
-    # * remove_columns (must specify at least one column name or more)
+    # * remove_columns (must supply a +:type+ option)
     # * remove_foreign_key (must supply a second table)
     # * remove_check_constraint
     # * remove_exclusion_constraint
+    # * remove_unique_key
     # * remove_index
     # * remove_reference
     # * remove_timestamps
@@ -45,7 +48,9 @@ module ActiveRecord
         :add_foreign_key, :remove_foreign_key,
         :change_column_comment, :change_table_comment,
         :add_check_constraint, :remove_check_constraint,
-        :add_exclusion_constraint, :remove_exclusion_constraint
+        :add_exclusion_constraint, :remove_exclusion_constraint,
+        :add_unique_key, :remove_unique_key,
+        :create_enum, :drop_enum,
       ]
       include JoinTable
 
@@ -121,7 +126,15 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       def change_table(table_name, **options) # :nodoc:
-        yield delegate.update_table_definition(table_name, self)
+        if delegate.supports_bulk_alter? && options[:bulk]
+          recorder = self.class.new(self.delegate)
+          recorder.reverting = @reverting
+          yield recorder.delegate.update_table_definition(table_name, recorder)
+          commands = recorder.commands
+          @commands << [:change_table, [table_name], -> t { bulk_change_table(table_name, commands) }]
+        else
+          yield delegate.update_table_definition(table_name, self)
+        end
       end
 
       def replay(migration)
@@ -144,7 +157,9 @@ module ActiveRecord
               add_foreign_key:   :remove_foreign_key,
               add_check_constraint: :remove_check_constraint,
               add_exclusion_constraint: :remove_exclusion_constraint,
-              enable_extension:  :disable_extension
+              add_unique_key: :remove_unique_key,
+              enable_extension:  :disable_extension,
+              create_enum:       :drop_enum
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -169,7 +184,17 @@ module ActiveRecord
           [:transaction, args, invertions_proc]
         end
 
+        def invert_create_table(args, &block)
+          if args.last.is_a?(Hash)
+            args.last.delete(:if_not_exists)
+          end
+          super
+        end
+
         def invert_drop_table(args, &block)
+          if args.last.is_a?(Hash)
+            args.last.delete(:if_exists)
+          end
           if args.size == 1 && block == nil
             raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
           end
@@ -239,6 +264,11 @@ module ActiveRecord
           [:change_column_null, args]
         end
 
+        def invert_add_foreign_key(args)
+          args.last.delete(:validate) if args.last.is_a?(Hash)
+          super
+        end
+
         def invert_remove_foreign_key(args)
           options = args.extract_options!
           from_table, to_table = args
@@ -273,6 +303,11 @@ module ActiveRecord
           [:change_table_comment, [table, from: options[:to], to: options[:from]]]
         end
 
+        def invert_add_check_constraint(args)
+          args.last.delete(:validate) if args.last.is_a?(Hash)
+          super
+        end
+
         def invert_remove_check_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_check_constraint is only reversible if given an expression." if args.size < 2
           super
@@ -280,6 +315,19 @@ module ActiveRecord
 
         def invert_remove_exclusion_constraint(args)
           raise ActiveRecord::IrreversibleMigration, "remove_exclusion_constraint is only reversible if given an expression." if args.size < 2
+          super
+        end
+
+        def invert_remove_unique_key(args)
+          _table, columns = args.dup.tap(&:extract_options!)
+
+          raise ActiveRecord::IrreversibleMigration, "remove_unique_key is only reversible if given an column_name." if columns.blank?
+          super
+        end
+
+        def invert_drop_enum(args)
+          _enum, values = args.dup.tap(&:extract_options!)
+          raise ActiveRecord::IrreversibleMigration, "drop_enum is only reversible if given a list of enum values." unless values
           super
         end
 

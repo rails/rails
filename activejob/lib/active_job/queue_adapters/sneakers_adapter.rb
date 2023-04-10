@@ -5,7 +5,7 @@ require "monitor"
 
 module ActiveJob
   module QueueAdapters
-    # == Sneakers adapter for Active Job
+    # = Sneakers adapter for Active Job
     #
     # A high-performance RabbitMQ background processing framework for Ruby.
     # Sneakers is being used in production for both I/O and CPU intensive

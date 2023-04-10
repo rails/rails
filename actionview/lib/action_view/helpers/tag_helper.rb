@@ -7,8 +7,9 @@ require "action_view/helpers/capture_helper"
 require "action_view/helpers/output_safety_helper"
 
 module ActionView
-  # = Action View Tag Helpers
   module Helpers # :nodoc:
+    # = Action View Tag \Helpers
+    #
     # Provides methods to generate HTML tags programmatically both as a modern
     # HTML5 compliant builder style and legacy XHTML compliant tags.
     module TagHelper
@@ -363,7 +364,7 @@ module ActionView
       #   token_list(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
       def token_list(*args)
-        tokens = build_tag_values(*args).flat_map { |value| value.to_s.split(/\s+/) }.uniq
+        tokens = build_tag_values(*args).flat_map { |value| CGI.unescape_html(value.to_s).split(/\s+/) }.uniq
 
         safe_join(tokens, " ")
       end

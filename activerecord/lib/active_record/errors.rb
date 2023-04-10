@@ -7,9 +7,13 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
-  # Raised when trying to use a feature in Active Record which requires Active Job but the gem is not present.
-  class ActiveJobRequiredError < ActiveRecordError
-  end
+  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
+  # requires Active Job but the gem is not present. Now raises a NameError.
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
+  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
+    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead.",
+    deprecator: ActiveRecord.deprecator
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
@@ -90,7 +94,7 @@ module ActiveRecord
   # Raised when a pool was unable to get ahold of all its connections
   # to perform a "group" action such as
   # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
-  # or {ActiveRecord::Base.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  # or {ActiveRecord::Base.connection_handler.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
   class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
@@ -163,6 +167,15 @@ module ActiveRecord
     end
 
     attr_reader :sql, :binds
+
+    def set_query(sql, binds)
+      unless @sql
+        @sql = sql
+        @binds = binds
+      end
+
+      self
+    end
   end
 
   # Defunct wrapper class kept for compatibility.
@@ -189,8 +202,12 @@ module ActiveRecord
       foreign_key: nil,
       target_table: nil,
       primary_key: nil,
-      primary_key_column: nil
+      primary_key_column: nil,
+      query_parser: nil
     )
+      @original_message = message
+      @query_parser = query_parser
+
       if table
         type = primary_key_column.bigint? ? :bigint : primary_key_column.type
         msg = <<~EOM.squish
@@ -208,7 +225,23 @@ module ActiveRecord
       if message
         msg << "\nOriginal message: #{message}"
       end
+
       super(msg, sql: sql, binds: binds)
+    end
+
+    def set_query(sql, binds)
+      if @query_parser && !@sql
+        self.class.new(
+          message: @original_message,
+          sql: sql,
+          binds: binds,
+          **@query_parser.call(sql)
+        ).tap do |exception|
+          exception.set_backtrace backtrace
+        end
+      else
+        super
+      end
     end
   end
 
@@ -222,6 +255,19 @@ module ActiveRecord
 
   # Raised when values that executed are out of range.
   class RangeError < StatementInvalid
+  end
+
+  # Raised when a statement produces an SQL warning.
+  class SQLWarning < ActiveRecordError
+    attr_reader :code, :level
+    attr_accessor :sql
+
+    def initialize(message = nil, code = nil, level = nil, sql = nil)
+      super(message)
+      @code = code
+      @level = level
+      @sql = sql
+    end
   end
 
   # Raised when the number of placeholders in an SQL fragment passed to
@@ -249,9 +295,9 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Which can be found in the database configuration file located at config/database.yml.
+          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml file.
 
-          To resolve this issue:
+          To resolve this error:
 
           - Did you create the database for this app, or delete it? You may need to create your database.
           - Has the database name changed? Check your database.yml config has the correct database name.
@@ -459,6 +505,11 @@ module ActiveRecord
 
   # AdapterTimeout will be raised when database clients times out while waiting from the server.
   class AdapterTimeout < QueryAborted
+  end
+
+  # ConnectionFailed will be raised when the network connection to the
+  # database fails while sending a query or waiting for its result.
+  class ConnectionFailed < QueryAborted
   end
 
   # UnknownAttributeReference is raised when an unknown and potentially unsafe

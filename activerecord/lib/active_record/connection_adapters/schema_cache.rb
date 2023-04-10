@@ -67,13 +67,16 @@ module ActiveRecord
 
       def init_with(coder)
         @columns          = coder["columns"]
+        @columns_hash     = coder["columns_hash"]
         @primary_keys     = coder["primary_keys"]
         @data_sources     = coder["data_sources"]
         @indexes          = coder["indexes"] || {}
         @version          = coder["version"]
         @database_version = coder["database_version"]
 
-        derive_columns_hash_and_deduplicate_values
+        unless coder["deduplicated"]
+          derive_columns_hash_and_deduplicate_values
+        end
       end
 
       def primary_keys(table_name)

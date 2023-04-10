@@ -18,6 +18,8 @@ module Rails
     class ApplicationCommand < Base # :nodoc:
       hide_command!
 
+      self.bin = "rails"
+
       def help
         perform # Punt help output to the generator.
       end

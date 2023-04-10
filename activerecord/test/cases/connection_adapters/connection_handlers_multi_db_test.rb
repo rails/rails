@@ -12,7 +12,7 @@ module ActiveRecord
 
       def setup
         @handler = ConnectionHandler.new
-        @owner_name = "ActiveRecord::Base"
+        @connection_name = "ActiveRecord::Base"
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @rw_pool = @handler.establish_connection(db_config)
         @ro_pool = @handler.establish_connection(db_config, role: :reading)
@@ -319,31 +319,48 @@ module ActiveRecord
         end
       end
 
-      def test_connection_pools
-        assert_equal([@rw_pool], @handler.connection_pools(:writing))
-        assert_equal([@ro_pool], @handler.connection_pools(:reading))
+      def test_connection_pool_list
+        assert_equal([@rw_pool], @handler.connection_pool_list(:writing))
+        assert_equal([@ro_pool], @handler.connection_pool_list(:reading))
+
+        assert_deprecated(ActiveRecord.deprecator) do
+          @handler.connection_pool_list
+        end
+      end
+
+      def test_all_connection_pools
+        assert_deprecated(ActiveRecord.deprecator) do
+          assert_equal([@rw_pool, @ro_pool], @handler.all_connection_pools)
+        end
       end
 
       def test_retrieve_connection
-        assert @handler.retrieve_connection(@owner_name)
-        assert @handler.retrieve_connection(@owner_name, role: :reading)
+        assert @handler.retrieve_connection(@connection_name)
+        assert @handler.retrieve_connection(@connection_name, role: :reading)
       end
 
       def test_active_connections?
-        assert_not_predicate @handler, :active_connections?
+        assert_deprecated(ActiveRecord.deprecator) do
+          assert_not_predicate @handler, :active_connections?
+        end
 
-        assert @handler.retrieve_connection(@owner_name)
-        assert @handler.retrieve_connection(@owner_name, role: :reading)
+        assert @handler.retrieve_connection(@connection_name)
+        assert @handler.retrieve_connection(@connection_name, role: :reading)
 
-        assert_predicate @handler, :active_connections?
+        assert_deprecated(ActiveRecord.deprecator) do
+          assert_predicate @handler, :active_connections?
+        end
 
-        @handler.clear_active_connections!
-        assert_not_predicate @handler, :active_connections?
+        @handler.clear_active_connections!(:all)
+
+        assert_deprecated(ActiveRecord.deprecator) do
+          assert_not_predicate @handler, :active_connections?
+        end
       end
 
       def test_retrieve_connection_pool
-        assert_not_nil @handler.retrieve_connection_pool(@owner_name)
-        assert_not_nil @handler.retrieve_connection_pool(@owner_name, role: :reading)
+        assert_not_nil @handler.retrieve_connection_pool(@connection_name)
+        assert_not_nil @handler.retrieve_connection_pool(@connection_name, role: :reading)
       end
 
       def test_retrieve_connection_pool_with_invalid_id

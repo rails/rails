@@ -3,8 +3,9 @@
 require "zlib"
 
 module ActionView
-  # = Action View Asset URL Helpers
   module Helpers # :nodoc:
+    # = Action View Asset URL \Helpers
+    #
     # This module provides methods for generating asset paths and
     # URLs.
     #
@@ -196,7 +197,7 @@ module ActionView
           source = "#{source}#{extname}"
         end
 
-        if source[0] != ?/
+        unless source.start_with?(?/)
           if options[:skip_pipeline]
             source = public_compute_asset_path(source, options)
           else

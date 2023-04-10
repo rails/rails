@@ -14,8 +14,9 @@ module ActiveRecord
       end
 
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-        :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?,
-        :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?, :supports_exclusion_constraints?,
+        :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
+        :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
+        :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_keys?,
         to: :@conn, private: true
 
       private
@@ -51,7 +52,7 @@ module ActiveRecord
             statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
           end
 
-          if supports_foreign_keys?
+          if use_foreign_keys?
             statements.concat(o.foreign_keys.map { |fk| accept fk })
           end
 
@@ -61,6 +62,10 @@ module ActiveRecord
 
           if supports_exclusion_constraints?
             statements.concat(o.exclusion_constraints.map { |exc| accept exc })
+          end
+
+          if supports_unique_keys?
+            statements.concat(o.unique_keys.map { |exc| accept exc })
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
@@ -104,6 +109,7 @@ module ActiveRecord
           sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
           sql << "USING #{index.using}" if supports_index_using? && index.using
           sql << "(#{quoted_columns(index)})"
+          sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
           sql.join(" ")

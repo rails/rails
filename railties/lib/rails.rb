@@ -10,8 +10,10 @@ require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/object/blank"
 
-require "rails/application"
 require "rails/version"
+require "rails/deprecator"
+require "rails/application"
+require "rails/backtrace_cleaner"
 
 require "active_support/railtie"
 require "action_dispatch/railtie"
@@ -22,10 +24,12 @@ silence_warnings do
   Encoding.default_internal = Encoding::UTF_8
 end
 
+# :include: railties/README.rdoc
 module Rails
   extend ActiveSupport::Autoload
   extend ActiveSupport::Benchmarkable
 
+  autoload :HealthController
   autoload :Info
   autoload :InfoController
   autoload :MailersController
@@ -48,11 +52,7 @@ module Rails
     end
 
     def backtrace_cleaner
-      @backtrace_cleaner ||= begin
-        # Relies on Active Support, so we have to lazy load to postpone definition until Active Support has been loaded
-        require "rails/backtrace_cleaner"
-        Rails::BacktraceCleaner.new
-      end
+      @backtrace_cleaner ||= Rails::BacktraceCleaner.new
     end
 
     # Returns a Pathname object of the current Rails project,
@@ -80,8 +80,15 @@ module Rails
       @_env = ActiveSupport::EnvironmentInquirer.new(environment)
     end
 
+    # Returns the ActiveSupport::ErrorReporter of the current Rails project,
+    # otherwise it returns +nil+ if there is no project.
+    #
+    #   Rails.error.handle(IOError) do
+    #     # ...
+    #   end
+    #   Rails.error.report(error)
     def error
-      application && application.executor.error_reporter
+      ActiveSupport.error_reporter
     end
 
     # Returns all Rails groups for loading based on:

@@ -17,6 +17,7 @@ module ActiveRecord
         super
         @connection = ActiveRecord::Base.connection
         @schema_migration = @connection.schema_migration
+        @internal_metadata = @connection.internal_metadata
         @verbose_was = ActiveRecord::Migration.verbose
         ActiveRecord::Migration.verbose = false
 
@@ -29,7 +30,7 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
-        ActiveRecord::SchemaMigration.delete_all rescue nil
+        @schema_migration.delete_all_versions rescue nil
       end
 
       def test_migration_doesnt_remove_named_index
@@ -43,7 +44,7 @@ module ActiveRecord
         }.new
 
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
-        assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate }
+        assert_raise(StandardError) { ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate }
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
       end
 
@@ -58,7 +59,7 @@ module ActiveRecord
         }.new
 
         assert connection.index_exists?(:testings, :bar)
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         assert_not connection.index_exists?(:testings, :bar)
       end
 
@@ -72,7 +73,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert_not connection.index_exists?(:more_testings, :foo_id)
         assert_not connection.index_exists?(:more_testings, :bar_id)
@@ -89,7 +90,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :created_at, null: true)
         assert connection.column_exists?(:more_testings, :updated_at, null: true)
@@ -106,7 +107,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: true)
         assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -122,7 +123,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
           assert connection.column_exists?(:testings, :created_at, null: true)
           assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -136,7 +137,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: true)
         assert connection.column_exists?(:testings, :updated_at, null: true)
@@ -151,7 +152,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:more_testings, :updated_at, null: false, **precision_implicit_default)
@@ -168,7 +169,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -184,7 +185,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
           assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
           assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -198,7 +199,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :created_at, null: false, **precision_implicit_default)
         assert connection.column_exists?(:testings, :updated_at, null: false, **precision_implicit_default)
@@ -235,7 +236,7 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert connection.column_exists?(:testings, :foo, comment: "comment")
         end
 
@@ -248,10 +249,37 @@ module ActiveRecord
             end
           }.new
 
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
           assert_equal "comment", connection.table_comment("testings")
         end
+      end
+
+      def test_options_are_not_validated
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def migrate(x)
+            create_table :tests, wrong_id: false do |t|
+              t.references :some_table, wrong_primary_key: true
+              t.integer :some_id, wrong_unique: true
+              t.string :some_string_column, wrong_null: false
+            end
+
+            add_column :tests, "last_name", :string, wrong_precision: true
+
+            change_column :tests, :some_id, :float, wrong_index: true
+
+            change_table :tests do |t|
+              t.change :some_id, :float, null: false, wrong_index: true
+              t.integer :another_id, wrong_unique: true
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        assert connection.table_exists?(:tests)
+      ensure
+        connection.drop_table :tests, if_exists: true
       end
 
       if current_adapter?(:PostgreSQLAdapter)
@@ -266,11 +294,28 @@ module ActiveRecord
           }.new
 
           Testing.create!
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert_equal ["foobar"], Testing.all.map(&:foo)
         ensure
           ActiveRecord::Base.clear_cache!
         end
+      end
+
+      def test_timestamps_sets_default_precision_on_create_table
+        migration = Class.new(ActiveRecord::Migration[6.1]) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.timestamps
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        assert connection.column_exists?(:more_testings, :created_at, **{ precision: 6 })
+        assert connection.column_exists?(:more_testings, :updated_at, **{ precision: 6 })
+      ensure
+        connection.drop_table :more_testings rescue nil
       end
 
       def test_datetime_doesnt_set_precision_on_create_table
@@ -282,7 +327,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -306,7 +351,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -330,7 +375,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -354,7 +399,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -378,7 +423,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -402,7 +447,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -426,7 +471,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, change_migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:more_testings, :published_at, **precision_implicit_default)
       ensure
@@ -440,7 +485,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
       end
@@ -452,7 +497,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :published_at, **precision_implicit_default)
       end
@@ -466,7 +511,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert_not connection.column_exists?(:testings, :foo)
       end
@@ -478,7 +523,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         assert connection.column_exists?(:testings, :widget_id)
       end
@@ -492,7 +537,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
         column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
 
@@ -501,6 +546,44 @@ module ActiveRecord
         else
           assert_predicate(column, :bigint?)
         end
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
+
+      def test_add_index_errors_on_too_long_name_7_0
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            add_column :testings, :very_long_column_name_to_test_with, :string
+            add_index :testings, [:foo, :bar, :very_long_column_name_to_test_with]
+          end
+        }.new
+
+        error = assert_raises(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert_match(/index_testings_on_foo_and_bar_and_very_long_column_name_to_test_with/i, error.message)
+        assert_match(/is too long/i, error.message)
+      end
+
+      def test_create_table_add_index_errors_on_too_long_name_7_0
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.integer :foo
+              t.integer :bar
+              t.integer :very_long_column_name_to_test_with
+              t.index [:foo, :bar, :very_long_column_name_to_test_with]
+            end
+          end
+        }.new
+
+        error = assert_raises(StandardError) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert_match(/index_more_testings_on_foo_and_bar_and_very_long_column_name_to_test_with/i, error.message)
+        assert_match(/is too long/i, error.message)
       ensure
         connection.drop_table :more_testings rescue nil
       end
@@ -522,7 +605,7 @@ module ActiveRecord
           end
         }.new
 
-        ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration).migrate
+        ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration, @internal_metadata).migrate
 
         column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
 
@@ -548,7 +631,7 @@ module ActiveRecord
         if current_adapter?(:Mysql2Adapter)
           # MySQL does not allow to create table names longer than limit
           error = assert_raises(StandardError) do
-            ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           end
           if connection.mariadb?
             assert_match(/Incorrect table name '#{long_table_name}'/i, error.message)
@@ -556,7 +639,7 @@ module ActiveRecord
             assert_match(/Identifier name '#{long_table_name}' is too long/i, error.message)
           end
         else
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert connection.table_exists?(long_table_name)
         end
       ensure
@@ -578,7 +661,7 @@ module ActiveRecord
         if current_adapter?(:Mysql2Adapter)
           # MySQL does not allow to create table names longer than limit
           error = assert_raises(StandardError) do
-            ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           end
           if connection.mariadb?
             assert_match(/Incorrect table name '#{long_table_name}'/i, error.message)
@@ -586,7 +669,7 @@ module ActiveRecord
             assert_match(/Identifier name '#{long_table_name}' is too long/i, error.message)
           end
         else
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
           assert connection.table_exists?(long_table_name)
           assert_not connection.table_exists?(:more_testings)
           assert connection.table_exists?(long_table_name)
@@ -604,7 +687,7 @@ module ActiveRecord
           end
         end
         e = assert_raise(StandardError) do
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
         assert_includes e.message, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}"
       end
@@ -617,7 +700,7 @@ module ActiveRecord
           end
         end
         assert_nothing_raised do
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
         assert_difference("TestModel.count" => 1) do
           TestModel.create!(name: nil)
@@ -632,10 +715,42 @@ module ActiveRecord
           end
         end
         assert_nothing_raised do
-          ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
         assert_raise(ActiveRecord::NotNullViolation) do
           TestModel.create!(name: nil)
+        end
+      end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_disable_extension_on_7_0
+          enable_extension!(:hstore, connection)
+
+          migration = Class.new(ActiveRecord::Migration[7.0]) do
+            def up
+              add_column :testings, :settings, :hstore
+              disable_extension :hstore
+            end
+          end
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          assert_not connection.extension_enabled?(:hstore)
+        ensure
+          disable_extension!(:hstore, connection)
+        end
+      end
+
+      if current_adapter?(:Mysql2Adapter)
+        def test_change_column_on_7_0
+          migration = Class.new(ActiveRecord::Migration[7.0]) do
+            def up
+              execute("ALTER TABLE testings CONVERT TO CHARACTER SET utf32")
+              change_column(:testings, :foo, "varchar(255) CHARACTER SET ascii")
+            end
+          end
+          assert_nothing_raised do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          end
         end
       end
 
@@ -657,6 +772,7 @@ module LegacyPolymorphicReferenceIndexTestCases
   def setup
     @connection = ActiveRecord::Base.connection
     @schema_migration = @connection.schema_migration
+    @internal_metadata = @connection.internal_metadata
     @verbose_was = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
@@ -665,7 +781,7 @@ module LegacyPolymorphicReferenceIndexTestCases
 
   def teardown
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::SchemaMigration.delete_all rescue nil
+    @schema_migration.delete_all_versions rescue nil
     connection.drop_table :testings rescue nil
   end
 
@@ -679,7 +795,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:more_testings, [:widget_type, :widget_id], name: :index_more_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:more_testings, [:gizmo_type, :gizmo_id], name: :index_more_testings_on_gizmo_type_and_gizmo_id)
@@ -697,7 +813,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:testings, [:widget_type, :widget_id], name: :index_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:testings, [:gizmo_type, :gizmo_id], name: :index_testings_on_gizmo_type_and_gizmo_id)
@@ -713,7 +829,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:more_testings, [:widget_type, :widget_id], name: :index_more_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:more_testings, [:gizmo_type, :gizmo_id], name: :index_more_testings_on_gizmo_type_and_gizmo_id)
@@ -729,7 +845,7 @@ module LegacyPolymorphicReferenceIndexTestCases
       end
     }.new
 
-    ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+    ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
     assert connection.index_exists?(:testings, [:widget_type, :widget_id], name: :index_testings_on_widget_type_and_widget_id)
     assert connection.index_exists?(:testings, [:gizmo_type, :gizmo_id], name: :index_testings_on_gizmo_type_and_gizmo_id)
@@ -778,168 +894,58 @@ module LegacyPolymorphicReferenceIndexTest
 end
 
 module LegacyPrimaryKeyTestCases
+  extend ActiveSupport::Concern
   include SchemaDumpingHelper
 
   class LegacyPrimaryKey < ActiveRecord::Base
   end
 
-  def setup
-    @migration = nil
-    @verbose_was = ActiveRecord::Migration.verbose
-    ActiveRecord::Migration.verbose = false
-  end
-
-  def teardown
-    @migration.migrate(:down) if @migration
-    ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::SchemaMigration.delete_all rescue nil
-    LegacyPrimaryKey.reset_column_information
-  end
-
-  def test_legacy_primary_key_should_be_auto_incremented
-    @migration = Class.new(migration_class) {
-      def change
-        create_table :legacy_primary_keys do |t|
-          t.references :legacy_ref
-        end
-      end
-    }.new
-
-    @migration.migrate(:up)
-
-    assert_legacy_primary_key
-
-    legacy_ref = LegacyPrimaryKey.columns_hash["legacy_ref_id"]
-    assert_not_predicate legacy_ref, :bigint?
-
-    record1 = LegacyPrimaryKey.create!
-    assert_not_nil record1.id
-
-    record1.destroy
-
-    record2 = LegacyPrimaryKey.create!
-    assert_not_nil record2.id
-    assert_operator record2.id, :>, record1.id
-  end
-
-  def test_legacy_integer_primary_key_should_not_be_auto_incremented
-    skip if current_adapter?(:SQLite3Adapter)
-
-    @migration = Class.new(migration_class) {
-      def change
-        create_table :legacy_primary_keys, id: :integer do |t|
-        end
-      end
-    }.new
-
-    @migration.migrate(:up)
-
-    assert_raises(ActiveRecord::NotNullViolation) do
-      LegacyPrimaryKey.create!
+  included do
+    def setup
+      @migration = nil
+      @verbose_was = ActiveRecord::Migration.verbose
+      ActiveRecord::Migration.verbose = false
     end
 
-    schema = dump_table_schema "legacy_primary_keys"
-    assert_match %r{create_table "legacy_primary_keys", id: :integer, default: nil}, schema
-  end
+    def teardown
+      @migration.migrate(:down) if @migration
+      ActiveRecord::Migration.verbose = @verbose_was
+      ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
+      LegacyPrimaryKey.reset_column_information
+    end
 
-  def test_legacy_primary_key_in_create_table_should_be_integer
-    @migration = Class.new(migration_class) {
-      def change
-        create_table :legacy_primary_keys, id: false do |t|
-          t.primary_key :id
-        end
-      end
-    }.new
-
-    @migration.migrate(:up)
-
-    assert_legacy_primary_key
-  end
-
-  def test_legacy_primary_key_in_change_table_should_be_integer
-    @migration = Class.new(migration_class) {
-      def change
-        create_table :legacy_primary_keys, id: false do |t|
-          t.integer :dummy
-        end
-        change_table :legacy_primary_keys do |t|
-          t.primary_key :id
-        end
-      end
-    }.new
-
-    @migration.migrate(:up)
-
-    assert_legacy_primary_key
-  end
-
-  def test_add_column_with_legacy_primary_key_should_be_integer
-    @migration = Class.new(migration_class) {
-      def change
-        create_table :legacy_primary_keys, id: false do |t|
-          t.integer :dummy
-        end
-        add_column :legacy_primary_keys, :id, :primary_key
-      end
-    }.new
-
-    @migration.migrate(:up)
-
-    assert_legacy_primary_key
-  end
-
-  def test_legacy_join_table_foreign_keys_should_be_integer
-    @migration = Class.new(migration_class) {
-      def change
-        create_join_table :apples, :bananas do |t|
-        end
-      end
-    }.new
-
-    @migration.migrate(:up)
-
-    schema = dump_table_schema "apples_bananas"
-    assert_match %r{integer "apple_id", null: false}, schema
-    assert_match %r{integer "banana_id", null: false}, schema
-  end
-
-  def test_legacy_join_table_column_options_should_be_overwritten
-    @migration = Class.new(migration_class) {
-      def change
-        create_join_table :apples, :bananas, column_options: { type: :bigint } do |t|
-        end
-      end
-    }.new
-
-    @migration.migrate(:up)
-
-    schema = dump_table_schema "apples_bananas"
-    assert_match %r{bigint "apple_id", null: false}, schema
-    assert_match %r{bigint "banana_id", null: false}, schema
-  end
-
-  if current_adapter?(:Mysql2Adapter)
-    def test_legacy_bigint_primary_key_should_be_auto_incremented
+    def test_legacy_primary_key_should_be_auto_incremented
       @migration = Class.new(migration_class) {
         def change
-          create_table :legacy_primary_keys, id: :bigint
+          create_table :legacy_primary_keys do |t|
+            t.references :legacy_ref
+          end
         end
       }.new
 
       @migration.migrate(:up)
 
-      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
-      assert_predicate legacy_pk, :bigint?
-      assert_predicate legacy_pk, :auto_increment?
+      assert_legacy_primary_key
 
-      schema = dump_table_schema "legacy_primary_keys"
-      assert_match %r{create_table "legacy_primary_keys", (?!id: :bigint, default: nil)}, schema
+      legacy_ref = LegacyPrimaryKey.columns_hash["legacy_ref_id"]
+      assert_not_predicate legacy_ref, :bigint?
+
+      record1 = LegacyPrimaryKey.create!
+      assert_not_nil record1.id
+
+      record1.destroy
+
+      record2 = LegacyPrimaryKey.create!
+      assert_not_nil record2.id
+      assert_operator record2.id, :>, record1.id
     end
-  else
-    def test_legacy_bigint_primary_key_should_not_be_auto_incremented
+
+    def test_legacy_integer_primary_key_should_not_be_auto_incremented
+      skip if current_adapter?(:SQLite3Adapter)
+
       @migration = Class.new(migration_class) {
         def change
-          create_table :legacy_primary_keys, id: :bigint do |t|
+          create_table :legacy_primary_keys, id: :integer do |t|
           end
         end
       }.new
@@ -951,25 +957,138 @@ module LegacyPrimaryKeyTestCases
       end
 
       schema = dump_table_schema "legacy_primary_keys"
-      assert_match %r{create_table "legacy_primary_keys", id: :bigint, default: nil}, schema
+      assert_match %r{create_table "legacy_primary_keys", id: :integer, default: nil}, schema
     end
-  end
 
-  private
-    def assert_legacy_primary_key
-      assert_equal "id", LegacyPrimaryKey.primary_key
+    def test_legacy_primary_key_in_create_table_should_be_integer
+      @migration = Class.new(migration_class) {
+        def change
+          create_table :legacy_primary_keys, id: false do |t|
+            t.primary_key :id
+          end
+        end
+      }.new
 
-      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+      @migration.migrate(:up)
 
-      assert_equal :integer, legacy_pk.type
-      assert_not_predicate legacy_pk, :bigint?
-      assert_not legacy_pk.null
+      assert_legacy_primary_key
+    end
 
-      if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+    def test_legacy_primary_key_in_change_table_should_be_integer
+      @migration = Class.new(migration_class) {
+        def change
+          create_table :legacy_primary_keys, id: false do |t|
+            t.integer :dummy
+          end
+          change_table :legacy_primary_keys do |t|
+            t.primary_key :id
+          end
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      assert_legacy_primary_key
+    end
+
+    def test_add_column_with_legacy_primary_key_should_be_integer
+      @migration = Class.new(migration_class) {
+        def change
+          create_table :legacy_primary_keys, id: false do |t|
+            t.integer :dummy
+          end
+          add_column :legacy_primary_keys, :id, :primary_key
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      assert_legacy_primary_key
+    end
+
+    def test_legacy_join_table_foreign_keys_should_be_integer
+      @migration = Class.new(migration_class) {
+        def change
+          create_join_table :apples, :bananas do |t|
+          end
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      schema = dump_table_schema "apples_bananas"
+      assert_match %r{integer "apple_id", null: false}, schema
+      assert_match %r{integer "banana_id", null: false}, schema
+    end
+
+    def test_legacy_join_table_column_options_should_be_overwritten
+      @migration = Class.new(migration_class) {
+        def change
+          create_join_table :apples, :bananas, column_options: { type: :bigint } do |t|
+          end
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      schema = dump_table_schema "apples_bananas"
+      assert_match %r{bigint "apple_id", null: false}, schema
+      assert_match %r{bigint "banana_id", null: false}, schema
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      def test_legacy_bigint_primary_key_should_be_auto_incremented
+        @migration = Class.new(migration_class) {
+          def change
+            create_table :legacy_primary_keys, id: :bigint
+          end
+        }.new
+
+        @migration.migrate(:up)
+
+        legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+        assert_predicate legacy_pk, :bigint?
+        assert_predicate legacy_pk, :auto_increment?
+
         schema = dump_table_schema "legacy_primary_keys"
-        assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
+        assert_match %r{create_table "legacy_primary_keys", (?!id: :bigint, default: nil)}, schema
+      end
+    else
+      def test_legacy_bigint_primary_key_should_not_be_auto_incremented
+        @migration = Class.new(migration_class) {
+          def change
+            create_table :legacy_primary_keys, id: :bigint do |t|
+            end
+          end
+        }.new
+
+        @migration.migrate(:up)
+
+        assert_raises(ActiveRecord::NotNullViolation) do
+          LegacyPrimaryKey.create!
+        end
+
+        schema = dump_table_schema "legacy_primary_keys"
+        assert_match %r{create_table "legacy_primary_keys", id: :bigint, default: nil}, schema
       end
     end
+
+    private
+      def assert_legacy_primary_key
+        assert_equal "id", LegacyPrimaryKey.primary_key
+
+        legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+
+        assert_equal :integer, legacy_pk.type
+        assert_not_predicate legacy_pk, :bigint?
+        assert_not legacy_pk.null
+
+        if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+          schema = dump_table_schema "legacy_primary_keys"
+          assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
+        end
+      end
+  end
 end
 
 module LegacyPrimaryKeyTest

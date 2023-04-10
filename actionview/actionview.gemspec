@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*"]
+  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*", "app/assets/javascripts/*.js"]
   s.require_path = "lib"
   s.requirements << "none"
 
@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
 
   s.add_dependency "builder",       "~> 3.1"
-  s.add_dependency "erubi",         "~> 1.4"
+  s.add_dependency "erubi",         "~> 1.11"
   s.add_dependency "rails-html-sanitizer", "~> 1.1", ">= 1.2.0"
   s.add_dependency "rails-dom-testing", "~> 2.0"
 

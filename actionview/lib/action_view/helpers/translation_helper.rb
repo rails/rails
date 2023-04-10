@@ -4,14 +4,14 @@ require "action_view/helpers/tag_helper"
 require "active_support/html_safe_translation"
 
 module ActionView
-  # = Action View Translation Helpers
   module Helpers # :nodoc:
+    # = Action View Translation \Helpers
     module TranslationHelper
       extend ActiveSupport::Concern
 
       include TagHelper
 
-      # Specify whether an error should be raised for missing translations
+      # Specify whether an error should be raised for missing translations.
       singleton_class.attr_accessor :raise_on_missing_translations
 
       included do
@@ -90,7 +90,7 @@ module ActionView
 
           translated = ActiveSupport::HtmlSafeTranslation.translate(key, **options, default: default)
 
-          break translated unless translated.equal?(MISSING_TRANSLATION)
+          break translated unless translated == MISSING_TRANSLATION
 
           if alternatives.present? && !alternatives.first.is_a?(Symbol)
             break alternatives.first && I18n.translate(**options, default: alternatives)
@@ -111,7 +111,7 @@ module ActionView
 
       # Delegates to <tt>I18n.localize</tt> with no additional functionality.
       #
-      # See https://www.rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
+      # See https://www.rubydoc.info/gems/i18n/I18n/Backend/Base:localize
       # for more information.
       def localize(object, **options)
         I18n.localize(object, **options)
@@ -119,7 +119,7 @@ module ActionView
       alias :l :localize
 
       private
-        MISSING_TRANSLATION = Object.new
+        MISSING_TRANSLATION = -(2**60)
         private_constant :MISSING_TRANSLATION
 
         NO_DEFAULT = [].freeze

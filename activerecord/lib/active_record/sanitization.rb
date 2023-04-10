@@ -5,8 +5,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Accepts an array or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a WHERE clause.
+      # Accepts an array of SQL conditions and sanitizes them into a valid
+      # SQL fragment for a WHERE clause.
       #
       #   sanitize_sql_for_conditions(["name=? and group_id=?", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id=4"
@@ -17,8 +17,19 @@ module ActiveRecord
       #   sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
       #
+      # This method will NOT sanitize a SQL string since it won't contain
+      # any conditions in it and will return the string as is.
+      #
       #   sanitize_sql_for_conditions("name='foo''bar' and group_id='4'")
       #   # => "name='foo''bar' and group_id='4'"
+      #
+      # Note that this sanitization method is not schema-aware, hence won't do any type casting
+      # and will directly use the database adapter's +quote+ method.
+      # For MySQL specifically this means that numeric parameters will be quoted as strings
+      # to prevent query manipulation attacks.
+      #
+      #   sanitize_sql_for_conditions(["role = ?", 0])
+      #   # => "role = '0'"
       def sanitize_sql_for_conditions(condition)
         return nil if condition.blank?
 
@@ -29,8 +40,8 @@ module ActiveRecord
       end
       alias :sanitize_sql :sanitize_sql_for_conditions
 
-      # Accepts an array, hash, or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a SET clause.
+      # Accepts an array or hash of SQL conditions and sanitizes them into
+      # a valid SQL fragment for a SET clause.
       #
       #   sanitize_sql_for_assignment(["name=? and group_id=?", nil, 4])
       #   # => "name=NULL and group_id=4"
@@ -41,8 +52,19 @@ module ActiveRecord
       #   Post.sanitize_sql_for_assignment({ name: nil, group_id: 4 })
       #   # => "`posts`.`name` = NULL, `posts`.`group_id` = 4"
       #
+      # This method will NOT sanitize a SQL string since it won't contain
+      # any conditions in it and will return the string as is.
+      #
       #   sanitize_sql_for_assignment("name=NULL and group_id='4'")
       #   # => "name=NULL and group_id='4'"
+      #
+      # Note that this sanitization method is not schema-aware, hence won't do any type casting
+      # and will directly use the database adapter's +quote+ method.
+      # For MySQL specifically this means that numeric parameters will be quoted as strings
+      # to prevent query manipulation attacks.
+      #
+      #   sanitize_sql_for_assignment(["role = ?", 0])
+      #   # => "role = '0'"
       def sanitize_sql_for_assignment(assignments, default_table_name = table_name)
         case assignments
         when Array; sanitize_sql_array(assignments)
@@ -125,6 +147,14 @@ module ActiveRecord
       #
       #   sanitize_sql_array(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
+      #
+      # Note that this sanitization method is not schema-aware, hence won't do any type casting
+      # and will directly use the database adapter's +quote+ method.
+      # For MySQL specifically this means that numeric parameters will be quoted as strings
+      # to prevent query manipulation attacks.
+      #
+      #   sanitize_sql_array(["role = ?", 0])
+      #   # => "role = '0'"
       def sanitize_sql_array(ary)
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)
@@ -191,13 +221,13 @@ module ActiveRecord
           if value.respond_to?(:map) && !value.acts_like?(:string)
             values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
             if values.empty?
-              c.quote_bound_value(nil)
+              c.quote(c.cast_bound_value(nil))
             else
-              values.map! { |v| c.quote_bound_value(v) }.join(",")
+              values.map! { |v| c.quote(c.cast_bound_value(v)) }.join(",")
             end
           else
             value = value.id_for_database if value.respond_to?(:id_for_database)
-            c.quote_bound_value(value)
+            c.quote(c.cast_bound_value(value))
           end
         end
 

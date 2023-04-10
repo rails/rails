@@ -8,19 +8,18 @@ class SchemaDumperTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   setup do
-    ActiveRecord::SchemaMigration.create_table
+    @schema_migration = ActiveRecord::Base.connection.schema_migration
+    @schema_migration.create_table
+
+    ARUnit2Model.connection.schema_migration.create_table
   end
 
   def standard_dump
-    @@standard_dump ||= perform_schema_dump
-  end
-
-  def perform_schema_dump
-    dump_all_table_schema []
+    @@standard_dump ||= dump_all_table_schema
   end
 
   def test_dump_schema_information_with_empty_versions
-    ActiveRecord::SchemaMigration.delete_all
+    @schema_migration.delete_all_versions
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_no_match(/INSERT INTO/, schema_info)
   end
@@ -28,7 +27,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.shuffle.each do |v|
-      ActiveRecord::SchemaMigration.create!(version: v)
+      @schema_migration.create_version(v)
     end
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
@@ -37,11 +36,10 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ('20100301010101'),
     ('20100201010101'),
     ('20100101010101');
-
     STR
-    assert_equal expected, schema_info
+    assert_equal expected.strip, schema_info
   ensure
-    ActiveRecord::SchemaMigration.delete_all
+    @schema_migration.delete_all_versions
   end
 
   def test_schema_dump_include_migration_version
@@ -154,7 +152,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_string_ignored_table
-    output = dump_all_table_schema(["accounts"])
+    output = dump_table_schema("authors")
     assert_no_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
@@ -162,9 +160,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_regexp_ignored_table
-    output = dump_all_table_schema([/^account/])
-    assert_no_match %r{create_table "accounts"}, output
-    assert_match %r{create_table "authors"}, output
+    output = dump_all_table_schema([/^courses/], connection: ARUnit2Model.connection)
+    assert_no_match %r{create_table "courses"}, output
+    assert_match %r{create_table "colleges"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
@@ -224,10 +222,32 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if ActiveRecord::Base.connection.supports_exclusion_constraints?
     def test_schema_dumps_exclusion_constraints
-      constraint_definitions = dump_table_schema("test_exclusion_constraints").split(/\n/).grep(/test_exclusion_constraints_date_overlap/)
+      output = dump_table_schema("test_exclusion_constraints")
+      constraint_definitions = output.split(/\n/).grep(/test_exclusion_constraints_.*_overlap/)
 
-      assert_equal 1, constraint_definitions.size
-      assert_equal 't.exclusion_constraint "daterange(start_date, end_date) WITH &&", where: "(start_date IS NOT NULL) AND (end_date IS NOT NULL)", using: :gist, name: "test_exclusion_constraints_date_overlap"', constraint_definitions.first.strip
+      assert_equal 3, constraint_definitions.size
+      assert_match 't.exclusion_constraint "daterange(start_date, end_date) WITH &&", where: "(start_date IS NOT NULL) AND (end_date IS NOT NULL)", using: :gist, name: "test_exclusion_constraints_date_overlap"', output
+      assert_match 't.exclusion_constraint "daterange(valid_from, valid_to) WITH &&", where: "(valid_from IS NOT NULL) AND (valid_to IS NOT NULL)", using: :gist, deferrable: :immediate, name: "test_exclusion_constraints_valid_overlap"', output
+      assert_match 't.exclusion_constraint "daterange(transaction_from, transaction_to) WITH &&", where: "(transaction_from IS NOT NULL) AND (transaction_to IS NOT NULL)", using: :gist, deferrable: :deferred, name: "test_exclusion_constraints_transaction_overlap"', output
+    end
+  end
+
+  if ActiveRecord::Base.connection.supports_unique_keys?
+    def test_schema_dumps_unique_keys
+      output = dump_table_schema("test_unique_keys")
+      constraint_definitions = output.split(/\n/).grep(/t\.unique_key/)
+
+      assert_equal 3, constraint_definitions.size
+      assert_match 't.unique_key ["position_1"], name: "test_unique_keys_position_deferrable_false"', output
+      assert_match 't.unique_key ["position_2"], deferrable: :immediate, name: "test_unique_keys_position_deferrable_immediate"', output
+      assert_match 't.unique_key ["position_3"], deferrable: :deferred, name: "test_unique_keys_position_deferrable_deferred"', output
+    end
+
+    def test_schema_does_not_dumps_unique_key_indexes
+      output = dump_table_schema("test_unique_keys")
+      unique_index_definitions = output.split(/\n/).grep(/t\.index.*unique: true/)
+
+      assert_equal 0, unique_index_definitions.size
     end
   end
 
@@ -354,13 +374,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       connection = ActiveRecord::Base.connection
 
       connection.stub(:extensions, ["hstore"]) do
-        output = perform_schema_dump
+        output = dump_all_table_schema(/./)
         assert_match "# These are extensions that must be enabled", output
         assert_match %r{enable_extension "hstore"}, output
       end
 
       connection.stub(:extensions, []) do
-        output = perform_schema_dump
+        output = dump_all_table_schema(/./)
         assert_no_match "# These are extensions that must be enabled", output
         assert_no_match %r{enable_extension}, output
       end
@@ -370,13 +390,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       connection = ActiveRecord::Base.connection
 
       connection.stub(:extensions, ["hstore", "uuid-ossp", "xml2"]) do
-        output = perform_schema_dump
+        output = dump_all_table_schema(/./)
         enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
 
       connection.stub(:extensions, ["uuid-ossp", "xml2", "hstore"]) do
-        output = perform_schema_dump
+        output = dump_all_table_schema(/./)
         enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
@@ -416,6 +436,23 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = dump_table_schema "authors"
       assert_equal ["authors"], output.scan(/^\s*add_foreign_key "([^"]+)".+$/).flatten
     end
+
+    unless in_memory_db?
+      def test_do_not_dump_foreign_keys_when_bypassed_by_config
+        ActiveRecord::Base.establish_connection(
+          {
+            adapter: "sqlite3",
+            database: "test/storage/test.sqlite3",
+            foreign_keys: false,
+          }
+        )
+
+        output = dump_all_table_schema
+        assert_no_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
+      ensure
+        ActiveRecord::Base.establish_connection(:arunit)
+      end
+    end
   end
 
   class CreateDogMigration < ActiveRecord::Migration::Current
@@ -437,6 +474,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_with_table_name_prefix_and_suffix
+    ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
     original, $stdout = $stdout, StringIO.new
     ActiveRecord::Base.table_name_prefix = "foo_"
     ActiveRecord::Base.table_name_suffix = "_bar"
@@ -444,7 +482,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     migration = CreateDogMigration.new
     migration.migrate(:up)
 
-    output = perform_schema_dump
+    output = dump_table_schema("dog_owners", "dogs")
     assert_no_match %r{create_table "foo_.+_bar"}, output
     assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
@@ -459,9 +497,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
     $stdout = original
+    ActiveRecord::Base.establish_connection(:arunit)
   end
 
   def test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape
+    ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
     original, $stdout = $stdout, StringIO.new
     ActiveRecord::Base.table_name_prefix = "foo$"
     ActiveRecord::Base.table_name_suffix = "$bar"
@@ -469,7 +509,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     migration = CreateDogMigration.new
     migration.migrate(:up)
 
-    output = perform_schema_dump
+    output = dump_table_schema("dog_owners", "dog")
     assert_no_match %r{create_table "foo\$.+\$bar"}, output
     assert_no_match %r{add_index "foo\$.+\$bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
@@ -484,10 +524,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
     $stdout = original
+    ActiveRecord::Base.establish_connection(:arunit)
   end
 
   def test_schema_dump_with_table_name_prefix_and_ignoring_tables
     original, $stdout = $stdout, StringIO.new
+    ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
 
     create_cat_migration = Class.new(ActiveRecord::Migration::Current) do
       def change
@@ -516,6 +558,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaDumper.ignore_tables = original_schema_dumper_ignore_tables
 
     $stdout = original
+    ActiveRecord::Base.establish_connection(:arunit)
   end
 
   if current_adapter?(:PostgreSQLAdapter)
@@ -537,7 +580,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
       migration.migrate(:up)
 
-      output = perform_schema_dump
+      output = dump_table_schema("timestamps")
       assert output.include?('t.datetime "this_should_remain_datetime"')
       assert output.include?('t.datetime "this_is_an_alias_of_datetime"')
       assert output.include?('t.datetime "without_time_zone"')
@@ -566,7 +609,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         end
         migration.migrate(:up)
 
-        output = perform_schema_dump
+        output = dump_table_schema("timestamps")
         assert output.include?('t.datetime "this_should_remain_datetime"')
         assert output.include?('t.datetime "this_is_an_alias_of_datetime"')
         assert output.include?('t.timestamp "without_time_zone"')
@@ -594,7 +637,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
       migration.migrate(:up)
 
-      output = perform_schema_dump
+      output = dump_table_schema("timestamps")
       assert output.include?('t.datetime "this_should_remain_datetime"')
       assert output.include?('t.datetime "this_is_an_alias_of_datetime"')
       assert output.include?('t.datetime "this_is_also_an_alias_of_datetime"')
@@ -621,7 +664,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         end
         migration.migrate(:up)
 
-        output = perform_schema_dump
+        output = dump_table_schema("timestamps")
         # Normally we'd write `t.datetime` here. But because you've changed the `datetime_type`
         # to something else, `t.datetime` now means `:timestamptz`. To ensure that old columns
         # are still created as a `:timestamp` we need to change what is written to the schema dump.
@@ -655,7 +698,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
       migration.migrate(:up)
 
-      output = perform_schema_dump
+      output = dump_table_schema("timestamps")
       assert output.include?('t.datetime "default_format"')
       assert output.include?('t.datetime "without_time_zone"')
       assert output.include?('t.timestamptz "with_time_zone"')
@@ -663,7 +706,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       datetime_type_was = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type
       ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :timestamptz
 
-      output = perform_schema_dump
+      output = dump_table_schema("timestamps")
       assert output.include?('t.timestamp "default_format"')
       assert output.include?('t.timestamp "without_time_zone"')
       assert output.include?('t.datetime "with_time_zone"')
@@ -691,7 +734,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
       migration.migrate(:up)
 
-      output = perform_schema_dump
+      output = dump_table_schema("timestamps")
       assert output.include?('t.datetime "default_format"')
       assert output.include?('t.datetime "without_time_zone"')
       assert output.include?('t.datetime "also_without_time_zone"')
@@ -719,7 +762,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
       migration.migrate(:up)
 
-      output = perform_schema_dump
+      output = dump_table_schema("timestamps")
       assert output.include?('t.datetime "default_format"')
       assert output.include?('t.datetime "without_time_zone"')
       assert output.include?('t.datetime "also_without_time_zone"')
@@ -746,7 +789,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
       migration.migrate(:up)
 
-      output = perform_schema_dump
+      output = dump_table_schema("timestamps")
       assert output.include?('t.datetime "default_format"')
       assert output.include?('t.datetime "without_time_zone"')
       assert output.include?('t.datetime "also_without_time_zone"')
@@ -772,7 +815,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         end
         migration.migrate(:up)
 
-        output = perform_schema_dump
+        output = dump_table_schema("timestamps")
         # Normally we'd write `t.datetime` here. But because you've changed the `datetime_type`
         # to something else, `t.datetime` now means `:timestamptz`. To ensure that old columns
         # are still created as a `:timestamp` we need to change what is written to the schema dump.
@@ -805,7 +848,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         end
         migration.migrate(:up)
 
-        output = perform_schema_dump
+        output = dump_table_schema("timestamps")
         # Normally we'd write `t.datetime` here. But because you've changed the `datetime_type`
         # to something else, `t.datetime` now means `:timestamptz`. To ensure that old columns
         # are still created as a `:timestamp` we need to change what is written to the schema dump.

@@ -19,7 +19,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     self.extensions = []
 
     VALID_OPTIONS = [
-      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints
     ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
@@ -128,8 +128,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.check_dependent_options(dependent, model)
       if dependent == :destroy_async && !model.destroy_association_async_job
-        err_message = "ActiveJob is required to use destroy_async on associations"
-        raise ActiveRecord::ActiveJobRequiredError, err_message
+        err_message = "A valid destroy_association_async_job is required to use `dependent: :destroy_async` on associations"
+        raise ActiveRecord::ConfigurationError, err_message
       end
       unless valid_dependent_options.include? dependent
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"

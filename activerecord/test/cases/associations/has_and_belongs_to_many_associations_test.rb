@@ -992,7 +992,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
         projects.
         detect { |p| p.id == first_project.id }
 
-    assert preloaded_first_project.salaried_developers.loaded?, true
+    assert_predicate preloaded_first_project.salaried_developers, :loaded?
     assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
   end
 

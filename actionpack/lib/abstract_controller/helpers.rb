@@ -5,6 +5,7 @@ require "active_support/core_ext/name_error"
 
 module AbstractController
   module Helpers
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
     extend ActiveSupport::Concern
 
     included do
@@ -23,7 +24,7 @@ module AbstractController
       self._helpers = define_helpers_module(self)
     end
 
-    class MissingHelperError < LoadError
+    class DeprecatedMissingHelperError < LoadError
       def initialize(error, path)
         @error = error
         @path  = "helpers/#{path}.rb"
@@ -36,6 +37,9 @@ module AbstractController
         end
       end
     end
+    deprecate_constant "MissingHelperError", "AbstractController::Helpers::DeprecatedMissingHelperError",
+      message: "AbstractController::Helpers::MissingHelperError has been deprecated. If a Helper is not present, a NameError will be raised instead.",
+      deprecator: AbstractController.deprecator
 
     def _helpers
       self.class._helpers
@@ -117,13 +121,14 @@ module AbstractController
       #   class ApplicationController < ActionController::Base
       #     helper_method :current_user, :logged_in?
       #
-      #     def current_user
-      #       @current_user ||= User.find_by(id: session[:user])
-      #     end
+      #     private
+      #       def current_user
+      #         @current_user ||= User.find_by(id: session[:user])
+      #       end
       #
-      #     def logged_in?
-      #       current_user != nil
-      #     end
+      #       def logged_in?
+      #         current_user != nil
+      #       end
       #   end
       #
       # In a view:
@@ -169,7 +174,7 @@ module AbstractController
       # The last two assume that <tt>"foo".camelize</tt> returns "Foo".
       #
       # When strings or symbols are passed, the method finds the actual module
-      # object using +String#constantize+. Therefore, if the module has not been
+      # object using String#constantize. Therefore, if the module has not been
       # yet loaded, it has to be autoloadable, which is normally the case.
       #
       # Namespaces are supported. The following calls include +Foo::BarHelper+:

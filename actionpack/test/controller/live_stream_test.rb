@@ -168,6 +168,27 @@ module ActionController
         end
       end
 
+      def send_stream_with_inferred_content_type
+        send_stream(filename: "sample.csv") do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
+      def send_stream_with_implicit_content_type
+        send_stream(filename: "sample.csv", type: :csv) do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
+      def send_stream_with_explicit_content_type
+        send_stream(filename: "sample.csv", type: "text/csv") do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
       def blocking_stream
         response.headers["Content-Type"] = "text/event-stream"
         %w{ hello world }.each do |word|
@@ -360,6 +381,36 @@ module ActionController
       assert_match "export", @response.headers["Content-Disposition"]
     end
 
+    def test_send_stream_with_explicit_content_type
+      get :send_stream_with_explicit_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
+    def test_send_stream_with_implicit_content_type
+      get :send_stream_with_implicit_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
+    def test_send_stream_with_inferred_content_type
+      get :send_stream_with_inferred_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
     def test_delayed_autoload_after_write_within_interlock_hook
       # Simulate InterlockHook
       ActiveSupport::Dependencies.interlock.start_running
@@ -369,8 +420,6 @@ module ActionController
     end
 
     def test_async_stream
-      rubinius_skip "https://github.com/rubinius/rubinius/issues/2934"
-
       @controller.latch = Concurrent::CountDownLatch.new
       parts             = ["hello", "world"]
 

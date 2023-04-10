@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :enddoc:
+
 module Rails
   class Conductor::ActionMailbox::InboundEmailsController < Rails::Conductor::BaseController
     def index

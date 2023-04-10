@@ -380,7 +380,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":action", to: FlashIntegrationTest::TestController
           end
         end

@@ -2,9 +2,8 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/db/system/change/change_command"
 
-class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
+class Rails::Command::DbSystemChangeTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   setup { build_app }
@@ -49,6 +48,13 @@ class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
   test "change to sqlite3" do
     change_database(to: "postgresql")
     output = change_database(to: "sqlite3")
+
+    assert_match "force  config/database.yml", output
+    assert_match "gsub  Gemfile", output
+  end
+
+  test "change can be forced" do
+    output = `cd #{app_path}; bin/rails db:system:change --to=postgresql --force`
 
     assert_match "force  config/database.yml", output
     assert_match "gsub  Gemfile", output

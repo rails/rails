@@ -97,7 +97,7 @@ module ActiveRecord
 
     # Returns a signed id that's generated using a preconfigured +ActiveSupport::MessageVerifier+ instance.
     # This signed id is tamper proof, so it's safe to send in an email or otherwise share with the outside world.
-    # It can further more be set to expire (the default is not to expire), and scoped down with a specific purpose.
+    # It can furthermore be set to expire (the default is not to expire), and scoped down with a specific purpose.
     # If the expiration date has been exceeded before +find_signed+ is called, the id won't find the designated
     # record. If a purpose is set, this too must match.
     #
@@ -109,8 +109,10 @@ module ActiveRecord
     #
     # And you then change your +find_signed+ calls to require this new purpose. Any old signed ids that were not
     # created with the purpose will no longer find the record.
-    def signed_id(expires_in: nil, purpose: nil)
-      self.class.signed_id_verifier.generate id, expires_in: expires_in, purpose: self.class.combine_signed_id_purposes(purpose)
+    def signed_id(expires_in: nil, expires_at: nil, purpose: nil)
+      raise ArgumentError, "Cannot get a signed_id for a new record" if new_record?
+
+      self.class.signed_id_verifier.generate id, expires_in: expires_in, expires_at: expires_at, purpose: self.class.combine_signed_id_purposes(purpose)
     end
   end
 end

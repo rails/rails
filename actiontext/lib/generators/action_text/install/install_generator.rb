@@ -19,7 +19,7 @@ module ActionText
         destination = Pathname(destination_root)
 
         if (application_javascript_path = destination.join("app/javascript/application.js")).exist?
-          insert_into_file application_javascript_path.to_s, %(import "trix"\nimport "@rails/actiontext"\n)
+          insert_into_file application_javascript_path.to_s, %(\nimport "trix"\nimport "@rails/actiontext"\n)
         else
           say <<~INSTRUCTIONS, :green
             You must import the @rails/actiontext and trix JavaScript modules in your application entrypoint.

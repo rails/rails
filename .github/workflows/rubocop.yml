@@ -9,16 +9,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      BUNDLE_WITHOUT: default doc job cable storage ujs test db
+      BUNDLE_ONLY: rubocop
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Ruby 2.7
+    - name: Set up Ruby 3.2
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.7
+        ruby-version: 3.2
         bundler-cache: true
 
     - name: Run RuboCop
       run: bundle exec rubocop --parallel
+
+  notify:
+    runs-on: ubuntu-latest
+    if: always() && github.ref_name == 'main'
+    continue-on-error: true
+    needs: build
+    steps:
+      - uses: zzak/action-discord@v4
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}

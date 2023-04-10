@@ -99,6 +99,10 @@ module ActiveModel
       AttributeSet.new(new_attributes)
     end
 
+    def reverse_merge!(target_attributes)
+      attributes.reverse_merge!(target_attributes.attributes) && self
+    end
+
     def ==(other)
       attributes == other.attributes
     end

@@ -27,32 +27,6 @@ module ActiveRecord
         attribute_method_suffix("_change_to_be_saved", "_in_database", parameters: false)
       end
 
-      module ClassMethods
-        def partial_writes
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            ActiveRecord::Base.partial_writes is deprecated and will be removed in Rails 7.1.
-            Use `partial_updates` and `partial_inserts` instead.
-          MSG
-          partial_updates && partial_inserts
-        end
-
-        def partial_writes?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `ActiveRecord::Base.partial_writes?` is deprecated and will be removed in Rails 7.1.
-            Use `partial_updates?` and `partial_inserts?` instead.
-          MSG
-          partial_updates? && partial_inserts?
-        end
-
-        def partial_writes=(value)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `ActiveRecord::Base.partial_writes=` is deprecated and will be removed in Rails 7.1.
-            Use `partial_updates=` and `partial_inserts=` instead.
-          MSG
-          self.partial_updates = self.partial_inserts = value
-        end
-      end
-
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
@@ -183,6 +157,14 @@ module ActiveRecord
       end
 
       private
+        def init_internals
+          super
+          @mutations_before_last_save = nil
+          @mutations_from_database = nil
+          @_touch_attr_names = nil
+          @_skip_dirty_tracking = nil
+        end
+
         def _touch_row(attribute_names, time)
           @_touch_attr_names = Set.new(attribute_names)
 

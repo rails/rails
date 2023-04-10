@@ -88,6 +88,36 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_check_box_tag_checked_kwarg_true
+    actual = check_box_tag "admin", "yes", checked: true
+    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="yes" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_check_box_tag_checked_kwarg_false
+    actual = check_box_tag "admin", "1", checked: false
+    expected = %(<input id="admin" name="admin" type="checkbox" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_check_box_tag_checked_kwarg_false_and_disabled
+    actual = check_box_tag "admin", "1", checked: false, disabled: true
+    expected = %(<input id="admin" name="admin" type="checkbox" value="1" disabled="disabled" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_check_box_tag_checked_kwarg_true_value_argument_skipped
+    actual = check_box_tag "admin", checked: true
+    expected = %(<input id="admin" checked="checked" name="admin" type="checkbox" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
+  def test_check_box_tag_value_kwarg
+    actual = check_box_tag "admin", value: "0", checked: true
+    expected = %(<input id="admin" name="admin" type="checkbox" value="0" checked="checked" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_check_box_tag_id_sanitized
     label_elem = root_elem(check_box_tag("project[2][admin]"))
     assert_match VALID_HTML_ID, label_elem["id"]
@@ -373,6 +403,30 @@ class FormTagHelperTest < ActionView::TestCase
 
     actual = radio_button_tag("ctrlname", "apache2.2")
     expected = %(<input id="ctrlname_apache2.2" name="ctrlname" type="radio" value="apache2.2" />)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag "people", "david", true
+    expected = %(<input id="people_david" name="people" type="radio" value="david" checked="checked" />)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag "people", "david", false
+    expected = %(<input id="people_david" name="people" type="radio" value="david" />)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag "people", "david", false, disabled: true
+    expected = %(<input id="people_david" name="people" type="radio" value="david" disabled="disabled" />)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag "people", "david", checked: true
+    expected = %(<input id="people_david" name="people" type="radio" value="david" checked="checked" />)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag "people", "david", checked: false
+    expected = %(<input id="people_david" name="people" type="radio" value="david" />)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag "people", "david", checked: false, disabled: true
+    expected = %(<input id="people_david" name="people" type="radio" value="david" disabled="disabled" />)
     assert_dom_equal expected, actual
   end
 
@@ -912,6 +966,20 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal({ option: "random_option" }, options)
   end
 
+  def test_content_exfiltration_prevention
+    with_prepend_content_exfiltration_prevention(true) do
+      actual = form_tag
+      expected = %(<!-- '"` --><!-- </textarea></xmp> --></option></form>#{whole_form})
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_form_with_content_exfiltration_prevention_is_html_safe
+    with_prepend_content_exfiltration_prevention(true) do
+      assert_equal true, form_tag.html_safe?
+    end
+  end
+
   def protect_against_forgery?
     false
   end
@@ -928,5 +996,14 @@ class FormTagHelperTest < ActionView::TestCase
       yield
     ensure
       ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
+    end
+
+    def with_prepend_content_exfiltration_prevention(value)
+      old_value = ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = value
+
+      yield
+    ensure
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = old_value
     end
 end

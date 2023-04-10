@@ -3,7 +3,7 @@
 module ResqueJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :resque
-    Resque.redis = Redis::Namespace.new "active_jobs_int_test", redis: Redis.new(url: ENV["REDIS_URL"] || "redis://127.0.0.1:6379/12", thread_safe: true)
+    Resque.redis = Redis::Namespace.new "active_jobs_int_test", redis: Redis.new(url: ENV["REDIS_URL"] || "redis://127.0.0.1:6379/12")
     Resque.logger = Rails.logger
     unless can_run?
       puts "Cannot run integration tests for resque. To be able to run integration tests for resque you need to install and start redis.\n"

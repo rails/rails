@@ -11,16 +11,18 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
     ActiveRecord::Encryption.config.support_unencrypted_data = true
 
     @post = EncryptedPost.create!(title: "Some encrypted post title", body: "Some body")
-    @clean_title = @post.title
+    @title_cleartext = @post.title
+    @title_ciphertext = @post.ciphertext_for(:title)
   end
 
   test ".with_encryption_context lets you override properties" do
     ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
-      assert_protected_encrypted_attribute(@post, :title, @clean_title)
+      assert_equal @title_ciphertext, @post.reload.title
+
       @post.update!(title: "Some new title")
     end
 
-    assert_equal "Some new title", @post.title
+    assert_equal "Some new title", @post.title_before_type_cast
   end
 
   test ".with_encryption_context will restore previous context properties when there is an error" do
@@ -28,7 +30,7 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
       raise "Some error"
     end
   rescue
-    assert_encrypted_attribute @post.reload, :title, @clean_title
+    assert_encrypted_attribute @post.reload, :title, @title_cleartext
   end
 
   test ".with_encryption_context can be nested multiple times" do
@@ -51,17 +53,17 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
 
   test ".without_encryption won't decrypt or encrypt data automatically" do
     ActiveRecord::Encryption.without_encryption do
-      assert_protected_encrypted_attribute(@post, :title, @clean_title)
+      assert_equal @title_ciphertext, @post.reload.title
 
       @post.update!(title: "Some new title")
     end
 
-    assert_equal "Some new title", @post.title
+    assert_not_encrypted_attribute @post, :title, "Some new title"
   end
 
   test ".protecting_encrypted_data don't decrypt attributes automatically" do
     ActiveRecord::Encryption.protecting_encrypted_data do
-      assert_protected_encrypted_attribute(@post, :title, @clean_title)
+      assert_equal @title_ciphertext, @post.reload.title
     end
   end
 
@@ -92,10 +94,4 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
       end
     end
   end
-
-  private
-    def assert_protected_encrypted_attribute(model, attribute_name, clean_value)
-      assert_equal model.reload.ciphertext_for(attribute_name), model.public_send(attribute_name)
-      assert_not_equal clean_value, model.ciphertext_for(:title)
-    end
 end

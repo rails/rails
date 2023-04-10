@@ -440,6 +440,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       render json: {}
     end
 
+    def not_modified
+      head :not_modified
+    end
+
     private
       def condition?
         params[:condition] == "true"
@@ -457,6 +461,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/style-src", to: "policy#style_src"
       get "/no-policy", to: "policy#no_policy"
       get "/api", to: "policy#api"
+      get "/not-modified", to: "policy#not_modified"
     end
   end
 
@@ -531,6 +536,13 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_generates_api_security_policy
     get "/api"
     assert_policy "default-src 'none'; frame-ancestors 'none'"
+  end
+
+  def test_generates_no_content_security_policy_for_not_modified
+    get "/not-modified"
+
+    assert_nil response.headers["Content-Security-Policy"]
+    assert_nil response.headers["Content-Security-Policy-Report-Only"]
   end
 
   private

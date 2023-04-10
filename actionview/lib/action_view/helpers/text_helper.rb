@@ -8,8 +8,9 @@ require "action_view/helpers/tag_helper"
 require "action_view/helpers/output_safety_helper"
 
 module ActionView
-  # = Action View Text Helpers
   module Helpers # :nodoc:
+    # = Action View Text \Helpers
+    #
     # The TextHelper module provides a set of methods for filtering, formatting
     # and transforming strings, which can reduce the amount of inline Ruby code in
     # your views. These helper methods extend Action View making them callable
@@ -139,16 +140,19 @@ module ActionView
         if text.blank? || phrases.blank?
           text || ""
         else
-          match = Array(phrases).map do |p|
-            Regexp === p ? p.to_s : Regexp.escape(p)
-          end.join("|")
+          patterns = Array(phrases).map { |phrase| Regexp === phrase ? phrase : Regexp.escape(phrase) }
+          pattern = /(#{patterns.join("|")})/i
+          highlighter = options.fetch(:highlighter, '<mark>\1</mark>') unless block
 
-          if block_given?
-            text.gsub(/(#{match})(?![^<]*?>)/i, &block)
-          else
-            highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-            text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
-          end
+          text.scan(/<[^>]*|[^<]+/).each do |segment|
+            if !segment.start_with?("<")
+              if block
+                segment.gsub!(pattern, &block)
+              else
+                segment.gsub!(pattern, highlighter)
+              end
+            end
+          end.join
         end.html_safe
       end
 
@@ -262,9 +266,17 @@ module ActionView
       #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
       #   # => Once\r\nupon\r\na\r\ntime
       def word_wrap(text, line_width: 80, break_sequence: "\n")
-        text.split("\n").collect! do |line|
-          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
-        end * break_sequence
+        # Match up to `line_width` characters, followed by one of
+        #   (1) non-newline whitespace plus an optional newline
+        #   (2) the end of the string, ignoring any trailing newlines
+        #   (3) a newline
+        #
+        # -OR-
+        #
+        # Match an empty line
+        pattern = /(.{1,#{line_width}})(?:[^\S\n]+\n?|\n*\Z|\n)|\n/
+
+        text.gsub(pattern, "\\1#{break_sequence}").chomp!(break_sequence)
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.

@@ -3,7 +3,7 @@
 require "stringio"
 require "uri"
 require "rack/test"
-require "minitest"
+require "active_support/test_case"
 
 require "action_dispatch/testing/request_encoder"
 
@@ -58,7 +58,9 @@ module ActionDispatch
       # the same HTTP verb will be used when redirecting, otherwise a GET request
       # will be performed. Any arguments are passed to the
       # underlying request.
-      def follow_redirect!(**args)
+      #
+      # The HTTP_REFERER header will be set to the previous url.
+      def follow_redirect!(headers: {}, **args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
 
         method =
@@ -68,7 +70,11 @@ module ActionDispatch
             :get
           end
 
-        public_send(method, response.location, **args)
+        if [ :HTTP_REFERER, "HTTP_REFERER" ].none? { |key| headers.key? key }
+          headers["HTTP_REFERER"] = request.url
+        end
+
+        public_send(method, response.location, headers: headers, **args)
         status
       end
     end
@@ -226,7 +232,7 @@ module ActionDispatch
           method = :post
         end
 
-        if %r{://}.match?(path)
+        if path.include?("://")
           path = build_expanded_path(path) do |location|
             https! URI::HTTPS === location if location.scheme
 
@@ -252,9 +258,12 @@ module ActionDispatch
           "REQUEST_URI"    => path,
           "HTTP_HOST"      => host,
           "REMOTE_ADDR"    => remote_addr,
-          "CONTENT_TYPE"   => request_encoder.content_type,
           "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
+
+        if request_encoder.content_type
+          request_env["CONTENT_TYPE"] = request_encoder.content_type
+        end
 
         wrapped_headers = Http::Headers.from_hash({})
         wrapped_headers.merge!(headers) if headers

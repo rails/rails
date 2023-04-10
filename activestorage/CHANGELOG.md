@@ -1,3 +1,89 @@
+*   Remove mini_mime usage in favour of marcel.
+
+    We have two libraries that are have similar usage. This change removes
+    dependency on mini_mime and makes use of similar methods from marcel.
+
+    *Vipul A M*
+
+*   Allow destroying active storage variants
+
+    ```ruby
+    User.first.avatar.variant(resize_to_limit: [100, 100]).destroy
+    ```
+
+    *Shouichi Kamiya*, *Yuichiro NAKAGAWA*, *Ryohei UEDA*
+
+*   Add `sample_rate` to `ActiveStorage::Analyzer::AudioAnalyzer` output
+
+    *Matija Čupić*
+
+*   Remove deprecated `purge` and `purge_later` methods from the attachments association.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated behavior when assigning to a collection of attachments.
+
+    Instead of appending to the collection, the collection is now replaced.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveStorage::Current#host` and `ActiveStorage::Current#host=` methods.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated invalid default content types in Active Storage configurations.
+
+    *Rafael Mendonça França*
+
+*   Add missing preview event to `ActiveStorage::LogSubscriber`
+
+    A `preview` event is being instrumented in `ActiveStorage::Previewer`.
+    However it was not added inside ActiveStorage's LogSubscriber class.
+
+    This will allow to have logs for when a preview happens
+    in the same fashion as all other ActiveStorage events such as
+    `upload` and `download` inside `Rails.logger`.
+
+    *Chedli Bourguiba*
+
+*   Fix retrieving rotation value from FFmpeg on version 5.0+.
+
+    In FFmpeg version 5.0+ the rotation value has been removed from tags.
+    Instead the value can be found in side_data_list. Along with
+    this update it's possible to have values of -90, -270 to denote the video
+    has been rotated.
+
+    *Haroon Ahmed*
+
+*   Touch all corresponding model records after ActiveStorage::Blob is analyzed
+
+    This fixes a race condition where a record can be requested and have a cache entry built, before
+    the initial `analyze_later` completes, which will not be invalidated until something else
+    updates the record. This also invalidates cache entries when a blob is re-analyzed, which
+    is helpful if a bug is fixed in an analyzer or a new analyzer is added.
+
+    *Nate Matykiewicz*
+
+*   Add ability to use pre-defined variants when calling `preview` or
+    `representation` on an attachment.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one_attached :file do |attachable|
+        attachable.variant :thumb, resize_to_limit: [100, 100]
+      end
+    end
+
+    <%= image_tag user.file.representation(:thumb) %>
+    ```
+
+    *Richard Böhme*
+
+*   Method `attach` always returns the attachments except when the record
+    is persisted, unchanged, and saving it fails, in which case it returns `nil`.
+
+    *Santiago Bartesaghi*
+
 *   Fixes multiple `attach` calls within transaction not uploading files correctly.
 
     In the following example, the code failed to upload all but the last file to the configured service.
@@ -65,5 +151,13 @@
     streamed.
 
     *Luke Lau*
+
+*   Safe for direct upload on Libraries or Frameworks
+
+    Enable the use of custom headers during direct uploads, which allows for
+    the inclusion of Authorization bearer tokens or other forms of authorization
+    tokens through headers.
+
+    *Radamés Roriz*
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activestorage/CHANGELOG.md) for previous changes.

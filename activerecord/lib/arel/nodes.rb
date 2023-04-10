@@ -8,6 +8,7 @@ require "arel/nodes/select_core"
 require "arel/nodes/insert_statement"
 require "arel/nodes/update_statement"
 require "arel/nodes/bind_param"
+require "arel/nodes/fragments"
 
 # terminal
 
@@ -63,9 +64,11 @@ require "arel/nodes/inner_join"
 require "arel/nodes/outer_join"
 require "arel/nodes/right_outer_join"
 require "arel/nodes/string_join"
+require "arel/nodes/leading_join"
 
 require "arel/nodes/comment"
 
 require "arel/nodes/sql_literal"
+require "arel/nodes/bound_sql_literal"
 
 require "arel/nodes/casted"

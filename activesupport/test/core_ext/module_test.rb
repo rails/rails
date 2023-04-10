@@ -8,15 +8,15 @@ Somewhere = Struct.new(:street, :city) do
 end
 
 Someone = Struct.new(:name, :place) do
+  def self.table_name
+    "some_table"
+  end
+
   delegate :street, :city, :to_f, to: :place
   delegate :name=, to: :place, prefix: true
   delegate :upcase, to: "place.city"
   delegate :table_name, to: :class
   delegate :table_name, to: :class, prefix: true
-
-  def self.table_name
-    "some_table"
-  end
 
   self::FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, to: :place
@@ -171,6 +171,27 @@ class SideEffect
 end
 
 class ModuleTest < ActiveSupport::TestCase
+  class ArityTester
+    class << self
+      def zero; end
+      def zero_with_block(&bl); end
+      def one(a) end
+      def one_with_block(a) end
+      def two(a, b) end
+      def opt(a, b, c, d = nil) end
+      def kwargs(a:, b:) end
+      def kwargs_with_block(a:, b:, c:, &block) end
+      def opt_kwargs(a:, b: 3) end
+      def opt_kwargs_with_block(a:, b:, c:, d: "", &block) end
+    end
+  end
+
+  module ArityTesterModule
+    class << self
+      def zero; end
+    end
+  end
+
   def setup
     @david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
   end
@@ -552,5 +573,51 @@ class ModuleTest < ActiveSupport::TestCase
 
     assert_equal [:the_street, :the_city],
       location.delegate(:street, :city, to: :@place, prefix: :the, private: true)
+  end
+
+  def test_delegation_arity
+    c = Class.new do
+      delegate :zero, :one, :two, to: ArityTester
+    end
+    assert_equal 0, c.instance_method(:zero).arity
+    assert_equal 1, c.instance_method(:one).arity
+    assert_equal 2, c.instance_method(:two).arity
+
+    d = Class.new(ArityTester) do
+      delegate :zero, :zero_with_block, :one, :one_with_block, :two, :opt,
+        :kwargs, :kwargs_with_block, :opt_kwargs, :opt_kwargs_with_block, to: :class
+    end
+
+    assert_equal 0, d.instance_method(:zero).arity
+    assert_equal 0, d.instance_method(:zero_with_block).arity
+    assert_equal 1, d.instance_method(:one).arity
+    assert_equal 1, d.instance_method(:one_with_block).arity
+    assert_equal 2, d.instance_method(:two).arity
+    assert_equal(-1, d.instance_method(:opt).arity)
+    assert_equal(-1, d.instance_method(:kwargs).arity)
+    assert_equal(-1, d.instance_method(:kwargs_with_block).arity)
+    assert_equal(-1, d.instance_method(:opt_kwargs).arity)
+    assert_equal(-1, d.instance_method(:opt_kwargs_with_block).arity)
+    assert_nothing_raised do
+      d.new.zero
+      d.new.zero_with_block
+      d.new.one(1)
+      d.new.one_with_block(1)
+      d.new.two(1, 2)
+      d.new.opt(1, 2, 3)
+      d.new.kwargs(a: 1, b: 2)
+      d.new.kwargs_with_block(a: 1, b: 2, c: 3)
+      d.new.opt_kwargs(a: 1)
+      d.new.opt_kwargs_with_block(a: 1, b: 2, c: 3)
+    end
+
+    e = Class.new do
+      delegate :zero, to: ArityTesterModule
+    end
+
+    assert_equal 0, e.instance_method(:zero).arity
+    assert_nothing_raised do
+      e.new.zero
+    end
   end
 end

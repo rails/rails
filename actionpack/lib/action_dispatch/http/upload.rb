@@ -28,6 +28,8 @@ module ActionDispatch
         @tempfile = hash[:tempfile]
         raise(ArgumentError, ":tempfile is required") unless @tempfile
 
+        @content_type = hash[:type]
+
         if hash[:filename]
           @original_filename = hash[:filename].dup
 
@@ -40,8 +42,17 @@ module ActionDispatch
           @original_filename = nil
         end
 
-        @content_type      = hash[:type]
-        @headers           = hash[:head]
+        if hash[:head]
+          @headers = hash[:head].dup
+
+          begin
+            @headers.encode!(Encoding::UTF_8)
+          rescue EncodingError
+            @headers.force_encoding(Encoding::UTF_8)
+          end
+        else
+          @headers = nil
+        end
       end
 
       # Shortcut for +tempfile.read+.

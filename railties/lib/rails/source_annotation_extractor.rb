@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "ripper"
+
 module Rails
   # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
   #
@@ -11,6 +13,44 @@ module Rails
   # start with the tag optionally followed by a colon. Everything up to the end
   # of the line (or closing ERB comment tag) is considered to be their text.
   class SourceAnnotationExtractor
+    # Wraps a regular expression that will be tested against each of the source
+    # file's comments.
+    class ParserExtractor < Struct.new(:pattern)
+      class Parser < Ripper
+        attr_reader :comments, :pattern
+
+        def initialize(source, pattern:)
+          super(source)
+          @pattern = pattern
+          @comments = []
+        end
+
+        def on_comment(value)
+          @comments << Annotation.new(lineno, $1, $2) if value =~ pattern
+        end
+      end
+
+      def annotations(file)
+        contents = File.read(file, encoding: Encoding::BINARY)
+        parser = Parser.new(contents, pattern: pattern).tap(&:parse)
+        parser.error? ? [] : parser.comments
+      end
+    end
+
+    # Wraps a regular expression that will iterate through a file's lines and
+    # test each one for the given pattern.
+    class PatternExtractor < Struct.new(:pattern)
+      def annotations(file)
+        lineno = 0
+
+        File.readlines(file, encoding: Encoding::BINARY).inject([]) do |list, line|
+          lineno += 1
+          next list unless line =~ pattern
+          list << Annotation.new(lineno, $1, $2)
+        end
+      end
+    end
+
     class Annotation < Struct.new(:line, :tag, :text)
       def self.directories
         @@directories ||= %w(app config db lib test)
@@ -42,9 +82,21 @@ module Rails
         extensions[/\.(#{exts.join("|")})$/] = block
       end
 
-      register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
-      register_extensions("css", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
-      register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
+      register_extensions("builder", "rb", "rake", "ruby") do |tag|
+        ParserExtractor.new(/#\s*(#{tag}):?\s*(.*)$/)
+      end
+
+      register_extensions("yml", "yaml") do |tag|
+        PatternExtractor.new(/#\s*(#{tag}):?\s*(.*)$/)
+      end
+
+      register_extensions("css", "js") do |tag|
+        PatternExtractor.new(/\/\/\s*(#{tag}):?\s*(.*)$/)
+      end
+
+      register_extensions("erb") do |tag|
+        PatternExtractor.new(/<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/)
+      end
 
       # Returns a representation of the annotation that looks like this:
       #
@@ -111,25 +163,22 @@ module Rails
 
           if extension
             pattern = extension.last.call(tag)
-            results.update(extract_annotations_from(item, pattern)) if pattern
+
+            # In case a user-defined pattern returns nothing for the given set
+            # of tags, we exit early.
+            next unless pattern
+
+            # If a user-defined pattern returns a regular expression, we will
+            # wrap it in a PatternExtractor to keep the same API.
+            pattern = PatternExtractor.new(pattern) if pattern.is_a?(Regexp)
+
+            annotations = pattern.annotations(item)
+            results.update(item => annotations) if annotations.any?
           end
         end
       end
 
       results
-    end
-
-    # If +file+ is the filename of a file that contains annotations this method returns
-    # a hash with a single entry that maps +file+ to an array of its annotations.
-    # Otherwise it returns an empty hash.
-    def extract_annotations_from(file, pattern)
-      lineno = 0
-      result = File.readlines(file, encoding: Encoding::BINARY).inject([]) do |list, line|
-        lineno += 1
-        next list unless line =~ pattern
-        list << Annotation.new(lineno, $1, $2)
-      end
-      result.empty? ? {} : { file => result }
     end
 
     # Prints the mapping from filenames to annotations in +results+ ordered by filename.

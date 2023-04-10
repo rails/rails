@@ -10,9 +10,14 @@ module ActiveStorage
 
     private
       def read_image
-        download_blob_to_tempfile do |file|
+        begin
           require "mini_magick"
+        rescue LoadError
+          logger.info "Skipping image analysis because the mini_magick gem isn't installed"
+          return {}
+        end
 
+        download_blob_to_tempfile do |file|
           image = instrument("mini_magick") do
             MiniMagick::Image.new(file.path)
           end
@@ -23,13 +28,10 @@ module ActiveStorage
             logger.info "Skipping image analysis because ImageMagick doesn't support the file"
             {}
           end
+        rescue MiniMagick::Error => error
+          logger.error "Skipping image analysis due to an ImageMagick error: #{error.message}"
+          {}
         end
-      rescue LoadError
-        logger.info "Skipping image analysis because the mini_magick gem isn't installed"
-        {}
-      rescue MiniMagick::Error => error
-        logger.error "Skipping image analysis due to an ImageMagick error: #{error.message}"
-        {}
       end
 
       def rotated_image?(image)

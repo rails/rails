@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveModel
-  # == Active \Model \API
+  # = Active \Model \API
   #
   # Includes the required interface for an object to interact with
   # Action Pack and Action View, using different Active Model modules.

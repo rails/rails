@@ -3,16 +3,15 @@
 require "isolation/abstract_unit"
 require "env_helpers"
 require "rails/command"
-require "rails/commands/secrets/secrets_command"
 
-class Rails::Command::SecretsCommandTest < ActiveSupport::TestCase
+class Rails::Command::SecretsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
 
   setup :build_app
   teardown :teardown_app
 
   test "edit without editor gives hint" do
-    assert_match "No $EDITOR to open decrypted secrets in", run_edit_command(editor: "")
+    assert_match "No $EDITOR to open file in", run_edit_command(editor: "")
   end
 
   test "encrypted secrets are deprecated when using credentials" do

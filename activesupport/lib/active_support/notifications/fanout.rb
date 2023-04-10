@@ -48,10 +48,11 @@ module ActiveSupport
       include Mutex_m
 
       def initialize
-        @string_subscribers = Hash.new { |h, k| h[k] = [] }
+        @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
         @other_subscribers = []
-        @listeners_for = Concurrent::Map.new
+        @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
+        @silenceable_groups_for = Concurrent::Map.new
         super
       end
 
@@ -99,11 +100,13 @@ module ActiveSupport
 
       def clear_cache(key = nil) # :nodoc:
         if key
-          @listeners_for.delete(key)
+          @all_listeners_for.delete(key)
           @groups_for.delete(key)
+          @silenceable_groups_for.delete(key)
         else
-          @listeners_for.clear
+          @all_listeners_for.clear
           @groups_for.clear
+          @silenceable_groups_for.clear
         end
       end
 
@@ -182,18 +185,36 @@ module ActiveSupport
       end
 
       def groups_for(name) # :nodoc:
-        @groups_for.compute_if_absent(name) do
-          listeners_for(name).group_by(&:group_class).transform_values do |s|
+        groups = @groups_for.compute_if_absent(name) do
+          all_listeners_for(name).reject(&:silenceable).group_by(&:group_class).transform_values do |s|
             s.map(&:delegate)
           end
         end
+
+        silenceable_groups = @silenceable_groups_for.compute_if_absent(name) do
+          all_listeners_for(name).select(&:silenceable).group_by(&:group_class).transform_values do |s|
+            s.map(&:delegate)
+          end
+        end
+
+        unless silenceable_groups.empty?
+          groups = groups.dup
+          silenceable_groups.each do |group_class, subscriptions|
+            active_subscriptions = subscriptions.reject { |s| s.silenced?(name) }
+            unless active_subscriptions.empty?
+              groups[group_class] = (groups[group_class] || []) + active_subscriptions
+            end
+          end
+        end
+
+        groups
       end
 
-      # A Handle is used to record the start and finish time of event
+      # A +Handle+ is used to record the start and finish time of event
       #
-      # Both `#start` and `#finish` must each be called exactly once
+      # Both #start and #finish must each be called exactly once
       #
-      # Where possible, it's best to the block form, +ActiveSupport::Notifications.instrument+
+      # Where possible, it's best to the block form, ActiveSupport::Notifications.instrument.
       # +Handle+ is a low-level API intended for cases where the block form can't be used.
       #
       #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
@@ -271,17 +292,21 @@ module ActiveSupport
         iterate_guarding_exceptions(listeners_for(event.name)) { |s| s.publish_event(event) }
       end
 
-      def listeners_for(name)
+      def all_listeners_for(name)
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
-        @listeners_for[name] || synchronize do
+        @all_listeners_for[name] || synchronize do
           # use synchronisation when accessing @subscribers
-          @listeners_for[name] ||=
+          @all_listeners_for[name] ||=
             @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }
         end
       end
 
+      def listeners_for(name)
+        all_listeners_for(name).reject { |s| s.silenced?(name) }
+      end
+
       def listening?(name)
-        listeners_for(name).any?
+        all_listeners_for(name).any? { |s| !s.silenced?(name) }
       end
 
       # This is a sync queue, so there is no waiting.
@@ -346,11 +371,12 @@ module ActiveSupport
         end
 
         class Evented # :nodoc:
-          attr_reader :pattern, :delegate
+          attr_reader :pattern, :delegate, :silenceable
 
           def initialize(pattern, delegate)
             @pattern = Matcher.wrap(pattern)
             @delegate = delegate
+            @silenceable = delegate.respond_to?(:silenced?)
             @can_publish = delegate.respond_to?(:publish)
             @can_publish_event = delegate.respond_to?(:publish_event)
           end
@@ -371,6 +397,10 @@ module ActiveSupport
             else
               publish(event.name, event.time, event.end, event.transaction_id, event.payload)
             end
+          end
+
+          def silenced?(name)
+            @silenceable && @delegate.silenced?(name)
           end
 
           def subscribed_to?(name)

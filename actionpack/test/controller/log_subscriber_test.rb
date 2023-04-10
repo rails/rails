@@ -194,6 +194,13 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match(/Completed 200 OK in \d+ms/, logs[1])
   end
 
+  def test_process_action_with_path
+    @request.env["action_dispatch.parameter_filter"] = [:password]
+    get :show, params: { password: "test" }
+    wait
+    assert_match(/\/show\?password=\[FILTERED\]/, @controller.last_payload[:path])
+  end
+
   def test_process_action_with_throw
     catch(:halt) do
       get :with_throw

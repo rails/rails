@@ -9,6 +9,10 @@ module ActiveModel
 
     config.active_model = ActiveSupport::OrderedOptions.new
 
+    initializer "active_model.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:active_model] = ActiveModel.deprecator
+    end
+
     initializer "active_model.secure_password" do
       ActiveModel::SecurePassword.min_cost = Rails.env.test?
     end

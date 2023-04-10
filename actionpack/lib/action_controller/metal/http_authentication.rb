@@ -431,8 +431,11 @@ module ActionController
           authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm, message)
         end
 
-        # Authenticate using an HTTP Bearer token. Returns true if
-        # authentication is successful, false otherwise.
+        # Authenticate using an HTTP Bearer token.
+        # Returns the return value of <tt>login_procedure</tt> if a
+        # token is found. Returns <tt>nil</tt> if no token is found.
+        #
+        # See ActionController::HttpAuthentication::Token for example usage.
         def authenticate_with_http_token(&login_procedure)
           Token.authenticate(self, &login_procedure)
         end
@@ -502,11 +505,14 @@ module ActionController
         array_params.each { |param| (param[1] || +"").gsub! %r/^"|"$/, "" }
       end
 
+      WHITESPACED_AUTHN_PAIR_DELIMITERS = /\s*#{AUTHN_PAIR_DELIMITERS}\s*/
+      private_constant :WHITESPACED_AUTHN_PAIR_DELIMITERS
+
       # This method takes an authorization body and splits up the key-value
       # pairs by the standardized <tt>:</tt>, <tt>;</tt>, or <tt>\t</tt>
       # delimiters defined in +AUTHN_PAIR_DELIMITERS+.
       def raw_params(auth)
-        _raw_params = auth.sub(TOKEN_REGEX, "").split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
+        _raw_params = auth.sub(TOKEN_REGEX, "").split(WHITESPACED_AUTHN_PAIR_DELIMITERS)
 
         if !_raw_params.first&.start_with?(TOKEN_KEY)
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"

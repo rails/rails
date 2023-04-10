@@ -112,29 +112,29 @@ module ActiveRecord
     end
 
     def test_find_by_does_not_use_statement_cache_if_table_name_is_changed
-      book = Book.create(name: "my book")
+      liquid = Liquid.create(name: "salty")
 
-      Book.find_by(name: book.name) # warming the statement cache.
+      Liquid.find_by(name: liquid.name) # warming the statement cache.
 
       # changing the table name should change the query that is not cached.
-      Book.table_name = :birds
-      assert_nil Book.find_by(name: book.name)
+      Liquid.table_name = :birds
+      assert_nil Liquid.find_by(name: liquid.name)
     ensure
-      Book.table_name = :books
+      Liquid.table_name = :liquid
     end
 
     def test_find_does_not_use_statement_cache_if_table_name_is_changed
-      book = Book.create(name: "my book")
+      liquid = Liquid.create(name: "salty")
 
-      Book.find(book.id) # warming the statement cache.
+      Liquid.find(liquid.id) # warming the statement cache.
 
       # changing the table name should change the query that is not cached.
-      Book.table_name = :birds
+      Liquid.table_name = :birds
       assert_raise ActiveRecord::RecordNotFound do
-        Book.find(book.id)
+        Liquid.find(liquid.id)
       end
     ensure
-      Book.table_name = :books
+      Liquid.table_name = :liquid
     end
 
     def test_find_association_does_not_use_statement_cache_if_table_name_is_changed

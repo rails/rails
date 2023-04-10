@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Hack to load json gem first so we can override its to_json.
+# Hack to load JSON gem first so we can override its to_json.
 require "json"
 require "bigdecimal"
 require "ipaddr"
@@ -65,9 +65,17 @@ class Object
   end
 end
 
+if RUBY_VERSION >= "3.2"
+  class Data # :nodoc:
+    def as_json(options = nil)
+      to_h.as_json(options)
+    end
+  end
+end
+
 class Struct # :nodoc:
   def as_json(options = nil)
-    Hash[members.zip(values)].as_json(options)
+    to_h.as_json(options)
   end
 end
 

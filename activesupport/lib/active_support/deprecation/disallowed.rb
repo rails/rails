@@ -5,15 +5,15 @@ module ActiveSupport
     module Disallowed
       # Sets the criteria used to identify deprecation messages which should be
       # disallowed. Can be an array containing strings, symbols, or regular
-      # expressions. (Symbols are treated as strings). These are compared against
+      # expressions. (Symbols are treated as strings.) These are compared against
       # the text of the generated deprecation warning.
       #
       # Additionally the scalar symbol +:all+ may be used to treat all
       # deprecations as disallowed.
       #
       # Deprecations matching a substring or regular expression will be handled
-      # using the configured +ActiveSupport::Deprecation.disallowed_behavior+
-      # rather than +ActiveSupport::Deprecation.behavior+
+      # using the configured Behavior#disallowed_behavior rather than
+      # Behavior#behavior.
       attr_writer :disallowed_warnings
 
       # Returns the configured criteria used to identify deprecation messages
@@ -24,10 +24,9 @@ module ActiveSupport
 
       private
         def deprecation_disallowed?(message)
-          disallowed = ActiveSupport::Deprecation.disallowed_warnings
           return false if explicitly_allowed?(message)
-          return true if disallowed == :all
-          disallowed.any? do |rule|
+          return true if disallowed_warnings == :all
+          message && disallowed_warnings.any? do |rule|
             case rule
             when String, Symbol
               message.include?(rule.to_s)
@@ -41,8 +40,7 @@ module ActiveSupport
           allowances = @explicitly_allowed_warnings.value
           return false unless allowances
           return true if allowances == :all
-          allowances = [allowances] unless allowances.kind_of?(Array)
-          allowances.any? do |rule|
+          message && Array(allowances).any? do |rule|
             case rule
             when String, Symbol
               message.include?(rule.to_s)

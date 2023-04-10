@@ -10,7 +10,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
 
   def setup
     @underlying = ActiveRecord::Base.connection
-    @specification = ActiveRecord::Base.remove_connection
+    @connection_name = ActiveRecord::Base.remove_connection
 
     # Clear out connection info from other pids (like a fork parent) too
     ActiveRecord::ConnectionAdapters::PoolConfig.discard_pools!
@@ -18,7 +18,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
 
   teardown do
     @underlying = nil
-    ActiveRecord::Base.establish_connection(@specification)
+    ActiveRecord::Base.establish_connection(@connection_name)
     load_schema if in_memory_db?
   end
 

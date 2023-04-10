@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionView
+  # = Action View \TemplatePath
+  #
   # Represents a template path within ActionView's lookup and rendering system,
   # like "users/show"
   #

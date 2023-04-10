@@ -27,6 +27,7 @@ require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
+require "models/hardback"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -138,16 +139,43 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "PluralIrregular", reflection.class_name
   end
 
-  def test_reflection_klass_is_not_ar_subclass
-    [:account_invalid,
-     :account_class_name,
-     :info_invalids,
-     :infos_class_name,
-     :infos_through_class_name,
+  def test_reflection_klass_not_found_with_no_class_name_option
+    error = assert_raise(NameError) do
+      UserWithInvalidRelation.reflect_on_association(:not_a_class).klass
+    end
+
+    assert_equal "NotAClass", error.name
+    assert_match %r/missing/i, error.message
+    assert_match "NotAClass", error.message
+    assert_match "UserWithInvalidRelation#not_a_class", error.message
+    assert_match ":class_name", error.message
+  end
+
+  def test_reflection_klass_not_found_with_pointer_to_non_existent_class_name
+    error = assert_raise(NameError) do
+      UserWithInvalidRelation.reflect_on_association(:class_name_provided_not_a_class).klass
+    end
+
+    assert_equal "NotAClass", error.name
+    assert_match %r/missing/i, error.message
+    assert_match %r/\bNotAClass\b/, error.message
+    assert_match "UserWithInvalidRelation#class_name_provided_not_a_class", error.message
+    assert_no_match ":class_name", error.message
+  end
+
+  def test_reflection_klass_requires_ar_subclass
+    [ :account_invalid,          # has_one, without :class_name
+      :account_class_name,       # has_one, with :class_name
+      :info_invalids,            # has_many through, without :class_name
+      :infos_class_name,         # has_many through, with :class_name
+      :infos_through_class_name, # has_many through other :class_name, with :class_name
     ].each do |rel|
-      assert_raise(ArgumentError) do
+      error = assert_raise(ArgumentError) do
         UserWithInvalidRelation.reflect_on_association(rel).klass
       end
+
+      assert_match "not an ActiveRecord::Base subclass", error.message
+      assert_match "UserWithInvalidRelation##{rel}", error.message
     end
   end
 
@@ -297,7 +325,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 2, hotel.chefs.count
   end
 
-  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_subclass_source
     hotel = Hotel.create!
     hotel.mocktail_designers << MocktailDesigner.create!
 
@@ -312,6 +340,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 0, hotel.mocktail_designers.count
     assert_equal 0, hotel.chef_lists.size
     assert_equal 0, hotel.chef_lists.count
+  end
+
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_and_subclass_source_2
+    author = Author.create!(name: "John Doe")
+    hardback = BestHardback.create!
+    author.best_hardbacks << hardback
+
+    assert_equal [hardback], author.best_hardbacks
+    assert_equal [hardback], author.reload.best_hardbacks
+
+    author.best_hardbacks = []
+
+    assert_empty author.best_hardbacks
+    assert_empty author.reload.best_hardbacks
   end
 
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
@@ -532,6 +574,41 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_reflect_on_association_accepts_strings
     assert_nothing_raised do
       assert_equal Hotel.reflect_on_association("departments").name, :departments
+    end
+  end
+
+  def test_name_error_from_incidental_code_is_not_converted_to_name_error_for_association
+    UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
+      reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+
+      error = assert_raises(NameError) do
+        reflection.klass
+      end
+
+      assert_equal :oops, error.name
+      assert_match "oops", error.message
+      assert_no_match "NotAClass", error.message
+      assert_no_match "not_a_class", error.message
+    end
+  end
+
+  def test_automatic_inverse_suppresses_name_error_for_association
+    reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+    assert_not reflection.dup.has_inverse? # dup to prevent global memoization
+  end
+
+  def test_automatic_inverse_does_not_suppress_name_error_from_incidental_code
+    UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
+      reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+
+      error = assert_raises(NameError) do
+        reflection.dup.has_inverse? # dup to prevent global memoization
+      end
+
+      assert_equal :oops, error.name
+      assert_match "oops", error.message
+      assert_no_match "NotAClass", error.message
+      assert_no_match "not_a_class", error.message
     end
   end
 

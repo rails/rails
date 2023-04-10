@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveJob
+  # = Active Job \Core
+  #
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
   module Core
@@ -113,7 +115,7 @@ module ActiveJob
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
         "timezone"   => timezone,
-        "enqueued_at" => Time.now.utc.iso8601
+        "enqueued_at" => Time.now.utc.iso8601(9)
       }
     end
 

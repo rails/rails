@@ -19,8 +19,6 @@ module ActiveRecord
         @conn = Base.sqlite3_connection database: ":memory:",
                                         adapter: "sqlite3",
                                         timeout: 100
-
-        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
@@ -105,16 +103,17 @@ module ActiveRecord
 
       def test_connection_no_db
         assert_raises(ArgumentError) do
-          Base.sqlite3_connection { }
+          Base.sqlite3_connection({})
         end
       end
 
       def test_bad_timeout
-        assert_raises(TypeError) do
-          Base.sqlite3_connection database: ":memory:",
+        exception = assert_raises(ActiveRecord::StatementInvalid) do
+          Base.sqlite3_connection(database: ":memory:",
                                   adapter: "sqlite3",
-                                  timeout: "usa"
+                                  timeout: "usa").connect!
         end
+        assert_match("TypeError", exception.message)
       end
 
       # connection is OK with a nil timeout
@@ -122,6 +121,7 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        timeout: nil
+        conn.connect!
         assert conn, "made a connection"
       end
 
@@ -282,6 +282,7 @@ module ActiveRecord
         sql = <<~SQL
           SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
+        @conn.connect!
         assert_logged [[sql.squish, "SCHEMA", []]] do
           @conn.tables
         end
@@ -387,6 +388,14 @@ module ActiveRecord
             @conn.add_index "ex", "max(id, number)", name: "expression"
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_trailing_comment
+          with_example_table do
+            @conn.execute "CREATE INDEX expression on ex (number % 10) /* comment */"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "number % 10", index.columns
           end
         end
 
@@ -552,6 +561,27 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
+      def test_auto_increment_preserved_on_table_changes
+        connection = Barcode.connection
+        connection.create_table :barcodes, force: true do |t|
+          t.string :code
+        end
+
+        pk_column = connection.columns("barcodes").find { |col| col.name == "id" }
+        sql = connection.exec_query("SELECT sql FROM sqlite_master WHERE tbl_name='barcodes'").rows.first.first
+
+        assert(pk_column.auto_increment?)
+        assert(sql.match?("PRIMARY KEY AUTOINCREMENT"))
+
+        connection.change_column(:barcodes, :code, :integer)
+
+        pk_column = connection.columns("barcodes").find { |col| col.name == "id" }
+        sql = connection.exec_query("SELECT sql FROM sqlite_master WHERE tbl_name='barcodes'").rows.first.first
+
+        assert(pk_column.auto_increment?)
+        assert(sql.match?("PRIMARY KEY AUTOINCREMENT"))
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end
@@ -567,6 +597,8 @@ module ActiveRecord
       def test_statement_closed
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         db = ::SQLite3::Database.new(db_config.database)
+
+        @conn.connect!
 
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
@@ -587,6 +619,7 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        readonly: false
+        conn.connect!
 
         assert_not_predicate conn.raw_connection, :readonly?
       end
@@ -594,6 +627,7 @@ module ActiveRecord
       def test_db_is_not_readonly_when_readonly_option_is_unspecified
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3"
+        conn.connect!
 
         assert_not_predicate conn.raw_connection, :readonly?
       end
@@ -602,6 +636,7 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        readonly: true
+        conn.connect!
 
         assert_predicate conn.raw_connection, :readonly?
       end
@@ -610,10 +645,12 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ":memory:",
                                        adapter: "sqlite3",
                                        readonly: true
+        conn.connect!
 
-        assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
+        exception = assert_raises(ActiveRecord::StatementInvalid) do
           conn.execute("CREATE TABLE test(id integer)")
         end
+        assert_match("SQLite3::ReadOnlyException", exception.message)
       end
 
       def test_strict_strings_by_default

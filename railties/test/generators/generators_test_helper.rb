@@ -86,12 +86,14 @@ module GeneratorsTestHelper
   private
     def gemfile_locals
       {
+        gem_ruby_version: RUBY_VERSION,
         rails_prerelease: false,
         skip_active_storage: true,
         depend_on_bootsnap: false,
         depends_on_system_test: false,
         options: ActiveSupport::OrderedOptions.new,
         skip_sprockets: false,
+        bundler_windows_platforms: "windows",
       }
     end
 end

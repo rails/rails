@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveJob
-  # == Active Job adapters
+  # = Active Job adapters
   #
   # Active Job has adapters for the following queuing backends:
   #

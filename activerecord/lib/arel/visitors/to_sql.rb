@@ -333,7 +333,7 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_HomogeneousIn(o, collector)
           collector.preparable = false
 
-          collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
+          visit o.left, collector
 
           if o.type == :in
             collector << " IN ("
@@ -350,7 +350,6 @@ module Arel # :nodoc: all
           end
 
           collector << ")"
-          collector
         end
 
         def visit_Arel_SelectManager(o, collector)
@@ -752,6 +751,59 @@ module Arel # :nodoc: all
           collector << o.to_s
         end
 
+        def visit_Arel_Nodes_BoundSqlLiteral(o, collector)
+          bind_index = 0
+
+          new_bind = lambda do |value|
+            if Arel.arel_node?(value)
+              visit value, collector
+            elsif value.is_a?(Array)
+              if value.empty?
+                collector << @connection.quote(nil)
+              else
+                if value.none? { |v| Arel.arel_node?(v) }
+                  collector.add_binds(value.map { |v| @connection.cast_bound_value(v) }, &bind_block)
+                else
+                  value.each_with_index do |v, i|
+                    collector << ", " unless i == 0
+                    if Arel.arel_node?(v)
+                      visit v, collector
+                    else
+                      collector.add_bind(@connection.cast_bound_value(v), &bind_block)
+                    end
+                  end
+                end
+              end
+            else
+              collector.add_bind(@connection.cast_bound_value(value), &bind_block)
+            end
+          end
+
+          if o.positional_binds
+            o.sql_with_placeholders.scan(/\?|([^?]+)/) do
+              if $1
+                collector << $1
+              else
+                value = o.positional_binds[bind_index]
+                bind_index += 1
+
+                new_bind.call(value)
+              end
+            end
+          else
+            o.sql_with_placeholders.scan(/:(?<!::)([a-zA-Z]\w*)|([^:]+|.)/) do
+              if $2
+                collector << $2
+              else
+                value = o.named_binds[$1.to_sym]
+                new_bind.call(value)
+              end
+            end
+          end
+
+          collector
+        end
+
         def visit_Integer(o, collector)
           collector << o.to_s
         end
@@ -790,6 +842,10 @@ module Arel # :nodoc: all
           inject_join o, collector, ", "
         end
         alias :visit_Set :visit_Array
+
+        def visit_Arel_Nodes_Fragments(o, collector)
+          inject_join o.values, collector, " "
+        end
 
         def quote(value)
           return value if Arel::Nodes::SqlLiteral === value

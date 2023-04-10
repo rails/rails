@@ -48,7 +48,17 @@ module AbstractController
           missing_action = @actions.find { |action| !controller.available_action?(action) }
           if missing_action
             filter_names = @filters.length == 1 ? @filters.first.inspect : @filters.inspect
-            message = "The #{missing_action} action could not be found for the #{filter_names} callback on #{controller.class.name}, but it is listed in its #{@conditional_key.inspect} option"
+
+            message = <<~MSG
+              The #{missing_action} action could not be found for the #{filter_names}
+              callback on #{controller.class.name}, but it is listed in the controller's
+              #{@conditional_key.inspect} option.
+
+              Raising for missing callback actions is a new default in Rails 7.1, if you'd
+              like to turn this off you can delete the option from the environment configurations
+              or set `config.action_pack.raise_on_missing_callback_actions` to `false`.
+            MSG
+
             raise ActionNotFound.new(message, controller, missing_action)
           end
         end

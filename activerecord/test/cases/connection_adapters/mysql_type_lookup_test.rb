@@ -3,10 +3,10 @@
 require "cases/helper"
 require "support/connection_helper"
 
-if current_adapter?(:Mysql2Adapter)
-  module ActiveRecord
-    module ConnectionAdapters
-      class MysqlTypeLookupTest < ActiveRecord::TestCase
+module ActiveRecord
+  module ConnectionAdapters
+    class MysqlTypeLookupTest < ActiveRecord::TestCase
+      if current_adapter?(:Mysql2Adapter)
         include ConnectionHelper
 
         setup do

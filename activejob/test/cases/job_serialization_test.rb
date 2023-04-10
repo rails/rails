@@ -65,14 +65,13 @@ class JobSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  test "serialize stores the enqueued_at time" do
-    h1 = HelloJob.new
-    type = h1.serialize["enqueued_at"].class
-    assert_equal String, type
+  test "serializes enqueued_at with full precision" do
+    freeze_time
 
-    h2 = HelloJob.deserialize(h1.serialize)
-    # We should be able to parse a timestamp
-    type = Time.parse(h2.enqueued_at).class
-    assert_equal Time, type
+    serialized = HelloJob.new.serialize
+    assert_kind_of String, serialized["enqueued_at"]
+
+    enqueued_at = HelloJob.deserialize(serialized).enqueued_at
+    assert_equal Time.now.utc, Time.iso8601(enqueued_at)
   end
 end

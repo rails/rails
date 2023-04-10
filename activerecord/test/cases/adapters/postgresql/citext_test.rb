@@ -71,6 +71,12 @@ class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "Cased Text", x.cival
   end
 
+  def test_case_insensitiveness
+    attr = Citext.arel_table[:cival]
+    comparison = @connection.case_insensitive_comparison(attr, nil)
+    assert_no_match(/lower/i, comparison.to_sql)
+  end
+
   def test_schema_dump_with_shorthand
     output = dump_table_schema("citexts")
     assert_match %r[t\.citext "cival"], output

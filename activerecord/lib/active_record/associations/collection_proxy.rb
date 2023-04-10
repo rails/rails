@@ -94,7 +94,7 @@ module ActiveRecord
       # receive:
       #
       #   person.pets.select(:name).first.person_id
-      #   # => ActiveModel::MissingAttributeError: missing attribute: person_id
+      #   # => ActiveModel::MissingAttributeError: missing attribute 'person_id' for Pet
       #
       # *Second:* You can pass a block so it can be used just like Array#select.
       # This builds an array of objects from the database for the scope,
@@ -359,7 +359,7 @@ module ActiveRecord
       #   end
       #
       #   person.pets.create!(name: nil)
-      #   # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+      #   # => ActiveRecord::RecordInvalid: Validation failed: Name can’t be blank
       def create!(attributes = {}, &block)
         @association.create!(attributes, &block)
       end
@@ -955,10 +955,13 @@ module ActiveRecord
       #   person.pets == other
       #   # => true
       #
+      #
+      # Note that unpersisted records can still be seen as equal:
+      #
       #   other = [Pet.new(id: 1), Pet.new(id: 2)]
       #
       #   person.pets == other
-      #   # => false
+      #   # => true
       def ==(other)
         load_target == other
       end
@@ -1108,7 +1111,7 @@ module ActiveRecord
       ].flat_map { |klass|
         klass.public_instance_methods(false)
       } - self.public_instance_methods(false) - [:select] + [
-        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
+        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all, :load_async
       ]
 
       delegate(*delegate_methods, to: :scope)

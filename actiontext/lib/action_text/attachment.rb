@@ -8,7 +8,7 @@ module ActionText
 
     mattr_accessor :tag_name, default: "action-text-attachment"
 
-    ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable presentation caption )
+    ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable presentation caption content )
 
     class << self
       def fragment_by_canonicalizing_attachments(content)

@@ -608,6 +608,13 @@ module Rails
       end
     end
 
+    initializer :add_mailer_preview_paths do
+      previews = paths["test/mailers/previews"].existent
+      unless previews.empty?
+        ActiveSupport.on_load(:action_mailer) { self.preview_paths |= previews }
+      end
+    end
+
     initializer :prepend_helpers_path do |app|
       if !isolated? || (app == self)
         app.config.helpers_paths.unshift(*paths["app/helpers"].existent)

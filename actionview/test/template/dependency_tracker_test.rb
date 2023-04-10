@@ -197,6 +197,18 @@ module SharedTrackerTests
     ], tracker.dependencies
   end
 
+  def test_finds_dependencies_with_bare_assoc_hash_on_constant
+    template = FakeTemplate.new(%{
+      <%= render SomeConstant.message(this: "that") %>
+    }, :erb)
+
+    tracker = make_tracker("assoc_hash/const", template)
+
+    assert_equal [
+      "messages/message",
+    ], tracker.dependencies
+  end
+
   def test_dependencies_with_interpolation
     template = FakeTemplate.new(%q{
       <%= render "double/#{quote}" %>

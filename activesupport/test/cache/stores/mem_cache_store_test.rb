@@ -45,7 +45,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def lookup_store(*addresses, **options)
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false }.merge(options))
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false, socket_timeout: 60 }.merge(options))
     (@_stores ||= []) << cache
     cache
   end
@@ -57,6 +57,10 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
+  end
+
+  def teardown
+    @cache.clear
   end
 
   def after_teardown
@@ -175,7 +179,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache = lookup_store(raw: true, namespace: nil)
 
     Time.stub(:now, Time.now) do
-      assert_called_with client(cache), :set, [ "key_with_expires_at", "bar", 30 * 60, Hash ] do
+      assert_called_with client(cache), :set, ["key_with_expires_at", "bar", 30 * 60], namespace: nil, pool: false, raw: true, compress_threshold: 1024, expires_in: 1800.0, socket_timeout: 60 do
         cache.write("key_with_expires_at", "bar", expires_at: 30.minutes.from_now)
       end
     end
@@ -260,15 +264,18 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_unless_exist_expires_when_configured
     cache = lookup_store(namespace: nil)
-    assert_called_with client(cache), :add, [ "foo", Object, 1, Hash ] do
+
+    assert_called_with client(cache), :add, ["foo", Object, 1], namespace: nil, pool: false, compress_threshold: 1024, expires_in: 1, socket_timeout: 60, unless_exist: true do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
   end
 
   def test_uses_provided_dalli_client_if_present
-    cache = lookup_store(Dalli::Client.new("custom_host"))
-
-    assert_equal ["custom_host"], servers(cache)
+    assert_deprecated(ActiveSupport.deprecator) do
+      host = "custom_host"
+      cache = lookup_store(Dalli::Client.new(host))
+      assert_equal [host], servers(cache)
+    end
   end
 
   def test_forwards_string_addresses_if_present
@@ -354,7 +361,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_connection_pool_works
-    assert_deprecated do
+    assert_deprecated(ActiveSupport.deprecator) do
       cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
       pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
       assert_kind_of ::ConnectionPool, pool

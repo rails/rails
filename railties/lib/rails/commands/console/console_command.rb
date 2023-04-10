@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "irb"
-require "irb/completion"
-
 require "rails/command/environment_argument"
 
 module Rails
@@ -34,10 +31,17 @@ module Rails
 
       app.load_console
 
-      @console = app.config.console || IRB
+      @console = app.config.console || begin
+        require "irb"
+        require "irb/completion"
 
-      if @console == IRB
         IRB::WorkSpace.prepend(BacktraceCleaner)
+
+        if !Rails.env.local?
+          ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
+        end
+
+        IRB
       end
     end
 
@@ -92,13 +96,9 @@ module Rails
         super(args, local_options, config)
       end
 
+      desc "console", "Start the Rails console"
       def perform
-        extract_environment_option_from_argument
-
-        # RAILS_ENV needs to be set before config/application is required.
-        ENV["RAILS_ENV"] = options[:environment]
-
-        require_application_and_environment!
+        boot_application!
         Rails::Console.start(Rails.application, options)
       end
     end

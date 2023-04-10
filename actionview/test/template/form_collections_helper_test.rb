@@ -10,11 +10,11 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   def with_collection_radio_buttons(*args, &block)
-    @output_buffer = collection_radio_buttons(*args, &block)
+    @rendered = collection_radio_buttons(*args, &block)
   end
 
   def with_collection_check_boxes(*args, &block)
-    @output_buffer = collection_check_boxes(*args, &block)
+    @rendered = collection_check_boxes(*args, &block)
   end
 
   # COLLECTION RADIO BUTTONS
@@ -101,7 +101,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select "input[type=radio][value=false][readonly=readonly]"
   end
 
-  test "collection radio accepts html options as input" do
+  test "collection radio accepts HTML options as input" do
     collection = [[1, true], [0, false]]
     with_collection_radio_buttons :user, :active, collection, :last, :first, {}, { class: "special-radio" }
 
@@ -109,7 +109,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "input[type=radio][value=false].special-radio#user_active_false"
   end
 
-  test "collection radio accepts html options as the last element of array" do
+  test "collection radio accepts HTML options as the last element of array" do
     collection = [[1, true, { class: "foo" }], [0, false, { class: "bar" }]]
     with_collection_radio_buttons :user, :active, collection, :second, :first
 
@@ -160,7 +160,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "label[for=user_active_false] + input#user_active_false[type=radio]"
   end
 
-  test "collection radio with block helpers accept extra html options" do
+  test "collection radio with block helpers accept extra HTML options" do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
       b.label(class: "radio_button") + b.radio_button(class: "radio_button")
     end
@@ -197,7 +197,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio buttons with fields for" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    @output_buffer = fields_for(:post) do |p|
+    @rendered = fields_for(:post) do |p|
       p.collection_radio_buttons :category_id, collection, :id, :name
     end
 
@@ -329,7 +329,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "label[for=user_title_господин]", "Господин"
   end
 
-  test "collection check boxes accepts html options as the last element of array" do
+  test "collection check boxes accepts HTML options as the last element of array" do
     collection = [[1, "Category 1", { class: "foo" }], [2, "Category 2", { class: "bar" }]]
     with_collection_check_boxes :user, :active, collection, :first, :second
 
@@ -397,7 +397,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     user = Struct.new(:category_ids).new(2)
     collection = (1..3).map { |i| [i, "Category #{i}"] }
 
-    @output_buffer = fields_for(:user, user) do |p|
+    @rendered = fields_for(:user, user) do |p|
       p.collection_check_boxes :category_ids, collection, :first, :last, checked: [1, 3]
     end
 
@@ -460,7 +460,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select 'input[type=checkbox][value="2"][readonly=readonly]'
   end
 
-  test "collection check boxes accepts html options" do
+  test "collection check boxes accepts HTML options" do
     collection = [[1, "Category 1"], [2, "Category 2"]]
     with_collection_check_boxes :user, :category_ids, collection, :first, :last, {}, { class: "check" }
 
@@ -470,7 +470,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes with fields for" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    @output_buffer = fields_for(:post) do |p|
+    @rendered = fields_for(:post) do |p|
       p.collection_check_boxes :category_ids, collection, :id, :name
     end
 
@@ -506,7 +506,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "label[for=user_active_false] + input#user_active_false[type=checkbox]"
   end
 
-  test "collection check boxes with block helpers accept extra html options" do
+  test "collection check boxes with block helpers accept extra HTML options" do
     with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
       b.label(class: "check_box") + b.check_box(class: "check_box")
     end

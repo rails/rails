@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
-Development Dependencies Install
-================================
+Installing Rails Core Development Dependencies
+==============================================
 
 This guide covers how to set up an environment for Ruby on Rails core development.
 
@@ -14,12 +14,12 @@ After reading this guide, you will know:
 Other Ways to Set Up Your Environment
 -------------------------------------
 
-If you don't want to set up Rails for development on your local machine you can use Codespaces, the VS Code Remote Plugin, or rails-dev-box. Learn more about these options [here](https://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#setting-up-a-development-environment).
+If you don't want to set up Rails for development on your local machine, you can use Codespaces, the VS Code Remote Plugin, or rails-dev-box. Learn more about these options [here](contributing_to_ruby_on_rails.html#setting-up-a-development-environment).
 
 Local Development
 -----------------
 
-If you want to develop Ruby on Rails locally on your machine see the steps below.
+If you want to develop Ruby on Rails locally on your machine, see the steps below.
 
 ### Install Git
 
@@ -96,7 +96,7 @@ In order to compile the `mysql2` gem on macOS you will need the following:
 2) Ruby compiled with  `openssl@1.1`
 3) Set compiler flags in the bundle config for `mysql2`.
 
-If both `openssl@1.1` and `openssl@3` are installed you will need to tell Ruby to use `openssl@1.1` in order for Rails to bundle `mysql2`.
+If both `openssl@1.1` and `openssl@3` are installed, you will need to tell Ruby to use `openssl@1.1` in order for Rails to bundle `mysql2`.
 
 In your `.bash_profile` set the `PATH` and `RUBY_CONFIGURE_OPTS` to point to `openssl@1.1`:
 
@@ -111,7 +111,7 @@ In your `~/.bundle/config` set the following for `mysql2`. Be sure to delete any
 BUNDLE_BUILD__MYSQL2: "--with-ldflags=-L/usr/local/opt/openssl@1.1/lib --with-cppflags=-L/usr/local/opt/openssl@1.1/include"
 ```
 
-By setting these flags before installing Ruby and bundling Rails you should be able to get your local macOS development environment working.
+By setting these flags before installing Ruby and bundling Rails, you should be able to get your local macOS development environment working.
 
 #### Ubuntu
 
@@ -122,9 +122,11 @@ $ sudo apt-get update
 $ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
 
 # Install Yarn
-$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-$ sudo apt-get install yarn
+# Use this command if you do not have Node.js installed
+$ curl --fail --silent --show-error --location https://deb.nodesource.com/setup_18.x | sudo -E bash -
+$ sudo apt-get install -y nodejs
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Fedora or CentOS
@@ -136,10 +138,10 @@ $ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
-$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-# If you have Node.js installed, use this command instead
-$ curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-$ sudo dnf install yarn
+$ curl --silent --location https://rpm.nodesource.com/setup_18.x | sudo bash -
+$ sudo dnf install -y nodejs
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Arch Linux
@@ -170,6 +172,16 @@ Or install everything through ports (these packages are located under the
 NOTE: If you run into problems during the installation of MySQL, please see
 [the MySQL documentation](https://dev.mysql.com/doc/refman/en/freebsd-installation.html).
 
+#### Debian
+
+To install all dependencies run:
+
+```bash
+$ sudo apt-get install sqlite3 libsqlite3-dev default-mysql-server default-libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+```
+
+NOTE: If you are running Debian, MariaDB is the default MySQL server, so be aware there may be differences.
+
 ### Database Configuration
 
 There are couple of additional steps required to configure database engines
@@ -188,7 +200,7 @@ and for macOS:
 $ createuser --superuser $USER
 ```
 
-MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
+NOTE: MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
 
 Then, you need to create the test databases for both MySQL and PostgreSQL with:
 
@@ -216,7 +228,7 @@ NOTE: Using the Rake task to create the test databases ensures they have the cor
 
 If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine, but you should not push any of those changes back to Rails.
 
-### Install JavaScript dependencies
+### Install JavaScript Dependencies
 
 If you installed Yarn, you will need to install the JavaScript dependencies:
 
@@ -224,7 +236,7 @@ If you installed Yarn, you will need to install the JavaScript dependencies:
 $ yarn install
 ```
 
-### Installing gem dependencies
+### Installing Gem Dependencies
 
 Gems are installed with [Bundler](https://bundler.io/) which ships by default with Ruby.
 
@@ -234,7 +246,7 @@ To install the Gemfile for Rails run:
 $ bundle install
 ```
 
-If you don't need to run Active Record tests you can run:
+If you don't need to run Active Record tests, you can run:
 
 ```bash
 $ bundle install --without db

@@ -21,6 +21,7 @@ module Rails
       private
         def generator_options
           options = { api: !!Rails.application.config.api_only, update: true }
+          options[:name]                = Rails.application.class.name.chomp("::Application").underscore
           options[:skip_active_job]     = !defined?(ActiveJob::Railtie)
           options[:skip_active_record]  = !defined?(ActiveRecord::Railtie)
           options[:skip_active_storage] = !defined?(ActiveStorage::Engine)
@@ -29,9 +30,9 @@ module Rails
           options[:skip_action_text]    = !defined?(ActionText::Engine)
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
           options[:skip_test]           = !defined?(Rails::TestUnitRailtie)
+          options[:skip_system_test]    = Rails.application.config.generators.system_tests.nil?
           options[:skip_asset_pipeline] = !defined?(Sprockets::Railtie) && !defined?(Propshaft::Railtie)
           options[:skip_bootsnap]       = !defined?(Bootsnap)
-          options[:updating]            = true
           options
         end
     end

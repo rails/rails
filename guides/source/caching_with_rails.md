@@ -108,7 +108,7 @@ If you want to cache a fragment under certain conditions, you can use
 <% end %>
 ```
 
-#### Collection caching
+#### Collection Caching
 
 The `render` helper can also cache individual templates rendered for a collection.
 It can even one up the previous example with `each` by reading all cache
@@ -173,7 +173,7 @@ cache.
 
 ### Shared Partial Caching
 
-It is possible to share partials and associated caching between files with different mime types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the mime type. Because of this templates can be used for multiple mime types. Both HTML and JavaScript requests will respond to the following code:
+It is possible to share partials and associated caching between files with different MIME types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the MIME type. Because of this templates can be used for multiple MIME types. Both HTML and JavaScript requests will respond to the following code:
 
 ```ruby
 render(partial: 'hotels/hotel', collection: @hotels, cached: true)
@@ -187,16 +187,16 @@ Another option is to include the full filename of the partial to render.
 render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
 ```
 
-Will load a file named `hotels/hotel.html.erb` in any file mime type, for example you could include this partial in a JavaScript file.
+Will load a file named `hotels/hotel.html.erb` in any file MIME type, for example you could include this partial in a JavaScript file.
 
-### Managing dependencies
+### Managing Dependencies
 
 In order to correctly invalidate the cache, you need to properly define the
 caching dependencies. Rails is clever enough to handle common cases so you don't
 have to specify anything. However, sometimes, when you're dealing with custom
 helpers for instance, you need to explicitly define them.
 
-#### Implicit dependencies
+#### Implicit Dependencies
 
 Most template dependencies can be derived from calls to `render` in the template
 itself. Here are some examples of render calls that `ActionView::Digestor` knows
@@ -228,7 +228,7 @@ to:
 render partial: "documents/document", collection: @project.documents.where(published: true)
 ```
 
-#### Explicit dependencies
+#### Explicit Dependencies
 
 Sometimes you'll have template dependencies that can't be derived at all. This
 is typically the case when rendering happens in helpers. Here's an example:
@@ -264,7 +264,7 @@ comment format anywhere in the template, like:
 <% end %>
 ```
 
-#### External dependencies
+#### External Dependencies
 
 If you use a helper method, for example, inside a cached block and you then update
 that helper, you'll have to bump the cache as well. It doesn't really matter how
@@ -296,7 +296,7 @@ end
 
 NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching, you need to generate a cache key.
 
-#### Avoid caching instances of Active Record objects
+#### Avoid Caching Instances of Active Record Objects
 
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
 
@@ -332,7 +332,6 @@ For example:
 
 ```ruby
 class ProductsController < ApplicationController
-
   def index
     # Run a find query
     @products = Product.all
@@ -342,7 +341,6 @@ class ProductsController < ApplicationController
     # Run the same query again
     @products = Product.all
   end
-
 end
 ```
 
@@ -369,33 +367,14 @@ arguments to the cache store's constructor:
 config.cache_store = :memory_store, { size: 64.megabytes }
 ```
 
-NOTE: Alternatively, you can call `ActionController::Base.cache_store` outside of a configuration block.
+Alternatively, you can set `ActionController::Base.cache_store` outside of a configuration block.
 
 You can access the cache by calling `Rails.cache`.
 
-### ActiveSupport::Cache::Store
-
-This class provides the foundation for interacting with the cache in Rails. This is an abstract class and you cannot use it on its own. Rather you must use a concrete implementation of the class tied to a storage engine. Rails ships with several implementations documented below.
-
-The main methods to call are `read`, `write`, `delete`, `exist?`, and `fetch`. The fetch method takes a block and will either return an existing value from the cache, or evaluate the block and write the result to the cache if no value exists.
-
-There are some common options that can be used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
-
-* `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
-
-* `:compress` - Enabled by default. Compresses cache entries so more data can be stored in the same memory footprint, leading to fewer cache evictions and higher hit rates.
-
-* `:compress_threshold` - Defaults to 1kB. Cache entries larger than this threshold, specified in bytes, are compressed.
-
-* `:expires_in` - This option sets an expiration time in seconds for the cache entry, if the cache store supports it, when it will be automatically removed from the cache.
-
-* `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
-
-* `:coder` - This option replaces the default cache entry serialization mechanism with a custom one. The `coder` must respond to `dump` and `load`, and passing a custom coder disables automatic compression.
-
 #### Connection Pool Options
 
-By default the `MemCacheStore` and `RedisCacheStore` are configured to use
+By default, [`:mem_cache_store`](#activesupport-cache-memcachestore) and
+[`:redis_cache_store`](#activesupport-cache-rediscachestore) are configured to use
 connection pooling. This means that if you're using Puma, or another threaded server,
 you can have multiple threads performing queries to the cache store at the same time.
 
@@ -415,22 +394,24 @@ config.cache_store = :mem_cache_store, "cache.example.com", pool: { size: 32, ti
 
 * `:timeout` - This option sets the number of seconds to wait for a connection (defaults to 5). If no connection is available within the timeout, a `Timeout::Error` will be raised.
 
-#### Custom Cache Stores
+### `ActiveSupport::Cache::Store`
 
-You can create your own custom cache store by simply extending
-`ActiveSupport::Cache::Store` and implementing the appropriate methods. This way,
-you can swap in any number of caching technologies into your Rails application.
+[`ActiveSupport::Cache::Store`][] provides the foundation for interacting with the cache in Rails. This is an abstract class, and you cannot use it on its own. Instead, you must use a concrete implementation of the class tied to a storage engine. Rails ships with several implementations, documented below.
 
-To use a custom cache store, simply set the cache store to a new instance of your
-custom class.
+The main API methods are [`read`][ActiveSupport::Cache::Store#read], [`write`][ActiveSupport::Cache::Store#write], [`delete`][ActiveSupport::Cache::Store#delete], [`exist?`][ActiveSupport::Cache::Store#exist?], and [`fetch`][ActiveSupport::Cache::Store#fetch].
 
-```ruby
-config.cache_store = MyCacheStore.new
-```
+Options passed to the cache store's constructor will be treated as default options for the appropriate API methods.
 
-### ActiveSupport::Cache::MemoryStore
+[`ActiveSupport::Cache::Store`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html
+[ActiveSupport::Cache::Store#delete]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-delete
+[ActiveSupport::Cache::Store#exist?]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-exist-3F
+[ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
+[ActiveSupport::Cache::Store#read]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-read
+[ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
 
-This cache store keeps entries in memory in the same Ruby process. The cache
+### `ActiveSupport::Cache::MemoryStore`
+
+[`ActiveSupport::Cache::MemoryStore`][] keeps entries in memory in the same Ruby process. The cache
 store has a bounded size specified by sending the `:size` option to the
 initializer (default is 32Mb). When the cache exceeds the allotted size, a
 cleanup will occur and the least recently used entries will be removed.
@@ -446,14 +427,16 @@ store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,
 as well as development and test environments.
 
-New Rails projects are configured to use this implementation in development environment by default.
+New Rails projects are configured to use this implementation in the development environment by default.
 
 NOTE: Since processes will not share cache data when using `:memory_store`,
 it will not be possible to manually read, write, or expire the cache via the Rails console.
 
-### ActiveSupport::Cache::FileStore
+[`ActiveSupport::Cache::MemoryStore`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemoryStore.html
 
-This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
+### `ActiveSupport::Cache::FileStore`
+
+[`ActiveSupport::Cache::FileStore`][] uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
 
 ```ruby
 config.cache_store = :file_store, "/path/to/cache/directory"
@@ -470,9 +453,11 @@ periodically clear out old entries.
 This is the default cache store implementation (at `"#{root}/tmp/cache/"`) if
 no explicit `config.cache_store` is supplied.
 
-### ActiveSupport::Cache::MemCacheStore
+[`ActiveSupport::Cache::FileStore`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
 
-This cache store uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
+### `ActiveSupport::Cache::MemCacheStore`
+
+[`ActiveSupport::Cache::MemCacheStore`][] uses Danga's `memcached` server to provide a centralized cache for your application. Rails uses the bundled `dalli` gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very high performance and redundancy.
 
 When initializing the cache, you should specify the addresses for all memcached servers in your cluster, or ensure the `MEMCACHE_SERVERS` environment variable has been set appropriately.
 
@@ -486,13 +471,16 @@ If neither are specified, it will assume memcached is running on localhost on th
 config.cache_store = :mem_cache_store # Will fallback to $MEMCACHE_SERVERS, then 127.0.0.1:11211
 ```
 
-See the [`Dalli::Client` documentation](https://www.rubydoc.info/github/mperham/dalli/Dalli%2FClient:initialize) for supported address types.
+See the [`Dalli::Client` documentation](https://www.rubydoc.info/gems/dalli/Dalli/Client#initialize-instance_method) for supported address types.
 
-The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
+The [`write`][ActiveSupport::Cache::MemCacheStore#write] (and `fetch`) method on this cache accepts additional options that take advantage of features specific to memcached.
 
-### ActiveSupport::Cache::RedisCacheStore
+[`ActiveSupport::Cache::MemCacheStore`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html
+[ActiveSupport::Cache::MemCacheStore#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html#method-i-write
 
-The Redis cache store takes advantage of Redis support for automatic eviction
+### `ActiveSupport::Cache::RedisCacheStore`
+
+[`ActiveSupport::Cache::RedisCacheStore`][] takes advantage of Redis support for automatic eviction
 when it reaches max memory, allowing it to behave much like a Memcached cache server.
 
 Deployment note: Redis doesn't expire keys by default, so take care to use a
@@ -527,16 +515,6 @@ To get started, add the redis gem to your Gemfile:
 gem 'redis'
 ```
 
-You can enable support for the faster [hiredis](https://github.com/redis/hiredis)
-connection library by additionally adding its ruby wrapper to your Gemfile:
-
-```ruby
-gem 'hiredis'
-```
-
-Redis cache store will automatically require and use hiredis if available. No further
-configuration is needed.
-
 Finally, add the configuration in the relevant `config/environments/*.rb` file:
 
 ```ruby
@@ -556,18 +534,35 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
   error_handler: -> (method:, returning:, exception:) {
     # Report errors to Sentry as warnings
-    Raven.capture_exception exception, level: 'warning',
+    Sentry.capture_exception exception, level: 'warning',
       tags: { method: method, returning: returning }
   }
 }
 ```
 
-### ActiveSupport::Cache::NullStore
+[`ActiveSupport::Cache::RedisCacheStore`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
 
-This cache store is scoped to each web request, and clears stored values at the end of a request. It is meant for use in development and test environments. It can be very useful when you have code that interacts directly with `Rails.cache` but caching interferes with seeing the results of code changes.
+### `ActiveSupport::Cache::NullStore`
+
+[`ActiveSupport::Cache::NullStore`][] is scoped to each web request, and clears stored values at the end of a request. It is meant for use in development and test environments. It can be very useful when you have code that interacts directly with `Rails.cache` but caching interferes with seeing the results of code changes.
 
 ```ruby
 config.cache_store = :null_store
+```
+
+[`ActiveSupport::Cache::NullStore`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/NullStore.html
+
+### Custom Cache Stores
+
+You can create your own custom cache store by simply extending
+`ActiveSupport::Cache::Store` and implementing the appropriate methods. This way,
+you can swap in any number of caching technologies into your Rails application.
+
+To use a custom cache store, simply set the cache store to a new instance of your
+custom class.
+
+```ruby
+config.cache_store = MyCacheStore.new
 ```
 
 Cache Keys
@@ -592,7 +587,7 @@ values with `Rails.cache` and then try to pull them out with the `dalli` gem.
 However, you also don't need to worry about exceeding the memcached size limit or
 violating syntax rules.
 
-Conditional GET support
+Conditional GET Support
 -----------------------
 
 Conditional GETs are a feature of the HTTP specification that provide a way for web servers to tell browsers that the response to a GET request hasn't changed since the last request and can be safely pulled from the browser cache.
@@ -603,7 +598,6 @@ It is the server's (i.e. our) responsibility to look for a last modified timesta
 
 ```ruby
 class ProductsController < ApplicationController
-
   def show
     @product = Product.find(params[:id])
 
@@ -643,7 +637,6 @@ If you don't have any special response processing and are using the default rend
 
 ```ruby
 class ProductsController < ApplicationController
-
   # This will automatically send back a :not_modified if the request is fresh,
   # and will render the default template (product.*) if it's stale.
 
@@ -726,8 +719,8 @@ $ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
 
-NOTE: By default, when development mode caching is *off*, Rails uses
-[`ActiveSupport::Cache::NullStore`](#activesupport-cache-nullstore).
+By default, when development mode caching is *off*, Rails uses
+[`:null_store`](#activesupport-cache-nullstore).
 
 References
 ----------

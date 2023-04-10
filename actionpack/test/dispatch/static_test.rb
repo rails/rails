@@ -79,7 +79,7 @@ module StaticTests
 
     assert_gzip  "/foo/さようなら.html", response
     assert_equal "text/html",          response.headers["Content-Type"]
-    assert_equal "Accept-Encoding",    response.headers["Vary"]
+    assert_equal "accept-encoding",    response.headers["Vary"]
     assert_equal "gzip",               response.headers["Content-Encoding"]
   end
 
@@ -151,7 +151,7 @@ module StaticTests
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_gzip  file_name, response
     assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "Accept-Encoding",        response.headers["Vary"]
+    assert_equal "accept-encoding",        response.headers["Vary"]
     assert_equal "gzip",                   response.headers["Content-Encoding"]
 
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "Gzip")
@@ -170,14 +170,14 @@ module StaticTests
   def test_set_vary_when_origin_compressed_but_client_cant_accept
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "None")
-    assert_equal "Accept-Encoding", response.headers["Vary"]
+    assert_equal "accept-encoding", response.headers["Vary"]
   end
 
   def test_serves_brotli_files_when_header_set
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "br")
     assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "Accept-Encoding",        response.headers["Vary"]
+    assert_equal "accept-encoding",        response.headers["Vary"]
     assert_equal "br",                     response.headers["Content-Encoding"]
 
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
@@ -188,7 +188,7 @@ module StaticTests
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip, deflate, sdch, br")
     assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "Accept-Encoding",        response.headers["Vary"]
+    assert_equal "accept-encoding",        response.headers["Vary"]
     assert_equal "br",                     response.headers["Content-Encoding"]
   end
 

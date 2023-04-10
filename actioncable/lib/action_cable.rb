@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2015-2022 Basecamp, LLC
+# Copyright (c) 37signals LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -30,7 +30,8 @@ require "zeitwerk"
 Zeitwerk::Loader.for_gem.tap do |loader|
   loader.ignore(
     "#{__dir__}/rails", # Contains generators, templates, docs, etc.
-    "#{__dir__}/action_cable/gem_version.rb"
+    "#{__dir__}/action_cable/gem_version.rb",
+    "#{__dir__}/action_cable/deprecator.rb",
   )
 
   loader.do_not_eager_load(
@@ -42,8 +43,11 @@ Zeitwerk::Loader.for_gem.tap do |loader|
   loader.inflector.inflect("postgresql" => "PostgreSQL")
 end.setup
 
+# :markup: markdown
+# :include: actioncable/README.md
 module ActionCable
   require_relative "action_cable/version"
+  require_relative "action_cable/deprecator"
 
   INTERNAL = {
     message_types: {

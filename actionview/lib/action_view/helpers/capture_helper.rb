@@ -3,18 +3,22 @@
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
-  # = Action View Capture Helper
   module Helpers # :nodoc:
-    # CaptureHelper exposes methods to let you extract generated markup which
+    # = Action View Capture \Helpers
+    #
+    # \CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
     #
-    # It provides a method to capture blocks into variables through capture and
-    # a way to capture a block of markup for use in a layout through {content_for}[rdoc-ref:ActionView::Helpers::CaptureHelper#content_for].
+    # It provides a method to capture blocks into variables through #capture and
+    # a way to capture a block of markup for use in a layout through #content_for.
+    #
+    # As well as provides a method when using streaming responses through #provide.
+    # See ActionController::Streaming for more information.
     module CaptureHelper
-      # The capture method extracts part of a template as a String object.
+      # The capture method extracts part of a template as a string object.
       # You can then use this object anywhere in your templates, layout, or helpers.
       #
-      # The capture method can be used in ERB templates...
+      # The capture method can be used in \ERB templates...
       #
       #   <% @greeting = capture do %>
       #     Welcome to my shiny new web page!  The date and time is
@@ -40,11 +44,18 @@ module ActionView
       #
       #   @greeting # => "Welcome to my shiny new web page! The date and time is 2018-09-06 11:09:16 -0500"
       #
-      def capture(*args)
+      def capture(*args, &block)
         value = nil
-        buffer = with_output_buffer { value = yield(*args) }
-        if (string = buffer.presence || value) && string.is_a?(String)
-          ERB::Util.html_escape string
+        @output_buffer ||= ActionView::OutputBuffer.new
+        buffer = @output_buffer.capture { value = yield(*args) }
+
+        case string = buffer.presence || value
+        when OutputBuffer
+          string.to_s
+        when ActiveSupport::SafeBuffer
+          string
+        when String
+          ERB::Util.html_escape(string)
         end
       end
 
@@ -121,7 +132,7 @@ module ActionView
       #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
-      #  And in another place:
+      # And in another place:
       #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Login', action: 'login' %></li>
@@ -137,7 +148,7 @@ module ActionView
       #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
-      #   <%#  Add some other content, or use a different template: %>
+      #   <%# Add some other content, or use a different template: %>
       #
       #   <% content_for :navigation, flush: true do %>
       #     <li><%= link_to 'Login', action: 'login' %></li>
@@ -172,6 +183,8 @@ module ActionView
       # concatenate several times to the same buffer when rendering a given
       # template, you should use +content_for+, if not, use +provide+ to tell
       # the layout to stop looking for more contents.
+      #
+      # See ActionController::Streaming for more information.
       def provide(name, content = nil, &block)
         content = capture(&block) if block_given?
         result = @view_flow.append!(name, content) if content
@@ -179,6 +192,7 @@ module ActionView
       end
 
       # <tt>content_for?</tt> checks whether any content has been captured yet using <tt>content_for</tt>.
+      #
       # Useful to render parts of your layout differently based on what is in your views.
       #
       #   <%# This is the layout %>

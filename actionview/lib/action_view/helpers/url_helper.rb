@@ -3,11 +3,13 @@
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
+require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/tag_helper"
 
 module ActionView
-  # = Action View URL Helpers
   module Helpers # :nodoc:
+    # = Action View URL \Helpers
+    #
     # Provides a set of methods for making links and getting URLs that
     # depend on the routing subsystem (see ActionDispatch::Routing).
     # This allows you to use the same format for links in views
@@ -22,6 +24,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include TagHelper
+      include ContentExfiltrationPreventionHelper
 
       module ClassMethods
         def _url_for_modules
@@ -380,7 +383,8 @@ module ActionView
                                        autocomplete: "off")
           end
         end
-        content_tag("form", inner_tags, form_options)
+        html = content_tag("form", inner_tags, form_options)
+        prevent_content_exfiltration(html)
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
@@ -492,7 +496,7 @@ module ActionView
       # * <tt>:body</tt> - Preset the body of the email.
       # * <tt>:cc</tt> - Carbon Copy additional recipients on the email.
       # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
-      # * <tt>:reply_to</tt> - Preset the Reply-To field of the email.
+      # * <tt>:reply_to</tt> - Preset the +Reply-To+ field of the email.
       #
       # ==== Obfuscation
       # Prior to Rails 4.0, +mail_to+ provided options for encoding the address

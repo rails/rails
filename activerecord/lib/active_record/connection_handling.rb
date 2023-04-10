@@ -48,8 +48,8 @@ module ActiveRecord
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
-      db_config, owner_name = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(db_config, owner_name: owner_name, role: current_role, shard: current_shard)
+      db_config = resolve_config_for_connection(config_or_env)
+      connection_handler.establish_connection(db_config, owner_name: self, role: current_role, shard: current_shard)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
@@ -87,18 +87,18 @@ module ActiveRecord
       connections = []
 
       database.each do |role, database_key|
-        db_config, owner_name = resolve_config_for_connection(database_key)
+        db_config = resolve_config_for_connection(database_key)
 
         self.connection_class = true
-        connections << connection_handler.establish_connection(db_config, owner_name: owner_name, role: role)
+        connections << connection_handler.establish_connection(db_config, owner_name: self, role: role)
       end
 
       shards.each do |shard, database_keys|
         database_keys.each do |role, database_key|
-          db_config, owner_name = resolve_config_for_connection(database_key)
+          db_config = resolve_config_for_connection(database_key)
 
           self.connection_class = true
-          connections << connection_handler.establish_connection(db_config, owner_name: owner_name, role: role, shard: shard.to_sym)
+          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard.to_sym)
         end
       end
 
@@ -222,8 +222,8 @@ module ActiveRecord
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if role and/or is the current connected role and/or
-    # current connected shard. If no shard is passed the default will be
+    # Returns true if role is the current connected role and/or
+    # current connected shard. If no shard is passed, the default will be
     # used.
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
@@ -242,7 +242,7 @@ module ActiveRecord
 
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
-      connection_handler.all_connection_pools.each do |pool|
+      connection_handler.each_connection_pool do |pool|
         pool.connection.clear_query_cache if pool.active_connection?
       end
     end
@@ -272,7 +272,7 @@ module ActiveRecord
     #
     #  ActiveRecord::Base.connection_db_config
     #    #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-    #      @name="primary", @config={pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}>
+    #      @name="primary", @config={pool: 5, timeout: 5000, database: "storage/development.sqlite3", adapter: "sqlite3"}>
     #
     # Use only for reading.
     def connection_db_config
@@ -308,18 +308,42 @@ module ActiveRecord
       connection.schema_cache.clear!
     end
 
-    delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
+    def clear_active_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_active_connections!(role)
+    end
+
+    def clear_reloadable_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_reloadable_connections!(role)
+    end
+
+    def clear_all_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.clear_all_connections!(role)
+    end
+
+    def flush_idle_connections!(role = nil)
+      deprecation_for_delegation(__method__)
+      connection_handler.flush_idle_connections!(role)
+    end
 
     private
+      def deprecation_for_delegation(method)
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
+          Calling `ActiveRecord::Base.#{method} is deprecated. Please
+          call the method directly on the connection handler; for
+          example: `ActiveRecord::Base.connection_handler.#{method}`.
+        MSG
+      end
+
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
-        owner_name = primary_class? ? Base.name : name
-        self.connection_specification_name = owner_name
+        connection_name = primary_class? ? Base.name : name
+        self.connection_specification_name = connection_name
 
-        db_config = Base.configurations.resolve(config_or_env)
-        [db_config, self]
+        Base.configurations.resolve(config_or_env)
       end
 
       def with_role_and_shard(role, shard, prevent_writes)

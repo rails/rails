@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "set"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -11,16 +12,21 @@ module Rails
       include Initializable
 
       initializer :add_generator_templates do
-        config.generators.templates.unshift(*paths["lib/templates"].existent)
+        ensure_generator_templates_added
       end
 
       initializer :setup_main_autoloader do
         autoloader = Rails.autoloaders.main
 
+        # Normally empty, but if the user already defined some, we won't
+        # override them. Important if there are custom namespaces associated.
+        already_configured_dirs = Set.new(autoloader.dirs)
+
         ActiveSupport::Dependencies.autoload_paths.freeze
         ActiveSupport::Dependencies.autoload_paths.uniq.each do |path|
           # Zeitwerk only accepts existing directories in `push_dir`.
           next unless File.directory?(path)
+          next if already_configured_dirs.member?(path.to_s)
 
           autoloader.push_dir(path)
           autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
@@ -87,21 +93,21 @@ module Rails
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 
-      class MutexHook
-        def initialize(mutex = Mutex.new)
-          @mutex = mutex
+      class MonitorHook # :nodoc:
+        def initialize(monitor = Monitor.new)
+          @monitor = monitor
         end
 
         def run
-          @mutex.lock
+          @monitor.enter
         end
 
         def complete(_state)
-          @mutex.unlock
+          @monitor.exit
         end
       end
 
-      module InterlockHook
+      module InterlockHook # :nodoc:
         def self.run
           ActiveSupport::Dependencies.interlock.start_running
         end
@@ -116,7 +122,7 @@ module Rails
           # User has explicitly opted out of concurrent request
           # handling: presumably their code is not threadsafe
 
-          app.executor.register_hook(MutexHook.new, outer: true)
+          app.executor.register_hook(MonitorHook.new, outer: true)
 
         elsif config.allow_concurrency == :unsafe
           # Do nothing, even if we know this is dangerous. This is the
@@ -166,6 +172,7 @@ module Rails
           # some sort of reloaders dependency support, to be added.
           require_unload_lock!
           reloader.execute
+          ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
       end
 

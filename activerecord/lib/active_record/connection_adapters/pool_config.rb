@@ -5,8 +5,8 @@ module ActiveRecord
     class PoolConfig # :nodoc:
       include Mutex_m
 
-      attr_reader :db_config, :connection_class, :role, :shard
-      attr_accessor :schema_cache
+      attr_reader :db_config, :role, :shard
+      attr_accessor :schema_cache, :connection_class
 
       INSTANCES = ObjectSpace::WeakMap.new
       private_constant :INSTANCES
@@ -27,7 +27,7 @@ module ActiveRecord
         INSTANCES[self] = self
       end
 
-      def connection_specification_name
+      def connection_name
         if connection_class.primary_class?
           "ActiveRecord::Base"
         else

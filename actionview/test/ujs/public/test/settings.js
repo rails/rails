@@ -1,24 +1,32 @@
+import $ from 'jquery'
+import Rails from '../../../../app/javascript/rails-ujs/index'
+
+$.rails = Rails
+
 var App = App || {}
 var Turbolinks = Turbolinks || {}
 
-App.assertCallbackInvoked = function(callbackName) {
-  ok(true, callbackName + ' callback should have been invoked')
+window.Turbolinks = Turbolinks
+window.jQuery = $
+
+QUnit.assert.callbackInvoked = function(callbackName) {
+  this.ok(true, callbackName + ' callback should have been invoked')
 }
 
-App.assertCallbackNotInvoked = function(callbackName) {
-  ok(false, callbackName + ' callback should not have been invoked')
+QUnit.assert.callbackNotInvoked = function(callbackName) {
+  this.ok(false, callbackName + ' callback should not have been invoked')
 }
 
-App.assertGetRequest = function(requestEnv) {
-  equal(requestEnv['REQUEST_METHOD'], 'GET', 'request type should be GET')
+QUnit.assert.getRequest = function(requestEnv) {
+  this.equal(requestEnv['REQUEST_METHOD'], 'GET', 'request type should be GET')
 }
 
-App.assertPostRequest = function(requestEnv) {
-  equal(requestEnv['REQUEST_METHOD'], 'POST', 'request type should be POST')
+QUnit.assert.postRequest = function(requestEnv) {
+  this.equal(requestEnv['REQUEST_METHOD'], 'POST', 'request type should be POST')
 }
 
-App.assertRequestPath = function(requestEnv, path) {
-  equal(requestEnv['PATH_INFO'], path, 'request should be sent to right URL')
+QUnit.assert.requestPath = function(requestEnv, path) {
+  this.equal(requestEnv['PATH_INFO'], path, 'request should be sent to right URL')
 }
 
 App.getVal = function(el) {
@@ -31,14 +39,14 @@ App.disabled = function(el) {
     $.rails.getData(el[0], 'ujs:disabled')
 }
 
-App.checkEnabledState = function(el, text) {
-  ok(!App.disabled(el), el.get(0).tagName + ' should not be disabled')
-  equal(App.getVal(el), text, el.get(0).tagName + ' text should be original value')
+QUnit.assert.enabledState = function(el, text) {
+  this.ok(!App.disabled(el), el.get(0).tagName + ' should not be disabled')
+  this.equal(App.getVal(el), text, el.get(0).tagName + ' text should be original value')
 }
 
-App.checkDisabledState = function(el, text) {
-  ok(App.disabled(el), el.get(0).tagName + ' should be disabled')
-  equal(App.getVal(el), text, el.get(0).tagName + ' text should be disabled value')
+QUnit.assert.disabledState = function(el, text) {
+  this.ok(App.disabled(el), el.get(0).tagName + ' should be disabled')
+  this.equal(App.getVal(el), text, el.get(0).tagName + ' text should be disabled value')
 }
 
 // hijacks normal form submit; lets it submit to an iframe to prevent
@@ -48,7 +56,7 @@ $(document).bind('submit', function(e) {
     var form = $(e.target), action = form.attr('action'),
         name = 'form-frame' + jQuery.guid++,
         iframe = $('<iframe name="' + name + '" />'),
-        iframeInput = '<input name="iframe" value="true" type="hidden" />'
+        iframeInput = '<input name="iframe" value="true" type="hidden" />',
         targetInput = '<input name="_target" value="' + (form.attr('target') || '') + '" type="hidden" />'
 
     if (action && action.indexOf('iframe') < 0) {

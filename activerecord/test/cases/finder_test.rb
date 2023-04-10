@@ -23,13 +23,17 @@ require "models/car"
 require "models/tyre"
 require "models/subscriber"
 require "models/non_primary_key"
+require "models/clothing_item"
+require "models/cpk"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
 class FinderTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :author_addresses, :customers, :categories, :categorizations, :cars
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects,
+    :posts, :comments, :accounts, :authors, :author_addresses, :customers,
+    :categories, :categorizations, :cars, :clothing_items, :cpk_books
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -50,6 +54,16 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_with_hash_parameter
     assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar") }
     assert_raises(ActiveRecord::RecordNotFound) { Post.find(foo: "bar", bar: "baz") }
+  end
+
+  def test_find_with_custom_select_excluding_id
+    # Returns ordered by ids array
+    topics = Topic.select(:title).find([4, 2, 5])
+    assert_equal [4, 2, 5], topics.map(&:id)
+
+    # Custom order
+    topics = Topic.select(:title).order(:id).find([4, 2, 5])
+    assert_equal [2, 4, 5], topics.map(&:id)
   end
 
   def test_find_with_proc_parameter_and_block
@@ -1023,6 +1037,33 @@ class FinderTest < ActiveRecord::TestCase
     NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 
+  def test_implicit_order_column_reorders_query_constraints
+    c = ClothingItem.connection
+    ClothingItem.implicit_order_column = "color"
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  ensure
+    ClothingItem.implicit_order_column = nil
+  end
+
+  def test_implicit_order_column_prepends_query_constraints
+    c = ClothingItem.connection
+    ClothingItem.implicit_order_column = "description"
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
+
+    assert_sql(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  ensure
+    ClothingItem.implicit_order_column = nil
+  end
+
   def test_take_and_first_and_last_with_integer_should_return_an_array
     assert_kind_of Array, Topic.take(5)
     assert_kind_of Array, Topic.first(5)
@@ -1719,6 +1760,58 @@ class FinderTest < ActiveRecord::TestCase
         Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
       end
     end
+  end
+
+  test "#last for a model with composite query constraints" do
+    c = ClothingItem.connection
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.last
+    end
+  end
+
+  test "#first for a model with composite query constraints" do
+    c = ClothingItem.connection
+    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+
+    assert_sql(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+      assert_kind_of ClothingItem, ClothingItem.first
+    end
+  end
+
+  test "#find with a single composite primary key" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal book, Cpk::Book.find(book.id)
+  end
+
+  test "find with a single composite primary key wrapped in an array" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal [book], Cpk::Book.find([book.id])
+  end
+
+  test "find with a multiple sets of composite primary key" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    ids = books.map(&:id)
+    result = Cpk::Book.find(*ids)
+
+    assert_equal ids, result.map(&:id)
+  end
+
+  test "find with a multiple sets of composite primary key wrapped in an array" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_equal books.map(&:id), Cpk::Book.where(revision: 1).find(books.map(&:id)).map(&:id)
+  end
+
+  test "find with a multiple sets of composite primary key wrapped in an array ordered" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
   end
 
   private

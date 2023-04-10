@@ -6,7 +6,10 @@ require "active_support/json/decoding"
 require "rails/engine"
 
 class TestCaseTest < ActionController::TestCase
-  def self.fixture_path; end
+  def self.fixture_paths
+    []
+  end
+
   self.file_fixture_path = File.expand_path("../fixtures/multipart", __dir__)
 
   class TestController < ActionController::Base
@@ -82,34 +85,34 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_html_output
-      render plain: <<HTML
-<html>
-  <body>
-    <a href="/"><img src="/images/button.png" /></a>
-    <div id="foo">
-      <ul>
-        <li class="item">hello</li>
-        <li class="item">goodbye</li>
-      </ul>
-    </div>
-    <div id="bar">
-      <form action="/somewhere">
-        Name: <input type="text" name="person[name]" id="person_name" />
-      </form>
-    </div>
-  </body>
-</html>
-HTML
+      render plain: <<~HTML
+        <html>
+          <body>
+            <a href="/"><img src="/images/button.png" /></a>
+            <div id="foo">
+              <ul>
+                <li class="item">hello</li>
+                <li class="item">goodbye</li>
+              </ul>
+            </div>
+            <div id="bar">
+              <form action="/somewhere">
+                Name: <input type="text" name="person[name]" id="person_name" />
+              </form>
+            </div>
+          </body>
+        </html>
+      HTML
     end
 
     def test_xml_output
       response.content_type = params[:response_as]
-      render plain: <<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <area><p>area is an empty tag in HTML, so it won't contain this content</p></area>
-</root>
-XML
+      render plain: <<~XML
+        <?xml version="1.0" encoding="UTF-8"?>
+        <root>
+          <area><p>area is an empty tag in HTML, so it won't contain this content</p></area>
+        </root>
+      XML
     end
 
     def test_only_one_param
@@ -171,6 +174,11 @@ XML
       render plain: @counter
     end
 
+    def original_fullpath
+      request.set_header("PATH_INFO", "/new")
+      render plain: request.original_fullpath
+    end
+
     private
       def generate_url(opts)
         url_for(opts.merge(action: "test_uri"))
@@ -183,7 +191,7 @@ XML
     @request.delete_header "PATH_INFO"
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller(/:action(/:id))"
         end
       end
@@ -661,7 +669,7 @@ XML
       set.draw do
         get "file/*path", to: "test_case_test/test#test_params"
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -926,14 +934,14 @@ XML
     assert_equal "45142", @response.body
   end
 
-  def test_fixture_file_upload_ignores_fixture_path_given_full_path
-    TestCaseTest.stub :fixture_path, __dir__ do
+  def test_fixture_file_upload_ignores_fixture_paths_given_full_path
+    TestCaseTest.stub :fixture_paths, __dir__ do
       uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
       assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end
   end
 
-  def test_fixture_file_upload_ignores_nil_fixture_path
+  def test_fixture_file_upload_ignores_empty_fixture_paths
     uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpeg")
     assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
   end
@@ -1044,6 +1052,11 @@ XML
     assert_equal "1", response.body
     assert_equal 1, @controller.instance_variable_get(:@counter)
   end
+
+  def test_original_fullpath_doesnt_change_when_path_is_changed
+    get :original_fullpath
+    assert_equal "/test_case_test/test/original_fullpath", response.body
+  end
 end
 
 class ResponseDefaultHeadersTest < ActionController::TestCase
@@ -1076,7 +1089,7 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
     @request.env["PATH_INFO"] = nil
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller(/:action(/:id))"
         end
       end
@@ -1086,8 +1099,11 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
   test "response contains default headers" do
     get :leave_alone
 
-    # Response headers start out with the defaults
-    assert_equal @defaults.merge("Content-Type" => "text/html"), response.headers
+    expected_headers = @defaults.merge("Content-Type" => "text/html")
+
+    expected_headers.each do |key, value|
+      assert_equal value, @response.headers[key]
+    end
   end
 
   test "response deletes a default header" do
@@ -1205,7 +1221,7 @@ class AnonymousControllerTest < ActionController::TestCase
 
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller(/:action(/:id))"
         end
       end

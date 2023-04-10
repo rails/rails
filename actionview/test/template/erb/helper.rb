@@ -13,15 +13,25 @@ module ERBTest
   end
 
   class BlockTestCase < ActiveSupport::TestCase
+    class Context < ActionView::Base
+    end
+
     def render_content(start, inside, routes = nil)
       routes ||= ActionDispatch::Routing::RouteSet.new.tap do |rs|
         rs.draw { }
       end
-      context = Class.new(ViewContext) {
-        include routes.url_helpers
-      }.new
-      template = block_helper(start, inside)
-      ActionView::Template::Handlers::ERB.erb_implementation.new(template).evaluate(context)
+
+      view = Class.new(Context)
+      view.include routes.url_helpers
+
+      ActionView::Template.new(
+        block_helper(start, inside),
+        "test#{rand}",
+        ActionView::Template::Handlers::ERB.new,
+        virtual_path: "partial",
+        format: :html,
+        locals: []
+      ).render(view.with_empty_template_cache.empty, {})
     end
 
     def block_helper(str, rest)

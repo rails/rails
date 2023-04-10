@@ -168,6 +168,11 @@ module ActiveRecord
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
     # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * <tt>:use_ranges</tt> - Specifies whether to use range iteration (id >= x AND id <= y).
+    #   It can make iterating over the whole or almost whole tables several times faster.
+    #   Only whole table iterations use this style of iteration by default. You can disable this behavior by passing +false+.
+    #   If you iterate over the table and the only condition is, e.g., <tt>archived_at: nil</tt> (and only a tiny fraction
+    #   of the records are archived), it makes sense to opt in to this approach.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size, it can be less than, equal, or greater than the limit.
@@ -201,7 +206,7 @@ module ActiveRecord
     #
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
-    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc)
+    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc, use_ranges: nil)
       relation = self
 
       unless [:asc, :desc].include?(order)
@@ -209,7 +214,7 @@ module ActiveRecord
       end
 
       unless block_given?
-        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order)
+        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order, use_ranges: use_ranges)
       end
 
       if arel.orders.present?
@@ -223,53 +228,54 @@ module ActiveRecord
       end
 
       relation = relation.reorder(batch_order(order)).limit(batch_limit)
-      relation = apply_finish_limit(relation, finish, order) if finish
+      relation = apply_limits(relation, start, finish, order)
+      relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
       batch_relation = relation
+      empty_scope = to_sql == klass.unscoped.all.to_sql
 
       loop do
-        batch_relation = apply_start_limit(relation, start, order) if start
-
         if load
-          records = batch_relation.uncached do
-            batch_relation.limit(batch_limit + 1).records
+          records = batch_relation.records
+          ids = records.map(&:id)
+          yielded_relation = where(primary_key => ids)
+          yielded_relation.load_records(records)
+        elsif (empty_scope && use_ranges != false) || use_ranges
+          ids = batch_relation.pluck(primary_key)
+          finish = ids.last
+          if finish
+            yielded_relation = apply_finish_limit(batch_relation, finish, order)
+            yielded_relation = yielded_relation.except(:limit, :order)
+            yielded_relation.skip_query_cache!(false)
           end
-
-          start = records[batch_limit]&.id
-          records = records.take(batch_limit)
-
-          break if records.empty?
-
-          raise ArgumentError.new("Primary key not included in the custom select clause") unless records.first.id
-
-          batch_relation.load_records(records)
         else
-          stop = batch_relation.uncached do
-            batch_relation.offset(batch_limit).pick(primary_key)
-          end
-
-          if stop
-            batch_relation = apply_finish_limit(batch_relation, stop, order, inclusive: false)
-          end
-
-          start = stop
+          ids = batch_relation.pluck(primary_key)
+          yielded_relation = where(primary_key => ids)
         end
 
-        yield batch_relation
+        break if ids.empty?
 
-        break unless start
+        primary_key_offset = ids.last
+        raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
+
+        yield yielded_relation
+
+        break if ids.length < batch_limit
 
         if limit_value
-          remaining -= batch_relation.size
+          remaining -= ids.length
 
           if remaining == 0
             # Saves a useless iteration when the limit is a multiple of the
             # batch size.
             break
           elsif remaining < batch_limit
-            batch_limit = remaining
             relation = relation.limit(remaining)
           end
         end
+
+        batch_relation = relation.where(
+          predicate_builder[primary_key, primary_key_offset, order == :desc ? :lt : :gt]
+        )
       end
     end
 
@@ -284,12 +290,8 @@ module ActiveRecord
         relation.where(predicate_builder[primary_key, start, order == :desc ? :lteq : :gteq])
       end
 
-      def apply_finish_limit(relation, finish, order, inclusive: true)
-        operator = (order == :desc) ?
-                    (inclusive ? :gteq : :gt) :
-                    (inclusive ? :lteq : :lt)
-
-        relation.where(predicate_builder[primary_key, finish, operator])
+      def apply_finish_limit(relation, finish, order)
+        relation.where(predicate_builder[primary_key, finish, order == :desc ? :gteq : :lteq])
       end
 
       def batch_order(order)

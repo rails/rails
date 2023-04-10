@@ -127,6 +127,9 @@ module ActionController
       fetch_header("PATH_INFO") do |k|
         set_header k, generated_path
       end
+      fetch_header("ORIGINAL_FULLPATH") do |k|
+        set_header k, fullpath
+      end
       path_parameters[:controller] = controller_path
       path_parameters[:action] = action
 

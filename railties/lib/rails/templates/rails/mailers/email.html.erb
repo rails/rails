@@ -80,6 +80,11 @@
       <dd id="cc"><%= @email.header['cc'] %></dd>
     <% end %>
 
+    <% if @email.bcc %>
+      <dt>BCC:</dt>
+      <dd id="bcc"><%= @email.header['bcc'] %></dd>
+    <% end %>
+
     <dt>Date:</dt>
     <dd id="date"><%= Time.current.rfc2822 %></dd>
 
@@ -120,6 +125,26 @@
         </select>
       </dd>
     <% end %>
+
+    <% unless @email.header_fields.nil? || @email.header_fields.empty? %>
+      <dt>Headers:</dt>
+      <dd>
+        <details>
+          <summary>Show all headers</summary>
+          <table>
+          <% @email.header_fields.each do |field| %>
+            <tr>
+              <td align="right" style="color: #7f7f7f"><%= field.name %>:</td>
+              <td><%= field.value %></td>
+            </tr>
+          <% end %>
+          </table>
+        </details>
+      </dd>
+    <% end %>
+
+    <dt>EML File:</dt>
+    <dd><%= link_to "Download", action: :download %></dd>
   </dl>
 </header>
 

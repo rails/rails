@@ -358,13 +358,14 @@ module ActiveSupport
     # out by default (set <tt>:strip_insignificant_zeros</tt> to
     # +false+ to change that):
     #
-    # number_to_human(12.00001)                                       # => "12"
-    # number_to_human(12.00001, strip_insignificant_zeros: false)     # => "12.0"
+    #   number_to_human(12.00001)                                       # => "12"
+    #   number_to_human(12.00001, strip_insignificant_zeros: false)     # => "12.0"
     #
     # ==== Custom Unit Quantifiers
     #
     # You can also use your own custom unit quantifiers:
-    #  number_to_human(500000, units: { unit: 'ml', thousand: 'lt' })  # => "500 lt"
+    #
+    #   number_to_human(500000, units: { unit: 'ml', thousand: 'lt' })  # => "500 lt"
     #
     # If in your I18n locale you have:
     #

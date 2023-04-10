@@ -10,7 +10,7 @@ require "action_view/template"
 require "action_view/lookup_context"
 
 module ActionView # :nodoc:
-  # = Action View Base
+  # = Action View \Base
   #
   # Action View templates can be written in several ways.
   # If the template file has a <tt>.erb</tt> extension, then it uses the erubi[https://rubygems.org/gems/erubi]
@@ -205,7 +205,8 @@ module ActionView # :nodoc:
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
-      @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+      @_assigns = new_assigns
+      new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
     # :stopdoc:
@@ -232,16 +233,36 @@ module ActionView # :nodoc:
       @view_renderer = ActionView::Renderer.new @lookup_context
       @current_template = nil
 
-      assign(assigns)
       assign_controller(controller)
       _prepare_context
+
+      super()
+
+      # Assigns must be called last to minimize the number of shapes
+      assign(assigns)
     end
 
-    def _run(method, template, locals, buffer, add_to_stack: true, &block)
+    def _run(method, template, locals, buffer, add_to_stack: true, has_strict_locals: false, &block)
       _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
       @current_template = template if add_to_stack
       @output_buffer = buffer
-      public_send(method, locals, buffer, &block)
+
+      if has_strict_locals
+        begin
+          public_send(method, buffer, **locals, &block)
+        rescue ArgumentError => argument_error
+          raise(
+            ArgumentError,
+            argument_error.
+              message.
+                gsub("unknown keyword:", "unknown local:").
+                gsub("missing keyword:", "missing local:").
+                gsub("no keywords accepted", "no locals accepted")
+          )
+        end
+      else
+        public_send(method, locals, buffer, &block)
+      end
     ensure
       @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
     end

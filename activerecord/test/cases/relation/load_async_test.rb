@@ -2,22 +2,22 @@
 
 require "cases/helper"
 require "models/post"
+require "models/category"
 require "models/comment"
 require "models/other_dog"
 
 module ActiveRecord
   module WaitForAsyncTestHelper
     private
-      def wait_for_async_query(relation, timeout: 5)
-        if !relation.connection.async_enabled? || relation.instance_variable_get(:@records)
-          return relation
-        end
+      def wait_for_async_query(connection = ActiveRecord::Base.connection, timeout: 5)
+        return unless connection.async_enabled?
 
-        future_result = relation.instance_variable_get(:@future_result)
+        executor = connection.pool.async_executor
         (timeout * 100).times do
-          return relation unless future_result.pending?
+          return unless executor.scheduled_task_count > executor.completed_task_count
           sleep 0.01
         end
+
         raise Timeout::Error, "The async executor wasn't drained after #{timeout} seconds"
       end
   end
@@ -27,7 +27,7 @@ module ActiveRecord
 
     self.use_transactional_tests = false
 
-    fixtures :posts, :comments
+    fixtures :posts, :comments, :categories, :categories_posts
 
     def test_scheduled?
       deferred_posts = Post.where(author_id: 1).load_async
@@ -52,6 +52,48 @@ module ActiveRecord
       assert_not_predicate deferred_posts, :scheduled?
     end
 
+    unless in_memory_db?
+      def test_load_async_has_many_association
+        post = Post.first
+
+        defered_comments = post.comments.load_async
+        assert_predicate defered_comments, :scheduled?
+
+        events = []
+        callback = -> (event) do
+          events << event unless event.payload[:name] == "SCHEMA"
+        end
+
+        wait_for_async_query
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+          defered_comments.to_a
+        end
+
+        assert_equal [["Comment Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
+        assert_not_predicate post.comments, :loaded?
+      end
+
+      def test_load_async_has_many_through_association
+        post = Post.first
+
+        defered_categories = post.scategories.load_async
+        assert_predicate defered_categories, :scheduled?
+
+        events = []
+        callback = -> (event) do
+          events << event unless event.payload[:name] == "SCHEMA"
+        end
+
+        wait_for_async_query
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+          defered_categories.to_a
+        end
+
+        assert_equal [["Category Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
+        assert_not_predicate post.scategories, :loaded?
+      end
+    end
+
     def test_notification_forwarding
       expected_records = Post.where(author_id: 1).to_a
 
@@ -66,7 +108,8 @@ module ActiveRecord
         end
       end
 
-      deferred_posts = wait_for_async_query(Post.where(author_id: 1).load_async)
+      deferred_posts = Post.where(author_id: 1).load_async
+      wait_for_async_query
 
       assert_equal expected_records, deferred_posts.to_a
       assert_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -92,7 +135,8 @@ module ActiveRecord
         end
       end
 
-      deferred_posts = wait_for_async_query(Post.where(author_id: 1).load_async)
+      deferred_posts = Post.where(author_id: 1).load_async
+      wait_for_async_query
 
       assert_equal expected_records, deferred_posts.to_a
       assert_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -130,7 +174,8 @@ module ActiveRecord
         end
       end
 
-      deferred_posts = wait_for_async_query(Post.where(author_id: 1).eager_load(:comments).load_async)
+      deferred_posts = Post.where(author_id: 1).eager_load(:comments).load_async
+      wait_for_async_query
 
       if in_memory_db?
         assert_not_predicate deferred_posts, :scheduled?
@@ -177,8 +222,8 @@ module ActiveRecord
     end
   end
 
-  unless in_memory_db?
-    class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncNullExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       self.use_transactional_tests = false
 
       fixtures :posts, :comments
@@ -186,12 +231,10 @@ module ActiveRecord
       def setup
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = nil
-        ActiveRecord::Base.establish_connection :arunit
       end
 
       def teardown
         ActiveRecord.async_query_executor = @old_config
-        ActiveRecord::Base.establish_connection :arunit
       end
 
       def test_scheduled?
@@ -299,8 +342,10 @@ module ActiveRecord
         assert_predicate deferred_posts, :loaded?
       end
     end
+  end
 
-    class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       include WaitForAsyncTestHelper
 
       self.use_transactional_tests = false
@@ -311,22 +356,28 @@ module ActiveRecord
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
 
-        handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-        config_hash1 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash
-        new_config1 = config_hash1.merge(min_threads: 0, max_threads: 10)
-        db_config1 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", new_config1)
+        config_hash1 = ActiveRecord::Base.connection_pool.db_config.configuration_hash.merge(min_threads: 0, max_threads: 10)
+        config_hash2 = ARUnit2Model.connection_pool.db_config.configuration_hash.merge(min_threads: 0, max_threads: 10)
 
-        config_hash2 = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary").configuration_hash
-        new_config2 = config_hash2.merge(min_threads: 0, max_threads: 10)
-        db_config2 = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit2", "primary", new_config2)
-
-        handler.establish_connection(db_config1)
-        handler.establish_connection(db_config2, owner_name: ARUnit2Model)
+        ActiveRecord::Base.establish_connection(config_hash1)
+        ARUnit2Model.establish_connection(config_hash2)
       end
 
       def teardown
         ActiveRecord.async_query_executor = @old_config
         clean_up_connection_handler
+        ActiveRecord::Base.establish_connection(:arunit)
+        ARUnit2Model.establish_connection(:arunit2)
+      end
+
+      def test_async_query_executor_and_configuration
+        assert_equal :multi_thread_pool, ActiveRecord.async_query_executor
+
+        assert_equal 0, ActiveRecord::Base.connection_pool.db_config.configuration_hash[:min_threads]
+        assert_equal 0, ARUnit2Model.connection_pool.db_config.configuration_hash[:min_threads]
+
+        assert_equal 10, ActiveRecord::Base.connection_pool.db_config.configuration_hash[:max_threads]
+        assert_equal 10, ARUnit2Model.connection_pool.db_config.configuration_hash[:max_threads]
       end
 
       def test_scheduled?
@@ -355,7 +406,8 @@ module ActiveRecord
           end
         end
 
-        deferred_posts = wait_for_async_query(Post.where(author_id: 1).load_async)
+        deferred_posts = Post.where(author_id: 1).load_async
+        wait_for_async_query
 
         assert_equal expected_records, deferred_posts.to_a
         assert_equal Post.connection.supports_concurrent_connections?, status[:async]
@@ -388,7 +440,8 @@ module ActiveRecord
           end
         end
 
-        deferred_posts = wait_for_async_query(Post.where(author_id: 1).eager_load(:comments).load_async)
+        deferred_posts = Post.where(author_id: 1).eager_load(:comments).load_async
+        wait_for_async_query
 
         assert_predicate deferred_posts, :scheduled?
 
@@ -430,8 +483,10 @@ module ActiveRecord
         assert_predicate deferred_posts, :loaded?
       end
     end
+  end
 
-    class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
+  class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
+    unless in_memory_db?
       include WaitForAsyncTestHelper
 
       self.use_transactional_tests = false
@@ -497,8 +552,8 @@ module ActiveRecord
         deferred_posts = Post.where(author_id: 1).load_async
         deferred_dogs = OtherDog.where(id: 1).load_async
 
-        wait_for_async_query(deferred_posts)
-        wait_for_async_query(deferred_dogs)
+        wait_for_async_query
+        wait_for_async_query
 
         assert_equal expected_records, deferred_posts.to_a
         assert_equal expected_dogs, deferred_dogs.to_a

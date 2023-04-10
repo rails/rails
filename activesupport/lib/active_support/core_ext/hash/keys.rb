@@ -58,10 +58,10 @@ class Hash
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
   #
-  #  hash = { person: { name: 'Rob', age: '28' } }
+  #   hash = { person: { name: 'Rob', age: '28' } }
   #
-  #  hash.deep_transform_keys{ |key| key.to_s.upcase }
-  #  # => {"PERSON"=>{"NAME"=>"Rob", "AGE"=>"28"}}
+  #   hash.deep_transform_keys{ |key| key.to_s.upcase }
+  #   # => {"PERSON"=>{"NAME"=>"Rob", "AGE"=>"28"}}
   def deep_transform_keys(&block)
     _deep_transform_keys_in_object(self, &block)
   end

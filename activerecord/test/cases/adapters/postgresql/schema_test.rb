@@ -323,6 +323,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
         assert @connection.index_name_exists?(PARTITIONED_TABLE, PARTITIONED_TABLE_INDEX)
       end
     end
+
+    assert @connection.index_name_exists?("#{SCHEMA_NAME}.#{TABLE_NAME}", INDEX_A_NAME)
   end
 
   def test_dump_indexes_for_schema_one
@@ -477,6 +479,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.reset_pk_sequence! table_name
   end
 
+  def test_rename_index
+    old_name = INDEX_A_NAME
+    new_name = "#{old_name}_new"
+    @connection.rename_index("#{SCHEMA_NAME}.#{TABLE_NAME}", old_name, new_name)
+    assert_not @connection.index_name_exists?("#{SCHEMA_NAME}.#{TABLE_NAME}", old_name)
+    assert @connection.index_name_exists?("#{SCHEMA_NAME}.#{TABLE_NAME}", new_name)
+  end
+
   private
     def columns(table_name)
       @connection.send(:column_definitions, table_name).map do |name, type, default|
@@ -531,23 +541,47 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
+    @connection.create_schema("my_schema")
+  end
+
+  teardown do
+    @connection.drop_schema("my_schema", if_exists: true)
   end
 
   def test_dump_foreign_key_targeting_different_schema
-    @connection.create_schema "my_schema"
     @connection.create_table "my_schema.trains" do |t|
       t.string :name
     end
     @connection.create_table "wagons" do |t|
       t.integer :train_id
     end
-    @connection.add_foreign_key "wagons", "my_schema.trains", column: "train_id"
+    @connection.add_foreign_key "wagons", "my_schema.trains"
     output = dump_table_schema "wagons"
-    assert_match %r{\s+add_foreign_key "wagons", "my_schema\.trains", column: "train_id"$}, output
+    assert_match %r{\s+add_foreign_key "wagons", "my_schema\.trains"$}, output
   ensure
     @connection.drop_table "wagons", if_exists: true
     @connection.drop_table "my_schema.trains", if_exists: true
-    @connection.drop_schema "my_schema", if_exists: true
+  end
+
+  def test_create_foreign_key_same_schema
+    @connection.create_table "my_schema.trains"
+    @connection.create_table "my_schema.wagons" do |t|
+      t.integer :train_id
+    end
+    @connection.add_foreign_key "my_schema.wagons", "my_schema.trains"
+    assert @connection.foreign_key_exists?("my_schema.wagons", "my_schema.trains")
+  end
+
+  def test_create_foreign_key_different_schemas
+    @connection.create_schema "my_other_schema"
+    @connection.create_table "my_schema.trains"
+    @connection.create_table "my_other_schema.wagons" do |t|
+      t.integer :train_id
+    end
+    @connection.add_foreign_key "my_other_schema.wagons", "my_schema.trains"
+    assert @connection.foreign_key_exists?("my_other_schema.wagons", "my_schema.trains")
+  ensure
+    @connection.drop_schema "my_other_schema", if_exists: true
   end
 end
 
@@ -710,6 +744,40 @@ class SchemaWithDotsTest < ActiveRecord::PostgreSQLTestCase
       article_class.create!(title: "zOMG, welcome to my blorgh!")
       welcome_article = article_class.last
       assert_equal "zOMG, welcome to my blorgh!", welcome_article.title
+    end
+  end
+end
+
+class SchemaJoinTablesTest < ActiveRecord::PostgreSQLTestCase
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.create_schema("test_schema")
+  end
+
+  def teardown
+    @connection.drop_schema("test_schema", if_exists: true)
+  end
+
+  def test_create_join_table
+    @connection.create_join_table("test_schema.posts", "test_schema.comments")
+    assert @connection.table_exists?("test_schema.comments_posts")
+    columns = @connection.columns("test_schema.comments_posts").map(&:name)
+    assert_equal ["comment_id", "post_id"], columns.sort
+
+    @connection.drop_join_table("test_schema.posts", "test_schema.comments")
+    assert_not @connection.table_exists?("test_schema.comments_posts")
+  end
+end
+
+class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  def test_schema_dumps_index_included_columns
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_include_index/).first.strip
+    if ActiveRecord::Base.connection.supports_index_include?
+      assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: [:name, :account_id]', index_definition
+    else
+      assert_equal 't.index ["firm_ids", "type"], name: "company_include_index"', index_definition
     end
   end
 end

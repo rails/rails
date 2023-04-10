@@ -27,9 +27,10 @@ require "models/category"
 require "models/categorization"
 require "models/edge"
 require "models/subscriber"
+require "models/cpk"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans, :cpk_orders
 
   def test_do_not_double_quote_string_id
     van = Minivan.last
@@ -487,6 +488,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_match(/field\(id, NULL\)/, query)
   end
 
+  def test_finding_with_arel_sql_order
+    query = Tag.order(Arel.sql("field(id, ?)", [1, 3, 2])).to_sql
+    if current_adapter?(:Mysql2Adapter)
+      assert_match(/field\(id, '1', '3', '2'\)/, query)
+    else
+      assert_match(/field\(id, 1, 3, 2\)/, query)
+    end
+
+    query = Tag.order(Arel.sql("field(id, ?)", [])).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+
+    query = Tag.order(Arel.sql("field(id, ?)", nil)).to_sql
+    assert_match(/field\(id, NULL\)/, query)
+  end
+
   def test_finding_with_order_limit_and_offset
     entrants = Entrant.order("id ASC").limit(2).offset(1)
 
@@ -544,7 +560,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   %w( references includes preload eager_load group order reorder reselect unscope
-      joins left_joins left_outer_joins optimizer_hints annotate ).each do |method|
+      joins left_joins left_outer_joins optimizer_hints annotate regroup ).each do |method|
     class_eval <<~RUBY
       def test_no_arguments_to_#{method}_raise_errors
         error = assert_raises(ArgumentError) { Topic.#{method}() }
@@ -930,6 +946,21 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_find_all_using_where_with_relation_with_no_selects_and_composite_primary_key_raises
+    order = cpk_orders(:cpk_groceries_order_1)
+    subquery = Cpk::Order.where(Cpk::Order.primary_key => [order.id])
+
+    assert_nothing_raised do
+      Cpk::Order.where(id: subquery.select(:id)).to_a
+    end
+
+    error = assert_raise(ArgumentError) do
+      Cpk::Order.where(id: subquery).to_a
+    end
+
+    assert_equal "Cannot map composite primary key [\"shop_id\", \"id\"] to id", error.message
+  end
+
   def test_find_all_using_where_with_relation_does_not_alter_select_values
     david = authors(:david)
 
@@ -1157,6 +1188,9 @@ class RelationTest < ActiveRecord::TestCase
 
       assert posts.any? { |p| p.id > 0 }
       assert_not posts.any? { |p| p.id <= 0 }
+
+      assert posts.any?(Post)
+      assert_not posts.any?(Comment)
     end
 
     assert_predicate posts, :loaded?
@@ -1196,6 +1230,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) do
       assert posts.none? { |p| p.id < 0 }
       assert_not posts.none? { |p| p.id == 1 }
+
+      assert posts.none?(Comment)
+      assert_not posts.none?(Post)
     end
 
     assert_predicate posts, :loaded?
@@ -1212,6 +1249,9 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(1) do
       assert_not posts.one? { |p| p.id < 3 }
       assert posts.one? { |p| p.id == 1 }
+
+      assert_not posts.one?(Post)
+      assert_not posts.one?(Comment)
     end
 
     assert_predicate posts, :loaded?
@@ -1481,6 +1521,27 @@ class RelationTest < ActiveRecord::TestCase
     assert_predicate bird, :persisted?
 
     assert_equal bird, Bird.find_or_create_by(name: "bob")
+  end
+
+  def test_find_or_create_by_race_condition
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    bob = Subscriber.create!(nick: "bob")
+    relation = Subscriber.all
+
+    results = [nil, bob]
+    find_by_mock = -> (*) do
+      assert_not_predicate results, :empty?
+      results.shift
+    end
+
+    relation.stub(:find_by, find_by_mock) do
+      relation.stub(:find_by!, find_by_mock) do # create_or_find_by always call find_by! on retry
+        assert_equal bob, relation.find_or_create_by(nick: "bob")
+      end
+    end
+
+    assert_predicate results, :empty?
   end
 
   def test_find_or_create_by_with_create_with
@@ -2371,7 +2432,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_empty authors
   end
 
-  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending]).each do |method|
+  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending, :with]).each do |method|
     test "#{method} with blank value" do
       authors = Author.public_send(method, [""])
       assert_empty authors.public_send(:"#{method}_values")
