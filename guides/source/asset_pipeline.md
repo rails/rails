@@ -332,7 +332,7 @@ Other locations could by configured in the `manifest.js` file, refer to the [Man
 #### Search Paths
 
 When a file is referenced from a manifest or a helper, Sprockets searches all of the locations specified in `manifest.js` for it. You can view the search path by inspecting
-[`Rails.application.config.assets.paths`](`config.assets.paths`) in the Rails console.
+[`Rails.application.config.assets.paths`](configuring.html#config-assets-paths) in the Rails console.
 
 #### Using Index Files as proxies for folders
 
