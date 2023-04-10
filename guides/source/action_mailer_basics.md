@@ -884,7 +884,7 @@ You can find detailed instructions on how to test your mailers in the
 Intercepting and Observing Emails
 -------------------
 
-Action Mailer provides hooks into the Mail observer and interceptor methods. 
+Action Mailer provides hooks into the Mail observer and interceptor methods.
 These allow you to register classes that are called during the mail delivery life cycle of every email sent
 or from a specific mailer.
 
@@ -951,7 +951,7 @@ for more information about custom Rails environments.
 
 ### Observing Emails
 
-Observers give you access to the email message after it has been sent. 
+Observers give you access to the email message after it has been sent.
 An observer class must implement the `::delivered_email(message)` method,
 which will be called after the email is sent.
 
