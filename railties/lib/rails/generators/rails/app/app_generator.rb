@@ -21,8 +21,8 @@ module Rails
         RUBY
       end
 
-      def method_missing(meth, *args, &block)
-        @generator.send(meth, *args, &block)
+      def method_missing(...)
+        @generator.send(...)
       end
   end
 
