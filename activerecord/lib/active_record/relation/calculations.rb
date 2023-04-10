@@ -406,7 +406,14 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
-        if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
+        distinct_count_by_multiple_columns = operation == "count" && distinct && select_values.many?
+        # if adapter doesn't support COUNT(DISTINCT(col1, col2)) syntax then
+        # select(:col1, :col2).distinct.count should behave the same as as select(:col1, :col2).distinct.count(:all)
+        distinct_count_by_multiple_columns_not_supported = distinct_count_by_multiple_columns && !connection.supports_distinct_count_by_multiple_columns?
+
+
+        use_subquery_for_count = distinct_count_by_multiple_columns_not_supported || (column_name == :all && distinct || has_limit_or_offset?)
+        if operation == "count" && use_subquery_for_count
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 

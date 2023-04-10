@@ -578,6 +578,11 @@ module ActiveRecord
         true
       end
 
+      # Does this adapter support `COUNT (DISTINCT col1, col2)` syntax?
+      def supports_distinct_count_by_multiple_columns?
+        false
+      end
+
       def async_enabled? # :nodoc:
         supports_concurrent_connections? &&
           !ActiveRecord.async_query_executor.nil? && !pool.async_executor.nil?

@@ -168,6 +168,10 @@ module ActiveRecord
         true
       end
 
+      def supports_distinct_count_by_multiple_columns?
+        true
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end

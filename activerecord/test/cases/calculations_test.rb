@@ -317,6 +317,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_match "credit_limit, firm_name", e.sql
   end
 
+  def test_distinct_count_by_two_columns_uses_adapter_based_sql
+    post = posts(:welcome)
+    sql = capture_sql do
+      Post.where(id: post.id).select(:id, :title).distinct.count
+    end.first
+
+    if current_adapter?(:Mysql2Adapter)
+      assert_match(/SELECT COUNT\(DISTINCT id, title\)/, sql)
+    else
+      assert_match(/subquery_for_count/, sql)
+    end
+  end
+
+  def test_distinct_count_by_multiple_columns
+    account = accounts(:signals37)
+    assert_equal 1, Account.where(id: account.id).select(:firm_id, :id).distinct.count
+  end
+
   def test_apply_distinct_in_count
     queries = capture_sql do
       Account.distinct.count
