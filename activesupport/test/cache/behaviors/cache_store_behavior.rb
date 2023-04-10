@@ -602,6 +602,7 @@ module CacheStoreBehavior
         @cache.write(key, "bar", expires_in: -60)
       end
       assert_equal "Cache expiration time is invalid, cannot be negative: -60", error.message
+      assert_nil @cache.read(key)
     end
   end
 
@@ -612,11 +613,23 @@ module CacheStoreBehavior
         logs = capture_logs do
           key = SecureRandom.uuid
           @cache.write(key, "bar", expires_in: -60)
+          assert_equal "bar", @cache.read(key)
         end
         assert_includes logs, "ArgumentError: #{error_message}"
       end
       assert_includes report.error.message, error_message
     end
+  end
+
+  def test_expires_in_from_now_raises_an_error
+    time = 1.minute.from_now
+
+    key = SecureRandom.uuid
+    error = assert_raises(ArgumentError) do
+      @cache.write(key, "bar", expires_in: time)
+    end
+    assert_equal "expires_in parameter should not be a Time. Did you mean to use expires_at? Got: #{time}", error.message
+    assert_nil @cache.read(key)
   end
 
   def test_race_condition_protection_skipped_if_not_defined

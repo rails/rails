@@ -740,15 +740,13 @@ module ActiveSupport
             expires_at = call_options.delete(:expires_at)
             call_options[:expires_in] = (expires_at - Time.now) if expires_at
 
+            if call_options[:expires_in].is_a?(Time)
+              expires_in = call_options[:expires_in]
+              raise ArgumentError.new("expires_in parameter should not be a Time. Did you mean to use expires_at? Got: #{expires_in}")
+            end
             if call_options[:expires_in]&.negative?
               expires_in = call_options.delete(:expires_in)
-              error = ArgumentError.new("Cache expiration time is invalid, cannot be negative: #{expires_in}")
-              if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
-                raise error
-              else
-                ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
-                logger.error("#{error.class}: #{error.message}") if logger
-              end
+              handle_invalid_expires_in("Cache expiration time is invalid, cannot be negative: #{expires_in}")
             end
 
             if options.empty?
@@ -758,6 +756,16 @@ module ActiveSupport
             end
           else
             options
+          end
+        end
+
+        def handle_invalid_expires_in(message)
+          error = ArgumentError.new(message)
+          if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+            raise error
+          else
+            ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
+            logger.error("#{error.class}: #{error.message}") if logger
           end
         end
 
