@@ -556,6 +556,24 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+#### message_serializer_fallback.active_support
+
+| Key             | Value                         |
+| --------------- | ----------------------------- |
+| `:serializer`   | Primary (intended) serializer |
+| `:fallback`     | Fallback (actual) serializer  |
+| `:serialized`   | Serialized string             |
+| `:deserialized` | Deserialized value            |
+
+```ruby
+{
+  serializer: :json_allow_marshal,
+  fallback: :marshal,
+  serialized: "\x04\b{\x06I\"\nHello\x06:\x06ETI\"\nWorld\x06;\x00T",
+  deserialized: { "Hello" => "World" },
+}
+```
+
 ### Active Job
 
 #### enqueue_at.active_job

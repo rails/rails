@@ -119,7 +119,6 @@ module MessageMetadataTests
       Marshal,
       JSON,
       ActiveSupport::JSON,
-      ActiveSupport::JsonWithMarshalFallback,
       ActiveSupport::MessagePack,
       CustomSerializer,
     ]
