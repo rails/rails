@@ -38,6 +38,23 @@ module Rails
         end
       end
 
+      def build_package_for_database(database = options[:database])
+        case database
+        when "mysql" then "default-libmysqlclient-dev"
+        when "postgresql" then "libpq-dev"
+        else nil
+        end
+      end
+
+      def deploy_package_for_database(database = options[:database])
+        case database
+        when "mysql" then "default-mysql-client"
+        when "postgresql" then "postgresql-client"
+        when "sqlite3" then "libsqlite3-0"
+        else nil
+        end
+      end
+
       private
         def mysql_socket
           @mysql_socket ||= [
