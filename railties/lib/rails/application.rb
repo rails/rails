@@ -225,13 +225,9 @@ module Rails
     # The collection's configuration methods affect all deprecators in the
     # collection. Additionally, the collection's +silence+ method silences all
     # deprecators in the collection for the duration of a given block.
-    #
-    # The collection is prepopulated with a default deprecator, which can be
-    # accessed via <tt>deprecators[:rails]</tt>. More deprecators can be added
-    # via <tt>deprecators[name] = deprecator</tt>.
     def deprecators
       @deprecators ||= ActiveSupport::Deprecation::Deprecators.new.tap do |deprecators|
-        deprecators[:rails] = Rails.deprecator
+        deprecators[:railties] = Rails.deprecator
       end
     end
 
