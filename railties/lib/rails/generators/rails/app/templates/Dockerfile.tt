@@ -58,7 +58,7 @@ RUN bundle exec bootsnap precompile app/ lib/
 <%= "RUN " + dockerfile_binfile_fixups.join(" && \\\n    ") %>
 
 <% end -%>
-<% unless options.api? -%>
+<% unless options.api? || skip_asset_pipeline? -%>
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
@@ -67,18 +67,20 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 # Final stage for app image
 FROM base
 
+<% unless dockerfile_deploy_packages.empty? -%>
 # Install packages needed for deployment
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y <%= dockerfile_deploy_packages.join(" ") %> && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+<% end -%>
 # Copy built artifacts: gems, application
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
 # Run and own only the runtime files as a non-root user for security
 RUN useradd rails --home /rails --shell /bin/bash && \
-    chown -R rails:rails db log storage tmp
+    chown -R rails:rails <%= dockerfile_chown_directories.join(" ") %>
 USER rails:rails
 
 # Entrypoint prepares the database.

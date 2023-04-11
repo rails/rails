@@ -271,7 +271,7 @@ module Rails
       end
 
       def asset_pipeline_gemfile_entry
-        return if options[:skip_asset_pipeline]
+        return if skip_asset_pipeline?
 
         if options[:asset_pipeline] == "sprockets"
           GemfileEntry.floats "sprockets-rails",
@@ -335,7 +335,11 @@ module Rails
       end
 
       def sqlite3? # :doc:
-        !options[:skip_active_record] && options[:database] == "sqlite3"
+        !skip_active_record? && options[:database] == "sqlite3"
+      end
+
+      def skip_active_record? # :doc:
+        options[:skip_active_record]
       end
 
       def skip_active_storage? # :doc:
@@ -354,12 +358,16 @@ module Rails
         options[:skip_action_text]
       end
 
+      def skip_asset_pipeline? # :doc:
+        options[:skip_asset_pipeline]
+      end
+
       def skip_sprockets?
-        options[:skip_asset_pipeline] || options[:asset_pipeline] != "sprockets"
+        skip_asset_pipeline? || options[:asset_pipeline] != "sprockets"
       end
 
       def skip_propshaft?
-        options[:skip_asset_pipeline] || options[:asset_pipeline] != "propshaft"
+        skip_asset_pipeline? || options[:asset_pipeline] != "propshaft"
       end
 
 
@@ -511,10 +519,10 @@ module Rails
 
       def dockerfile_build_packages
         # start with the essentials
-        packages = %w(build-essential git)
+        packages = %w(build-essential git pkg-config)
 
-        # add databases: sqlite3, postgres, mysql
-        packages += %w(pkg-config libpq-dev default-libmysqlclient-dev)
+        # add database support
+        packages << build_package_for_database unless skip_active_record?
 
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
@@ -543,17 +551,19 @@ module Rails
           end
         end
 
-        packages.sort
+        packages.compact.sort
       end
 
       def dockerfile_deploy_packages
-        # start with databases: sqlite3, postgres, mysql
-        packages = %w(libsqlite3-0 postgresql-client default-mysql-client)
+        packages = []
+
+        # ActiveRecord databases
+        packages << deploy_package_for_database unless skip_active_record?
 
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
 
-        packages.sort
+        packages.compact.sort
       end
 
       # CSS processors other than Tailwind and Sass require a node-based JavaScript environment. So overwrite the normal JS default
@@ -726,6 +736,15 @@ module Rails
 
       def edge_branch
         self.class.edge_branch
+      end
+
+      def dockerfile_chown_directories
+        directories = %w(log tmp)
+
+        directories << "storage" unless skip_active_storage? && !sqlite3?
+        directories << "db" unless skip_active_record?
+
+        directories.sort
       end
     end
   end
