@@ -10,7 +10,8 @@ module ActiveSupport
       # Name of gem where method is deprecated
       attr_accessor :gem_name
 
-      # Outputs a deprecation warning to the output configured by <tt>ActiveSupport::Deprecation#behavior</tt>.
+      # Outputs a deprecation warning to the output configured by
+      # ActiveSupport::Deprecation#behavior.
       #
       #   ActiveSupport::Deprecation.new.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
@@ -61,7 +62,7 @@ module ActiveSupport
       # expressions. (Symbols are treated as strings). These are compared against
       # the text of deprecation warning messages generated within the block.
       # Matching warnings will be exempt from the rules set by
-      # +ActiveSupport::Deprecation#disallowed_warnings+
+      # ActiveSupport::Deprecation#disallowed_warnings.
       #
       # The optional <tt>if:</tt> argument accepts a truthy/falsy value or an object that
       # responds to <tt>.call</tt>. If truthy, then matching warnings will be allowed.
