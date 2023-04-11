@@ -4022,7 +4022,7 @@ module ApplicationTests
       assert_equal ActiveRecord.deprecator, Rails.application.deprecators[:active_record]
       assert_equal ActiveStorage.deprecator, Rails.application.deprecators[:active_storage]
       assert_equal ActiveSupport.deprecator, Rails.application.deprecators[:active_support]
-      assert_equal Rails.deprecator, Rails.application.deprecators[:rails]
+      assert_equal Rails.deprecator, Rails.application.deprecators[:railties]
     end
 
     test "can entirely opt out of deprecation warnings" do
