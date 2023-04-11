@@ -1,3 +1,14 @@
+*   Deprecate `secrets:edit/show` and remove `secrets:setup`
+
+    `bin/rails secrets:setup` has been deprecated since Rails 5.2 in favor of
+    credentials. This command has been removed.
+
+    `bin/rails secrets:show` and `bin/rails secrets:edit` have been deprecated
+    in favor of credentials.
+    Run `bin/rails credentials:help` for more information
+
+    *Petrik de Heus*
+
 *   `bin/rails --help` will now list only framework and plugin commands. Rake
     tasks defined in `lib/tasks/*.rake` files will no longer be included. For a
     list of those tasks, use `rake -T`.
