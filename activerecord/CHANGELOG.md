@@ -1,3 +1,18 @@
+*   Add `pluck_each` and `pluck_in_batches` batching methods
+
+    ```ruby
+    Person.pluck_in_batches(:name, :email) do |batch|
+      jobs = batch.map { |name, email| PartyReminderJob.new(name, email) }
+      ActiveJob.perform_all_later(jobs)
+    end
+
+    Person.pluck_each(:email) do |email|
+      PartyMailer.with(email: email).welcome_email.deliver_later
+    end
+    ```
+
+    *fatkodima*
+
 *   `after_commit` callbacks defined on models now execute in the correct order.
 
     ```ruby

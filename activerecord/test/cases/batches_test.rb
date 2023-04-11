@@ -311,6 +311,242 @@ class EachTest < ActiveRecord::TestCase
     assert_equal limit, total
   end
 
+  def test_pluck_each_requires_columns
+    assert_raises(ArgumentError, match: "Call `pluck_each' with at least one column.") do
+      Post.pluck_each
+    end
+  end
+
+  def test_pluck_each_should_return_an_enumerator_if_no_block_is_present
+    ids = Post.order(:id).ids
+    assert_queries(1) do
+      Post.pluck_each(:id, batch_size: 100000).with_index do |id, index|
+        assert_equal ids[index], id
+        assert_kind_of Integer, index
+      end
+    end
+  end
+
+  def test_pluck_each_should_return_values
+    ids_and_titles = Post.order(:id).pluck(:id, :title)
+    index = 0
+    assert_queries(@total + 1) do
+      Post.pluck_each(:id, :title, batch_size: 1) do |values|
+        assert_equal ids_and_titles[index], values
+        index += 1
+      end
+    end
+  end
+
+  def test_pluck_in_batches_requires_columns
+    assert_raises(ArgumentError, match: "Call `pluck_in_batches' with at least one column.") do
+      Post.pluck_in_batches
+    end
+  end
+
+  def test_pluck_in_batches_should_return_batches
+    ids = Post.order(:id).ids
+    assert_queries(@total + 1) do
+      Post.pluck_in_batches(:id, batch_size: 1).with_index do |batch, index|
+        assert_kind_of Array, batch
+        assert_equal ids[index], batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_should_start_from_the_start_option
+    assert_queries(@total) do
+      Post.pluck_in_batches(:id, batch_size: 1, start: 2) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Integer, batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_should_end_at_the_finish_option
+    assert_queries(6) do
+      Post.pluck_in_batches(:id, batch_size: 1, finish: 5) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Integer, batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_multiple_columns
+    ids_and_titles = Post.order(:id).pluck(:id, :title)
+    assert_queries(@total + 1) do
+      Post.pluck_in_batches(:id, :title, batch_size: 1).with_index do |batch, index|
+        assert_kind_of Array, batch
+        assert_kind_of Array, batch.first
+        assert_equal ids_and_titles[index], batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_id_is_missing
+    titles = Post.order(:id).pluck(:title)
+    assert_queries(@total + 1) do
+      Post.pluck_in_batches(:title, batch_size: 1).with_index do |batch, index|
+        assert_kind_of Array, batch
+        assert_equal titles[index], batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_fully_qualified_id_is_present
+    ids_and_titles = Post.order(:id).pluck(:id, :title)
+    assert_queries(@total + 1) do
+      Post.pluck_in_batches("posts.id", :title, batch_size: 1).with_index do |batch, index|
+        assert_kind_of Array, batch
+        assert_kind_of Array, batch.first
+        assert_equal ids_and_titles[index], batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_shouldnt_execute_query_unless_needed
+    assert_queries(2) do
+      Post.pluck_in_batches(:id, batch_size: @total) { |batch| assert_kind_of Array, batch }
+    end
+
+    assert_queries(1) do
+      Post.pluck_in_batches(:id, batch_size: @total + 1) { |batch| assert_kind_of Array, batch }
+    end
+  end
+
+  def test_pluck_in_batches_should_quote_batch_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))}/i) do
+      Post.pluck_in_batches(:id, batch_size: 1) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Integer, batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_should_quote_batch_order_with_desc_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+      Post.pluck_in_batches(:id, batch_size: 1, order: :desc) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Integer, batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_should_ignore_the_order_default_scope
+    # First post is with title scope
+    first_post = PostWithDefaultScope.first
+    ids = []
+    PostWithDefaultScope.pluck_in_batches(:id)  do |batch|
+      ids.concat(batch)
+    end
+    # posts.first will be ordered using id only. Title order scope should not apply here
+    assert_not_equal first_post.id, ids.first
+    assert_equal posts(:welcome).id, ids.first
+  end
+
+  def test_pluck_in_batches_should_error_on_ignore_the_order
+    assert_raise(ArgumentError) do
+      PostWithDefaultScope.pluck_in_batches(:id, error_on_ignore: true) { }
+    end
+  end
+
+  def test_pluck_in_batches_should_not_error_if_config_overridden
+    # Set the config option which will be overridden
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
+    assert_nothing_raised do
+      PostWithDefaultScope.pluck_in_batches(:id, error_on_ignore: false) { }
+    end
+  ensure
+    # Set back to default
+    ActiveRecord.error_on_ignored_order = prev
+  end
+
+  def test_pluck_in_batches_should_error_on_config_specified_to_error
+    # Set the config option
+    prev = ActiveRecord.error_on_ignored_order
+    ActiveRecord.error_on_ignored_order = true
+    assert_raise(ArgumentError) do
+      PostWithDefaultScope.pluck_in_batches() { }
+    end
+  ensure
+    # Set back to default
+    ActiveRecord.error_on_ignored_order = prev
+  end
+
+  def test_pluck_in_batches_should_not_error_by_default
+    assert_nothing_raised do
+      PostWithDefaultScope.pluck_in_batches(:id) { }
+    end
+  end
+
+  def test_pluck_in_batches_should_not_ignore_the_default_scope_if_it_is_other_than_order
+    default_scope = SpecialPostWithDefaultScope.all
+    ids = []
+    SpecialPostWithDefaultScope.pluck_in_batches(:id) do |batch|
+      ids.concat(batch)
+    end
+    assert_equal default_scope.pluck(:id).sort, ids.sort
+  end
+
+  def test_pluck_in_batches_should_use_any_column_as_primary_key
+    nick_order_subscribers = Subscriber.order("nick asc")
+    start_nick = nick_order_subscribers.second.nick
+
+    names = []
+    Subscriber.pluck_in_batches(:name, batch_size: 1, start: start_nick) do |batch|
+      names.concat(batch)
+    end
+
+    assert_equal nick_order_subscribers[1..-1].map(&:name), names
+  end
+
+  def test_pluck_in_batches_should_return_an_enumerator
+    enum = nil
+    assert_no_queries do
+      enum = Post.pluck_in_batches(:id, batch_size: 1)
+    end
+    assert_queries(4) do
+      enum.first(4) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Integer, batch.first
+      end
+    end
+  end
+
+  def test_pluck_in_batches_should_honor_limit_if_passed_a_block
+    limit = @total - 1
+    total = 0
+
+    Post.limit(limit).pluck_in_batches(:id) do |batch|
+      total += batch.size
+    end
+
+    assert_equal limit, total
+  end
+
+  def test_pluck_in_batches_should_honor_limit_if_no_block_is_passed
+    limit = @total - 1
+    total = 0
+
+    Post.limit(limit).pluck_in_batches(:id).each do |batch|
+      total += batch.size
+    end
+
+    assert_equal limit, total
+  end
+
+  def test_pluck_in_batches_should_return_a_sized_enumerator
+    assert_equal 11, Post.pluck_in_batches(:id, batch_size: 1).size
+    assert_equal 6, Post.pluck_in_batches(:id, batch_size: 2).size
+    assert_equal 4, Post.pluck_in_batches(:id, batch_size: 2, start: 4).size
+    assert_equal 4, Post.pluck_in_batches(:id, batch_size: 3).size
+    assert_equal 1, Post.pluck_in_batches(:id, batch_size: 10_000).size
+  end
+
+
   def test_in_batches_should_not_execute_any_query
     assert_no_queries do
       assert_kind_of ActiveRecord::Batches::BatchEnumerator, Post.in_batches(of: 2)
@@ -765,6 +1001,26 @@ class EachTest < ActiveRecord::TestCase
         assert_queries(1) do
           relation.count
           relation.count
+        end
+      end
+    end
+  end
+
+  test ".pluck_in_batches bypasses the query cache for its own queries" do
+    Post.cache do
+      assert_queries(2) do
+        Post.pluck_in_batches(:id) { }
+        Post.pluck_in_batches(:id) { }
+      end
+    end
+  end
+
+  test ".pluck_in_batches does not disable the query cache inside the given block" do
+    Post.cache do
+      Post.pluck_in_batches(:id, start: 1, finish: 1) do |batch|
+        assert_queries(1) do
+          Post.first
+          Post.first
         end
       end
     end
