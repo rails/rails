@@ -59,6 +59,16 @@ class NullRelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_null_relation_used_with_constraints
+    post = Post.first
+    assert_no_queries do
+      scope = post.comments
+      none = Post.none
+      scope = scope.merge(none)
+      assert_equal 0, scope.size
+    end
+  end
+
   def test_null_relation_metadata_methods
     assert_includes Developer.none.to_sql, " WHERE (1=0)"
     assert_equal({}, Developer.none.where_values_hash)

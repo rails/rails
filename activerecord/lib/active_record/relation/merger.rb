@@ -69,6 +69,8 @@ module ActiveRecord
           end
         end
 
+        relation.none! if other.null_relation?
+
         merge_select_values
         merge_multi_values
         merge_single_values
