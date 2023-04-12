@@ -30,11 +30,14 @@ module Rails
       private
         def call_app(request, env) # :doc:
           instrumenter = ActiveSupport::Notifications.instrumenter
-          handle = instrumenter.build_handle("request.action_dispatch", { request: request })
+          payload = { request: request }
+          handle = instrumenter.build_handle("request.action_dispatch", payload)
           handle.start
 
           logger.info { started_request_message(request) }
           status, headers, body = response = @app.call(env)
+          payload[:status] = status
+          payload[:headers] = headers
           body = ::Rack::BodyProxy.new(body, &handle.method(:finish))
 
           if response.frozen?

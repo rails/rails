@@ -90,6 +90,17 @@ module Rails
           end
         end
       end
+
+      def test_payload_includes_status_and_headers
+        app = TestApp.new([304, { "last-modified" => "Wed, 21 Oct 2015 07:28:00 GMT" }, []])
+        logger = TestLogger.new(app: app)
+
+        logger.call("REQUEST_METHOD" => "GET")
+
+        event_payload = subscriber.starts.first[2]
+        assert_equal 304, event_payload[:status]
+        assert_includes event_payload[:headers], "last-modified"
+      end
     end
   end
 end

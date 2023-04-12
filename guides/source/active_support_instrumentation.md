@@ -281,7 +281,9 @@ INFO. Additional keys may be added by the caller.
 
 | Key         | Value                         |
 | ----------- | ----------------------------- |
+| `:headers`  | Response headers              |
 | `:request`  | The `ActionDispatch::Request` |
+| `:status`   | HTTP response code            |
 
 ### Action View
 
