@@ -287,6 +287,22 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(another_blog.id, comment.blog_id)
   end
 
+
+  def test_assign_belongs_to_cpk_model_by_id_attribute
+    order = cpk_orders(:cpk_groceries_order_1)
+    agreement = Cpk::OrderAgreement.new(signature: "signed")
+
+    agreement.order = order
+    agreement.save
+
+    assert_not_nil(agreement.reload.order)
+    assert_not_nil(agreement.order_id)
+
+    assert_equal(order, agreement.order)
+    _shop_id, order_id = order.id
+    assert_equal(order_id, agreement.order_id)
+  end
+
   def test_append_composite_foreign_key_has_many_association_with_autosave
     blog_post = sharded_blog_posts(:great_post_blog_one)
     comment = Sharded::Comment.new(body: "Great post! :clap:")
