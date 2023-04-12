@@ -35,6 +35,7 @@ require "models/essay"
 require "models/member"
 require "models/membership"
 require "models/sharded"
+require "models/cpk"
 require "models/member_detail"
 require "models/organization"
 
@@ -42,7 +43,8 @@ require "models/organization"
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers, :people, :readers, :authors, :author_addresses, :author_favorites,
-           :comments, :posts, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_tags, :sharded_blog_posts_tags
+           :comments, :posts, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_tags, :sharded_blog_posts_tags,
+           :cpk_orders
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(name: "salty")
@@ -136,6 +138,14 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(blog_post, comment.blog_post)
   end
 
+  def test_belongs_to_a_cpk_model_by_id_attribute
+    order = cpk_orders(:cpk_groceries_order_1)
+    _order_shop_id, order_id = order.id
+    agreement = Cpk::OrderAgreement.create(order_id: order_id, signature: "signed")
+
+    assert_equal(order, agreement.order)
+  end
+
   def test_belongs_to_a_model_with_composite_primary_key_uses_composite_pk_in_sql
     comment = sharded_comments(:great_comment_blog_post_one)
 
@@ -162,6 +172,14 @@ class AssociationsTest < ActiveRecord::TestCase
     comments = blog_post.comments.to_a
     assert_includes(comments, sharded_comments(:wow_comment_blog_post_one))
     assert_includes(comments, sharded_comments(:great_comment_blog_post_one))
+  end
+
+  def test_cpk_model_has_many_records_by_id_attribute
+    order = cpk_orders(:cpk_groceries_order_1)
+    _order_shop_id, order_id = order.id
+    agreements = 2.times.map { Cpk::OrderAgreement.create(order_id: order_id, signature: "signed") }
+
+    assert_equal(agreements.sort, order.order_agreements.to_a.sort)
   end
 
   def test_has_many_association_from_a_model_with_query_constraints_different_from_the_association

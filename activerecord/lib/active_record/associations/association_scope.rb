@@ -62,7 +62,7 @@ module ActiveRecord
           table = reflection.aliased_table
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
           primary_key_foreign_key_pairs.each do |join_key, foreign_key|
-            value = transform_value(owner[foreign_key])
+            value = transform_value(owner._read_attribute(foreign_key))
             scope = apply_scope(scope, table, join_key, value)
           end
 
