@@ -63,8 +63,16 @@ module ActiveRecord
         ids = Array(ids).compact_blank
         ids.map! { |i| pk_type.cast(i) }
 
-        records = klass.where(primary_key => ids).index_by do |r|
-          r.public_send(primary_key)
+        records = if klass.composite_primary_key?
+          query_records = ids.map { |values_set| klass.where(primary_key.zip(values_set).to_h) }.inject(&:or)
+
+          query_records.index_by do |r|
+            primary_key.map { |pk| r.public_send(pk) }
+          end
+        else
+          klass.where(primary_key => ids).index_by do |r|
+            r.public_send(primary_key)
+          end
         end.values_at(*ids).compact
 
         if records.size != ids.size

@@ -244,6 +244,7 @@ ActiveRecord::Schema.define do
     t.integer :number
     t.string :title
     t.integer :revision
+    t.integer :order_id
   end
 
   create_table :cpk_orders, primary_key: [:shop_id, :id], force: true do |t|

@@ -941,8 +941,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.all.map(&:id).sort, Company.all.ids.sort
   end
 
-  def ids_for_a_composite_primary_key
+  def test_ids_for_a_composite_primary_key
     assert_equal Cpk::Book.all.map(&:id).sort, Cpk::Book.all.ids.sort
+  end
+
+  def test_pluck_for_a_composite_primary_key
+    assert_equal Cpk::Book.all.pluck([:author_id, :number]).sort, Cpk::Book.all.ids.sort
   end
 
   def test_ids_for_a_composite_primary_key_with_scope
