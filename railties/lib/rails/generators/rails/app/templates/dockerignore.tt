@@ -10,6 +10,9 @@
 /config/master.key
 /config/credentials/*.key
 
+# Ignore (mrsk) deployment configuration
+/config/deploy.yml
+
 # Ignore all environment files.
 /.env*
 !/.env.example
