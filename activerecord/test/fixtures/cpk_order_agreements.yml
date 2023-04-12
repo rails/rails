@@ -1,0 +1,8 @@
+_fixture:
+  model_class: Cpk::OrderAgreement
+
+order_agreement_one:
+  signature: "abc123"
+
+order_agreement_two:
+  signature: "xyz789"

@@ -39,6 +39,7 @@ require "models/translation"
 require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
+require "models/cpk"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -596,7 +597,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
-  fixtures :companies, :developers
+  fixtures :companies, :developers, :cpk_order_agreements, :cpk_orders, :cpk_books
 
   def test_invalid_adding
     firm = Firm.find(1)
@@ -728,6 +729,37 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     firm.reload
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, companies(:second_client)
+  end
+
+  def test_assign_ids_with_belongs_to_cpk_model
+    order_agreements = [cpk_order_agreements(:order_agreement_one).id, cpk_order_agreements(:order_agreement_two).id]
+    order = cpk_orders(:cpk_groceries_order_1)
+
+    assert_empty order.order_agreements
+
+    order.order_agreement_ids = order_agreements
+    order.save
+    order.reload
+
+    assert_equal order_agreements, order.order_agreement_ids
+    assert_equal 2, order.order_agreements.length
+    assert_includes order.order_agreements, cpk_order_agreements(:order_agreement_two)
+  end
+
+  def test_assign_ids_with_cpk_for_two_models
+    books = [cpk_books(:cpk_great_author_first_book).id, cpk_books(:cpk_great_author_second_book).id]
+    order = cpk_orders(:cpk_groceries_order_1)
+
+    assert_empty order.books
+
+    order.book_ids = books
+    order.save
+    order.reload
+
+    assert_equal books, order.book_ids
+    assert_equal 2, order.books.length
+    assert_includes order.books, cpk_books(:cpk_great_author_first_book)
+    assert_includes order.books, cpk_books(:cpk_great_author_second_book)
   end
 
   def test_assign_ids_for_through_a_belongs_to

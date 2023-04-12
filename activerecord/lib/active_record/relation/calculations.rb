@@ -269,7 +269,7 @@ module ActiveRecord
         relation = apply_join_dependency
         relation.pluck(*column_names)
       else
-        klass.disallow_raw_sql!(column_names)
+        klass.disallow_raw_sql!(column_names.flatten)
         columns = arel_columns(column_names)
         relation = spawn
         relation.select_values = columns
