@@ -493,12 +493,12 @@ module ActiveRecord
         @join_table ||= -(options[:join_table]&.to_s || derive_join_table)
       end
 
-      def foreign_key
+      def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:query_constraints]
           # composite foreign keys support
           options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
         else
-          -(options[:foreign_key]&.to_s || derive_foreign_key)
+          -(options[:foreign_key]&.to_s || derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of))
         end
       end
 
@@ -726,13 +726,13 @@ module ActiveRecord
           class_name.camelize
         end
 
-        def derive_foreign_key
+        def derive_foreign_key(infer_from_inverse_of: true)
           if belongs_to?
             "#{name}_id"
           elsif options[:as]
             "#{options[:as]}_id"
-          elsif options[:inverse_of]
-            inverse_of.foreign_key
+          elsif options[:inverse_of] && infer_from_inverse_of
+            inverse_of.foreign_key(infer_from_inverse_of: false)
           else
             active_record.model_name.to_s.foreign_key
           end
