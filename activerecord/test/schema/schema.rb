@@ -252,6 +252,13 @@ ActiveRecord::Schema.define do
     t.string :status
   end
 
+  create_table :cpk_order_agreements, force: true do |t|
+    t.integer :order_id
+    t.string :signature
+
+    t.index :order_id
+  end
+
   create_table :paragraphs, force: true do |t|
     t.references :book
   end

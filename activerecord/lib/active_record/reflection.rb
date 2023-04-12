@@ -550,7 +550,7 @@ module ActiveRecord
       end
 
       def join_id_for(owner) # :nodoc:
-        Array(join_foreign_key).map { |key| owner[key] }
+        Array(join_foreign_key).map { |key| owner._read_attribute(key) }
       end
 
       def through_reflection
