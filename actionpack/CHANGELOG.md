@@ -1,10 +1,10 @@
 *   Include source location in routes extended view.
 
-    ```
-    bin/rails routes --expanded
+    ```bash
+    $ bin/rails routes --expanded
 
-    [...]
-    --[ Route 14 ]-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ...
+    --[ Route 14 ]----------
     Prefix            | new_gist
     Verb              | GET
     URI               | /gist(.:format)
