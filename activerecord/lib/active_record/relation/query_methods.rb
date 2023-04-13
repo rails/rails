@@ -76,7 +76,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.joins!(association)
-          self.not(association => { reflection.association_primary_key => nil })
+          if @scope.table_name == reflection.table_name
+            self.not(association => { reflection.association_primary_key => nil })
+          else
+            self.not(reflection.table_name => { reflection.association_primary_key => nil })
+          end
         end
 
         @scope
@@ -104,7 +108,11 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
-          @scope.where!(association => { reflection.association_primary_key => nil })
+          if @scope.table_name == reflection.table_name
+            @scope.where!(association => { reflection.association_primary_key => nil })
+          else
+            @scope.where!(reflection.table_name => { reflection.association_primary_key => nil })
+          end
         end
 
         @scope
