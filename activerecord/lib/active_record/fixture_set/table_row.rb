@@ -125,13 +125,11 @@ module ActiveRecord
         end
 
         def generate_composite_primary_key
-          id = ActiveRecord::FixtureSet.identify(@label)
-          model_metadata.primary_key_name.each_with_index do |column, index|
+          composite_key = ActiveRecord::FixtureSet.composite_identify(@label, model_metadata.primary_key_name)
+          composite_key.each do |column, value|
             next if column_defined?(column)
-            raise "Automatic key generation assumes columns of type Integer." unless model_metadata.column_type(column) == :integer
 
-            # Shift label identifier index-#-of-times to differentiate sub-components in deterministic manner.
-            @row[column] = (id << index) % ActiveRecord::FixtureSet::MAX_ID
+            @row[column] = value
           end
         end
 
@@ -165,8 +163,17 @@ module ActiveRecord
                   raise PrimaryKeyError.new(@label, association, value)
                 end
 
-                fk_type = reflection_class.type_for_attribute(fk_name).type
-                @row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
+                if fk_name.is_a?(Array)
+                  composite_key = ActiveRecord::FixtureSet.composite_identify(value, fk_name)
+                  composite_key.each do |column, value|
+                    next if column_defined?(column)
+
+                    @row[column] = value
+                  end
+                else
+                  fk_type = reflection_class.type_for_attribute(fk_name).type
+                  @row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
+                end
               end
             when :has_many
               if association.options[:through]

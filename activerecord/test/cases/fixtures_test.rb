@@ -1643,15 +1643,15 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
   end
 
   class CompositePkFixturesTest < ActiveRecord::TestCase
-    fixtures :cpk_orders, :cpk_books, :authors
+    fixtures :cpk_orders, :cpk_books, :cpk_authors, :cpk_reviews, :cpk_order_agreements
 
     def test_generates_composite_primary_key_for_partially_filled_fixtures
-      david = authors(:david)
-      david_cpk_book = cpk_books(:cpk_known_author_david_book)
+      alice = cpk_authors(:cpk_great_author)
+      alice_cpk_book = cpk_books(:cpk_great_author_first_book)
 
-      assert_not_empty(david_cpk_book.id.compact)
-      assert_equal david.id, david_cpk_book.author_id
-      assert_not_nil david_cpk_book.number
+      assert_not_empty(alice_cpk_book.id.compact)
+      assert_equal alice.id, alice_cpk_book.author_id
+      assert_not_nil alice_cpk_book.number
     end
 
     def test_generates_composite_primary_key_ids
@@ -1663,6 +1663,71 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
 
     def test_generates_composite_primary_key_with_unique_components
       assert_equal 2, cpk_orders(:cpk_groceries_order_1).id.uniq.size
+    end
+
+    def test_resolves_associations_using_composite_primary_keys
+      review = cpk_reviews(:first_book_review)
+      generated_book = cpk_books(:cpk_book_with_generated_pk)
+
+      assert_equal generated_book.id, [review.author_id, review.number]
+      assert_equal generated_book, review.book
+    end
+
+    def test_resolves_associations_using_composite_primary_keys_with_partially_filled_values
+      review = cpk_reviews(:second_book_review_for_book_with_partial_pk_defined)
+      book_with_partially_filled_cpk = cpk_books(:cpk_great_author_first_book)
+
+      assert_equal book_with_partially_filled_cpk.id, [review.author_id, review.number]
+      assert_equal book_with_partially_filled_cpk, review.book
+    end
+
+    def test_association_with_custom_primary_key
+      order = cpk_orders(:cpk_groceries_order_2)
+      order_agreement = cpk_order_agreements(:order_agreement_three)
+
+      _, order_id = order.id
+
+      assert_equal order_id, order_agreement.order_id
+      assert_equal order, order_agreement.order
+    end
+
+    def test_composite_identify_resolves_to_same_values
+      identify_one = ActiveRecord::FixtureSet.composite_identify("label", [:a, :b, :c])
+      identify_two = ActiveRecord::FixtureSet.composite_identify("label", [:a, :b, :c])
+
+      assert_equal identify_one, identify_two
+    end
+
+    def test_composite_identify_returns_hash_with_key_names
+      id = ActiveRecord::FixtureSet.composite_identify("order", Cpk::Order.primary_key)
+
+      assert_equal ["shop_id", "id"], id.keys
+    end
+
+    def test_composite_identify_uses_same_hashing_algorithm_as_identify_for_first_attribute
+      id_hash = ActiveRecord::FixtureSet.composite_identify("order", [:first_attribute, :second_attribute])
+      id = ActiveRecord::FixtureSet.identify("order")
+
+      assert_equal id, id_hash[:first_attribute]
+      assert_not_equal id, id_hash[:second_attribute]
+    end
+
+    def test_composite_identify_hashes_one_label_to_same_values_irrespective_of_column_names
+      id_hash_one = ActiveRecord::FixtureSet.composite_identify("order", [:first_attribute, :second_attribute])
+      id_hash_two = ActiveRecord::FixtureSet.composite_identify("order", [:shop_id, :id])
+
+      assert_equal id_hash_one.values, id_hash_two.values
+      assert_not_equal id_hash_one.keys, id_hash_two.keys
+    end
+
+    def test_composite_identify_hashes_to_same_values_based_on_position_in_key
+      id = ActiveRecord::FixtureSet.identify("order")
+      id_hash_two = ActiveRecord::FixtureSet.composite_identify("order", [:one, :two])
+      id_hash_three = ActiveRecord::FixtureSet.composite_identify("order", [:one, :two, :three])
+
+      assert_equal id, id_hash_two.values.first
+      assert_equal id, id_hash_three.values.first
+      assert_equal id_has_two.values, id_hash_three.values.slice(0, 2)
     end
   end
 end
