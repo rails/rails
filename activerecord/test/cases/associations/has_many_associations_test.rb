@@ -41,6 +41,8 @@ require "models/subscription"
 require "models/zine"
 require "models/interest"
 require "models/human"
+require "models/sharded"
+require "models/cpk"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -116,7 +118,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :author_addresses, :comments,
            :posts, :readers, :taggings, :cars, :tags,
-           :categorizations, :zines, :interests, :humans
+           :categorizations, :zines, :interests, :humans,
+           :sharded_blog_posts, :sharded_comments, :cpk_books, :cpk_authors
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1285,6 +1288,45 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, new_firm.clients_of_firm.size
     new_firm.clients_of_firm.delete(new_client)
     assert_equal 0, new_firm.clients_of_firm.size
+  end
+
+  def test_deleting_models_with_composite_keys
+    great_author = cpk_authors(:cpk_great_author)
+    books = great_author.books
+
+    assert_equal 2, books.size
+
+    great_author.books.delete(books.first)
+    great_author.reload
+
+    assert_equal 1, great_author.books.size
+  end
+
+  def test_sharded_deleting_models
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comments = blog_post.delete_comments
+
+    assert_equal 3, comments.size
+
+    comments_to_delete = [comments.first, comments.second]
+
+    sql = capture_sql do
+      blog_post.delete_comments.delete(comments_to_delete)
+    end
+
+    c = Sharded::Comment.connection
+
+    blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
+    id = Regexp.escape(c.quote_table_name("sharded_comments.id"))
+
+    query_constraints = /#{blog_id} = .* AND #{id} = .*/
+    expectation = /DELETE.*WHERE.* \(#{query_constraints} OR #{query_constraints}\)/
+
+    assert_match(expectation, sql.first)
+
+    blog_post.reload
+
+    assert_equal 1, blog_post.comments.size
   end
 
   def test_has_many_without_counter_cache_option

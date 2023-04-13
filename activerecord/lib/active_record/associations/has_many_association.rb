@@ -128,7 +128,9 @@ module ActiveRecord
             records.each(&:destroy!)
             update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
           else
-            scope = self.scope.where(reflection.klass.primary_key => records)
+            query_constraints = reflection.klass.composite_query_constraints_list
+            values = records.map { |r| query_constraints.map { |col| r._read_attribute(col) } }
+            scope = self.scope.where(query_constraints => values)
             update_counter(-delete_count(method, scope))
           end
         end
