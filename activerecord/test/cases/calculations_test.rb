@@ -24,7 +24,7 @@ require "models/rating"
 require "models/too_long_table_name"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
-require "models/cpk/book"
+require "models/cpk"
 
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
