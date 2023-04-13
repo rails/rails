@@ -50,7 +50,7 @@ module ActionDispatch
         path = "#{public_path}/#{status}.#{I18n.locale}.html"
         path = "#{public_path}/#{status}.html" unless (found = File.exist?(path))
 
-        if found || File.exist?(path)
+        if found
           render_format(status, "text/html", File.read(path))
         else
           [404, { "X-Cascade" => "pass" }, []]
