@@ -104,9 +104,14 @@ module Rails
           end
 
           def escape_declarative_test_filter(filter)
-            if filter.is_a?(String) && !filter.start_with?("test_")
-              filter = "test_#{filter}" unless regexp_filter?(filter)
-              filter = filter.gsub(/\s+/, "_")
+            # NOTE: This method may be applied multiple times, so any
+            # transformations MUST BE idempotent.
+            if filter.is_a?(String)
+              if regexp_filter?(filter)
+                filter = filter.gsub(/\s+/, '[\s_]+')
+              elsif !filter.start_with?("test_")
+                filter = "test_#{filter.gsub(/\s+/, "_")}"
+              end
             end
             filter
           end
