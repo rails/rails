@@ -245,8 +245,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Subscriber.exists?("foo")
     assert_equal false, Subscriber.exists?("   ")
 
-    Subscriber.create!(id: "foo")
-    Subscriber.create!(id: "   ")
+    Subscriber.create!(primary_key_value: "foo")
+    Subscriber.create!(primary_key_value: "   ")
 
     assert_equal true, Subscriber.exists?("foo")
     assert_equal true, Subscriber.exists?("   ")
@@ -1785,33 +1785,33 @@ class FinderTest < ActiveRecord::TestCase
   test "#find with a single composite primary key" do
     book = cpk_books(:cpk_great_author_first_book)
 
-    assert_equal book, Cpk::Book.find(book.id)
+    assert_equal book, Cpk::Book.find(book.primary_key_value)
   end
 
   test "find with a single composite primary key wrapped in an array" do
     book = cpk_books(:cpk_great_author_first_book)
 
-    assert_equal [book], Cpk::Book.find([book.id])
+    assert_equal [book], Cpk::Book.find([book.primary_key_value])
   end
 
   test "find with a multiple sets of composite primary key" do
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
-    ids = books.map(&:id)
+    ids = books.map(&:primary_key_value)
     result = Cpk::Book.find(*ids)
 
-    assert_equal ids, result.map(&:id)
+    assert_equal ids, result.map(&:primary_key_value)
   end
 
   test "find with a multiple sets of composite primary key wrapped in an array" do
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
 
-    assert_equal books.map(&:id), Cpk::Book.where(revision: 1).find(books.map(&:id)).map(&:id)
+    assert_equal books.map(&:primary_key_value), Cpk::Book.where(revision: 1).find(books.map(&:primary_key_value)).map(&:primary_key_value)
   end
 
   test "find with a multiple sets of composite primary key wrapped in an array ordered" do
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
 
-    assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
+    assert_equal books.map(&:primary_key_value), Cpk::Book.order(author_id: :asc).find(books.map(&:primary_key_value)).map(&:primary_key_value)
   end
 
   private

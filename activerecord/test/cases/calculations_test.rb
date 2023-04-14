@@ -487,8 +487,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_association_with_non_numeric_foreign_key
-    Speedometer.create! id: "ABC"
-    Minivan.create! id: "OMG", speedometer_id: "ABC"
+    Speedometer.create! primary_key_value: "ABC"
+    Minivan.create! primary_key_value: "OMG", speedometer_id: "ABC"
 
     c = Minivan.group(:speedometer).count(:all)
     first_key = c.keys.first
@@ -942,7 +942,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_ids_for_a_composite_primary_key
-    assert_equal Cpk::Book.all.map(&:id).sort, Cpk::Book.all.ids.sort
+    assert_equal Cpk::Book.all.map(&:primary_key_value).sort, Cpk::Book.all.ids.sort
   end
 
   def test_pluck_for_a_composite_primary_key

@@ -2789,7 +2789,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "does not duplicate associations when used with natural primary keys" do
-    speedometer = Speedometer.create!(id: "4")
+    speedometer = Speedometer.create!(primary_key_value: "4")
     speedometer.minivans.create!(minivan_id: "a-van-red", name: "a van", color: "red")
 
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
@@ -2802,9 +2802,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb2 = Bulb.create! name: "other",    car: car
 
     assert_equal [bulb1], car.bulbs
-    assert_equal [bulb1, bulb2], car.all_bulbs.sort_by(&:id)
-    assert_equal [bulb1, bulb2], Car.includes(:all_bulbs).find(car.id).all_bulbs.sort_by(&:id)
-    assert_equal [bulb1, bulb2], Car.eager_load(:all_bulbs).find(car.id).all_bulbs.sort_by(&:id)
+    assert_equal [bulb1, bulb2], car.all_bulbs.sort_by(&:primary_key_value)
+    assert_equal [bulb1, bulb2], Car.includes(:all_bulbs).find(car.primary_key_value).all_bulbs.sort_by(&:primary_key_value)
+    assert_equal [bulb1, bulb2], Car.eager_load(:all_bulbs).find(car.primary_key_value).all_bulbs.sort_by(&:primary_key_value)
   end
 
   test "can unscope and where the default scope of the associated model" do
@@ -2830,8 +2830,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb1 = Bulb.create! name: "defaulty", car: car
     bulb2 = Bulb.create! name: "other",    car: car
 
-    assert_equal [bulb1, bulb2], Car.includes(:all_bulbs2).find(car.id).all_bulbs2.sort_by(&:id)
-    assert_equal [bulb1, bulb2], Car.eager_load(:all_bulbs2).find(car.id).all_bulbs2.sort_by(&:id)
+    assert_equal [bulb1, bulb2], Car.includes(:all_bulbs2).find(car.id).all_bulbs2.sort_by(&:primary_key_value)
+    assert_equal [bulb1, bulb2], Car.eager_load(:all_bulbs2).find(car.id).all_bulbs2.sort_by(&:primary_key_value)
   end
 
   test "raises RecordNotDestroyed when replaced child can't be destroyed" do
@@ -2843,7 +2843,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal [original_child], car.reload.failed_bulbs
-    assert_equal "Failed to destroy FailedBulb with #{FailedBulb.primary_key}=#{original_child.id}", error.message
+    assert_equal "Failed to destroy FailedBulb with #{FailedBulb.primary_key}=#{original_child.primary_key_value}", error.message
   end
 
   test "updates counter cache when default scope is given" do
@@ -2904,7 +2904,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [nil, "honda"], car.saved_change_to_name
 
-    new_bulb = Bulb.find(bulb.id)
+    new_bulb = Bulb.find(bulb.primary_key_value)
     new_bulb.name = "foo"
     car.bulbs = [new_bulb]
 
@@ -2917,7 +2917,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [nil, "honda"], car.saved_change_to_name
 
-    new_bulb = Bulb.find(bulb.id)
+    new_bulb = Bulb.find(bulb.primary_key_value)
 
     assert_no_queries do
       car.bulbs = [new_bulb]
@@ -2937,7 +2937,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb = Bulb.create!
     car = klass.create!(bulbs: [bulb])
 
-    new_bulb = Bulb.find(bulb.id)
+    new_bulb = Bulb.find(bulb.primary_key_value)
     raise_after_add = true
 
     assert_nothing_raised do
@@ -2951,7 +2951,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [nil, "honda"], car.saved_change_to_name
 
-    new_bulb = Bulb.find(bulb.id)
+    new_bulb = Bulb.find(bulb.primary_key_value)
     car.bulbs = [new_bulb]
 
     assert_same car, new_bulb.car
@@ -2973,7 +2973,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [nil, "honda"], car.saved_change_to_name
 
-    same_bulb = Bulb.find(first_bulb.id)
+    same_bulb = Bulb.find(first_bulb.primary_key_value)
     car.bulbs = [second_bulb, same_bulb]
 
     assert_equal [first_bulb, second_bulb], car.bulbs
@@ -3108,12 +3108,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create!(name: "Tofaş")
     bulb = Bulb.create!(car: car)
 
-    assert_equal [bulb.id], car.bulb_ids
+    assert_equal [bulb.primary_key_value], car.bulb_ids
     assert_no_queries { car.bulb_ids }
 
     bulb2 = car.bulbs.create!
 
-    assert_equal [bulb.id, bulb2.id], car.bulb_ids
+    assert_equal [bulb.primary_key_value, bulb2.primary_key_value], car.bulb_ids
     assert_no_queries { car.bulb_ids }
   end
 

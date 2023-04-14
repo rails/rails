@@ -112,7 +112,7 @@ module ActiveRecord
     def signed_id(expires_in: nil, expires_at: nil, purpose: nil)
       raise ArgumentError, "Cannot get a signed_id for a new record" if new_record?
 
-      self.class.signed_id_verifier.generate id, expires_in: expires_in, expires_at: expires_at, purpose: self.class.combine_signed_id_purposes(purpose)
+      self.class.signed_id_verifier.generate primary_key_value, expires_in: expires_in, expires_at: expires_at, purpose: self.class.combine_signed_id_purposes(purpose)
     end
   end
 end

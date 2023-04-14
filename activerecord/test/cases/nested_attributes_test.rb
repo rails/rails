@@ -309,7 +309,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @ship.stub(:id, "ABC1X") do
+    @ship.stub(:primary_key_value, "ABC1X") do
       @pirate.ship_attributes = { id: @ship.id, name: "Davy Jones Gold Dagger" }
 
       assert_equal "Davy Jones Gold Dagger", @pirate.ship.name
@@ -493,7 +493,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_modify_an_existing_record_if_there_is_a_matching_composite_id
-    @pirate.stub(:id, "ABC1X") do
+    @pirate.stub(:primary_key_value, "ABC1X") do
       @ship.pirate_attributes = { id: @pirate.id, catchphrase: "Arr" }
 
       assert_equal "Arr", @ship.pirate.catchphrase
@@ -681,8 +681,8 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
-    @child_1.stub(:id, "ABC1X") do
-      @child_2.stub(:id, "ABC2X") do
+    @child_1.stub(:primary_key_value, "ABC1X") do
+      @child_2.stub(:primary_key_value, "ABC2X") do
         @pirate.attributes = {
           association_getter => [
             { id: @child_1.id, name: "Grace OMalley" },
@@ -971,8 +971,8 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
 
     @params = {
       pets_attributes: {
-        "0" => { id: @pet1.id, name: "Foo" },
-        "1" => { id: @pet2.id, name: "Bar" }
+        "0" => { id: @pet1.primary_key_value, name: "Foo" },
+        "1" => { id: @pet2.primary_key_value, name: "Bar" }
       }
     }
   end
@@ -985,7 +985,7 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   def test_attr_accessor_of_child_should_be_value_provided_during_update
     @owner = owners(:ashley)
     @pet1 = pets(:chew)
-    attributes = { pets_attributes: { "1" => { id: @pet1.id,
+    attributes = { pets_attributes: { "1" => { id: @pet1.primary_key_value,
                                                 name: "Foo2",
                                                 current_user: "John",
                                                 _destroy: true } } }

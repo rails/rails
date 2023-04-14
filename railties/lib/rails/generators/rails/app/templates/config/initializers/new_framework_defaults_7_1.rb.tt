@@ -166,3 +166,8 @@
 # This matches the behaviour of all other callbacks.
 # In previous versions of Rails, they ran in the inverse order.
 # Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
+
+# Use the `id` column as an attribute when an application has a custom primary key.
+# Most applications can optin automatically and no changes will be required. If you are using
+# a custom primary key, you'll need to update the callers to use the new primary key methods.
+# Rails.application.config.active_record.use_id_as_attribute = true

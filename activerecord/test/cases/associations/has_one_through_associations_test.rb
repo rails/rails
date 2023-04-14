@@ -376,7 +376,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate proxy, :stale_target?
     assert_equal dashboards(:cool_first), minivan.dashboard
 
-    minivan.speedometer_id = speedometers(:second).id
+    minivan.speedometer_id = speedometers(:second).primary_key_value
 
     assert_predicate proxy, :stale_target?
     assert_equal dashboards(:second), minivan.dashboard
@@ -388,7 +388,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     minivan.dashboard
     proxy = minivan.send(:association_instance_get, :dashboard)
 
-    minivan.speedometer_id = speedometers(:second).id
+    minivan.speedometer_id = speedometers(:second).primary_key_value
 
     assert_predicate proxy, :stale_target?
     assert_equal dashboards(:second), minivan.dashboard

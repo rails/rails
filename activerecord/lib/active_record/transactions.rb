@@ -386,7 +386,7 @@ module ActiveRecord
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
         @_start_transaction_state ||= {
-          id: id,
+          id: primary_key_value,
           new_record: @new_record,
           previously_new_record: @previously_new_record,
           destroyed: @destroyed,

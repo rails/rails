@@ -182,11 +182,11 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   test "reset counter of has_many :through association" do
     subscriber = subscribers("second")
-    Subscriber.reset_counters(subscriber.id, "books")
-    Subscriber.increment_counter("books_count", subscriber.id)
+    Subscriber.reset_counters(subscriber.primary_key_value, "books")
+    Subscriber.increment_counter("books_count", subscriber.primary_key_value)
 
     assert_difference "subscriber.reload.books_count", -1 do
-      Subscriber.reset_counters(subscriber.id, "books")
+      Subscriber.reset_counters(subscriber.primary_key_value, "books")
     end
   end
 

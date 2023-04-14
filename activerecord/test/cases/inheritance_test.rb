@@ -490,7 +490,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_inheritance_without_mapping
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
-    assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = "roger"; s.save }
+    assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.primary_key_value = "roger"; s.save }
   end
 
   def test_scope_inherited_properly

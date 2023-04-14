@@ -265,7 +265,7 @@ class EachTest < ActiveRecord::TestCase
       subscribers.concat(batch)
     end
 
-    assert_equal nick_order_subscribers[1..-1].map(&:id), subscribers.map(&:id)
+    assert_equal nick_order_subscribers[1..-1].map(&:primary_key_value), subscribers.map(&:primary_key_value)
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
@@ -569,7 +569,7 @@ class EachTest < ActiveRecord::TestCase
       subscribers.concat(relation)
     end
 
-    assert_equal nick_order_subscribers[1..-1].map(&:id), subscribers.map(&:id)
+    assert_equal nick_order_subscribers[1..-1].map(&:primary_key_value), subscribers.map(&:primary_key_value)
   end
 
   def test_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
@@ -780,19 +780,19 @@ class EachTest < ActiveRecord::TestCase
 
   test ".in_batches should start from the start option when using composite primary key" do
     order = Cpk::Order.second
-    relation = Cpk::Order.in_batches(of: 1, start: order.id).first
+    relation = Cpk::Order.in_batches(of: 1, start: order.primary_key_value).first
     assert_equal order, relation.first
   end
 
   test ".in_batches should end at the finish option when using composite primary key" do
     order = Cpk::Order.second_to_last
-    relation = Cpk::Order.in_batches(of: 1, finish: order.id).reverse_each.first
+    relation = Cpk::Order.in_batches(of: 1, finish: order.primary_key_value).reverse_each.first
     assert_equal order, relation.last
   end
 
   test ".in_batches with scope and using composite primary key" do
     order1, order2 = Cpk::Order.first(2)
-    shop_id, id = order1.id
+    shop_id, id = order1.primary_key_value
     relation = Cpk::Order.where("shop_id > ? OR shop_id = ? AND id > ?", shop_id, shop_id, id).in_batches(of: 1).first
     assert_equal order2, relation.first
   end

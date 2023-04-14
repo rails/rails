@@ -555,7 +555,7 @@ module ActiveRecord
       super ||
         comparison_object.instance_of?(self.class) &&
         primary_key_values_present? &&
-        comparison_object.id == id &&
+        comparison_object.primary_key_value == primary_key_value &&
         !comparison_object.new_record?
     end
     alias :eql? :==
@@ -563,7 +563,7 @@ module ActiveRecord
     # Delegates to id in order to allow two records of the same type and id to work with something like:
     #   [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
     def hash
-      id = self.id
+      id = self.primary_key_value
 
       if primary_key_values_present? && !new_record?
         [self.class, id].hash

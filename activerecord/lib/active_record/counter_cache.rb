@@ -65,7 +65,7 @@ module ActiveRecord
           updates.merge!(touch_updates)
         end
 
-        unscoped.where(primary_key => object.id).update_all(updates) if updates.any?
+        unscoped.where(primary_key => object.primary_key_value).update_all(updates) if updates.any?
 
         true
       end
@@ -174,13 +174,13 @@ module ActiveRecord
 
     private
       def _create_record(attribute_names = self.attribute_names)
-        id = super
+        primary_key_value = super
 
         each_counter_cached_associations do |association|
           association.increment_counters
         end
 
-        id
+        primary_key_value
       end
 
       def destroy_row

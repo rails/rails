@@ -1,3 +1,22 @@
+*   Deprecate using `id` for primary key when an application has a custom primary key.
+
+    Previously the `id` method had a double meaning. In an application that uses `id` as the primary key this would return the `id` attribute. However, applications with custom primary keys would return the custom key value even if the table had an `id` attribute. This behavior is now deprecated.
+
+    Applications that use `id` as the primary key require no changes. Applications that do use custom primary keys will need to update their application to call the new method `primary_key_value`. Applications can opt into the new behavior by setting `config.active_record.use_id_as_attribute = true`.
+
+    Mapping of old methods to new methods:
+
+    * `id` => `primary_key_value`
+    * `id=(value)` => `primary_key_value=(value)`
+    * `id?` => `primary_key_value?`
+    * `id_was` => `primary_key_was`
+    * `id_in_database` => `primary_key_in_database`
+    * `id_before_type_cast` => `primary_key_before_type_cast`
+
+    This change will provide new public APIs for accessing custom primary keys which will restore the ability to query the `id` column if it exists and is not the primary key.
+
+    *Eileen M. Uchitelle*
+
 *   `after_commit` callbacks defined on models now execute in the correct order.
 
     ```ruby

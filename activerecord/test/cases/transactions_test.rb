@@ -935,7 +935,7 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert_equal [1, 2], book.id
+    assert_equal [1, 2], book.primary_key_value
   ensure
     Cpk::Book.delete_all
   end

@@ -140,7 +140,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_a_cpk_model_by_id_attribute
     order = cpk_orders(:cpk_groceries_order_1)
-    _order_shop_id, order_id = order.id
+    _order_shop_id, order_id = order.primary_key_value
     agreement = Cpk::OrderAgreement.create(order_id: order_id, signature: "signed")
 
     assert_equal(order, agreement.order)
@@ -176,7 +176,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_cpk_model_has_many_records_by_id_attribute
     order = cpk_orders(:cpk_groceries_order_1)
-    _order_shop_id, order_id = order.id
+    _order_shop_id, order_id = order.primary_key_value
     agreements = 2.times.map { Cpk::OrderAgreement.create(order_id: order_id, signature: "signed") }
 
     assert_equal(agreements.sort, order.order_agreements.to_a.sort)
@@ -299,7 +299,7 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_not_nil(agreement.order_id)
 
     assert_equal(order, agreement.order)
-    _shop_id, order_id = order.id
+    _shop_id, order_id = order.primary_key_value
     assert_equal(order_id, agreement.order_id)
   end
 

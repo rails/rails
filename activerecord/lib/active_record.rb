@@ -440,6 +440,13 @@ module ActiveRecord
   singleton_class.attr_accessor :yaml_column_permitted_classes
   self.yaml_column_permitted_classes = [Symbol]
 
+  ##
+  # :singleton-method:
+  # Application configuration to always treat +id+ as an attribute rather than
+  # a primary key. When true, use +primary_key_value+ to get the primary key.
+  singleton_class.attr_accessor :use_id_as_attribute
+  self.use_id_as_attribute = false
+
   def self.marshalling_format_version
     Marshalling.format_version
   end

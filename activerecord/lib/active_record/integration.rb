@@ -80,9 +80,9 @@ module ActiveRecord
 
           if timestamp
             timestamp = timestamp.utc.to_fs(cache_timestamp_format)
-            "#{model_name.cache_key}/#{id}-#{timestamp}"
+            "#{model_name.cache_key}/#{primary_key_value}-#{timestamp}"
           else
-            "#{model_name.cache_key}/#{id}"
+            "#{model_name.cache_key}/#{primary_key_value}"
           end
         end
       end

@@ -296,7 +296,7 @@ class PersistenceTest < ActiveRecord::TestCase
     book = cpk_books(:cpk_great_author_first_book)
 
     assert_difference("Cpk::Book.count", -1) do
-      destroyed = Cpk::Book.destroy(book.id)
+      destroyed = Cpk::Book.destroy(book.primary_key_value)
       assert_equal destroyed, book
     end
   end
@@ -308,7 +308,7 @@ class PersistenceTest < ActiveRecord::TestCase
     ]
 
     assert_difference("Cpk::Book.count", -2) do
-      destroyed = Cpk::Book.destroy(books.map(&:id))
+      destroyed = Cpk::Book.destroy(books.map(&:primary_key_value))
       assert_equal books.sort, destroyed.sort
       assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     end
@@ -321,7 +321,7 @@ class PersistenceTest < ActiveRecord::TestCase
     ]
 
     assert_raise(ActiveRecord::RecordNotFound) do
-      ids = books.map { |book| book.id.first }
+      ids = books.map { |book| book.primary_key_value.first }
       Cpk::Book.destroy(ids)
     end
   end

@@ -960,7 +960,7 @@ module ActiveRecord
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
+      self.class.update_counters(primary_key_value, attribute => change, touch: touch)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -1151,7 +1151,7 @@ module ActiveRecord
 
     def _in_memory_query_constraints_hash
       if self.class.query_constraints_list.nil?
-        { @primary_key => id }
+        { @primary_key => primary_key_value }
       else
         self.class.query_constraints_list.index_with do |column_name|
           attribute(column_name)
@@ -1166,7 +1166,7 @@ module ActiveRecord
 
     def _query_constraints_hash
       if self.class.query_constraints_list.nil?
-        { @primary_key => id_in_database }
+        { @primary_key => primary_key_in_database }
       else
         self.class.query_constraints_list.index_with do |column_name|
           attribute_in_database(column_name)
@@ -1239,14 +1239,14 @@ module ActiveRecord
         attributes_with_values(attribute_names)
       )
 
-      self.id ||= new_id if @primary_key
+      self.primary_key_value ||= new_id if @primary_key
 
       @new_record = false
       @previously_new_record = true
 
       yield(self) if block_given?
 
-      id
+      primary_key_value
     end
 
     def verify_readonly_attribute(name)

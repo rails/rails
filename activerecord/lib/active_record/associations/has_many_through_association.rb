@@ -156,7 +156,7 @@ module ActiveRecord
 
           if source_reflection.options[:counter_cache] && method != :destroy
             counter = source_reflection.counter_cache_column
-            klass.decrement_counter counter, records.map(&:id)
+            klass.decrement_counter counter, records.map(&:primary_key_value)
           end
 
           if through_reflection.collection? && update_through_counter?(method)

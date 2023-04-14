@@ -128,7 +128,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "integers as nil" do
     test = AutoId.create(value: "")
-    assert_nil AutoId.find(test.id).value
+    assert_nil AutoId.find(test.primary_key_value).value
   end
 
   test "set attributes with a block" do
@@ -158,15 +158,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "respond_to? with a custom primary key" do
     keyboard = Keyboard.create
     assert_not_nil keyboard.key_number
-    assert_equal keyboard.key_number, keyboard.id
+    assert_equal keyboard.key_number, keyboard.primary_key_value
     assert_respond_to keyboard, "key_number"
     assert_respond_to keyboard, "id"
   end
 
-  test "id_before_type_cast with a custom primary key" do
+  test "primary_key_before_type_cast with a custom primary key" do
     keyboard = Keyboard.create
     keyboard.key_number = "10"
-    assert_equal "10", keyboard.id_before_type_cast
+    assert_equal "10", keyboard.primary_key_before_type_cast
     assert_nil keyboard.read_attribute_before_type_cast("id")
     assert_equal "10", keyboard.read_attribute_before_type_cast("key_number")
     assert_equal "10", keyboard.read_attribute_before_type_cast(:key_number)

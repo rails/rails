@@ -431,7 +431,7 @@ module ActiveRecord
         existing_record = send(association_name)
 
         if (options[:update_only] || !attributes["id"].blank?) && existing_record &&
-            (options[:update_only] || existing_record.id.to_s == attributes["id"].to_s)
+            (options[:update_only] || existing_record.primary_key_value.to_s == attributes["id"].to_s)
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
         elsif attributes["id"].present?
@@ -521,12 +521,12 @@ module ActiveRecord
             unless reject_new_record?(association_name, attributes)
               association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
-          elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes["id"].to_s }
+          elsif existing_record = existing_records.detect { |record| record.primary_key_value.to_s == attributes["id"].to_s }
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
               # Take into account that the proxy_target may have changed due to callbacks
-              target_record = association.target.detect { |record| record.id.to_s == attributes["id"].to_s }
+              target_record = association.target.detect { |record| record.primary_key_value.to_s == attributes["id"].to_s }
               if target_record
                 existing_record = target_record
               else

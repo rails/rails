@@ -74,7 +74,7 @@ module ActiveRecord
         result = Owner.connection.exec_query <<~SQL
           SELECT #{select}
           FROM   #{Owner.table_name}
-          WHERE  #{Owner.primary_key} = #{owner.id}
+          WHERE  #{Owner.primary_key} = #{owner.primary_key_value}
         SQL
 
         assert_not(result.rows.first.include?("blob"), "should not store blobs")
@@ -455,7 +455,7 @@ module ActiveRecord
 
         connection.remove_column("barcodes", "other_attr")
 
-        assert_equal code, Barcode.first.id
+        assert_equal code, Barcode.first.primary_key_value
       ensure
         Barcode.reset_column_information
       end

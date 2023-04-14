@@ -29,6 +29,7 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
+        # TODO: need to fix this as part of work
         return @attributes.fetch_value(name, &block) unless name == "id" && @primary_key
 
         if self.class.composite_primary_key?

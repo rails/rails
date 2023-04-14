@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       def payload_for(model)
-        block ? [model.id, model.instance_eval(&block).as_json] : [model.id]
+        block ? [model.primary_key_value, model.instance_eval(&block).as_json] : [model.primary_key_value]
       end
 
       def generate_token(model)

@@ -499,7 +499,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do
-      david.subscriber_ids = [subscriber.id]
+      david.subscriber_ids = [subscriber.primary_key_value]
     end
 
     assert_raises(ActiveRecord::HasManyThroughNestedAssociationsAreReadonly) do

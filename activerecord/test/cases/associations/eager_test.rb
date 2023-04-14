@@ -558,13 +558,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_load_has_many_with_string_keys
     subscriptions = subscriptions(:webster_awdr, :webster_rfr)
-    subscriber = Subscriber.all.merge!(includes: :subscriptions).find(subscribers(:second).id)
+    subscriber = Subscriber.all.merge!(includes: :subscriptions).find(subscribers(:second).primary_key_value)
     assert_equal subscriptions, subscriber.subscriptions.sort_by(&:id)
   end
 
   def test_string_id_column_joins
     s = Subscriber.create! do |c|
-      c.id = "PL"
+      c.primary_key_value = "PL"
     end
 
     b = Book.create!
@@ -576,7 +576,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_load_has_many_through_with_string_keys
     books = books(:awdr, :rfr)
-    subscriber = Subscriber.all.merge!(includes: :books).find(subscribers(:second).id)
+    subscriber = Subscriber.all.merge!(includes: :books).find(subscribers(:second).primary_key_value)
     assert_equal books, subscriber.books.sort_by(&:id)
   end
 

@@ -409,7 +409,7 @@ module ActiveRecord
       def attributes_for_create(attribute_names)
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
-          (pk_attribute?(name) && id.nil?) ||
+          (pk_attribute?(name) && primary_key_value.nil?) ||
             column_for_attribute(name).virtual?
         end
       end

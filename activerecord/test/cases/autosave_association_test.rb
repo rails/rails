@@ -747,7 +747,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_assign_ids_with_cpk_for_two_models
-    books = [cpk_books(:cpk_great_author_first_book).id, cpk_books(:cpk_great_author_second_book).id]
+    books = [cpk_books(:cpk_great_author_first_book).primary_key_value, cpk_books(:cpk_great_author_second_book).primary_key_value]
     order = cpk_orders(:cpk_groceries_order_1)
 
     assert_empty order.books

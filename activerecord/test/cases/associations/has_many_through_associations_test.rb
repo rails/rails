@@ -150,8 +150,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     anonbook.subscribers.each do |s|
       assert_instance_of subscriber, s
     end
-    assert_equal namebook.subscribers.map(&:id).sort,
-                 anonbook.subscribers.map(&:id).sort
+    assert_equal namebook.subscribers.map(&:primary_key_value).sort,
+                 anonbook.subscribers.map(&:primary_key_value).sort
   end
 
   def test_no_pk_join_table_append

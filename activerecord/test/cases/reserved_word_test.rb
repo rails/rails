@@ -98,7 +98,7 @@ class ReservedWordTest < ActiveRecord::TestCase
   def test_has_one_associations
     create_test_fixtures :group, :values
     v = Group.find(1).values
-    assert_equal 2, v.id
+    assert_equal 2, v.primary_key_value
   end
 
   def test_belongs_to_associations

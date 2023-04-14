@@ -35,7 +35,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_do_not_double_quote_string_id
     van = Minivan.last
     assert van
-    assert_equal van.id, Minivan.where(minivan_id: van).to_a.first.minivan_id
+    assert_equal van.primary_key_value, Minivan.where(minivan_id: van).to_a.first.minivan_id
   end
 
   def test_do_not_double_quote_string_id_with_array
@@ -948,7 +948,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_with_no_selects_and_composite_primary_key_raises
     order = cpk_orders(:cpk_groceries_order_1)
-    subquery = Cpk::Order.where(Cpk::Order.primary_key => [order.id])
+    subquery = Cpk::Order.where(Cpk::Order.primary_key => [order.primary_key_value])
 
     assert_nothing_raised do
       Cpk::Order.where(id: subquery.select(:id)).to_a

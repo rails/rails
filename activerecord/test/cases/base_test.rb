@@ -333,7 +333,7 @@ class BasicsTest < ActiveRecord::TestCase
       with_timezone_config aware_attributes: true, default: :utc, zone: "UTC" do
         pet = Pet.create(name: "Bidu")
         assert_predicate pet, :persisted?
-        saved_pet = Pet.find(pet.id)
+        saved_pet = Pet.find(pet.primary_key_value)
         assert_not_nil saved_pet.created_at
         assert_not_nil saved_pet.updated_at
       end
@@ -1212,7 +1212,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_auto_id
     auto = AutoId.new
     auto.save
-    assert(auto.id > 0)
+    assert(auto.primary_key_value > 0)
   end
 
   def test_sql_injection_via_find

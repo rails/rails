@@ -12,7 +12,7 @@ module ActiveRecord
       def call(attribute, value)
         return attribute.in([]) if value.empty?
 
-        values = value.map { |x| x.is_a?(Base) ? x.id : x }
+        values = value.map { |x| x.is_a?(Base) ? x.primary_key_value : x }
         nils = values.extract!(&:nil?)
         ranges = values.extract! { |v| v.is_a?(Range) }
 

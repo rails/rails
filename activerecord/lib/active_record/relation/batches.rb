@@ -236,7 +236,7 @@ module ActiveRecord
       loop do
         if load
           records = batch_relation.records
-          ids = records.map(&:id)
+          ids = records.map(&:primary_key_value)
           yielded_relation = where(primary_key => ids)
           yielded_relation.load_records(records)
         elsif (empty_scope && use_ranges != false) || use_ranges

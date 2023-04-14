@@ -535,7 +535,7 @@ module ActiveRecord
         result = relation.records
 
         if result.size == ids.size
-          result.in_order_of(:id, ids.map { |id| @klass.type_for_attribute(primary_key).cast(id) })
+          result.in_order_of(:primary_key_value, ids.map { |id| @klass.type_for_attribute(primary_key).cast(id) })
         else
           raise_record_not_found_exception!(ids, result.size, ids.size)
         end

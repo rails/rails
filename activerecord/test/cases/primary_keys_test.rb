@@ -26,7 +26,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     keyboard = Keyboard.new
     assert_nil keyboard.to_key
     keyboard.save
-    assert_equal keyboard.to_key, [keyboard.id]
+    assert_equal keyboard.to_key, [keyboard.primary_key_value]
   end
 
   def test_read_attribute_with_custom_primary_key
@@ -41,7 +41,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_read_attribute_with_composite_primary_key_and_column_named_id
     order = Cpk::Order.new
-    order.id = [1, 2]
+    order.primary_key_value = [1, 2]
 
     assert_equal [1, 2], order.read_attribute(:id)
     assert_equal 2, order.attributes["id"]
@@ -73,19 +73,19 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     Keyboard.delete_all
     keyboard = Keyboard.new(name: "HHKB")
     keyboard.save!
-    assert_equal keyboard.id, Keyboard.find_by_name("HHKB").id
+    assert_equal keyboard.primary_key_value, Keyboard.find_by_name("HHKB").primary_key_value
   end
 
   def test_customized_primary_key_can_be_get_before_saving
     keyboard = Keyboard.new
-    assert_nil keyboard.id
+    assert_nil keyboard.primary_key_value
     assert_nil keyboard.key_number
   end
 
   def test_customized_string_primary_key_settable_before_save
     subscriber = Subscriber.new
-    subscriber.id = "webster123"
-    assert_equal "webster123", subscriber.id
+    subscriber.primary_key_value = "webster123"
+    assert_equal "webster123", subscriber.primary_key_value
     assert_equal "webster123", subscriber.nick
   end
 
@@ -109,11 +109,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal(subscribers(:second).name, subscriber.name)
 
     subscriber = Subscriber.new
-    subscriber.id = "jdoe"
-    assert_equal("jdoe", subscriber.id)
+    subscriber.primary_key_value = "jdoe"
+    assert_equal("jdoe", subscriber.primary_key_value)
     subscriber.name = "John Doe"
     subscriber.save!
-    assert_equal("jdoe", subscriber.id)
+    assert_equal("jdoe", subscriber.primary_key_value)
 
     subscriberReloaded = Subscriber.find("jdoe")
     assert_equal("John Doe", subscriberReloaded.name)
@@ -201,11 +201,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_primary_key_update_with_custom_key_name
     dashboard = Dashboard.create!(dashboard_id: "1")
-    dashboard.id = "2"
+    dashboard.primary_key_value = "2"
     dashboard.save!
 
     dashboard = Dashboard.first
-    assert_equal "2", dashboard.id
+    assert_equal "2", dashboard.primary_key_value
   end
 
   def test_create_without_primary_key_no_extra_query
@@ -223,7 +223,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       self.table_name = "dashboards"
     end
     dashboard = klass.new
-    assert_raises(ActiveModel::MissingAttributeError) { dashboard.id = "1" }
+    assert_raises(ActiveModel::MissingAttributeError) { dashboard.primary_key_value = "1" }
   end
 
   def composite_primary_key_is_false_for_a_non_cpk_model
@@ -395,10 +395,10 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 
   def test_assigning_a_composite_primary_key
     book = Cpk::Book.new
-    book.id = [1, 2]
+    book.primary_key_value = [1, 2]
     book.save!
 
-    assert_equal [1, 2], book.id
+    assert_equal [1, 2], book.primary_key_value
     assert_equal 1, book.author_id
     assert_equal 2, book.number
   ensure
@@ -409,7 +409,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     book = Cpk::Book.new
 
     assert_raises(TypeError) do
-      book.id = 1
+      book.primary_key_value = 1
     end
   end
 

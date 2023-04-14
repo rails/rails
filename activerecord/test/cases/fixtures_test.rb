@@ -1649,20 +1649,20 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       alice = cpk_authors(:cpk_great_author)
       alice_cpk_book = cpk_books(:cpk_great_author_first_book)
 
-      assert_not_empty(alice_cpk_book.id.compact)
+      assert_not_empty(alice_cpk_book.primary_key_value.compact)
       assert_equal alice.id, alice_cpk_book.author_id
       assert_not_nil alice_cpk_book.number
     end
 
     def test_generates_composite_primary_key_ids
-      assert_not_empty(cpk_orders(:cpk_groceries_order_1).id.compact)
+      assert_not_empty(cpk_orders(:cpk_groceries_order_1).primary_key_value.compact)
 
       assert_not_nil(cpk_books(:cpk_great_author_first_book).author_id)
       assert_not_nil(cpk_books(:cpk_great_author_first_book).number)
     end
 
     def test_generates_composite_primary_key_with_unique_components
-      assert_equal 2, cpk_orders(:cpk_groceries_order_1).id.uniq.size
+      assert_equal 2, cpk_orders(:cpk_groceries_order_1).primary_key_value.uniq.size
     end
 
     def test_resolves_associations_using_composite_primary_keys
