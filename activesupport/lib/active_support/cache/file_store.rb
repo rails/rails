@@ -85,6 +85,10 @@ module ActiveSupport
         end
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name} cache_path=#{@cache_path}, options=#{@options.inspect}>"
+      end
+
       private
         def read_entry(key, **options)
           if payload = read_serialized_entry(key, **options)
