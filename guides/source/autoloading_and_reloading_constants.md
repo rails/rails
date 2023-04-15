@@ -351,7 +351,7 @@ During eager loading, Rails invokes `Zeitwerk::Loader.eager_load_all`. That ensu
 
 
 [`config.eager_load`]: configuring.html#config-eager-load
-[`config.rake_eager_load`]: https://edgeguides.rubyonrails.org/configuring.html#config-rake-eager-load
+[`config.rake_eager_load`]: configuring.html#config-rake-eager-load
 
 Single Table Inheritance
 ------------------------
