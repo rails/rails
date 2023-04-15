@@ -34,6 +34,21 @@ module ActionController
   # The final caveat is that your actions are executed in a separate thread than
   # the main thread. Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
+  #
+  # Note that Rails includes `Rack::ETag` by default, which will buffer your
+  # response. As a result, streaming responses may not work properly with Rack
+  # `2.2.x`, and you may need to implement workarounds in your application.
+  # You can either set the `ETag` or `Last-Modified` response headers or remove
+  # `Rack::ETag` from the middleware stack to address this issue.
+  #
+  # Here's an example of how you can set the `Last-Modified` header if your Rack
+  # version is `2.2.x`:
+  #
+  #   def stream
+  #     response.headers["Content-Type"] = "text/event-stream"
+  #     response.headers["Last-Modified"] = Time.now.httpdate # Add this line if your Rack version is 2.2.x
+  #     ...
+  #   end
   module Live
     extend ActiveSupport::Concern
 
