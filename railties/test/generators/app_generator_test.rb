@@ -726,6 +726,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_skip_active_job_option
+    run_generator [destination_root, "--skip-active-job"]
+
+    ["production", "development", "test"].each do |env|
+      assert_file "config/environments/#{env}.rb" do |content|
+        assert_no_match(/active_job/, content)
+      end
+    end
+  end
+
   def test_skip_javascript_option
     generator([destination_root], skip_javascript: true)
 
