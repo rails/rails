@@ -343,13 +343,15 @@ Eager Loading
 
 In production-like environments it is generally better to load all the application code when the application boots. Eager loading puts everything in memory ready to serve requests right away, and it is also [CoW](https://en.wikipedia.org/wiki/Copy-on-write)-friendly.
 
-Eager loading is controlled by the flag [`config.eager_load`][], which is enabled by default in `production` mode.
+Eager loading is controlled by the flag [`config.eager_load`][], which is disabled by default in all environments except `production`. When a Rake task gets executed, `config.eager_load` is overridden by [`config.rake_eager_load`][], which is `false` by default. So, by default, in production environments Rake tasks do not eager load the application.
 
 The order in which files are eager-loaded is undefined.
 
 During eager loading, Rails invokes `Zeitwerk::Loader.eager_load_all`. That ensures all gem dependencies managed by Zeitwerk are eager-loaded too.
 
+
 [`config.eager_load`]: configuring.html#config-eager-load
+[`config.rake_eager_load`]: https://edgeguides.rubyonrails.org/configuring.html#config-rake-eager-load
 
 Single Table Inheritance
 ------------------------
