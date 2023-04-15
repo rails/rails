@@ -1727,7 +1727,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
 
       assert_equal id, id_hash_two.values.first
       assert_equal id, id_hash_three.values.first
-      assert_equal id_has_two.values, id_hash_three.values.slice(0, 2)
+      assert_equal id_hash_two.values, id_hash_three.values.slice(0, 2)
     end
   end
 end
