@@ -1,3 +1,24 @@
+*   Introduce `Arel::Nodes::Materialized` to support materialized CTEs in
+    PostgreSQL and SQLite.
+
+    ```ruby
+    posts = Arel::Table.new(:posts)
+    comments = Arel::Table.new(:comments)
+    good_comments = Arel::Table.new(:good_comments)
+    subquery = comments.project(Arel.star).where(comments[:rating].gt(7))
+    materialized_subquery = Arel::Nodes::Materialized.new(subquery)
+
+    posts.
+      project(Arel.star).
+      with(Arel::Nodes::As.new(good_comments, materialized_subquery)).
+      where(posts[:id].in(good_comments.project(:post_id))).
+      to_sql
+
+    # "WITH \"good_comments\" AS MATERIALIZED (SELECT * FROM \"comments\" WHERE \"comments\".\"rating\" > 7) SELECT * FROM \"posts\" WHERE \"posts\".\"id\" IN (SELECT post_id FROM \"good_comments\")"
+    ```
+
+    *Jon Zeppieri*
+
 *   Introduce adapter for Trilogy database client
 
     Trilogy is a MySQL-compatible database client. Rails applications can use Trilogy

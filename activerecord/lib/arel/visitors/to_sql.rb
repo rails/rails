@@ -321,6 +321,11 @@ module Arel # :nodoc: all
           visit o.expr, collector
         end
 
+        def visit_Arel_Nodes_Materialized(o, collector)
+          collector << "MATERIALIZED "
+          visit o.expr, collector
+        end
+
         def visit_Arel_Nodes_Grouping(o, collector)
           if o.expr.is_a? Nodes::Grouping
             visit(o.expr, collector)

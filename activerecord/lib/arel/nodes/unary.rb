@@ -32,6 +32,7 @@ module Arel # :nodoc: all
       Lateral
       Limit
       Lock
+      Materialized
       Not
       Offset
       On

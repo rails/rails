@@ -161,6 +161,19 @@ module Arel
           }
         end
       end
+
+      describe "Nodes::Materialized" do
+        it "omits the MATERIALIZED keyword" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr"))
+          materialized_subquery = Nodes::Materialized.new(Table.new(:bar).project(Arel.star))
+          aliased_subquery = Nodes::As.new(Table.new(:expr), materialized_subquery)
+          manager.with(aliased_subquery)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH "expr" AS (SELECT * FROM "bar") SELECT * FROM expr
+          }
+        end
+      end
     end
   end
 end
