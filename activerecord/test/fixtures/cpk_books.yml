@@ -16,7 +16,6 @@ cpk_famous_author_first_book:
   title: "Ruby on Rails"
   revision: 1
 
-cpk_known_author_david_book:
-  author_id: 1
-  title: "David's CPK Book"
+cpk_book_with_generated_pk:
+  title: "Generated author's book"
   revision: 1

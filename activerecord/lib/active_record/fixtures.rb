@@ -589,6 +589,18 @@ module ActiveRecord
         end
       end
 
+      # Returns a consistent, platform-independent hash representing a mapping
+      # between the label and the subcomponents of the provided composite key.
+      #
+      # Example:
+      # composite_identify("label", [:a, :b, :c]) => { a: hash_1, b: hash_2, c: hash_3 }
+      def composite_identify(label, key)
+        key
+          .index_with
+          .with_index { |sub_key, index| (identify(label) << index) % MAX_ID }
+          .with_indifferent_access
+      end
+
       # Superclass for the evaluation contexts used by ERB fixtures.
       def context_class
         @context_class ||= Class.new
