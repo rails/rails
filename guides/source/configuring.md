@@ -1132,7 +1132,7 @@ to get the parent every time the child record was updated, even when parent has 
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
-#### `config.active_record.marshalling_format`
+#### `config.active_record.marshalling_format_version`
 
 When set to `7.1`, enables a more efficient serialization of Active Record instance with `Marshal.dump`.
 
