@@ -92,6 +92,11 @@
 # In Rails 7.2, the default will become `:json` which serializes and
 # deserializes with `ActiveSupport::JSON` only.
 #
+# Alternatively, you can choose `:message_pack` or `:message_pack_allow_marshal`,
+# which serialize with `ActiveSupport::MessagePack`. `ActiveSupport::MessagePack`
+# can roundtrip some Ruby types that are not supported by JSON, and may provide
+# improved performance, but it requires the `msgpack` gem.
+#
 # For more information, see
 # https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer
 #

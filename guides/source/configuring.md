@@ -2257,13 +2257,20 @@ support multiple deserialization formats:
 
 | Serializer | Serialize and deserialize | Fallback deserialize |
 | ---------- | ------------------------- | -------------------- |
-| `:marshal` | `Marshal` | `ActiveSupport::JSON` |
-| `:json` | `ActiveSupport::JSON` | |
-| `:json_allow_marshal` | `ActiveSupport::JSON` | `Marshal` |
+| `:marshal` | `Marshal` | `ActiveSupport::JSON`, `ActiveSupport::MessagePack` |
+| `:json` | `ActiveSupport::JSON` | `ActiveSupport::MessagePack` |
+| `:json_allow_marshal` | `ActiveSupport::JSON` | `ActiveSupport::MessagePack`, `Marshal` |
+| `:message_pack` | `ActiveSupport::MessagePack` | `ActiveSupport::JSON` |
+| `:message_pack_allow_marshal` | `ActiveSupport::MessagePack` | `ActiveSupport::JSON`, `Marshal` |
 
 WARNING: `Marshal` is a potential vector for deserialization attacks in cases
 where a message signing secret has been leaked. _If possible, choose a
 serializer that does not support `Marshal`._
+
+INFO: The `:message_pack` and `:message_pack_allow_marshal` serializers support
+roundtripping some Ruby types that are not supported by JSON, such as `Symbol`.
+They can also provide improved performance and smaller payload sizes. However,
+they require the [`msgpack` gem](https://rubygems.org/gems/msgpack).
 
 Each of the above serializers will emit a [`message_serializer_fallback.active_support`][]
 event notification when they fall back to an alternate deserialization format,

@@ -115,18 +115,24 @@ module ActiveSupport
     #   The serializer used to serialize message data. You can specify any
     #   object that responds to +dump+ and +load+, or you can choose from
     #   several preconfigured serializers: +:marshal+, +:json_allow_marshal+,
-    #   +:json+.
+    #   +:json+, +:message_pack_allow_marshal+, +:message_pack+.
     #
     #   The preconfigured serializers include a fallback mechanism to support
     #   multiple deserialization formats. For example, the +:marshal+ serializer
-    #   will serialize using +Marshal+, but can deserialize using +Marshal+ or
-    #   ActiveSupport::JSON. This makes it easy to migrate between serializers.
+    #   will serialize using +Marshal+, but can deserialize using +Marshal+,
+    #   ActiveSupport::JSON, or ActiveSupport::MessagePack. This makes it easy
+    #   to migrate between serializers.
     #
-    #   The +:marshal+ and +:json_allow_marshal+ serializers support
-    #   deserializing using +Marshal+, but :+json+ does not. Beware that
-    #   +Marshal+ is a potential vector for deserialization attacks in cases
-    #   where a message signing secret has been leaked. <em>If possible, choose
-    #   a serializer that does not support +Marshal+.</em>
+    #   The +:marshal+, +:json_allow_marshal+, and +:message_pack_allow_marshal+
+    #   serializers support deserializing using +Marshal+, but the others do
+    #   not. Beware that +Marshal+ is a potential vector for deserialization
+    #   attacks in cases where a message signing secret has been leaked. <em>If
+    #   possible, choose a serializer that does not support +Marshal+.</em>
+    #
+    #   The +:message_pack+ and +:message_pack_allow_marshal+ serializers use
+    #   ActiveSupport::MessagePack, which can roundtrip some Ruby types that are
+    #   not supported by JSON, and may provide improved performance. However,
+    #   these require the +msgpack+ gem.
     #
     #   When using \Rails, the default depends on +config.active_support.message_serializer+.
     #   Otherwise, the default is +:marshal+.

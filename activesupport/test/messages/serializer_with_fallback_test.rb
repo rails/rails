@@ -13,6 +13,11 @@ class MessagesSerializerWithFallbackTest < ActiveSupport::TestCase
     assert_roundtrip serializer(:json_allow_marshal), ActiveSupport::JSON
   end
 
+  test ":message_pack serializer dumps objects using MessagePack format" do
+    assert_roundtrip serializer(:message_pack), ActiveSupport::MessagePack
+    assert_roundtrip serializer(:message_pack_allow_marshal), ActiveSupport::MessagePack
+  end
+
   test "every serializer can load every non-Marshal format" do
     (FORMATS - [:marshal]).product(FORMATS) do |dumping, loading|
       assert_roundtrip serializer(dumping), serializer(loading)

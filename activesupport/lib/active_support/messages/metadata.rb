@@ -16,11 +16,14 @@ module ActiveSupport
         Marshal,
       ]
 
-      TIMESTAMP_SERIALIZERS = []
+      TIMESTAMP_SERIALIZERS = [
+        SerializerWithFallback::SERIALIZERS.fetch(:message_pack),
+        SerializerWithFallback::SERIALIZERS.fetch(:message_pack_allow_marshal),
+      ]
 
       ActiveSupport.on_load(:message_pack) do
-        ENVELOPE_SERIALIZERS.unshift ActiveSupport::MessagePack
-        TIMESTAMP_SERIALIZERS.unshift ActiveSupport::MessagePack
+        ENVELOPE_SERIALIZERS << ActiveSupport::MessagePack
+        TIMESTAMP_SERIALIZERS << ActiveSupport::MessagePack
       end
 
       private
