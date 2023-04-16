@@ -294,6 +294,9 @@ module ActiveRecord
           private
             def raise_on_if_exist_options(options)
             end
+
+            def raise_on_duplicate_column(name)
+            end
         end
 
         module CommandRecorder

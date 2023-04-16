@@ -282,6 +282,24 @@ module ActiveRecord
         connection.drop_table :tests, if_exists: true
       end
 
+      def test_create_table_allows_duplicate_column_names
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def migrate(x)
+            create_table :tests do |t|
+              t.integer :some_id
+              t.string :some_id
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        column = connection.columns(:tests).find { |column| column.name == "some_id" }
+        assert_equal :string, column.type
+      ensure
+        connection.drop_table :tests, if_exists: true
+      end
+
       if current_adapter?(:PostgreSQLAdapter)
         class Testing < ActiveRecord::Base
         end
