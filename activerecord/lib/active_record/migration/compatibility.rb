@@ -159,6 +159,13 @@ module ActiveRecord
             options[:precision] ||= nil
             super
           end
+
+          private
+            def raise_on_if_exist_options(options)
+            end
+
+            def raise_on_duplicate_column(name)
+            end
         end
 
         module CommandRecorder
