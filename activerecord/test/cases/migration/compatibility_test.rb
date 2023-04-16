@@ -250,6 +250,51 @@ module ActiveRecord
         end
       end
 
+      def test_options_are_not_validated
+        migration = Class.new(ActiveRecord::Migration[4.2]) {
+          def migrate(x)
+            create_table :tests, wrong_id: false do |t|
+              t.references :some_table, wrong_primary_key: true
+              t.integer :some_id, wrong_unique: true
+              t.string :some_string_column, wrong_null: false
+            end
+
+            add_column :tests, "last_name", :string, wrong_precision: true
+
+            change_column :tests, :some_id, :float, wrong_index: true
+
+            change_table :tests do |t|
+              t.change :some_id, :float, null: false, wrong_index: true
+              t.integer :another_id, wrong_unique: true
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        assert connection.table_exists?(:tests)
+      ensure
+        connection.drop_table :tests, if_exists: true
+      end
+
+      def test_create_table_allows_duplicate_column_names
+        migration = Class.new(ActiveRecord::Migration[5.2]) {
+          def migrate(x)
+            create_table :tests do |t|
+              t.integer :some_id
+              t.string :some_id
+            end
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        column = connection.columns(:tests).find { |column| column.name == "some_id" }
+        assert_equal :string, column.type
+      ensure
+        connection.drop_table :tests, if_exists: true
+      end
+
       if current_adapter?(:PostgreSQLAdapter)
         class Testing < ActiveRecord::Base
         end
