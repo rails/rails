@@ -221,7 +221,7 @@ class Module
               "..."
             else
               defn = parameters.filter_map { |type, arg| arg if type == :req }
-              defn << "&block" if parameters.last&.first == :block
+              defn << "&block"
               defn.join(", ")
             end
           else
