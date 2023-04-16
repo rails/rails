@@ -108,8 +108,8 @@ module ActiveSupport
     # ==== Options
     #
     # [+:digest+]
-    #   Digest used for signing. The default is +"SHA1"+. See +OpenSSL::Digest+
-    #   for alternatives.
+    #   Digest used for signing. The default is <tt>"SHA1"</tt>. See
+    #   +OpenSSL::Digest+ for alternatives.
     #
     # [+:serializer+]
     #   By default, MessageVerifier uses JSON to serialize the message. If you want
