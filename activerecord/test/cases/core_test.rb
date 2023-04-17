@@ -3,11 +3,11 @@
 require "cases/helper"
 require "models/person"
 require "models/topic"
+require "models/pk_with_default"
 require "pp"
 require "models/cpk"
 
 class NonExistentTable < ActiveRecord::Base; end
-class PkWithDefault < ActiveRecord::Base; end
 
 class CoreTest < ActiveRecord::TestCase
   fixtures :topics, :cpk_books
@@ -28,6 +28,28 @@ class CoreTest < ActiveRecord::TestCase
     assert_not saved_record.eql?(record), "saved record should not eql? new"
     assert_not record.eql?(record2),      "new record should not eql? new record"
     assert_not record2.eql?(record),      "new record should not eql? new record"
+  end
+
+  def test_hash_on_default_pk
+    record = PkWithDefault.new
+    assert_equal 123, record.id
+
+    record2 = PkWithDefault.new
+    assert_equal 123, record2.id
+
+    assert_equal record.hash, record.hash
+    assert_not_equal record2.hash, record.hash
+  end
+
+  def test_hash_on_changed_default_pk
+    record = PkWithDefault.new(id: 456)
+    assert_equal 456, record.id
+
+    record2 = PkWithDefault.new(id: 456)
+    assert_equal 456, record2.id
+
+    assert_equal record.hash, record.hash
+    assert_equal record2.hash, record.hash
   end
 
   def test_inspect_class

@@ -27,6 +27,10 @@ module ActiveRecord
         !!id
       end
 
+      def id_changed?
+        @attributes[@primary_key].changed?
+      end
+
       # Sets the primary key column's value.
       def id=(value)
         if self.class.composite_primary_key?
@@ -66,7 +70,7 @@ module ActiveRecord
         end
 
         module ClassMethods
-          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set
+          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database id_changed?).to_set
           PRIMARY_KEY_NOT_SET = BasicObject.new
 
           def instance_method_already_implemented?(method_name)

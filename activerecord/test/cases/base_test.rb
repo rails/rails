@@ -29,6 +29,7 @@ require "models/bulb"
 require "models/pet"
 require "models/owner"
 require "models/cpk"
+require "models/pk_with_default"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
@@ -622,6 +623,32 @@ class BasicsTest < ActiveRecord::TestCase
     topic_1.destroy
     assert_equal topic_1, topic_2
     assert_equal topic_2, topic_1
+  end
+
+  def test_equality_with_set_ids
+    one = Subscriber.new(id: 1)
+    two = Subscriber.new(id: 1)
+    assert_equal one, two
+  end
+
+  def test_equality_with_unset_ids
+    one = Subscriber.new
+    two = Subscriber.new
+    assert_not_equal one, two
+  end
+
+  def test_equality_with_unset_ids_and_default_values
+    one = PkWithDefault.new
+    two = PkWithDefault.new
+
+    assert_not_equal one, two
+  end
+
+  def test_equality_with_set_ids_and_default_values
+    one = PkWithDefault.new(id: 123)
+    two = PkWithDefault.new(id: 123)
+
+    assert_not_equal one, two
   end
 
   def test_equality_of_relation_and_collection_proxy
