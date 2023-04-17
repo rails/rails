@@ -1328,7 +1328,7 @@ When you declare a `has_one` association, the declaring class automatically gain
 * `create_association(attributes = {})`
 * `create_association!(attributes = {})`
 * `reload_association`
-* `reset_assocation`
+* `reset_association`
 
 In all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
