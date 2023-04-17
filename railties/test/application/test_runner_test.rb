@@ -595,7 +595,7 @@ module ApplicationTests
             assert true
           end
 
-          test "foo again" do
+          test "foo +  + again" do
             puts "hello again"
             assert true
           end
@@ -611,7 +611,7 @@ module ApplicationTests
         assert_match "1 runs, 1 assertions, 0 failures", output
       end
 
-      run_test_command("test/models/post_test.rb -n 'foo again'").tap do |output|
+      run_test_command("test/models/post_test.rb -n 'foo +  + again'").tap do |output|
         assert_match "hello again", output
         assert_match "1 runs, 1 assertions, 0 failures", output
       end
@@ -632,7 +632,7 @@ module ApplicationTests
             assert true
           end
 
-          test "greets bar" do
+          test "greets +  + bar" do
             puts "hello bar"
             assert true
           end
@@ -643,7 +643,41 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb -n '/greets foo|greets bar/'").tap do |output|
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
+        assert_match "hello foo", output
+        assert_match "hello again foo", output
+        assert_match "hello bar", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
+      end
+    end
+
+    def test_declarative_style_regexp_filter_with_minitest_spec
+      app_file "test/models/post_test.rb", <<~RUBY
+        require "minitest/spec"
+
+        class PostTest < Minitest::Spec
+          it "greets foo" do
+            puts "hello foo"
+            assert true
+          end
+
+          it "greets foo again" do
+            puts "hello again foo"
+            assert true
+          end
+
+          it "greets +  + bar" do
+            puts "hello bar"
+            assert true
+          end
+
+          it "greets no one" do
+            assert false
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
         assert_match "hello foo", output
         assert_match "hello again foo", output
         assert_match "hello bar", output
