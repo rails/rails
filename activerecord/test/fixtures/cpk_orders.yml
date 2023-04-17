@@ -3,9 +3,12 @@ _fixture:
 
 cpk_groceries_order_1:
   status: "paid"
+  name: "Order 1"
 
 cpk_groceries_order_2:
   status: "paid"
+  name: "Order 2"
 
 cpk_coffee_order_1:
   status: "cancelled"
+  name: "Coffee order 1"

@@ -258,10 +258,11 @@ ActiveRecord::Schema.define do
     t.string :comment
   end
 
-  create_table :cpk_orders, primary_key: [:shop_id, :id], force: true do |t|
+  # not a db-level composite primary key to have the `id` column being autoincremented
+  create_table :cpk_orders, force: true do |t|
     t.integer :shop_id
-    t.integer :id
     t.string :status
+    t.string :name
   end
 
   create_table :cpk_order_agreements, force: true do |t|

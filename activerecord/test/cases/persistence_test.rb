@@ -462,6 +462,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal("New Topic", topic_reloaded.title)
   end
 
+  def test_create_composite_primary_key
+    book = Cpk::Book.create(author_id: 111_222, number: 333, title: "created book")
+
+    assert_equal("created book", Cpk::Book.find(book.id).title)
+  end
+
+  def test_create_with_id_as_part_of_a_composite_primary_key
+    order = Cpk::Order.create(shop_id: 111_222, name: "created order")
+
+    _shop_id, order_id = order.id
+    assert_not_nil(order_id)
+    assert_equal("created order", Cpk::Order.find(order.id).name)
+  end
+
   def test_build
     topic = Topic.build(title: "New Topic")
     assert_equal "New Topic", topic.title

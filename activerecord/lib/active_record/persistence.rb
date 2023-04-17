@@ -1239,7 +1239,11 @@ module ActiveRecord
         attributes_with_values(attribute_names)
       )
 
-      self.id ||= new_id if @primary_key
+      if self.class.composite_primary_key?
+        _write_attribute("id", new_id) if has_attribute?("id") && !_read_attribute("id")
+      else
+        self.id ||= new_id if @primary_key
+      end
 
       @new_record = false
       @previously_new_record = true
