@@ -18,16 +18,16 @@ def run_without_aborting(*tasks)
   abort "Errors running #{errors.join(', ')}" if errors.any?
 end
 
-desc "Run mysql2, sqlite, and postgresql tests by default"
+desc "Run mysql2, trilogy, sqlite, and postgresql tests by default"
 task default: :test
 
 task :package
 
-desc "Run mysql2, sqlite, and postgresql tests"
+desc "Run mysql2, trilogy, sqlite, and postgresql tests"
 task :test do
   tasks = defined?(JRUBY_VERSION) ?
     %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-    %w(test_mysql2 test_sqlite3 test_postgresql)
+    %w(test_mysql2 test_trilogy test_sqlite3 test_postgresql)
   run_without_aborting(*tasks)
 end
 
@@ -35,7 +35,7 @@ namespace :test do
   task :isolated do
     tasks = defined?(JRUBY_VERSION) ?
       %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-      %w(isolated_test_mysql2 isolated_test_sqlite3 isolated_test_postgresql)
+      %w(isolated_test_mysql2 isolated_test_trilogy isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
   end
 
@@ -56,7 +56,7 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
@@ -64,10 +64,11 @@ end
       files = (FileList["test/cases/**/*_test.rb"].reject {
         |x| x.include?("/adapters/") || x.include?("/encryption/performance")
       } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
-      files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if adapter == "mysql2"
+      files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if ["mysql2", "trilogy"].include?(adapter)
 
       t.test_files = files
 
+      t.test_files = files
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)

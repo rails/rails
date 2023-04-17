@@ -2282,7 +2282,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate author.topics_without_type, :loaded?
 
     assert_queries(1) do
-      if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
         assert_equal fourth, author.topics_without_type.first
         assert_equal third, author.topics_without_type.second
       end

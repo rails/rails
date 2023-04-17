@@ -24,7 +24,11 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
     assert_raise ActiveRecord::NoDatabaseError do
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
-      connection = ActiveRecord::Base.mysql2_connection(configuration)
+      connection = if current_adapter?(:Mysql2Adapter)
+        ActiveRecord::Base.mysql2_connection(configuration)
+      else
+        ActiveRecord::Base.trilogy_connection(configuration)
+      end
       connection.drop_table "ex", if_exists: true
     end
   end
@@ -139,17 +143,19 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
     end
   end
 
-  def test_passing_arbitrary_flags_to_adapter
-    run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
-      assert_equal (Mysql2::Client::COMPRESS | Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+  unless current_adapter?(:TrilogyAdapter)
+    def test_passing_arbitrary_flags_to_adapter
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.merge(flags: Mysql2::Client::COMPRESS))
+        assert_equal (Mysql2::Client::COMPRESS | Mysql2::Client::FOUND_ROWS), ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+      end
     end
-  end
 
-  def test_passing_flags_by_array_to_adapter
-    run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge(flags: ["COMPRESS"]))
-      assert_equal ["COMPRESS", "FOUND_ROWS"], ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+    def test_passing_flags_by_array_to_adapter
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.merge(flags: ["COMPRESS"]))
+        assert_equal ["COMPRESS", "FOUND_ROWS"], ActiveRecord::Base.connection.raw_connection.query_options[:flags]
+      end
     end
   end
 

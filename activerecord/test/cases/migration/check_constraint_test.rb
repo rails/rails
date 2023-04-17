@@ -48,7 +48,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_equal "products", constraint.table_name
           assert_equal "products_price_check", constraint.name
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             assert_equal "`price` > `discounted_price`", constraint.expression
           else
             assert_equal "price > discounted_price", constraint.expression
@@ -116,7 +116,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_equal "trades", constraint.table_name
           assert_equal "chk_rails_2189e9f96c", constraint.name
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             assert_equal "`quantity` > 0", constraint.expression
           else
             assert_equal "quantity > 0", constraint.expression
@@ -246,7 +246,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_equal "trades", constraint.table_name
           assert_equal "price_check", constraint.name
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             assert_equal "`price` > 0", constraint.expression
           else
             assert_equal "price > 0", constraint.expression

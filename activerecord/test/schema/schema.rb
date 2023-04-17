@@ -205,7 +205,7 @@ ActiveRecord::Schema.define do
   create_table :carriers, force: true
 
   create_table :carts, force: true, primary_key: [:shop_id, :id] do |t|
-    if ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter)
+    if ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       t.bigint :id, index: true, auto_increment: true, null: false
     else
       t.bigint :id, index: true, null: false

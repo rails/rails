@@ -121,7 +121,7 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, **options)
           options[:_skip_validate_options] = true
-          if connection.adapter_name == "Mysql2"
+          if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
             options[:collation] = :no_collation
           end
           super
@@ -372,7 +372,7 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
-          if connection.adapter_name == "Mysql2"
+          if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
             super(table_name, options: "ENGINE=InnoDB", **options)
           else
             super
@@ -404,7 +404,7 @@ module ActiveRecord
             end
           end
 
-          unless connection.adapter_name == "Mysql2" && options[:id] == :bigint
+          unless ["Mysql2", "Trilogy"].include?(connection.adapter_name) && options[:id] == :bigint
             if [:integer, :bigint].include?(options[:id]) && !options.key?(:default)
               options[:default] = nil
             end

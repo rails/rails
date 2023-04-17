@@ -93,7 +93,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_rename_reference_column_of_child_table
-          if current_adapter?(:Mysql2Adapter) && !@connection.send(:supports_rename_index?)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && !@connection.send(:supports_rename_index?)
             skip "Cannot drop index, needed in a foreign key constraint"
           end
 
@@ -271,7 +271,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal 1, foreign_keys.size
 
           fk = foreign_keys.first
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             # ON DELETE RESTRICT is the default on MySQL
             assert_nil fk.on_delete
           else
@@ -748,7 +748,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
               @connection.add_foreign_key :astronauts, :rockets
             end
 
-            if current_adapter?(:Mysql2Adapter)
+            if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
               if ActiveRecord::Base.connection.mariadb?
                 assert_match(/Duplicate key on write or update/, error.message)
               elsif ActiveRecord::Base.connection.database_version < "5.6"

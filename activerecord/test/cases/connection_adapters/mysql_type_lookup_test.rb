@@ -6,7 +6,7 @@ require "support/connection_helper"
 module ActiveRecord
   module ConnectionAdapters
     class MysqlTypeLookupTest < ActiveRecord::TestCase
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         include ConnectionHelper
 
         setup do

@@ -193,7 +193,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs, category.attributes_before_type_cast
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     test "read attributes_before_type_cast on a boolean" do
       bool = Boolean.create!("value" => false)
       assert_equal 0, bool.reload.attributes_before_type_cast["value"]

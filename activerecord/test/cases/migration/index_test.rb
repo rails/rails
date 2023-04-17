@@ -255,7 +255,7 @@ module ActiveRecord
         connection.remove_index("testings", name: "named_admin")
 
         # Selected adapters support index sort order
-        if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter)
+        if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
           connection.add_index("testings", ["last_name"], order: { last_name: :desc })
           connection.remove_index("testings", ["last_name"])
           connection.add_index("testings", ["last_name", "first_name"], order: { last_name: :desc })

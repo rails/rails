@@ -1,3 +1,23 @@
+*   Introduce adapter for Trilogy database client
+
+    Trilogy is a MySQL-compatible database client. Rails applications can use Trilogy
+    by configuring their `config/database.yml`:
+
+    ```yaml
+    development:
+    adapter: trilogy
+    database: blog_development
+    pool: 5
+    ```
+
+    Or by using the `DATABASE_URL` environment variable:
+
+    ```ruby
+    ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
+    ```
+
+    *Adrianna Chang*
+
 *   `after_commit` callbacks defined on models now execute in the correct order.
 
     ```ruby

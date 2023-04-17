@@ -359,7 +359,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_not topic1.valid?
     assert_not topic1.save
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       # Case insensitive collation (utf8mb4_0900_ai_ci) by default.
       # Should not allow "David" if "david" exists.
       assert_not topic2.valid?
@@ -440,7 +440,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "abcdefgh")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "abcdefgh")
       end
@@ -459,7 +459,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "一二三四五六七八")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "一二三四五六七八")
       end

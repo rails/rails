@@ -170,7 +170,7 @@ module ActiveRecord
         assert_no_queries do
           assert_equal @database_version.to_s, @cache.database_version.to_s
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             assert_not_nil @cache.database_version.full_version_string
           end
         end

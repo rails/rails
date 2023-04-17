@@ -358,7 +358,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal({}, topic.content)
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_is_not_changed_when_stored_in_mysql_blob
       value = %w(Fée)
       model = BinaryField.create!(normal_blob: value, normal_text: value)

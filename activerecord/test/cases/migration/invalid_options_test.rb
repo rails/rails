@@ -10,7 +10,7 @@ module ActiveRecord
       def invalid_add_column_option_exception_message(key)
         default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":if_exists", ":if_not_exists"]
 
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           default_keys.concat([":auto_increment", ":charset", ":as", ":size", ":unsigned", ":first", ":after", ":type", ":stored"])
         elsif current_adapter?(:PostgreSQLAdapter)
           default_keys.concat([":array", ":using", ":cast_as", ":as", ":type", ":enum_type", ":stored"])
@@ -27,7 +27,7 @@ module ActiveRecord
         table_keys = [":temporary", ":if_not_exists", ":options", ":as", ":comment", ":charset", ":collation"]
         primary_keys = [":limit", ":default", ":precision"]
 
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           primary_keys.concat([":unsigned"])
         elsif current_adapter?(:SQLite3Adapter)
           table_keys.concat([":rename"])
@@ -95,7 +95,7 @@ module ActiveRecord
         )
       end
 
-      if current_adapter?(:Mysql2Adapter) || current_adapter?(:PostgreSQLAdapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
         def test_change_column_with_invalid_options
           exception = assert_raises(ArgumentError) do
             change_column "posts", "title", :text, liimit: true

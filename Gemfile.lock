@@ -507,6 +507,7 @@ GEM
     timeout (0.3.2)
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
+    trilogy (2.4.0)
     turbo-rails (1.3.2)
       actionpack (>= 6.0.0)
       activejob (>= 6.0.0)
@@ -618,6 +619,7 @@ DEPENDENCIES
   sucker_punch
   tailwindcss-rails
   terser (>= 1.1.4)
+  trilogy (~> 2.4)
   turbo-rails
   tzinfo-data
   w3c_validators (~> 1.3.6)
