@@ -53,7 +53,11 @@ module ActiveRecord
 
       # Returns the primary key column's value from the database.
       def id_in_database
-        attribute_in_database(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| attribute_in_database(col) }
+        else
+          attribute_in_database(@primary_key)
+        end
       end
 
       def id_for_database # :nodoc:
