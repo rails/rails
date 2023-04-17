@@ -498,9 +498,9 @@ module ActiveRecord
         def raise_on_duplicate_column(name)
           if @columns_hash[name]
             if @columns_hash[name].primary_key?
-              raise ArgumentError, "you can't redefine the primary key column '#{name}' on '#{@name}'. To define a custom primary key, pass { id: false } to create_table."
+              raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
             else
-              raise ArgumentError, "you can't define an already defined column '#{name}' on '#{@name}'."
+              raise ArgumentError, "you can't define an already defined column '#{name}'."
             end
           end
         end
