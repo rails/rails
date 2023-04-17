@@ -392,7 +392,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.disable_query_cache!
   end
 
-  def test_reset_assocation
+  def test_reset_association
     odegy = companies(:odegy)
 
     assert_equal 53, odegy.account.credit_limit
