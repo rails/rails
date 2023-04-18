@@ -12,6 +12,7 @@ require "models/author"
 require "models/person"
 require "models/essay"
 require "models/keyboard"
+require "models/cpk"
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -809,5 +810,24 @@ class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
     assert_queries(1) do
       t.valid?
     end
+  end
+end
+
+class UniquenessWithCompositeKey < ActiveRecord::TestCase
+  class BookWithUniqueRevision < Cpk::Book
+    validates :revision, uniqueness: true
+  end
+
+  def test_uniqueness_validation_for_model_with_composite_key
+    book_one = BookWithUniqueRevision.create!(author_id: 1, number: 42, title: "Author 1's book", revision: 36)
+    book_two = BookWithUniqueRevision.create!(author_id: 2, number: 42, title: "Author 2's book", revision: 37)
+
+    assert_not_equal book_one.revision, book_two.revision
+
+    assert_changes("book_two.valid?", from: true, to: false) do
+      book_two.revision = book_one.revision
+    end
+  ensure
+    BookWithUniqueRevision.delete_all
   end
 end
