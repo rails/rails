@@ -22,8 +22,10 @@ module ActiveSupport
             when :silence, :behavior=, :disallowed_behavior=, :disallowed_warnings=, :silenced=, :debug=
               target = "(defined?(Rails.application.deprecators) ? Rails.application.deprecators : ActiveSupport::Deprecation._instance)"
               "Rails.application.deprecators.#{method_name}"
-            when :warn, :deprecate_methods, :gem_name, :gem_name=, :deprecation_horizon, :deprecation_horizon=
+            when :deprecate_methods, :gem_name, :gem_name=, :deprecation_horizon, :deprecation_horizon=
               "your own Deprecation object"
+            when :warn
+              "`ActiveSupport.deprecator.warn`"
             else
               "Rails.application.deprecators[framework].#{method_name} where framework is for example :active_record"
             end

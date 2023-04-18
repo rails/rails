@@ -765,7 +765,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
     assert_equal 2, deprecations.size
     assert_match("foo", deprecations.first)
-    assert_match("use your own Deprecation object instead", deprecations.last)
+    assert_match("Calling warn on ActiveSupport::Deprecation is deprecated and will be removed from Rails (use `ActiveSupport.deprecator.warn` instead)", deprecations.last)
   end
 
   test "deprecate_methods delegator is deprecated" do
