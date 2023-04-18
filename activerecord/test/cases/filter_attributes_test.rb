@@ -68,7 +68,6 @@ class FilterAttributesTest < ActiveRecord::TestCase
     ActiveRecord::Base.filter_attributes = [ lambda { |key, value| value.reverse! if key == "name" } ]
     account = Admin::Account.new(id: 123, name: "37signals")
     account.inspect
-    account.save!
     assert_equal account, Marshal.load(Marshal.dump(account))
   end
 

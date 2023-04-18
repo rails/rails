@@ -1411,10 +1411,6 @@ ActiveRecord::Schema.define do
     t.bigint :toooooooo_long_a_id, null: false
     t.bigint :toooooooo_long_b_id, null: false
   end
-
-  create_table :pk_with_defaults, id: false, force: true do |t|
-    t.bigint :id, default: 123
-  end
 end
 
 Course.connection.create_table :courses, force: true do |t|
