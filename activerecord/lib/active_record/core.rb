@@ -551,12 +551,10 @@ module ActiveRecord
     # Note also that destroying a record preserves its ID in the model instance, so deleted
     # models are still comparable.
     def ==(comparison_object)
-      return super if new_record?
       super ||
         comparison_object.instance_of?(self.class) &&
         primary_key_values_present? &&
-        comparison_object.id == id &&
-        !comparison_object.new_record?
+        comparison_object.id == id
     end
     alias :eql? :==
 
@@ -565,8 +563,8 @@ module ActiveRecord
     def hash
       id = self.id
 
-      if primary_key_values_present? && !new_record?
-        [self.class, id].hash
+      if primary_key_values_present?
+        self.class.hash ^ id.hash
       else
         super
       end

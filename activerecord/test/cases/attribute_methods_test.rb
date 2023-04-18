@@ -811,10 +811,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "YAML dumping a record with time zone-aware attribute" do
     in_time_zone "Pacific Time (US & Canada)" do
-      Topic.where(id: 1).delete_all
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
-      record.save!
       payload = YAML.dump(record)
       assert_equal record, YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
     end

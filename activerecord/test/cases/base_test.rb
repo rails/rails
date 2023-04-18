@@ -625,6 +625,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal topic_2, topic_1
   end
 
+  def test_equality_with_blank_ids
+    one = Subscriber.new(id: "")
+    two = Subscriber.new(id: "")
+    assert_equal one, two
+  end
+
   def test_equality_of_relation_and_collection_proxy
     car = Car.create!
     car.bulbs.build
