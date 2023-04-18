@@ -227,6 +227,23 @@ module TestHelpers
       YAML
     end
 
+    def with_unhealthy_database(&block)
+      # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3Adapter objects
+      require "active_record/connection_adapters/sqlite3_adapter"
+
+      # We need to change the `database_version` to match what is expected for MySQL
+      dump_path = File.join(app_path, "db/schema_cache.yml")
+      if File.exist?(dump_path)
+        schema_cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(dump_path)
+        schema_cache.connection = Struct.new(:schema_version).new(schema_cache.version)
+        schema_cache.instance_variable_set(:@database_version, ActiveRecord::ConnectionAdapters::AbstractAdapter::Version.new("8.8.8"))
+        File.write(dump_path, YAML.dump(schema_cache))
+      end
+
+      # We load the app while pointing at a non-existing MySQL server
+      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1", &block)
+    end
+
     # Make a very basic app, without creating the whole directory structure.
     # This is faster and simpler than the method above.
     def make_basic_app

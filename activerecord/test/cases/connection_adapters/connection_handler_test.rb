@@ -354,9 +354,9 @@ module ActiveRecord
 
           pid = fork {
             rd.close
-            if ActiveRecord::Base.connection.active?
-              wr.write Marshal.dump ActiveRecord::Base.connection.object_id
-            end
+            wr.write Marshal.dump [
+              ActiveRecord::Base.connection.object_id,
+            ]
             wr.close
 
             exit # allow finalizers to run
@@ -365,7 +365,8 @@ module ActiveRecord
           wr.close
 
           Process.waitpid pid
-          assert_not_equal object_id, Marshal.load(rd.read)
+          child_id = Marshal.load(rd.read)
+          assert_not_equal object_id, child_id
           rd.close
 
           assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
@@ -385,11 +386,11 @@ module ActiveRecord
 
               pid = fork {
                 rd.close
-                if ActiveRecord::Base.connection.active?
-                  pair = [ActiveRecord::Base.connection.object_id,
-                          ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
-                  wr.write Marshal.dump pair
-                end
+                wr.write Marshal.dump [
+                  !!ActiveRecord::Base.connection.active?,
+                  ActiveRecord::Base.connection.object_id,
+                  ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people"),
+                ]
                 wr.close
 
                 exit # allow finalizers to run
@@ -401,8 +402,9 @@ module ActiveRecord
             wr.close
 
             Process.waitpid outer_pid
-            child_id, child_count = Marshal.load(rd.read)
+            active, child_id, child_count = Marshal.load(rd.read)
 
+            assert_equal false, active
             assert_not_equal object_id, child_id
             rd.close
 
