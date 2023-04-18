@@ -98,17 +98,17 @@ module RailsGuides
             hierarchy = []
 
             doc.children.each do |node|
-              if /^h[3-6]$/.match?(node.name)
+              if /^h[2-5]$/.match?(node.name)
                 case node.name
-                when "h3"
+                when "h2"
                   hierarchy = [node]
                   @headings_for_index << [1, node, node.inner_html]
-                when "h4"
+                when "h3"
                   hierarchy = hierarchy[0, 1] + [node]
                   @headings_for_index << [2, node, node.inner_html]
-                when "h5"
+                when "h4"
                   hierarchy = hierarchy[0, 2] + [node]
-                when "h6"
+                when "h5"
                   hierarchy = hierarchy[0, 3] + [node]
                 end
 
@@ -117,7 +117,7 @@ module RailsGuides
               end
             end
 
-            doc.css("h3, h4, h5, h6").each do |node|
+            doc.css("h2, h3, h4, h5").each do |node|
               node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
             end
           end

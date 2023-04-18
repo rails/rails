@@ -33,9 +33,6 @@ module RailsGuides
       end
 
       def header(text, header_level)
-        # Always increase the heading level by 1, so we can use h1, h2 heading in the document
-        header_level += 1
-
         header_with_id = text.scan(/(.*){#(.*)}/)
         unless header_with_id.empty?
           %(<h#{header_level} id="#{header_with_id[0][1].strip}">#{header_with_id[0][0].strip}</h#{header_level}>)
