@@ -219,7 +219,7 @@ module ApplicationTests
     test "can boot with an unhealthy database" do
       rails %w(generate model post title:string)
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
+      with_unhealthy_database do
         require "#{app_path}/config/environment"
       end
     end
@@ -261,15 +261,17 @@ module ApplicationTests
         config.eager_load = true
       RUBY
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
-        # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3::Column objects
-        require "active_record/connection_adapters/sqlite3/column"
-
+      with_unhealthy_database do
         require "#{app_path}/config/environment"
 
-        assert_nil ActiveRecord::Base.connection_pool.schema_cache
+        assert_not_nil ActiveRecord::Base.connection_pool.schema_cache
+
         assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.connection.execute("SELECT 1")
+        end
+
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.connection_pool.schema_cache.columns("posts")
         end
       end
     end
@@ -296,10 +298,7 @@ module ApplicationTests
         config.active_record.check_schema_cache_dump_version = false
       RUBY
 
-      switch_env("DATABASE_URL", "mysql2://127.0.0.1:1") do
-        # The existing schema cache dump will contain ActiveRecord::ConnectionAdapters::SQLite3::Column objects
-        require "active_record/connection_adapters/sqlite3/column"
-
+      with_unhealthy_database do
         require "#{app_path}/config/environment"
 
         assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")

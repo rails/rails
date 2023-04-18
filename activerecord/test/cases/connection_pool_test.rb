@@ -83,6 +83,18 @@ module ActiveRecord
         assert_equal 0, active_connections(pool).size
       end
 
+      def test_new_connection_no_query
+        skip("Can't test with in-memory dbs") if in_memory_db?
+        assert_equal 0, pool.connections.size
+        pool.with_connection { |_conn| } # warm the schema cache
+        pool.flush(0)
+        assert_equal 0, pool.connections.size
+
+        assert_no_queries do
+          pool.with_connection { |_conn| }
+        end
+      end
+
       def test_active_connection_in_use
         assert_not_predicate pool, :active_connection?
         main_thread = pool.connection

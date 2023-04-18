@@ -180,6 +180,7 @@ module ActiveRecord
 
           child = Thread.new do
             conn = pool.checkout
+            conn.query("SELECT 1") # ensure connected
             event.set
             Thread.stop
           end
