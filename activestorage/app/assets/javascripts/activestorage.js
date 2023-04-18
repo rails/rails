@@ -327,7 +327,7 @@
         return {
           buff: this._buff,
           length: this._length,
-          hash: this._hash
+          hash: this._hash.slice()
         };
       };
       SparkMD5.prototype.setState = function(state) {
