@@ -38,17 +38,29 @@ module ActiveRecord
 
       # Queries the primary key column's value.
       def id?
-        query_attribute(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.all? { |col| query_attribute(col) }
+        else
+          query_attribute(@primary_key)
+        end
       end
 
       # Returns the primary key column's value before type cast.
       def id_before_type_cast
-        attribute_before_type_cast(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| attribute_before_type_cast(col) }
+        else
+          attribute_before_type_cast(@primary_key)
+        end
       end
 
       # Returns the primary key column's previous value.
       def id_was
-        attribute_was(@primary_key)
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| attribute_was(col) }
+        else
+          attribute_was(@primary_key)
+        end
       end
 
       # Returns the primary key column's value from the database.
@@ -61,7 +73,11 @@ module ActiveRecord
       end
 
       def id_for_database # :nodoc:
-        @attributes[@primary_key].value_for_database
+        if self.class.composite_primary_key?
+          @primary_key.map { |col| @attributes[col].value_for_database }
+        else
+          @attributes[@primary_key].value_for_database
+        end
       end
 
       private
