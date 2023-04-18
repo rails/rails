@@ -147,6 +147,42 @@ if ActiveRecord::Base.connection.supports_unique_keys?
           end
         end
 
+        def test_add_unique_key_with_name_and_using_index
+          @connection.add_index :sections, [:position], name: "unique_index", unique: true
+          @connection.add_unique_key :sections, name: "unique_constraint", deferrable: :immediate, using_index: "unique_index"
+
+          unique_keys = @connection.unique_keys("sections")
+          assert_equal 1, unique_keys.size
+
+          constraint = unique_keys.first
+          assert_equal "sections", constraint.table_name
+          assert_equal "unique_constraint", constraint.name
+          assert_equal ["position"], constraint.columns
+          assert_equal :immediate, constraint.deferrable
+        end
+
+        def test_add_unique_key_with_only_using_index
+          @connection.add_index :sections, [:position], name: "unique_index", unique: true
+          @connection.add_unique_key :sections, using_index: "unique_index"
+
+          unique_keys = @connection.unique_keys("sections")
+          assert_equal 1, unique_keys.size
+
+          constraint = unique_keys.first
+          assert_equal "sections", constraint.table_name
+          assert_equal "uniq_rails_79b901ffb4", constraint.name
+          assert_equal ["position"], constraint.columns
+          assert_equal false, constraint.deferrable
+        end
+
+        def test_add_unique_key_with_columns_and_using_index
+          @connection.add_index :sections, [:position], name: "unique_index", unique: true
+
+          assert_raises(ArgumentError) do
+            @connection.add_unique_key :sections, [:position], using_index: "unique_index"
+          end
+        end
+
         def test_remove_unique_key
           assert_equal 0, @connection.unique_keys("sections").size
 

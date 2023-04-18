@@ -471,6 +471,12 @@ module ActiveRecord
         end
       end
 
+      def test_invert_add_unique_key_constraint_with_using_index
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :add_unique_key, [:dogs, using_index: "unique_index"]
+        end
+      end
+
       def test_invert_remove_unique_key_constraint
         enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"]
         assert_equal [:add_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"], nil], enable

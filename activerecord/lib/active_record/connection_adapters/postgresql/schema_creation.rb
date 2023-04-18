@@ -53,7 +53,12 @@ module ActiveRecord
             sql = ["CONSTRAINT"]
             sql << quote_column_name(o.name)
             sql << "UNIQUE"
-            sql << "(#{column_name})"
+
+            if o.using_index
+              sql << "USING INDEX #{quote_column_name(o.using_index)}"
+            else
+              sql << "(#{column_name})"
+            end
 
             if o.deferrable
               sql << "DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}"
