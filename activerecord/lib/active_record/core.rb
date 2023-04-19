@@ -565,7 +565,7 @@ module ActiveRecord
       id = self.id
 
       if primary_key_values_present?
-        self.class.hash ^ id.hash
+        [self.class, id].hash
       else
         super
       end
