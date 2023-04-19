@@ -700,24 +700,24 @@ module ActiveRecord
 
         # Adds a new unique constraint to the table.
         #
-        # PostgreSQL allows users to create a unique constraints on top of the unique index
-        # that cannot be deferred. In this case, even if users creates deferrable unique constraint,
-        # the existing unique index does not allow users to violate uniqueness within the transaction.
-        # If you want to change existing unique index to deferrable, you need execute `remove_index`
-        # before creating deferrable unique constraints.
-        #
         #   add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_position"
         #
         # generates:
         #
         #   ALTER TABLE "sections" ADD CONSTRAINT unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED
         #
+        # If you want to change an existing unique index to deferrable, you can use :using_index to create deferrable unique constraints.
+        #
+        #   add_unique_key :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
+        #
         # The +options+ hash can include the following keys:
         # [<tt>:name</tt>]
         #   The constraint name. Defaults to <tt>uniq_rails_<identifier></tt>.
         # [<tt>:deferrable</tt>]
         #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
-        def add_unique_key(table_name, column_name, **options)
+        # [<tt>:using_index</tt>]
+        #   To specify an existing unique index name. Defaults to +nil+.
+        def add_unique_key(table_name, column_name = nil, **options)
           options = unique_key_options(table_name, column_name, options)
           at = create_alter_table(table_name)
           at.add_unique_key(column_name, options)
@@ -727,6 +727,10 @@ module ActiveRecord
 
         def unique_key_options(table_name, column_name, options) # :nodoc:
           assert_valid_deferrable(options[:deferrable])
+
+          if column_name && options[:using_index]
+            raise ArgumentError, "Cannot specify both column_name and :using_index options."
+          end
 
           options = options.dup
           options[:name] ||= unique_key_name(table_name, column_name: column_name, **options)
@@ -1016,8 +1020,8 @@ module ActiveRecord
 
           def unique_key_name(table_name, **options)
             options.fetch(:name) do
-              column_name = options.fetch(:column_name)
-              identifier = "#{table_name}_#{column_name}_unique"
+              column_name_or_index_name = options.fetch(:column_name) || options[:using_index]
+              identifier = "#{table_name}_#{column_name_or_index_name}_unique"
               hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
 
               "uniq_rails_#{hashed_identifier}"

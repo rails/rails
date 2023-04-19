@@ -228,11 +228,12 @@
     add_unique_key :items, [:position], deferrable: :deferred
     ```
 
-    PostgreSQL allows users to create a unique constraints on top of the unique
-    index that cannot be deferred. In this case, even if users creates deferrable
-    unique constraint, the existing unique index does not allow users to violate uniqueness
-    within the transaction. If you want to change existing unique index to deferrable,
-    you need execute `remove_index` before creating deferrable unique constraints.
+    If you want to change an existing unique index to deferrable, you can use :using_index
+    to create deferrable unique constraints.
+
+    ```ruby
+    add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_position"
+    ```
 
     *Hiroyuki Ishii*
 

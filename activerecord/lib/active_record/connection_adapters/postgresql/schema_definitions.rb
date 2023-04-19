@@ -220,6 +220,10 @@ module ActiveRecord
           options[:deferrable]
         end
 
+        def using_index
+          options[:using_index]
+        end
+
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.unique_ignore_pattern.match?(name) if name
         end
