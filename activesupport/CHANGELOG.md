@@ -1,3 +1,12 @@
+*   Allow `String#pluralize` to take a countable object as count argument
+
+    ```ruby
+    sports = %w[cricket baseball hockey]
+    "sport".pluralize(sports) # => "sports"
+    ```
+
+    *David A. Black*
+
 *   Deprecate usage of the singleton `ActiveSupport::Deprecation`.
 
     All usage of `ActiveSupport::Deprecation` as a singleton is deprecated, the most common one being

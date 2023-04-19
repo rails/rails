@@ -36,6 +36,8 @@ class String
     locale = count if count.is_a?(Symbol)
     if count == 1
       dup
+    elsif count.respond_to?(:count)
+      pluralize(count.count, locale)
     else
       ActiveSupport::Inflector.pluralize(self, locale)
     end
