@@ -32,6 +32,10 @@ module ActiveSupport
       def delete_matched(matcher, options = nil)
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name} options=#{@options.inspect}>"
+      end
+
       private
         def read_entry(key, **s)
           deserialize_entry(read_serialized_entry(key))
