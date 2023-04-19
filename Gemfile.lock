@@ -1,4 +1,12 @@
 GIT
+  remote: https://github.com/github/trilogy.git
+  revision: 8e4ae98569c12894da9bcbee5edb32b76068dbfd
+  branch: main
+  glob: contrib/ruby/*.gemspec
+  specs:
+    trilogy (2.4.0)
+
+GIT
   remote: https://github.com/matthewd/websocket-client-simple.git
   revision: e161305f1a466b9398d86df3b1731b03362da91b
   branch: close-race
@@ -338,8 +346,12 @@ GEM
     net-smtp (0.3.3)
       net-protocol
     nio4r (2.5.8)
-    nokogiri (1.13.10)
+    nokogiri (1.14.3)
       mini_portile2 (~> 2.8.0)
+      racc (~> 1.4)
+    nokogiri (1.14.3-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.14.3-x86_64-linux)
       racc (~> 1.4)
     os (1.1.4)
     parallel (1.22.1)
@@ -486,8 +498,10 @@ GEM
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
-    sqlite3 (1.5.4)
+    sqlite3 (1.6.2)
       mini_portile2 (~> 2.8.0)
+    sqlite3 (1.6.2-x86_64-darwin)
+    sqlite3 (1.6.2-x86_64-linux)
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
@@ -507,7 +521,6 @@ GEM
     timeout (0.3.2)
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
-    trilogy (2.4.0)
     turbo-rails (1.3.2)
       actionpack (>= 6.0.0)
       activejob (>= 6.0.0)
@@ -619,7 +632,7 @@ DEPENDENCIES
   sucker_punch
   tailwindcss-rails
   terser (>= 1.1.4)
-  trilogy (~> 2.4)
+  trilogy!
   turbo-rails
   tzinfo-data
   w3c_validators (~> 1.3.6)
