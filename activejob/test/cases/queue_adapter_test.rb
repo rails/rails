@@ -50,4 +50,23 @@ class QueueAdapterTest < ActiveJob::TestCase
 
     assert_not_nil child_job_three.queue_adapter
   end
+
+  test "should extract a reasonable name from a class instance" do
+    child_job = Class.new(ActiveJob::Base)
+    child_job.queue_adapter = ActiveJob::QueueAdapters::StubOneAdapter.new
+    assert_equal "stub_one", child_job.queue_adapter_name
+  end
+
+  module StubThreeAdapter
+    class << self
+      def enqueue(*); end
+      def enqueue_at(*); end
+    end
+  end
+
+  test "should extract a reasonable name from a class or module" do
+    child_job = Class.new(ActiveJob::Base)
+    child_job.queue_adapter = StubThreeAdapter
+    assert_equal "stub_three", child_job.queue_adapter_name
+  end
 end

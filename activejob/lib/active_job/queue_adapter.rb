@@ -43,7 +43,8 @@ module ActiveJob
           assign_adapter(name_or_adapter.to_s, queue_adapter)
         else
           if queue_adapter?(name_or_adapter)
-            adapter_name = "#{name_or_adapter.class.name.demodulize.remove('Adapter').underscore}"
+            adapter_class = name_or_adapter.is_a?(Module) ? name_or_adapter : name_or_adapter.class
+            adapter_name = "#{adapter_class.name.demodulize.remove('Adapter').underscore}"
             assign_adapter(adapter_name, name_or_adapter)
           else
             raise ArgumentError
