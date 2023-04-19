@@ -1048,25 +1048,25 @@ Over the years there have been multiple default approaches for handling the asse
 
 We are aware that there are no one-size-fits-it-all solutions for the various JavaScript and CSS frameworks/extensions available. There are other bundling libraries in the Rails ecosystem that should empower you in the cases where the default setup isn't enough.
 
-### [jsbundling-rails](https://github.com/rails/jsbundling-rails)
+### jsbundling-rails
 
-A Node.js dependent alternative to the `importmap-rails` way of bundling JavaScript with [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/).
+[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) is a Node.js dependent alternative to the `importmap-rails` way of bundling JavaScript with [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/).
 
 The gem provides `yarn build --watch` process to automatically generate output in development. For production, it automatically hooks `javascript:build` task into `assets:precompile` task to ensure that all your package dependencies have been installed and JavaScript has been built for all entry points.
 
 **When to use instead of `importmap-rails`?** If your JavaScript code depends on transpiling so if you are using [Babel](https://babeljs.io/), [TypeScript](https://www.typescriptlang.org/) or React `JSX` format then `jsbundling-rails` is the correct way to go.
 
-### [Webpacker/Shakapacker](webpacker.html)
+### Webpacker/Shakapacker
 
-Webpacker was the default JavaScript pre-processor and bundler for Rails 5 and 6. It has now been retired. A successor called [`shakapacker`](https://github.com/shakacode/shakapacker) exists, but is not maintained by the Rails team or project.
+[`Webpacker`](webpacker.html) was the default JavaScript pre-processor and bundler for Rails 5 and 6. It has now been retired. A successor called [`shakapacker`](https://github.com/shakacode/shakapacker) exists, but is not maintained by the Rails team or project.
 
 Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files. Read the [Webpacker guide](https://guides.rubyonrails.org/webpacker.html) to learn more.
 
 NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-rails/blob/main/docs/comparison_with_webpacker.md) document to understand the differences between `jsbundling-rails` and `webpacker`/`shakapacker`.
 
-### [cssbundling-rails](https://github.com/rails/cssbundling-rails)
+### cssbundling-rails
 
-Allows bundling and processing of your CSS using [Tailwind CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/), [Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart Sass](https://sass-lang.com/), then delivers the CSS via the asset pipeline.
+[`cssbundling-rails`](https://github.com/rails/cssbundling-rails) allows bundling and processing of your CSS using [Tailwind CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/), [Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart Sass](https://sass-lang.com/), then delivers the CSS via the asset pipeline.
 
 It works in a similar way to `jsbundling-rails` so adds the Node.js dependency to your application with `yarn build:css --watch` process to regenerate your stylesheets in development and hooks into `assets:precompile` task in production.
 
@@ -1074,14 +1074,14 @@ It works in a similar way to `jsbundling-rails` so adds the Node.js dependency t
 
 NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your Javascripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
 
-### [dartsass-rails](https://github.com/rails/dartsass-rails)
+### dartsass-rails
 
-If you want to use [`Sass`](https://sass-lang.com/) in your application, `dartsass-rails` comes as a replacement for the legacy `sassc-rails` gem. `dartsass-rails` uses the `Dart Sass` implementation in favour of deprecated in 2020 [`LibSass`](https://sass-lang.com/blog/libsass-is-deprecated) used by `sassc-rails`.
+If you want to use [`Sass`](https://sass-lang.com/) in your application, [`dartsass-rails`](https://github.com/rails/dartsass-rails) comes as a replacement for the legacy `sassc-rails` gem. `dartsass-rails` uses the `Dart Sass` implementation in favour of deprecated in 2020 [`LibSass`](https://sass-lang.com/blog/libsass-is-deprecated) used by `sassc-rails`.
 
 Unlike `sassc-rails` the new gem is not directly integrated with `Sprockets`. Please refer to the [gem homepage](https://github.com/rails/dartsass-rails) for installation/migration instructions.
 
 WARNING: The popular `sassc-rails` gem is unmaintained since 2019.
 
-### [tailwindcss-rails](https://github.com/rails/tailwindcss-rails)
+### tailwindcss-rails
 
-Wrapper gem for [the standalone executable version](https://tailwindcss.com/blog/standalone-cli) of Tailwind CSS v3 framework. Used for new applications when `--css tailwind` is provided to the `rails new` command. Provides a `watch` process to automatically generate Tailwind output in development. For production it hooks into `assets:precompile` task.
+[`tailwindcss-rails`](https://github.com/rails/tailwindcss-rails) is a wrapper gem for [the standalone executable version](https://tailwindcss.com/blog/standalone-cli) of Tailwind CSS v3 framework. Used for new applications when `--css tailwind` is provided to the `rails new` command. Provides a `watch` process to automatically generate Tailwind output in development. For production it hooks into `assets:precompile` task.
