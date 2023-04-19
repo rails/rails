@@ -25,7 +25,7 @@ module ActiveRecord
       def primary_key_values_present? # :nodoc:
         return id.all? if self.class.composite_primary_key?
 
-        !!id
+        id != self.class._default_attributes["id"].value
       end
 
       # Sets the primary key column's value.
