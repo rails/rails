@@ -26,7 +26,7 @@ module ActiveRecord
           when Array
             value.map { |v| convert_to_id(v) }
           else
-            convert_to_id(value)
+            [convert_to_id(value)]
           end
         end
 
