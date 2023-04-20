@@ -24,10 +24,6 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
   end
 
-  teardown do
-    @adapter.disconnect!
-  end
-
   test "#explain for one query" do
     explain = @adapter.explain("select * from posts")
     assert_match %(possible_keys), explain
