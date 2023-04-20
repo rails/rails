@@ -131,12 +131,17 @@ module ActiveSupport
           MSG
           @data = addresses.first
         else
-          mem_cache_options = options.dup
+          @mem_cache_options = options.dup
           # The value "compress: false" prevents duplicate compression within Dalli.
-          mem_cache_options[:compress] = false
-          (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| mem_cache_options.delete(name) }
-          @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
+          @mem_cache_options[:compress] = false
+          (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
+          @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
         end
+      end
+
+      def inspect
+        instance = @data || @mem_cache_options
+        "#<#{self.class} options=#{options.inspect} mem_cache=#{instance.inspect}>"
       end
 
       ##
