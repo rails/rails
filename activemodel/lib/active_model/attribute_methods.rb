@@ -214,13 +214,22 @@ module ActiveModel
               mangled_name = "__temp__#{target_name.unpack1("h*")}"
             end
 
-            code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
+            target_name_is_a_reserved_method = framework_reserved_method?(target_name)
+
+            namespace = target_name_is_a_reserved_method ? :proxy_alias_attribute : :alias_attribute
+            code_generator.define_cached_method(method_name, as: mangled_name, namespace: namespace) do |batch|
               body = if CALL_COMPILABLE_REGEXP.match?(target_name)
-                "self.#{target_name}(#{parameters || ''})"
+                if target_name_is_a_reserved_method
+                  proxy_compilable_alias_attribute_method_body_for(old_name, pattern, parameters)
+                else
+                  compilable_alias_attribute_method_body_for(old_name, pattern, parameters)
+                end
               else
-                call_args = [":'#{target_name}'"]
-                call_args << parameters if parameters
-                "send(#{call_args.join(", ")})"
+                if target_name_is_a_reserved_method
+                  proxy_dynamic_alias_attribute_method_body_for(old_name, pattern, parameters)
+                else
+                  dynamic_alias_attribute_method_body_for(old_name, pattern, parameters)
+                end
               end
 
               modifier = pattern.parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
@@ -232,6 +241,10 @@ module ActiveModel
             end
           end
         end
+      end
+
+      def framework_reserved_method?(_method_name) # :nodoc:
+        false
       end
 
       # Is +new_name+ an alias?
@@ -415,6 +428,42 @@ module ActiveModel
               body <<
               "end"
           end
+        end
+
+        # Generates body that calls the original method directly.
+        # For example for a method like `subject_was` it generates the following body:
+        # self.title_was
+        def compilable_alias_attribute_method_body_for(old_name, pattern, parameters)
+          target_name = pattern.method_name(old_name).to_s
+          "self.#{target_name}(#{parameters || ''})"
+        end
+
+        # Generates body that calls the original method using `send`.
+        # For example for a method like `subject_was` it generates the following body:
+        # send(:title_was)
+        def dynamic_alias_attribute_method_body_for(old_name, pattern, parameters)
+          target_name = pattern.method_name(old_name).to_s
+
+          call_args = [":'#{target_name}'"]
+          call_args << parameters if parameters
+          "send(#{call_args.join(", ")})"
+        end
+
+        # Generates body that calls the abstract proxy method directly.
+        # For example for a method like `subject_was` it generates the following body:
+        # self.attribute_was("title")
+        def proxy_compilable_alias_attribute_method_body_for(old_name, pattern, parameters)
+          args = ", #{parameters}" if parameters
+          "self.#{pattern.proxy_target}(\"#{old_name}\" #{args})"
+        end
+
+        # Generates body that calls the abstract proxy method using `send`.
+        # For example for a method like `subject_was` it generates the following body:
+        # send(:attribute_was, "title")
+        def proxy_dynamic_alias_attribute_method_body_for(old_name, pattern, parameters)
+          call_args = [":'#{pattern.proxy_target}'", "'id'"]
+          call_args << parameters if parameters
+          "send(#{call_args.join(", ")})"
         end
 
         class AttributeMethodPattern # :nodoc:

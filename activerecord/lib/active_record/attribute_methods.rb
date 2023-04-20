@@ -106,6 +106,11 @@ module ActiveRecord
         ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(name.to_s)
       end
 
+      # Same as dangerous_attribute_method? but includes primary key methods.
+      def framework_reserved_method?(method_name) # :nodoc:
+        ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(method_name.to_s)
+      end
+
       def method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
         if klass.method_defined?(name) || klass.private_method_defined?(name)
           if superklass.method_defined?(name) || superklass.private_method_defined?(name)

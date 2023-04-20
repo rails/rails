@@ -13,6 +13,7 @@ require "models/reply"
 require "models/contact"
 require "models/keyboard"
 require "models/numeric_data"
+require "models/cpk"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -28,6 +29,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   teardown do
     ActiveRecord::Base.send(:attribute_method_patterns).clear
     ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
+  end
+
+  test "aliasing `id` attribute allows reading the column value" do
+    t = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
+
+    assert_not_nil(t.id_value)
+    assert_equal(123_456, t.id_value)
+  ensure
+    t.delete
+  end
+
+  test "aliasing `id` attribute allows reading the column value for a CPK model" do
+    order = Cpk::Order.create(id: [1, 123_456])
+
+    assert_not_nil(order.id_value)
+    assert_equal(123_456, order.id_value)
+  ensure
+    order.delete
   end
 
   test "attribute_for_inspect with a string" do

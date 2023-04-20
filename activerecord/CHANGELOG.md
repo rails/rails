@@ -1,3 +1,25 @@
+*   `alias_attribute` can be used to alias columns named Active Record reserved terms.
+
+    If database schema end up having column named with one of the reserved terms like
+    `id_before_type_cast`, `id_was`, `id_in_database`, `id_for_database` or `id` where `id` is not being used as a
+    primary key it is possible to alias attribute to a new name to be able to access the column value.
+
+    For example:
+
+    ```ruby
+      class Post < ActiveRecord::Base
+        # table has both `id` and `title` columns
+        self.primary_key = :title
+
+        alias_attribute :id_value, :id
+      end
+
+      # returns the `id` column value and not the `title`
+      Post.create(title: "New post").id_value # => 1
+    ```
+
+    *Nikita Vasilevsky*
+
 *   Fix mutation detection for serialized attributes backed by binary columns.
 
     *Jean Boussier*

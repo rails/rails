@@ -144,6 +144,9 @@ end
 
 class TitlePrimaryKeyTopic < Topic
   self.primary_key = :title
+
+  alias_attribute :id_value, :id
+  alias_attribute :subject, :title
 end
 
 module Web
