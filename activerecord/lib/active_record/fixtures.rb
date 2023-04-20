@@ -646,14 +646,22 @@ module ActiveRecord
 
             conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
-            if ActiveRecord.verify_foreign_keys_for_fixtures && !conn.all_foreign_keys_valid?
-              raise "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
-            end
+            check_all_foreign_keys_valid!(conn)
 
             # Cap primary key sequences to max(pk).
             if conn.respond_to?(:reset_pk_sequence!)
               set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
             end
+          end
+        end
+
+        def check_all_foreign_keys_valid!(conn)
+          return unless ActiveRecord.verify_foreign_keys_for_fixtures
+
+          begin
+            conn.check_all_foreign_keys_valid!
+          rescue ActiveRecord::StatementInvalid => e
+            raise "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations. Error from database:\n\n#{e.message}"
           end
         end
 

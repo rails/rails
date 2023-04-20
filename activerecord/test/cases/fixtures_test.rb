@@ -850,6 +850,8 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     # those violations can cause false positives in these tests. since they aren't related to these tests we
     # delete the irrelevant records here (this test is transactional so it's fine).
     Parrot.all.each(&:destroy)
+
+    @path = "/fk_pointing_to_non_existent_object.yml"
   end
 
   def test_raises_fk_violations
@@ -857,13 +859,15 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     first:
       fk_object_to_point_to: one
     FIXTURE
-    File.write(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml", fk_pointing_to_non_existent_object)
+    File.write(FIXTURES_ROOT + @path, fk_pointing_to_non_existent_object)
 
     with_verify_foreign_keys_for_fixtures do
       if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-        assert_raise RuntimeError do
+        error = assert_raise RuntimeError do
           ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
         end
+        assert_includes error.message, "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
+        assert_includes error.message, "fk_pointing_to_non_existent_objects"
       else
         assert_nothing_raised do
           ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
@@ -872,7 +876,7 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     end
 
   ensure
-    File.delete(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml")
+    File.delete(FIXTURES_ROOT + @path)
     ActiveRecord::FixtureSet.reset_cache
   end
 
@@ -881,7 +885,7 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     first:
       fk_object_to_point_to_id: 1
     FIXTURE
-    File.write(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml", fk_pointing_to_valid_object)
+    File.write(FIXTURES_ROOT + @path, fk_pointing_to_valid_object)
 
     with_verify_foreign_keys_for_fixtures do
       assert_nothing_raised do
@@ -890,7 +894,7 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     end
 
   ensure
-    File.delete(FIXTURES_ROOT + "/fk_pointing_to_non_existent_object.yml")
+    File.delete(FIXTURES_ROOT + @path)
     ActiveRecord::FixtureSet.reset_cache
   end
 

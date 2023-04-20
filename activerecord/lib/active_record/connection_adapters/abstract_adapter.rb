@@ -636,7 +636,17 @@ module ActiveRecord
 
       # Override to check all foreign key constraints in a database.
       def all_foreign_keys_valid?
+        check_all_foreign_keys_valid!
         true
+      rescue ActiveRecord::StatementInvalid
+        false
+      end
+      deprecate :all_foreign_keys_valid?, deprecator: ActiveRecord.deprecator
+
+      # Override to check all foreign key constraints in a database.
+      # The adapter should raise a +ActiveRecord::StatementInvalid+ if foreign key
+      # constraints are not met.
+      def check_all_foreign_keys_valid!
       end
 
       # CONNECTION MANAGEMENT ====================================
