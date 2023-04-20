@@ -15,21 +15,21 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       database: "activerecord_unittest",
     }
 
-    @adapter = trilogy_adapter
-    @adapter.execute("TRUNCATE books")
-    @adapter.execute("TRUNCATE posts")
+    #@adapter = trilogy_adapter
+    #@adapter.execute("TRUNCATE books")
+    #@adapter.execute("TRUNCATE posts")
 
-    db_config = ActiveRecord::DatabaseConfigurations.new({}).resolve(@configuration)
+    db_config = ActiveRecord::Base.connection_pool.db_config
     pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
     @pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
   end
 
   teardown do
-    @adapter.disconnect!
+    @pool.disconnect!
   end
 
   test "#explain for one query" do
-    explain = @adapter.explain("select * from posts")
+    explain = @pool.connection.explain("select * from posts")
     assert_match %(possible_keys), explain
   end
 
