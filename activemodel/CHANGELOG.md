@@ -1,3 +1,22 @@
+*   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt compatibility.
+
+    The previous password length validation only considered the character count, which may not
+    accurately reflect the 72-byte size limit imposed by BCrypt. This change updates the validation
+    to consider both character count and byte size while keeping the character length validation in place.
+
+    ```ruby
+      user = User.new(password: "a" * 73)  # 73 characters
+      user.valid? # => false
+      user.errors[:password] # => ["is too long (maximum is 72 characters)"]
+
+
+      user = User.new(password: "あ" * 25)  # 25 characters, 75 bytes
+      user.valid? # => false
+      user.errors[:password] # => ["is too long (maximum is 72 bytes)"]
+    ```
+
+    *ChatGPT*, *Guillermo Iguaran*
+
 *   `has_secure_password` now generates an `#{attribute}_salt` method that returns the salt
     used to compute the password digest. The salt will change whenever the password is changed,
     so it can be used to create single-use password reset tokens with `generates_token_for`:
