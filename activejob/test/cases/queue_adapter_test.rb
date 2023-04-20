@@ -69,4 +69,18 @@ class QueueAdapterTest < ActiveJob::TestCase
     child_job.queue_adapter = StubThreeAdapter
     assert_equal "stub_three", child_job.queue_adapter_name
   end
+
+  class StubFourAdapter
+    def enqueue(*); end
+    def enqueue_at(*); end
+    def queue_adapter_name
+      "fancy_name"
+    end
+  end
+
+  test "should use the name provided by the adapter" do
+    child_job = Class.new(ActiveJob::Base)
+    child_job.queue_adapter = StubFourAdapter.new
+    assert_equal "fancy_name", child_job.queue_adapter_name
+  end
 end
