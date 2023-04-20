@@ -166,6 +166,23 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(expected_posts.map(&:id).sort, blog_posts.map(&:id).sort)
   end
 
+  def test_querying_by_single_associated_record_works_using_query_constraints
+    comments = [sharded_comments(:great_comment_blog_post_one), sharded_comments(:great_comment_blog_post_two)]
+
+    blog_posts = Sharded::BlogPost.where(comments: comments.last).to_a
+
+    expected_posts = [sharded_blog_posts(:great_post_blog_two)]
+    assert_equal(expected_posts.map(&:id).sort, blog_posts.map(&:id).sort)
+  end
+
+  def test_querying_by_relation_with_composite_key
+    expected_posts = [sharded_blog_posts(:great_post_blog_one), sharded_blog_posts(:great_post_blog_two)]
+
+    blog_posts = Sharded::BlogPost.where(comments: Sharded::Comment.where(body: "I really enjoyed the post!")).to_a
+
+    assert_equal(expected_posts.map(&:id).sort, blog_posts.map(&:id).sort)
+  end
+
   def test_has_many_association_with_composite_foreign_key_loads_records
     blog_post = sharded_blog_posts(:great_post_blog_one)
 

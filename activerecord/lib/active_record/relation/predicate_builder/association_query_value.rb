@@ -10,7 +10,10 @@ module ActiveRecord
 
       def queries
         if associated_table.join_foreign_key.is_a?(Array)
-          ids.map { |ids_set| associated_table.join_foreign_key.zip(ids_set).to_h }
+          id_list = ids
+          id_list = id_list.pluck(primary_key) if id_list.is_a?(Relation)
+
+          id_list.map { |ids_set| associated_table.join_foreign_key.zip(ids_set).to_h }
         else
           [ associated_table.join_foreign_key => ids ]
         end
@@ -26,7 +29,7 @@ module ActiveRecord
           when Array
             value.map { |v| convert_to_id(v) }
           else
-            convert_to_id(value)
+            [convert_to_id(value)]
           end
         end
 
