@@ -15,9 +15,9 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       database: "activerecord_unittest",
     }
 
-    #@adapter = trilogy_adapter
-    #@adapter.execute("TRUNCATE books")
-    #@adapter.execute("TRUNCATE posts")
+    @adapter = trilogy_adapter
+    @adapter.execute("TRUNCATE books")
+    @adapter.execute("TRUNCATE posts")
 
     db_config = ActiveRecord::Base.connection_pool.db_config
     pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
