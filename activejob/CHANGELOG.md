@@ -1,3 +1,7 @@
+*   Allow queue adapters to provide a custom name by implementing `queue_adapter_name`
+
+    *Sander Verdonschot*
+
 *   Log background job enqueue callers
 
     Add `verbose_enqueue_logs` configuration option to display the caller

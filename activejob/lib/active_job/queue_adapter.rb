@@ -43,8 +43,7 @@ module ActiveJob
           assign_adapter(name_or_adapter.to_s, queue_adapter)
         else
           if queue_adapter?(name_or_adapter)
-            adapter_class = name_or_adapter.is_a?(Module) ? name_or_adapter : name_or_adapter.class
-            adapter_name = "#{adapter_class.name.demodulize.remove('Adapter').underscore}"
+            adapter_name = extract_adapter_name(name_or_adapter)
             assign_adapter(adapter_name, name_or_adapter)
           else
             raise ArgumentError
@@ -62,6 +61,13 @@ module ActiveJob
 
         def queue_adapter?(object)
           QUEUE_ADAPTER_METHODS.all? { |meth| object.respond_to?(meth) }
+        end
+
+        def extract_adapter_name(adapter)
+          return adapter.queue_adapter_name if adapter.respond_to?(:queue_adapter_name)
+
+          adapter_class = adapter.is_a?(Module) ? adapter : adapter.class
+          "#{adapter_class.name.demodulize.remove('Adapter').underscore}"
         end
     end
   end
