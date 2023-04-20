@@ -245,12 +245,10 @@ Let's imagine `ApiGateway` is a reloadable class from `app/services` managed by 
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
-ApiGateway.endpoint = "https://example.com" # DO NOT DO THIS
+ApiGateway.endpoint = "https://example.com" # NameError
 ```
 
-a reloaded `ApiGateway` would have a `nil` endpoint, because the code above does not run again.
-
-You can still set things up during boot, but you need to wrap them in a `to_prepare` block, which runs on boot, and after each reload:
+Initializers cannot refer to reloadable constants, you need to wrap that in a `to_prepare` block, which runs on boot, and after each reload:
 
 ```ruby
 # config/initializers/api_gateway_setup.rb
@@ -278,7 +276,7 @@ end
 
 ### Use Case 2: During Boot, Load Code that Remains Cached
 
-Some configurations take a class or module object, and they store it in a place that is not reloaded.
+Some configurations take a class or module object, and they store it in a place that is not reloaded. It is important that these are not reloadable, because edits would not be reflected in those cached stale objects.
 
 One example is middleware:
 
@@ -286,7 +284,7 @@ One example is middleware:
 config.middleware.use MyApp::Middleware::Foo
 ```
 
-When you reload, the middleware stack is not affected, so, whatever object was stored in `MyApp::Middleware::Foo` at boot time remains there stale.
+When you reload, the middleware stack is not affected, so it would be confusing that `MyApp::Middleware::Foo` is reloadable. Changes in its implementation would have no effect.
 
 Another example is Active Job serializers:
 
@@ -295,7 +293,7 @@ Another example is Active Job serializers:
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
-Whatever `MoneySerializer` evaluates to during initialization gets pushed to the custom serializers. If that was reloadable, the initial object would be still within Active Job, not reflecting your changes.
+Whatever `MoneySerializer` evaluates to during initialization gets pushed to the custom serializers, and that object stays there on reloads.
 
 Yet another example are railties or engines decorating framework classes by including modules. For instance, [`turbo-rails`](https://github.com/hotwired/turbo-rails) decorates `ActiveRecord::Base` this way:
 
@@ -314,6 +312,28 @@ Corollary: Those classes or modules **cannot be reloadable**.
 The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it.
 
 As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](#config-autoload-once-paths) for details.
+
+### Use Case 3: Configure Application Classes for Engines
+
+Let's suppose an engine works with the reloadable application class that models users, and has a configuration point for it:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = User # NameError
+end
+```
+
+In order to play well with reloadable application code, the engine instead needs applications to configure the _name_ of that class:
+
+```ruby
+# config/initializers/my_engine.rb
+MyEngine.configure do |config|
+  config.user_model = "User" # OK
+end
+```
+
+Then, at run time, `config.user_model.constantize` gives you the current class object.
 
 Eager Loading
 -------------
