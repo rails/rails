@@ -26,7 +26,7 @@ module ActionDispatch
     end
   end
 
-  # = ActionDispatch \FileHandler
+  # = Action Dispatch \FileHandler
   #
   # This endpoint serves static files from disk using +Rack::Files+.
   #

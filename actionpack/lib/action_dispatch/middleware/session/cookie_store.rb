@@ -6,7 +6,7 @@ require "rack/session/cookie"
 
 module ActionDispatch
   module Session
-    # = ActionDispatch Session \CookieStore
+    # = Action Dispatch Session \CookieStore
     #
     # This cookie-based session store is the Rails default. It is
     # dramatically faster than the alternatives.

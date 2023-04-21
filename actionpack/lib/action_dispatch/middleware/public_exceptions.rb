@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionDispatch
-  # = ActionDispatch \PublicExceptions
+  # = Action Dispatch \PublicExceptions
   #
   # When called, this middleware renders an error page. By default if an HTML
   # response is expected it will render static error pages from the <tt>/public</tt>
