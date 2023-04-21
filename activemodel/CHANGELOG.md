@@ -7,12 +7,12 @@
     ```ruby
       user = User.new(password: "a" * 73)  # 73 characters
       user.valid? # => false
-      user.errors[:password] # => ["is too long (maximum is 72 characters)"]
+      user.errors[:password] # => ["is too long"]
 
 
       user = User.new(password: "あ" * 25)  # 25 characters, 75 bytes
       user.valid? # => false
-      user.errors[:password] # => ["is too long (maximum is 72 bytes)"]
+      user.errors[:password] # => ["is too long"]
     ```
 
     *ChatGPT*, *Guillermo Iguaran*
