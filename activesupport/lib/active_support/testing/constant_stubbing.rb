@@ -10,7 +10,7 @@ module ActiveSupport
       #     assert_equal 1, World::List::Import::LARGE_IMPORT_THRESHOLD
       #   end
       #
-      #   assert_equal 5000, World::List::Import::LARGE_IMPORT_THRESHOLD = 5000
+      #   assert_equal 5000, World::List::Import::LARGE_IMPORT_THRESHOLD
       #
       # Using this method rather than forcing <tt>World::List::Import::LARGE_IMPORT_THRESHOLD = 5000</tt> prevents
       # warnings from being thrown, and ensures that the old value is returned after the test has completed.
@@ -18,14 +18,14 @@ module ActiveSupport
       # Note: Stubbing a const will stub it across all threads. So if you have concurrent threads
       # (like separate test suites running in parallel) that all depend on the same constant, it's possible
       # divergent stubbing will trample on each other.
-      def stub_const(klass, constant, new_value)
-        old_value = klass.const_get(constant)
-        klass.send(:remove_const, constant)
-        klass.const_set(constant, new_value)
+      def stub_const(mod, constant, new_value)
+        old_value = mod.const_get(constant, false)
+        mod.send(:remove_const, constant)
+        mod.const_set(constant, new_value)
         yield
       ensure
-        klass.send(:remove_const, constant)
-        klass.const_set(constant, old_value)
+        mod.send(:remove_const, constant)
+        mod.const_set(constant, old_value)
       end
     end
   end
