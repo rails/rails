@@ -557,6 +557,9 @@ class ConstStubbable
   CONSTANT = 1
 end
 
+class SubclassOfConstStubbable < ConstStubbable
+end
+
 class TestConstStubbing < ActiveSupport::TestCase
   test "stubbing a constant temporarily replaces it with a new value" do
     stub_const(ConstStubbable, :CONSTANT, 2) do
@@ -575,5 +578,15 @@ class TestConstStubbing < ActiveSupport::TestCase
     end
 
     assert_equal 1, ConstStubbable::CONSTANT
+  end
+
+  test "trying to stub a constant that does not exist in the receiver raises NameError" do
+    assert_raises(NameError) do
+      stub_const(ConstStubbable, :NOT_A_CONSTANT, 1) { }
+    end
+
+    assert_raises(NameError) do
+      stub_const(SubclassOfConstStubbable, :CONSTANT, 1) { }
+    end
   end
 end
