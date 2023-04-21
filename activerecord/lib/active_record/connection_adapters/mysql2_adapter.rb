@@ -179,5 +179,6 @@ module ActiveRecord
           false
         end
     end
+    ActiveSupport.run_load_hooks(:active_record_mysql2adapter, Mysql2Adapter)
   end
 end
