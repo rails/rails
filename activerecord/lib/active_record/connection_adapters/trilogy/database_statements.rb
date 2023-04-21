@@ -21,7 +21,7 @@ module ActiveRecord
           ActiveRecord::Result.new(result.fields, result.to_a)
         end
 
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil) # :nodoc:
+        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
