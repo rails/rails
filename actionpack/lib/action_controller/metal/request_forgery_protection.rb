@@ -11,6 +11,8 @@ module ActionController # :nodoc:
   class InvalidCrossOriginRequest < ActionControllerError # :nodoc:
   end
 
+  # = Action Controller Request Forgery Protection
+  #
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
   # by including a token in the rendered HTML for your application. This token is
   # stored as a random string in the session, to which an attacker does not have

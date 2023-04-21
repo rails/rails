@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller \Renderer
+  #
   # ActionController::Renderer allows you to render arbitrary templates without
   # being inside a controller action.
   #

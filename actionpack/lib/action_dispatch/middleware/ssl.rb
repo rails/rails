@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionDispatch
+  # = Action Dispatch \SSL
+  #
   # This middleware is added to the stack when <tt>config.force_ssl = true</tt>, and is passed
   # the options set in +config.ssl_options+. It does three jobs to enforce secure HTTP
   # requests:

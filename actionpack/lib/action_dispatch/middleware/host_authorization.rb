@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionDispatch
+  # = Action Dispatch \HostAuthorization
+  #
   # This middleware guards from DNS rebinding attacks by explicitly permitting
   # the hosts a request can be sent to, and is passed the options set in
   # +config.host_authorization+.

@@ -4,6 +4,8 @@ require "benchmark"
 require "abstract_controller/logger"
 
 module ActionController
+  # = Action Controller \Instrumentation
+  #
   # Adds instrumentation to several ends in ActionController::Base. It also provides
   # some hooks related with process_action. This allows an ORM like Active Record
   # and/or DataMapper to plug in ActionController and show related information.

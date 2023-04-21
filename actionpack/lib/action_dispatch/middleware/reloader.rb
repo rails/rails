@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionDispatch
+  # = Action Dispatch \Reloader
+  #
   # ActionDispatch::Reloader wraps the request with callbacks provided by
   # ActiveSupport::Reloader, intended to assist with code reloading during
   # development.

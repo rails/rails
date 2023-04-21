@@ -3,6 +3,8 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActionDispatch # :nodoc:
+  # = Action Dispatch \PermissionsPolicy
+  #
   # Configures the HTTP
   # {Feature-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy]
   # response header to specify which browser features the current document and

@@ -3,6 +3,8 @@
 require "ipaddr"
 
 module ActionDispatch
+  # = Action Dispatch \RemoteIp
+  #
   # This middleware calculates the IP address of the remote client that is
   # making the request. It does this by checking various headers that could
   # contain the address, and then picking the last-set address that is not

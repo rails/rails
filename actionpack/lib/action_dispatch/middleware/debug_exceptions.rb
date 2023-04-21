@@ -6,6 +6,8 @@ require "action_dispatch/routing/inspector"
 require "action_view"
 
 module ActionDispatch
+  # = Action Dispatch \DebugExceptions
+  #
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions

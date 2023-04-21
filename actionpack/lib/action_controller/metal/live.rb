@@ -5,6 +5,8 @@ require "delegate"
 require "active_support/json"
 
 module ActionController
+  # = Action  Controller \Live
+  #
   # Mix this module into your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
   #

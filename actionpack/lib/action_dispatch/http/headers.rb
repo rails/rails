@@ -2,6 +2,8 @@
 
 module ActionDispatch
   module Http
+    # = Action Dispatch HTTP \Headers
+    #
     # Provides access to the request's HTTP headers from the environment.
     #
     #   env     = { "CONTENT_TYPE" => "text/plain", "HTTP_USER_AGENT" => "curl/7.43.0" }
