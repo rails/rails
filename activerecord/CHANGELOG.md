@@ -1,3 +1,10 @@
+*   Add a load hook for `ActiveRecord::ConnectionAdapters::Mysql2Adapter`
+    (named `active_record_mysql2adapter`) to allow for overriding aspects of the
+    `ActiveRecord::ConnectionAdapters::Mysql2Adapter` class. This makes `Mysql2Adapter`
+    consistent with `PostgreSQLAdapter` and `SQLite3Adapter` that already have load hooks.
+
+    *fatkodima*
+
 *   Introduce adapter for Trilogy database client
 
     Trilogy is a MySQL-compatible database client. Rails applications can use Trilogy
