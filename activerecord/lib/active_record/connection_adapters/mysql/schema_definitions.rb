@@ -57,6 +57,7 @@ module ActiveRecord
         end
       end
 
+      # = Active Record MySQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
@@ -102,6 +103,7 @@ module ActiveRecord
           end
       end
 
+      # = Active Record MySQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
       end

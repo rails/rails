@@ -4,6 +4,7 @@ require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods \Dirty
     module Dirty
       extend ActiveSupport::Concern
 

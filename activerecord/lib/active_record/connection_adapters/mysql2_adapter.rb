@@ -19,6 +19,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    # = Active Record MySQL2 Adapter
     class Mysql2Adapter < AbstractMysqlAdapter
       ER_BAD_DB_ERROR        = 1049
       ER_ACCESS_DENIED_ERROR = 1045

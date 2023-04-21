@@ -229,6 +229,7 @@ module ActiveRecord
         end
       end
 
+      # = Active Record PostgreSQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
@@ -286,6 +287,7 @@ module ActiveRecord
           end
       end
 
+      # = Active Record PostgreSQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
 
@@ -326,6 +328,7 @@ module ActiveRecord
         end
       end
 
+      # = Active Record PostgreSQL Adapter Alter \Table
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
         attr_reader :constraint_validations, :exclusion_constraint_adds, :exclusion_constraint_drops, :unique_key_adds, :unique_key_drops
 

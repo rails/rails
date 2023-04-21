@@ -2,6 +2,7 @@
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods \Write
     module Write
       extend ActiveSupport::Concern
 

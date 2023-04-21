@@ -2,6 +2,8 @@
 
 module ActiveRecord
   module Associations
+    # = Active Record Collection Proxy
+    #
     # Collection proxies in Active Record are middlemen between an
     # <tt>association</tt>, and its <tt>target</tt> result set.
     #

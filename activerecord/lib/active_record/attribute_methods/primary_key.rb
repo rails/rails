@@ -4,6 +4,7 @@ require "set"
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods Primary Key
     module PrimaryKey
       extend ActiveSupport::Concern
 

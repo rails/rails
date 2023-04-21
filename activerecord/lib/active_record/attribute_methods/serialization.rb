@@ -2,6 +2,7 @@
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods \Serialization
     module Serialization
       extend ActiveSupport::Concern
 

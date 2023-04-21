@@ -49,6 +49,8 @@ module ActiveRecord
       end
     end
 
+    # = Active Record Connection Pool
+    #
     # Connection pool base class for managing Active Record database
     # connections.
     #
