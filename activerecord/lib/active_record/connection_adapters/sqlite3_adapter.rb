@@ -26,6 +26,8 @@ module ActiveRecord
   end
 
   module ConnectionAdapters # :nodoc:
+    # = Active Record SQLite3 Adapter
+    #
     # The SQLite3 adapter works with the sqlite3-ruby drivers
     # (available as gem from https://rubygems.org/gems/sqlite3).
     #

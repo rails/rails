@@ -5,6 +5,7 @@ require "active_support/multibyte/chars"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
+    # = Active Record Connection Adapters \Quoting
     module Quoting
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].

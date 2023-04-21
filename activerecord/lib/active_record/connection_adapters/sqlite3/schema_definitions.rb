@@ -3,6 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
+      # = Active Record SQLite3 Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def references(*args, **options)
           super(*args, type: :integer, **options)

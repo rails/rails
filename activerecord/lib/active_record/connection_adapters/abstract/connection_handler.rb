@@ -5,6 +5,8 @@ require "concurrent/map"
 
 module ActiveRecord
   module ConnectionAdapters
+    # = Active Record Connection Adapters Connection Handler
+    #
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
     # for keeping separate connection pools that connect to different databases.
     #

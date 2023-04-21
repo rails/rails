@@ -4,6 +4,8 @@ require "active_support/core_ext/enumerable"
 
 module ActiveRecord
   module Associations
+    # = Active Record \Preloader
+    #
     # Implements the details of eager loading of Active Record associations.
     #
     # Suppose that you have the following two Active Record models:

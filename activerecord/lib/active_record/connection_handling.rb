@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
+  # = Active Record Connection Handling
   module ConnectionHandling
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }

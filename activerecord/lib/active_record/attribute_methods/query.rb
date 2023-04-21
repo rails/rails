@@ -2,6 +2,7 @@
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods \Query
     module Query
       extend ActiveSupport::Concern
 

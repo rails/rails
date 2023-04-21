@@ -7,6 +7,7 @@ require "active_support/parameter_filter"
 require "concurrent/map"
 
 module ActiveRecord
+  # = Active Record \Core
   module Core
     extend ActiveSupport::Concern
     include ActiveModel::Access

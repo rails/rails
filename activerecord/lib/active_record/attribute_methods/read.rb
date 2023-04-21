@@ -2,6 +2,7 @@
 
 module ActiveRecord
   module AttributeMethods
+    # = Active Record Attribute Methods \Read
     module Read
       extend ActiveSupport::Concern
 

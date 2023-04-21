@@ -7,6 +7,8 @@ require "active_record/database_configurations/url_config"
 require "active_record/database_configurations/connection_url_resolver"
 
 module ActiveRecord
+  # = Active Record Database Configurations
+  #
   # ActiveRecord::DatabaseConfigurations returns an array of DatabaseConfig
   # objects that are constructed from the application's database
   # configuration hash or URL string.

@@ -2,6 +2,8 @@
 
 module ActiveRecord
   class DatabaseConfigurations
+    # = Active Record Database Hash Config
+    #
     # A HashConfig object is created for each database configuration entry that
     # is created from a hash.
     #
