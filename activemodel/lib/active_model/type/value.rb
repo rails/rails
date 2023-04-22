@@ -2,7 +2,7 @@
 
 module ActiveModel
   module Type
-    # Active Model \Value \Type
+    # = Active Model \Value \Type
     #
     # The base class for all attribute types. This class also serves as the
     # default type for attributes that do not specify a type.

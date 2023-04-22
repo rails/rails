@@ -2,7 +2,7 @@
 
 module ActiveModel
   module Type
-    # Active Model \DateTime \Type
+    # = Active Model \DateTime \Type
     #
     # Attribute type to represent dates and times. It is registered under the
     # +:datetime+ key.

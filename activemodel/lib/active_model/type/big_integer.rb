@@ -4,7 +4,7 @@ require "active_model/type/integer"
 
 module ActiveModel
   module Type
-    # Active Model \BigInteger \Type
+    # = Active Model \BigInteger \Type
     #
     # Attribute type for integers that can be serialized to an unlimited number
     # of bytes. This type is registered under the +:big_integer+ key.

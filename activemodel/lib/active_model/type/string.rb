@@ -4,7 +4,7 @@ require "active_model/type/immutable_string"
 
 module ActiveModel
   module Type
-    # Active Model \String \Type
+    # = Active Model \String \Type
     #
     # Attribute type for strings. It is registered under the +:string+ key.
     #
