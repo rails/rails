@@ -1,7 +1,7 @@
 GIT
-  remote: https://github.com/github/trilogy.git
-  revision: 8e4ae98569c12894da9bcbee5edb32b76068dbfd
-  branch: main
+  remote: https://github.com/casperisfine/trilogy.git
+  revision: 4dd799281fd74f19cd52481b32083e98953240c6
+  branch: debug-rails
   glob: contrib/ruby/*.gemspec
   specs:
     trilogy (2.4.0)

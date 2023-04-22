@@ -150,7 +150,7 @@ platforms :ruby, :windows do
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
-    gem "trilogy", github: "github/trilogy", branch: "main", glob: "contrib/ruby/*.gemspec"
+    gem "trilogy", github: "casperisfine/trilogy", branch: "debug-rails", glob: "contrib/ruby/*.gemspec"
   end
 end
 
