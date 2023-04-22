@@ -3,7 +3,7 @@
 require "active_support/core_ext/string/inquiry"
 
 module ActiveRecord
-  # == Delegated types
+  # = Delegated types
   #
   # Class hierarchies can map to relational database tables in many ways. Active Record, for example, offers
   # purely abstract classes, where the superclass doesn't persist any attributes, and single-table inheritance,
