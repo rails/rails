@@ -54,7 +54,7 @@ module ActiveJob
                 "wrapped" => job_class,
                 "queue" => queue,
                 "args" => scheduled_jobs.map { |job| [job.serialize] },
-                "at" => scheduled_jobs.map { |job| job.scheduled_at }
+                "at" => scheduled_jobs.map { |job| job.scheduled_at&.to_f }
               )
               enqueued_count += jids.compact.size
             end

@@ -76,7 +76,7 @@ module ActiveJob
     def perform_start(event)
       info do
         job = event.payload[:job]
-        "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} enqueued at #{job.enqueued_at}" + args_info(job)
+        "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} enqueued at #{job.enqueued_at.utc.iso8601(9)}" + args_info(job)
       end
     end
     subscribe_log_level :perform_start, :info

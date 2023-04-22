@@ -5,6 +5,7 @@ require "jobs/hello_job"
 require "jobs/enqueue_error_job"
 require "jobs/multiple_kwargs_job"
 require "active_support/core_ext/numeric/time"
+require "minitest/mock"
 
 class QueuingTest < ActiveSupport::TestCase
   setup do
@@ -35,7 +36,7 @@ class QueuingTest < ActiveSupport::TestCase
 
   test "job returned by perform_at has the timestamp available" do
     job = HelloJob.set(wait_until: Time.utc(2014, 1, 1)).perform_later
-    assert_equal Time.utc(2014, 1, 1).to_f, job.scheduled_at
+    assert_equal Time.utc(2014, 1, 1), job.scheduled_at
   rescue NotImplementedError
     skip
   end
@@ -69,6 +70,19 @@ class QueuingTest < ActiveSupport::TestCase
   test "run multiple queued jobs of different classes" do
     ActiveJob.perform_all_later([HelloJob.new("Jamie"), MultipleKwargsJob.new(argument1: "John", argument2: 42)])
     assert_equal ["Jamie says hello", "Job with argument1: John, argument2: 42"], JobBuffer.values.sort
+  end
+
+  test "perform_all_later enqueues jobs with schedules" do
+    scheduled_job_1 = HelloJob.new("Scheduled 2014")
+    scheduled_job_1.set(wait_until: Time.utc(2014, 1, 1))
+
+    scheduled_job_2 = HelloJob.new("Scheduled 2015")
+    scheduled_job_2.scheduled_at = Time.utc(2015, 1, 1)
+
+    ActiveJob.perform_all_later(scheduled_job_1, scheduled_job_2)
+    assert_equal ["Scheduled 2014 says hello", "Scheduled 2015 says hello"], JobBuffer.values.sort
+  rescue NotImplementedError
+    skip
   end
 
   test "perform_all_later instrumentation" do
