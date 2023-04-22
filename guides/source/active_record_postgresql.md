@@ -12,6 +12,7 @@ After reading this guide, you will know:
 * How to include non-key columns in indexes.
 * How to use deferrable foreign keys.
 * How to use unique constraints.
+* How to implement exclusion constraints.
 * How to implement full text search with PostgreSQL.
 * How to back your Active Record models with database views.
 
@@ -650,6 +651,23 @@ add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_posit
 ```
 
 Like foreign keys, unique constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.
+
+Exclusion Constraints
+---------------------
+
+* [exclusion constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION)
+
+```ruby
+# db/migrate/20131220144913_create_products.rb
+create_table :products do |t|
+  t.integer :price, null: false
+  t.daterange :availability_range, null: false
+
+  t.exclusion_constraint "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+end
+```
+
+Like foreign keys, exclusion constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.
 
 Full Text Search
 ----------------
