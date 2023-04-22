@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # Active Model \Binary \Type
+    #
     # Attribute type for representation of binary data. This type is registered
     # under the +:binary+ key.
     #

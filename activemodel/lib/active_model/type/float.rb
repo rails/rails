@@ -4,6 +4,8 @@ require "active_support/core_ext/object/try"
 
 module ActiveModel
   module Type
+    # Active Model \Float \Type
+    #
     # Attribute type for floating point numeric values. It is registered under
     # the +:float+ key.
     #
