@@ -2,7 +2,7 @@
 
 module ActionCable
   module SubscriptionAdapter
-    # == Test adapter for Action Cable
+    # == \Test adapter for Action Cable
     #
     # The test adapter should be used only in testing. Along with
     # ActionCable::TestHelper it makes a great tool to test your Rails application.
