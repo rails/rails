@@ -123,7 +123,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#reconnect closes connection with connection" do
-    connection = Minitest::Mock.new Trilogy.new(@configuration)
+    connection = Minitest::Mock.new trilogy_connection
     connection.expect :close, true
     adapter = trilogy_adapter_with_connection(connection)
     adapter.reconnect!
@@ -132,7 +132,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#reconnect doesn't retain old connection on failure" do
-    old_connection = Minitest::Mock.new Trilogy.new(@configuration)
+    old_connection = Minitest::Mock.new trilogy_connection
     old_connection.expect :close, true
 
     adapter = trilogy_adapter_with_connection(old_connection)
@@ -166,7 +166,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#reset closes connection with existing connection" do
-    connection = Minitest::Mock.new Trilogy.new(@configuration)
+    connection = Minitest::Mock.new trilogy_connection
     connection.expect :close, true
     adapter = trilogy_adapter_with_connection(connection)
     adapter.reset!
@@ -190,7 +190,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#disconnect closes connection with existing connection" do
-    connection = Minitest::Mock.new Trilogy.new(@configuration)
+    connection = Minitest::Mock.new trilogy_connection
     connection.expect :close, true
     adapter = trilogy_adapter_with_connection(connection)
     adapter.disconnect!
@@ -367,7 +367,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#execute answers results for valid query after reconnect" do
-    mock_connection = Minitest::Mock.new Trilogy.new(@configuration)
+    mock_connection = Minitest::Mock.new trilogy_connection
     adapter = trilogy_adapter_with_connection(mock_connection)
 
     # Cause an ER_SERVER_SHUTDOWN error (code 1053) after the session is
@@ -523,7 +523,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   test "#execute fails with deadlock error" do
     adapter = trilogy_adapter
 
-    new_connection = Trilogy.new(@configuration)
+    new_connection = trilogy_connection
 
     deadlocking_adapter = trilogy_adapter_with_connection(new_connection)
 
@@ -548,7 +548,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
   test "#execute fails with unknown error" do
     assert_raises_with_message(ActiveRecord::StatementInvalid, /A random error/) do
-      connection = Minitest::Mock.new Trilogy.new(@configuration)
+      connection = Minitest::Mock.new trilogy_connection
       connection.expect(:query, nil) { raise Trilogy::ProtocolError, "A random error." }
       adapter = trilogy_adapter_with_connection(connection)
 
@@ -790,7 +790,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
       sql = "SELECT * FROM posts;"
 
-      mock_connection = Minitest::Mock.new Trilogy.new(@configuration)
+      mock_connection = Minitest::Mock.new trilogy_connection
       adapter = trilogy_adapter_with_connection(mock_connection)
       mock_connection.expect :query, nil, [sql + " /* it works */"]
 
@@ -833,6 +833,11 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   def trilogy_adapter(**config_overrides)
     ActiveRecord::ConnectionAdapters::TrilogyAdapter
       .new(@configuration.merge(config_overrides))
+  end
+
+  def trilogy_connection
+    p [:new_conn, @configuration]
+    Trilogy.new(@configuration)
   end
 
   def assert_raises_with_message(exception, message, &block)
