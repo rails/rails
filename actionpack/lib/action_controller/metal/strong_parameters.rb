@@ -71,7 +71,7 @@ module ActionController
   class InvalidParameterKey < ArgumentError
   end
 
-  # == Action Controller \Parameters
+  # = Action Controller \Parameters
   #
   # Allows you to choose which attributes should be permitted for mass updating
   # and thus prevent accidentally exposing that which shouldn't be exposed.
@@ -1177,7 +1177,7 @@ module ActionController
       end
   end
 
-  # == Strong \Parameters
+  # = Strong \Parameters
   #
   # It provides an interface for protecting attributes from end-user
   # assignment. This makes Action Controller parameters forbidden
