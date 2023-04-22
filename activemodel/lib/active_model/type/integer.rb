@@ -2,7 +2,7 @@
 
 module ActiveModel
   module Type
-    # Active Model \Integer \Type
+    # = Active Model \Integer \Type
     #
     # Attribute type for integer representation. This type is registered under
     # the +:integer+ key.

@@ -2,7 +2,7 @@
 
 module ActiveModel
   module Type
-    # Active Model \Boolean \Type
+    # = Active Model \Boolean \Type
     #
     # A class that behaves like a boolean type, including rules for coercion of
     # user input.
