@@ -5,7 +5,7 @@ require "delegate"
 require "active_support/json"
 
 module ActionController
-  # = Action  Controller \Live
+  # = Action Controller \Live
   #
   # Mix this module into your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
@@ -66,6 +66,8 @@ module ActionController
       end
     end
 
+    # = Action Controller \Live Server Sent Events
+    #
     # This class provides the ability to write an SSE (Server Sent Event)
     # to an IO stream. The class is initialized with a stream and can be used
     # to either write a JSON string or an object which can be converted to JSON.

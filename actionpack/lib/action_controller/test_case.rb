@@ -232,6 +232,8 @@ module ActionController
       end
   end
 
+  # = Action Controller Test Case
+  #
   # Superclass for ActionController functional tests. Functional tests allow you to
   # test a single controller action per test method.
   #
