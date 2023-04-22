@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # Active Model \Time \Type
+    #
     # Attribute type for time of day representation. It is registered under the
     # +:time+ key.
     #
