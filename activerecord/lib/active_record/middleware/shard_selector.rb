@@ -2,6 +2,8 @@
 
 module ActiveRecord
   module Middleware
+    # = Shard Selector \Middleware
+    #
     # The ShardSelector Middleware provides a framework for automatically
     # swapping shards. Rails provides a basic framework to determine which
     # shard to switch to and allows for applications to write custom strategies

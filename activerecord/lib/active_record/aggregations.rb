@@ -23,6 +23,8 @@ module ActiveRecord
         @aggregation_cache = {}
       end
 
+      # = Active Record \Aggregations
+      #
       # Active Record implements aggregation through a macro-like class method called #composed_of
       # for representing attributes as value objects. It expresses relationships like "Account [is]
       # composed of Money [among other things]" or "Person [is] composed of [an] address". Each call

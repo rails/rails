@@ -3,6 +3,7 @@
 require "active_record/relation/batches/batch_enumerator"
 
 module ActiveRecord
+  # = Active Record \Batches
   module Batches
     ORDER_IGNORE_MESSAGE = "Scoped order is ignored, it's forced to be batch order."
 

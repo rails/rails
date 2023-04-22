@@ -3,6 +3,7 @@
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
+  # = Active Record \Calculations
   module Calculations
     class ColumnAliasTracker # :nodoc:
       def initialize(connection)

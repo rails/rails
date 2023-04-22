@@ -6,6 +6,8 @@ module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
+    # = Active Record \DatabaseTasks
+    #
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #

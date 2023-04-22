@@ -4,6 +4,8 @@ require "active_record/middleware/database_selector/resolver"
 
 module ActiveRecord
   module Middleware
+    # = Database Selector \Middleware
+    #
     # The DatabaseSelector Middleware provides a framework for automatically
     # swapping from the primary to the replica database connection. Rails
     # provides a basic framework to determine when to swap and allows for

@@ -2,6 +2,8 @@
 
 module ActiveRecord
   class Migration
+    # = \Migration Command Recorder
+    #
     # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during
     # a migration and knows how to reverse those commands. The CommandRecorder
     # knows how to invert the following commands:
