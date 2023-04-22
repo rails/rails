@@ -15,6 +15,8 @@ module ActionCable
       end
     end
 
+    # = Action Cable \Channel Stub
+    #
     # Stub +stream_from+ to track streams for the channel.
     # Add public aliases for +subscription_confirmation_sent?+ and
     # +subscription_rejected?+.

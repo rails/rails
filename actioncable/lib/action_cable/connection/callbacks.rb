@@ -4,7 +4,7 @@ require "active_support/callbacks"
 
 module ActionCable
   module Connection
-    # = Action Cable Connection Callbacks
+    # = Action Cable \Connection \Callbacks
     #
     # There are <tt>before_command</tt>, <tt>after_command</tt>, and <tt>around_command</tt> callbacks
     # available to be invoked before, after or around every command received by a client respectively.

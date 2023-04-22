@@ -4,7 +4,7 @@ require "active_support/callbacks"
 
 module ActionCable
   module Channel
-    # = Action Cable Channel Callbacks
+    # = Action Cable \Channel \Callbacks
     #
     # Action Cable Channel provides hooks during the life cycle of a channel subscription.
     # Callbacks allow triggering logic during this cycle. Available callbacks are:
