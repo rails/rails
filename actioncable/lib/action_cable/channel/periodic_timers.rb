@@ -35,7 +35,7 @@ module ActionCable
               block
             else
               case callback_or_method_name
-              when Proc
+              when ActiveSupport::Callable
                 callback_or_method_name
               when Symbol
                 -> { __send__ callback_or_method_name }
