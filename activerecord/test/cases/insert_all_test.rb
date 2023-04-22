@@ -219,6 +219,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_finds_index_with_inverted_unique_by_columns
+    skip unless supports_insert_conflict_target?
+
+    columns = [:author_id, :name]
+    assert ActiveRecord::Base.connection.index_exists?(:books, columns)
+
+    assert_difference "Book.count", +2 do
+      Book.insert_all [{ name: "Remote", author_id: 1 }], unique_by: columns.reverse
+      Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: columns.reverse
+    end
+  end
+
   def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_provided
     skip unless supports_insert_conflict_target?
 
