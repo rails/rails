@@ -9,7 +9,11 @@ require "active_support/error_reporter/test_helper"
 
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   setup do
-    @configuration = ARTest.config.fetch("connections").fetch("trilogy").fetch("arunit")
+    @configuration = {
+      adapter: "trilogy",
+      username: "rails",
+      database: "activerecord_unittest",
+    }
 
     @adapter = trilogy_adapter
     @adapter.execute("TRUNCATE books")
