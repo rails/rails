@@ -4,7 +4,7 @@ require "active_support/inflector"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
-  # == Single table inheritance
+  # = Single table inheritance
   #
   # Active Record allows inheritance by storing the name of the class in a column that by
   # default is named "type" (can be changed by overwriting <tt>Base.inheritance_column</tt>).

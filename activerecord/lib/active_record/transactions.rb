@@ -15,7 +15,7 @@ module ActiveRecord
 
     attr_accessor :_new_record_before_last_commit # :nodoc:
 
-    # = Active Record Transactions
+    # = Active Record \Transactions
     #
     # \Transactions are protective blocks where SQL statements are only permanent
     # if they can all succeed as one atomic action. The classic example is a

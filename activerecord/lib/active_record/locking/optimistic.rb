@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Locking
-    # == What is Optimistic Locking
+    # == What is \Optimistic \Locking
     #
     # Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of
     # conflicts with the data. It does this by checking whether another process has made changes to a record since

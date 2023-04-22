@@ -2,6 +2,8 @@
 
 module ActiveRecord
   ###
+  # = Active Record \Result
+  #
   # This class encapsulates a result returned from calling
   # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
   # on any database connection adapter. For example:

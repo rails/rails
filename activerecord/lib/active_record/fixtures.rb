@@ -15,6 +15,8 @@ module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
+  # = Active Record \Fixtures
+  #
   # \Fixtures are a way of organizing data that you want to test against; in short, sample data.
   #
   # They are stored in YAML files, one file per model, which are placed in the directories

@@ -333,6 +333,8 @@ module ActiveRecord
         @association_cache[name] = association
       end
 
+      # = Active Record \Associations
+      #
       # \Associations are a set of macro-like class methods for tying objects together through
       # foreign keys. They express relationships like "Project has one Project Manager"
       # or "Project belongs to a Portfolio". Each macro adds a number of methods to the

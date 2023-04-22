@@ -46,6 +46,8 @@ module ActiveRecord
         end
     end
 
+    # = Active Record Reflection
+    #
     # \Reflection enables the ability to examine the associations and aggregations of
     # Active Record classes and objects. This information, for example,
     # can be used in a form builder that takes an Active Record object
