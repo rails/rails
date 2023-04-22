@@ -71,7 +71,6 @@ end
       t.test_files = files
       t.warning = true
       t.verbose = true
-      t.options = '-v'
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
