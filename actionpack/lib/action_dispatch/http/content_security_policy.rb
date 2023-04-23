@@ -190,6 +190,20 @@ module ActionDispatch # :nodoc:
           @directives.delete(directive)
         end
       end
+
+      define_method("add_#{name}") do |*sources|
+        existing_sources = @directives.fetch(directive, [])
+
+        public_send(name, *(existing_sources + sources).uniq)
+      end
+
+      define_method("remove_#{name}") do |*sources|
+        existing_sources = @directives.fetch(directive, [])
+
+        sources.each { |source| existing_sources.delete(source) }
+
+        public_send(name, *(existing_sources - apply_mappings(sources)))
+      end
     end
 
     # Specify whether to prevent the user agent from loading any assets over

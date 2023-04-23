@@ -1,3 +1,11 @@
+*   Allow adding/removing of existing `Content-Security-Policy` and `Permissions-Policy` directives.
+
+    Previously, if you wanted to add/remove directives from either header, you had to redefine the defaults in the controller.
+
+    Now, you can adjust the policy directives without overwriting the global configuration.
+
+    *Alex Robbin*
+
 *   Include source location in routes extended view.
 
     ```bash

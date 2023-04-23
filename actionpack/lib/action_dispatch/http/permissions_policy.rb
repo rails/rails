@@ -133,6 +133,18 @@ module ActionDispatch # :nodoc:
           @directives.delete(directive)
         end
       end
+
+      define_method("add_#{name}") do |*sources|
+        existing_sources = @directives.fetch(directive, [])
+
+        public_send(name, *(existing_sources + sources).uniq)
+      end
+
+      define_method("remove_#{name}") do |*sources|
+        existing_sources = @directives.fetch(directive, [])
+
+        public_send(name, *(existing_sources - apply_mappings(sources)))
+      end
     end
 
     %w[speaker vibrate vr].each do |directive|

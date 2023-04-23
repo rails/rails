@@ -95,6 +95,68 @@ module ApplicationTests
       assert_policy "geolocation https://example.com"
     end
 
+    test "add directive to permissions policy in a controller" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          permissions_policy do |p|
+            p.add_geolocation "https://example.com"
+          end
+
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+        Rails.application.config.permissions_policy do |p|
+          p.geolocation :self
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "geolocation 'self' https://example.com"
+    end
+
+    test "remove directive from permissions policy in a controller" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          permissions_policy do |p|
+            p.remove_geolocation "https://example.com"
+          end
+
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/permissions_policy.rb", <<-RUBY
+        Rails.application.config.permissions_policy do |p|
+          p.geolocation :self, "https://example.com"
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "geolocation 'self'"
+    end
+
     test "override permissions policy by unsetting a directive in a controller" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
