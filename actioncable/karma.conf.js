@@ -22,6 +22,11 @@ const config = {
 }
 
 if (process.env.CI) {
+  if (!process.env.SAUCE_USERNAME || !process.env.SAUCE_ACCESS_KEY) {
+    console.log('Make sure the SAUCE_USERNAME and SAUCE_ACCESS_KEY environment variables are set.')
+    process.exit(1)
+  }
+
   config.customLaunchers = {
     sl_chrome: sauce("chrome", 70),
     sl_ff: sauce("firefox", 63),
@@ -36,6 +41,9 @@ if (process.env.CI) {
     testName: "ActionCable JS Client",
     retryLimit: 3,
     build: buildId(),
+    connectOptions: {
+      logfile: 'sauce_connect.log'
+    }
   }
 
   function sauce(browserName, version, platform) {
