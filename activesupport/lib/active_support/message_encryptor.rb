@@ -8,6 +8,8 @@ require "active_support/messages/rotator"
 require "active_support/message_verifier"
 
 module ActiveSupport
+  # = Active Support Message Encryptor
+  #
   # MessageEncryptor is a simple way to encrypt values which get stored
   # somewhere you don't trust.
   #

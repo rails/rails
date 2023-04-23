@@ -2,6 +2,8 @@
 
 module ActiveSupport
   module Cache
+    # = Null \Cache \Store
+    #
     # A cache store implementation which doesn't actually store anything. Useful in
     # development and test environments where you don't want caching turned on but
     # need to go through the caching interface.

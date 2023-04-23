@@ -3,6 +3,8 @@
 require "singleton"
 
 module ActiveSupport
+  # = Active Support \Deprecation
+  #
   # \Deprecation specifies the API used by Rails to deprecate methods, instance variables, objects, and constants. It's
   # also available for gems or applications.
   #

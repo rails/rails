@@ -6,6 +6,8 @@ require "active_support/subscriber"
 require "active_support/deprecation/proxy_wrappers"
 
 module ActiveSupport
+  # = Active Support Log \Subscriber
+  #
   # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
   # ActiveSupport::Notifications with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based

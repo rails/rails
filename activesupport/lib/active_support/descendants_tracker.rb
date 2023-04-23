@@ -4,6 +4,8 @@ require "weakref"
 require "active_support/ruby_features"
 
 module ActiveSupport
+  # = Active Support Descendants Tracker
+  #
   # This module provides an internal implementation to track descendants
   # which is faster than iterating through +ObjectSpace+.
   #

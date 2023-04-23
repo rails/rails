@@ -4,6 +4,8 @@ require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/array/extract"
 
 module ActiveSupport
+  # = Active Support Parameter Filter
+  #
   # +ParameterFilter+ replaces values in a <tt>Hash</tt>-like object if their
   # keys match one of the specified filters.
   #

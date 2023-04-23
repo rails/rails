@@ -9,6 +9,8 @@ require "active_support/core_ext/object/blank"
 require "thread"
 
 module ActiveSupport
+  # = Active Support \Callbacks
+  #
   # \Callbacks are code hooks that are run at key points in an object's life cycle.
   # The typical use case is to have a base class define a set of callbacks
   # relevant to the other functionality it supplies, so that subclasses can

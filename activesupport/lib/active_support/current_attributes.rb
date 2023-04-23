@@ -5,6 +5,8 @@ require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
+  # = Current Attributes
+  #
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
   # before and after each request. This allows you to keep all the per-request attributes easily
   # available to the whole system.

@@ -15,7 +15,7 @@ require "active_support/digest"
 
 module ActiveSupport
   module Cache
-    # Redis cache store.
+    # = Redis \Cache \Store
     #
     # Deployment note: Take care to use a *dedicated Redis cache* rather
     # than pointing this at your existing Redis server. It won't cope well

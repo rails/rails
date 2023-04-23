@@ -3,6 +3,8 @@
 require "active_support/inflector/methods"
 
 module ActiveSupport
+  # = Active Support \Autoload
+  #
   # Autoload and eager load conveniences for your library.
   #
   # This module allows you to define autoloads based on

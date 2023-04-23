@@ -4,6 +4,8 @@ require "concurrent/map"
 require "openssl"
 
 module ActiveSupport
+  # = Key Generator
+  #
   # KeyGenerator is a simple wrapper around OpenSSL's implementation of PBKDF2.
   # It can be used to derive a number of keys for various purposes from a given secret.
   # This lets Rails applications have a single secure secret, but avoid reusing that
@@ -41,6 +43,8 @@ module ActiveSupport
     end
   end
 
+  # = Caching Key Generator
+  #
   # CachingKeyGenerator is a wrapper around KeyGenerator which allows users to avoid
   # re-executing the key generation process when it's called using the same +salt+ and
   # +key_size+.

@@ -7,6 +7,8 @@ require "active_support/core_ext/object/inclusion"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
+  # = Encrypted Configuration
+  #
   # Provides convenience methods on top of EncryptedFile to access values stored
   # as encrypted YAML.
   #
