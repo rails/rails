@@ -9,6 +9,7 @@ After reading this guide, you will know:
 
 * How to use PostgreSQL's datatypes.
 * How to use UUID primary keys.
+* How to include non-key columns in indexes.
 * How to use deferrable foreign keys.
 * How to use unique constraints.
 * How to implement full text search with PostgreSQL.
@@ -544,6 +545,34 @@ When building a model with a foreign key that will reference this UUID, treat
 $ rails generate model Case device_id:uuid
 ```
 
+Indexing
+--------
+
+* [index creation](https://www.postgresql.org/docs/current/sql-createindex.html)
+
+PostgreSQL includes a variety of index options. The following options are
+supported by the PostgreSQL adapter in addition to the
+[common index options](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index)
+
+### Include
+
+When creating a new index, non-key columns can be included with the `:include` option.
+These keys are not used in index scans for searching, but can be read during an index
+only scan without having to visit the associated table.
+
+```ruby
+# db/migrate/20131220144913_add_index_users_on_email_include_id.rb
+
+add_index :users, :email, include: :id
+```
+
+Multiple columns are supported:
+
+```ruby
+# db/migrate/20131220144913_add_index_users_on_email_include_id_and_created_at.rb
+
+add_index :users, :email, include: [:id, :created_at]
+```
 
 Generated Columns
 -----------------
