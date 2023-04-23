@@ -1,3 +1,7 @@
+*   Remove leading dot from domains on cookies set with `domain: :all`, to meet RFC6265 requirements
+
+    *Gareth Adams*
+
 *   Include source location in routes extended view.
 
     ```bash
