@@ -15,6 +15,8 @@ require "active_support/core_ext/numeric/time"
 
 module ActiveSupport
   module Cache
+    # = Memcached \Cache \Store
+    #
     # A cache store implementation which stores data in Memcached:
     # https://memcached.org
     #

@@ -4,7 +4,8 @@ require "active_support/execution_wrapper"
 require "active_support/executor"
 
 module ActiveSupport
-  #--
+  # = Active Support \Reloader
+  #
   # This class defines several callbacks:
   #
   #   to_prepare -- Run once at application startup, and also from

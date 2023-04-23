@@ -6,6 +6,8 @@ require "logger"
 require "active_support/logger"
 
 module ActiveSupport
+  # = Active Support Tagged Logging
+  #
   # Wraps any standard Logger object to provide tagging capabilities.
   #
   # May be called with a block:

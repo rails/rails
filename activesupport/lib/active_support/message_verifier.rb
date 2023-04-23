@@ -8,6 +8,8 @@ require "active_support/messages/codec"
 require "active_support/messages/rotator"
 
 module ActiveSupport
+  # = Active Support Message Verifier
+  #
   # +MessageVerifier+ makes it easy to generate and verify messages which are
   # signed to prevent tampering.
   #

@@ -6,6 +6,8 @@ require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 
 module ActiveSupport
+  # = \Hash With Indifferent Access
+  #
   # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
   # to be the same.
   #

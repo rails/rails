@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = Active Support \Error Reporter
+  #
   # +ActiveSupport::ErrorReporter+ is a common interface for error reporting services.
   #
   # To rescue and report any unhandled error, you can use the #handle method:

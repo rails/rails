@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = \Range With Format
   module RangeWithFormat
     RANGE_FORMATS = {
       db: -> (start, stop) do

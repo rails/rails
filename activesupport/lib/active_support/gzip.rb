@@ -4,6 +4,8 @@ require "zlib"
 require "stringio"
 
 module ActiveSupport
+  # = Active Support \Gzip
+  #
   # A convenient wrapper for the zlib standard library that allows
   # compression/decompression of strings with gzip.
   #

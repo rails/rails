@@ -5,6 +5,8 @@ require "active_support/number_helper"
 
 module ActiveSupport
   module NumericWithFormat
+    # \Numeric With Format
+    #
     # Provides options for converting numbers into formatted strings.
     # Options are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size, and pretty printing.

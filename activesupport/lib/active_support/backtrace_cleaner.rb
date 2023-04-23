@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = Backtrace Cleaner
+  #
   # Backtraces often include many lines that are not relevant for the context
   # under review. This makes it hard to find the signal amongst the backtrace
   # noise, and adds debugging time. With a BacktraceCleaner, filters and

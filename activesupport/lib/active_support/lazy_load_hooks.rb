@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = Lazy Load Hooks
+  #
   # LazyLoadHooks allows Rails to lazily load a lot of components and thus
   # making the app boot faster. Because of this feature now there is no need to
   # require <tt>ActiveRecord::Base</tt> at boot time purely to apply

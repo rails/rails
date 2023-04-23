@@ -3,6 +3,8 @@
 require "active_support/core_ext/object/blank"
 
 module ActiveSupport
+  # = Ordered Options
+  #
   # +OrderedOptions+ inherits from +Hash+ and provides dynamic accessor methods.
   #
   # With a +Hash+, key-value pairs are typically managed like this:
@@ -72,6 +74,8 @@ module ActiveSupport
     end
   end
 
+  # = Inheritable Options
+  #
   # +InheritableOptions+ provides a constructor to build an OrderedOptions
   # hash inherited from another hash.
   #

@@ -130,6 +130,8 @@ module ActiveSupport
         end
     end
 
+    # = Active Support \Cache \Store
+    #
     # An abstract cache store class. There are multiple cache store
     # implementations, each having its own additional features. See the classes
     # under the ActiveSupport::Cache module, e.g.

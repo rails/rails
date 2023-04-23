@@ -4,6 +4,8 @@ require "monitor"
 
 module ActiveSupport
   module Cache
+    # = Memory \Cache \Store
+    #
     # A cache store implementation which stores everything into memory in the
     # same process. If you're running multiple Ruby on Rails server processes
     # (which is the case if you're using Phusion Passenger or puma clustered mode),

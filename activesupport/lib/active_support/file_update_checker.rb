@@ -3,6 +3,8 @@
 require "active_support/core_ext/time/calculations"
 
 module ActiveSupport
+  # = \File Update Checker
+  #
   # FileUpdateChecker specifies the API used by Rails to watch files
   # and control reloading. The API depends on four methods:
   #

@@ -4,6 +4,8 @@ require "tzinfo"
 require "concurrent/map"
 
 module ActiveSupport
+  # = Active Support \Time Zone
+  #
   # The TimeZone class serves as a wrapper around <tt>TZInfo::Timezone</tt> instances.
   # It allows us to do the following:
   #

@@ -4,6 +4,7 @@ require "active_support/core_ext/benchmark"
 require "active_support/core_ext/hash/keys"
 
 module ActiveSupport
+  # = \Benchmarkable
   module Benchmarkable
     # Allows you to measure the execution time of a block in a template and
     # records the result to the log. Wrap this block around expensive operations

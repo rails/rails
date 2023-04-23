@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = Active Support \Concern
+  #
   # A typical module looks like this:
   #
   #   module M

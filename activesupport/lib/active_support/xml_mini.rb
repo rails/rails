@@ -9,7 +9,7 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
 
 module ActiveSupport
-  # = XmlMini
+  # = \XmlMini
   #
   # To use the much faster libxml parser:
   #   gem 'libxml-ruby', '=0.9.7'

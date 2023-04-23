@@ -5,6 +5,8 @@ require "active_support/core_ext/string/inflections"
 module ActiveSupport
   module Cache
     module Strategy
+      # = Local \Cache \Strategy
+      #
       # Caches that implement LocalCache will be backed by an in-memory cache for the
       # duration of a block. Repeated calls to the cache for the same key will hit the
       # in-memory cache for faster access.
@@ -26,6 +28,8 @@ module ActiveSupport
           end
         end
 
+        # = Local \Cache \Store
+        #
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
         class LocalStore
