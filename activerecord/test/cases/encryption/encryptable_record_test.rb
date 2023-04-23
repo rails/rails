@@ -303,6 +303,11 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal "<untitled>", book.name
   end
 
+  test "can dump and load records that use encryption" do
+    book = EncryptedBook.create!
+    assert_equal book, Marshal.load(Marshal.dump(book))
+  end
+
   private
     class FailingKeyProvider
       def decryption_key(message) end

@@ -84,7 +84,7 @@ module ActiveRecord
 
             attribute name do |cast_type|
               ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: attribute_scheme, cast_type: cast_type,
-                                                                    default: -> { columns_hash[name.to_s]&.default })
+                                                                    default: columns_hash[name.to_s]&.default)
             end
 
             preserve_original_encrypted(name) if attribute_scheme.ignore_case?
