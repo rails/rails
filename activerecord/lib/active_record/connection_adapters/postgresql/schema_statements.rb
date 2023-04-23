@@ -148,7 +148,7 @@ module ActiveRecord
               opclasses: opclasses,
               where: where,
               using: using.to_sym,
-              include: include_columns.map(&:to_sym).presence,
+              include: include_columns.presence,
               comment: comment.presence,
               valid: valid
             )

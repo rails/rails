@@ -56,7 +56,7 @@ module ActiveRecord
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
           (valid.nil? || self.valid == valid) &&
-          (include.nil? || Array(self.include) == Array(include))
+          (include.nil? || Array(self.include) == Array(include).map(&:to_s))
       end
 
       private
