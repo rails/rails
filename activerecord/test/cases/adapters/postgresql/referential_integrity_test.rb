@@ -126,7 +126,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     SQL
 
     assert_equal 1, result.first["count"], "referential_integrity_test_schema should have 1 foreign key"
-    assert @connection.all_foreign_keys_valid?
+    @connection.check_all_foreign_keys_valid!
   ensure
     @connection.drop_schema "referential_integrity_test_schema", if_exists: true
   end
