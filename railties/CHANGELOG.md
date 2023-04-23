@@ -1,3 +1,12 @@
+*   Trying to set a config key with the same name of a method now raises:
+
+    ```ruby
+    config.load_defaults = 7.0
+    # NoMethodError: Cannot assign to `load_defaults`, it is a configuration method
+    ```
+
+    *Xavier Noria*
+
 *   Deprecate `secrets:edit/show` and remove `secrets:setup`
 
     `bin/rails secrets:setup` has been deprecated since Rails 5.2 in favor of

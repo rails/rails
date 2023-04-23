@@ -4371,6 +4371,17 @@ module ApplicationTests
       assert_equal true, ActiveRecord.run_after_transaction_callbacks_in_order_defined
     end
 
+    test "raises if configuration tries to assign to an actual method" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults = "7.0"'
+
+      error = assert_raises(NoMethodError) do
+        app "development"
+      end
+
+      assert_match(/Cannot assign to `load_defaults`, it is a configuration method/, error.message)
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
