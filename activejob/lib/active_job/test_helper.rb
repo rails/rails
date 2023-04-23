@@ -694,6 +694,10 @@ module ActiveJob
 
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
+          if arguments[:queue].is_a?(Symbol)
+            arguments[:queue] = arguments[:queue].to_s
+          end
+
           if arguments[:at].acts_like?(:time)
             at_range = arguments[:at] - 1..arguments[:at] + 1
             arguments[:at] = ->(at) { at_range.cover?(at) }
