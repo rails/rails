@@ -71,18 +71,27 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
-          result = execute(sql, name, async: async)
+          sql = transform_query(sql)
+          check_if_write_query(sql)
+
+          result = raw_execute(sql, name, async: async)
           ActiveRecord::Result.new(result.fields, result.to_a)
         end
 
         alias exec_without_stmt exec_query
 
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
-          execute(to_sql(sql, binds), name)
+          sql = transform_query(sql)
+          check_if_write_query(sql)
+
+          raw_execute(to_sql(sql, binds), name)
         end
 
         def exec_delete(sql, name = nil, binds = [])
-          result = execute(to_sql(sql, binds), name)
+          sql = transform_query(sql)
+          check_if_write_query(sql)
+
+          result = raw_execute(to_sql(sql, binds), name)
           result.affected_rows
         end
 
@@ -212,6 +221,13 @@ module ActiveRecord
           connection.discard!
           self.connection = nil
         end
+      end
+
+      def execute(sql, name = nil, allow_retry: false)
+        sql = transform_query(sql)
+        check_if_write_query(sql)
+
+        raw_execute(sql, name, allow_retry: allow_retry)
       end
 
       def each_hash(result)
