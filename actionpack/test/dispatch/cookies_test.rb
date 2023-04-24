@@ -1122,63 +1122,63 @@ class CookiesTest < ActionController::TestCase
   def test_cookie_with_all_domain_option
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.com; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_a_non_standard_tld
     @request.host = "two.subdomains.nextangle.local"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_australian_style_tld
     @request.host = "nextangle.com.au"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.com.au; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.com.au; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_australian_style_tld_and_two_subdomains
     @request.host = "x.nextangle.com.au"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.com.au; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.com.au; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_uk_style_tld
     @request.host = "nextangle.co.uk"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.co.uk; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.co.uk; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_two_letter_one_level_tld
     @request.host = "hawth.ca"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.hawth.ca; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=hawth.ca; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_two_letter_one_level_tld_and_subdomain
     @request.host = "x.hawth.ca"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.hawth.ca; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=hawth.ca; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_uk_style_tld_and_two_subdomains
     @request.host = "x.nextangle.co.uk"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.co.uk; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.co.uk; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_host_with_port
     @request.host = "nextangle.local:3000"
     get :set_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_localhost
@@ -1206,48 +1206,48 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domain
     assert_response :success
-    assert_set_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+    assert_set_cookie_header "user_name=; domain=nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_and_tld_length
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.com; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_a_non_standard_tld_and_tld_length
     @request.host = "two.subdomains.nextangle.local"
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_a_non_standard_2_letter_tld
     @request.host = "admin.lvh.me"
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.lvh.me; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=lvh.me; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_host_with_port_and_tld_length
     @request.host = "nextangle.local:3000"
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_longer_tld_length
     @request.host = "x.y.z.t.com"
     get :set_cookie_with_domain_and_longer_tld
     assert_response :success
-    assert_set_cookie_header "user_name=rizwanreza; domain=.y.z.t.com; path=/; SameSite=Lax"
+    assert_set_cookie_header "user_name=rizwanreza; domain=y.z.t.com; path=/; SameSite=Lax"
   end
 
   def test_deleting_cookie_with_all_domain_option_and_tld_length
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domain_and_tld
     assert_response :success
-    assert_set_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+    assert_set_cookie_header "user_name=; domain=nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookie_with_several_preset_domains_using_one_of_these_domains

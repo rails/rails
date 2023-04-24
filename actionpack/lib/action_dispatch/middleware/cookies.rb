@@ -470,7 +470,7 @@ module ActionDispatch
             end
 
             options[:domain] = if cookie_domain.present?
-              ".#{cookie_domain}"
+              cookie_domain
             end
           elsif options[:domain].is_a? Array
             # If host matches one of the supplied domains.
