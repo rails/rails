@@ -15,18 +15,38 @@ const config = {
   singleRun: true,
   autoWatch: false,
 
-  captureTimeout: 180000,
-  browserDisconnectTimeout: 180000,
-  browserDisconnectTolerance: 3,
-  browserNoActivityTimeout: 300000,
+  concurrency: 4,
+  captureTimeout: 60000,
+  browserDisconnectTimeout: 120000,
+  browserDisconnectTolerance: 5,
+  browserNoActivityTimeout: 120000,
+  retryLimit: 5,
 }
 
 if (process.env.CI) {
   config.customLaunchers = {
-    sl_chrome: sauce("chrome", 70),
-    sl_ff: sauce("firefox", 63),
-    sl_safari: sauce("safari", 12.0, "macOS 10.13"),
-    sl_edge: sauce("microsoftedge", 17.17134, "Windows 10"),
+    sl_chrome: { base: "SauceLabs", browserName: "chrome", version: "latest" },
+    sl_ff: {
+      base: "SauceLabs",
+      browserName: "firefox",
+      browserVersion: "latest",
+      "moz:debuggerAddress": true
+    },
+    sl_safari: {
+      base: "SauceLabs",
+      browserName: "safari",
+      version: "12.1",
+      platform: "macOS 10.13"
+    },
+    sl_edge: {
+      base: "SauceLabs",
+      browserName: "microsoftedge",
+      version: "latest",
+      platform: "Windows 10",
+      chromeOptions: {
+        args: ['--no-sandbox', '--disable-dev-shm-usage']
+      }
+    }
   }
 
   config.browsers = Object.keys(config.customLaunchers)
@@ -34,20 +54,14 @@ if (process.env.CI) {
 
   config.sauceLabs = {
     testName: "ActionCable JS Client",
-    retryLimit: 3,
+    idleTimeout: 90,
+    commandTimeout: 90,
+    maxDuration: 300,
+    avoidProxy: true,
+    startConnect: true,
+    username: process.env.SAUCE_USERNAME,
+    accessKey: process.env.SAUCE_ACCESS_KEY,
     build: buildId(),
-  }
-
-  function sauce(browserName, version, platform) {
-    const options = {
-      base: "SauceLabs",
-      browserName: browserName.toString(),
-      version: version.toString(),
-    }
-    if (platform) {
-      options.platform = platform.toString()
-    }
-    return options
   }
 
   function buildId() {
