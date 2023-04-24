@@ -1,3 +1,7 @@
+*   Consistently raise an `ArgumentError` if the `ActiveSupport::Cache` key is blank.
+
+    *Joshua Young*
+
 *   Deprecate usage of the singleton `ActiveSupport::Deprecation`.
 
     All usage of `ActiveSupport::Deprecation` as a singleton is deprecated, the most common one being
