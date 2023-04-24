@@ -36,7 +36,7 @@ module ActiveRecord
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false)
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
@@ -44,16 +44,14 @@ module ActiveRecord
           ActiveRecord::Result.new(result.fields, result.to_a)
         end
 
-        alias exec_without_stmt exec_query
-
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
+        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           raw_execute(to_sql(sql, binds), name)
         end
 
-        def exec_delete(sql, name = nil, binds = [])
+        def exec_delete(sql, name = nil, binds = []) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
@@ -61,7 +59,7 @@ module ActiveRecord
           result.affected_rows
         end
 
-        alias :exec_update :exec_delete
+        alias :exec_update :exec_delete # :nodoc:
 
         def high_precision_current_timestamp
           HIGH_PRECISION_CURRENT_TIMESTAMP
