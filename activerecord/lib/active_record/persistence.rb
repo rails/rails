@@ -1206,6 +1206,12 @@ module ActiveRecord
     def create_or_update(**, &block)
       _raise_readonly_record_error if readonly?
       return false if destroyed?
+
+      if saved_from_has_one_callback?
+        @saved_from_has_one_callback = nil
+        return true
+      end
+
       result = new_record? ? _create_record(&block) : _update_record(&block)
       result != false
     end

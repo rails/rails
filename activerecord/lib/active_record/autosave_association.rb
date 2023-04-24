@@ -237,6 +237,15 @@ module ActiveRecord
       super
     end
 
+    # Marks record if it saved from has_one association to prevent multiple savings
+    def saved_from_has_one_callback!
+      @saved_from_has_one_callback = true
+    end
+
+    def saved_from_has_one_callback?
+      @saved_from_has_one_callback
+    end
+
     # Marks this record to be destroyed as part of the parent's save transaction.
     # This does _not_ actually destroy the record instantly, rather child record will be destroyed
     # when <tt>parent.save</tt> is called.
@@ -451,7 +460,8 @@ module ActiveRecord
           elsif autosave != false
             key = reflection.options[:primary_key] ? public_send(reflection.options[:primary_key]) : id
 
-            if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, key)
+            if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, key) &&
+               !record.saved_from_has_one_callback?
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
                 association.set_inverse_instance(record)
@@ -459,6 +469,7 @@ module ActiveRecord
 
               saved = record.save(validate: !autosave)
               raise ActiveRecord::Rollback if !saved && autosave
+              record.saved_from_has_one_callback!
               saved
             end
           end
