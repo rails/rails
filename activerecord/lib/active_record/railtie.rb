@@ -145,7 +145,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
               schema_cache_path: db_config.schema_cache_path
             )
 
-            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            cache = if connection_pool.db_config.configuration_hash[:adapter] == "postgresql"
+              ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.load_from(filename)
+            else
+              ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            end
+
             next if cache.nil?
 
             if check_schema_cache_dump_version

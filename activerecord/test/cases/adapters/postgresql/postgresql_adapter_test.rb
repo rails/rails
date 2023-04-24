@@ -26,14 +26,13 @@ module ActiveRecord
 
       def test_reconnection_error
         fake_connection = Class.new do
+          attr_accessor :type_map_for_results
+
           def async_exec(*)
             [{}]
           end
 
           def type_map_for_queries=(_)
-          end
-
-          def type_map_for_results=(_)
           end
 
           def exec_params(*)
@@ -452,6 +451,10 @@ module ActiveRecord
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
         reset_connection
+
+        ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+        ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
+
         connection = ActiveRecord::Base.connection
 
         silence_warnings do

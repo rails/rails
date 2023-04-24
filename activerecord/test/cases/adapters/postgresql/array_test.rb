@@ -12,6 +12,9 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.additional_type_records = []
+    ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache.known_coder_type_records = []
+
     @connection = ActiveRecord::Base.connection
 
     enable_extension!("hstore", @connection)
