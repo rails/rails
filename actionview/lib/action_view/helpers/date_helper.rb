@@ -10,7 +10,7 @@ require "active_support/core_ext/object/with_options"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Date \Helpers
+    # = Action View \Date \Helpers
     #
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
     # elements. All of the select-type methods share a number of common options that are as follows:
