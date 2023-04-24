@@ -2,7 +2,7 @@
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Rendering \Helpers
+    # = Action View \Rendering \Helpers
     #
     # Implements methods that allow rendering from a view context.
     # In order to use this module, all you need is to implement

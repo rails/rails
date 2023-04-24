@@ -2,9 +2,8 @@
 
 module ActionView
   module Helpers # :nodoc:
+    # = Action View CSP \Helpers
     module CspHelper
-      # = Action View CSP \Helpers
-      #
       # Returns a meta tag "csp-nonce" with the per-session nonce value
       # for allowing inline <script> tags.
       #
