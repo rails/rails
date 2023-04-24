@@ -42,18 +42,6 @@ module CacheInstrumentationBehavior
     assert_equal @cache.class.name, events[0].payload[:store]
   end
 
-  def test_instrumentation_empty_fetch_multi
-    events = with_instrumentation "read_multi" do
-      @cache.fetch_multi() { |key| key * 2 }
-    end
-
-    assert_equal %w[ cache_read_multi.active_support ], events.map(&:name)
-    assert_equal :fetch_multi, events[0].payload[:super_operation]
-    assert_equal [], events[0].payload[:key]
-    assert_equal [], events[0].payload[:hits]
-    assert_equal @cache.class.name, events[0].payload[:store]
-  end
-
   def test_read_multi_instrumentation
     key_1 = SecureRandom.uuid
     @cache.write(key_1, SecureRandom.alphanumeric)
@@ -67,17 +55,6 @@ module CacheInstrumentationBehavior
     assert_equal %w[ cache_read_multi.active_support ], events.map(&:name)
     assert_equal [key_2, key_1], events[0].payload[:key]
     assert_equal [key_1], events[0].payload[:hits]
-    assert_equal @cache.class.name, events[0].payload[:store]
-  end
-
-  def test_empty_read_multi_instrumentation
-    events = with_instrumentation "read_multi" do
-      @cache.read_multi()
-    end
-
-    assert_equal %w[ cache_read_multi.active_support ], events.map(&:name)
-    assert_equal [], events[0].payload[:key]
-    assert_equal [], events[0].payload[:hits]
     assert_equal @cache.class.name, events[0].payload[:store]
   end
 

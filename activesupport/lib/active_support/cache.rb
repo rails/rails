@@ -783,10 +783,14 @@ module ActiveSupport
           options
         end
 
-        # Expands and namespaces the cache key. May be overridden by
-        # cache stores to do additional normalization.
+        # Expands and namespaces the cache key.
+        # Raises an exception when the key is +nil+ or an empty string.
+        # May be overridden by cache stores to do additional normalization.
         def normalize_key(key, options = nil)
-          namespace_key expanded_key(key), options
+          str_key = expanded_key(key)
+          raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
+
+          namespace_key str_key, options
         end
 
         # Prefix the key with a namespace string:

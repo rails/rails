@@ -159,12 +159,6 @@ module CacheStoreBehavior
     end
   end
 
-  def test_read_multi_with_empty_keys_and_a_logger_and_no_namespace
-    cache = lookup_store(namespace: nil)
-    cache.logger = ActiveSupport::Logger.new(nil)
-    assert_equal({}, cache.read_multi)
-  end
-
   def test_fetch_multi
     key = SecureRandom.uuid
     other_key = SecureRandom.uuid
@@ -462,6 +456,22 @@ module CacheStoreBehavior
     key = "case_sensitive_key"
     @cache.write(key, "bar")
     assert_nil @cache.read(key.upcase)
+  end
+
+  def test_blank_key
+    invalid_keys = [nil, "", [], {}]
+    invalid_keys.each do |key|
+      assert_raises(ArgumentError) { @cache.write(key, "bar") }
+      assert_raises(ArgumentError) { @cache.read(key) }
+      assert_raises(ArgumentError) { @cache.delete(key) }
+    end
+
+    valid_keys = ["foo", ["bar"], { foo: "bar" }, 0, 1, InstanceTest.new("foo", 2)]
+    valid_keys.each do |key|
+      assert_nothing_raised { @cache.write(key, "bar") }
+      assert_nothing_raised { @cache.read(key) }
+      assert_nothing_raised { @cache.delete(key) }
+    end
   end
 
   def test_exist
