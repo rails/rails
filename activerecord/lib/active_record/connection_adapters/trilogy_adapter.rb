@@ -230,28 +230,28 @@ module ActiveRecord
         raw_execute(sql, name, allow_retry: allow_retry)
       end
 
-      def each_hash(result)
-        return to_enum(:each_hash, result) unless block_given?
+      private
+        def each_hash(result)
+          return to_enum(:each_hash, result) unless block_given?
 
-        keys = result.fields.map(&:to_sym)
-        result.rows.each do |row|
-          hash = {}
-          idx = 0
-          row.each do |value|
-            hash[keys[idx]] = value
-            idx += 1
+          keys = result.fields.map(&:to_sym)
+          result.rows.each do |row|
+            hash = {}
+            idx = 0
+            row.each do |value|
+              hash[keys[idx]] = value
+              idx += 1
+            end
+            yield hash
           end
-          yield hash
+
+          nil
         end
 
-        nil
-      end
+        def error_number(exception)
+          exception.error_code if exception.respond_to?(:error_code)
+        end
 
-      def error_number(exception)
-        exception.error_code if exception.respond_to?(:error_code)
-      end
-
-      private
         def connection
           @raw_connection
         end
