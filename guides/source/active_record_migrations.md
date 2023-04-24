@@ -59,7 +59,7 @@ exist. Active Record knows how to reverse this migration as well: if we roll
 this migration back, it will remove the table.
 
 On databases that support transactions with statements that change the schema,
-migrations are wrapped in a transaction. If the database does not support this
+each migration is wrapped in a transaction. If the database does not support this
 then when a migration fails the parts of it that succeeded will not be rolled
 back. You will have to rollback the changes that were made by hand.
 
