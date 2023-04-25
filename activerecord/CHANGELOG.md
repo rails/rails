@@ -1,3 +1,15 @@
+*   Add `prepend_order` as a new query method to prepend the specified order onto any existing order.
+
+    ```ruby
+    class User < ApplicationRecord
+      scope :recent, -> { order(name: :asc) }
+    end
+
+    most_popular_then_recent = User.recent.prepend_order(popularity: :desc) # generated SQL has `ORDER BY popularity DESC, name ASC`
+    ```
+
+    *Alex Robbin*
+
 *   Add a load hook for `ActiveRecord::ConnectionAdapters::Mysql2Adapter`
     (named `active_record_mysql2adapter`) to allow for overriding aspects of the
     `ActiveRecord::ConnectionAdapters::Mysql2Adapter` class. This makes `Mysql2Adapter`

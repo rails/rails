@@ -432,6 +432,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["The First Topic", "The Second Topic of the day", "The Third Topic of the day", "The Fourth Topic of the day", "The Fifth Topic of the day"], topics_titles
   end
 
+  def test_finding_with_prepend_order
+    topics = Topic.order("author_name").prepend_order("title").to_a
+    topics_titles = topics.map(&:title)
+    assert_equal ["The Fifth Topic of the day", "The First Topic", "The Fourth Topic of the day", "The Second Topic of the day", "The Third Topic of the day"], topics_titles
+  end
+
+  def test_finding_with_prepend_order_and_no_existing_order
+    topics = Topic.prepend_order("title").to_a
+    topics_titles = topics.map(&:title)
+    assert_equal ["The Fifth Topic of the day", "The First Topic", "The Fourth Topic of the day", "The Second Topic of the day", "The Third Topic of the day"], topics_titles
+  end
+
   def test_reorder_deduplication
     topics = Topic.reorder("id desc", "id desc")
     assert_equal ["id desc"], topics.order_values
