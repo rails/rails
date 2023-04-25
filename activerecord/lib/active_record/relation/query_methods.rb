@@ -120,6 +120,15 @@ module ActiveRecord
         end
     end
 
+    # A wrapper to distinguish CTE joins from other nodes.
+    class CTEJoin # :nodoc:
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
+    end
+
     FROZEN_EMPTY_ARRAY = [].freeze
     FROZEN_EMPTY_HASH = {}.freeze
 
@@ -1535,13 +1544,13 @@ module ActiveRecord
       end
 
       def build_join_dependencies
-        associations = joins_values | left_outer_joins_values
-        associations |= eager_load_values unless eager_load_values.empty?
-        associations |= includes_values unless includes_values.empty?
+        joins = joins_values | left_outer_joins_values
+        joins |= eager_load_values unless eager_load_values.empty?
+        joins |= includes_values unless includes_values.empty?
 
         join_dependencies = []
         join_dependencies.unshift construct_join_dependency(
-          select_association_list(associations, join_dependencies), nil
+          select_named_joins(joins, join_dependencies), nil
         )
       end
 
@@ -1598,6 +1607,18 @@ module ActiveRecord
         end
       end
 
+      def select_named_joins(join_names, stashed_joins = nil, &block)
+        cte_joins, associations = join_names.partition do |join_name|
+          Symbol === join_name && with_values.any? { _1.key?(join_name) }
+        end
+
+        cte_joins.each do |cte_name|
+          block&.call(CTEJoin.new(cte_name))
+        end
+
+        select_association_list(associations, stashed_joins, &block)
+      end
+
       def select_association_list(associations, stashed_joins = nil)
         result = []
         associations.each do |association|
@@ -1618,12 +1639,16 @@ module ActiveRecord
 
         unless left_outer_joins_values.empty?
           stashed_left_joins = []
-          left_joins = select_association_list(left_outer_joins_values, stashed_left_joins) do
-            raise ArgumentError, "only Hash, Symbol and Array are allowed"
+          left_joins = select_named_joins(left_outer_joins_values, stashed_left_joins) do |left_join|
+            if left_join.is_a?(CTEJoin)
+              buckets[:join_node] << build_with_join_node(left_join.name, Arel::Nodes::OuterJoin)
+            else
+              raise ArgumentError, "only Hash, Symbol and Array are allowed"
+            end
           end
 
           if joins_values.empty?
-            buckets[:association_join] = left_joins
+            buckets[:named_join] = left_joins
             buckets[:stashed_join] = stashed_left_joins
             return buckets, Arel::Nodes::OuterJoin
           else
@@ -1649,9 +1674,11 @@ module ActiveRecord
           end
         end
 
-        buckets[:association_join] = select_association_list(joins, buckets[:stashed_join]) do |join|
+        buckets[:named_join] = select_named_joins(joins, buckets[:stashed_join]) do |join|
           if join.is_a?(Arel::Nodes::Join)
             buckets[:join_node] << join
+          elsif join.is_a?(CTEJoin)
+            buckets[:join_node] << build_with_join_node(join.name)
           else
             raise "unknown class: %s" % join.class.name
           end
@@ -1668,16 +1695,16 @@ module ActiveRecord
 
         buckets, join_type = build_join_buckets
 
-        association_joins = buckets[:association_join]
-        stashed_joins     = buckets[:stashed_join]
-        leading_joins     = buckets[:leading_join]
-        join_nodes        = buckets[:join_node]
+        named_joins   = buckets[:named_join]
+        stashed_joins = buckets[:stashed_join]
+        leading_joins = buckets[:leading_join]
+        join_nodes    = buckets[:join_node]
 
         join_sources.concat(leading_joins) unless leading_joins.empty?
 
-        unless association_joins.empty? && stashed_joins.empty?
+        unless named_joins.empty? && stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
-          join_dependency = construct_join_dependency(association_joins, join_type)
+          join_dependency = construct_join_dependency(named_joins, join_type)
           join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
         end
 
@@ -1719,6 +1746,14 @@ module ActiveRecord
             end
           Arel::Nodes::TableAlias.new(expression, name)
         end
+      end
+
+      def build_with_join_node(name, kind = Arel::Nodes::InnerJoin)
+        with_table = Arel::Table.new(name)
+
+        table.join(with_table, kind).on(
+          with_table[klass.model_name.to_s.foreign_key].eq(table[klass.primary_key])
+        ).join_sources.first
       end
 
       def arel_columns(columns)
