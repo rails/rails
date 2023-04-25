@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 namespace :tmp do
-  desc "Clear cache, socket and screenshot files from tmp/ (narrow w/ tmp:cache:clear, tmp:sockets:clear, tmp:screenshots:clear)"
-  task clear: ["tmp:cache:clear", "tmp:sockets:clear", "tmp:screenshots:clear", "tmp:storage:clear"]
+  desc "Clear cache, screenshot, socket, and storage files from tmp/ (narrow w/ tmp:cache:clear, tmp:screenshots:clear, tmp:sockets:clear, tmp:storage:clear)"
+  task clear: ["tmp:cache:clear", "tmp:screenshots:clear", "tmp:sockets:clear", "tmp:storage:clear"]
 
   tmp_dirs = [ "tmp/cache/assets",
                "tmp/pids",
@@ -12,7 +12,7 @@ namespace :tmp do
 
   tmp_dirs.each { |d| directory d }
 
-  desc "Create tmp directories for cache, sockets, and pids"
+  desc "Create tmp directories for cache, pids, screenshots, sockets, and storage"
   task create: tmp_dirs
 
   namespace :cache do
