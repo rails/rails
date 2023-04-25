@@ -568,11 +568,17 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Table(o, collector)
-          if o.table_alias
-            collector << quote_table_name(o.name) << " " << quote_table_name(o.table_alias)
+          if Arel::Nodes::Node === o.name
+            visit o.name, collector
           else
             collector << quote_table_name(o.name)
           end
+
+          if o.table_alias
+            collector << " " << quote_table_name(o.table_alias)
+          end
+
+          collector
         end
 
         def visit_Arel_Nodes_In(o, collector)

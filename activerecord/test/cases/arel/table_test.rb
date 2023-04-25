@@ -127,6 +127,17 @@ module Arel
         rel = Table.new :users, as: "users"
         _(rel.table_alias).must_be_nil
       end
+
+      it "should accept literal SQL"  do
+        rel = Table.new Arel.sql("generate_series(4, 2)")
+        assert_equal Arel.sql("generate_series(4, 2)"), rel.name
+      end
+
+      it "should accept Arel nodes"  do
+        node = Arel::Nodes::NamedFunction.new("generate_series", [4, 2])
+        rel = Table.new node
+        assert_equal node, rel.name
+      end
     end
 
     describe "order" do
@@ -171,10 +182,6 @@ module Arel
 
     it "should have a name" do
       _(@relation.name).must_equal "users"
-    end
-
-    it "should have a table name" do
-      _(@relation.table_name).must_equal "users"
     end
 
     describe "[]" do

@@ -10,11 +10,14 @@ module Arel # :nodoc: all
 
     attr_accessor :name, :table_alias
 
-    # TableAlias and Table both have a #table_name which is the name of the underlying table
-    alias :table_name :name
-
     def initialize(name, as: nil, klass: nil, type_caster: klass&.type_caster)
-      @name = name.to_s
+      @name =
+        case name
+        when Symbol then name.to_s
+        else
+          name
+        end
+
       @klass = klass
       @type_caster = type_caster
 
