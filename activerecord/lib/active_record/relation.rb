@@ -215,7 +215,11 @@ module ActiveRecord
     def create_or_find_by(attributes, &block)
       transaction(requires_new: true) { create(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
-      find_by!(attributes)
+      if connection.transaction_open?
+        where(attributes).lock.find_by!(attributes)
+      else
+        find_by!(attributes)
+      end
     end
 
     # Like #create_or_find_by, but calls
@@ -224,7 +228,11 @@ module ActiveRecord
     def create_or_find_by!(attributes, &block)
       transaction(requires_new: true) { create!(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
-      find_by!(attributes)
+      if connection.transaction_open?
+        where(attributes).lock.find_by!(attributes)
+      else
+        find_by!(attributes)
+      end
     end
 
     # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
