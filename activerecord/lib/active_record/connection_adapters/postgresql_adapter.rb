@@ -1096,7 +1096,7 @@ module ActiveRecord
               PG::TextDecoder::TimestampUtc :
               PG::TextDecoder::TimestampWithoutTimeZone
 
-            @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
+            @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
             @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
 
             @mapped_default_timezone = default_timezone
