@@ -1,3 +1,7 @@
+*   `bin/rake tmp:create` now creates tmp/screenshots and tmp/storage directories
+
+    *Jason Karns*
+
 *   Trying to set a config key with the same name of a method now raises:
 
     ```ruby
