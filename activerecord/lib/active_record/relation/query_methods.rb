@@ -120,16 +120,14 @@ module ActiveRecord
         end
     end
 
-    # A wrapper to distinguish CTE joins from other nodes
-    class CTEJoin
+    # A wrapper to distinguish CTE joins from other nodes.
+    class CTEJoin # :nodoc:
       attr_reader :name
 
       def initialize(name)
         @name = name
       end
     end
-
-    private_constant :CTEJoin
 
     FROZEN_EMPTY_ARRAY = [].freeze
     FROZEN_EMPTY_HASH = {}.freeze
