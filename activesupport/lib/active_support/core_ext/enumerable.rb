@@ -194,7 +194,7 @@ module Enumerable
   # If the +series+ include keys that have no corresponding element in the Enumerable, these are ignored.
   # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
   def in_order_of(key, series)
-    group_by(&key).values_at(*series).flatten.compact
+    group_by(&key).values_at(*series).flatten(1).compact
   end
 
   # Returns the sole item in the enumerable. If there are no items, or more

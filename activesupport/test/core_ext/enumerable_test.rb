@@ -380,6 +380,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [ Payment.new(1), Payment.new(5), Payment.new(5) ], values.in_order_of(:price, [ 1, 5 ])
   end
 
+  def test_in_order_of_preserves_nested_elements
+    values = [[:paid, { price: 1, currency: :eur }], [:opened, { price: 2, currency: :usd }]]
+    assert_equal [[:opened, { price: 2, currency: :usd }], [:paid, { price: 1, currency: :eur }]], values.in_order_of(:first, [:opened, :paid])
+  end
+
   def test_sole
     expected_raise = Enumerable::SoleItemExpectedError
 
