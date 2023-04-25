@@ -18,10 +18,6 @@ module ActiveRecord
           result
         end
 
-        def query(sql, name = nil) # :nodoc:
-          raw_execute(sql, name).to_a
-        end
-
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
           :desc, :describe, :set, :show, :use
         ) # :nodoc:
