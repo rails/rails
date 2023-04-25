@@ -801,7 +801,7 @@ module ActiveRecord
       #
       # Active Record cannot track if the database is getting modified using
       # this client. If that is the case, generally you'll want to invalidate
-      # the query cache using `ActiveRecord::Base.clear_query_cache`.
+      # the query cache using +ActiveRecord::Base.clear_query_cache+.
       def raw_connection
         with_raw_connection do |conn|
           disable_lazy_transactions!
