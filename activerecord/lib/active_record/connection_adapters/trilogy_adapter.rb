@@ -142,13 +142,6 @@ module ActiveRecord
         end
       end
 
-      def execute(sql, name = nil, allow_retry: false)
-        sql = transform_query(sql)
-        check_if_write_query(sql)
-
-        raw_execute(sql, name, allow_retry: allow_retry)
-      end
-
       private
         def each_hash(result)
           return to_enum(:each_hash, result) unless block_given?

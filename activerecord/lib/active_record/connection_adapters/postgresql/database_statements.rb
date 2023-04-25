@@ -41,30 +41,18 @@ module ActiveRecord
         #
         # Note: the PG::Result object is manually memory managed; if you don't
         # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(sql, name = nil, allow_retry: false)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          mark_transaction_written_if_write(sql)
-
-          with_raw_connection(allow_retry: allow_retry) do |conn|
-            log(sql, name) do
-              result = conn.async_exec(sql)
-              handle_warnings(sql)
-              result
-            end
-          end
+        def execute(...) # :nodoc:
+          super
         ensure
           @notice_receiver_sql_warnings = []
         end
 
-        def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
-            log(sql, name) do
-              conn.async_exec(sql)
+        def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
+          log(sql, name, async: async) do
+            with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+              result = conn.async_exec(sql)
+              handle_warnings(result)
+              result
             end
           end
         end
@@ -122,11 +110,11 @@ module ActiveRecord
 
         # Begins a transaction.
         def begin_db_transaction # :nodoc:
-          internal_execute("BEGIN", "TRANSACTION")
+          internal_execute("BEGIN", "TRANSACTION", allow_retry: true, uses_transaction: false)
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION")
+          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, uses_transaction: false)
         end
 
         # Commits a transaction.

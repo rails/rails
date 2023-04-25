@@ -691,7 +691,7 @@ module ActiveRecord
         def configure_connection
           @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
 
-          execute("PRAGMA foreign_keys = ON", "SCHEMA")
+          raw_execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
     ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
