@@ -220,27 +220,6 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      # Executes the SQL statement in the context of this connection.
-      #
-      # Setting +allow_retry+ to true causes the db to reconnect and retry
-      # executing the SQL statement in case of a connection-related exception.
-      # This option should only be enabled for known idempotent queries.
-      def execute(sql, name = nil, allow_retry: false)
-        sql = transform_query(sql)
-        check_if_write_query(sql)
-
-        mark_transaction_written_if_write(sql)
-
-        log(sql, name) do
-          with_raw_connection(allow_retry: allow_retry) do |conn|
-            sync_timezone_changes(conn)
-            result = conn.query(sql)
-            handle_warnings(sql)
-            result
-          end
-        end
-      end
-
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
       # to write stuff in an abstract way without concerning ourselves about whether it
       # needs to be explicitly freed or not.
@@ -253,11 +232,11 @@ module ActiveRecord
       end
 
       def begin_db_transaction # :nodoc:
-        internal_execute("BEGIN", "TRANSACTION")
+        internal_execute("BEGIN", "TRANSACTION", allow_retry: true, uses_transaction: false)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        internal_execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION"
+        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, uses_transaction: false)
         begin_db_transaction
       end
 
@@ -746,19 +725,6 @@ module ActiveRecord
           end
         end
 
-        def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
-          mark_transaction_written_if_write(sql)
-
-          log(sql, name, async: async) do
-            with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
-              sync_timezone_changes(conn)
-              result = conn.query(sql)
-              handle_warnings(sql)
-              result
-            end
-          end
-        end
-
         def handle_warnings(sql)
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
@@ -779,12 +745,6 @@ module ActiveRecord
         # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
         # made since we established the connection
         def sync_timezone_changes(raw_connection)
-        end
-
-        def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-          raw_execute(sql, name, allow_retry: allow_retry, uses_transaction: uses_transaction)
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html

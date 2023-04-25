@@ -21,19 +21,6 @@ module ActiveRecord
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def execute(sql, name = nil, allow_retry: false) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          mark_transaction_written_if_write(sql)
-
-          log(sql, name) do
-            with_raw_connection(allow_retry: allow_retry) do |conn|
-              conn.execute(sql)
-            end
-          end
-        end
-
         def exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
@@ -122,6 +109,14 @@ module ActiveRecord
         end
 
         private
+          def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: false)
+            log(sql, name, async: async) do
+              with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+                conn.execute(sql)
+              end
+            end
+          end
+
           def reset_read_uncommitted
             read_uncommitted = ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted]
             return unless read_uncommitted
