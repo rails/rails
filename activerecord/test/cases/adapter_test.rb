@@ -375,9 +375,6 @@ module ActiveRecord
       @connection = ActiveRecord::Base.connection
     end
 
-    unless in_memory_db?
-    end
-
     def test_create_with_query_cache
       @connection.enable_query_cache!
 
@@ -696,19 +693,21 @@ module ActiveRecord
         end
       end
 
-      unless current_adapter?(:SQLite3Adapter)
-        test "#execute is retryable" do
-          conn_id = case @connection.class::ADAPTER_NAME
-                    when "Mysql2"
-                      @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
-                    when "PostgreSQL"
-                      @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-          end
-
-          kill_connection_from_server(conn_id)
-
-          @connection.execute("SELECT 1", allow_retry: true)
+      test "#execute is retryable" do
+        conn_id = case @connection.class::ADAPTER_NAME
+                  when "Mysql2"
+                    @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
+                  when "Trilogy"
+                    @connection.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
+                  when "PostgreSQL"
+                    @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+                  else
+                    skip("kill_connection_from_server unsupported")
         end
+
+        kill_connection_from_server(conn_id)
+
+        @connection.execute("SELECT 1", allow_retry: true)
       end
 
       private
@@ -716,7 +715,7 @@ module ActiveRecord
           case connection.class::ADAPTER_NAME
           when "PostgreSQL"
             connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-          when "Mysql2"
+          when "Mysql2", "Trilogy"
             begin
               connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
               connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
@@ -733,7 +732,7 @@ module ActiveRecord
               true
             end
           else
-            skip
+            skip("kill_connection_from_server unsupported")
           end
         end
 
@@ -745,21 +744,23 @@ module ActiveRecord
             end
             connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
             sleep 0.05
-          when "Mysql2"
+          when "Mysql2", "Trilogy"
             connection.send(:internal_execute, "set @@wait_timeout=1")
             sleep 1.2
           else
-            skip
+            skip("remote_disconnect unsupported")
           end
         end
 
         def kill_connection_from_server(connection_id)
           conn = @connection.pool.checkout
           case conn.class::ADAPTER_NAME
-          when "Mysql2"
+          when "Mysql2", "Trilogy"
             conn.execute("KILL #{connection_id}")
           when "PostgreSQL"
             conn.execute("SELECT pg_cancel_backend(#{connection_id})")
+          else
+            skip("kill_connection_from_server unsupported")
           end
 
           conn.close
