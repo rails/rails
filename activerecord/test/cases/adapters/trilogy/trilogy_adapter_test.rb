@@ -319,7 +319,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     exception = Minitest::Mock.new
     exception.expect :error_code, 123
 
-    assert_equal 123, @conn.error_number(exception)
+    assert_equal 123, @conn.send(:error_number, exception)
   end
 
   def assert_raises_with_message(exception, message, &block)

@@ -225,18 +225,31 @@ module ActiveRecord
       # Setting +allow_retry+ to true causes the db to reconnect and retry
       # executing the SQL statement in case of a connection-related exception.
       # This option should only be enabled for known idempotent queries.
-      def execute(sql, name = nil, async: false, allow_retry: false)
+      def execute(sql, name = nil, allow_retry: false)
         sql = transform_query(sql)
         check_if_write_query(sql)
 
-        raw_execute(sql, name, async: async, allow_retry: allow_retry)
+        mark_transaction_written_if_write(sql)
+
+        log(sql, name) do
+          with_raw_connection(allow_retry: allow_retry) do |conn|
+            sync_timezone_changes(conn)
+            result = conn.query(sql)
+            handle_warnings(sql)
+            result
+          end
+        end
       end
 
       # Mysql2Adapter doesn't have to free a result after using it, but we use this method
       # to write stuff in an abstract way without concerning ourselves about whether it
       # needs to be explicitly freed or not.
       def execute_and_free(sql, name = nil, async: false) # :nodoc:
-        yield execute(sql, name, async: async)
+        sql = transform_query(sql)
+        check_if_write_query(sql)
+
+        mark_transaction_written_if_write(sql)
+        yield raw_execute(sql, name, async: async)
       end
 
       def begin_db_transaction # :nodoc:
@@ -769,6 +782,8 @@ module ActiveRecord
         end
 
         def internal_execute(sql, name = "SCHEMA", allow_retry: true, uses_transaction: false)
+          sql = transform_query(sql)
+          check_if_write_query(sql)
           raw_execute(sql, name, allow_retry: allow_retry, uses_transaction: uses_transaction)
         end
 
