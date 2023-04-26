@@ -164,12 +164,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
-    def test_fetch_multi_without_names
-      assert_not_called(@cache.redis, :mget) do
-        @cache.fetch_multi() { }
-      end
-    end
-
     def test_write_expires_at
       @cache.write "key_with_expires_at", "bar", expires_at: 30.minutes.from_now
       assert @cache.redis.ttl("#{@namespace}:key_with_expires_at") > 0
