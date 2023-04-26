@@ -76,8 +76,8 @@ module ActionDispatch
           params = options.delete_if do |key, _|
             # top-level params' normal behavior of generating query_params
             # should be preserved even if the same key is also a bind_param
-            (path_params.key?(key) && !original_options.key?(key)) ||
-              parameterized_parts.key?(key) || route.defaults.key?(key)
+            parameterized_parts.key?(key) || route.defaults.key?(key) ||
+              (path_params.key?(key) && !original_options.key?(key))
           end
 
           defaults       = route.defaults
