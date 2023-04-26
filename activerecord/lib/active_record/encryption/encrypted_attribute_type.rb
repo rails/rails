@@ -76,9 +76,7 @@ module ActiveRecord
         def decrypt(value)
           with_context do
             unless value.nil?
-              default = @default.call if @default
-
-              if default && default == value
+              if @default && @default == value
                 value
               else
                 encryptor.decrypt(value, **decryption_options)
