@@ -68,7 +68,7 @@ module ActionDispatch
 
       private
         def relative_path?(path)
-          path && !path.empty? && path[0] != "/"
+          path && !path.empty? && !path.start_with?("/")
         end
 
         def escape(params)
