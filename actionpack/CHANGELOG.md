@@ -33,7 +33,7 @@
     search_path("quin") # => /foo/search/quin
     ```
 
-    *Jason Meller*
+    *Jason Meller, Jeremy Beker*
 
 *   Change `action_dispatch.show_exceptions` to one of `:all`, `:rescuable`, or
     `:none`. `:all` and `:none` behave the same as the previous `true` and
