@@ -756,6 +756,27 @@ module ActiveRecord
         ensure
           disable_extension!(:hstore, connection)
         end
+
+        def test_legacy_add_foreign_key_with_deferrable_true
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def migrate(x)
+              create_table :sub_testings do |t|
+                t.bigint :testing_id
+              end
+
+              add_foreign_key(:sub_testings, :testings, name: "deferrable_foreign_key", deferrable: true)
+            end
+          }.new
+
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+          foreign_keys = Testing.connection.foreign_keys("sub_testings")
+          assert_equal 1, foreign_keys.size
+          assert_equal :immediate, foreign_keys.first.deferrable
+        ensure
+          connection.drop_table(:sub_testings, if_exists: true)
+          ActiveRecord::Base.clear_cache!
+        end
       end
 
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

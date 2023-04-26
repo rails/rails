@@ -518,6 +518,20 @@ module ActiveRecord
           super
         end
 
+        def add_foreign_key(from_table, to_table, **options)
+          if options[:deferrable] == true
+            ActiveRecord.deprecator.warn(<<~MSG)
+              `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and will be removed in Rails 7.2.
+            MSG
+
+            options[:deferrable] = :immediate
+          end
+
+          assert_valid_deferrable(options[:deferrable])
+
+          super
+        end
+
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
@@ -543,7 +557,7 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
-            options[:deferrable] = extract_foreign_key_deferrable(row["deferrable"], row["deferred"])
+            options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
 
             options[:validate] = row["valid"]
             to_table = Utils.unquote_identifier(row["to_table"])
@@ -947,18 +961,14 @@ module ActiveRecord
             end
           end
 
-          def extract_foreign_key_deferrable(deferrable, deferred)
-            deferrable && (deferred ? :deferred : true)
+          def assert_valid_deferrable(deferrable)
+            return if !deferrable || %i(immediate deferred).include?(deferrable)
+
+            raise ArgumentError, "deferrable must be `:immediate` or `:deferred`, got: `#{deferrable.inspect}`"
           end
 
           def extract_constraint_deferrable(deferrable, deferred)
             deferrable && (deferred ? :deferred : :immediate)
-          end
-
-          def assert_valid_deferrable(deferrable) # :nodoc:
-            return if !deferrable || %i(immediate deferred).include?(deferrable)
-
-            raise ArgumentError, "deferrable must be `:immediate` or `:deferred`, got: `#{deferrable.inspect}`"
           end
 
           def reference_name_for_table(table_name)

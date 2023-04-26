@@ -138,6 +138,13 @@ module ActiveRecord
           super
         end
 
+        def add_foreign_key(from_table, to_table, **options)
+          if connection.adapter_name == "PostgreSQL" && options[:deferrable] == true
+            options[:deferrable] = :immediate
+          end
+          super
+        end
+
         private
           def compatible_table_definition(t)
             class << t

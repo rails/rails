@@ -1,3 +1,14 @@
+*   Deprecate `deferrable: true` option of `add_foreign_key`.
+
+    `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and
+    will be removed in Rails 7.2.
+
+    Because `deferrable: true` and `deferrable: :deferred` are hard to understand.
+    Both true and :deferred are truthy values.
+    This behavior is the same as the deferrable option of the add_unique_key method, added in #46192.
+
+    *Hiroyuki Ishii*
+
 *   `AbstractAdapter#execute` and `#exec_query` now clear the query cache
 
     If you need to perform a read only SQL query without clearing the query
