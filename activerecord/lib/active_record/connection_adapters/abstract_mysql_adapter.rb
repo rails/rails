@@ -232,24 +232,24 @@ module ActiveRecord
       end
 
       def begin_db_transaction # :nodoc:
-        internal_execute("BEGIN", "TRANSACTION", allow_retry: true, uses_transaction: false)
+        internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, uses_transaction: false)
+        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         begin_db_transaction
       end
 
       def commit_db_transaction # :nodoc:
-        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, uses_transaction: true)
+        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, uses_transaction: true)
+        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_restart_db_transaction # :nodoc:
-        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, uses_transaction: true)
+        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:

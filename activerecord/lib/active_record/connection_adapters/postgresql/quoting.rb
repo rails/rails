@@ -69,7 +69,7 @@ module ActiveRecord
 
         # Quotes strings for use in SQL input.
         def quote_string(s) # :nodoc:
-          with_raw_connection(allow_retry: true, uses_transaction: false) do |connection|
+          with_raw_connection(allow_retry: true, materialize_transactions: false) do |connection|
             connection.escape(s)
           end
         end

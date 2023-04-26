@@ -745,7 +745,7 @@ module ActiveRecord
             connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
             sleep 0.05
           when "Mysql2", "Trilogy"
-            connection.send(:internal_execute, "set @@wait_timeout=1", uses_transaction: false)
+            connection.send(:internal_execute, "set @@wait_timeout=1", materialize_transactions: false)
             sleep 1.2
           else
             skip("remote_disconnect unsupported")
