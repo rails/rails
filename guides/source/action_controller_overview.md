@@ -629,33 +629,13 @@ Refer to the [API documentation](https://api.rubyonrails.org/classes/ActionDispa
 for more details.
 
 These special cookie jars use a serializer to serialize the assigned values into
-strings and deserializes them into Ruby objects on read.
+strings and deserialize them into Ruby objects on read. You can specify which
+serializer to use via [`config.action_dispatch.cookies_serializer`][].
 
-You can specify what serializer to use:
-
-```ruby
-Rails.application.config.action_dispatch.cookies_serializer = :json
-```
-
-The default serializer for new applications is `:json`. For compatibility with
-old applications with existing cookies, `:marshal` is used when `serializer`
-option is not specified.
-
-You may also set this option to `:hybrid`, in which case Rails would transparently
-deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
-the `JSON` format. This is useful for migrating existing applications to the
-`:json` serializer.
-
-It is also possible to pass a custom serializer that responds to `load` and
-`dump`:
-
-```ruby
-Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
-```
-
-When using the `:json` or `:hybrid` serializer, you should beware that not all
-Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
-will be serialized as strings, and `Hash`es will have their keys stringified.
+The default serializer for new applications is `:json`. Be aware that JSON has
+limited support for roundtripping Ruby objects. For example, `Date`, `Time`, and
+`Symbol` objects (including `Hash` keys) will be serialized and deserialized
+into `String`s:
 
 ```ruby
 class CookiesController < ApplicationController
@@ -670,13 +650,13 @@ class CookiesController < ApplicationController
 end
 ```
 
-It's advisable that you only store simple data (strings and numbers) in cookies.
-If you have to store complex objects, you would need to handle the conversion
-manually when reading the values on subsequent requests.
+If you need to store these or more complex objects, you may need to manually
+convert their values when reading them in subsequent requests.
 
-If you use the cookie session store, this would apply to the `session` and
+If you use the cookie session store, the above applies to the `session` and
 `flash` hash as well.
 
+[`config.action_dispatch.cookies_serializer`]: configuring.html#config-action-dispatch-cookies-serializer
 [`cookies`]: https://api.rubyonrails.org/classes/ActionController/Cookies.html#method-i-cookies
 
 Rendering

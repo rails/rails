@@ -1,3 +1,37 @@
+*   `config.action_dispatch.cookies_serializer` now accepts `:message_pack` and
+    `:message_pack_allow_marshal` as serializers. These serializers require the
+    [`msgpack` gem](https://rubygems.org/gems/msgpack) (>= 1.7.0).
+
+    The Message Pack format can provide improved performance and smaller payload
+    sizes. It also supports roundtripping some Ruby types that are not supported
+    by JSON. For example:
+
+      ```ruby
+      cookies.encrypted[:foo] = [{ a: 1 }, { b: 2 }.with_indifferent_access, 1.to_d, Time.at(0, 123)]
+
+      # BEFORE with config.action_dispatch.cookies_serializer = :json
+      cookies.encrypted[:foo]
+      # => [{"a"=>1}, {"b"=>2}, "1.0", "1969-12-31T18:00:00.000-06:00"]
+      cookies.encrypted[:foo].map(&:class)
+      # => [Hash, Hash, String, String]
+
+      # AFTER with config.action_dispatch.cookies_serializer = :message_pack
+      cookies.encrypted[:foo]
+      # => [{:a=>1}, {"b"=>2}, 0.1e1, 1969-12-31 18:00:00.000123 -0600]
+      cookies.encrypted[:foo].map(&:class)
+      # => [Hash, ActiveSupport::HashWithIndifferentAccess, BigDecimal, Time]
+      ```
+
+    The `:message_pack` serializer can fall back to deserializing with
+    `ActiveSupport::JSON` when necessary, and the `:message_pack_allow_marshal`
+    serializer can fall back to deserializing with `Marshal` as well as
+    `ActiveSupport::JSON`. Additionally, the `:marshal`, `:json`, and
+    `:json_allow_marshal` (AKA `:hybrid`) serializers can now fall back to
+    deserializing with `ActiveSupport::MessagePack` when necessary. These
+    behaviors ensure old cookies can still be read so that migration is easier.
+
+    *Jonathan Hefner*
+
 *   Remove leading dot from domains on cookies set with `domain: :all`, to meet RFC6265 requirements
 
     *Gareth Adams*
