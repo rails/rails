@@ -509,6 +509,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_enqueued_with(job: LoggingJob, queue: "default")
   end
 
+  def test_assert_enqueued_with_when_queue_name_is_symbol
+    assert_enqueued_with(job: LoggingJob, queue: :default) do
+      LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later
+    end
+  end
+
   def test_assert_enqueued_with_returns
     job = assert_enqueued_with(job: LoggingJob) do
       LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3, keyword: true)
@@ -1777,6 +1783,12 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
 
     assert_performed_with(job: NestedJob, queue: "default")
+  end
+
+  def test_assert_performed_with_when_queue_name_is_symbol
+    assert_performed_with(job: NestedJob, queue: :default) do
+      NestedJob.perform_later
+    end
   end
 
   def test_assert_performed_with_returns
