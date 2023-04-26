@@ -6,7 +6,7 @@ module ActiveRecord
       module DatabaseStatements
         def explain(arel, binds = [], options = [])
           sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
-          result = exec_query(sql, "EXPLAIN", binds)
+          result = internal_exec_query(sql, "EXPLAIN", binds)
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
@@ -57,7 +57,7 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true) # :nodoc:
+        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true) # :nodoc:
           execute_and_clear(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |result|
             types = {}
             fields = result.fields
@@ -94,7 +94,7 @@ module ActiveRecord
           if use_insert_returning? || pk == false
             super
           else
-            result = exec_query(sql, name, binds)
+            result = internal_exec_query(sql, name, binds)
             unless sequence_name
               table_ref = extract_table_ref_from_insert_sql(sql)
               if table_ref
@@ -169,7 +169,7 @@ module ActiveRecord
 
           # Returns the current ID of a table's sequence.
           def last_insert_id_result(sequence_name)
-            exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
+            internal_exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
 
           def suppress_composite_primary_key(pk)

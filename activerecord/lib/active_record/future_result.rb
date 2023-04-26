@@ -149,7 +149,7 @@ module ActiveRecord
       end
 
       def exec_query(connection, *args, **kwargs)
-        connection.exec_query(*args, **kwargs)
+        connection.internal_exec_query(*args, **kwargs)
       end
 
       class SelectAll < FutureResult # :nodoc:

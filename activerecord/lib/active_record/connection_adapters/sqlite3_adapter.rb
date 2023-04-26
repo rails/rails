@@ -319,7 +319,7 @@ module ActiveRecord
         validate_change_column_null_argument!(null)
 
         unless null || default.nil?
-          exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
+          internal_exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         alter_table(table_name) do |definition|
           definition[column_name].null = null
@@ -360,7 +360,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
-        fk_info = exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = internal_exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         fk_info.map do |row|
           options = {
             column: row["from"],
@@ -434,7 +434,7 @@ module ActiveRecord
         end
 
         def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
+          structure = internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
           table_structure_with_collation(table_name, structure)
         end
@@ -598,7 +598,7 @@ module ActiveRecord
           quoted_columns = columns.map { |col| quote_column_name(col) } * ","
           quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ","
 
-          exec_query("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
+          internal_exec_query("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
