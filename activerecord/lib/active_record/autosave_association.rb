@@ -372,7 +372,7 @@ module ActiveRecord
       end
 
       def around_save_mark_as_saving_record
-        saving = (@saving ||= false)
+        @saving = true
         yield
         @saving = false
       end
