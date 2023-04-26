@@ -1,3 +1,10 @@
+*   `AbstractAdapter#execute` and `#exec_query` now clear the query cache
+
+    If you need to perform a read only SQL query without clearing the query
+    cache, use `AbstractAdapter#select_all`.
+
+    *Jean Boussier*
+
 *   Make `.joins` / `.left_outer_joins` work with CTEs.
 
     For example:

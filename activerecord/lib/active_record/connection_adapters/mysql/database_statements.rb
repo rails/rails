@@ -32,13 +32,13 @@ module ActiveRecord
         def explain(arel, binds = [], options = [])
           sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          result  = exec_query(sql, "EXPLAIN", binds)
+          result  = internal_exec_query(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
+        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
             execute_and_free(sql, name, async: async) do |result|
               if result

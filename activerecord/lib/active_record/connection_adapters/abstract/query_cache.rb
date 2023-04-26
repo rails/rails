@@ -7,8 +7,9 @@ module ActiveRecord
     module QueryCache
       class << self
         def included(base) # :nodoc:
-          dirties_query_cache base, :execute, :create, :insert, :update, :delete, :truncate, :truncate_tables,
-            :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction, :exec_insert_all
+          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
+            :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
+            :exec_insert_all
 
           base.set_callback :checkout, :after, :configure_query_cache!
           base.set_callback :checkin, :after, :disable_query_cache!
@@ -93,7 +94,7 @@ module ActiveRecord
         end
       end
 
-      def select_all(arel, name = nil, binds = [], preparable: nil, async: false)
+      def select_all(arel, name = nil, binds = [], preparable: nil, async: false) # :nodoc:
         arel = arel_from_relation(arel)
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
