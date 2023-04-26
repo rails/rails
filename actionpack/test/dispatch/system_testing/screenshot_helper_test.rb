@@ -152,6 +152,37 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_match %r|url=artifact://.+?tmp/screenshots/1_x\.png|, display_image_actual
   end
 
+  test ".rotate_screenshots delete old files from the screenshots directory" do
+    Dir.mktmpdir do |temp_dir|
+      Dir.chdir(temp_dir) do
+        Rails.stub :root, Pathname.new(temp_dir) do
+          FileUtils.mkdir_p(Rails.root.join("tmp/screenshots"))
+          file_old = Rails.root.join("tmp/screenshots/1.png")
+          File.write(file_old, "")
+          file_new = Rails.root.join("tmp/screenshots/2.png")
+          File.write(file_new, "")
+
+          File.stub(:ctime, ->(path) {
+            if path.match?(/1\.png$/)
+              10.minutes.ago
+            else
+              2.minutes.ago
+            end
+          }) do
+            ActionDispatch::SystemTesting.rotate_screenshots(ttl: 5.minutes)
+
+            assert File.file?(file_new)
+            assert_not File.file?(file_old)
+
+            ActionDispatch::SystemTesting.rotate_screenshots(ttl: 1.minute)
+
+            assert_not File.file?(file_new)
+          end
+        end
+      end
+    end
+  end
+
   test "image path returns the absolute path from root" do
     Rails.stub :root, Pathname.getwd.join("..") do
       assert_equal Rails.root.join("tmp/screenshots/0_x.png").to_s, @new_test.send(:image_path)
