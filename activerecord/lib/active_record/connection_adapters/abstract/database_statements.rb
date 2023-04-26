@@ -491,13 +491,13 @@ module ActiveRecord
       end
 
       private
-        def internal_execute(sql, name = "SCHEMA", allow_retry: false, uses_transaction: true)
+        def internal_execute(sql, name = "SCHEMA", allow_retry: false, materialize_transactions: true)
           sql = transform_query(sql)
           check_if_write_query(sql)
 
           mark_transaction_written_if_write(sql)
 
-          raw_execute(sql, name, allow_retry: allow_retry, uses_transaction: uses_transaction)
+          raw_execute(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
         end
 
         def execute_batch(statements, name = nil)
@@ -506,7 +506,7 @@ module ActiveRecord
           end
         end
 
-        def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
+        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
           raise NotImplementedError
         end
 
