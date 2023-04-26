@@ -150,6 +150,7 @@ module ActiveRecord
 
     included do
       Associations::Builder::Association.extensions << AssociationBuilderExtension
+      around_save :around_save_mark_as_saving_record
     end
 
     module ClassMethods # :nodoc:
@@ -272,6 +273,10 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    def already_trying_to_save?
+      @saving
+    end
+
     private
       def init_internals
         super
@@ -366,6 +371,12 @@ module ActiveRecord
         end
       end
 
+      def around_save_mark_as_saving_record
+        saving = (@saving ||= false)
+        yield
+        @saving = false
+      end
+
       # Is used as an around_save callback to check while saving a collection
       # association whether or not the parent was a new record before saving.
       def around_save_collection_association
@@ -456,6 +467,8 @@ module ActiveRecord
                 record[reflection.foreign_key] = key
                 association.set_inverse_instance(record)
               end
+
+              return if record.already_trying_to_save?
 
               saved = record.save(validate: !autosave)
               raise ActiveRecord::Rollback if !saved && autosave
