@@ -165,9 +165,9 @@ module ActiveRecord
             @max_allowed_packet ||= show_variable("max_allowed_packet")
           end
 
-          def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
+          def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
             log(sql, name, async: async) do
-              with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
                 result = conn.query(sql)
                 handle_warnings(sql)

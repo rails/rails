@@ -66,7 +66,7 @@ module ActiveRecord
           raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
           raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
 
-          with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+          with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
             ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = conn.get_first_value("PRAGMA read_uncommitted")
             conn.read_uncommitted = true
             begin_db_transaction
@@ -75,7 +75,7 @@ module ActiveRecord
 
         def begin_db_transaction # :nodoc:
           log("begin transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
               conn.transaction
             end
           end
@@ -83,7 +83,7 @@ module ActiveRecord
 
         def commit_db_transaction # :nodoc:
           log("commit transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
               conn.commit
             end
           end
@@ -92,7 +92,7 @@ module ActiveRecord
 
         def exec_rollback_db_transaction # :nodoc:
           log("rollback transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, uses_transaction: false) do |conn|
+            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
               conn.rollback
             end
           end
@@ -109,9 +109,9 @@ module ActiveRecord
         end
 
         private
-          def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: false)
+          def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: false)
             log(sql, name, async: async) do
-              with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 conn.execute(sql)
               end
             end

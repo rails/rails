@@ -47,9 +47,9 @@ module ActiveRecord
           @notice_receiver_sql_warnings = []
         end
 
-        def raw_execute(sql, name, async: false, allow_retry: false, uses_transaction: true)
+        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
           log(sql, name, async: async) do
-            with_raw_connection(allow_retry: allow_retry, uses_transaction: uses_transaction) do |conn|
+            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = conn.async_exec(sql)
               handle_warnings(result)
               result
@@ -57,8 +57,8 @@ module ActiveRecord
           end
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, uses_transaction: true) # :nodoc:
-          execute_and_clear(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, uses_transaction: uses_transaction) do |result|
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true) # :nodoc:
+          execute_and_clear(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |result|
             types = {}
             fields = result.fields
             fields.each_with_index do |fname, i|
@@ -110,27 +110,27 @@ module ActiveRecord
 
         # Begins a transaction.
         def begin_db_transaction # :nodoc:
-          internal_execute("BEGIN", "TRANSACTION", allow_retry: true, uses_transaction: false)
+          internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, uses_transaction: false)
+          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # Commits a transaction.
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT", "TRANSACTION", allow_retry: false, uses_transaction: true)
+          internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, uses_transaction: true)
+          internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def exec_restart_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, uses_transaction: true)
+          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
