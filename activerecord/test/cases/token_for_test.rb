@@ -104,7 +104,7 @@ class TokenForTest < ActiveRecord::TestCase
   test "supports JSON-serializable embedded data" do
     snapshot_token = @user.generate_token_for(:snapshot)
     assert_equal @user, User.find_by_token_for(:snapshot, snapshot_token)
-    @user.touch
+    @user.touch(time: @user.updated_at.advance(seconds: 1))
     assert_nil User.find_by_token_for(:snapshot, snapshot_token)
   end
 
