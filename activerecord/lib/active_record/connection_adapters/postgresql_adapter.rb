@@ -739,6 +739,12 @@ module ActiveRecord
           when nil
             if exception.message.match?(/connection is closed/i)
               ConnectionNotEstablished.new(exception)
+            elsif exception.is_a?(PG::UnableToSend)
+              if exception.message.match?(/server closed the connection/i)
+                ConnectionNotEstablished.new(exception)
+              else
+                super
+              end
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
               # errors do not. We separate these cases because a pg-internal

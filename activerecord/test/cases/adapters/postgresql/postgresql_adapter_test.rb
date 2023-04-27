@@ -606,6 +606,18 @@ module ActiveRecord
         end
       end
 
+      def test_retry_query_works_when_connection_abruptly_closed
+        @connection.execute("SELECT count(*) FROM information_schema.tables", allow_retry: true)
+        connection_id = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+        new_connection = @connection.pool.checkout
+        new_connection.execute("SELECT pg_terminate_backend(#{connection_id})")
+        # An additional sleep to ensure the postgres server has had the time to
+        # terminate the process entirely and severed the connection.
+        # Since pg_terminate_backend sends a SIGTERM.
+        sleep 0.2
+        @connection.execute("SELECT count(*) FROM information_schema.tables", allow_retry: true)
+      end
+
       private
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
