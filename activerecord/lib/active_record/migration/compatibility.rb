@@ -122,7 +122,7 @@ module ActiveRecord
         def change_column(table_name, column_name, type, **options)
           options[:_skip_validate_options] = true
           if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
-            options[:collation] = :no_collation
+            options[:collation] ||= :no_collation
           end
           super
         end

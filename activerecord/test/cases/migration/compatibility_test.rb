@@ -606,6 +606,21 @@ module ActiveRecord
         connection.drop_table :more_testings rescue nil
       end
 
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+        def test_change_table_collation_not_unset_7_0
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def migrate(x)
+              add_column :testings, :txt_collated, :string, charset: "utf8mb4", collation: "utf8mb4_general_ci"
+              change_column :testings, :txt_collated, :string, default: "hi", collation: "utf8mb4_esperanto_ci"
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          column = @connection.columns(:testings).find { |c| c.name == "txt_collated" }
+          assert_equal "hi", column.default
+          assert_equal "utf8mb4_esperanto_ci", column.collation
+        end
+      end
+
       def test_add_reference_on_6_0
         create_migration = Class.new(ActiveRecord::Migration[6.0]) {
           def version; 100 end
