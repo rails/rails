@@ -175,22 +175,22 @@ module ActiveModel
     end
 
     # Dispatch target for <tt>*_changed?</tt> attribute methods.
-    def attribute_changed?(attr_name, **options) # :nodoc:
+    def attribute_changed?(attr_name, **options)
       mutations_from_database.changed?(attr_name.to_s, **options)
     end
 
     # Dispatch target for <tt>*_was</tt> attribute methods.
-    def attribute_was(attr_name) # :nodoc:
+    def attribute_was(attr_name)
       mutations_from_database.original_value(attr_name.to_s)
     end
 
     # Dispatch target for <tt>*_previously_changed?</tt> attribute methods.
-    def attribute_previously_changed?(attr_name, **options) # :nodoc:
+    def attribute_previously_changed?(attr_name, **options)
       mutations_before_last_save.changed?(attr_name.to_s, **options)
     end
 
     # Dispatch target for <tt>*_previously_was</tt> attribute methods.
-    def attribute_previously_was(attr_name) # :nodoc:
+    def attribute_previously_was(attr_name)
       mutations_before_last_save.original_value(attr_name.to_s)
     end
 
