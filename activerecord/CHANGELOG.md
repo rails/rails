@@ -1,3 +1,7 @@
+*   The deferrable foreign key can be passed to `t.references`.
+
+    *Hiroyuki Ishii*
+
 *   Deprecate `deferrable: true` option of `add_foreign_key`.
 
     `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and
