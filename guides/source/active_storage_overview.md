@@ -1293,7 +1293,7 @@ the Rails application, similar to the following:
 
 ```ruby
 class DirectUploadsController < ActiveStorage::DirectUploadsController
-  skip_before_action :verify_authenticity_token
+  skip_forgery_protection
   before_action :authenticate!
 
   def authenticate!
