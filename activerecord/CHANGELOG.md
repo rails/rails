@@ -1,3 +1,16 @@
+*   `where.associated` and `where.missing` now supports a relation as parameter, it will
+    generate an exists clause to identify associated or missing relations.
+
+    ```ruby
+    Post.where.associated(Author.correlates(:post))
+    # => SELECT "posts".* FROM "posts" WHERE EXISTS (SELECT 1 FROM "authors" WHERE authors.id = posts.author_id)
+
+    Post.where.missing(Author.correlates(:post))
+    # => SELECT "posts".* FROM "posts" WHERE NOT EXISTS (SELECT 1 FROM "authors" WHERE authors.id = posts.author_id)
+    ```
+
+    *Lázaro Nixon*
+
 *   `AbstractAdapter#execute` and `#exec_query` now clear the query cache
 
     If you need to perform a read only SQL query without clearing the query

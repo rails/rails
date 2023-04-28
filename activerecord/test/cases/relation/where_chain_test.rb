@@ -35,6 +35,14 @@ module ActiveRecord
       end
     end
 
+    def test_associated_with_relation
+      Post.where.associated(Author.correlates(:post)).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_includes     relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
+
     def test_associated_with_invalid_association_name
       e = assert_raises(ArgumentError) do
         Post.where.associated(:cars).to_a
@@ -53,6 +61,13 @@ module ActiveRecord
         assert_includes     relation, comments(:more_greetings)
         assert_not_includes relation, comments(:greetings)
       end
+    end
+
+    def test_missing_with_relation
+      relation = Author.correlates(:post)
+
+      assert posts(:authorless).author.blank?
+      assert_equal [posts(:authorless)], Post.where.missing(relation).to_a
     end
 
     def test_missing_with_invalid_association_name

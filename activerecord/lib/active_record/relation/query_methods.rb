@@ -72,11 +72,21 @@ module ActiveRecord
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      #
+      # You can use a relation in order to get an exists clause.
+      # This will return posts that are associated to a related author:
+      #
+      #    Post.where.associated(Author.correlates(:post))
+      #    # SELECT "posts".* FROM "posts"
+      #    # WHERE EXISTS (SELECT 1 FROM "authors" WHERE authors.id = posts.author_id)
       def associated(*associations)
         associations.each do |association|
-          reflection = scope_association_reflection(association)
-          @scope.joins!(association)
-          self.not(association => { reflection.association_primary_key => nil })
+          if association.is_a?(Relation)
+            @scope.where!(association.reselect(1).arel.exists)
+          elsif reflection = scope_association_reflection(association)
+            @scope.joins!(association)
+            self.not(association => { reflection.association_primary_key => nil })
+          end
         end
 
         @scope
@@ -100,11 +110,21 @@ module ActiveRecord
       #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
+      #
+      # You can use a relation in order to get a not exists clause.
+      # This will return posts that are missing a related author:
+      #
+      #    Post.where.missing(Author.correlates(:post))
+      #    # SELECT "posts".* FROM "posts"
+      #    # WHERE NOT EXISTS (SELECT 1 FROM "authors" WHERE authors.id = posts.author_id)
       def missing(*associations)
         associations.each do |association|
-          reflection = scope_association_reflection(association)
-          @scope.left_outer_joins!(association)
-          @scope.where!(association => { reflection.association_primary_key => nil })
+          if association.is_a?(Relation)
+            @scope.where!(association.reselect(1).arel.exists.not)
+          elsif reflection = scope_association_reflection(association)
+            @scope.left_outer_joins!(association)
+            @scope.where!(association => { reflection.association_primary_key => nil })
+          end
         end
 
         @scope
@@ -780,6 +800,18 @@ module ActiveRecord
     def left_outer_joins!(*args) # :nodoc:
       self.left_outer_joins_values |= args
       self
+    end
+
+    # Performs a correlation on +associations+, often used in sub-queries:
+    #
+    #   User.correlates(:posts)
+    #   # SELECT "users".* FROM "users" WHERE "users"."id" = "posts"."user_id"
+    #
+    def correlates(association)
+      reflection         = scope_association_reflection(association)
+      correlation_clause = build_correlation_clause(reflection)
+
+      spawn.where!(correlation_clause)
     end
 
     # Returns a new relation, which is the result of filtering the current relation
@@ -1710,6 +1742,27 @@ module ActiveRecord
 
         join_sources.concat(join_nodes) unless join_nodes.empty?
         join_sources
+      end
+
+      def scope_association_reflection(association)
+        klass.reflect_on_association(association) || raise(ArgumentError, "An association named `:#{association}` does not exist on the model `#{klass.name}`.")
+      end
+
+      def build_correlation_clause(reflection)
+        if reflection.through_reflection?
+          raise ArgumentError, "Correlation is not supported for through association."
+        else
+          primary_key = Array(reflection.join_primary_key)
+          foreign_key = Array(reflection.join_foreign_key)
+
+          table = klass.arel_table
+          foreign_table = reflection.klass.arel_table
+
+          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+          primary_key_foreign_key_pairs.map do |join_primary_key, foreign_key|
+            table[foreign_key].eq(foreign_table[join_primary_key])
+          end.inject(&:and)
+        end
       end
 
       def build_select(arel)

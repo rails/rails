@@ -491,5 +491,21 @@ module ActiveRecord
       Comment.create!(label: :default, post: post, body: "Nice weather today")
       assert_equal [post], Post.joins(:comments).where(comments: { label: :default, body: "Nice weather today" }).to_a
     end
+
+    def test_correlates_with_invalid_association_name
+      e = assert_raises(ArgumentError) do
+        Post.correlates(:cars)
+      end
+
+      assert_match(/An association named `:cars` does not exist on the model `Post`/, e.message)
+    end
+
+    def test_correlates_with_through_association
+      e = assert_raises(ArgumentError) do
+        Author.correlates(:comments)
+      end
+
+      assert_match(/Correlation is not supported for through association/, e.message)
+    end
   end
 end
