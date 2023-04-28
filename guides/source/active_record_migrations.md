@@ -724,17 +724,16 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
 
     reversible do |direction|
       direction.up do
-        # add a CHECK constraint
+        # create a distributors view
         execute <<-SQL
-          ALTER TABLE distributors
-            ADD CONSTRAINT zipchk
-              CHECK (char_length(zipcode) = 5) NO INHERIT;
+          CREATE VIEW distributors_view AS
+          SELECT id, zipcode
+          FROM distributors;
         SQL
       end
       direction.down do
         execute <<-SQL
-          ALTER TABLE distributors
-            DROP CONSTRAINT zipchk
+          DROP VIEW distributors_view;
         SQL
       end
     end
@@ -774,11 +773,11 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
       t.string :zipcode
     end
 
-    # add a CHECK constraint
+    # create a distributors view
     execute <<-SQL
-      ALTER TABLE distributors
-        ADD CONSTRAINT zipchk
-        CHECK (char_length(zipcode) = 5);
+      CREATE VIEW distributors_view AS
+      SELECT id, zipcode
+      FROM distributors;
     SQL
 
     add_column :users, :home_page_url, :string
@@ -790,8 +789,7 @@ class ExampleMigration < ActiveRecord::Migration[7.1]
     remove_column :users, :home_page_url
 
     execute <<-SQL
-      ALTER TABLE distributors
-        DROP CONSTRAINT zipchk
+      DROP VIEW distributors_view;
     SQL
 
     drop_table :distributors
@@ -832,27 +830,25 @@ The `revert` method also accepts a block of instructions to reverse. This could
 be useful to revert selected parts of previous migrations.
 
 For example, let's imagine that `ExampleMigration` is committed and it is later
-decided it would be best to use Active Record validations, in place of the
-`CHECK` constraint, to verify the zipcode.
+decided that a Distributors view is no longer needed.
 
 ```ruby
-class DontUseConstraintForZipcodeValidationMigration < ActiveRecord::Migration[7.1]
+class DontUseDistributorsViewMigration < ActiveRecord::Migration[7.1]
   def change
     revert do
       # copy-pasted code from ExampleMigration
       reversible do |direction|
         direction.up do
-          # add a CHECK constraint
+          # create a distributors view
           execute <<-SQL
-            ALTER TABLE distributors
-              ADD CONSTRAINT zipchk
-                CHECK (char_length(zipcode) = 5);
+            CREATE VIEW distributors_view AS
+            SELECT id, zipcode
+            FROM distributors;
           SQL
         end
         direction.down do
           execute <<-SQL
-            ALTER TABLE distributors
-              DROP CONSTRAINT zipchk
+            DROP VIEW distributors_view;
           SQL
         end
       end
