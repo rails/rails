@@ -1,3 +1,19 @@
+*   Add support for `.where` to `ActiveRecord::Relation`.
+
+    For example:
+
+    ```ruby
+    authors_relation = Author.where("authors.id = posts.author_id")
+
+    Post.where(authors_relation)
+    #=> SELECT "posts".* FROM "posts" WHERE EXISTS (SELECT 1 FROM "authors" WHERE (authors.id = posts.author_id))
+
+    Post.where.not(authors_relation)
+    #=> SELECT "posts".* FROM "posts" WHERE NOT (EXISTS (SELECT 1 FROM "authors" WHERE (authors.id = posts.author_id)))
+    ```
+
+    *Lázaro Nixon*
+
 *   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
     `Array#intersect?` is only available on Ruby 3.1 or later.

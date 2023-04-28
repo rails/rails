@@ -918,6 +918,8 @@ module ActiveRecord
     def where(*args)
       if args.empty?
         WhereChain.new(spawn)
+      elsif args.length == 1 && args.first.is_a?(Relation)
+        spawn.where!(args.first)
       elsif args.length == 1 && args.first.blank?
         self
       else
@@ -1510,6 +1512,8 @@ module ActiveRecord
           parts = predicate_builder.build_from_hash(opts) do |table_name|
             lookup_table_klass_from_join_dependencies(table_name)
           end
+        when Relation
+          parts = [opts.reselect(1).arel.exists]
         when Arel::Nodes::Node
           parts = [opts]
         else

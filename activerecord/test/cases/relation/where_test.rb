@@ -453,6 +453,16 @@ module ActiveRecord
       assert_equal author_addresses(:david_address), author_address
     end
 
+    def test_where_with_relation_as_argument
+      authors = Author.where("authors.id = posts.author_id")
+
+      Post.where(authors).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_includes     relation, posts(:sti_habtm)
+        assert_not_includes relation, posts(:authorless)
+      end
+    end
+
     def test_where_on_association_with_select_relation
       essay = Essay.where(author: Author.where(name: "David").select(:name)).take
       assert_equal essays(:david_modest_proposal), essay
