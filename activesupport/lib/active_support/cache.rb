@@ -8,6 +8,7 @@ require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/string/inflections"
+require_relative "cache/serializer_with_fallback"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -645,7 +646,14 @@ module ActiveSupport
 
       private
         def default_coder
-          Coders[Cache.format_version]
+          case Cache.format_version
+          when 6.1
+            Cache::SerializerWithFallback[:marshal_6_1]
+          when 7.0
+            Cache::SerializerWithFallback[:marshal_7_0]
+          else
+            Cache::SerializerWithFallback[Cache.format_version]
+          end
         end
 
         # Adds the namespace defined in the options to a pattern designed to
@@ -939,82 +947,6 @@ module ActiveSupport
 
       def load(payload)
         payload
-      end
-    end
-
-    module Coders # :nodoc:
-      MARK_61              = "\x04\b".b.freeze # The one set by Marshal.
-      MARK_70_UNCOMPRESSED = "\x00".b.freeze
-      MARK_70_COMPRESSED   = "\x01".b.freeze
-
-      class << self
-        def [](version)
-          case version
-          when 6.1
-            Rails61Coder
-          when 7.0
-            Rails70Coder
-          else
-            raise ArgumentError, "Unknown ActiveSupport::Cache.format_version: #{Cache.format_version.inspect}"
-          end
-        end
-      end
-
-      module Loader
-        extend self
-
-        def load(payload)
-          if !payload.is_a?(String)
-            ActiveSupport::Cache::Store.logger&.warn %{Payload wasn't a string, was #{payload.class.name} - couldn't unmarshal, so returning nil."}
-
-            return nil
-          elsif payload.start_with?(MARK_70_UNCOMPRESSED)
-            members = Marshal.load(payload.byteslice(1..-1))
-          elsif payload.start_with?(MARK_70_COMPRESSED)
-            members = Marshal.load(Zlib::Inflate.inflate(payload.byteslice(1..-1)))
-          elsif payload.start_with?(MARK_61)
-            return Marshal.load(payload)
-          else
-            ActiveSupport::Cache::Store.logger&.warn %{Invalid cache prefix: #{payload.byteslice(0).inspect}, expected "\\x00" or "\\x01"}
-
-            return nil
-          end
-          Entry.unpack(members)
-        end
-      end
-
-      module Rails61Coder
-        include Loader
-        extend self
-
-        def dump(entry)
-          Marshal.dump(entry)
-        end
-
-        def dump_compressed(entry, threshold)
-          Marshal.dump(entry.compressed(threshold))
-        end
-      end
-
-      module Rails70Coder
-        include Loader
-        extend self
-
-        def dump(entry)
-          MARK_70_UNCOMPRESSED + Marshal.dump(entry.pack)
-        end
-
-        def dump_compressed(entry, threshold)
-          payload = Marshal.dump(entry.pack)
-          if payload.bytesize >= threshold
-            compressed_payload = Zlib::Deflate.deflate(payload)
-            if compressed_payload.bytesize < payload.bytesize
-              return MARK_70_COMPRESSED + compressed_payload
-            end
-          end
-
-          MARK_70_UNCOMPRESSED + payload
-        end
       end
     end
 

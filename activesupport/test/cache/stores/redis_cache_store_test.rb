@@ -143,6 +143,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheStoreBehavior
     include CacheStoreVersionBehavior
     include CacheStoreCoderBehavior
+    include CacheStoreFormatVersionBehavior
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
@@ -222,43 +223,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def test_large_object_with_default_compression_settings
       assert_compressed(LARGE_OBJECT)
-    end
-  end
-
-  class OptimizedRedisCacheStoreCommonBehaviorTest < RedisCacheStoreCommonBehaviorTest
-    def before_setup
-      @previous_format = ActiveSupport::Cache.format_version
-      ActiveSupport::Cache.format_version = 7.0
-      super
-    end
-
-    def test_forward_compatibility
-      previous_format = ActiveSupport::Cache.format_version
-      ActiveSupport::Cache.format_version = 6.1
-      @old_store = lookup_store
-      ActiveSupport::Cache.format_version = previous_format
-
-      key = SecureRandom.uuid
-      value = SecureRandom.alphanumeric
-      @old_store.write(key, value)
-      assert_equal value, @cache.read(key)
-    end
-
-    def test_backward_compatibility
-      previous_format = ActiveSupport::Cache.format_version
-      ActiveSupport::Cache.format_version = 6.1
-      @old_store = lookup_store
-      ActiveSupport::Cache.format_version = previous_format
-
-      key = SecureRandom.uuid
-      value = SecureRandom.alphanumeric
-      @cache.write(key, value)
-      assert_equal value, @old_store.read(key)
-    end
-
-    def after_teardown
-      super
-      ActiveSupport::Cache.format_version = @previous_format
     end
   end
 

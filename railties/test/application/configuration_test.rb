@@ -4125,50 +4125,42 @@ module ApplicationTests
       assert_equal :fiber, ActiveSupport::IsolatedExecutionState.isolation_level
     end
 
-    test "cache_format_version in a new app" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "ActiveSupport::Cache.format_version is 7.0 by default for new apps" do
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_equal 7.0, ActiveSupport::Cache.format_version
     end
 
-    test "cache_format_version with explicit 7.0 defaults" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "ActiveSupport::Cache.format_version is 6.1 by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "7.0"'
+
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails70Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_equal 6.1, ActiveSupport::Cache.format_version
     end
 
-    test "cache_format_version with 6.1 defaults" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "ActiveSupport::Cache.format_version can be configured via config.active_support.cache_format_version" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
+
+      add_to_config "config.active_support.cache_format_version = 7.0"
+
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_equal 7.0, ActiveSupport::Cache.format_version
     end
 
-    test "cache_format_version **cannot** be set via new framework defaults" do
-      add_to_config <<-RUBY
-        config.cache_store = :null_store
-      RUBY
+    test "config.active_support.cache_format_version affects Rails.cache when set in an environment file (or earlier)" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
+
+      app_file "config/environments/development.rb", <<~RUBY
         Rails.application.config.active_support.cache_format_version = 7.0
       RUBY
 
       app "development"
 
-      assert_equal ActiveSupport::Cache::Coders::Rails61Coder, Rails.cache.instance_variable_get(:@coder)
+      assert_equal \
+        ActiveSupport::Cache::NullStore.new.instance_variable_get(:@coder),
+        Rails.cache.instance_variable_get(:@coder)
     end
 
     test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do
