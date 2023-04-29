@@ -1,3 +1,20 @@
+*   Fix unscope is not working in specific case
+
+    Before:
+    ```ruby
+    Post.where(id: 1...3).unscope(where: :id).to_sql # "SELECT `posts`.* FROM `posts` WHERE `posts`.`id` >= 1 AND `posts`.`id` < 3"
+
+    ```
+
+    After:
+    ```ruby
+    Post.where(id: 1...3).unscope(where: :id).to_sql # "SELECT `posts`.* FROM `posts`"
+    ```
+
+    Fixes: #48094
+
+    *Kazuya Hatanaka*
+
 *   Allow composite primary key to be derived from schema
 
     Booting an application with a schema that contains composite primary keys
