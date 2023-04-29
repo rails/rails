@@ -77,6 +77,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreFormatVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
@@ -430,37 +431,4 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         ENV["MEMCACHE_SERVERS"] = original_value
       end
     end
-end
-
-class OptimizedMemCacheStoreTest < MemCacheStoreTest
-  def setup
-    @previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 7.0
-    super
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
-  end
-
-  def test_forward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @old_store.write("foo", "bar")
-    assert_equal "bar", @cache.read("foo")
-  end
-
-  def test_backward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @cache.write("foo", "bar")
-    assert_equal "bar", @old_store.read("foo")
-  end
 end
