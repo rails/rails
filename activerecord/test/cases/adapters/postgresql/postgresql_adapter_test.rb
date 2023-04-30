@@ -3,6 +3,7 @@
 require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"
+require "models/event"
 
 require "active_support/error_reporter/test_helper"
 
@@ -606,6 +607,37 @@ module ActiveRecord
         end
       end
 
+      def test_retry_query_works_with_select_prepared_statements
+        binds = [Event.type_for_attribute("id").serialize(1)]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+
+        terminate_postgres_backend
+
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+      end
+
+      def test_retry_query_works_with_select_prepared_statements_cached
+        binds = [Event.type_for_attribute("id").serialize(1)]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        assert_equal 1, id
+
+        event_id = Event.last.id
+        assert_equal 1, event_id
+
+        terminate_postgres_backend
+
+        event_id = Event.last.id
+        assert_equal 1, event_id
+
+        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, deleted
+      end
+
       private
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
@@ -614,6 +646,16 @@ module ActiveRecord
         def connection_without_insert_returning
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
           ActiveRecord::Base.postgresql_connection(db_config.configuration_hash.merge(insert_returning: false))
+        end
+
+        def terminate_postgres_backend
+          connection_id = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+          new_connection = @connection.pool.checkout
+          new_connection.execute("SELECT pg_terminate_backend(#{connection_id})")
+          # An additional sleep to ensure the postgres server has had the time to
+          # terminate the process entirely and severed the connection.
+          # Since pg_terminate_backend sends a SIGTERM.
+          sleep 0.2
         end
     end
   end

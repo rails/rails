@@ -618,7 +618,7 @@ module ActiveRecord
             return future_result
           end
 
-          result = internal_exec_query(sql, name, binds, prepare: prepare)
+          result = internal_exec_query(sql, name, binds, prepare: prepare, allow_retry: true)
           if async
             FutureResult::Complete.new(result)
           else

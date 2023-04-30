@@ -850,7 +850,7 @@ module ActiveRecord
 
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async) do
-            with_raw_connection do |conn|
+            with_raw_connection(allow_retry: allow_retry) do |conn|
               conn.exec_params(sql, type_casted_binds)
             end
           end
@@ -864,8 +864,14 @@ module ActiveRecord
           stmt_key = prepare_statement(sql, binds)
           type_casted_binds = type_casted_binds(binds)
 
-          with_raw_connection do |conn|
+          with_raw_connection(allow_retry: allow_retry) do |conn|
             log(sql, name, binds, type_casted_binds, stmt_key, async: async) do
+              # If the query is being retried after a reconnect
+              # the statement pool would've been cleared. If so,
+              # prepare the statement once again.
+              unless @statements.key?(sql_key(sql))
+                stmt_key = prepare_statement(sql, binds)
+              end
               conn.exec_prepared(stmt_key, type_casted_binds)
             end
           end
