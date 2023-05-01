@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/retry_job"
+require "jobs/after_discard_retry_job"
 require "models/person"
 require "minitest/mock"
 
@@ -330,6 +331,43 @@ class ExceptionsTest < ActiveSupport::TestCase
     end
 
     assert_equal ["Raised DefaultsError for the 5th time"], JobBuffer.values
+  end
+
+  test "#after_discard block is run when an unhandled error is raised" do
+    assert_raises(AfterDiscardRetryJob::UnhandledError) do
+      AfterDiscardRetryJob.perform_later("AfterDiscardRetryJob::UnhandledError", 2)
+    end
+
+    assert_equal "Ran after_discard for job. Message: AfterDiscardRetryJob::UnhandledError", JobBuffer.last_value
+  end
+
+  test "#after_discard block is run when #retry_on is passed a block" do
+    AfterDiscardRetryJob.perform_later("AfterDiscardRetryJob::CustomCatchError", 6)
+
+    assert_equal "Ran after_discard for job. Message: AfterDiscardRetryJob::CustomCatchError", JobBuffer.last_value
+  end
+
+  test "#after_discard block is only run once when an error class and its superclass are handled by separate #retry_on calls" do
+    assert_raises(AfterDiscardRetryJob::ChildAfterDiscardError) do
+      AfterDiscardRetryJob.perform_later("AfterDiscardRetryJob::ChildAfterDiscardError", 6)
+    end
+    assert_equal ["Raised AfterDiscardRetryJob::ChildAfterDiscardError for the 5th time", "Ran after_discard for job. Message: AfterDiscardRetryJob::ChildAfterDiscardError"], JobBuffer.values.last(2)
+  end
+
+  test "#after_discard is run when a job is discarded via #discard_on" do
+    AfterDiscardRetryJob.perform_later("AfterDiscardRetryJob::DiscardableError", 2)
+
+    assert_equal "Ran after_discard for job. Message: AfterDiscardRetryJob::DiscardableError", JobBuffer.last_value
+  end
+
+  test "#after_discard is run when a job is discarded via #discard_on with a block passed to #discard_on" do
+    AfterDiscardRetryJob.perform_later("AfterDiscardRetryJob::CustomDiscardableError", 2)
+
+    expected_array = [
+      "Dealt with a job that was discarded in a custom way. Message: AfterDiscardRetryJob::CustomDiscardableError",
+      "Ran after_discard for job. Message: AfterDiscardRetryJob::CustomDiscardableError"
+    ]
+    assert_equal expected_array, JobBuffer.values.last(2)
   end
 
   private
