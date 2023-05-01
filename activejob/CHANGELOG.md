@@ -1,19 +1,23 @@
-*   Fix deserialization of ActiveSupport::Duration
+*   Add `after_discard` method
 
-    Previously, a deserialized Duration would return an array from Duration#parts.
-    It will now return a hash just like a regular Duration.
+    This method lets job authors define a block which will be run when a job is about to be discarded. For example:
 
-    This also fixes an error when trying to add or subtract from a deserialized Duration
-    (eg `duration + 1.year`).
+    ```ruby
+      class AfterDiscardJob < ActiveJob::Base
+        after_discard do |job, exception|
+          Rails.logger.info("#{job.class} raised an exception: #{exception}")
+        end
 
-    *Jonathan del Strother*
+        def perform
+          raise StandardError
+        end
+      end
+    ```
 
-*   `perform_enqueued_jobs` is now compatible with all Active Job adapters
+    The above job will run the block passed to `after_discard` after the job is discarded. The exception will
+    still be raised after the block has been run.
 
-    This means that methods that depend on it, like Action Mailer's `assert_emails`,
-    will work correctly even if the test adapter is not used.
-
-    *Alex Ghiculescu*
+    *Rob Cardy*
 
 *   Allow queue adapters to provide a custom name by implementing `queue_adapter_name`
 
