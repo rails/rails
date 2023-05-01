@@ -1,1771 +1,1770 @@
-- Discard connections which may have been left in a transaction.
+*   Extend `.select` on `ActiveRecord::ConnectionAdapters::DatabaseStatements` to retry select queries by
+    passing in `allow_retry: true` to `internal_exec_query`. Currently, `internal_exec_query` only accepts
+    `allow_retry` for the Postgres adapter. Additionally, it also ensures to re-build the prepared statements
+    in an event of a retry.
 
-  There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:
+    *Shayon Mukherjee*
 
-  - Writes appear to fail when they actually succeed.
-  - Writes appear to succeed when they actually fail.
-  - Reads return stale or uncommitted data.
+*   Discard connections which may have been left in a transaction.
 
-  Previously, the following case was detected:
+    There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:
+    - Writes appear to fail when they actually succeed.
+    - Writes appear to succeed when they actually fail.
+    - Reads return stale or uncommitted data.
 
-  - An error is encountered during the transaction, then another error is encountered while attempting to roll it back.
+    Previously, the following case was detected:
+    - An error is encountered during the transaction, then another error is encountered while attempting to roll it back.
 
-  Now, the following additional cases are detected:
+    Now, the following additional cases are detected:
+    - An error is encountered just after successfully beginning a transaction.
+    - An error is encountered while committing a transaction, then another error is encountered while attempting to roll it back.
+    - An error is encountered while rolling back a transaction.
 
-  - An error is encountered just after successfully beginning a transaction.
-  - An error is encountered while committing a transaction, then another error is encountered while attempting to roll it back.
-  - An error is encountered while rolling back a transaction.
+    *Nick Dower*
 
-  _Nick Dower_
+*   Active Record query cache now evicts least recently used entries
 
-- Active Record query cache now evicts least recently used entries
+    By default it only keeps the `100` most recently used queries.
 
-  By default it only keeps the `100` most recently used queries.
+    The cache size can be configured via `database.yml`
 
-  The cache size can be configured via `database.yml`
+    ```yaml
+    development:
+      adapter: mysql2
+      query_cache: 200
+    ```
 
-  ```yaml
-  development:
-    adapter: mysql2
-    query_cache: 200
-  ```
+    It can also be entirely disabled:
 
-  It can also be entirely disabled:
+    ```yaml
+    development:
+      adapter: mysql2
+      query_cache: false
+    ```
 
-  ```yaml
-  development:
-    adapter: mysql2
-    query_cache: false
-  ```
+    *Jean Boussier*
 
-  _Jean Boussier_
+*   Deprecate `check_pending!` in favor of `check_pending_migrations!`.
 
-- Deprecate `check_pending!` in favor of `check_pending_migrations!`.
+    `check_pending!` will only check for pending migrations on the current database connection or the one passed in. This has been deprecated in favor of `check_pending_migrations!` which will find all pending migrations for the database configurations in a given environment.
 
-  `check_pending!` will only check for pending migrations on the current database connection or the one passed in. This has been deprecated in favor of `check_pending_migrations!` which will find all pending migrations for the database configurations in a given environment.
+    *Eileen M. Uchitelle*
 
-  _Eileen M. Uchitelle_
+*   Make `increment_counter`/`decrement_counter` accept an amount argument
 
-- Make `increment_counter`/`decrement_counter` accept an amount argument
+    ```ruby
+    Post.increment_counter(:comments_count, 5, by: 3)
+    ```
 
-  ```ruby
-  Post.increment_counter(:comments_count, 5, by: 3)
-  ```
+    *fatkodima*
 
-  _fatkodima_
+*   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
-- Add support for `Array#intersect?` to `ActiveRecord::Relation`.
+    `Array#intersect?` is only available on Ruby 3.1 or later.
 
-  `Array#intersect?` is only available on Ruby 3.1 or later.
+    This allows the Rubocop `Style/ArrayIntersect` cop to work with `ActiveRecord::Relation` objects.
 
-  This allows the Rubocop `Style/ArrayIntersect` cop to work with `ActiveRecord::Relation` objects.
+    *John Harry Kelly*
 
-  _John Harry Kelly_
+*   The deferrable foreign key can be passed to `t.references`.
 
-- The deferrable foreign key can be passed to `t.references`.
+    *Hiroyuki Ishii*
 
-  _Hiroyuki Ishii_
+*   Deprecate `deferrable: true` option of `add_foreign_key`.
 
-- Deprecate `deferrable: true` option of `add_foreign_key`.
+    `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and
+    will be removed in Rails 7.2.
 
-  `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and
-  will be removed in Rails 7.2.
+    Because `deferrable: true` and `deferrable: :deferred` are hard to understand.
+    Both true and :deferred are truthy values.
+    This behavior is the same as the deferrable option of the add_unique_key method, added in #46192.
 
-  Because `deferrable: true` and `deferrable: :deferred` are hard to understand.
-  Both true and :deferred are truthy values.
-  This behavior is the same as the deferrable option of the add_unique_key method, added in #46192.
+    *Hiroyuki Ishii*
 
-  _Hiroyuki Ishii_
+*   `AbstractAdapter#execute` and `#exec_query` now clear the query cache
 
-- `AbstractAdapter#execute` and `#exec_query` now clear the query cache
+    If you need to perform a read only SQL query without clearing the query
+    cache, use `AbstractAdapter#select_all`.
 
-  If you need to perform a read only SQL query without clearing the query
-  cache, use `AbstractAdapter#select_all`.
+    *Jean Boussier*
 
-  _Jean Boussier_
+*   Make `.joins` / `.left_outer_joins` work with CTEs.
 
-- Make `.joins` / `.left_outer_joins` work with CTEs.
+    For example:
 
-  For example:
+    ```ruby
+    Post
+     .with(commented_posts: Comment.select(:post_id).distinct)
+     .joins(:commented_posts)
+    #=> WITH (...) SELECT ... INNER JOIN commented_posts on posts.id = commented_posts.post_id
+    ```
 
-  ```ruby
-  Post
-   .with(commented_posts: Comment.select(:post_id).distinct)
-   .joins(:commented_posts)
-  #=> WITH (...) SELECT ... INNER JOIN commented_posts on posts.id = commented_posts.post_id
-  ```
+    *Vladimir Dementyev*
 
-  _Vladimir Dementyev_
+*   Add a load hook for `ActiveRecord::ConnectionAdapters::Mysql2Adapter`
+    (named `active_record_mysql2adapter`) to allow for overriding aspects of the
+    `ActiveRecord::ConnectionAdapters::Mysql2Adapter` class. This makes `Mysql2Adapter`
+    consistent with `PostgreSQLAdapter` and `SQLite3Adapter` that already have load hooks.
 
-- Add a load hook for `ActiveRecord::ConnectionAdapters::Mysql2Adapter`
-  (named `active_record_mysql2adapter`) to allow for overriding aspects of the
-  `ActiveRecord::ConnectionAdapters::Mysql2Adapter` class. This makes `Mysql2Adapter`
-  consistent with `PostgreSQLAdapter` and `SQLite3Adapter` that already have load hooks.
+    *fatkodima*
 
-  _fatkodima_
+*   Introduce adapter for Trilogy database client
 
-- Introduce adapter for Trilogy database client
+    Trilogy is a MySQL-compatible database client. Rails applications can use Trilogy
+    by configuring their `config/database.yml`:
 
-  Trilogy is a MySQL-compatible database client. Rails applications can use Trilogy
-  by configuring their `config/database.yml`:
+    ```yaml
+    development:
+    adapter: trilogy
+    database: blog_development
+    pool: 5
+    ```
 
-  ```yaml
-  development:
-  adapter: trilogy
-  database: blog_development
-  pool: 5
-  ```
+    Or by using the `DATABASE_URL` environment variable:
 
-  Or by using the `DATABASE_URL` environment variable:
+    ```ruby
+    ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
+    ```
 
-  ```ruby
-  ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
-  ```
+    *Adrianna Chang*
 
-  _Adrianna Chang_
+*   `after_commit` callbacks defined on models now execute in the correct order.
 
-- `after_commit` callbacks defined on models now execute in the correct order.
+    ```ruby
+    class User < ActiveRecord::Base
+      after_commit { puts("this gets called first") }
+      after_commit { puts("this gets called second") }
+    end
+    ```
 
-  ```ruby
-  class User < ActiveRecord::Base
-    after_commit { puts("this gets called first") }
-    after_commit { puts("this gets called second") }
-  end
-  ```
+    Previously, the callbacks executed in the reverse order. To opt in to the new behaviour:
 
-  Previously, the callbacks executed in the reverse order. To opt in to the new behaviour:
+    ```ruby
+    config.active_record.run_after_transaction_callbacks_in_order_defined = true
+    ```
 
-  ```ruby
-  config.active_record.run_after_transaction_callbacks_in_order_defined = true
-  ```
+    This is the default for new apps.
 
-  This is the default for new apps.
+    *Alex Ghiculescu*
 
-  _Alex Ghiculescu_
+*   Infer `foreign_key` when `inverse_of` is present on `has_one` and `has_many` associations.
 
-- Infer `foreign_key` when `inverse_of` is present on `has_one` and `has_many` associations.
+    ```ruby
+    has_many :citations, foreign_key: "book1_id", inverse_of: :book
+    ```
 
-  ```ruby
-  has_many :citations, foreign_key: "book1_id", inverse_of: :book
-  ```
+    can be simplified to
 
-  can be simplified to
+    ```ruby
+    has_many :citations, inverse_of: :book
+    ```
 
-  ```ruby
-  has_many :citations, inverse_of: :book
-  ```
+    and the foreign_key will be read from the corresponding `belongs_to` association.
 
-  and the foreign_key will be read from the corresponding `belongs_to` association.
+    *Daniel Whitney*
 
-  _Daniel Whitney_
+*   Limit max length of auto generated index names
 
-- Limit max length of auto generated index names
+    Auto generated index names are now limited to 62 bytes, which fits within
+    the default index name length limits for MySQL, Postgres and SQLite.
 
-  Auto generated index names are now limited to 62 bytes, which fits within
-  the default index name length limits for MySQL, Postgres and SQLite.
+    Any index name over the limit will fallback to the new short format.
 
-  Any index name over the limit will fallback to the new short format.
+    Before (too long):
+    ```
+    index_testings_on_foo_and_bar_and_first_name_and_last_name_and_administrator
+    ```
 
-  Before (too long):
+    After (short format):
+    ```
+    idx_on_foo_bar_first_name_last_name_administrator_5939248142
+    ```
 
-  ```
-  index_testings_on_foo_and_bar_and_first_name_and_last_name_and_administrator
-  ```
+    The short format includes a hash to ensure the name is unique database-wide.
 
-  After (short format):
+    *Mike Coutermarsh*
 
-  ```
-  idx_on_foo_bar_first_name_last_name_administrator_5939248142
-  ```
+*   Introduce a more stable and optimized Marshal serializer for Active Record models.
 
-  The short format includes a hash to ensure the name is unique database-wide.
+    Can be enabled with `config.active_record.marshalling_format_version = 7.1`.
 
-  _Mike Coutermarsh_
+    *Jean Boussier*
 
-- Introduce a more stable and optimized Marshal serializer for Active Record models.
+*   Allow specifying where clauses with column-tuple syntax.
 
-  Can be enabled with `config.active_record.marshalling_format_version = 7.1`.
+    Querying through `#where` now accepts a new tuple-syntax which accepts, as
+    a key, an array of columns and, as a value, an array of corresponding tuples.
+    The key specifies a list of columns, while the value is an array of
+    ordered-tuples that conform to the column list.
 
-  _Jean Boussier_
+    For instance:
 
-- Allow specifying where clauses with column-tuple syntax.
+    ```ruby
+    # Cpk::Book => Cpk::Book(author_id: integer, number: integer, title: string, revision: integer)
+    # Cpk::Book.primary_key => ["author_id", "number"]
 
-  Querying through `#where` now accepts a new tuple-syntax which accepts, as
-  a key, an array of columns and, as a value, an array of corresponding tuples.
-  The key specifies a list of columns, while the value is an array of
-  ordered-tuples that conform to the column list.
+    book = Cpk::Book.create!(author_id: 1, number: 1)
+    Cpk::Book.where(Cpk::Book.primary_key => [[1, 2]]) # => [book]
 
-  For instance:
+    # Topic => Topic(id: integer, title: string, author_name: string...)
 
-  ```ruby
-  # Cpk::Book => Cpk::Book(author_id: integer, number: integer, title: string, revision: integer)
-  # Cpk::Book.primary_key => ["author_id", "number"]
+    Topic.where([:title, :author_name] => [["The Alchemist", "Paul Coelho"], ["Harry Potter", "J.K Rowling"]])
+    ```
 
-  book = Cpk::Book.create!(author_id: 1, number: 1)
-  Cpk::Book.where(Cpk::Book.primary_key => [[1, 2]]) # => [book]
+    *Paarth Madan*
 
-  # Topic => Topic(id: integer, title: string, author_name: string...)
+*   Allow warning codes to be ignore when reporting SQL warnings.
 
-  Topic.where([:title, :author_name] => [["The Alchemist", "Paul Coelho"], ["Harry Potter", "J.K Rowling"]])
-  ```
+    Active Record config that can ignore warning codes
 
-  _Paarth Madan_
+    ```ruby
+    # Configure allowlist of warnings that should always be ignored
+    config.active_record.db_warnings_ignore = [
+      "1062", # MySQL Error 1062: Duplicate entry
+    ]
+    ```
 
-- Allow warning codes to be ignore when reporting SQL warnings.
+    This is supported for the MySQL and PostgreSQL adapters.
 
-  Active Record config that can ignore warning codes
+    *Nick Borromeo*
 
-  ```ruby
-  # Configure allowlist of warnings that should always be ignored
-  config.active_record.db_warnings_ignore = [
-    "1062", # MySQL Error 1062: Duplicate entry
-  ]
-  ```
+*   Introduce `:active_record_fixtures` lazy load hook.
 
-  This is supported for the MySQL and PostgreSQL adapters.
+    Hooks defined with this name will be run whenever `TestFixtures` is included
+    in a class.
 
-  _Nick Borromeo_
-
-- Introduce `:active_record_fixtures` lazy load hook.
-
-  Hooks defined with this name will be run whenever `TestFixtures` is included
-  in a class.
-
-  ```ruby
-  ActiveSupport.on_load(:active_record_fixtures) do
-    self.fixture_paths << "test/fixtures"
-  end
-
-  klass = Class.new
-  klass.include(ActiveRecord::TestFixtures)
-
-  klass.fixture_paths # => ["test/fixtures"]
-  ```
-
-  _Andrew Novoselac_
-
-- Introduce `TestFixtures#fixture_paths`.
-
-  Multiple fixture paths can now be specified using the `#fixture_paths` accessor.
-  Apps will continue to have `test/fixtures` as their one fixture path by default,
-  but additional fixture paths can be specified.
-
-  ```ruby
-  ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
-  ActiveSupport::TestCase.fixture_paths << "component2/test/fixtures"
-  ```
-
-  `TestFixtures#fixture_path` is now deprecated.
-
-  _Andrew Novoselac_
-
-- Adds support for deferrable exclude constraints in PostgreSQL.
-
-  By default, exclude constraints in PostgreSQL are checked after each statement.
-  This works for most use cases, but becomes a major limitation when replacing
-  records with overlapping ranges by using multiple statements.
-
-  ```ruby
-  exclusion_constraint :users, "daterange(valid_from, valid_to) WITH &&", deferrable: :immediate
-  ```
-
-  Passing `deferrable: :immediate` checks constraint after each statement,
-  but allows manually deferring the check using `SET CONSTRAINTS ALL DEFERRED`
-  within a transaction. This will cause the excludes to be checked after the transaction.
-
-  It's also possible to change the default behavior from an immediate check
-  (after the statement), to a deferred check (after the transaction):
-
-  ```ruby
-  exclusion_constraint :users, "daterange(valid_from, valid_to) WITH &&", deferrable: :deferred
-  ```
-
-  _Hiroyuki Ishii_
-
-- Respect `foreign_type` option to `delegated_type` for `{role}_class` method.
-
-  Usage of `delegated_type` with non-conventional `{role}_type` column names can now be specified with `foreign_type` option.
-  This option is the same as `foreign_type` as forwarded to the underlying `belongs_to` association that `delegated_type` wraps.
-
-  _Jason Karns_
-
-- Add support for unique constraints (PostgreSQL-only).
-
-  ```ruby
-  add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_section_position"
-  remove_unique_key :sections, name: "unique_section_position"
-  ```
-
-  See PostgreSQL's [Unique Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS) documentation for more on unique constraints.
-
-  By default, unique constraints in PostgreSQL are checked after each statement.
-  This works for most use cases, but becomes a major limitation when replacing
-  records with unique column by using multiple statements.
-
-  An example of swapping unique columns between records.
-
-  ```ruby
-  # position is unique column
-  old_item = Item.create!(position: 1)
-  new_item = Item.create!(position: 2)
-
-  Item.transaction do
-    old_item.update!(position: 2)
-    new_item.update!(position: 1)
-  end
-  ```
-
-  Using the default behavior, the transaction would fail when executing the
-  first `UPDATE` statement.
-
-  By passing the `:deferrable` option to the `add_unique_key` statement in
-  migrations, it's possible to defer this check.
-
-  ```ruby
-  add_unique_key :items, [:position], deferrable: :immediate
-  ```
-
-  Passing `deferrable: :immediate` does not change the behaviour of the previous example,
-  but allows manually deferring the check using `SET CONSTRAINTS ALL DEFERRED` within a transaction.
-  This will cause the unique constraints to be checked after the transaction.
-
-  It's also possible to adjust the default behavior from an immediate
-  check (after the statement), to a deferred check (after the transaction):
-
-  ```ruby
-  add_unique_key :items, [:position], deferrable: :deferred
-  ```
-
-  If you want to change an existing unique index to deferrable, you can use :using_index
-  to create deferrable unique constraints.
-
-  ```ruby
-  add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_position"
-  ```
-
-  _Hiroyuki Ishii_
-
-- Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
-
-  _Rafael Mendonça França_
-
-- Remove deprecated `config.active_record.partial_writes`.
-
-  _Rafael Mendonça França_
-
-- Remove deprecated `ActiveRecord::Base` config accessors.
-
-  _Rafael Mendonça França_
-
-- Remove the `:include_replicas` argument from `configs_for`. Use `:include_hidden` argument instead.
-
-  _Eileen M. Uchitelle_
-
-- Allow applications to lookup a config via a custom hash key.
-
-  If you have registered a custom config or want to find configs where the hash matches a specific key, now you can pass `config_key` to `configs_for`. For example if you have a `db_config` with the key `vitess` you can look up a database configuration hash by matching that key.
-
-  ```ruby
-  ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary", config_key: :vitess)
-  ActiveRecord::Base.configurations.configs_for(env_name: "development", config_key: :vitess)
-  ```
-
-  _Eileen M. Uchitelle_
-
-- Allow applications to register a custom database configuration handler.
-
-  Adds a mechanism for registering a custom handler for cases where you want database configurations to respond to custom methods. This is useful for non-Rails database adapters or tools like Vitess that you may want to configure differently from a standard `HashConfig` or `UrlConfig`.
-
-  Given the following database YAML we want the `animals` db to create a `CustomConfig` object instead while the `primary` database will be a `UrlConfig`:
-
-  ```yaml
-  development:
-    primary:
-      url: postgres://localhost/primary
-    animals:
-      url: postgres://localhost/animals
-      custom_config:
-        sharded: 1
-  ```
-
-  To register a custom handler first make a class that has your custom methods:
-
-  ```ruby
-  class CustomConfig < ActiveRecord::DatabaseConfigurations::UrlConfig
-    def sharded?
-      custom_config.fetch("sharded", false)
+    ```ruby
+    ActiveSupport.on_load(:active_record_fixtures) do
+      self.fixture_paths << "test/fixtures"
     end
 
-    private
-      def custom_config
-        configuration_hash.fetch(:custom_config)
+    klass = Class.new
+    klass.include(ActiveRecord::TestFixtures)
+
+    klass.fixture_paths # => ["test/fixtures"]
+    ```
+
+    *Andrew Novoselac*
+
+*   Introduce `TestFixtures#fixture_paths`.
+
+    Multiple fixture paths can now be specified using the `#fixture_paths` accessor.
+    Apps will continue to have `test/fixtures` as their one fixture path by default,
+    but additional fixture paths can be specified.
+
+    ```ruby
+    ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
+    ActiveSupport::TestCase.fixture_paths << "component2/test/fixtures"
+    ```
+
+    `TestFixtures#fixture_path` is now deprecated.
+
+    *Andrew Novoselac*
+
+*   Adds support for deferrable exclude constraints in PostgreSQL.
+
+    By default, exclude constraints in PostgreSQL are checked after each statement.
+    This works for most use cases, but becomes a major limitation when replacing
+    records with overlapping ranges by using multiple statements.
+
+    ```ruby
+    exclusion_constraint :users, "daterange(valid_from, valid_to) WITH &&", deferrable: :immediate
+    ```
+
+    Passing `deferrable: :immediate` checks constraint after each statement,
+    but allows manually deferring the check using `SET CONSTRAINTS ALL DEFERRED`
+    within a transaction. This will cause the excludes to be checked after the transaction.
+
+    It's also possible to change the default behavior from an immediate check
+    (after the statement), to a deferred check (after the transaction):
+
+    ```ruby
+    exclusion_constraint :users, "daterange(valid_from, valid_to) WITH &&", deferrable: :deferred
+    ```
+
+    *Hiroyuki Ishii*
+
+*   Respect `foreign_type` option to `delegated_type` for `{role}_class` method.
+
+    Usage of `delegated_type` with non-conventional `{role}_type` column names can now be specified with `foreign_type` option.
+    This option is the same as `foreign_type` as forwarded to the underlying `belongs_to` association that `delegated_type` wraps.
+
+    *Jason Karns*
+
+*   Add support for unique constraints (PostgreSQL-only).
+
+    ```ruby
+    add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_section_position"
+    remove_unique_key :sections, name: "unique_section_position"
+    ```
+
+    See PostgreSQL's [Unique Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS) documentation for more on unique constraints.
+
+    By default, unique constraints in PostgreSQL are checked after each statement.
+    This works for most use cases, but becomes a major limitation when replacing
+    records with unique column by using multiple statements.
+
+    An example of swapping unique columns between records.
+
+    ```ruby
+    # position is unique column
+    old_item = Item.create!(position: 1)
+    new_item = Item.create!(position: 2)
+
+    Item.transaction do
+      old_item.update!(position: 2)
+      new_item.update!(position: 1)
+    end
+    ```
+
+    Using the default behavior, the transaction would fail when executing the
+    first `UPDATE` statement.
+
+    By passing the `:deferrable` option to the `add_unique_key` statement in
+    migrations, it's possible to defer this check.
+
+    ```ruby
+    add_unique_key :items, [:position], deferrable: :immediate
+    ```
+
+    Passing `deferrable: :immediate` does not change the behaviour of the previous example,
+    but allows manually deferring the check using `SET CONSTRAINTS ALL DEFERRED` within a transaction.
+    This will cause the unique constraints to be checked after the transaction.
+
+    It's also possible to adjust the default behavior from an immediate
+    check (after the statement), to a deferred check (after the transaction):
+
+    ```ruby
+    add_unique_key :items, [:position], deferrable: :deferred
+    ```
+
+    If you want to change an existing unique index to deferrable, you can use :using_index
+    to create deferrable unique constraints.
+
+    ```ruby
+    add_unique_key :items, deferrable: :deferred, using_index: "index_items_on_position"
+    ```
+
+    *Hiroyuki Ishii*
+
+*   Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.active_record.partial_writes`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base` config accessors.
+
+    *Rafael Mendonça França*
+
+*   Remove the `:include_replicas` argument from `configs_for`. Use `:include_hidden` argument instead.
+
+    *Eileen M. Uchitelle*
+
+*   Allow applications to lookup a config via a custom hash key.
+
+    If you have registered a custom config or want to find configs where the hash matches a specific key, now you can pass `config_key` to `configs_for`. For example if you have a `db_config` with the key `vitess` you can look up a database configuration hash by  matching that key.
+
+    ```ruby
+    ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary", config_key: :vitess)
+    ActiveRecord::Base.configurations.configs_for(env_name: "development", config_key: :vitess)
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Allow applications to register a custom database configuration handler.
+
+    Adds a mechanism for registering a custom handler for cases where you want database configurations to respond to custom methods. This is useful for non-Rails database adapters or tools like Vitess that you may want to configure differently from a standard `HashConfig` or `UrlConfig`.
+
+    Given the following database YAML we want the `animals` db to create a `CustomConfig` object instead while the `primary` database will be a `UrlConfig`:
+
+    ```yaml
+    development:
+      primary:
+        url: postgres://localhost/primary
+      animals:
+        url: postgres://localhost/animals
+        custom_config:
+          sharded: 1
+    ```
+
+    To register a custom handler first make a class that has your custom methods:
+
+    ```ruby
+    class CustomConfig < ActiveRecord::DatabaseConfigurations::UrlConfig
+      def sharded?
+        custom_config.fetch("sharded", false)
       end
-  end
-  ```
 
-  Then register the config in an initializer:
-
-  ```ruby
-  ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
-    next unless config.key?(:custom_config)
-    CustomConfig.new(env_name, name, url, config)
-  end
-  ```
-
-  When the application is booted, configuration hashes with the `:custom_config` key will be `CustomConfig` objects and respond to `sharded?`. Applications must handle the condition in which Active Record should use their custom handler.
-
-  _Eileen M. Uchitelle and John Crepezzi_
-
-- `ActiveRecord::Base.serialize` no longer uses YAML by default.
-
-  YAML isn't particularly performant and can lead to security issues
-  if not used carefully.
-
-  Unfortunately there isn't really any good serializers in Ruby's stdlib
-  to replace it.
-
-  The obvious choice would be JSON, which is a fine format for this use case,
-  however the JSON serializer in Ruby's stdlib isn't strict enough, as it fallback
-  to casting unknown types to strings, which could lead to corrupted data.
-
-  Some third party JSON libraries like `Oj` have a suitable strict mode.
-
-  So it's preferable that users choose a serializer based on their own constraints.
-
-  The original default can be restored by setting `config.active_record.default_column_serializer = YAML`.
-
-  _Jean Boussier_
-
-- `ActiveRecord::Base.serialize` signature changed.
-
-  Rather than a single positional argument that accepts two possible
-  types of values, `serialize` now accepts two distinct keyword arguments.
-
-  Before:
-
-  ```ruby
-    serialize :content, JSON
-    serialize :backtrace, Array
-  ```
-
-  After:
-
-  ```ruby
-    serialize :content, coder: JSON
-    serialize :backtrace, type: Array
-  ```
-
-  _Jean Boussier_
-
-- YAML columns use `YAML.safe_dump` is available.
-
-  As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
-  types restrictions than `YAML.safe_load`.
-
-  It's preferable to ensure the payload only use allowed types when we first
-  try to serialize it, otherwise you may end up with invalid records in the
-  database.
-
-  _Jean Boussier_
-
-- `ActiveRecord::QueryLogs` better handle broken encoding.
-
-  It's not uncommon when building queries with BLOB fields to contain
-  binary data. Unless the call carefully encode the string in ASCII-8BIT
-  it generally end up being encoded in `UTF-8`, and `QueryLogs` would
-  end up failing on it.
-
-  `ActiveRecord::QueryLogs` no longer depend on the query to be properly encoded.
-
-  _Jean Boussier_
-
-- `ActiveRecord::Relation#explain` now accepts options.
-
-  For databases and adapters which support them (currently PostgreSQL
-  and MySQL), options can be passed to `explain` to provide more
-  detailed query plan analysis:
-
-  ```ruby
-  Customer.where(id: 1).joins(:orders).explain(:analyze, :verbose)
-  ```
-
-  _Reid Lynch_
-
-- Multiple `Arel::Nodes::SqlLiteral` nodes can now be added together to
-  form `Arel::Nodes::Fragments` nodes. This allows joining several pieces
-  of SQL.
-
-  _Matthew Draper_, _Ole Friis_
-
-- `ActiveRecord::Base#signed_id` raises if called on a new record.
-
-  Previously it would return an ID that was not usable, since it was based on `id = nil`.
-
-  _Alex Ghiculescu_
-
-- Allow SQL warnings to be reported.
-
-  Active Record configs can be set to enable SQL warning reporting.
-
-  ```ruby
-  # Configure action to take when SQL query produces warning
-  config.active_record.db_warnings_action = :raise
-
-  # Configure allowlist of warnings that should always be ignored
-  config.active_record.db_warnings_ignore = [
-    /Invalid utf8mb4 character string/,
-    "An exact warning message",
-  ]
-  ```
-
-  This is supported for the MySQL and PostgreSQL adapters.
-
-  _Adrianna Chang_, _Paarth Madan_
-
-- Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`
-
-  Example:
-
-  ```ruby
-  Post.group(:title).regroup(:author)
-  # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`author`
-  ```
-
-  _Danielius Visockas_
-
-- PostgreSQL adapter method `enable_extension` now allows parameter to be `[schema_name.]<extension_name>`
-  if the extension must be installed on another schema.
-
-  Example: `enable_extension('heroku_ext.hstore')`
-
-  _Leonardo Luarte_
-
-- Add `:include` option to `add_index`.
-
-  Add support for including non-key columns in indexes for PostgreSQL
-  with the `INCLUDE` parameter.
-
-  ```ruby
-  add_index(:users, :email, include: [:id, :created_at])
-  ```
-
-  will result in:
-
-  ```sql
-  CREATE INDEX index_users_on_email USING btree (email) INCLUDE (id, created_at)
-  ```
-
-  _Steve Abrams_
-
-- `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
-  argument, more closely matching their `Enumerable` equivalents.
-
-  _George Claghorn_
-
-- Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
-
-  A normalization is applied when the attribute is assigned or updated, and
-  the normalized value will be persisted to the database. The normalization
-  is also applied to the corresponding keyword argument of finder methods.
-  This allows a record to be created and later queried using unnormalized
-  values. For example:
-
-  ```ruby
-  class User < ActiveRecord::Base
-    normalizes :email, with: -> email { email.strip.downcase }
-  end
-
-  user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
-  user.email                  # => "cruise-control@example.com"
-
-  user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
-  user.email                  # => "cruise-control@example.com"
-  user.email_before_type_cast # => "cruise-control@example.com"
-
-  User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
-  User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
-  ```
-
-  _Jonathan Hefner_
-
-- Hide changes to before_committed! callback behaviour behind flag.
-
-  In #46525, behavior around before_committed! callbacks was changed so that callbacks
-  would run on every enrolled record in a transaction, not just the first copy of a record.
-  This change in behavior is now controlled by a configuration option,
-  `config.active_record.before_committed_on_all_records`. It will be enabled by default on Rails 7.1.
-
-  _Adrianna Chang_
-
-- The `namespaced_controller` Query Log tag now matches the `controller` format
-
-  For example, a request processed by `NameSpaced::UsersController` will now log as:
-
-  ```
-  :controller # "users"
-  :namespaced_controller # "name_spaced/users"
-  ```
-
-  _Alex Ghiculescu_
-
-- Return only unique ids from ActiveRecord::Calculations#ids
-
-  Updated ActiveRecord::Calculations#ids to only return the unique ids of the base model
-  when using eager_load, preload and includes.
-
-  ```ruby
-  Post.find_by(id: 1).comments.count
-  # => 5
-  Post.includes(:comments).where(id: 1).pluck(:id)
-  # => [1, 1, 1, 1, 1]
-  Post.includes(:comments).where(id: 1).ids
-  # => [1]
-  ```
-
-  _Joshua Young_
-
-- Stop using `LOWER()` for case-insensitive queries on `citext` columns
-
-  Previously, `LOWER()` was added for e.g. uniqueness validations with
-  `case_sensitive: false`.
-  It wasn't mentioned in the documentation that the index without `LOWER()`
-  wouldn't be used in this case.
-
-  _Phil Pirozhkov_
-
-- Extract `#sync_timezone_changes` method in AbstractMysqlAdapter to enable subclasses
-  to sync database timezone changes without overriding `#raw_execute`.
-
-  _Adrianna Chang_, _Paarth Madan_
-
-- Do not write additional new lines when dumping sql migration versions
-
-  This change updates the `insert_versions_sql` function so that the database insert string containing the current database migration versions does not end with two additional new lines.
-
-  _Misha Schwartz_
-
-- Fix `composed_of` value freezing and duplication.
-
-  Previously composite values exhibited two confusing behaviors:
-
-  - When reading a compositve value it'd _NOT_ be frozen, allowing it to get out of sync with its underlying database
-    columns.
-  - When writing a compositve value the argument would be frozen, potentially confusing the caller.
-
-  Currently, composite values instantiated based on database columns are frozen (addressing the first issue) and
-  assigned compositve values are duplicated and the duplicate is frozen (addressing the second issue).
-
-  _Greg Navis_
-
-- Fix redundant updates to the column insensitivity cache
-
-  Fixed redundant queries checking column capability for insensitive
-  comparison.
-
-  _Phil Pirozhkov_
-
-- Allow disabling methods generated by `ActiveRecord.enum`.
-
-  _Alfred Dominic_
-
-- Avoid validating `belongs_to` association if it has not changed.
-
-  Previously, when updating a record, Active Record will perform an extra query to check for the presence of
-  `belongs_to` associations (if the presence is configured to be mandatory), even if that attribute hasn't changed.
-
-  Currently, only `belongs_to`-related columns are checked for presence. It is possible to have orphaned records with
-  this approach. To avoid this problem, you need to use a foreign key.
-
-  This behavior can be controlled by configuration:
-
-  ```ruby
-  config.active_record.belongs_to_required_validates_foreign_key = false
-  ```
-
-  and will be disabled by default with `config.load_defaults 7.1`.
-
-  _fatkodima_
-
-- `has_one` and `belongs_to` associations now define a `reset_association` method
-  on the owner model (where `association` is the name of the association). This
-  method unloads the cached associate record, if any, and causes the next access
-  to query it from the database.
-
-  _George Claghorn_
-
-- Allow per attribute setting of YAML permitted classes (safe load) and unsafe load.
-
-  _Carlos Palhares_
-
-- Add a build persistence method
-
-  Provides a wrapper for `new`, to provide feature parity with `create`s
-  ability to create multiple records from an array of hashes, using the
-  same notation as the `build` method on associations.
-
-  _Sean Denny_
-
-- Raise on assignment to readonly attributes
-
-  ```ruby
-  class Post < ActiveRecord::Base
-    attr_readonly :content
-  end
-  Post.create!(content: "cannot be updated")
-  post.content # "cannot be updated"
-  post.content = "something else" # => ActiveRecord::ReadonlyAttributeError
-  ```
-
-  Previously, assignment would succeed but silently not write to the database.
-
-  This behavior can be controlled by configuration:
-
-  ```ruby
-  config.active_record.raise_on_assign_to_attr_readonly = true
-  ```
-
-  and will be enabled by default with `config.load_defaults 7.1`.
-
-  _Alex Ghiculescu_, _Hartley McGuire_
-
-- Allow unscoping of preload and eager_load associations
-
-  Added the ability to unscope preload and eager_load associations just like
-  includes, joins, etc. See ActiveRecord::QueryMethods::VALID_UNSCOPING_VALUES
-  for the full list of supported unscopable scopes.
-
-  ```ruby
-  query.unscope(:eager_load, :preload).group(:id).select(:id)
-  ```
-
-  _David Morehouse_
-
-- Add automatic filtering of encrypted attributes on inspect
-
-  This feature is enabled by default but can be disabled with
-
-  ```ruby
-  config.active_record.encryption.add_to_filter_parameters = false
-  ```
-
-  _Hartley McGuire_
-
-- Clear locking column on #dup
-
-  This change fixes not to duplicate locking_column like id and timestamps.
-
-  ```
-  car = Car.create!
-  car.touch
-  car.lock_version #=> 1
-  car.dup.lock_version #=> 0
-  ```
-
-  _Shouichi Kamiya_, _Seonggi Yang_, _Ryohei UEDA_
-
-- Invalidate transaction as early as possible
-
-  After rescuing a `TransactionRollbackError` exception Rails invalidates transactions earlier in the flow
-  allowing the framework to skip issuing the `ROLLBACK` statement in more cases.
-  Only affects adapters that have `savepoint_errors_invalidate_transactions?` configured as `true`,
-  which at this point is only applicable to the `mysql2` adapter.
-
-  _Nikita Vasilevsky_
-
-- Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
-
-  It is now possible to configure columns list that will be used to build an SQL query clauses when
-  updating, deleting or reloading an `ActiveRecord::Base` object
-
-  ```ruby
-  class Developer < ActiveRecord::Base
-    query_constraints :company_id, :id
-  end
-  developer = Developer.first.update(name: "Bob")
-  # => UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
-  ```
-
-  _Nikita Vasilevsky_
-
-- Adds `validate` to foreign keys and check constraints in schema.rb
-
-  Previously, `schema.rb` would not record if `validate: false` had been used when adding a foreign key or check
-  constraint, so restoring a database from the schema could result in foreign keys or check constraints being
-  incorrectly validated.
-
-  _Tommy Graves_
-
-- Adapter `#execute` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
-  retried, up to the database's configured `connection_retries` value, upon encountering connection-related errors.
-
-  _Adrianna Chang_
-
-- Only trigger `after_commit :destroy` callbacks when a database row is deleted.
-
-  This prevents `after_commit :destroy` callbacks from being triggered again
-  when `destroy` is called multiple times on the same record.
-
-  _Ben Sheldon_
-
-- Fix `ciphertext_for` for yet-to-be-encrypted values.
-
-  Previously, `ciphertext_for` returned the cleartext of values that had not
-  yet been encrypted, such as with an unpersisted record:
-
-  ```ruby
-  Post.encrypts :body
-
-  post = Post.create!(body: "Hello")
-  post.ciphertext_for(:body)
-  # => "{\"p\":\"abc..."
-
-  post.body = "World"
-  post.ciphertext_for(:body)
-  # => "World"
-  ```
-
-  Now, `ciphertext_for` will always return the ciphertext of encrypted
-  attributes:
-
-  ```ruby
-  Post.encrypts :body
-
-  post = Post.create!(body: "Hello")
-  post.ciphertext_for(:body)
-  # => "{\"p\":\"abc..."
-
-  post.body = "World"
-  post.ciphertext_for(:body)
-  # => "{\"p\":\"xyz..."
-  ```
-
-  _Jonathan Hefner_
-
-- Fix a bug where using groups and counts with long table names would return incorrect results.
-
-  _Shota Toguchi_, _Yusaku Ono_
-
-- Fix encryption of column default values.
-
-  Previously, encrypted attributes that used column default values appeared to
-  be encrypted on create, but were not:
-
-  ```ruby
-  Book.encrypts :name
-
-  book = Book.create!
-  book.name
-  # => "<untitled>"
-  book.name_before_type_cast
-  # => "{\"p\":\"abc..."
-  book.reload.name_before_type_cast
-  # => "<untitled>"
-  ```
-
-  Now, attributes with column default values are encrypted:
-
-  ```ruby
-  Book.encrypts :name
-
-  book = Book.create!
-  book.name
-  # => "<untitled>"
-  book.name_before_type_cast
-  # => "{\"p\":\"abc..."
-  book.reload.name_before_type_cast
-  # => "{\"p\":\"abc..."
-  ```
-
-  _Jonathan Hefner_
-
-- Deprecate delegation from `Base` to `connection_handler`.
-
-  Calling `Base.clear_all_connections!`, `Base.clear_active_connections!`, `Base.clear_reloadable_connections!` and `Base.flush_idle_connections!` is deprecated. Please call these methods on the connection handler directly. In future Rails versions, the delegation from `Base` to the `connection_handler` will be removed.
-
-  _Eileen M. Uchitelle_
-
-- Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
-
-  _Sampat Badhe_
-
-- Validate options when managing columns and tables in migrations.
-
-  If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
-  instead of the option being silently ignored. Validation of the options will only be applied for new migrations
-  that are created.
-
-  _Guo Xiang Tan_, _George Wambold_
-
-- Update query log tags to use the [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/) format by default. See [#46179](https://github.com/rails/rails/issues/46179)
-
-  To opt out of SQLCommenter-formatted query log tags, set `config.active_record.query_log_tags_format = :legacy`. By default, this is set to `:sqlcommenter`.
-
-  _Modulitos_ and _Iheanyi_
-
-- Allow any ERB in the database.yml when creating rake tasks.
-
-  Any ERB can be used in `database.yml` even if it accesses environment
-  configurations.
-
-  Deprecates `config.active_record.suppress_multiple_database_warning`.
-
-  _Eike Send_
-
-- Add table to error for duplicate column definitions.
-
-  If a migration defines duplicate columns for a table, the error message
-  shows which table it concerns.
-
-  _Petrik de Heus_
-
-- Fix erroneous nil default precision on virtual datetime columns.
-
-  Prior to this change, virtual datetime columns did not have the same
-  default precision as regular datetime columns, resulting in the following
-  being erroneously equivalent:
-
-      t.virtual :name, type: datetime,                 as: "expression"
-      t.virtual :name, type: datetime, precision: nil, as: "expression"
-
-  This change fixes the default precision lookup, so virtual and regular
-  datetime column default precisions match.
-
-  _Sam Bostock_
-
-- Use connection from `#with_raw_connection` in `#quote_string`.
-
-  This ensures that the string quoting is wrapped in the reconnect and retry logic
-  that `#with_raw_connection` offers.
-
-  _Adrianna Chang_
-
-- Add `expires_in` option to `signed_id`.
-
-  _Shouichi Kamiya_
-
-- Allow applications to set retry deadline for query retries.
-
-  Building on the work done in #44576 and #44591, we extend the logic that automatically
-  reconnects database connections to take into account a timeout limit. We won't retry
-  a query if a given amount of time has elapsed since the query was first attempted. This
-  value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed,
-  but this can be changed via the `retry_deadline` option in the database config.
-
-  _Adrianna Chang_
-
-- Fix a case where the query cache can return wrong values. See #46044
-
-  _Aaron Patterson_
-
-- Support MySQL's ssl-mode option for MySQLDatabaseTasks.
-
-  Verifying the identity of the database server requires setting the ssl-mode
-  option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
-  for MySQL database tasks like creating a database and dumping the structure.
-
-  _Petrik de Heus_
-
-- Move `ActiveRecord::InternalMetadata` to an independent object.
-
-  `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
-
-  _Eileen M. Uchitelle_
-
-- Deprecate quoting `ActiveSupport::Duration` as an integer
-
-  Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
-  string template is deprecated. To avoid this warning, you should explicitly
-  convert the duration to a more specific database type. For example, if you
-  want to use a duration as an integer number of seconds:
-
-  ```
-  Record.where("duration = ?", 1.hour.to_i)
-  ```
-
-  If you want to use a duration as an ISO 8601 string:
-
-  ```
-  Record.where("duration = ?", 1.hour.iso8601)
-  ```
-
-  _Aram Greenman_
-
-- Allow `QueryMethods#in_order_of` to order by a string column name.
-
-  ```ruby
-  Post.in_order_of("id", [4,2,3,1]).to_a
-  Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
-  ```
-
-  _Igor Kasyanchuk_
-
-- Move `ActiveRecord::SchemaMigration` to an independent object.
-
-  `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
-
-  _Eileen M. Uchitelle_
-
-- Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
-
-  Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
-
-  _Eileen M. Uchitelle_
-
-- Fix connection handler methods to operate on all pools.
-
-  `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
-
-  _Eileen M. Uchitelle_
-
-- Allow ActiveRecord::QueryMethods#select to receive hash values.
-
-  Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.
-
-  With this change we can provide `hash` as argument, for example:
-
-  ```ruby
-  Post.joins(:comments).select(posts: [:id, :title, :created_at], comments: [:id, :body, :author_id])
-  #=> "SELECT \"posts\".\"id\", \"posts\".\"title\", \"posts\".\"created_at\", \"comments\".\"id\", \"comments\".\"body\", \"comments\".\"author_id\"
-  #   FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
-
-  Post.joins(:comments).select(posts: { id: :post_id, title: :post_title }, comments: { id: :comment_id, body: :comment_body })
-  #=> "SELECT posts.id as post_id, posts.title as post_title, comments.id as comment_id, comments.body as comment_body
-  #    FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
-  ```
-
-  _Oleksandr Holubenko_, _Josef Šimánek_, _Jean Boussier_
-
-- Adapts virtual attributes on `ActiveRecord::Persistence#becomes`.
-
-  When source and target classes have a different set of attributes adapts
-  attributes such that the extra attributes from target are added.
-
-  ```ruby
-  class Person < ApplicationRecord
-  end
-
-  class WebUser < Person
-    attribute :is_admin, :boolean
-    after_initialize :set_admin
-
-    def set_admin
-      write_attribute(:is_admin, email =~ /@ourcompany\.com$/)
+      private
+        def custom_config
+          configuration_hash.fetch(:custom_config)
+        end
     end
-  end
+    ```
 
-  person = Person.find_by(email: "email@ourcompany.com")
-  person.respond_to? :is_admin
-  # => false
-  person.becomes(WebUser).is_admin?
-  # => true
-  ```
+    Then register the config in an initializer:
 
-  _Jacopo Beschi_, _Sampson Crowley_
-
-- Fix `ActiveRecord::QueryMethods#in_order_of` to include `nil`s, to match the
-  behavior of `Enumerable#in_order_of`.
-
-  For example, `Post.in_order_of(:title, [nil, "foo"])` will now include posts
-  with `nil` titles, the same as `Post.all.to_a.in_order_of(:title, [nil, "foo"])`.
-
-  _fatkodima_
-
-- Optimize `add_timestamps` to use a single SQL statement.
-
-  ```ruby
-  add_timestamps :my_table
-  ```
-
-  Now results in the following SQL:
-
-  ```sql
-  ALTER TABLE "my_table" ADD COLUMN "created_at" datetime(6) NOT NULL, ADD COLUMN "updated_at" datetime(6) NOT NULL
-  ```
-
-  _Iliana Hadzhiatanasova_
-
-- Add `drop_enum` migration command for PostgreSQL
-
-  This does the inverse of `create_enum`. Before dropping an enum, ensure you have
-  dropped columns that depend on it.
-
-  _Alex Ghiculescu_
-
-- Adds support for `if_exists` option when removing a check constraint.
-
-  The `remove_check_constraint` method now accepts an `if_exists` option. If set
-  to true an error won't be raised if the check constraint doesn't exist.
-
-  _Margaret Parsa_ and _Aditya Bhutani_
-
-- `find_or_create_by` now try to find a second time if it hits a unicity constraint.
-
-  `find_or_create_by` always has been inherently racy, either creating multiple
-  duplicate records or failing with `ActiveRecord::RecordNotUnique` depending on
-  whether a proper unicity constraint was set.
-
-  `create_or_find_by` was introduced for this use case, however it's quite wasteful
-  when the record is expected to exist most of the time, as INSERT require to send
-  more data than SELECT and require more work from the database. Also on some
-  databases it can actually consume a primary key increment which is undesirable.
-
-  So for case where most of the time the record is expected to exist, `find_or_create_by`
-  can be made race-condition free by re-trying the `find` if the `create` failed
-  with `ActiveRecord::RecordNotUnique`. This assumes that the table has the proper
-  unicity constraints, if not, `find_or_create_by` will still lead to duplicated records.
-
-  _Jean Boussier_, _Alex Kitchens_
-
-- Introduce a simpler constructor API for ActiveRecord database adapters.
-
-  Previously the adapter had to know how to build a new raw connection to
-  support reconnect, but also expected to be passed an initial already-
-  established connection.
-
-  When manually creating an adapter instance, it will now accept a single
-  config hash, and only establish the real connection on demand.
-
-  _Matthew Draper_
-
-- Avoid redundant `SELECT 1` connection-validation query during DB pool
-  checkout when possible.
-
-  If the first query run during a request is known to be idempotent, it can be
-  used directly to validate the connection, saving a network round-trip.
-
-  _Matthew Draper_
-
-- Automatically reconnect broken database connections when safe, even
-  mid-request.
-
-  When an error occurs while attempting to run a known-idempotent query, and
-  not inside a transaction, it is safe to immediately reconnect to the
-  database server and try again, so this is now the default behavior.
-
-  This new default should always be safe -- to support that, it's consciously
-  conservative about which queries are considered idempotent -- but if
-  necessary it can be disabled by setting the `connection_retries` connection
-  option to `0`.
-
-  _Matthew Draper_
-
-- Avoid removing a PostgreSQL extension when there are dependent objects.
-
-  Previously, removing an extension also implicitly removed dependent objects. Now, this will raise an error.
-
-  You can force removing the extension:
-
-  ```ruby
-  disable_extension :citext, force: :cascade
-  ```
-
-  Fixes #29091.
-
-  _fatkodima_
-
-- Allow nested functions as safe SQL string
-
-  _Michael Siegfried_
-
-- Allow `destroy_association_async_job=` to be configured with a class string instead of a constant.
-
-  Defers an autoloading dependency between `ActiveRecord::Base` and `ActiveJob::Base`
-  and moves the configuration of `ActiveRecord::DestroyAssociationAsyncJob`
-  from ActiveJob to ActiveRecord.
-
-  Deprecates `ActiveRecord::ActiveJobRequiredError` and now raises a `NameError`
-  if the job class is unloadable or an `ActiveRecord::ConfigurationError` if
-  `dependent: :destroy_async` is declared on an association but there is no job
-  class configured.
-
-  _Ben Sheldon_
-
-- Fix `ActiveRecord::Store` to serialize as a regular Hash
-
-  Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
-  which is wasteful and cause problem with YAML safe_load.
-
-  _Jean Boussier_
-
-- Add `timestamptz` as a time zone aware type for PostgreSQL
-
-  This is required for correctly parsing `timestamp with time zone` values in your database.
-
-  If you don't want this, you can opt out by adding this initializer:
-
-  ```ruby
-  ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
-  ```
-
-  _Alex Ghiculescu_
-
-- Add new `ActiveRecord::Base::generates_token_for` API.
-
-  Currently, `signed_id` fulfills the role of generating tokens for e.g.
-  resetting a password. However, signed IDs cannot reflect record state, so
-  if a token is intended to be single-use, it must be tracked in a database at
-  least until it expires.
-
-  With `generates_token_for`, a token can embed data from a record. When
-  using the token to fetch the record, the data from the token and the data
-  from the record will be compared. If the two do not match, the token will
-  be treated as invalid, the same as if it had expired. For example:
-
-  ```ruby
-  class User < ActiveRecord::Base
-    has_secure_password
-
-    generates_token_for :password_reset, expires_in: 15.minutes do
-      # A password's BCrypt salt changes when the password is updated.
-      # By embedding (part of) the salt in a token, the token will
-      # expire when the password is updated.
-      BCrypt::Password.new(password_digest).salt[-10..]
+    ```ruby
+    ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
+      next unless config.key?(:custom_config)
+      CustomConfig.new(env_name, name, url, config)
     end
-  end
+    ```
 
-  user = User.first
-  token = user.generate_token_for(:password_reset)
+    When the application is booted, configuration hashes with the `:custom_config` key will be `CustomConfig` objects and respond to `sharded?`. Applications must handle the condition in which Active Record should use their custom handler.
 
-  User.find_by_token_for(:password_reset, token) # => user
+    *Eileen M. Uchitelle and John Crepezzi*
 
-  user.update!(password: "new password")
-  User.find_by_token_for(:password_reset, token) # => nil
-  ```
+*   `ActiveRecord::Base.serialize` no longer uses YAML by default.
 
-  _Jonathan Hefner_
+    YAML isn't particularly performant and can lead to security issues
+    if not used carefully.
 
-- Optimize Active Record batching for whole table iterations.
+    Unfortunately there isn't really any good serializers in Ruby's stdlib
+    to replace it.
 
-  Previously, `in_batches` got all the ids and constructed an `IN`-based query for each batch.
-  When iterating over the whole tables, this approach is not optimal as it loads unneeded ids and
-  `IN` queries with lots of items are slow.
+    The obvious choice would be JSON, which is a fine format for this use case,
+    however the JSON serializer in Ruby's stdlib isn't strict enough, as it fallback
+    to casting unknown types to strings, which could lead to corrupted data.
 
-  Now, whole table iterations use range iteration (`id >= x AND id <= y`) by default which can make iteration
-  several times faster. E.g., tested on a PostgreSQL table with 10 million records: querying (`253s` vs `30s`),
-  updating (`288s` vs `124s`), deleting (`268s` vs `83s`).
+    Some third party JSON libraries like `Oj` have a suitable strict mode.
 
-  Only whole table iterations use this style of iteration by default. You can disable this behavior by passing `use_ranges: false`.
-  If you iterate over the table and the only condition is, e.g., `archived_at: nil` (and only a tiny fraction
-  of the records are archived), it makes sense to opt in to this approach:
+    So it's preferable that users choose a serializer based on their own constraints.
 
-  ```ruby
-  Project.where(archived_at: nil).in_batches(use_ranges: true) do |relation|
-    # do something
-  end
-  ```
+    The original default can be restored by setting `config.active_record.default_column_serializer = YAML`.
 
-  See #45414 for more details.
+    *Jean Boussier*
 
-  _fatkodima_
+*   `ActiveRecord::Base.serialize` signature changed.
 
-- `.with` query method added. Construct common table expressions with ease and get `ActiveRecord::Relation` back.
+    Rather than a single positional argument that accepts two possible
+    types of values, `serialize` now accepts two distinct keyword arguments.
 
-  ```ruby
-  Post.with(posts_with_comments: Post.where("comments_count > ?", 0))
-  # => ActiveRecord::Relation
-  # WITH posts_with_comments AS (SELECT * FROM posts WHERE (comments_count > 0)) SELECT * FROM posts
-  ```
+    Before:
 
-  _Vlado Cingel_
+    ```ruby
+      serialize :content, JSON
+      serialize :backtrace, Array
+    ```
 
-- Don't establish a new connection if an identical pool exists already.
+    After:
 
-  Previously, if `establish_connection` was called on a class that already had an established connection, the existing connection would be removed regardless of whether it was the same config. Now if a pool is found with the same values as the new connection, the existing connection will be returned instead of creating a new one.
+    ```ruby
+      serialize :content, coder: JSON
+      serialize :backtrace, type: Array
+    ```
 
-  This has a slight change in behavior if application code is depending on a new connection being established regardless of whether it's identical to an existing connection. If the old behavior is desirable, applications should call `ActiveRecord::Base#remove_connection` before establishing a new one. Calling `establish_connection` with a different config works the same way as it did previously.
+    *Jean Boussier*
 
-  _Eileen M. Uchitelle_
+*   YAML columns use `YAML.safe_dump` is available.
 
-- Update `db:prepare` task to load schema when an uninitialized database exists, and dump schema after migrations.
+    As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
+    types restrictions than `YAML.safe_load`.
 
-  _Ben Sheldon_
+    It's preferable to ensure the payload only use allowed types when we first
+    try to serialize it, otherwise you may end up with invalid records in the
+    database.
 
-- Fix supporting timezone awareness for `tsrange` and `tstzrange` array columns.
+    *Jean Boussier*
 
-  ```ruby
-  # In database migrations
-  add_column :shops, :open_hours, :tsrange, array: true
-  # In app config
-  ActiveRecord::Base.time_zone_aware_types += [:tsrange]
-  # In the code times are properly converted to app time zone
-  Shop.create!(open_hours: [Time.current..8.hour.from_now])
-  ```
+*   `ActiveRecord::QueryLogs` better handle broken encoding.
 
-  _Wojciech Wnętrzak_
+    It's not uncommon when building queries with BLOB fields to contain
+    binary data. Unless the call carefully encode the string in ASCII-8BIT
+    it generally end up being encoded in `UTF-8`, and `QueryLogs` would
+    end up failing on it.
 
-- Introduce strategy pattern for executing migrations.
+    `ActiveRecord::QueryLogs` no longer depend on the query to be properly encoded.
 
-  By default, migrations will use a strategy object that delegates the method
-  to the connection adapter. Consumers can implement custom strategy objects
-  to change how their migrations run.
+    *Jean Boussier*
 
-  _Adrianna Chang_
+*   `ActiveRecord::Relation#explain` now accepts options.
 
-- Add adapter option disallowing foreign keys
+    For databases and adapters which support them (currently PostgreSQL
+    and MySQL), options can be passed to `explain` to provide more
+    detailed query plan analysis:
 
-  This adds a new option to be added to `database.yml` which enables skipping
-  foreign key constraints usage even if the underlying database supports them.
+    ```ruby
+    Customer.where(id: 1).joins(:orders).explain(:analyze, :verbose)
+    ```
 
-  Usage:
+    *Reid Lynch*
 
-  ```yaml
-  development:
-      <<: *default
-      database: storage/development.sqlite3
-      foreign_keys: false
-  ```
+*   Multiple `Arel::Nodes::SqlLiteral` nodes can now be added together to
+    form `Arel::Nodes::Fragments` nodes. This allows joining several pieces
+    of SQL.
 
-  _Paulo Barros_
+    *Matthew Draper*, *Ole Friis*
 
-- Add configurable deprecation warning for singular associations
+*   `ActiveRecord::Base#signed_id` raises if called on a new record.
 
-  This adds a deprecation warning when using the plural name of a singular associations in `where`.
-  It is possible to opt into the new more performant behavior with `config.active_record.allow_deprecated_singular_associations_name = false`
+    Previously it would return an ID that was not usable, since it was based on `id = nil`.
 
-  _Adam Hess_
+    *Alex Ghiculescu*
 
-- Run transactional callbacks on the freshest instance to save a given
-  record within a transaction.
+*   Allow SQL warnings to be reported.
 
-  When multiple Active Record instances change the same record within a
-  transaction, Rails runs `after_commit` or `after_rollback` callbacks for
-  only one of them. `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
-  was added to specify how Rails chooses which instance receives the
-  callbacks. The framework defaults were changed to use the new logic.
+    Active Record configs can be set to enable SQL warning reporting.
 
-  When `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
-  is `true`, transactional callbacks are run on the first instance to save,
-  even though its instance state may be stale.
+    ```ruby
+    # Configure action to take when SQL query produces warning
+    config.active_record.db_warnings_action = :raise
 
-  When it is `false`, which is the new framework default starting with version
-  7.1, transactional callbacks are run on the instances with the freshest
-  instance state. Those instances are chosen as follows:
+    # Configure allowlist of warnings that should always be ignored
+    config.active_record.db_warnings_ignore = [
+      /Invalid utf8mb4 character string/,
+      "An exact warning message",
+    ]
+    ```
 
-  - In general, run transactional callbacks on the last instance to save a
-    given record within the transaction.
-  - There are two exceptions:
-    - If the record is created within the transaction, then updated by
-      another instance, `after_create_commit` callbacks will be run on the
-      second instance. This is instead of the `after_update_commit`
-      callbacks that would naively be run based on that instance’s state.
-    - If the record is destroyed within the transaction, then
-      `after_destroy_commit` callbacks will be fired on the last destroyed
-      instance, even if a stale instance subsequently performed an update
-      (which will have affected 0 rows).
+    This is supported for the MySQL and PostgreSQL adapters.
 
-  _Cameron Bothner and Mitch Vollebregt_
+    *Adrianna Chang*, *Paarth Madan*
 
-- Enable strict strings mode for `SQLite3Adapter`.
+*   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`
 
-  Configures SQLite with a strict strings mode, which disables double-quoted string literals.
+    Example:
 
-  SQLite has some quirks around double-quoted string literals.
-  It first tries to consider double-quoted strings as identifier names, but if they don't exist
-  it then considers them as string literals. Because of this, typos can silently go unnoticed.
-  For example, it is possible to create an index for a non existing column.
-  See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+    ```ruby
+    Post.group(:title).regroup(:author)
+    # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`author`
+    ```
 
-  If you don't want this behavior, you can disable it via:
+    *Danielius Visockas*
 
-  ```ruby
-  # config/application.rb
-  config.active_record.sqlite3_adapter_strict_strings_by_default = false
-  ```
+*   PostgreSQL adapter method `enable_extension` now allows parameter to be `[schema_name.]<extension_name>`
+    if the extension must be installed on another schema.
 
-  Fixes #27782.
+    Example: `enable_extension('heroku_ext.hstore')`
 
-  _fatkodima_, _Jean Boussier_
+    *Leonardo Luarte*
 
-- Resolve issue where a relation cache_version could be left stale.
+*   Add `:include` option to `add_index`.
 
-  Previously, when `reset` was called on a relation object it did not reset the cache_versions
-  ivar. This led to a confusing situation where despite having the correct data the relation
-  still reported a stale cache_version.
+    Add support for including non-key columns in indexes for PostgreSQL
+    with the `INCLUDE` parameter.
 
-  Usage:
+    ```ruby
+    add_index(:users, :email, include: [:id, :created_at])
+    ```
 
-  ```ruby
-  developers = Developer.all
-  developers.cache_version
+    will result in:
 
-  Developer.update_all(updated_at: Time.now.utc + 1.second)
+    ```sql
+    CREATE INDEX index_users_on_email USING btree (email) INCLUDE (id, created_at)
+    ```
 
-  developers.cache_version # Stale cache_version
-  developers.reset
-  developers.cache_version # Returns the current correct cache_version
-  ```
+    *Steve Abrams*
 
-  Fixes #45341.
+*   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
+    argument, more closely matching their `Enumerable` equivalents.
 
-  _Austen Madden_
+    *George Claghorn*
 
-- Add support for exclusion constraints (PostgreSQL-only).
+*   Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
 
-  ```ruby
-  add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap"
-  remove_exclusion_constraint :invoices, name: "invoices_date_overlap"
-  ```
+    A normalization is applied when the attribute is assigned or updated, and
+    the normalized value will be persisted to the database.  The normalization
+    is also applied to the corresponding keyword argument of finder methods.
+    This allows a record to be created and later queried using unnormalized
+    values.  For example:
 
-  See PostgreSQL's [`CREATE TABLE ... EXCLUDE ...`](https://www.postgresql.org/docs/12/sql-createtable.html#SQL-CREATETABLE-EXCLUDE) documentation for more on exclusion constraints.
+      ```ruby
+      class User < ActiveRecord::Base
+        normalizes :email, with: -> email { email.strip.downcase }
+      end
 
-  _Alex Robbin_
+      user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
+      user.email                  # => "cruise-control@example.com"
 
-- `change_column_null` raises if a non-boolean argument is provided
+      user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
+      user.email                  # => "cruise-control@example.com"
+      user.email_before_type_cast # => "cruise-control@example.com"
 
-  Previously if you provided a non-boolean argument, `change_column_null` would
-  treat it as truthy and make your column nullable. This could be surprising, so now
-  the input must be either `true` or `false`.
+      User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
+      User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
+      ```
 
-  ```ruby
-  change_column_null :table, :column, true # good
-  change_column_null :table, :column, false # good
-  change_column_null :table, :column, from: true, to: false # raises (previously this made the column nullable)
-  ```
+    *Jonathan Hefner*
 
-  _Alex Ghiculescu_
+*   Hide changes to before_committed! callback behaviour behind flag.
 
-- Enforce limit on table names length.
+    In #46525, behavior around before_committed! callbacks was changed so that callbacks
+    would run on every enrolled record in a transaction, not just the first copy of a record.
+    This change in behavior is now controlled by a configuration option,
+    `config.active_record.before_committed_on_all_records`. It will be enabled by default on Rails 7.1.
 
-  Fixes #45130.
+    *Adrianna Chang*
 
-  _fatkodima_
+*   The `namespaced_controller` Query Log tag now matches the `controller` format
 
-- Adjust the minimum MariaDB version for check constraints support.
+    For example, a request processed by `NameSpaced::UsersController` will now log as:
 
-  _Eddie Lebow_
+    ```
+    :controller # "users"
+    :namespaced_controller # "name_spaced/users"
+    ```
 
-- Fix Hstore deserialize regression.
+    *Alex Ghiculescu*
 
-  _edsharp_
+*   Return only unique ids from ActiveRecord::Calculations#ids
 
-- Add validity for PostgreSQL indexes.
+    Updated ActiveRecord::Calculations#ids to only return the unique ids of the base model
+    when using eager_load, preload and includes.
 
-  ```ruby
-  connection.index_exists?(:users, :email, valid: true)
-  connection.indexes(:users).select(&:valid?)
-  ```
+    ```ruby
+    Post.find_by(id: 1).comments.count
+    # => 5
+    Post.includes(:comments).where(id: 1).pluck(:id)
+    # => [1, 1, 1, 1, 1]
+    Post.includes(:comments).where(id: 1).ids
+    # => [1]
+    ```
 
-  _fatkodima_
+    *Joshua Young*
 
-- Fix eager loading for models without primary keys.
+*   Stop using `LOWER()` for case-insensitive queries on `citext` columns
 
-  _Anmol Chopra_, _Matt Lawrence_, and _Jonathan Hefner_
+    Previously, `LOWER()` was added for e.g. uniqueness validations with
+    `case_sensitive: false`.
+    It wasn't mentioned in the documentation that the index without `LOWER()`
+    wouldn't be used in this case.
 
-- Avoid validating a unique field if it has not changed and is backed by a unique index.
+    *Phil Pirozhkov*
 
-  Previously, when saving a record, Active Record will perform an extra query to check for the
-  uniqueness of each attribute having a `uniqueness` validation, even if that attribute hasn't changed.
-  If the database has the corresponding unique index, then this validation can never fail for persisted
-  records, and we could safely skip it.
+*   Extract `#sync_timezone_changes` method in AbstractMysqlAdapter to enable subclasses
+    to sync database timezone changes without overriding `#raw_execute`.
 
-  _fatkodima_
+    *Adrianna Chang*, *Paarth Madan*
 
-- Stop setting `sql_auto_is_null`
+*   Do not write additional new lines when dumping sql migration versions
 
-  Since version 5.5 the default has been off, we no longer have to manually turn it off.
+    This change updates the `insert_versions_sql` function so that the database insert string containing the current database migration versions does not end with two additional new lines.
 
-  _Adam Hess_
+    *Misha Schwartz*
 
-- Fix `touch` to raise an error for readonly columns.
+*   Fix `composed_of` value freezing and duplication.
 
-  _fatkodima_
+    Previously composite values exhibited two confusing behaviors:
 
-- Add ability to ignore tables by regexp for SQL schema dumps.
+    - When reading a compositve value it'd _NOT_ be frozen, allowing it to get out of sync with its underlying database
+      columns.
+    - When writing a compositve value the argument would be frozen, potentially confusing the caller.
 
-  ```ruby
-  ActiveRecord::SchemaDumper.ignore_tables = [/^_/]
-  ```
+    Currently, composite values instantiated based on database columns are frozen (addressing the first issue) and
+    assigned compositve values are duplicated and the duplicate is frozen (addressing the second issue).
 
-  _fatkodima_
+    *Greg Navis*
 
-- Avoid queries when performing calculations on contradictory relations.
+*   Fix redundant updates to the column insensitivity cache
 
-  Previously calculations would make a query even when passed a
-  contradiction, such as `User.where(id: []).count`. We no longer perform a
-  query in that scenario.
+    Fixed redundant queries checking column capability for insensitive
+    comparison.
 
-  This applies to the following calculations: `count`, `sum`, `average`,
-  `minimum` and `maximum`
+    *Phil Pirozhkov*
 
-  _Luan Vieira, John Hawthorn and Daniel Colson_
+*   Allow disabling methods generated by `ActiveRecord.enum`.
 
-- Allow using aliased attributes with `insert_all`/`upsert_all`.
+    *Alfred Dominic*
 
-  ```ruby
-  class Book < ApplicationRecord
-    alias_attribute :title, :name
-  end
+*   Avoid validating `belongs_to` association if it has not changed.
 
-  Book.insert_all [{ title: "Remote", author_id: 1 }], returning: :title
-  ```
+    Previously, when updating a record, Active Record will perform an extra query to check for the presence of
+    `belongs_to` associations (if the presence is configured to be mandatory), even if that attribute hasn't changed.
 
-  _fatkodima_
+    Currently, only `belongs_to`-related columns are checked for presence. It is possible to have orphaned records with
+    this approach. To avoid this problem, you need to use a foreign key.
 
-- Support encrypted attributes on columns with default db values.
+    This behavior can be controlled by configuration:
 
-  This adds support for encrypted attributes defined on columns with default values.
-  It will encrypt those values at creation time. Before, it would raise an
-  error unless `config.active_record.encryption.support_unencrypted_data` was true.
+    ```ruby
+    config.active_record.belongs_to_required_validates_foreign_key = false
+    ```
 
-  _Jorge Manrubia_ and _Dima Fatko_
+    and will be disabled by default with `config.load_defaults 7.1`.
 
-- Allow overriding `reading_request?` in `DatabaseSelector::Resolver`
+    *fatkodima*
 
-  The default implementation checks if a request is a `get?` or `head?`,
-  but you can now change it to anything you like. If the method returns true,
-  `Resolver#read` gets called meaning the request could be served by the
-  replica database.
+*   `has_one` and `belongs_to` associations now define a `reset_association` method
+    on the owner model (where `association` is the name of the association). This
+    method unloads the cached associate record, if any, and causes the next access
+    to query it from the database.
 
-  _Alex Ghiculescu_
+    *George Claghorn*
 
-- Remove `ActiveRecord.legacy_connection_handling`.
+*   Allow per attribute setting of YAML permitted classes (safe load) and unsafe load.
 
-  _Eileen M. Uchitelle_
+    *Carlos Palhares*
 
-- `rails db:schema:{dump,load}` now checks `ENV["SCHEMA_FORMAT"]` before config
+*   Add a build persistence method
 
-  Since `rails db:structure:{dump,load}` was deprecated there wasn't a simple
-  way to dump a schema to both SQL and Ruby formats. You can now do this with
-  an environment variable. For example:
+    Provides a wrapper for `new`, to provide feature parity with `create`s
+    ability to create multiple records from an array of hashes, using the
+    same notation as the `build` method on associations.
 
-  ```
-  SCHEMA_FORMAT=sql rake db:schema:dump
-  ```
+    *Sean Denny*
 
-  _Alex Ghiculescu_
+*   Raise on assignment to readonly attributes
 
-- Fixed MariaDB default function support.
-
-  Defaults would be written wrong in "db/schema.rb" and not work correctly
-  if using `db:schema:load`. Further more the function name would be
-  added as string content when saving new records.
-
-  _kaspernj_
-
-- Add `active_record.destroy_association_async_batch_size` configuration
-
-  This allows applications to specify the maximum number of records that will
-  be destroyed in a single background job by the `dependent: :destroy_async`
-  association option. By default, the current behavior will remain the same:
-  when a parent record is destroyed, all dependent records will be destroyed
-  in a single background job. If the number of dependent records is greater
-  than this configuration, the records will be destroyed in multiple
-  background jobs.
-
-  _Nick Holden_
-
-- Fix `remove_foreign_key` with `:if_exists` option when foreign key actually exists.
-
-  _fatkodima_
-
-- Remove `--no-comments` flag in structure dumps for PostgreSQL
-
-  This broke some apps that used custom schema comments. If you don't want
-  comments in your structure dump, you can use:
-
-  ```ruby
-  ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
-  ```
-
-  _Alex Ghiculescu_
-
-- Reduce the memory footprint of fixtures accessors.
-
-  Until now fixtures accessors were eagerly defined using `define_method`.
-  So the memory usage was directly dependent of the number of fixtures and
-  test suites.
-
-  Instead fixtures accessors are now implemented with `method_missing`,
-  so they incur much less memory and CPU overhead.
-
-  _Jean Boussier_
-
-- Fix `config.active_record.destroy_association_async_job` configuration
-
-  `config.active_record.destroy_association_async_job` should allow
-  applications to specify the job that will be used to destroy associated
-  records in the background for `has_many` associations with the
-  `dependent: :destroy_async` option. Previously, that was ignored, which
-  meant the default `ActiveRecord::DestroyAssociationAsyncJob` always
-  destroyed records in the background.
-
-  _Nick Holden_
-
-- Fix `change_column_comment` to preserve column's AUTO_INCREMENT in the MySQL adapter
-
-  _fatkodima_
-
-- Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
-
-  _Kevin McPhillips_
-
-- Allow column name with COLLATE (e.g., title COLLATE "C") as safe SQL string
-
-  _Shugo Maeda_
-
-- Permit underscores in the VERSION argument to database rake tasks.
-
-  _Eddie Lebow_
-
-- Reversed the order of `INSERT` statements in `structure.sql` dumps
-
-  This should decrease the likelihood of merge conflicts. New migrations
-  will now be added at the top of the list.
-
-  For existing apps, there will be a large diff the next time `structure.sql`
-  is generated.
-
-  _Alex Ghiculescu_, _Matt Larraz_
-
-- Fix PG.connect keyword arguments deprecation warning on ruby 2.7
-
-  Fixes #44307.
-
-  _Nikita Vasilevsky_
-
-- Fix dropping DB connections after serialization failures and deadlocks.
-
-  Prior to 6.1.4, serialization failures and deadlocks caused rollbacks to be
-  issued for both real transactions and savepoints. This breaks MySQL which
-  disallows rollbacks of savepoints following a deadlock.
-
-  6.1.4 removed these rollbacks, for both transactions and savepoints, causing
-  the DB connection to be left in an unknown state and thus discarded.
-
-  These rollbacks are now restored, except for savepoints on MySQL.
-
-  _Thomas Morgan_
-
-- Make `ActiveRecord::ConnectionPool` Fiber-safe
-
-  When `ActiveSupport::IsolatedExecutionState.isolation_level` is set to `:fiber`,
-  the connection pool now supports multiple Fibers from the same Thread checking
-  out connections from the pool.
-
-  _Alex Matchneer_
-
-- Add `update_attribute!` to `ActiveRecord::Persistence`
-
-  Similar to `update_attribute`, but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.
-
-  ```ruby
-  class Topic < ActiveRecord::Base
-    before_save :check_title
-
-    def check_title
-      throw(:abort) if title == "abort"
+    ```ruby
+    class Post < ActiveRecord::Base
+      attr_readonly :content
     end
-  end
+    Post.create!(content: "cannot be updated")
+    post.content # "cannot be updated"
+    post.content = "something else" # => ActiveRecord::ReadonlyAttributeError
+    ```
 
-  topic = Topic.create(title: "Test Title")
-  # #=> #<Topic title: "Test Title">
-  topic.update_attribute!(:title, "Another Title")
-  # #=> #<Topic title: "Another Title">
-  topic.update_attribute!(:title, "abort")
-  # raises ActiveRecord::RecordNotSaved
-  ```
+    Previously, assignment would succeed but silently not write to the database.
 
-  _Drew Tempelmeyer_
+    This behavior can be controlled by configuration:
 
-- Avoid loading every record in `ActiveRecord::Relation#pretty_print`
+    ```ruby
+    config.active_record.raise_on_assign_to_attr_readonly = true
+    ```
 
-  ```ruby
-  # Before
-  pp Foo.all # Loads the whole table.
+    and will be enabled by default with `config.load_defaults 7.1`.
 
-  # After
-  pp Foo.all # Shows 10 items and an ellipsis.
-  ```
+    *Alex Ghiculescu*, *Hartley McGuire*
 
-  _Ulysse Buonomo_
+*   Allow unscoping of preload and eager_load associations
 
-- Change `QueryMethods#in_order_of` to drop records not listed in values.
+    Added the ability to unscope preload and eager_load associations just like
+    includes, joins, etc. See ActiveRecord::QueryMethods::VALID_UNSCOPING_VALUES
+    for the full list of supported unscopable scopes.
 
-  `in_order_of` now filters down to the values provided, to match the behavior of the `Enumerable` version.
+    ```ruby
+    query.unscope(:eager_load, :preload).group(:id).select(:id)
+    ```
 
-  _Kevin Newton_
+    *David Morehouse*
 
-- Allow named expression indexes to be revertible.
+*   Add automatic filtering of encrypted attributes on inspect
 
-  Previously, the following code would raise an error in a reversible migration executed while rolling back, due to the index name not being used in the index removal.
+    This feature is enabled by default but can be disabled with
 
-  ```ruby
-  add_index(:settings, "(data->'property')", using: :gin, name: :index_settings_data_property)
-  ```
+    ```ruby
+    config.active_record.encryption.add_to_filter_parameters = false
+    ```
 
-  Fixes #43331.
+    *Hartley McGuire*
 
-  _Oliver Günther_
+*   Clear locking column on #dup
 
-- Fix incorrect argument in PostgreSQL structure dump tasks.
+    This change fixes not to duplicate locking_column like id and timestamps.
 
-  Updating the `--no-comment` argument added in Rails 7 to the correct `--no-comments` argument.
+    ```
+    car = Car.create!
+    car.touch
+    car.lock_version #=> 1
+    car.dup.lock_version #=> 0
+    ```
 
-  _Alex Dent_
+    *Shouichi Kamiya*, *Seonggi Yang*, *Ryohei UEDA*
 
-- Fix migration compatibility to create SQLite references/belongs_to column as integer when migration version is 6.0.
+*   Invalidate transaction as early as possible
 
-  Reference/belongs_to in migrations with version 6.0 were creating columns as
-  bigint instead of integer for the SQLite Adapter.
+    After rescuing a `TransactionRollbackError` exception Rails invalidates transactions earlier in the flow
+    allowing the framework to skip issuing the `ROLLBACK` statement in more cases.
+    Only affects adapters that have `savepoint_errors_invalidate_transactions?` configured as `true`,
+    which at this point is only applicable to the `mysql2` adapter.
 
-  _Marcelo Lauxen_
+    *Nikita Vasilevsky*
 
-- Add a deprecation warning when `prepared_statements` configuration is not
-  set for the mysql2 adapter.
+*   Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
 
-  _Thiago Araujo and Stefanni Brasil_
+    It is now possible to configure columns list that will be used to build an SQL query clauses when
+    updating, deleting or reloading an `ActiveRecord::Base` object
 
-- Fix `QueryMethods#in_order_of` to handle empty order list.
+    ```ruby
+    class Developer < ActiveRecord::Base
+      query_constraints :company_id, :id
+    end
+    developer = Developer.first.update(name: "Bob")
+    # => UPDATE "developers" SET "name" = 'Bob' WHERE "developers"."company_id" = 1 AND "developers"."id" = 1
+    ```
 
-  ```ruby
-  Post.in_order_of(:id, []).to_a
-  ```
+    *Nikita Vasilevsky*
 
-  Also more explicitly set the column as secondary order, so that any other
-  value is still ordered.
+*   Adds `validate` to foreign keys and check constraints in schema.rb
 
-  _Jean Boussier_
+    Previously, `schema.rb` would not record if `validate: false` had been used when adding a foreign key or check
+    constraint, so restoring a database from the schema could result in foreign keys or check constraints being
+    incorrectly validated.
 
-- Fix quoting of column aliases generated by calculation methods.
+    *Tommy Graves*
 
-  Since the alias is derived from the table name, we can't assume the result
-  is a valid identifier.
+*   Adapter `#execute` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
+    retried, up to the database's configured `connection_retries` value, upon encountering connection-related errors.
 
-  ```ruby
-  class Test < ActiveRecord::Base
-    self.table_name = '1abc'
-  end
-  Test.group(:id).count
-  # syntax error at or near "1" (ActiveRecord::StatementInvalid)
-  # LINE 1: SELECT COUNT(*) AS count_all, "1abc"."id" AS 1abc_id FROM "1...
-  ```
+    *Adrianna Chang*
 
-  _Jean Boussier_
+*   Only trigger `after_commit :destroy` callbacks when a database row is deleted.
 
-- Add `authenticate_by` when using `has_secure_password`.
+    This prevents `after_commit :destroy` callbacks from being triggered again
+    when `destroy` is called multiple times on the same record.
 
-  `authenticate_by` is intended to replace code like the following, which
-  returns early when a user with a matching email is not found:
+    *Ben Sheldon*
 
-  ```ruby
-  User.find_by(email: "...")&.authenticate("...")
-  ```
+*   Fix `ciphertext_for` for yet-to-be-encrypted values.
 
-  Such code is vulnerable to timing-based enumeration attacks, wherein an
-  attacker can determine if a user account with a given email exists. After
-  confirming that an account exists, the attacker can try passwords associated
-  with that email address from other leaked databases, in case the user
-  re-used a password across multiple sites (a common practice). Additionally,
-  knowing an account email address allows the attacker to attempt a targeted
-  phishing ("spear phishing") attack.
+    Previously, `ciphertext_for` returned the cleartext of values that had not
+    yet been encrypted, such as with an unpersisted record:
 
-  `authenticate_by` addresses the vulnerability by taking the same amount of
-  time regardless of whether a user with a matching email is found:
+      ```ruby
+      Post.encrypts :body
 
-  ```ruby
-  User.authenticate_by(email: "...", password: "...")
-  ```
+      post = Post.create!(body: "Hello")
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"abc..."
 
-  _Jonathan Hefner_
+      post.body = "World"
+      post.ciphertext_for(:body)
+      # => "World"
+      ```
+
+    Now, `ciphertext_for` will always return the ciphertext of encrypted
+    attributes:
+
+      ```ruby
+      Post.encrypts :body
+
+      post = Post.create!(body: "Hello")
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"abc..."
+
+      post.body = "World"
+      post.ciphertext_for(:body)
+      # => "{\"p\":\"xyz..."
+      ```
+
+    *Jonathan Hefner*
+
+*   Fix a bug where using groups and counts with long table names would return incorrect results.
+
+    *Shota Toguchi*, *Yusaku Ono*
+
+*   Fix encryption of column default values.
+
+    Previously, encrypted attributes that used column default values appeared to
+    be encrypted on create, but were not:
+
+      ```ruby
+      Book.encrypts :name
+
+      book = Book.create!
+      book.name
+      # => "<untitled>"
+      book.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      book.reload.name_before_type_cast
+      # => "<untitled>"
+      ```
+
+    Now, attributes with column default values are encrypted:
+
+      ```ruby
+      Book.encrypts :name
+
+      book = Book.create!
+      book.name
+      # => "<untitled>"
+      book.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      book.reload.name_before_type_cast
+      # => "{\"p\":\"abc..."
+      ```
+
+    *Jonathan Hefner*
+
+*   Deprecate delegation from `Base` to `connection_handler`.
+
+    Calling `Base.clear_all_connections!`, `Base.clear_active_connections!`, `Base.clear_reloadable_connections!` and `Base.flush_idle_connections!` is deprecated. Please call these methods on the connection handler directly. In future Rails versions, the delegation from `Base` to the `connection_handler` will be removed.
+
+    *Eileen M. Uchitelle*
+
+*   Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
+
+    *Sampat Badhe*
+
+*   Validate options when managing columns and tables in migrations.
+
+    If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
+    instead of the option being silently ignored. Validation of the options will only be applied for new migrations
+    that are created.
+
+    *Guo Xiang Tan*, *George Wambold*
+
+*   Update query log tags to use the [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/) format by default. See [#46179](https://github.com/rails/rails/issues/46179)
+
+    To opt out of SQLCommenter-formatted query log tags, set `config.active_record.query_log_tags_format = :legacy`. By default, this is set to `:sqlcommenter`.
+
+    *Modulitos* and *Iheanyi*
+
+*   Allow any ERB in the database.yml when creating rake tasks.
+
+    Any ERB can be used in `database.yml` even if it accesses environment
+    configurations.
+
+    Deprecates `config.active_record.suppress_multiple_database_warning`.
+
+    *Eike Send*
+
+*   Add table to error for duplicate column definitions.
+
+    If a migration defines duplicate columns for a table, the error message
+    shows which table it concerns.
+
+    *Petrik de Heus*
+
+*   Fix erroneous nil default precision on virtual datetime columns.
+
+    Prior to this change, virtual datetime columns did not have the same
+    default precision as regular datetime columns, resulting in the following
+    being erroneously equivalent:
+
+        t.virtual :name, type: datetime,                 as: "expression"
+        t.virtual :name, type: datetime, precision: nil, as: "expression"
+
+    This change fixes the default precision lookup, so virtual and regular
+    datetime column default precisions match.
+
+    *Sam Bostock*
+
+*   Use connection from `#with_raw_connection` in `#quote_string`.
+
+    This ensures that the string quoting is wrapped in the reconnect and retry logic
+    that `#with_raw_connection` offers.
+
+    *Adrianna Chang*
+
+*   Add `expires_in` option to `signed_id`.
+
+    *Shouichi Kamiya*
+
+*   Allow applications to set retry deadline for query retries.
+
+    Building on the work done in #44576 and #44591, we extend the logic that automatically
+    reconnects database connections to take into account a timeout limit. We won't retry
+    a query if a given amount of time has elapsed since the query was first attempted. This
+    value defaults to nil, meaning that all retryable queries are retried regardless of time elapsed,
+    but this can be changed via the `retry_deadline` option in the database config.
+
+    *Adrianna Chang*
+
+*   Fix a case where the query cache can return wrong values. See #46044
+
+    *Aaron Patterson*
+
+*   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
+
+    Verifying the identity of the database server requires setting the ssl-mode
+    option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
+    for MySQL database tasks like creating a database and dumping the structure.
+
+    *Petrik de Heus*
+
+*   Move `ActiveRecord::InternalMetadata` to an independent object.
+
+    `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate quoting `ActiveSupport::Duration` as an integer
+
+    Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
+    string template is deprecated. To avoid this warning, you should explicitly
+    convert the duration to a more specific database type. For example, if you
+    want to use a duration as an integer number of seconds:
+    ```
+    Record.where("duration = ?", 1.hour.to_i)
+    ```
+    If you want to use a duration as an ISO 8601 string:
+    ```
+    Record.where("duration = ?", 1.hour.iso8601)
+    ```
+
+    *Aram Greenman*
+
+*   Allow `QueryMethods#in_order_of` to order by a string column name.
+
+    ```ruby
+    Post.in_order_of("id", [4,2,3,1]).to_a
+    Post.joins(:author).in_order_of("authors.name", ["Bob", "Anna", "John"]).to_a
+    ```
+
+    *Igor Kasyanchuk*
+
+*   Move `ActiveRecord::SchemaMigration` to an independent object.
+
+    `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+
+    Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
+
+    *Eileen M. Uchitelle*
+
+*   Fix connection handler methods to operate on all pools.
+
+    `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
+
+    *Eileen M. Uchitelle*
+
+
+*   Allow ActiveRecord::QueryMethods#select to receive hash values.
+
+    Currently, `select` might receive only raw sql and symbols to define columns and aliases to select.
+
+    With this change we can provide `hash` as argument, for example:
+
+    ```ruby
+    Post.joins(:comments).select(posts: [:id, :title, :created_at], comments: [:id, :body, :author_id])
+    #=> "SELECT \"posts\".\"id\", \"posts\".\"title\", \"posts\".\"created_at\", \"comments\".\"id\", \"comments\".\"body\", \"comments\".\"author_id\"
+    #   FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
+
+    Post.joins(:comments).select(posts: { id: :post_id, title: :post_title }, comments: { id: :comment_id, body: :comment_body })
+    #=> "SELECT posts.id as post_id, posts.title as post_title, comments.id as comment_id, comments.body as comment_body
+    #    FROM \"posts\" INNER JOIN \"comments\" ON \"comments\".\"post_id\" = \"posts\".\"id\""
+    ```
+    *Oleksandr Holubenko*, *Josef Šimánek*, *Jean Boussier*
+
+*   Adapts virtual attributes on `ActiveRecord::Persistence#becomes`.
+
+    When source and target classes have a different set of attributes adapts
+    attributes such that the extra attributes from target are added.
+
+    ```ruby
+    class Person < ApplicationRecord
+    end
+
+    class WebUser < Person
+      attribute :is_admin, :boolean
+      after_initialize :set_admin
+
+      def set_admin
+        write_attribute(:is_admin, email =~ /@ourcompany\.com$/)
+      end
+    end
+
+    person = Person.find_by(email: "email@ourcompany.com")
+    person.respond_to? :is_admin
+    # => false
+    person.becomes(WebUser).is_admin?
+    # => true
+    ```
+
+    *Jacopo Beschi*, *Sampson Crowley*
+
+*   Fix `ActiveRecord::QueryMethods#in_order_of` to include `nil`s, to match the
+    behavior of `Enumerable#in_order_of`.
+
+    For example, `Post.in_order_of(:title, [nil, "foo"])` will now include posts
+    with `nil` titles, the same as `Post.all.to_a.in_order_of(:title, [nil, "foo"])`.
+
+    *fatkodima*
+
+*   Optimize `add_timestamps` to use a single SQL statement.
+
+    ```ruby
+    add_timestamps :my_table
+    ```
+
+    Now results in the following SQL:
+
+    ```sql
+    ALTER TABLE "my_table" ADD COLUMN "created_at" datetime(6) NOT NULL, ADD COLUMN "updated_at" datetime(6) NOT NULL
+    ```
+
+    *Iliana Hadzhiatanasova*
+
+*   Add `drop_enum` migration command for PostgreSQL
+
+    This does the inverse of `create_enum`. Before dropping an enum, ensure you have
+    dropped columns that depend on it.
+
+    *Alex Ghiculescu*
+
+*   Adds support for `if_exists` option when removing a check constraint.
+
+    The `remove_check_constraint` method now accepts an `if_exists` option. If set
+    to true an error won't be raised if the check constraint doesn't exist.
+
+    *Margaret Parsa* and *Aditya Bhutani*
+
+*   `find_or_create_by` now try to find a second time if it hits a unicity constraint.
+
+    `find_or_create_by` always has been inherently racy, either creating multiple
+    duplicate records or failing with `ActiveRecord::RecordNotUnique` depending on
+    whether a proper unicity constraint was set.
+
+    `create_or_find_by` was introduced for this use case, however it's quite wasteful
+    when the record is expected to exist most of the time, as INSERT require to send
+    more data than SELECT and require more work from the database. Also on some
+    databases it can actually consume a primary key increment which is undesirable.
+
+    So for case where most of the time the record is expected to exist, `find_or_create_by`
+    can be made race-condition free by re-trying the `find` if the `create` failed
+    with `ActiveRecord::RecordNotUnique`. This assumes that the table has the proper
+    unicity constraints, if not, `find_or_create_by` will still lead to duplicated records.
+
+    *Jean Boussier*, *Alex Kitchens*
+
+*   Introduce a simpler constructor API for ActiveRecord database adapters.
+
+    Previously the adapter had to know how to build a new raw connection to
+    support reconnect, but also expected to be passed an initial already-
+    established connection.
+
+    When manually creating an adapter instance, it will now accept a single
+    config hash, and only establish the real connection on demand.
+
+    *Matthew Draper*
+
+*   Avoid redundant `SELECT 1` connection-validation query during DB pool
+    checkout when possible.
+
+    If the first query run during a request is known to be idempotent, it can be
+    used directly to validate the connection, saving a network round-trip.
+
+    *Matthew Draper*
+
+*   Automatically reconnect broken database connections when safe, even
+    mid-request.
+
+    When an error occurs while attempting to run a known-idempotent query, and
+    not inside a transaction, it is safe to immediately reconnect to the
+    database server and try again, so this is now the default behavior.
+
+    This new default should always be safe -- to support that, it's consciously
+    conservative about which queries are considered idempotent -- but if
+    necessary it can be disabled by setting the `connection_retries` connection
+    option to `0`.
+
+    *Matthew Draper*
+
+*   Avoid removing a PostgreSQL extension when there are dependent objects.
+
+    Previously, removing an extension also implicitly removed dependent objects. Now, this will raise an error.
+
+    You can force removing the extension:
+
+    ```ruby
+    disable_extension :citext, force: :cascade
+    ```
+
+    Fixes #29091.
+
+    *fatkodima*
+
+*   Allow nested functions as safe SQL string
+
+    *Michael Siegfried*
+
+*   Allow `destroy_association_async_job=` to be configured with a class string instead of a constant.
+
+    Defers an autoloading dependency between `ActiveRecord::Base` and `ActiveJob::Base`
+    and moves the configuration of `ActiveRecord::DestroyAssociationAsyncJob`
+    from ActiveJob to ActiveRecord.
+
+    Deprecates `ActiveRecord::ActiveJobRequiredError` and now raises a `NameError`
+    if the job class is unloadable or an `ActiveRecord::ConfigurationError` if
+    `dependent: :destroy_async` is declared on an association but there is no job
+    class configured.
+
+    *Ben Sheldon*
+
+*   Fix `ActiveRecord::Store` to serialize as a regular Hash
+
+    Previously it would serialize as an `ActiveSupport::HashWithIndifferentAccess`
+    which is wasteful and cause problem with YAML safe_load.
+
+    *Jean Boussier*
+
+*   Add `timestamptz` as a time zone aware type for PostgreSQL
+
+    This is required for correctly parsing `timestamp with time zone` values in your database.
+
+    If you don't want this, you can opt out by adding this initializer:
+
+    ```ruby
+    ActiveRecord::Base.time_zone_aware_types -= [:timestamptz]
+    ```
+
+    *Alex Ghiculescu*
+
+*   Add new `ActiveRecord::Base::generates_token_for` API.
+
+    Currently, `signed_id` fulfills the role of generating tokens for e.g.
+    resetting a password.  However, signed IDs cannot reflect record state, so
+    if a token is intended to be single-use, it must be tracked in a database at
+    least until it expires.
+
+    With `generates_token_for`, a token can embed data from a record.  When
+    using the token to fetch the record, the data from the token and the data
+    from the record will be compared.  If the two do not match, the token will
+    be treated as invalid, the same as if it had expired.  For example:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password
+
+      generates_token_for :password_reset, expires_in: 15.minutes do
+        # A password's BCrypt salt changes when the password is updated.
+        # By embedding (part of) the salt in a token, the token will
+        # expire when the password is updated.
+        BCrypt::Password.new(password_digest).salt[-10..]
+      end
+    end
+
+    user = User.first
+    token = user.generate_token_for(:password_reset)
+
+    User.find_by_token_for(:password_reset, token) # => user
+
+    user.update!(password: "new password")
+    User.find_by_token_for(:password_reset, token) # => nil
+    ```
+
+    *Jonathan Hefner*
+
+*   Optimize Active Record batching for whole table iterations.
+
+    Previously, `in_batches` got all the ids and constructed an `IN`-based query for each batch.
+    When iterating over the whole tables, this approach is not optimal as it loads unneeded ids and
+    `IN` queries with lots of items are slow.
+
+    Now, whole table iterations use range iteration (`id >= x AND id <= y`) by default which can make iteration
+    several times faster. E.g., tested on a PostgreSQL table with 10 million records: querying (`253s` vs `30s`),
+    updating (`288s` vs `124s`), deleting (`268s` vs `83s`).
+
+    Only whole table iterations use this style of iteration by default. You can disable this behavior by passing `use_ranges: false`.
+    If you iterate over the table and the only condition is, e.g., `archived_at: nil` (and only a tiny fraction
+    of the records are archived), it makes sense to opt in to this approach:
+
+    ```ruby
+    Project.where(archived_at: nil).in_batches(use_ranges: true) do |relation|
+      # do something
+    end
+    ```
+
+    See #45414 for more details.
+
+    *fatkodima*
+
+*   `.with` query method added. Construct common table expressions with ease and get `ActiveRecord::Relation` back.
+
+    ```ruby
+    Post.with(posts_with_comments: Post.where("comments_count > ?", 0))
+    # => ActiveRecord::Relation
+    # WITH posts_with_comments AS (SELECT * FROM posts WHERE (comments_count > 0)) SELECT * FROM posts
+    ```
+
+    *Vlado Cingel*
+
+*   Don't establish a new connection if an identical pool exists already.
+
+    Previously, if `establish_connection` was called on a class that already had an established connection, the existing connection would be removed regardless of whether it was the same config. Now if a pool is found with the same values as the new connection, the existing connection will be returned instead of creating a new one.
+
+    This has a slight change in behavior if application code is depending on a new connection being established regardless of whether it's identical to an existing connection. If the old behavior is desirable, applications should call `ActiveRecord::Base#remove_connection` before establishing a new one. Calling `establish_connection` with a different config works the same way as it did previously.
+
+    *Eileen M. Uchitelle*
+
+*   Update `db:prepare` task to load schema when an uninitialized database exists, and dump schema after migrations.
+
+    *Ben Sheldon*
+
+*   Fix supporting timezone awareness for `tsrange` and `tstzrange` array columns.
+
+    ```ruby
+    # In database migrations
+    add_column :shops, :open_hours, :tsrange, array: true
+    # In app config
+    ActiveRecord::Base.time_zone_aware_types += [:tsrange]
+    # In the code times are properly converted to app time zone
+    Shop.create!(open_hours: [Time.current..8.hour.from_now])
+    ```
+
+    *Wojciech Wnętrzak*
+
+*   Introduce strategy pattern for executing migrations.
+
+    By default, migrations will use a strategy object that delegates the method
+    to the connection adapter. Consumers can implement custom strategy objects
+    to change how their migrations run.
+
+    *Adrianna Chang*
+
+*   Add adapter option disallowing foreign keys
+
+    This adds a new option to be added to `database.yml` which enables skipping
+    foreign key constraints usage even if the underlying database supports them.
+
+    Usage:
+    ```yaml
+    development:
+        <<: *default
+        database: storage/development.sqlite3
+        foreign_keys: false
+    ```
+
+    *Paulo Barros*
+
+*   Add configurable deprecation warning for singular associations
+
+    This adds a deprecation warning when using the plural name of a singular associations in `where`.
+    It is possible to opt into the new more performant behavior with `config.active_record.allow_deprecated_singular_associations_name = false`
+
+    *Adam Hess*
+
+*   Run transactional callbacks on the freshest instance to save a given
+    record within a transaction.
+
+    When multiple Active Record instances change the same record within a
+    transaction, Rails runs `after_commit` or `after_rollback` callbacks for
+    only one of them. `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
+    was added to specify how Rails chooses which instance receives the
+    callbacks. The framework defaults were changed to use the new logic.
+
+    When `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
+    is `true`, transactional callbacks are run on the first instance to save,
+    even though its instance state may be stale.
+
+    When it is `false`, which is the new framework default starting with version
+    7.1, transactional callbacks are run on the instances with the freshest
+    instance state. Those instances are chosen as follows:
+
+    - In general, run transactional callbacks on the last instance to save a
+      given record within the transaction.
+    - There are two exceptions:
+        - If the record is created within the transaction, then updated by
+          another instance, `after_create_commit` callbacks will be run on the
+          second instance. This is instead of the `after_update_commit`
+          callbacks that would naively be run based on that instance’s state.
+        - If the record is destroyed within the transaction, then
+          `after_destroy_commit` callbacks will be fired on the last destroyed
+          instance, even if a stale instance subsequently performed an update
+          (which will have affected 0 rows).
+
+    *Cameron Bothner and Mitch Vollebregt*
+
+*   Enable strict strings mode for `SQLite3Adapter`.
+
+    Configures SQLite with a strict strings mode, which disables double-quoted string literals.
+
+    SQLite has some quirks around double-quoted string literals.
+    It first tries to consider double-quoted strings as identifier names, but if they don't exist
+    it then considers them as string literals. Because of this, typos can silently go unnoticed.
+    For example, it is possible to create an index for a non existing column.
+    See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
+
+    If you don't want this behavior, you can disable it via:
+
+    ```ruby
+    # config/application.rb
+    config.active_record.sqlite3_adapter_strict_strings_by_default = false
+    ```
+
+    Fixes #27782.
+
+    *fatkodima*, *Jean Boussier*
+
+*   Resolve issue where a relation cache_version could be left stale.
+
+    Previously, when `reset` was called on a relation object it did not reset the cache_versions
+    ivar. This led to a confusing situation where despite having the correct data the relation
+    still reported a stale cache_version.
+
+    Usage:
+
+    ```ruby
+    developers = Developer.all
+    developers.cache_version
+
+    Developer.update_all(updated_at: Time.now.utc + 1.second)
+
+    developers.cache_version # Stale cache_version
+    developers.reset
+    developers.cache_version # Returns the current correct cache_version
+    ```
+
+    Fixes #45341.
+
+    *Austen Madden*
+
+*   Add support for exclusion constraints (PostgreSQL-only).
+
+    ```ruby
+    add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap"
+    remove_exclusion_constraint :invoices, name: "invoices_date_overlap"
+    ```
+
+    See PostgreSQL's [`CREATE TABLE ... EXCLUDE ...`](https://www.postgresql.org/docs/12/sql-createtable.html#SQL-CREATETABLE-EXCLUDE) documentation for more on exclusion constraints.
+
+    *Alex Robbin*
+
+*   `change_column_null` raises if a non-boolean argument is provided
+
+    Previously if you provided a non-boolean argument, `change_column_null` would
+    treat it as truthy and make your column nullable. This could be surprising, so now
+    the input must be either `true` or `false`.
+
+    ```ruby
+    change_column_null :table, :column, true # good
+    change_column_null :table, :column, false # good
+    change_column_null :table, :column, from: true, to: false # raises (previously this made the column nullable)
+    ```
+
+    *Alex Ghiculescu*
+
+*   Enforce limit on table names length.
+
+    Fixes #45130.
+
+    *fatkodima*
+
+*   Adjust the minimum MariaDB version for check constraints support.
+
+    *Eddie Lebow*
+
+*   Fix Hstore deserialize regression.
+
+    *edsharp*
+
+*   Add validity for PostgreSQL indexes.
+
+    ```ruby
+    connection.index_exists?(:users, :email, valid: true)
+    connection.indexes(:users).select(&:valid?)
+    ```
+
+    *fatkodima*
+
+*   Fix eager loading for models without primary keys.
+
+    *Anmol Chopra*, *Matt Lawrence*, and *Jonathan Hefner*
+
+*   Avoid validating a unique field if it has not changed and is backed by a unique index.
+
+    Previously, when saving a record, Active Record will perform an extra query to check for the
+    uniqueness of each attribute having a `uniqueness` validation, even if that attribute hasn't changed.
+    If the database has the corresponding unique index, then this validation can never fail for persisted
+    records, and we could safely skip it.
+
+    *fatkodima*
+
+*   Stop setting `sql_auto_is_null`
+
+    Since version 5.5 the default has been off, we no longer have to manually turn it off.
+
+    *Adam Hess*
+
+*   Fix `touch` to raise an error for readonly columns.
+
+    *fatkodima*
+
+*   Add ability to ignore tables by regexp for SQL schema dumps.
+
+    ```ruby
+    ActiveRecord::SchemaDumper.ignore_tables = [/^_/]
+    ```
+
+    *fatkodima*
+
+*   Avoid queries when performing calculations on contradictory relations.
+
+    Previously calculations would make a query even when passed a
+    contradiction, such as `User.where(id: []).count`. We no longer perform a
+    query in that scenario.
+
+    This applies to the following calculations: `count`, `sum`, `average`,
+    `minimum` and `maximum`
+
+    *Luan Vieira, John Hawthorn and Daniel Colson*
+
+*   Allow using aliased attributes with `insert_all`/`upsert_all`.
+
+    ```ruby
+    class Book < ApplicationRecord
+      alias_attribute :title, :name
+    end
+
+    Book.insert_all [{ title: "Remote", author_id: 1 }], returning: :title
+    ```
+
+    *fatkodima*
+
+*   Support encrypted attributes on columns with default db values.
+
+    This adds support for encrypted attributes defined on columns with default values.
+    It will encrypt those values at creation time. Before, it would raise an
+    error unless `config.active_record.encryption.support_unencrypted_data` was true.
+
+    *Jorge Manrubia* and *Dima Fatko*
+
+*   Allow overriding `reading_request?` in `DatabaseSelector::Resolver`
+
+    The default implementation checks if a request is a `get?` or `head?`,
+    but you can now change it to anything you like. If the method returns true,
+    `Resolver#read` gets called meaning the request could be served by the
+    replica database.
+
+    *Alex Ghiculescu*
+
+*   Remove `ActiveRecord.legacy_connection_handling`.
+
+    *Eileen M. Uchitelle*
+
+*   `rails db:schema:{dump,load}` now checks `ENV["SCHEMA_FORMAT"]` before config
+
+    Since `rails db:structure:{dump,load}` was deprecated there wasn't a simple
+    way to dump a schema to both SQL and Ruby formats. You can now do this with
+    an environment variable. For example:
+
+    ```
+    SCHEMA_FORMAT=sql rake db:schema:dump
+    ```
+
+    *Alex Ghiculescu*
+
+*   Fixed MariaDB default function support.
+
+    Defaults would be written wrong in "db/schema.rb" and not work correctly
+    if using `db:schema:load`. Further more the function name would be
+    added as string content when saving new records.
+
+    *kaspernj*
+
+*   Add `active_record.destroy_association_async_batch_size` configuration
+
+    This allows applications to specify the maximum number of records that will
+    be destroyed in a single background job by the `dependent: :destroy_async`
+    association option. By default, the current behavior will remain the same:
+    when a parent record is destroyed, all dependent records will be destroyed
+    in a single background job. If the number of dependent records is greater
+    than this configuration, the records will be destroyed in multiple
+    background jobs.
+
+    *Nick Holden*
+
+*   Fix `remove_foreign_key` with `:if_exists` option when foreign key actually exists.
+
+    *fatkodima*
+
+*   Remove `--no-comments` flag in structure dumps for PostgreSQL
+
+    This broke some apps that used custom schema comments. If you don't want
+    comments in your structure dump, you can use:
+
+    ```ruby
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
+    ```
+
+    *Alex Ghiculescu*
+
+*   Reduce the memory footprint of fixtures accessors.
+
+    Until now fixtures accessors were eagerly defined using `define_method`.
+    So the memory usage was directly dependent of the number of fixtures and
+    test suites.
+
+    Instead fixtures accessors are now implemented with `method_missing`,
+    so they incur much less memory and CPU overhead.
+
+    *Jean Boussier*
+
+*   Fix `config.active_record.destroy_association_async_job` configuration
+
+    `config.active_record.destroy_association_async_job` should allow
+    applications to specify the job that will be used to destroy associated
+    records in the background for `has_many` associations with the
+    `dependent: :destroy_async` option. Previously, that was ignored, which
+    meant the default `ActiveRecord::DestroyAssociationAsyncJob` always
+    destroyed records in the background.
+
+    *Nick Holden*
+
+*   Fix `change_column_comment` to preserve column's AUTO_INCREMENT in the MySQL adapter
+
+    *fatkodima*
+
+*   Fix quoting of `ActiveSupport::Duration` and `Rational` numbers in the MySQL adapter.
+
+    *Kevin McPhillips*
+
+*   Allow column name with COLLATE (e.g., title COLLATE "C") as safe SQL string
+
+    *Shugo Maeda*
+
+*   Permit underscores in the VERSION argument to database rake tasks.
+
+    *Eddie Lebow*
+
+*   Reversed the order of `INSERT` statements in `structure.sql` dumps
+
+    This should decrease the likelihood of merge conflicts. New migrations
+    will now be added at the top of the list.
+
+    For existing apps, there will be a large diff the next time `structure.sql`
+    is generated.
+
+    *Alex Ghiculescu*, *Matt Larraz*
+
+*   Fix PG.connect keyword arguments deprecation warning on ruby 2.7
+
+    Fixes #44307.
+
+    *Nikita Vasilevsky*
+
+*   Fix dropping DB connections after serialization failures and deadlocks.
+
+    Prior to 6.1.4, serialization failures and deadlocks caused rollbacks to be
+    issued for both real transactions and savepoints. This breaks MySQL which
+    disallows rollbacks of savepoints following a deadlock.
+
+    6.1.4 removed these rollbacks, for both transactions and savepoints, causing
+    the DB connection to be left in an unknown state and thus discarded.
+
+    These rollbacks are now restored, except for savepoints on MySQL.
+
+    *Thomas Morgan*
+
+*   Make `ActiveRecord::ConnectionPool` Fiber-safe
+
+    When `ActiveSupport::IsolatedExecutionState.isolation_level` is set to `:fiber`,
+    the connection pool now supports multiple Fibers from the same Thread checking
+    out connections from the pool.
+
+    *Alex Matchneer*
+
+*   Add `update_attribute!` to `ActiveRecord::Persistence`
+
+    Similar to `update_attribute`, but raises `ActiveRecord::RecordNotSaved` when a `before_*` callback throws `:abort`.
+
+    ```ruby
+    class Topic < ActiveRecord::Base
+      before_save :check_title
+
+      def check_title
+        throw(:abort) if title == "abort"
+      end
+    end
+
+    topic = Topic.create(title: "Test Title")
+    # #=> #<Topic title: "Test Title">
+    topic.update_attribute!(:title, "Another Title")
+    # #=> #<Topic title: "Another Title">
+    topic.update_attribute!(:title, "abort")
+    # raises ActiveRecord::RecordNotSaved
+    ```
+
+    *Drew Tempelmeyer*
+
+*   Avoid loading every record in `ActiveRecord::Relation#pretty_print`
+
+    ```ruby
+    # Before
+    pp Foo.all # Loads the whole table.
+
+    # After
+    pp Foo.all # Shows 10 items and an ellipsis.
+    ```
+
+    *Ulysse Buonomo*
+
+*   Change `QueryMethods#in_order_of` to drop records not listed in values.
+
+    `in_order_of` now filters down to the values provided, to match the behavior of the `Enumerable` version.
+
+    *Kevin Newton*
+
+*   Allow named expression indexes to be revertible.
+
+    Previously, the following code would raise an error in a reversible migration executed while rolling back, due to the index name not being used in the index removal.
+
+    ```ruby
+    add_index(:settings, "(data->'property')", using: :gin, name: :index_settings_data_property)
+    ```
+
+    Fixes #43331.
+
+    *Oliver Günther*
+
+*   Fix incorrect argument in PostgreSQL structure dump tasks.
+
+    Updating the `--no-comment` argument added in Rails 7 to the correct `--no-comments` argument.
+
+    *Alex Dent*
+
+*   Fix migration compatibility to create SQLite references/belongs_to column as integer when migration version is 6.0.
+
+    Reference/belongs_to in migrations with version 6.0 were creating columns as
+    bigint instead of integer for the SQLite Adapter.
+
+    *Marcelo Lauxen*
+
+*   Add a deprecation warning when `prepared_statements` configuration is not
+    set for the mysql2 adapter.
+
+    *Thiago Araujo and Stefanni Brasil*
+
+*   Fix `QueryMethods#in_order_of` to handle empty order list.
+
+    ```ruby
+    Post.in_order_of(:id, []).to_a
+    ```
+
+    Also more explicitly set the column as secondary order, so that any other
+    value is still ordered.
+
+    *Jean Boussier*
+
+*   Fix quoting of column aliases generated by calculation methods.
+
+    Since the alias is derived from the table name, we can't assume the result
+    is a valid identifier.
+
+    ```ruby
+    class Test < ActiveRecord::Base
+      self.table_name = '1abc'
+    end
+    Test.group(:id).count
+    # syntax error at or near "1" (ActiveRecord::StatementInvalid)
+    # LINE 1: SELECT COUNT(*) AS count_all, "1abc"."id" AS 1abc_id FROM "1...
+    ```
+
+    *Jean Boussier*
+
+*   Add `authenticate_by` when using `has_secure_password`.
+
+    `authenticate_by` is intended to replace code like the following, which
+    returns early when a user with a matching email is not found:
+
+    ```ruby
+    User.find_by(email: "...")&.authenticate("...")
+    ```
+
+    Such code is vulnerable to timing-based enumeration attacks, wherein an
+    attacker can determine if a user account with a given email exists. After
+    confirming that an account exists, the attacker can try passwords associated
+    with that email address from other leaked databases, in case the user
+    re-used a password across multiple sites (a common practice). Additionally,
+    knowing an account email address allows the attacker to attempt a targeted
+    phishing ("spear phishing") attack.
+
+    `authenticate_by` addresses the vulnerability by taking the same amount of
+    time regardless of whether a user with a matching email is found:
+
+    ```ruby
+    User.authenticate_by(email: "...", password: "...")
+    ```
+
+    *Jonathan Hefner*
+
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activerecord/CHANGELOG.md) for previous changes.

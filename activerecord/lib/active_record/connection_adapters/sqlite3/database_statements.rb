@@ -21,7 +21,7 @@ module ActiveRecord
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
+        def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 

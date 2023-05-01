@@ -652,9 +652,7 @@ module ActiveRecord
           connection_id = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
           new_connection = @connection.pool.checkout
           new_connection.execute("SELECT pg_terminate_backend(#{connection_id})")
-          # An additional sleep to ensure the postgres server has had the time to
-          # terminate the process entirely and severed the connection.
-          # Since pg_terminate_backend sends a SIGTERM.
+          # Sleep to ensure postgres server has terminated the process and severed the connection.
           sleep 0.2
         end
     end
