@@ -325,19 +325,22 @@ module ActiveRecord
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
+      primary_key_array = Array(primary_key)
+
       if loaded?
-        result = records.pluck(*Array(primary_key))
+        result = records.pluck(*primary_key_array)
         return @async ? Promise::Complete.new(result) : result
       end
 
       if has_include?(primary_key)
-        relation = apply_join_dependency.distinct
+        relation = apply_join_dependency.group(*primary_key_array)
         return relation.ids
       end
 
-      columns = arel_columns(Array(primary_key))
+      columns = arel_columns(primary_key_array)
       relation = spawn
       relation.select_values = columns
+
       result = if relation.where_clause.contradiction?
         ActiveRecord::Result.empty
       else

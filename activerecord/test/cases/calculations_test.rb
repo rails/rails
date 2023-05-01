@@ -1049,6 +1049,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.all.map(&:id).sort, Company.all.includes(:contracts).ids.sort
   end
 
+  def test_ids_with_includes_and_non_primary_key_order
+    rating = 1
+    Company.all.each { |company| company.update!(rating: rating += 1) }
+    assert_equal Company.all.sort_by(&:rating).map(&:id), Company.includes(:comments).order(:rating).ids
+  end
+
   def test_ids_with_includes_and_scope
     scoped_ids = [1, 2]
     company = Company.where(id: scoped_ids).first
