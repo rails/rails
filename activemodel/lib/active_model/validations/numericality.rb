@@ -27,7 +27,7 @@ module ActiveModel
         end
 
         options.slice(*RANGE_CHECKS.keys).each do |option, value|
-          unless value.is_a?(Range)
+          unless value == :limit || value.is_a?(Range)
             raise ArgumentError, ":#{option} must be a range"
           end
         end
@@ -52,6 +52,7 @@ module ActiveModel
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           elsif RANGE_CHECKS.include?(option)
+            next if option_value == :limit
             unless value.public_send(RANGE_CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end

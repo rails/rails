@@ -6,6 +6,17 @@ module ActiveRecord
       def validate_each(record, attribute, value, precision: nil, scale: nil)
         precision = [column_precision_for(record, attribute) || Float::DIG, Float::DIG].min
         scale     = column_scale_for(record, attribute)
+
+        options.slice(*RESERVED_OPTIONS).each do |option, option_value|
+          if RANGE_CHECKS.include?(option) && option_value == :limit
+            option_value = parse_column_limit_as_range(record, attribute)
+            next unless option_value
+            unless value.public_send(RANGE_CHECKS[option], option_value)
+              record.errors.add(attribute, option, **filtered_options(value).merge!(count: option_value))
+            end
+          end
+        end
+
         super(record, attribute, value, precision: precision, scale: scale)
       end
 
@@ -16,6 +27,20 @@ module ActiveRecord
 
         def column_scale_for(record, attribute)
           record.class.type_for_attribute(attribute.to_s)&.scale
+        end
+
+        def parse_column_limit_as_range(record, attribute)
+          column = record.class.columns_hash[attribute.to_s]
+
+          unless column
+            raise ArgumentError, "cannot validate :limit for a virtual attribute"
+          end
+
+          limit_in_bytes = column.sql_type_metadata.limit
+          return nil unless limit_in_bytes
+
+          upper_limit = 2**(limit_in_bytes * 8 - 1) - 1
+          (..upper_limit)
         end
     end
 
