@@ -7,6 +7,8 @@ end
 class Company < AbstractCompany
   self.sequence_name = :companies_nonstd_seq
 
+  enum :status, [:active, :suspended]
+
   validates_presence_of :name
 
   has_one :account, foreign_key: "firm_id"
