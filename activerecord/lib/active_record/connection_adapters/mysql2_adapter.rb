@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/connection_adapters/abstract_mysql_adapter"
-require "active_record/connection_adapters/mysql/database_statements"
+require "active_record/connection_adapters/mysql2/database_statements"
 
 gem "mysql2", "~> 0.5"
 require "mysql2"
@@ -28,12 +28,12 @@ module ActiveRecord
 
       ADAPTER_NAME = "Mysql2"
 
-      include MySQL::DatabaseStatements
+      include Mysql2::DatabaseStatements
 
       class << self
         def new_client(config)
-          Mysql2::Client.new(config)
-        rescue Mysql2::Error => error
+          ::Mysql2::Client.new(config)
+        rescue ::Mysql2::Error => error
           if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
             raise ActiveRecord::NoDatabaseError.db_error(config[:database])
           elsif error.error_number == ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR
@@ -54,7 +54,7 @@ module ActiveRecord
         if @config[:flags].kind_of? Array
           @config[:flags].push "FOUND_ROWS"
         else
-          @config[:flags] |= Mysql2::Client::FOUND_ROWS
+          @config[:flags] |= ::Mysql2::Client::FOUND_ROWS
         end
 
         @connection_parameters ||= @config
@@ -159,9 +159,9 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message:, sql:, binds:)
-          if exception.is_a?(Mysql2::Error::TimeoutError) && !exception.error_number
+          if exception.is_a?(::Mysql2::Error::TimeoutError) && !exception.error_number
             ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
-          elsif exception.is_a?(Mysql2::Error::ConnectionError)
+          elsif exception.is_a?(::Mysql2::Error::ConnectionError)
             if exception.message.match?(/MySQL client is not connected/i)
               ActiveRecord::ConnectionNotEstablished.new(exception)
             else
