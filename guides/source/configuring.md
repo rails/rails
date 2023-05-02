@@ -3062,6 +3062,29 @@ development:
   retry_deadline: 5 # Stop retrying queries after 5 seconds
 ```
 
+#### Configuring Query Cache
+
+By default, Rails automatically caches the result sets returned by queries. If Rails encounters the same query
+again for that request or job, it will use the cached result set as opposed to running the query against
+the database again.
+
+The query cache is stored in memory, and to avoid using too much memory, it automatically evicts the least recently
+used queries when reaching a threshold. By default the threshold is `100`, but can be configured in the `database.yml`.
+
+```yaml
+development:
+  adapter: mysql2
+  query_cache: 200
+```
+
+To entirely disable query caching, it can be set to `false`
+
+```yaml
+development:
+  adapter: mysql2
+  query_cache: false
+```
+
 ### Creating Rails Environments
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.

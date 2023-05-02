@@ -53,6 +53,10 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def query_cache
+        raise NotImplementedError
+      end
+
       def checkout_timeout
         raise NotImplementedError
       end
