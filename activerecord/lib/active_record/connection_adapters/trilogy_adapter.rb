@@ -79,7 +79,7 @@ module ActiveRecord
           when ER_ACCESS_DENIED_ERROR
             ActiveRecord::DatabaseConnectionError.username_error(config[:username])
           else
-            if error.message.include?(/TRILOGY_DNS_ERROR/)
+            if error.message.include?("TRILOGY_DNS_ERROR")
               ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
             else
               ActiveRecord::ConnectionNotEstablished.new(error.message)
