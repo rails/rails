@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module ConnectionAdapters
-    module MySQL
+    module Mysql2
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
         def select_all(*, **) # :nodoc:
@@ -120,7 +120,7 @@ module ActiveRecord
             if flags.is_a?(Array)
               flags.include?("MULTI_STATEMENTS")
             else
-              flags.anybits?(Mysql2::Client::MULTI_STATEMENTS)
+              flags.anybits?(::Mysql2::Client::MULTI_STATEMENTS)
             end
           end
 
@@ -130,11 +130,11 @@ module ActiveRecord
             end
 
             with_raw_connection do |conn|
-              conn.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              conn.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
 
               yield
             ensure
-              conn.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+              conn.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 
