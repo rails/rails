@@ -3,6 +3,15 @@
 require "active_support/core_ext/string/inflections"
 
 module ActiveJob
+  class << self
+    def adapter_name(adapter) # :nodoc:
+      return adapter.queue_adapter_name if adapter.respond_to?(:queue_adapter_name)
+
+      adapter_class = adapter.is_a?(Module) ? adapter : adapter.class
+      "#{adapter_class.name.demodulize.delete_suffix('Adapter')}"
+    end
+  end
+
   # = Active Job Queue adapter
   #
   # The <tt>ActiveJob::QueueAdapter</tt> module is used to load the
@@ -43,7 +52,7 @@ module ActiveJob
           assign_adapter(name_or_adapter.to_s, queue_adapter)
         else
           if queue_adapter?(name_or_adapter)
-            adapter_name = extract_adapter_name(name_or_adapter)
+            adapter_name = ActiveJob.adapter_name(name_or_adapter).underscore
             assign_adapter(adapter_name, name_or_adapter)
           else
             raise ArgumentError
@@ -61,13 +70,6 @@ module ActiveJob
 
         def queue_adapter?(object)
           QUEUE_ADAPTER_METHODS.all? { |meth| object.respond_to?(meth) }
-        end
-
-        def extract_adapter_name(adapter)
-          return adapter.queue_adapter_name if adapter.respond_to?(:queue_adapter_name)
-
-          adapter_class = adapter.is_a?(Module) ? adapter : adapter.class
-          "#{adapter_class.name.demodulize.remove('Adapter').underscore}"
         end
     end
   end
