@@ -217,21 +217,7 @@ module ActiveRecord
           end
           error_code = exception.error_code if exception.respond_to?(:error_code)
 
-          case error_code
-          when ER_SERVER_SHUTDOWN
-            return ConnectionFailed.new(message, connection_pool: @pool)
-          end
-
-          case exception
-          when Errno::EPIPE, SocketError, IOError
-            return ConnectionFailed.new(message, connection_pool: @pool)
-          when ::Trilogy::Error
-            if /Connection reset by peer|TRILOGY_CLOSED_CONNECTION|TRILOGY_INVALID_SEQUENCE_ID|TRILOGY_UNEXPECTED_PACKET/.match?(exception.message)
-              return ConnectionFailed.new(message, connection_pool: @pool)
-            end
-          end
-
-          super
+          Trilogy::LostConnectionExceptionTranslator.new(exception, message, error_code, @pool).translate || super
         end
 
         def default_prepared_statements
