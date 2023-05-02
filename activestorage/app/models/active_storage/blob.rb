@@ -158,7 +158,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  def signed_id(purpose: :blob_id, expires_in: nil)
+  def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
     super
   end
 
