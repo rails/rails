@@ -9,6 +9,11 @@ require "models/binary_field"
 class SerializedAttributeTest < ActiveRecord::TestCase
   def setup
     ActiveRecord.use_yaml_unsafe_load = true
+    @yaml_column_permitted_classes_default = ActiveRecord.yaml_column_permitted_classes
+  end
+
+  def teardown
+    ActiveRecord.yaml_column_permitted_classes = @yaml_column_permitted_classes_default
   end
 
   fixtures :topics, :posts
@@ -21,6 +26,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   class ImportantTopic < Topic
     serialize :important, type: Hash
+  end
+
+  class ClassifiedTopic < Topic
+    serialize :important, type: Class
   end
 
   teardown do
@@ -164,6 +173,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     myobj = "Yes"
     topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_class_attribute
+    ActiveRecord.yaml_column_permitted_classes += [Class]
+
+    topic = ClassifiedTopic.create(important: Symbol).reload
+    assert_equal(Symbol, topic.important)
+    assert_not_empty ClassifiedTopic.where(important: Symbol)
   end
 
   def test_nil_serialized_attribute_without_class_constraint
@@ -551,6 +568,7 @@ end
 
 class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
   def setup
+    super
     ActiveRecord.use_yaml_unsafe_load = false
   end
 
