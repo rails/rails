@@ -3,6 +3,7 @@
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/mysql/column"
+require "active_record/connection_adapters/mysql/database_statements"
 require "active_record/connection_adapters/mysql/explain_pretty_printer"
 require "active_record/connection_adapters/mysql/quoting"
 require "active_record/connection_adapters/mysql/schema_creation"
@@ -14,6 +15,7 @@ require "active_record/connection_adapters/mysql/type_metadata"
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
+      include MySQL::DatabaseStatements
       include MySQL::Quoting
       include MySQL::SchemaStatements
 
