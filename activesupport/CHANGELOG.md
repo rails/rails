@@ -1,3 +1,21 @@
+*   `Object#deep_dup` no longer duplicate named classes and modules.
+
+    Before:
+
+    ```ruby
+    hash = { class: Object, module: Kernel }
+    hash.deep_dup # => {:class=>#<Class:0x00000001063ffc80>, :module=>#<Module:0x00000001063ffa00>}
+    ```
+
+    After:
+
+    ```ruby
+    hash = { class: Object, module: Kernel }
+    hash.deep_dup # => {:class=>Object, :module=>Kernel}
+    ```
+
+    *Jean Boussier*
+
 *   Consistently raise an `ArgumentError` if the `ActiveSupport::Cache` key is blank.
 
     *Joshua Young*
