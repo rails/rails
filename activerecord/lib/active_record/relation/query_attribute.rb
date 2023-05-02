@@ -36,23 +36,9 @@ module ActiveRecord
         @_unboundable
       end
 
-      def identifier_value
-        if unboundable?
-          super
-        else
-          # Override to define equality based on frozen casted values to prevent caching
-          # issues with mutable database query values.
-          value_for_database
-        end
-      end
-
       private
         def infinity?(value)
           value.respond_to?(:infinite?) && value.infinite?
-        end
-
-        def _value_for_database
-          super.deep_dup.freeze
         end
     end
   end
