@@ -944,6 +944,8 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
     def rewhere(conditions)
+      return unscope(:where) if conditions.nil?
+
       scope = spawn
       where_clause = scope.build_where_clause(conditions)
 

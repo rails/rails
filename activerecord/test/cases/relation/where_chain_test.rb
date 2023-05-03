@@ -183,5 +183,12 @@ module ActiveRecord
 
       assert_equal expected.to_a, relation.to_a
     end
+
+    def test_rewhere_with_nil
+      relation = Post.where(comments_count: 16).rewhere(nil)
+      expected = Post.all
+
+      assert_equal expected.to_a, relation.to_a
+    end
   end
 end
