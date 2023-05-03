@@ -27,55 +27,18 @@ class MessagePackCacheSerializerTest < ActiveSupport::TestCase
     end
   end
 
-  test "integrates with ActiveSupport::Cache" do
-    with_cache do |cache|
-      value = DefinesFromMsgpackExt.new("foo")
-      cache.write("key", value)
-      assert_equal value, cache.read("key")
-    end
-  end
-
-  test "treats missing class as a cache miss" do
+  test "handles missing class gracefully" do
     klass = Class.new(DefinesFromMsgpackExt)
     def klass.name; "DoesNotActuallyExist"; end
 
-    with_cache do |cache|
-      value = klass.new("foo")
-      cache.write("key", value)
-      assert_nil cache.read("key")
-    end
-  end
-
-  test "supports compression" do
-    entry = ActiveSupport::Cache::Entry.new(["foo"] * 100)
-    uncompressed = serializer.dump(entry)
-    compressed = serializer.dump_compressed(entry, 1)
-
-    assert_operator compressed.bytesize, :<, uncompressed.bytesize
-    assert_equal serializer.load(uncompressed).value, serializer.load(compressed).value
-
-    with_cache(compress_threshold: 1) do |cache|
-      assert_equal compressed, cache.send(:serialize_entry, entry)
-    end
+    dumped = dump(klass.new("foo"))
+    assert_not_nil dumped
+    assert_nil load(dumped)
   end
 
   private
     def serializer
       ActiveSupport::MessagePack::CacheSerializer
-    end
-
-    def dump(object)
-      super(ActiveSupport::Cache::Entry.new(object))
-    end
-
-    def load(dumped)
-      super.value
-    end
-
-    def with_cache(**options, &block)
-      Dir.mktmpdir do |dir|
-        block.call(ActiveSupport::Cache::FileStore.new(dir, coder: serializer, **options))
-      end
     end
 
     class HasValue
