@@ -77,7 +77,7 @@ class SerializersTest < ActiveSupport::TestCase
     )
   end
 
-  test "will deserialize know serialized objects" do
+  test "will deserialize known serialized objects" do
     ActiveJob::Serializers.add_serializers DummySerializer
     hash = { "_aj_serialized" => "SerializersTest::DummySerializer", "value" => 123 }
     assert_equal DummyValueObject.new(123), ActiveJob::Serializers.deserialize(hash)
