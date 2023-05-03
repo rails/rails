@@ -358,7 +358,7 @@ GEM
     parser (3.2.1.1)
       ast (~> 2.4.1)
     path_expander (1.1.1)
-    pg (1.5.1)
+    pg (1.5.3)
     propshaft (0.6.4)
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
