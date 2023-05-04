@@ -302,6 +302,7 @@ module Rails
           end
 
           if respond_to?(:active_support)
+            active_support.cache_format_version = 7.1
             active_support.default_message_encryptor_serializer = :json
             active_support.default_message_verifier_serializer = :json
             active_support.use_message_serializer_for_metadata = true

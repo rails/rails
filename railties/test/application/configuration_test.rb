@@ -4125,10 +4125,10 @@ module ApplicationTests
       assert_equal :fiber, ActiveSupport::IsolatedExecutionState.isolation_level
     end
 
-    test "ActiveSupport::Cache.format_version is 7.0 by default for new apps" do
+    test "ActiveSupport::Cache.format_version is 7.1 by default for new apps" do
       app "development"
 
-      assert_equal 7.0, ActiveSupport::Cache.format_version
+      assert_equal 7.1, ActiveSupport::Cache.format_version
     end
 
     test "ActiveSupport::Cache.format_version is 6.1 by default for upgraded apps" do

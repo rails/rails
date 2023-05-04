@@ -5,7 +5,7 @@ require "active_support/core_ext/object/with"
 module CacheStoreFormatVersionBehavior
   extend ActiveSupport::Concern
 
-  FORMAT_VERSIONS = [6.1, 7.0, :message_pack]
+  FORMAT_VERSIONS = [6.1, 7.0, 7.1, :message_pack]
 
   included do
     test "format version affects default coder" do

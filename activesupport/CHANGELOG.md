@@ -1,12 +1,29 @@
+*   A new `7.1` cache format is available which includes an optimization for
+    bare string values such as view fragments. The `:message_pack` cache format
+    has also been modified to include this optimization.
+
+    The `7.1` cache format is used by default for new apps, and existing apps
+    can enable the format by setting `config.load_defaults 7.1` or by setting
+    `config.active_support.cache_format_version = 7.1` in `config/application.rb`
+    or a `config/environments/*.rb` file.
+
+    Cache entries written using the `6.1` or `7.0` cache formats can be read
+    when using the `7.1` format. To perform a rolling deploy of a Rails 7.1
+    upgrade, wherein servers that have not yet been upgraded must be able to
+    read caches from upgraded servers, leave the cache format unchanged on the
+    first deploy, then enable the `7.1` cache format on a subsequent deploy.
+
+    *Jonathan Hefner*
+
 *   `config.active_support.cache_format_version` now accepts `:message_pack` as
     an option. `:message_pack` can reduce cache entry sizes and improve
     performance, but requires the [`msgpack` gem](https://rubygems.org/gems/msgpack)
     (>= 1.7.0).
 
-    Cache entries written using the `6.1` or `7.0` cache formats can be read
+    Cache entries written using the `6.1`, `7.0`, or `7.1` cache formats can be read
     when using the `:message_pack` cache format. Additionally, cache entries
     written using the `:message_pack` cache format can now be read when using
-    the `6.1` or `7.0` cache formats. These behaviors makes it easy to migrate
+    the `6.1`, `7.0`, or `7.1` cache formats. These behaviors makes it easy to migrate
     between formats without invalidating the entire cache.
 
     *Jonathan Hefner*
