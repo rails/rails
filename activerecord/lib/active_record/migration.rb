@@ -643,8 +643,38 @@ module ActiveRecord
       end
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
+      #
+      # This is deprecated in favor of +check_pending_migrations!+
       def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
-        raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
+          The `check_pending!` method is deprecated in favor of `check_pending_migrations!`. The
+          new implementation will loop through all available database configurations and find
+          pending migrations. The prior implementation did not permit this.
+        MSG
+
+        pending_migrations = connection.migration_context.open.pending_migrations
+
+        if pending_migrations.any?
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
+        end
+      end
+
+      # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending
+      # for all database configurations in an environment.
+      def check_all_pending!
+        pending_migrations = []
+
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: env) do |connection|
+          if pending = connection.migration_context.open.pending_migrations
+            pending_migrations << pending
+          end
+        end
+
+        migrations = pending_migrations.flatten
+
+        if migrations.any?
+          raise ActiveRecord::PendingMigrationError.new(pending_migrations: migrations)
+        end
       end
 
       def load_schema_if_pending!
