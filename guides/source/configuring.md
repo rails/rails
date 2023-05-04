@@ -69,6 +69,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.marshalling_format_version`](#config-active-record-marshalling-format-version): `7.1`
+- [`config.active_record.postgresql_drop_schema_cascade`](#config-active-record-postgresql-drop-schema-cascade): `false`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
 - [`config.active_record.run_after_transaction_callbacks_in_order_defined`](#config-active-record-run-after-transaction-callbacks-in-order-defined): `true`
@@ -1145,6 +1146,13 @@ enabled.
 | --------------------- | -------------------- |
 | (original)            | `6.1`                |
 | 7.1                   | `7.1`                |
+
+#### `config.active_record.postgresql_drop_schema_cascade`
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 #### `config.active_record.action_on_strict_loading_violation`
 

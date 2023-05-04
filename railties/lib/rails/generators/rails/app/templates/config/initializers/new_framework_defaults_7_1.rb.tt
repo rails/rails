@@ -166,3 +166,6 @@
 # This matches the behaviour of all other callbacks.
 # In previous versions of Rails, they ran in the inverse order.
 # Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
+
+# Previous versions of active record would run CASCADE on drop_schema migration by default
+# Rails.application.config.active_record.postgresql_drop_schema_cascade = false
