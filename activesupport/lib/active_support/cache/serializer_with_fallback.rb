@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/kernel/reporting"
+
 module ActiveSupport
   module Cache
     module SerializerWithFallback # :nodoc:
@@ -207,7 +209,7 @@ module ActiveSupport
           private
             def available?
               return @available if defined?(@available)
-              require "active_support/message_pack"
+              silence_warnings { require "active_support/message_pack" }
               @available = true
             rescue LoadError
               @available = false
