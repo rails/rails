@@ -1,3 +1,7 @@
+*   Prevent belongs_to association from double saving when created with has_one association.
+
+    *Igor Biryukov*
+
 *   Fix mutation detection for serialized attributes backed by binary columns.
 
     *Jean Boussier*

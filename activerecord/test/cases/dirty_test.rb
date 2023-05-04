@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/topic"    # For booleans
 require "models/pirate"   # For timestamps
 require "models/parrot"
+require "models/ship"     # For has_one saved_changes
 require "models/person"   # For optimistic locking
 require "models/aircraft"
 require "models/numeric_data"
@@ -889,6 +890,15 @@ class DirtyTest < ActiveRecord::TestCase
     person.save
 
     assert_not_predicate person, :saved_changes?
+  end
+
+  test "saved_changes? returns hash when saved with has_one association" do
+    ship = Ship.new(name: "Nights Dirty Lightning")
+    ship.pirate = Pirate.new(catchphrase: "Yar!")
+
+    ship.save
+
+    assert_equal [nil, "Nights Dirty Lightning"], ship.saved_changes[:name]
   end
 
   test "saved_changes returns a hash of all the changes that occurred" do
