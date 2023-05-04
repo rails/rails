@@ -130,6 +130,21 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "test_schema3"
   end
 
+  def test_create_schema_if_not_exists
+    @connection.create_schema "test_schema3", if_not_exists: true
+    assert @connection.schema_names.include? "test_schema3"
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
+  def test_create_schema_if_not_exists_with_existing_schema
+    @connection.create_schema "test_schema3"
+    @connection.create_schema "test_schema3", if_not_exists: true
+    assert @connection.schema_names.include? "test_schema3"
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
   def test_drop_schema
     begin
       @connection.create_schema "test_schema3"
