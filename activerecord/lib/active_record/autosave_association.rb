@@ -274,7 +274,7 @@ module ActiveRecord
     end
 
     def already_trying_to_save?
-      @saving ||= false
+      @_marked_as_saving ||= false
     end
 
     private
@@ -372,9 +372,9 @@ module ActiveRecord
       end
 
       def around_save_mark_as_saving_record
-        @saving = true
+        @_marked_as_saving = true
         yield
-        @saving = false
+        @_marked_as_saving = false
       end
 
       # Is used as an around_save callback to check while saving a collection
