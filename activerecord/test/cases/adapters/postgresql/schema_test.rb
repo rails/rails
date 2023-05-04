@@ -145,6 +145,20 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "test_schema3"
   end
 
+  def test_create_schema_with_force
+    @connection.create_schema "test_schema3"
+    @connection.create_table "test_schema3.test_with_force_table", force: true do |t|
+    end
+    assert @connection.table_exists?("test_schema3.test_with_force_table")
+
+    @connection.create_schema "test_schema3", force: :cascade
+
+    assert @connection.schema_names.include? "test_schema3"
+    assert_not @connection.table_exists?("test_schema3.test_with_force_table")
+  ensure
+    @connection.drop_schema "test_schema3", force: :cascade
+  end
+
   def test_drop_schema
     begin
       @connection.create_schema "test_schema3"

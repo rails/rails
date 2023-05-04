@@ -213,7 +213,10 @@ module ActiveRecord
         end
 
         # Creates a schema for the given schema name.
-        def create_schema(schema_name, if_not_exists: false)
+        def create_schema(schema_name, if_not_exists: false, force: false)
+          if force
+            drop_schema(schema_name, if_exists: true, force: force)
+          end
           execute "CREATE SCHEMA#{' IF NOT EXISTS' if if_not_exists} #{quote_schema_name(schema_name)}"
         end
 
