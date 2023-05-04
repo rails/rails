@@ -1,3 +1,14 @@
+*   Improve support for postgresql options in `create_schema` and `drop_schema`.
+
+    `create_schema` now accept `if_not_exists` and `force` options, similar to `create_table`.
+
+    `drop_schema` no longer uses `CASCADE` as default, now accept `force: :cascade` option similar to `drop_table`.
+    `config.active_record.postgresql_drop_schema_cascade` was added to maintain the previous behavior of `drop_schema`.
+
+    `create_schema` and `drop_schema` are now reversible.
+
+    *Adam Stomski*
+
 *   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
     `Array#intersect?` is only available on Ruby 3.1 or later.
