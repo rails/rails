@@ -280,6 +280,7 @@ module ActiveRecord
     private
       def init_internals
         super
+        @_marked_as_saving = false
         @_already_called = nil
       end
 
@@ -374,6 +375,8 @@ module ActiveRecord
       def around_save_mark_as_saving_record
         @_marked_as_saving = true
         yield
+        @_marked_as_saving = false
+      ensure
         @_marked_as_saving = false
       end
 
