@@ -274,7 +274,7 @@ module ActiveRecord
     end
 
     def already_trying_to_save?
-      @_marked_as_saving ||= false
+      @_marked_as_saving
     end
 
     private
