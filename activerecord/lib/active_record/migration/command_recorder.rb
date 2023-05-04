@@ -342,27 +342,27 @@ module ActiveRecord
           super
         end
 
-      def invert_create_schema(args, &block)
-        if args.last.is_a?(Hash)
-          args.last.delete(:if_not_exists)
+        def invert_create_schema(args, &block)
+          if args.last.is_a?(Hash)
+            args.last.delete(:if_not_exists)
 
-          if args.last[:force]
-            raise ActiveRecord::IrreversibleMigration, "create_schema is not reversible if given a :force option."
+            if args.last[:force]
+              raise ActiveRecord::IrreversibleMigration, "create_schema is not reversible if given a :force option."
+            end
           end
+          super
         end
-        super
-      end
 
-      def invert_drop_schema(args, &block)
-        if args.last.is_a?(Hash)
-          args.last.delete(:if_exists)
+        def invert_drop_schema(args, &block)
+          if args.last.is_a?(Hash)
+            args.last.delete(:if_exists)
 
-          if args.last[:force]
-            raise ActiveRecord::IrreversibleMigration, "drop_schema is not reversible if given a :force option."
+            if args.last[:force]
+              raise ActiveRecord::IrreversibleMigration, "drop_schema is not reversible if given a :force option."
+            end
           end
+          super
         end
-        super
-      end
 
         def respond_to_missing?(method, _)
           super || delegate.respond_to?(method)
