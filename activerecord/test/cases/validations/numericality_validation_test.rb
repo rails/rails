@@ -177,4 +177,60 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     assert_predicate subject, :valid?
   end
+
+  MAX_EIGHT_BYTES_SIGNED_NUMBER = 2**63 - 1
+  private_constant :MAX_EIGHT_BYTES_SIGNED_NUMBER
+
+  def test_column_in_limit
+    update_limit_for_column(model_class, "bank_balance", new_limit: 8)
+    model_class.validates_numericality_of(:bank_balance, in: :limit)
+
+    subject = model_class.new(bank_balance: MAX_EIGHT_BYTES_SIGNED_NUMBER + 1)
+
+    assert_not_predicate subject, :valid?
+
+    subject = model_class.new(bank_balance: MAX_EIGHT_BYTES_SIGNED_NUMBER)
+
+    assert_predicate subject, :valid?
+  end
+
+  def test_column_in_limit_without_limit_is_ignored
+    model_class.validates_numericality_of(:bank_balance, in: :limit)
+
+    subject = model_class.new(bank_balance: MAX_EIGHT_BYTES_SIGNED_NUMBER + 1)
+
+    assert_predicate subject, :valid?
+  end
+
+  def test_virtual_column_in_limit_raises
+    model_class.attribute(:virtual_bank_balance, :decimal)
+    model_class.validates_numericality_of(:virtual_bank_balance, in: :limit)
+
+    subject = model_class.new(virtual_bank_balance: MAX_EIGHT_BYTES_SIGNED_NUMBER + 1)
+
+    assert_raises ArgumentError, "cannot validate :limit for a virtual attribute" do
+      subject.valid?
+    end
+  end
+
+  private
+    def update_limit_for_column(model_class, attr_name, new_limit:)
+      column = model_class.columns_hash[attr_name]
+      sql_type_metadata = column.sql_type_metadata
+
+      dup_sql_type_metadata = sql_type_metadata.dup
+      dup_sql_type_metadata.instance_variable_set(:@limit, new_limit)
+
+      unless dup_sql_type_metadata.limit
+        skip("Skipping test: limit was not set")
+      end
+
+      dup_column = column.dup
+      dup_column.instance_variable_set(:@sql_type_metadata, dup_sql_type_metadata)
+
+      dup_columns_hash = model_class.columns_hash.dup
+      dup_columns_hash[attr_name] = dup_column
+
+      model_class.instance_variable_set(:@columns_hash, dup_columns_hash)
+    end
 end

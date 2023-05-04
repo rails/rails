@@ -1,3 +1,17 @@
+*   Add support for `:limit` to `ActiveModel::Validations::NumericalityValidator#validates_numericality_of`.
+
+    `:limit` will verify the column's SQL type metadata limit to create a range with it.
+
+    If the value is a `virtual attribute`, an exception is raised.
+
+    If the column doesn't have a `limit` value set, the validation will be ignored.
+
+    ```ruby
+    validates_numericality_of :some_column, in: :limit
+    ```
+
+    *edaroit*
+
 *   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
     `Array#intersect?` is only available on Ruby 3.1 or later.
