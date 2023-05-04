@@ -1,3 +1,7 @@
+*   Support configured primary key types in generated migrations.
+
+    *Nishiki Liu*
+
 *   Fixed ingress controllers' ability to accept emails that contain no UTF-8 encoded parts.
 
     Fixes #46297.
