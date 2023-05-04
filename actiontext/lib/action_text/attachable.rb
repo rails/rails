@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActionText
-  # = Action Text Attachable
+  # = Action Text \Attachable
   #
   # Include this module to make a record attachable to an <tt>ActionText::Content</tt>.
   #
