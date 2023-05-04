@@ -1,3 +1,11 @@
+*   Make `increment_counter`/`decrement_counter` accept an amount argument
+
+    ```ruby
+    Post.increment_counter(:comments_count, 5, by: 3)
+    ```
+
+    *fatkodima*
+
 *   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
     `Array#intersect?` is only available on Ruby 3.1 or later.
