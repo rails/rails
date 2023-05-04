@@ -440,6 +440,9 @@ module ActiveRecord
   singleton_class.attr_accessor :yaml_column_permitted_classes
   self.yaml_column_permitted_classes = [Symbol]
 
+  singleton_class.attr_accessor :postgresql_drop_schema_cascade
+  self.postgresql_drop_schema_cascade = true
+
   def self.marshalling_format_version
     Marshalling.format_version
   end

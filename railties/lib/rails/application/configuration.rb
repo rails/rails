@@ -285,6 +285,7 @@ module Rails
             active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
             active_record.marshalling_format_version = 7.1
             active_record.run_after_transaction_callbacks_in_order_defined = true
+            active_record.postgresql_drop_schema_cascade = false
           end
 
           if respond_to?(:action_dispatch)

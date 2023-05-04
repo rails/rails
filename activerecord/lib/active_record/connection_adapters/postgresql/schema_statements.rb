@@ -222,7 +222,7 @@ module ActiveRecord
 
         # Drops the schema for the given schema name.
         def drop_schema(schema_name, **options)
-          execute "DROP SCHEMA#{' IF EXISTS' if options[:if_exists]} #{quote_schema_name(schema_name)}#{' CASCADE' if options[:force] == :cascade}"
+          execute "DROP SCHEMA#{' IF EXISTS' if options[:if_exists]} #{quote_schema_name(schema_name)}#{' CASCADE' if ActiveRecord.postgresql_drop_schema_cascade || options[:force] == :cascade}"
         end
 
         # Sets the schema search path to a string of comma-separated schema names.

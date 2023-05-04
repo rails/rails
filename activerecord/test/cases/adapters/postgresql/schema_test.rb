@@ -80,6 +80,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
+    ActiveRecord.postgresql_drop_schema_cascade = false
+
     @connection = ActiveRecord::Base.connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
@@ -179,6 +181,17 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   ensure
     @connection.drop_schema "test_schema3", force: :cascade
+  end
+
+  def test_drop_schema_cascade_with_postgresql_drop_schema_cascade
+    ActiveRecord.postgresql_drop_schema_cascade = true
+    @connection.create_schema "test_schema3"
+    @connection.create_table "test_schema3.test_table", force: true do |t|
+      t.integer :foo
+    end
+    @connection.drop_schema "test_schema3"
+  ensure
+    ActiveRecord.postgresql_drop_schema_cascade = false
   end
 
   def test_drop_schema_if_exists
