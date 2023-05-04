@@ -512,6 +512,38 @@ module ActiveRecord
           @recorder.inverse_of :drop_enum, [:color, if_exists: true]
         end
       end
+
+      def test_invert_create_schema
+        drop = @recorder.inverse_of :create_schema, [:writers]
+        assert_equal [:drop_schema, [:writers], nil], drop
+      end
+
+      def test_invert_create_schema_with_if_exists
+        drop = @recorder.inverse_of :create_schema, [:writers, if_not_exists: true]
+        assert_equal [:drop_schema, [:writers, {}], nil], drop
+      end
+
+      def test_invert_create_schema_with_force
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :create_schema, [:writers, force: :cascade]
+        end
+      end
+
+      def test_invert_drop_schema
+        create = @recorder.inverse_of :drop_schema, [:writers]
+        assert_equal [:create_schema, [:writers], nil], create
+      end
+
+      def test_invert_drop_schema_with_if_exists
+        create = @recorder.inverse_of :drop_schema, [:writers, if_exists: true]
+        assert_equal [:create_schema, [:writers, {}], nil], create
+      end
+
+      def test_invert_drop_schema_with_force
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_schema, [:writers, force: :cascade]
+        end
+      end
     end
   end
 end

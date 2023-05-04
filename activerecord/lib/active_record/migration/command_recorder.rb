@@ -53,6 +53,7 @@ module ActiveRecord
         :add_exclusion_constraint, :remove_exclusion_constraint,
         :add_unique_key, :remove_unique_key,
         :create_enum, :drop_enum,
+        :create_schema, :drop_schema,
       ]
       include JoinTable
 
@@ -161,7 +162,8 @@ module ActiveRecord
               add_exclusion_constraint: :remove_exclusion_constraint,
               add_unique_key: :remove_unique_key,
               enable_extension:  :disable_extension,
-              create_enum:       :drop_enum
+              create_enum:       :drop_enum,
+              create_schema:     :drop_schema,
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -339,6 +341,28 @@ module ActiveRecord
           raise ActiveRecord::IrreversibleMigration, "drop_enum is only reversible if given a list of enum values." unless values
           super
         end
+
+      def invert_create_schema(args, &block)
+        if args.last.is_a?(Hash)
+          args.last.delete(:if_not_exists)
+
+          if args.last[:force]
+            raise ActiveRecord::IrreversibleMigration, "create_schema is not reversible if given a :force option."
+          end
+        end
+        super
+      end
+
+      def invert_drop_schema(args, &block)
+        if args.last.is_a?(Hash)
+          args.last.delete(:if_exists)
+
+          if args.last[:force]
+            raise ActiveRecord::IrreversibleMigration, "drop_schema is not reversible if given a :force option."
+          end
+        end
+        super
+      end
 
         def respond_to_missing?(method, _)
           super || delegate.respond_to?(method)
