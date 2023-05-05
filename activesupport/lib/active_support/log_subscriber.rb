@@ -18,26 +18,20 @@ module ActiveSupport
   #
   #   module ActiveRecord
   #     class LogSubscriber < ActiveSupport::LogSubscriber
+  #       attach_to :active_record
+  #
   #       def sql(event)
   #         info "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
   #       end
   #     end
   #   end
   #
-  # And it's finally registered as:
+  # ActiveRecord::LogSubscriber.logger must be set as well, but it is assigned
+  # automatically in a \Rails environment.
   #
-  #   ActiveRecord::LogSubscriber.attach_to :active_record
-  #
-  # Since we need to know all instance methods before attaching the log
-  # subscriber, the line above should be called after your
-  # <tt>ActiveRecord::LogSubscriber</tt> definition.
-  #
-  # A logger also needs to be set with <tt>ActiveRecord::LogSubscriber.logger=</tt>.
-  # This is assigned automatically in a Rails environment.
-  #
-  # After configured, whenever a <tt>"sql.active_record"</tt> notification is published,
-  # it will properly dispatch the event
-  # (<tt>ActiveSupport::Notifications::Event</tt>) to the sql method.
+  # After configured, whenever a <tt>"sql.active_record"</tt> notification is
+  # published, it will properly dispatch the event
+  # (ActiveSupport::Notifications::Event) to the +sql+ method.
   #
   # Being an ActiveSupport::Notifications consumer,
   # <tt>ActiveSupport::LogSubscriber</tt> exposes a simple interface to check if
@@ -62,9 +56,10 @@ module ActiveSupport
   #     end
   #   end
   #
-  # Log subscriber also has some helpers to deal with logging and automatically
-  # flushes all logs when the request finishes
-  # (via <tt>action_dispatch.callback</tt> notification) in a Rails environment.
+  # <tt>ActiveSupport::LogSubscriber</tt> also has some helpers to deal with
+  # logging. For example, ActiveSupport::LogSubscriber.flush_all! will ensure
+  # that all logs are flushed, and it is called in Rails::Rack::Logger after a
+  # request finishes.
   class LogSubscriber < Subscriber
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.", ActiveSupport.deprecator)
