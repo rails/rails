@@ -157,8 +157,8 @@ module ActiveSupport
     #   where a message signing secret has been leaked. <em>If possible, choose
     #   a serializer that does not support +Marshal+.</em>
     #
-    #   When using \Rails with <tt>config.load_defaults 7.1</tt> or later, the
-    #   default is +:json+. Otherwise, the default is +:marshal+.
+    #   When using \Rails, the default depends on +config.active_support.message_serializer+.
+    #   Otherwise, the default is +:marshal+.
     #
     # [+:url_safe+]
     #   By default, MessageEncryptor generates RFC 4648 compliant strings

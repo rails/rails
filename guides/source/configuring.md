@@ -75,7 +75,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
 - [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.1`
-- [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json`
+- [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json_allow_marshal`
 - [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
 - [`config.active_support.use_message_serializer_for_metadata`](#config-active-support-use-message-serializer-for-metadata): `true`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
@@ -2281,7 +2281,7 @@ The default value depends on the `config.load_defaults` target version:
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
-| 7.1                   | `:json`              |
+| 7.1                   | `:json_allow_marshal` |
 
 [`ActiveSupport::MessageEncryptor`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html
 [`ActiveSupport::MessageVerifier`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html

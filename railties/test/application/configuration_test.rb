@@ -3710,10 +3710,10 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
-    test "ActiveSupport::Messages::Codec.default_serializer is :json by default for new apps" do
+    test "ActiveSupport::Messages::Codec.default_serializer is :json_allow_marshal by default for new apps" do
       app "development"
 
-      assert_equal :json, ActiveSupport::Messages::Codec.default_serializer
+      assert_equal :json_allow_marshal, ActiveSupport::Messages::Codec.default_serializer
     end
 
     test "ActiveSupport::Messages::Codec.default_serializer is :marshal by default for upgraded apps" do
