@@ -40,9 +40,21 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "increment counter by specific amount" do
+    assert_difference "@topic.reload.replies_count", +2 do
+      Topic.increment_counter(:replies_count, @topic.id, by: 2)
+    end
+  end
+
   test "decrement counter" do
     assert_difference "@topic.reload.replies_count", -1 do
       Topic.decrement_counter(:replies_count, @topic.id)
+    end
+  end
+
+  test "decrement counter by specific amount" do
+    assert_difference "@topic.reload.replies_count", -2 do
+      Topic.decrement_counter(:replies_count, @topic.id, by: 2)
     end
   end
 

@@ -126,6 +126,7 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be incremented.
       # * +id+ - The id of the object that should be incremented or an array of ids.
+      # * <tt>:by</tt> - The amount by which to increment the value. Defaults to +1+.
       # * <tt>:touch</tt> - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
@@ -136,10 +137,14 @@ module ActiveRecord
       #   DiscussionBoard.increment_counter(:posts_count, 5)
       #
       #   # Increment the posts_count column for the record with an id of 5
+      #   # by a specific amount.
+      #   DiscussionBoard.increment_counter(:posts_count, 5, by: 3)
+      #
+      #   # Increment the posts_count column for the record with an id of 5
       #   # and update the updated_at value.
       #   DiscussionBoard.increment_counter(:posts_count, 5, touch: true)
-      def increment_counter(counter_name, id, touch: nil)
-        update_counters(id, counter_name => 1, touch: touch)
+      def increment_counter(counter_name, id, by: 1, touch: nil)
+        update_counters(id, counter_name => by, touch: touch)
       end
 
       # Decrement a numeric field by one, via a direct SQL update.
@@ -151,6 +156,7 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented or an array of ids.
+      # * <tt>:by</tt> - The amount by which to increment the value. Defaults to +1+.
       # * <tt>:touch</tt> - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
@@ -161,10 +167,14 @@ module ActiveRecord
       #   DiscussionBoard.decrement_counter(:posts_count, 5)
       #
       #   # Decrement the posts_count column for the record with an id of 5
+      #   by a specific amount.
+      #   DiscussionBoard.decrement_counter(:posts_count, 5, by: 3)
+      #
+      #   # Decrement the posts_count column for the record with an id of 5
       #   # and update the updated_at value.
       #   DiscussionBoard.decrement_counter(:posts_count, 5, touch: true)
-      def decrement_counter(counter_name, id, touch: nil)
-        update_counters(id, counter_name => -1, touch: touch)
+      def decrement_counter(counter_name, id, by: 1, touch: nil)
+        update_counters(id, counter_name => -by, touch: touch)
       end
 
       def counter_cache_column?(name) # :nodoc:
