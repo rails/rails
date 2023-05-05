@@ -797,10 +797,15 @@ module ActiveSupport
         # Raises an exception when the key is +nil+ or an empty string.
         # May be overridden by cache stores to do additional normalization.
         def normalize_key(key, options = nil)
-          str_key = expanded_key(key)
-          raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
+          options_hash = options || { validate: true }
 
-          namespace_key str_key, options
+          should_validate = !options_hash.key?(:validate) || options_hash[:validate]
+          str_key = expanded_key(key)
+          if should_validate && (!str_key || str_key.empty?)
+            raise(ArgumentError, "key cannot be blank")
+          end
+
+          namespace_key str_key, options_hash.except(:validate).presence
         end
 
         # Prefix the key with a namespace string:
@@ -865,7 +870,9 @@ module ActiveSupport
 
         def instrument(operation, key, options = nil)
           if logger && logger.debug? && !silence?
-            logger.debug "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}"
+            str_key = normalize_key(key, (options || {}).merge(validate: false))
+            info = options.blank? ? "" : " (#{options.inspect})"
+            logger.debug "Cache #{operation}: #{str_key}#{info}"
           end
 
           payload = { key: key, store: self.class.name }

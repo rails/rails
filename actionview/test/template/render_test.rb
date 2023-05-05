@@ -946,6 +946,12 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     end
   end
 
+  test "collection caching with empty collection and logger with level debug" do
+    ActionView::PartialRenderer.collection_cache.logger = Logger.new(nil, level: :debug)
+
+    assert_nil @view.render(partial: "test/cached_customer", collection: [], cached: true)
+  end
+
   test "collection caching with repeated collection" do
     sets = [
         [1, 2, 3, 4, 5],
