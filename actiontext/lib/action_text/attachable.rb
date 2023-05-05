@@ -1,12 +1,31 @@
 # frozen_string_literal: true
 
 module ActionText
+  # = Action Text Attachable
+  #
+  # Include this module to make a record attachable to an <tt>ActionText::Content</tt>.
+  #
+  #   class Person < ApplicationRecord
+  #     include ActionText::Attachable
+  #   end
+  #
+  #   person = Person.create! name: "Javan"
+  #   html = %Q(<action-text-attachment sgid="#{person.attachable_sgid}"></action-text-attachment>)
+  #   content = ActionText::Content.new(html)
+  #   content.attachables # => [person]
   module Attachable
     extend ActiveSupport::Concern
 
     LOCATOR_NAME = "attachable"
 
     class << self
+      # Extracts the <tt>ActionText::Attachable</tt> from the attachment HTML node:
+      #
+      #   person = Person.create! name: "Javan"
+      #   html = %Q(<action-text-attachment sgid="#{person.attachable_sgid}"></action-text-attachment>)
+      #   fragment = ActionText::Fragment.wrap(html)
+      #   attachment_node = fragment.find_all(ActionText::Attachment.tag_name).first
+      #   ActionText::Attachable.from_node(attachment_node) # => person
       def from_node(node)
         if attachable = attachable_from_sgid(node["sgid"])
           attachable
