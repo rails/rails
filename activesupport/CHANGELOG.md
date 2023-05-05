@@ -1,3 +1,13 @@
+*   Add `trim_empty_fractional` to `ActiveSupport::NumberHelper.number_to_currency`.
+
+    ```ruby
+    ActiveSupport::NumberHelper.number_to_currency(30.05, trim_empty_fractional: true) # => $30.05
+    ActiveSupport::NumberHelper.number_to_currency(30.50, trim_empty_fractional: true) # => $30.50
+    ActiveSupport::NumberHelper.number_to_currency(30.00, trim_empty_fractional: true) # => $30
+    ```
+
+    *Daniel Vu Dao*
+
 *   A new `7.1` cache format is available which includes an optimization for
     bare string values such as view fragments. The `:message_pack` cache format
     has also been modified to include this optimization.
