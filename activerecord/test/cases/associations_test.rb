@@ -688,7 +688,7 @@ end
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
            :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
-           :members, :member_details, :organizations
+           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements
 
   def test_preload_with_scope
     post = posts(:welcome)
@@ -1327,6 +1327,53 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_not_empty(expected_blog_post_ids)
 
     assert_equal(expected_blog_post_ids.sort, tag.blog_posts.map(&:id).sort)
+  end
+
+  def test_preloads_has_many_on_model_with_a_composite_primary_key_through_id_attribute
+    order = cpk_orders(:cpk_groceries_order_2)
+    _shop_id, order_id = order.id
+    order_agreements = Cpk::OrderAgreement.where(order_id: order_id).to_a
+
+    assert_not_empty order_agreements
+    assert_equal order_agreements.sort, order.order_agreements.sort
+
+    loaded_order = nil
+    sql = capture_sql do
+      loaded_order = Cpk::Order.where(id: order_id).includes(:order_agreements).to_a.first
+    end
+
+    assert_equal 2, sql.size
+    preload_sql = sql.last
+
+    c = Cpk::OrderAgreement.connection
+    order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
+    order_id_constraint = /#{order_id_column} = (\?|(\d+)|\$\d)$/
+    expectation = /SELECT.*WHERE.* #{order_id_constraint}/
+
+    assert_match(expectation, preload_sql)
+    assert_equal order_agreements.sort, loaded_order.order_agreements.sort
+  end
+
+  def test_preloads_belongs_to_a_composite_primary_key_model_through_id_attribute
+    order_agreement = cpk_order_agreements(:order_agreement_three)
+    order = cpk_orders(:cpk_groceries_order_2)
+    assert_equal order, order_agreement.order
+
+    loaded_order_agreement = nil
+    sql = capture_sql do
+      loaded_order_agreement = Cpk::OrderAgreement.where(id: order_agreement.id).includes(:order).to_a.first
+    end
+
+    assert_equal 2, sql.size
+    preload_sql = sql.last
+
+    c = Cpk::Order.connection
+    order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
+    order_constraint = /#{order_id} = (\?|(\d+)|\$\d)$/
+    expectation = /SELECT.*WHERE.* #{order_constraint}/
+
+    assert_match(expectation, preload_sql)
+    assert_equal order, loaded_order_agreement.order
   end
 end
 
