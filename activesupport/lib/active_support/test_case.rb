@@ -134,20 +134,147 @@ module ActiveSupport
     include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
 
-    # test/unit backwards compatibility methods
-    alias :assert_raise :assert_raises
+    ##
+    # :method: assert_not_empty
+    #
+    # :call-seq:
+    #   assert_not_empty(obj, msg = nil)
+    #
+    # Alias for: refute_empty[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_empty]
+
+    #
     alias :assert_not_empty :refute_empty
+
+    ##
+    # :method: assert_not_equal
+    #
+    # :call-seq:
+    #   assert_not_equal(exp, act, msg = nil)
+    #
+    # Alias for: refute_equal[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_equal]
+
+    #
     alias :assert_not_equal :refute_equal
+
+    ##
+    # :method: assert_not_in_delta
+    #
+    # :call-seq:
+    #   assert_not_in_delta(exp, act, delta = 0.001, msg = nil)
+    #
+    # Alias for: refute_in_delta[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_in_delta]
+
+    #
     alias :assert_not_in_delta :refute_in_delta
+
+    ##
+    # :method: assert_not_in_epsilon
+    #
+    # :call-seq:
+    #   assert_not_in_epsilon(a, b, epsilon = 0.001, msg = nil)
+    #
+    # Alias for: refute_in_epsilon[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_in_epsilon]
+
+    #
     alias :assert_not_in_epsilon :refute_in_epsilon
+
+    ##
+    # :method: assert_not_includes
+    #
+    # :call-seq:
+    #   assert_not_includes(collection, obj, msg = nil)
+    #
+    # Alias for: refute_includes[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_includes]
+
+    #
     alias :assert_not_includes :refute_includes
+
+    ##
+    # :method: assert_not_instance_of
+    #
+    # :call-seq:
+    #   assert_not_instance_of(cls, obj, msg = nil)
+    #
+    # Alias for: refute_instance_of[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_instance_of]
+
+    #
     alias :assert_not_instance_of :refute_instance_of
+
+    ##
+    # :method: assert_not_kind_of
+    #
+    # :call-seq:
+    #   assert_not_kind_of(cls, obj, msg = nil)
+    #
+    # Alias for: refute_kind_of[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_kind_of]
+
+    #
     alias :assert_not_kind_of :refute_kind_of
+
+    ##
+    # :method: assert_no_match
+    #
+    # :call-seq:
+    #   assert_no_match(matcher, obj, msg = nil)
+    #
+    # Alias for: refute_match[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_match]
+
+    #
     alias :assert_no_match :refute_match
+
+    ##
+    # :method: assert_not_nil
+    #
+    # :call-seq:
+    #   assert_not_nil(obj, msg = nil)
+    #
+    # Alias for: refute_nil[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_nil]
+
+    #
     alias :assert_not_nil :refute_nil
+
+    ##
+    # :method: assert_not_operator
+    #
+    # :call-seq:
+    #   assert_not_operator(o1, op, o2 = UNDEFINED, msg = nil)
+    #
+    # Alias for: refute_operator[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_operator]
+
+    #
     alias :assert_not_operator :refute_operator
+
+    ##
+    # :method: assert_not_predicate
+    #
+    # :call-seq:
+    #   assert_not_predicate(o1, op, msg = nil)
+    #
+    # Alias for: refute_predicate[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_predicate]
+
+    #
     alias :assert_not_predicate :refute_predicate
+
+    ##
+    # :method: assert_not_respond_to
+    #
+    # :call-seq:
+    #   assert_not_respond_to(obj, meth, msg = nil)
+    #
+    # Alias for: refute_respond_to[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_respond_to]
+
+    #
     alias :assert_not_respond_to :refute_respond_to
+
+    ##
+    # :method: assert_not_same
+    #
+    # :call-seq:
+    #   assert_not_same(exp, act, msg = nil)
+    #
+    # Alias for: refute_same[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_same]
+
+    #
     alias :assert_not_same :refute_same
 
     ActiveSupport.run_load_hooks(:active_support_test_case, self)
