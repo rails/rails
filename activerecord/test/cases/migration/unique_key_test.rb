@@ -64,7 +64,7 @@ if ActiveRecord::Base.connection.supports_unique_keys?
             @connection.add_unique_key "test_schema.sections", [:position]
           end
         ensure
-          @connection.drop_schema "test_schema"
+          @connection.drop_schema "test_schema", force: :cascade
         end
 
         def test_add_unique_key_without_deferrable

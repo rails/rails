@@ -1210,7 +1210,7 @@ class IndexForTableWithSchemaMigrationTest < ActiveRecord::TestCase
       connection.remove_index("my_schema.values", :value)
       assert_not connection.index_exists?("my_schema.values", :value)
     ensure
-      connection.drop_schema("my_schema")
+      connection.drop_schema("my_schema", force: :cascade)
     end
   end
 end

@@ -65,7 +65,7 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
 
     assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
   ensure
-    @connection.drop_schema "other_schema", if_exists: true
+    @connection.drop_schema "other_schema", force: :cascade
   end
 
 

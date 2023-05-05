@@ -33,7 +33,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
     set_session_auth
     @connection.execute "RESET search_path"
     USERS.each do |u|
-      @connection.drop_schema u
+      @connection.drop_schema u, force: :cascade
       @connection.execute "DROP USER #{u}"
     end
   end

@@ -76,7 +76,7 @@ if ActiveRecord::Base.connection.supports_exclusion_constraints?
             @connection.add_exclusion_constraint "test_schema.invoices", "daterange(start_date, end_date) WITH &&", using: :gist
           end
         ensure
-          @connection.drop_schema "test_schema"
+          @connection.drop_schema "test_schema", force: :cascade
         end
 
         def test_add_exclusion_constraint

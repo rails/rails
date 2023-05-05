@@ -102,7 +102,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
               @connection.add_check_constraint "test_schema.trades", "quantity > 0"
             end
           ensure
-            @connection.drop_schema "test_schema"
+            @connection.drop_schema "test_schema", force: :cascade
           end
         end
 

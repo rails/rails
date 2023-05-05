@@ -186,7 +186,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
       @connection.drop_enum("test_schema.mood_in_other_schema")
     end
   ensure
-    @connection.drop_schema("test_schema", if_exists: true)
+    @connection.drop_schema("test_schema", force: :cascade)
   end
 
   def test_schema_dump_scoped_to_schemas
@@ -207,7 +207,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
       assert_not_includes output, 'create_enum "other_schema.mood_in_other_schema"'
     end
   ensure
-    @connection.drop_schema("other_schema")
+    @connection.drop_schema("other_schema", force: :cascade)
   end
 
   def test_schema_load_scoped_to_schemas
@@ -229,7 +229,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
       assert @connection.column_exists?("test_schema.postgresql_enums_in_test_schema", :current_mood, sql_type: "test_schema.mood_in_test_schema")
     end
   ensure
-    @connection.drop_schema("test_schema")
+    @connection.drop_schema("test_schema", force: :casade)
   end
 
   private
@@ -239,7 +239,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
       @connection.schema_search_path = "#{name}, public"
       yield
     ensure
-      @connection.drop_schema(name) if drop
+      @connection.drop_schema(name, force: :cascade) if drop
       @connection.schema_search_path = old_search_path
       @connection.schema_cache.clear!
     end
