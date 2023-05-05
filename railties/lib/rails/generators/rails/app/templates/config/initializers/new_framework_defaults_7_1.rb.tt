@@ -166,3 +166,14 @@
 # This matches the behaviour of all other callbacks.
 # In previous versions of Rails, they ran in the inverse order.
 # Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
+
+# ** Please read carefully, this must be configured in config/application.rb **
+# Change the format of the cache entry.
+# Changing this default means that all new cache entries added to the cache
+# will have a different format that is not supported by Rails 7.0
+# applications.
+# Only change this value after your application is fully deployed to Rails 7.1
+# and you have no plans to rollback.
+# When you're ready to change format, add this to `config/application.rb` (NOT
+# this file):
+#   config.active_support.cache_format_version = 7.1
