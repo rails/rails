@@ -37,6 +37,11 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
     end
   end
 
+  test "application has convenience method for accessing credentials" do
+    app("production")
+    assert_equal(Rails.application.credentials, Rails.credentials)
+  end
+
   private
     def write_credentials_override(name, with_key: true)
       Dir.chdir(app_path) do

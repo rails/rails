@@ -51,6 +51,11 @@ module Rails
       application.config
     end
 
+    # Access to decrypted credentials hash
+    def credentials
+      application.credentials
+    end
+
     def backtrace_cleaner
       @backtrace_cleaner ||= Rails::BacktraceCleaner.new
     end

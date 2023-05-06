@@ -1,3 +1,11 @@
+*   Convenience method for direct access to Rails credentials
+
+    ```ruby
+    Rails.credentials
+    ```
+
+    *Matt Polito*
+
 *   `bin/rails app:template` now runs `bundle install` and any `after_bundle`
     blocks after the template is executed.
 
