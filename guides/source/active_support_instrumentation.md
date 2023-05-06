@@ -424,7 +424,16 @@ INFO. The adapters will add their own data as well.
 | `:key`             | Key used in the store                               |
 | `:store`           | Name of the store class                             |
 | `:hit`             | If this read is a hit                               |
-| `:super_operation` | `:fetch` is added when a read is used with `#fetch` |
+| `:super_operation` | `:fetch` is added when a read is done with `#fetch` |
+
+#### cache_read_multi.active_support
+
+| Key                | Value                                                           |
+| ------------------ | --------------------------------------------------------------- |
+| `:key`             | Keys used in the store                                          |
+| `:store`           | Name of the store class                                         |
+| `:hits`            | Keys of cache hits                                              |
+| `:super_operation` | `:fetch_multi` is added when a read is done with `#fetch_multi` |
 
 #### cache_generate.active_support
 
@@ -478,6 +487,13 @@ INFO. Cache stores may add their own keys
 }
 ```
 
+#### cache_write_multi.active_support
+
+| Key      | Value                                |
+| -------- | ------------------------------------ |
+| `:key`   | Keys and values written to the store |
+| `:store` | Name of the store class              |
+
 #### cache_delete.active_support
 
 | Key      | Value                   |
@@ -491,6 +507,13 @@ INFO. Cache stores may add their own keys
   store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
+
+#### cache_delete_multi.active_support
+
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Keys used in the store  |
+| `:store` | Name of the store class |
 
 #### cache_exist?.active_support
 
