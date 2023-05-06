@@ -534,4 +534,8 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  # Raised when, due to an error, it is unknown whether the current connection is in a transaction.
+  class TransactionStateUnknown < ActiveRecordError
+  end
 end

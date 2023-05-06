@@ -362,46 +362,13 @@ module ActiveRecord
         @has_unmaterialized_transactions = false
         @materializing_transactions = false
         @lazy_transactions_enabled = true
+        @lock_stack = []
       end
 
       def begin_transaction(isolation: nil, joinable: true, _lazy: true)
         @connection.lock.synchronize do
-          run_commit_callbacks = !current_transaction.joinable?
-          transaction =
-            if @stack.empty?
-              RealTransaction.new(
-                @connection,
-                isolation: isolation,
-                joinable: joinable,
-                run_commit_callbacks: run_commit_callbacks
-              )
-            elsif current_transaction.restartable?
-              RestartParentTransaction.new(
-                @connection,
-                current_transaction,
-                isolation: isolation,
-                joinable: joinable,
-                run_commit_callbacks: run_commit_callbacks
-              )
-            else
-              SavepointTransaction.new(
-                @connection,
-                "active_record_#{@stack.size}",
-                current_transaction,
-                isolation: isolation,
-                joinable: joinable,
-                run_commit_callbacks: run_commit_callbacks
-              )
-            end
-
-          unless transaction.materialized?
-            if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && _lazy
-              @has_unmaterialized_transactions = true
-            else
-              transaction.materialize!
-            end
-          end
-          @stack.push(transaction)
+          transaction = create_transaction(isolation, joinable)
+          materialize_transaction_if_required(transaction, _lazy)
           transaction
         end
       end
@@ -485,58 +452,53 @@ module ActiveRecord
       end
 
       def within_new_transaction(isolation: nil, joinable: true)
-        @connection.lock.synchronize do
-          transaction = begin_transaction(isolation: isolation, joinable: joinable)
+        with_locked_transaction(isolation, joinable) do |transaction|
+          materialize_transaction_if_required(transaction)
+          maybe_materialized = true
           ret = yield
           completed = true
           ret
         rescue Exception => error
-          if transaction
+          if maybe_materialized
             rollback_transaction
             after_failure_actions(transaction, error)
           end
 
           raise
         ensure
-          if transaction
-            if error
-              # @connection still holds an open or invalid transaction, so we must not
-              # put it back in the pool for reuse.
-              @connection.throw_away! unless transaction.state.rolledback?
+          unless error
+            if Thread.current.status == "aborting"
+              rollback_transaction
+            elsif !completed && transaction.written
+              # This was deprecated in 6.1, and has now changed to a rollback
+              rollback_transaction
+            elsif !completed && !transaction.written_indirectly
+              # This was a silent commit in 6.1, but now becomes a rollback; we skipped
+              # the warning because (having not been written) the change generally won't
+              # have any effect
+              rollback_transaction
             else
-              if Thread.current.status == "aborting"
-                rollback_transaction
-              elsif !completed && transaction.written
-                # This was deprecated in 6.1, and has now changed to a rollback
-                rollback_transaction
-              elsif !completed && !transaction.written_indirectly
-                # This was a silent commit in 6.1, but now becomes a rollback; we skipped
-                # the warning because (having not been written) the change generally won't
-                # have any effect
-                rollback_transaction
-              else
-                if !completed && transaction.written_indirectly
-                  # This is the case that was missed in the 6.1 deprecation, so we have to
-                  # do it now
-                  ActiveRecord.deprecator.warn(<<~EOW)
-                    Using `return`, `break` or `throw` to exit a transaction block is
-                    deprecated without replacement. If the `throw` came from
-                    `Timeout.timeout(duration)`, pass an exception class as a second
-                    argument so it doesn't use `throw` to abort its block. This results
-                    in the transaction being committed, but in the next release of Rails
-                    it will rollback.
-                  EOW
-                end
+              if !completed && transaction.written_indirectly
+                # This is the case that was missed in the 6.1 deprecation, so we have to
+                # do it now
+                ActiveRecord.deprecator.warn(<<~EOW)
+                  Using `return`, `break` or `throw` to exit a transaction block is
+                  deprecated without replacement. If the `throw` came from
+                  `Timeout.timeout(duration)`, pass an exception class as a second
+                  argument so it doesn't use `throw` to abort its block. This results
+                  in the transaction being committed, but in the next release of Rails
+                  it will rollback.
+                EOW
+              end
 
-                begin
-                  commit_transaction
-                rescue ActiveRecord::ConnectionFailed
-                  transaction.invalidate! unless transaction.state.completed?
-                  raise
-                rescue Exception
-                  rollback_transaction(transaction) unless transaction.state.completed?
-                  raise
-                end
+              begin
+                commit_transaction
+              rescue ActiveRecord::ConnectionFailed
+                transaction.invalidate! unless transaction.state.completed?
+                raise
+              rescue Exception
+                rollback_transaction(transaction) unless transaction.state.completed?
+                raise
               end
             end
           end
@@ -551,6 +513,14 @@ module ActiveRecord
         @stack.last || NULL_TRANSACTION
       end
 
+      # Raises if the current transaction state is unknown.
+      def check_transaction_state_known!
+        unless @lock_stack.all?(&:locked?)
+          @connection.throw_away!
+          raise ActiveRecord::TransactionStateUnknown
+        end
+      end
+
       private
         NULL_TRANSACTION = NullTransaction.new
 
@@ -559,6 +529,77 @@ module ActiveRecord
           return unless transaction.is_a?(RealTransaction)
           return unless error.is_a?(ActiveRecord::PreparedStatementCacheExpired)
           @connection.clear_cache!
+        end
+
+        def create_transaction(isolation, joinable)
+          run_commit_callbacks = !current_transaction.joinable?
+          if @stack.empty?
+            RealTransaction.new(
+              @connection,
+              isolation: isolation,
+              joinable: joinable,
+              run_commit_callbacks: run_commit_callbacks
+            )
+          elsif current_transaction.restartable?
+            RestartParentTransaction.new(
+              @connection,
+              current_transaction,
+              isolation: isolation,
+              joinable: joinable,
+              run_commit_callbacks: run_commit_callbacks
+            )
+          else
+            SavepointTransaction.new(
+              @connection,
+              "active_record_#{@stack.size}",
+              current_transaction,
+              isolation: isolation,
+              joinable: joinable,
+              run_commit_callbacks: run_commit_callbacks
+            )
+          end
+        end
+
+        def materialize_transaction_if_required(transaction, lazy = true)
+          unless transaction.materialized?
+            if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && lazy
+              @has_unmaterialized_transactions = true
+            else
+              transaction.materialize!
+            end
+          end
+          @stack.push(transaction)
+        end
+
+        # Yields a new, non-materialized transaction while holding a lock associated with the transaction.
+        def with_locked_transaction(isolation, joinable)
+          @connection.lock.synchronize do
+            check_transaction_state_known!
+            transaction = create_transaction(isolation, joinable)
+
+            lock = Mutex.new
+            lock.synchronize do
+              @lock_stack << lock
+              yield transaction
+            rescue => error
+              raise
+            ensure
+              if @lock_stack.index(lock)
+                unless @lock_stack.last.eql?(lock)
+                  @connection.throw_away!
+                  raise ActiveRecord::TransactionStateUnknown
+                end
+
+                if transaction.state.completed? || transaction.state.invalidated?
+                  @lock_stack.pop
+                else
+                  @connection.throw_away!
+                  @lock_stack.pop
+                  raise ActiveRecord::TransactionStateUnknown unless error
+                end
+              end
+            end
+          end
         end
     end
   end

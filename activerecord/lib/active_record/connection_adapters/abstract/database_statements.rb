@@ -128,6 +128,7 @@ module ActiveRecord
       # method may be manually memory managed. Consider using #exec_query
       # wrapper instead.
       def execute(sql, name = nil, allow_retry: false)
+        transaction_manager.check_transaction_state_known!
         internal_execute(sql, name, allow_retry: allow_retry)
       end
 
@@ -326,6 +327,7 @@ module ActiveRecord
       # isolation level.
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
+        transaction_manager.check_transaction_state_known!
         if !requires_new && current_transaction.joinable?
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
