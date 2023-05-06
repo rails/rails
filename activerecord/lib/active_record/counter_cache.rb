@@ -156,7 +156,7 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented or an array of ids.
-      # * <tt>:by</tt> - The amount by which to increment the value. Defaults to +1+.
+      # * <tt>:by</tt> - The amount by which to decrement the value. Defaults to +1+.
       # * <tt>:touch</tt> - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
