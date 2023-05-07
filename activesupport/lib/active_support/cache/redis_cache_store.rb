@@ -175,6 +175,8 @@ module ActiveSupport
       # Read multiple values at once. Returns a hash of requested keys ->
       # fetched values.
       def read_multi(*names)
+        return {} if names.empty?
+
         options = names.extract_options!
         instrument(:read_multi, names, options) do |payload|
           read_multi_entries(names, **options).tap do |results|

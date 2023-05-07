@@ -437,6 +437,8 @@ module ActiveSupport
       #
       # Returns a hash mapping the names provided to the values found.
       def read_multi(*names)
+        return {} if names.empty?
+
         options = names.extract_options!
         options = merged_options(options)
 
@@ -449,6 +451,8 @@ module ActiveSupport
 
       # Cache Storage API to write multiple values at once.
       def write_multi(hash, options = nil)
+        return hash if hash.empty?
+
         options = merged_options(options)
 
         instrument :write_multi, hash, options do |payload|
@@ -491,6 +495,7 @@ module ActiveSupport
       #   # => nil
       def fetch_multi(*names)
         raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+        return {} if names.empty?
 
         options = names.extract_options!
         options = merged_options(options)
