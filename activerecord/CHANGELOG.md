@@ -1,13 +1,13 @@
 *   Active Record query cache is now evicts least recently used entries
 
-    By default it only keeps the `50` most recently used queries.
+    By default it only keeps the `100` most recently used queries.
 
     The cache size can be configured via `database.yml`
 
     ```yaml
     development:
       adapter: mysql2
-      query_cache: 100
+      query_cache: 200
     ```
 
     It can also be entirely disabled:
