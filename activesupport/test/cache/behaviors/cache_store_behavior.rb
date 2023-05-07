@@ -258,6 +258,14 @@ module CacheStoreBehavior
     assert_equal(false, @cache.exist?(other_key))
   end
 
+  def test_fetch_multi_uses_write_multi_entries_store_provider_interface
+    assert_called(@cache, :write_multi_entries) do
+      @cache.fetch_multi "a", "b", "c" do |key|
+        key * 2
+      end
+    end
+  end
+
   # Use strings that are guaranteed to compress well, so we can easily tell if
   # the compression kicked in or not.
   SMALL_STRING = "0" * 100

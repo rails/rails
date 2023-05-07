@@ -1,14 +1,6 @@
 # frozen_string_literal: true
 
 module CacheInstrumentationBehavior
-  def test_fetch_multi_uses_write_multi_entries_store_provider_interface
-    assert_called(@cache, :write_multi_entries) do
-      @cache.fetch_multi "a", "b", "c" do |key|
-        key * 2
-      end
-    end
-  end
-
   def test_write_multi_instrumentation
     key_1 = SecureRandom.uuid
     key_2 = SecureRandom.uuid
