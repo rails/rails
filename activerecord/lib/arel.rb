@@ -40,7 +40,7 @@ module Arel
   # for more information.
   #
   # To construct a more complex query fragment, including the possible
-  # use of user-provided values, the +sql_string+ may contain +?+ and
+  # use of user-provided values, the +sql_string+ may contain <tt>?</tt> and
   # +:key+ placeholders, corresponding to the additional arguments. Note
   # that this behavior only applies when bind value parameters are
   # supplied in the call; without them, the placeholder tokens have no
