@@ -76,6 +76,10 @@ module ActiveRecord
         (configuration_hash[:max_threads] || pool).to_i
       end
 
+      def query_cache
+        configuration_hash[:query_cache]
+      end
+
       def max_queue
         max_threads * 4
       end

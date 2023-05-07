@@ -841,6 +841,35 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     end
   end
 
+  def test_query_cache_lru_eviction
+    connection = Post.connection
+    connection.pool.db_config.stub(:query_cache, 2) do
+      connection.send(:configure_query_cache!)
+      Post.cache do
+        assert_queries(2) do
+          connection.select_all("SELECT 1")
+          connection.select_all("SELECT 2")
+          connection.select_all("SELECT 1")
+        end
+
+        assert_queries(1) do
+          connection.select_all("SELECT 3")
+          connection.select_all("SELECT 3")
+        end
+
+        assert_no_queries do
+          connection.select_all("SELECT 1")
+        end
+
+        assert_queries(1) do
+          connection.select_all("SELECT 2")
+        end
+      end
+    end
+  ensure
+    connection.send(:configure_query_cache!)
+  end
+
   test "threads use the same connection" do
     @connection_1 = ActiveRecord::Base.connection.object_id
 
