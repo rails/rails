@@ -22,7 +22,7 @@ module ActiveSupport
   #
   #   module MyLibrary
   #     class Railtie < Rails::Railtie
-  #       initializer "deprecator" do |app|
+  #       initializer "my_library.deprecator" do |app|
   #         app.deprecators[:my_library] = MyLibrary.deprecator
   #       end
   #     end
