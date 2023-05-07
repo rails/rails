@@ -163,6 +163,13 @@ module CacheStoreBehavior
     end
   end
 
+  def test_write_multi
+    key = SecureRandom.uuid
+    @cache.write_multi("#{key}1" => 1, "#{key}2" => 2)
+    assert_equal 1, @cache.read("#{key}1")
+    assert_equal 2, @cache.read("#{key}2")
+  end
+
   def test_write_multi_empty_hash
     assert @cache.write_multi({})
   end
