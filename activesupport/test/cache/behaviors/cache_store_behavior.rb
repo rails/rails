@@ -519,6 +519,10 @@ module CacheStoreBehavior
     assert_not @cache.exist?(other_key)
   end
 
+  def test_delete_multi_empty_list
+    assert_equal(0, @cache.delete_multi([]))
+  end
+
   def test_original_store_objects_should_not_be_immutable
     bar = +"bar"
     key = SecureRandom.alphanumeric
