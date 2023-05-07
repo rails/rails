@@ -49,6 +49,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def render_body
+      request.body.rewind
       render plain: request.body.read
     end
 
