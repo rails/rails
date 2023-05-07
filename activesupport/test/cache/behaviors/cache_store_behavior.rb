@@ -147,6 +147,10 @@ module CacheStoreBehavior
     assert_equal({ key => "bar", other_key => "baz" }, @cache.read_multi(key, other_key))
   end
 
+  def test_read_multi_empty_list
+    assert_equal({}, @cache.read_multi())
+  end
+
   def test_read_multi_with_expires
     time = Time.now
     key = SecureRandom.uuid
@@ -157,6 +161,10 @@ module CacheStoreBehavior
     Time.stub(:now, time + 11) do
       assert_equal({ other_key => "baz" }, @cache.read_multi(other_key, SecureRandom.alphanumeric))
     end
+  end
+
+  def test_write_multi_empty_hash
+    assert @cache.write_multi({})
   end
 
   def test_fetch_multi
@@ -170,6 +178,10 @@ module CacheStoreBehavior
 
     assert_equal({ key => "bar", other_key => "biz", third_key => (third_key * 2) }, values)
     assert_equal((third_key * 2), @cache.read(third_key))
+  end
+
+  def test_fetch_multi_empty_hash
+    assert_equal({}, @cache.fetch_multi() { raise "Not called" })
   end
 
   def test_fetch_multi_without_expires_in
