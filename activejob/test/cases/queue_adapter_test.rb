@@ -48,7 +48,7 @@ class QueueAdapterTest < ActiveJob::TestCase
 
     child_job_three = Class.new(ActiveJob::Base)
 
-    assert_not_nil child_job_three.queue_adapter
+    assert_equal base_queue_adapter, child_job_three.queue_adapter, "child_job_three's queue adapter should remain unchanged"
   end
 
   test "should extract a reasonable name from a class instance" do
