@@ -2,6 +2,7 @@
 
 require "time"
 require "active_support/json"
+require_relative "serializer_with_fallback"
 
 module ActiveSupport
   module Messages # :nodoc:
@@ -9,9 +10,9 @@ module ActiveSupport
       singleton_class.attr_accessor :use_message_serializer_for_metadata
 
       ENVELOPE_SERIALIZERS = [
-        ::JSON,
+        *SerializerWithFallback::SERIALIZERS.values,
         ActiveSupport::JSON,
-        ActiveSupport::JsonWithMarshalFallback,
+        ::JSON,
         Marshal,
       ]
 

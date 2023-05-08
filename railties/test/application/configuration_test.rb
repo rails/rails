@@ -3710,109 +3710,30 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization is true by default" do
+    test "ActiveSupport::Messages::Codec.default_serializer is :json by default for new apps" do
       app "development"
 
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+      assert_equal :json, ActiveSupport::Messages::Codec.default_serializer
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization is true by default for upgraded apps" do
+    test "ActiveSupport::Messages::Codec.default_serializer is :marshal by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app "development"
 
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
+      assert_equal :marshal, ActiveSupport::Messages::Codec.default_serializer
     end
 
-    test "ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization can be configured via config.active_support.fallback_to_marshal_deserialization" do
+    test "ActiveSupport::Messages::Codec.default_serializer can be configured via config.active_support.message_serializer" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/fallback_to_marshal_deserialization.rb", <<-RUBY
-        Rails.application.config.active_support.fallback_to_marshal_deserialization = false
+      app_file "config/initializers/new_framework_defaults_7_1.rb", <<~RUBY
+        Rails.application.config.active_support.message_serializer = :json_allow_marshal
       RUBY
 
       app "development"
 
-      assert_equal false, ActiveSupport::JsonWithMarshalFallback.fallback_to_marshal_deserialization
-    end
-
-    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization is true by default" do
-      app "development"
-
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
-    end
-
-    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization is true by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal true, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
-    end
-
-    test "ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization can be configured via config.active_support.use_marshal_serialization" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/use_marshal_serialization.rb", <<-RUBY
-        Rails.application.config.active_support.use_marshal_serialization = false
-      RUBY
-
-      app "development"
-
-      assert_equal false, ActiveSupport::JsonWithMarshalFallback.use_marshal_serialization
-    end
-
-    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :json by default" do
-      app "development"
-
-      assert_equal :json, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    end
-
-    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer is :marshal by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "6.1"'
-
-      app "development"
-
-      assert_equal :marshal, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    end
-
-    test "ActiveSupport::MessageEncryptor.default_message_encryptor_serializer can be configured via config.active_support.default_message_encryptor_serializer" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/default_message_encryptor_serializer.rb", <<-RUBY
-        Rails.application.config.active_support.default_message_encryptor_serializer = :hybrid
-      RUBY
-
-      app "development"
-
-      assert_equal :hybrid, ActiveSupport::MessageEncryptor.default_message_encryptor_serializer
-    end
-
-    test "ActiveSupport::MessageVerifier.default_message_verifier_serializer is :json by default for new apps" do
-      app "development"
-
-      assert_equal :json, ActiveSupport::MessageVerifier.default_message_verifier_serializer
-    end
-
-    test "ActiveSupport::MessageVerifier.default_message_verifier_serializer is :marshal by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal :marshal, ActiveSupport::MessageVerifier.default_message_verifier_serializer
-    end
-
-    test "ActiveSupport::MessageVerifier.default_message_verifier_serializer can be configured via config.active_support.default_message_verifier_serializer" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/default_message_verifier_serializer.rb", <<-RUBY
-        Rails.application.config.active_support.default_message_verifier_serializer = :hybrid
-      RUBY
-
-      app "development"
-
-      assert_equal :hybrid, ActiveSupport::MessageVerifier.default_message_verifier_serializer
+      assert_equal :json_allow_marshal, ActiveSupport::Messages::Codec.default_serializer
     end
 
     test "ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata is true by default for new apps" do

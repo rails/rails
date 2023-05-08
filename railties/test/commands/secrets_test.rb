@@ -17,7 +17,7 @@ class Rails::Command::SecretsTest < ActiveSupport::TestCase
   test "edit secrets" do
     # Use expected default MessageEncryptor serializer for Rails < 7.1 to be compatible with hardcoded secrets.yml.enc
     add_to_config <<-RUBY
-      config.active_support.default_message_encryptor_serializer = :marshal
+      config.active_support.message_serializer = :marshal
     RUBY
 
     require "#{app_path}/config/environment"
