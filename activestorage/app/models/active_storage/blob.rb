@@ -31,8 +31,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
 
+  ##
+  # :method: attachments
+  #
+  # Returns the associated <tt>ActiveStorage::Attachment</tt>s.
   has_many :attachments
 
+  ##
+  # :singleton-method: unattached
+  #
+  # Returns the blobs that aren't attached to any record.
   scope :unattached, -> { where.missing(:attachments) }
 
   after_initialize do
