@@ -4,14 +4,23 @@ require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   class Template # :nodoc:
+    # SimpleType is mostly just a stub implementation for when Action View
+    # is used without Action Dispatch.
     class SimpleType # :nodoc:
-      SET = Struct.new(:symbols).new([ :html, :text, :js, :css, :xml, :json ])
+      @symbols = [ :html, :text, :js, :css, :xml, :json ]
+      class << self
+        attr_reader :symbols
 
-      def self.[](type)
-        if type.is_a?(self)
-          type
-        else
-          new(type)
+        def [](type)
+          if type.is_a?(self)
+            type
+          else
+            new(type)
+          end
+        end
+
+        def valid_symbols?(symbols) # :nodoc
+          symbols.all? { |s| @symbols.include?(s) }
         end
       end
 

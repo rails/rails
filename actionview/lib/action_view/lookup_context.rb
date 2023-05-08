@@ -63,9 +63,11 @@ module ActionView
       end
 
       def self.details_cache_key(details)
-        if details[:formats]
-          details = details.dup
-          details[:formats] &= Template::Types.symbols
+        if formats = details[:formats]
+          unless Template::Types.valid_symbols?(formats)
+            details = details.dup
+            details[:formats] &= Template::Types.symbols
+          end
         end
         @details_keys[details] ||= TemplateDetails::Requested.new(**details)
       end
@@ -262,7 +264,7 @@ module ActionView
         values.concat(default_formats) if values.delete "*/*"
         values.uniq!
 
-        unless values.all? { |v| Template::Types.symbols.include?(v) }
+        unless Template::Types.valid_symbols?(values)
           invalid_values = values - Template::Types.symbols
           raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
         end
