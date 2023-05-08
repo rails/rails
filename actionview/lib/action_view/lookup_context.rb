@@ -63,13 +63,15 @@ module ActionView
       end
 
       def self.details_cache_key(details)
-        if formats = details[:formats]
-          unless Template::Types.valid_symbols?(formats)
-            details = details.dup
-            details[:formats] &= Template::Types.symbols
+        @details_keys.fetch(details) do
+          if formats = details[:formats]
+            unless Template::Types.valid_symbols?(formats)
+              details = details.dup
+              details[:formats] &= Template::Types.symbols
+            end
           end
+          @details_keys[details] ||= TemplateDetails::Requested.new(**details)
         end
-        @details_keys[details] ||= TemplateDetails::Requested.new(**details)
       end
 
       def self.clear
