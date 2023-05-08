@@ -1,3 +1,7 @@
+*   Add `ActionDispatch::SystemTesting.rotate_screenshots` to automatically delete old failure screenshots.
+
+    *Vladimir Dementyev*
+
 *   Remove leading dot from domains on cookies set with `domain: :all`, to meet RFC6265 requirements
 
     *Gareth Adams*

@@ -2,6 +2,25 @@
 
 module ActionDispatch
   module SystemTesting
+    # Deletes screenshots older than the provided TTL (time to live) in seconds.
+    #
+    # This method is supposed to be called in the beginning of a test suite run and after
+    # test files and configuration have been loaded.
+    def self.rotate_screenshots(ttl:)
+      screenshots_dir = Capybara.save_path.presence || "tmp/screenshots"
+      return unless File.directory?(screenshots_dir)
+
+      drop_older = ttl.ago
+
+      Dir.each_child(screenshots_dir) do |path|
+        path = File.join(screenshots_dir, path)
+
+        next if File.ctime(path) > drop_older
+
+        File.delete(path)
+      end
+    end
+
     module TestHelpers
       # Screenshot helper for system testing.
       module ScreenshotHelper
@@ -79,16 +98,16 @@ module ActionDispatch
             Rails.root.join(screenshots_dir, image_name)
           end
 
-          def screenshots_dir
-            Capybara.save_path.presence || "tmp/screenshots"
-          end
-
           def absolute_image_path
             "#{absolute_path}.png"
           end
 
           def absolute_html_path
             "#{absolute_path}.html"
+          end
+
+          def screenshots_dir
+            Capybara.save_path.presence || "tmp/screenshots"
           end
 
           def save_html
