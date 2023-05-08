@@ -579,6 +579,8 @@ module ActiveSupport
       #
       # Options are passed to the underlying cache implementation.
       def delete_multi(names, options = nil)
+        return 0 if names.empty?
+
         options = merged_options(options)
         names.map! { |key| normalize_key(key, options) }
 
