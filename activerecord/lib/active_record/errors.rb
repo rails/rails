@@ -453,7 +453,7 @@ module ActiveRecord
   # * You are joining an existing open transaction
   # * You are creating a nested (savepoint) transaction
   #
-  # The mysql2 and postgresql adapters support setting the transaction isolation level.
+  # The mysql2, trilogy, and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
   end
 

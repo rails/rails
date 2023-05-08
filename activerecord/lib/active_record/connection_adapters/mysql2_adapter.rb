@@ -44,7 +44,22 @@ module ActiveRecord
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
         end
+
+        private
+          def initialize_type_map(m)
+            super
+
+            m.register_type(%r(char)i) do |sql_type|
+              limit = extract_limit(sql_type)
+              Type.lookup(:string, adapter: :mysql2, limit: limit)
+            end
+
+            m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
+            m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
+          end
       end
+
+      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
 
       def initialize(...)
         super
@@ -134,6 +149,10 @@ module ActiveRecord
       end
 
       private
+        def text_type?(type)
+          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        end
+
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
         end
@@ -178,7 +197,18 @@ module ActiveRecord
           MSG
           false
         end
+
+        ActiveRecord::Type.register(:immutable_string, adapter: :mysql2) do |_, **args|
+          Type::ImmutableString.new(true: "1", false: "0", **args)
+        end
+
+        ActiveRecord::Type.register(:string, adapter: :mysql2) do |_, **args|
+          Type::String.new(true: "1", false: "0", **args)
+        end
+
+        ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
+
     ActiveSupport.run_load_hooks(:active_record_mysql2adapter, Mysql2Adapter)
   end
 end

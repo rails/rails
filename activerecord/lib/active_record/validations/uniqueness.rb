@@ -280,6 +280,7 @@ module ActiveRecord
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
       # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
+      # * ActiveRecord::ConnectionAdapters::TrilogyAdapter.
       # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
       # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.
       def validates_uniqueness_of(*attr_names)

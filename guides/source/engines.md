@@ -1497,6 +1497,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
 | `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
 | `ActiveRecord::ConnectionAdapters::Mysql2Adapter`        | `active_record_mysql2adapter`        |
+| `ActiveRecord::ConnectionAdapters::TrilogyAdapter`       | `active_record_trilogyadapter`       |
 | `ActiveRecord::ConnectionAdapters::SQLite3Adapter`       | `active_record_sqlite3adapter`       |
 | `ActiveStorage::Attachment`          | `active_storage_attachment`          |
 | `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
