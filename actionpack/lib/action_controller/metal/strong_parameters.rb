@@ -1162,6 +1162,8 @@ module ActionController
             case element
             when ->(e) { permitted_scalar?(e) }
               sanitized << element
+            when Array
+              sanitized << permit_any_in_array(element)
             when Parameters
               sanitized << permit_any_in_parameters(element)
             else
