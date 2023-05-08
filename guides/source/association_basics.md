@@ -5,18 +5,22 @@ Active Record Associations
 
 This guide covers the association features of Active Record.
 
-After reading this guide, you will know:
+After reading this guide, you will know how to:
 
-* How to declare associations between Active Record models.
-* How to understand the various types of Active Record associations.
-* How to use the methods added to your models by creating associations.
+* Declare associations between Active Record models.
+* Understand the various types of Active Record associations.
+* Use the methods added to your models by creating associations.
 
 --------------------------------------------------------------------------------
 
 Why Associations?
 -----------------
 
-In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books. Without associations, the model declarations would look like this:
+In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code.
+
+For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books.
+
+Without associations, the model declarations would look like this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -71,7 +75,9 @@ To learn more about the different types of associations, read the next section o
 The Types of Associations
 -------------------------
 
-Rails supports six types of associations:
+Rails supports six types of associations, each with a particular use-case in mind.
+
+Here is a list of all of the supported types with a link to their API docs for more detailed information on how to use them, their method parameters, etc.
 
 * [`belongs_to`][]
 * [`has_one`][]
@@ -123,7 +129,7 @@ end
 ```
 
 When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
-To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model.
+To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model, in this case the Author model.
 
 `belongs_to` does not ensure reference consistency if `optional` is set to true, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
 
@@ -559,6 +565,10 @@ class CreateEmployees < ActiveRecord::Migration[7.1]
 end
 ```
 
+NOTE: The `to_table` option passed to `foreign_key` and more are explained in [`SchemaStatements#add_reference`][connection.add_reference].
+
+[connection.add_reference]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference
+
 Tips, Tricks, and Warnings
 --------------------------
 
@@ -640,7 +650,9 @@ class AddAuthorToBooks < ActiveRecord::Migration[7.1]
 end
 ```
 
-NOTE: If you wish to [enforce referential integrity at the database level](/active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’ column declarations above.
+NOTE: If you wish to [enforce referential integrity at the database level][foreign_keys], add the `foreign_key: true` option to the ‘reference’ column declarations above.
+
+[foreign_keys]: active_record_migrations.html#foreign-keys
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
@@ -678,7 +690,7 @@ end
 
 We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
 
-You can also use the method `create_join_table`
+For simplicity, you can also use the method `create_join_table`:
 
 ```ruby
 class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[7.1]
@@ -765,7 +777,7 @@ Active Record will attempt to automatically identify that these two models share
 a bi-directional association based on the association name. This information
 allows Active Record to:
 
-* Prevent needless queries for already-loaded data
+* Prevent needless queries for already-loaded data:
 
     ```irb
     irb> author = Author.first
@@ -776,7 +788,7 @@ allows Active Record to:
     ```
 
 * Prevent inconsistent data (since there is only one copy of the `Author` object
-  loaded)
+  loaded):
 
     ```irb
     irb> author = Author.first
@@ -788,7 +800,7 @@ allows Active Record to:
     => true
     ```
 
-* Autosave associations in more cases
+* Autosave associations in more cases:
 
     ```irb
     irb> author = Author.new
@@ -802,7 +814,7 @@ allows Active Record to:
 
 * Validate the [presence](active_record_validations.html#presence) and
   [absence](active_record_validations.html#absence) of associations in more
-  cases
+  cases:
 
     ```irb
     irb> book = Book.new
@@ -816,13 +828,9 @@ allows Active Record to:
     => true
     ```
 
-Active Record supports automatic identification for most associations with
-standard names. However, Active Record will not automatically identify
-bi-directional associations that contain the `:through` or `:foreign_key`
-options. Custom scopes on the opposite association also prevent automatic
-identification, as do custom scopes on the association itself unless
-[`config.active_record.automatic_scope_inversing`][] is set to true (the default for
-new applications).
+Active Record supports automatic identification for most associations with standard names. However, bi-directional associations that contain the `:through` or `:foreign_key` options will not be automatically identified.
+
+Custom scopes on the opposite association also prevent automatic identification, as do custom scopes on the association itself unless [`config.active_record.automatic_scope_inversing`][] is set to true (the default for new applications).
 
 For example, consider the following model declarations:
 
@@ -839,7 +847,7 @@ end
 Because of the `:foreign_key` option, Active Record will no longer automatically
 recognize the bi-directional association. This can cause your application to:
 
-* Execute needless queries for the same data (in this example causing N+1 queries)
+* Execute needless queries for the same data (in this example causing N+1 queries):
 
     ```irb
     irb> author = Author.first
@@ -849,7 +857,7 @@ recognize the bi-directional association. This can cause your application to:
     => false
     ```
 
-* Reference multiple copies of a model with inconsistent data
+* Reference multiple copies of a model with inconsistent data:
 
     ```irb
     irb> author = Author.first
@@ -861,7 +869,7 @@ recognize the bi-directional association. This can cause your application to:
     => false
     ```
 
-* Fail to autosave associations
+* Fail to autosave associations:
 
     ```irb
     irb> author = Author.new
@@ -873,7 +881,7 @@ recognize the bi-directional association. This can cause your application to:
     => false
     ```
 
-* Fail to validate presence or absence
+* Fail to validate presence or absence:
 
     ```irb
     irb> author = Author.new
