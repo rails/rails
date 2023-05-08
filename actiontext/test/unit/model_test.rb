@@ -3,6 +3,8 @@
 require "test_helper"
 
 class ActionText::ModelTest < ActiveSupport::TestCase
+  include QueryHelpers
+
   test "html conversion" do
     message = Message.new(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal %Q(<div class="trix-content">\n  <h1>Hello world</h1>\n</div>\n), "#{message.content}"
