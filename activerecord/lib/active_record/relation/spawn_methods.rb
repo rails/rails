@@ -29,7 +29,7 @@ module ActiveRecord
     # This is mainly intended for sharing common conditions between multiple associations.
     #
     # For conditions that exist in both relations, those from <tt>other</tt> will take precedence.
-    # To find the intersection of two relations, use <tt>and</tt>.
+    # To find the intersection of two relations, use QueryMethods#and.
     def merge(other, *rest)
       if other.is_a?(Array)
         records & other
