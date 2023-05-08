@@ -46,10 +46,17 @@ module ActiveSupport
           options[:strip_insignificant_zeros]
         end
 
+        def trim_empty_fractional
+          options[:trim_empty_fractional]
+        end
+
         def format_number(number)
+          escaped_separator = Regexp.escape(options[:separator])
+
           if strip_insignificant_zeros
-            escaped_separator = Regexp.escape(options[:separator])
             number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, "")
+          elsif trim_empty_fractional && number.match?(/(#{escaped_separator})(0+\z)/)
+            number.split(options[:separator])[0]
           else
             number
           end
