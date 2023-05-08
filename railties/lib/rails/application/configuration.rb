@@ -303,7 +303,7 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.cache_format_version = 7.1
-            active_support.message_serializer = :json
+            active_support.message_serializer = :json_allow_marshal
             active_support.use_message_serializer_for_metadata = true
             active_support.raise_on_invalid_cache_expiration_time = true
           end

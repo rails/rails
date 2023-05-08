@@ -756,18 +756,20 @@
 *   Change the default serializer of `ActiveSupport::MessageVerifier` from
     `Marshal` to `ActiveSupport::JSON` when using `config.load_defaults 7.1`.
 
-    Existing apps can use the `:json_allow_marshal` serializer to migrate. See
+    Messages serialized with `Marshal` can still be read, but new messages will
+    be serialized with `ActiveSupport::JSON`. For more information, see
     https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer.
 
-    *Saba Kiaei* and *David Buckley*
+    *Saba Kiaei*, *David Buckley*, and *Jonathan Hefner*
 
 *   Change the default serializer of `ActiveSupport::MessageEncryptor` from
     `Marshal` to `ActiveSupport::JSON` when using `config.load_defaults 7.1`.
 
-    Existing apps can use the `:json_allow_marshal` serializer to migrate. See
+    Messages serialized with `Marshal` can still be read, but new messages will
+    be serialized with `ActiveSupport::JSON`. For more information, see
     https://guides.rubyonrails.org/v7.1/configuring.html#config-active-support-message-serializer.
 
-    *Zack Deveau* and *Martin Gingras*
+    *Zack Deveau*, *Martin Gingras*, and *Jonathan Hefner*
 
 *   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
 
