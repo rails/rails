@@ -442,7 +442,7 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument :read_multi, names, options do |payload|
+        instrument_multi :read_multi, names, options do |payload|
           read_multi_entries(names, **options, event: payload).tap do |results|
             payload[:hits] = results.keys
           end
@@ -455,7 +455,7 @@ module ActiveSupport
 
         options = merged_options(options)
 
-        instrument :write_multi, hash, options do |payload|
+        instrument_multi :write_multi, hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
             memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
           end
@@ -500,7 +500,7 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        instrument :read_multi, names, options do |payload|
+        instrument_multi :read_multi, names, options do |payload|
           if options[:force]
             reads = {}
           else
@@ -584,7 +584,7 @@ module ActiveSupport
         options = merged_options(options)
         names.map! { |key| normalize_key(key, options) }
 
-        instrument :delete_multi, names do
+        instrument_multi :delete_multi, names do
           delete_multi_entries(names, **options)
         end
       end
@@ -870,14 +870,33 @@ module ActiveSupport
           end
         end
 
-        def instrument(operation, key, options = nil)
+        def instrument(operation, key, options = nil, &block)
+          _instrument(operation, key: key, options: options, &block)
+        end
+
+        def instrument_multi(operation, keys, options = nil, &block)
+          _instrument(operation, multi: true, key: keys, options: options, &block)
+        end
+
+        def _instrument(operation, multi: false, options: nil, **payload, &block)
           if logger && logger.debug? && !silence?
-            logger.debug "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}"
+            debug_key =
+              if multi
+                ": #{payload[:key].size} key(s) specified"
+              elsif payload[:key]
+                ": #{normalize_key(payload[:key], options)}"
+              end
+
+            debug_options = " (#{options.inspect})" unless options.blank?
+
+            logger.debug "Cache #{operation}#{debug_key}#{debug_options}"
           end
 
-          payload = { key: key, store: self.class.name }
+          payload[:store] = self.class.name
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) { yield(payload) }
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
+            block&.call(payload)
+          end
         end
 
         def handle_expired_entry(entry, key, options)
@@ -897,7 +916,7 @@ module ActiveSupport
         end
 
         def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options) { }
+          instrument(:fetch_hit, name, options)
           entry.value
         end
 

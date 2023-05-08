@@ -19,6 +19,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+  include CacheLoggingBehavior
 
   def test_large_string_with_default_compression_settings
     assert_uncompressed(LARGE_STRING)
@@ -43,6 +44,19 @@ class MemoryStoreTest < ActiveSupport::TestCase
     Time.stub(:now, Time.now + 1.minute) do
       assert_nil @cache.read("counter", raw: true)
     end
+  end
+
+  def test_cleanup_instrumentation
+    size = 3
+    size.times { |i| @cache.write(i.to_s, i) }
+
+    events = with_instrumentation "cleanup" do
+      @cache.cleanup
+    end
+
+    assert_equal %w[cache_cleanup.active_support], events.map(&:name)
+    assert_equal size, events[0].payload[:size]
+    assert_equal @cache.class.name, events[0].payload[:store]
   end
 end
 
