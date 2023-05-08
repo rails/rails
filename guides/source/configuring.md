@@ -1652,7 +1652,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_dispatch.cookies_serializer`
 
-Specifies which serializer to use for cookies. For more information, see [Action Controller Cookies](action_controller_overview.html#cookies).
+Specifies which serializer to use for cookies. Accepts the same values as
+[`config.active_support.message_serializer`](#config-active-support-message-serializer),
+plus `:hybrid` which is an alias for `:json_allow_marshal`.
 
 The default value depends on the `config.load_defaults` target version:
 
