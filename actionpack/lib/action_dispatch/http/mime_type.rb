@@ -11,6 +11,7 @@ module Mime
     def initialize
       @mimes = []
       @symbols = []
+      @symbols_set = Set.new
     end
 
     def each(&block)
@@ -19,16 +20,24 @@ module Mime
 
     def <<(type)
       @mimes << type
-      @symbols << type.to_sym
+      sym_type = type.to_sym
+      @symbols << sym_type
+      @symbols_set << sym_type
     end
 
     def delete_if
       @mimes.delete_if do |x|
         if yield x
-          @symbols.delete(x.to_sym)
+          sym_type = x.to_sym
+          @symbols.delete(sym_type)
+          @symbols_set.delete(sym_type)
           true
         end
       end
+    end
+
+    def valid_symbols?(symbols) # :nodoc
+      symbols.all? { |s| @symbols_set.include?(s) }
     end
   end
 
@@ -40,6 +49,14 @@ module Mime
     def [](type)
       return type if type.is_a?(Type)
       Type.lookup_by_extension(type)
+    end
+
+    def symbols
+      SET.symbols
+    end
+
+    def valid_symbols?(symbols) # :nodoc:
+      SET.valid_symbols?(symbols)
     end
 
     def fetch(type, &block)

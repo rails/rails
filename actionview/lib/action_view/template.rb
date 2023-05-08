@@ -109,6 +109,7 @@ module ActionView
       autoload :Handlers
       autoload :HTML
       autoload :Inline
+      autoload :Types
       autoload :Sources
       autoload :Text
       autoload :Types
@@ -118,6 +119,17 @@ module ActionView
 
     singleton_class.attr_accessor :frozen_string_literal
     @frozen_string_literal = false
+
+    class << self # :nodoc:
+      def mime_types_implementation=(implementation)
+        # This method isn't thread-safe, but it's not supposed
+        # to be called after initialization
+        if self::Types != implementation
+          remove_const(:Types)
+          const_set(:Types, implementation)
+        end
+      end
+    end
 
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :virtual_path
