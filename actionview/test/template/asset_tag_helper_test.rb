@@ -4,7 +4,7 @@ require "abstract_unit"
 require "active_support/ordered_options"
 
 require "action_dispatch"
-ActionView::Template::Types.delegate_to Mime
+ActionView::Template.mime_types_implementation = Mime
 
 module AssetTagHelperTestHelpers
   def with_preload_links_header(new_preload_links_header = true)

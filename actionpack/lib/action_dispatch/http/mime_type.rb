@@ -42,6 +42,10 @@ module Mime
       Type.lookup_by_extension(type)
     end
 
+    def symbols
+      SET.symbols
+    end
+
     def fetch(type, &block)
       return type if type.is_a?(Type)
       EXTENSION_LOOKUP.fetch(type.to_s, &block)
