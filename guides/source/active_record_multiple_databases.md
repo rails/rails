@@ -579,14 +579,14 @@ SELECT "yards".* FROM "yards" WHERE "yards"."home_id" = ? [["home_id", 1]]
 
 There are some important things to be aware of with this option:
 
-1) There may be performance implications since now two or more queries will be performed (depending
-on the association) rather than a join. If the select for `humans` returned a high number of IDs
-the select for `treats` may send too many IDs.
-2) Since we are no longer performing joins, a query with an order or limit is now sorted in-memory since
-order from one table cannot be applied to another table.
-3) This setting must be added to all associations where you want joining to be disabled.
-Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
-Rails already needs to know what SQL should be generated.
+1. There may be performance implications since now two or more queries will be performed (depending
+   on the association) rather than a join. If the select for `humans` returned a high number of IDs
+   the select for `treats` may send too many IDs.
+2. Since we are no longer performing joins, a query with an order or limit is now sorted in-memory since
+   order from one table cannot be applied to another table.
+3. This setting must be added to all associations where you want joining to be disabled.
+   Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
+   Rails already needs to know what SQL should be generated.
 
 ### Schema Caching
 
