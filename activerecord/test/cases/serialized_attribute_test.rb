@@ -180,6 +180,15 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_not_empty ClassifiedTopic.where(important: Symbol)
   end
 
+  def test_serialized_class_does_not_become_frozen
+    ActiveRecord.yaml_column_permitted_classes += [Class]
+
+    assert_not_predicate Symbol, :frozen?
+    ClassifiedTopic.create(important: Symbol)
+    assert_not_empty ClassifiedTopic.where(important: Symbol)
+    assert_not_predicate Symbol, :frozen?
+  end
+
   def test_nil_serialized_attribute_without_class_constraint
     topic = Topic.new
     assert_nil topic.content
