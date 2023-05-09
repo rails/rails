@@ -376,6 +376,27 @@ module ApplicationTests
       assert_nil ActiveRecord::Scoping::ScopeRegistry.current_scope(Post)
     end
 
+    test "filters for Active Record encrypted attributes are added to config.filter_parameters only once" do
+      rails %w(generate model post title:string)
+      rails %w(db:migrate)
+
+      app_file "app/models/post.rb", <<~RUBY
+        class Post < ActiveRecord::Base
+          encrypts :title
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert Post
+      filter_parameters = Rails.application.config.filter_parameters.dup
+
+      reload
+
+      assert Post
+      assert_equal filter_parameters, Rails.application.config.filter_parameters
+    end
+
     test "ActiveRecord::MessagePack extensions are installed when using ActiveSupport::MessagePack::CacheSerializer" do
       rails %w(generate model post title:string)
       rails %w(db:migrate)
