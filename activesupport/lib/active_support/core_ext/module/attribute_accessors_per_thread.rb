@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/deep_dup"
+
 # == Attribute Accessors per Thread
 #
 # Extends the module object with class/module and instance accessors for
@@ -52,8 +54,7 @@ class Module
           end
         EOS
       else
-        default = default.dup.freeze unless default.frozen?
-        singleton_class.define_method("#{sym}_default_value") { default }
+        singleton_class.define_method("#{sym}_default_value") { default.isolated_copy }
 
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def self.#{sym}

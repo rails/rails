@@ -15,6 +15,10 @@ class Object
   def deep_dup
     duplicable? ? dup : self
   end
+
+  def isolated_copy # :nodoc:
+    frozen? ? self : deep_dup
+  end
 end
 
 class Array
