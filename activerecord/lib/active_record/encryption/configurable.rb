@@ -50,10 +50,21 @@ module ActiveRecord
 
         def install_auto_filtered_parameters_hook(application) # :nodoc:
           ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, encrypted_attribute_name|
-            filter_parameter = [("#{klass.model_name.element}" if klass.name), encrypted_attribute_name.to_s].compact.join(".")
-            unless excluded_from_filter_parameters?(filter_parameter)
-              application.config.filter_parameters << filter_parameter
-              klass.filter_attributes += [encrypted_attribute_name]
+            filter_parameters =
+              if klass.name
+                element = klass.model_name.element
+                [element, "#{element.singularize}_attributes", "#{element.pluralize}_attributes"].map do |parent_key|
+                  "#{parent_key}.#{encrypted_attribute_name}"
+                end
+              else
+                [encrypted_attribute_name.to_s]
+              end
+
+            filter_parameters.each do |filter_parameter|
+              unless excluded_from_filter_parameters?(filter_parameter)
+                application.config.filter_parameters << filter_parameter
+                klass.filter_attributes |= [encrypted_attribute_name]
+              end
             end
           end
         end

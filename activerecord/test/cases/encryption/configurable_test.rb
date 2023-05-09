@@ -51,6 +51,8 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
     NamedPirate.encrypts :catchphrase
 
     assert_includes application.config.filter_parameters, "named_pirate.catchphrase"
+    assert_includes application.config.filter_parameters, "named_pirate_attributes.catchphrase"
+    assert_includes application.config.filter_parameters, "named_pirates_attributes.catchphrase"
   end
 
   test "installing autofiltered parameters will work with unnamed classes" do
@@ -63,6 +65,15 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
     end
 
     assert_includes application.config.filter_parameters, "catchphrase"
+  end
+
+  test "installing autofiltered parameters will work with child classes" do
+    application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
+    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
+
+    assert_not defined?(ChildEncryptedPirate), "Other test required models/child_encrypted_pirate.rb file?"
+    require "models/child_encrypted_pirate"
+    assert_includes application.config.filter_parameters, "child_encrypted_pirate.catchphrase"
   end
 
   test "exclude the installation of autofiltered params" do

@@ -14,6 +14,13 @@ module ActiveRecord
       end
 
       class_methods do
+        def inherited(subclass)
+          super
+          encrypted_attributes&.each do |name|
+            ActiveRecord::Encryption.encrypted_attribute_was_declared(subclass, name)
+          end
+        end
+
         # Encrypts the +name+ attribute.
         #
         # === Options
