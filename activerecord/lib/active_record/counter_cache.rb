@@ -87,28 +87,28 @@ module ActiveRecord
       #
       # ==== Examples
       #
-      #   # For the Post with id of 5, decrement the comment_count by 1, and
-      #   # increment the action_count by 1
-      #   Post.update_counters 5, comment_count: -1, action_count: 1
+      #   # For the Post with id of 5, decrement the comments_count by 1, and
+      #   # increment the actions_count by 1
+      #   Post.update_counters 5, comments_count: -1, actions_count: 1
       #   # Executes the following SQL:
       #   # UPDATE posts
-      #   #    SET comment_count = COALESCE(comment_count, 0) - 1,
-      #   #        action_count = COALESCE(action_count, 0) + 1
+      #   #    SET comments_count = COALESCE(comments_count, 0) - 1,
+      #   #        actions_count = COALESCE(actions_count, 0) + 1
       #   #  WHERE id = 5
       #
-      #   # For the Posts with id of 10 and 15, increment the comment_count by 1
-      #   Post.update_counters [10, 15], comment_count: 1
+      #   # For the Posts with id of 10 and 15, increment the comments_count by 1
+      #   Post.update_counters [10, 15], comments_count: 1
       #   # Executes the following SQL:
       #   # UPDATE posts
-      #   #    SET comment_count = COALESCE(comment_count, 0) + 1
+      #   #    SET comments_count = COALESCE(comments_count, 0) + 1
       #   #  WHERE id IN (10, 15)
       #
-      #   # For the Posts with id of 10 and 15, increment the comment_count by 1
+      #   # For the Posts with id of 10 and 15, increment the comments_count by 1
       #   # and update the updated_at value for each counter.
-      #   Post.update_counters [10, 15], comment_count: 1, touch: true
+      #   Post.update_counters [10, 15], comments_count: 1, touch: true
       #   # Executes the following SQL:
       #   # UPDATE posts
-      #   #    SET comment_count = COALESCE(comment_count, 0) + 1,
+      #   #    SET comments_count = COALESCE(comments_count, 0) + 1,
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
