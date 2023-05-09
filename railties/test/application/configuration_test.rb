@@ -557,6 +557,21 @@ module ApplicationTests
       assert_equal filters, Rails.application.env_config["action_dispatch.parameter_filter"]
     end
 
+    test "filter_parameters reflects changes to config.filter_parameters after being precompiled" do
+      add_to_config <<~RUBY
+        config.filter_parameters += [/foo/, :bar]
+        config.precompile_filter_parameters = true
+      RUBY
+
+      app "development"
+
+      assert_not_empty Rails.application.env_config["action_dispatch.parameter_filter"]
+
+      Rails.application.config.filter_parameters << "baz.qux"
+
+      assert_includes Rails.application.env_config["action_dispatch.parameter_filter"], "baz.qux"
+    end
+
     test "config.precompile_filter_parameters is true by default for new apps" do
       app "development"
 
