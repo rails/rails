@@ -20,7 +20,16 @@ require "active_support/core_ext/module/delegation"
 class ActiveStorage::Attachment < ActiveStorage::Record
   self.table_name = "active_storage_attachments"
 
+  ##
+  # :method: record
+  #
+  # Returns the associated record.
   belongs_to :record, polymorphic: true, touch: true
+
+  ##
+  # :method: blob
+  #
+  # Returns the associated <tt>ActiveStorage::Blob</tt>.
   belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
 
   delegate_missing_to :blob
@@ -29,6 +38,12 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   after_create_commit :mirror_blob_later, :analyze_blob_later
   after_destroy_commit :purge_dependent_blob_later
 
+  ##
+  # :singleton-method: with_all_variant_records
+  #
+  # Eager load all variant records on an attachment at once.
+  #
+  #   User.first.avatars.with_all_variant_records
   scope :with_all_variant_records, -> { includes(blob: { variant_records: { image_attachment: :blob } }) }
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
