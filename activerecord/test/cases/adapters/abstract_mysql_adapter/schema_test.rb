@@ -106,7 +106,7 @@ module ActiveRecord
   end
 end
 
-class Mysql2AnsiQuotesTest < ActiveRecord::Mysql2TestCase
+class MysqlAnsiQuotesTest < ActiveRecord::AbstractMysqlTestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.execute("SET SESSION sql_mode='ANSI_QUOTES'")

@@ -322,7 +322,7 @@ module ActiveRecord
       # * You are joining an existing open transaction
       # * You are creating a nested (savepoint) transaction
       #
-      # The mysql2 and postgresql adapters support setting the transaction
+      # The mysql2, trilogy, and postgresql adapters support setting the transaction
       # isolation level.
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)

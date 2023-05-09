@@ -656,11 +656,6 @@ module ActiveRecord
           def initialize_type_map(m)
             super
 
-            m.register_type(%r(char)i) do |sql_type|
-              limit = extract_limit(sql_type)
-              Type.lookup(:string, adapter: :mysql2, limit: limit)
-            end
-
             m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
             m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
             m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
@@ -680,9 +675,6 @@ module ActiveRecord
 
             m.alias_type %r(year)i, "integer"
             m.alias_type %r(bit)i,  "binary"
-
-            m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
-            m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
           end
 
           def register_integer_type(mapping, key, **options)
@@ -704,7 +696,6 @@ module ActiveRecord
           end
       end
 
-      TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
@@ -713,10 +704,6 @@ module ActiveRecord
           expression = expression.gsub(/\\n|\\\\/, "")
           expression = expression.gsub(/\s{2,}/, " ")
           expression
-        end
-
-        def text_type?(type)
-          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
         end
 
         def extended_type_map_key
@@ -975,14 +962,6 @@ module ActiveRecord
         def version_string(full_version_string)
           full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
-
-        ActiveRecord::Type.register(:immutable_string, adapter: :mysql2) do |_, **args|
-          Type::ImmutableString.new(true: "1", false: "0", **args)
-        end
-        ActiveRecord::Type.register(:string, adapter: :mysql2) do |_, **args|
-          Type::String.new(true: "1", false: "0", **args)
-        end
-        ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end
 end
