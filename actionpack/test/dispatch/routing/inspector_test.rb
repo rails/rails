@@ -420,19 +420,6 @@ module ActionDispatch
                       "       GET  /:controller(/:action) :controller#:action"], output
       end
 
-      def test_inspect_routes_shows_resources_route_when_assets_disabled
-        @set = ActionDispatch::Routing::RouteSet.new
-
-        output = draw do
-          get "/cart", to: "cart#show"
-        end
-
-        assert_equal [
-          "Prefix Verb URI Pattern     Controller#Action",
-          "  cart GET  /cart(.:format) cart#show"
-        ], output
-      end
-
       def test_routes_with_undefined_filter
         output = draw(controller: "Rails::MissingController") do
           get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
