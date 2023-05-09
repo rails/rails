@@ -47,7 +47,6 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
   end
 
   private
-
   def write_credentials_override(name, with_key: true)
     Dir.chdir(app_path) do
       Dir.mkdir "config/credentials"
