@@ -12,7 +12,7 @@ module ActiveRecord
           result
         end
 
-        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
+        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
           mark_transaction_written_if_write(sql)
