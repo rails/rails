@@ -28,7 +28,7 @@ You are even able to [create your own events](#creating-custom-events) inside yo
 Subscribing to an Event
 -----------------------
 
-Subscribing to an event is easy. Use `ActiveSupport::Notifications.subscribe` with a block to
+Subscribing to an event is easy. Use [`ActiveSupport::Notifications.subscribe`][] with a block to
 listen to any notification.
 
 The block receives the following arguments:
@@ -46,7 +46,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |na
 end
 ```
 
-If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time then use `ActiveSupport::Notifications.monotonic_subscribe`. The given block would receive the same arguments as above but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
+If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time then use [`ActiveSupport::Notifications.monotonic_subscribe`][]. The given block would receive the same arguments as above but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
 
 ```ruby
 ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
@@ -55,7 +55,7 @@ ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controll
 end
 ```
 
-Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
+Defining all those block arguments each time can be tedious. You can easily create an [`ActiveSupport::Notifications::Event`][]
 from block arguments like this:
 
 ```ruby
@@ -99,6 +99,10 @@ ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
   # inspect all ActionController events
 end
 ```
+
+[`ActiveSupport::Notifications::Event`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications/Event.html
+[`ActiveSupport::Notifications.monotonic_subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe
+[`ActiveSupport::Notifications.subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe
 
 
 Rails framework hooks
@@ -191,8 +195,8 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
-| `:request`      | The `ActionDispatch::Request`                             |
-| `:response`     | The `ActionDispatch::Response`                            |
+| `:request`      | The [`ActionDispatch::Request`][]                         |
+| `:response`     | The [`ActionDispatch::Response`][]                        |
 | `:status`       | HTTP status code                                          |
 | `:view_runtime` | Amount spent in view in ms                                |
 | `:db_runtime`   | Amount spent executing database queries in ms             |
@@ -228,11 +232,11 @@ INFO. Additional keys may be added by the caller.
 
 #### `redirect_to.action_controller`
 
-| Key         | Value                         |
-| ----------- | ----------------------------- |
-| `:status`   | HTTP response code            |
-| `:location` | URL to redirect to            |
-| `:request`  | The `ActionDispatch::Request` |
+| Key         | Value                             |
+| ----------- | --------------------------------- |
+| `:status`   | HTTP response code                |
+| `:location` | URL to redirect to                |
+| `:request`  | The [`ActionDispatch::Request`][] |
 
 ```ruby
 {
@@ -328,6 +332,9 @@ INFO. Additional keys may be added by the caller.
 }
 ```
 
+[`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
+[`ActionDispatch::Response`]: https://api.rubyonrails.org/classes/ActionDispatch/Response.html
+
 ### Active Record
 
 #### `sql.active_record`
@@ -419,25 +426,25 @@ INFO. The adapters will add their own data as well.
 
 #### `cache_read.active_support`
 
-| Key                | Value                                               |
-| ------------------ | --------------------------------------------------- |
-| `:key`             | Key used in the store                               |
-| `:store`           | Name of the store class                             |
-| `:hit`             | If this read is a hit                               |
-| `:super_operation` | `:fetch` is added when a read is done with `#fetch` |
+| Key                | Value                   |
+| ------------------ | ----------------------- |
+| `:key`             | Key used in the store   |
+| `:store`           | Name of the store class |
+| `:hit`             | If this read is a hit   |
+| `:super_operation` | `:fetch` is added when a read is done with [`fetch`][ActiveSupport::Cache::Store#fetch] |
 
 #### `cache_read_multi.active_support`
 
-| Key                | Value                                                           |
-| ------------------ | --------------------------------------------------------------- |
-| `:key`             | Keys used in the store                                          |
-| `:store`           | Name of the store class                                         |
-| `:hits`            | Keys of cache hits                                              |
-| `:super_operation` | `:fetch_multi` is added when a read is done with `#fetch_multi` |
+| Key                | Value                   |
+| ------------------ | ----------------------- |
+| `:key`             | Keys used in the store  |
+| `:store`           | Name of the store class |
+| `:hits`            | Keys of cache hits      |
+| `:super_operation` | `:fetch_multi` is added when a read is done with [`fetch_multi`][ActiveSupport::Cache::Store#fetch_multi] |
 
 #### `cache_generate.active_support`
 
-This event is only used when `#fetch` is called with a block.
+This event is only used when [`fetch`][ActiveSupport::Cache::Store#fetch] is called with a block.
 
 | Key      | Value                   |
 | -------- | ----------------------- |
@@ -455,7 +462,7 @@ INFO. Options passed to fetch will be merged with the payload when writing to th
 
 #### `cache_fetch_hit.active_support`
 
-This event is only used when `#fetch` is called with a block.
+This event is only used when [`fetch`][ActiveSupport::Cache::Store#fetch] is called with a block.
 
 | Key      | Value                   |
 | -------- | ----------------------- |
@@ -528,6 +535,9 @@ INFO. Cache stores may add their own keys
   store: "ActiveSupport::Cache::MemCacheStore"
 }
 ```
+
+[ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
+[ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
 
 ### Active Job
 
@@ -741,7 +751,7 @@ Creating Custom Events
 ----------------------
 
 Adding your own events is easy as well. `ActiveSupport::Notifications` will take care of
-all the heavy lifting for you. Simply call `instrument` with a `name`, `payload` and a block.
+all the heavy lifting for you. Simply call [`ActiveSupport::Notifications.instrument`][] with a `name`, `payload` and a block.
 The notification will be sent after the block returns. `ActiveSupport` will generate the start and end times
 and add the instrumenter's unique ID. All data passed into the `instrument` call will make
 it into the payload.
@@ -775,3 +785,5 @@ end
 
 You should follow Rails conventions when defining your own events. The format is: `event.library`.
 If your application is sending Tweets, you should create an event named `tweet.twitter`.
+
+[`ActiveSupport::Notifications.instrument`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument
