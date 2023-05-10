@@ -398,6 +398,7 @@ GEM
     rbtree (0.4.6)
     rdoc (6.5.0)
       psych (>= 4.0.0)
+    readline-ext (0.1.5)
     redcarpet (3.2.3)
     redis (5.0.5)
       redis-client (>= 0.9.0)
@@ -607,6 +608,7 @@ DEPENDENCIES
   rails!
   rake (>= 13)
   rdoc (~> 6.5)
+  readline-ext
   redcarpet (~> 3.2.3)
   redis (>= 4.0.1)
   redis-namespace

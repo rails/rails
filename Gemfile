@@ -75,6 +75,7 @@ gem "bootsnap", ">= 1.4.4", require: false
 gem "webrick", require: false
 gem "jbuilder", require: false
 gem "web-console", require: false
+gem "readline-ext", require: false
 
 # Action Pack and railties
 rack_version = ENV.fetch("RACK", "~> 2.0") # Change to ~> 3 after #46594 is merged.
