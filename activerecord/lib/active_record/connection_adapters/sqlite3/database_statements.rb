@@ -17,11 +17,11 @@ module ActiveRecord
 
         def explain(arel, binds = [], _options = [])
           sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", [])
+          result = exec_query(sql, "EXPLAIN", [])
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
+        def exec_query(sql, name = nil, binds = [], prepare: false, async: false) # :nodoc:
           sql = transform_query(sql)
           check_if_write_query(sql)
 
@@ -57,7 +57,7 @@ module ActiveRecord
         end
 
         def exec_delete(sql, name = "SQL", binds = []) # :nodoc:
-          internal_exec_query(sql, name, binds)
+          exec_query(sql, name, binds)
           @raw_connection.changes
         end
         alias :exec_update :exec_delete
