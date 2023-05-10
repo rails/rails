@@ -416,6 +416,7 @@ GEM
       ffi (~> 1.0)
     rbtree (0.4.6)
     rdoc (6.3.3)
+    readline-ext (0.1.5)
     redcarpet (3.2.3)
     redis (4.8.0)
     redis-client (0.12.1)
@@ -622,6 +623,7 @@ DEPENDENCIES
   rack-test (< 2)
   rails!
   rake (>= 13)
+  readline-ext
   redcarpet (~> 3.2.3)
   redis (~> 4.0)
   redis-namespace
