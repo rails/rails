@@ -110,8 +110,6 @@ module ActiveJob
 
       def deserialize_argument(argument)
         case argument
-        when String
-          argument
         when *PERMITTED_TYPES
           argument
         when BigDecimal # BigDecimal may have been legacy serialized; Remove in 7.2
