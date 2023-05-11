@@ -1,4 +1,4 @@
-*   Active Record query cache is now evicts least recently used entries
+*   Active Record query cache now evicts least recently used entries
 
     By default it only keeps the `100` most recently used queries.
 
