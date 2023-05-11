@@ -170,6 +170,7 @@ module ActionPack
       ["/posts?foo%5B%5D=bar&foo%5B%5D=baz", [{ controller: "posts", foo: ["bar", "baz"] }]],
       ["/posts?page=2",  [{ controller: "posts", page: 2 }]],
       ["/posts?q%5Bfoo%5D%5Ba%5D=b", [{ controller: "posts", q: { foo: { a: "b" } } }]],
+      ["/posts?_route=1", [{ controller: "posts", _route: 1 }]],
 
       ["/news.rss", [{ controller: "news", action: "index", format: "rss" }]],
     ].each_with_index do |(url, params), i|

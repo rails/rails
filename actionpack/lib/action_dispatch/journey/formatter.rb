@@ -56,15 +56,15 @@ module ActionDispatch
         end
       end
 
-      def generate(name, options, path_parameters)
+      def generate(name, options, recall)
         original_options = options.dup
         path_params = options.delete(:path_params) || {}
         options = path_params.merge(options)
-        constraints = path_parameters.merge(options)
+        constraints = recall.merge(options)
         missing_keys = nil
 
         match_route(name, constraints) do |route|
-          parameterized_parts = extract_parameterized_parts(route, options, path_parameters)
+          parameterized_parts = extract_parameterized_parts(route, options, recall)
 
           # Skip this route unless a name has been provided or it is a
           # standard Rails route since we can't determine whether an options
@@ -147,10 +147,17 @@ module ActionDispatch
             hash.keys.sort.reverse_each do |score|
               break if score < 0
 
-              hash[score].sort_by { |i, _| i }.each do |_, route|
+              sort_by_recall_and_precedence(hash[score], options[:_route]).each do |_, route|
                 yield route
               end
             end
+          end
+        end
+
+        def sort_by_recall_and_precedence(routes, current_route)
+          routes.sort_by do |i, route|
+            next -i if route == current_route
+            i
           end
         end
 

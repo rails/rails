@@ -740,6 +740,17 @@ class RequestMethod < BaseRequestTest
     assert_predicate request, :get?
   end
 
+
+  test "current_route can be set on the rack env" do
+    current_route = "foo"
+    request = stub_request()
+
+    request.current_route = current_route
+
+    assert_equal current_route, request.current_route
+    assert_equal current_route, request.env["action_dispatch.current_route"]
+  end
+
   test "invalid http method raises exception" do
     assert_raise(ActionController::UnknownHttpMethod) do
       stub_request("REQUEST_METHOD" => "RANDOM_METHOD").request_method

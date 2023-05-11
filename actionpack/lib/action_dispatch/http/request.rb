@@ -327,6 +327,16 @@ module ActionDispatch
       set_header ACTION_DISPATCH_REQUEST_ID, id
     end
 
+    ACTION_DISPATCH_CURRENT_ROUTE = "action_dispatch.current_route" # :nodoc:
+
+    def current_route # :nodoc:
+      get_header ACTION_DISPATCH_CURRENT_ROUTE
+    end
+
+    def current_route=(route) # :nodoc:
+      set_header ACTION_DISPATCH_CURRENT_ROUTE, route
+    end
+
     alias_method :uuid, :request_id
 
     # Returns the lowercase name of the HTTP server software.

@@ -676,6 +676,18 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       controller.url_for(only_path: true)
   end
 
+  def test_current_route_precedence_on_multiple_recall_match
+    rs.draw do
+      get "/route_with_higher_precedence" => "pages#index"
+      get "/current_route"                => "pages#index"
+    end
+
+    get URI("http://test.host/current_route")
+    assert_equal "/current_route",   controller.url_for(only_path: true)
+    assert_equal "/current_route",   controller.url_for(controller: "pages", action: "index", only_path: true)
+    assert_equal "/route_with_higher_precedence", url_for(rs, controller: "pages", action: "index", only_path: true)
+  end
+
   def test_backwards
     rs.draw do
       ActionDispatch.deprecator.silence do

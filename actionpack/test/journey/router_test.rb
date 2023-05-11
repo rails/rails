@@ -118,6 +118,14 @@ module ActionDispatch
         assert_equal 404, resp.first
       end
 
+      def test_route_presence_in_env
+        get "/foo", to: "comments#index"
+
+        request = rails_env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo")
+        router.serve(request)
+        assert_equal routes.first, request.current_route
+      end
+
       def test_clear_trailing_slash_from_script_name_on_root_unanchored_routes
         app = lambda { |env| [200, {}, ["success!"]] }
         get "/weblog", to: app

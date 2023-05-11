@@ -37,7 +37,7 @@ module ActionController
         host: request.host,
         port: request.optional_port,
         protocol: request.protocol,
-        _recall: request.path_parameters
+        _recall: recall,
       }.merge!(super).freeze
 
       if (same_origin = _routes.equal?(request.routes)) ||
@@ -59,5 +59,10 @@ module ActionController
         @_url_options
       end
     end
+
+    private
+      def recall
+        request.path_parameters.merge(_route: request.current_route)
+      end
   end
 end
