@@ -488,6 +488,62 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
+  def test_assert_enqueued_email_with_supports_params_matcher_proc
+    mail_params = { all: "good" }
+
+    silence_stream($stdout) do
+      TestHelperMailer.with(mail_params).test_parameter_args.deliver_later
+    end
+
+    matcher_params = nil
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, params: ->(params) { matcher_params = params }
+    end
+
+    assert_equal mail_params, matcher_params
+
+    assert_raises ActiveSupport::TestCase::Assertion do
+      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, params: ->(_) { false }
+    end
+  end
+
+  def test_assert_enqueued_email_with_supports_args_matcher_proc
+    mail_args = ["some_email", "some_name"]
+
+    silence_stream($stdout) do
+      TestHelperMailer.test_args(*mail_args).deliver_later
+    end
+
+    matcher_args = nil
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test_args, args: ->(args) { matcher_args = args }
+    end
+
+    assert_equal mail_args, matcher_args
+
+    assert_raises ActiveSupport::TestCase::Assertion do
+      assert_enqueued_email_with TestHelperMailer, :test_args, args: ->(_) { false }
+    end
+  end
+
+  def test_assert_enqueued_email_with_supports_named_args_matcher_proc
+    mail_args = [{ email: "some_email", name: "some_name" }]
+
+    silence_stream($stdout) do
+      TestHelperMailer.test_named_args(**mail_args[0]).deliver_later
+    end
+
+    matcher_args = nil
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test_named_args, args: ->(args) { matcher_args = args }
+    end
+
+    assert_equal mail_args, matcher_args
+  end
+
   def test_deliver_enqueued_emails_with_no_block
     assert_nothing_raised do
       silence_stream($stdout) do
