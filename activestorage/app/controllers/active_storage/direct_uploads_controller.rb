@@ -15,9 +15,20 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
     end
 
     def direct_upload_json(blob)
-      blob.as_json(root: false, methods: :signed_id).merge(direct_upload: {
+      direct_upload = {
         url: blob.service_url_for_direct_upload,
         headers: blob.service_headers_for_direct_upload
-      })
+      }
+
+      if (http_method = blob.service_http_method_for_direct_upload).present?
+        direct_upload[:method] = http_method
+      end
+      if (response_type = blob.service_http_response_type_for_direct_upload).present?
+        direct_upload[:responseType] = response_type
+      end
+      if (form_data = blob.service_form_data_for_direct_upload).present?
+        direct_upload[:formData] = form_data
+      end
+      blob.as_json(root: false, methods: :signed_id).merge(direct_upload: direct_upload)
     end
 end
