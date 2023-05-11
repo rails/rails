@@ -541,6 +541,23 @@ Cache stores may add their own data as well.
 | `:key`   | Keys used in the store  |
 | `:store` | Name of the store class |
 
+#### `cache_delete_matched.active_support`
+
+This event is only emitted when using [`RedisCacheStore`][ActiveSupport::Cache::RedisCacheStore],
+[`FileStore`][ActiveSupport::Cache::FileStore], or [`MemoryStore`][ActiveSupport::Cache::MemoryStore].
+
+| Key      | Value                   |
+| -------- | ----------------------- |
+| `:key`   | Key pattern used        |
+| `:store` | Name of the store class |
+
+```ruby
+{
+  key: "posts/*",
+  store: "ActiveSupport::Cache::RedisCacheStore"
+}
+```
+
 #### `cache_exist?.active_support`
 
 | Key      | Value                   |
@@ -573,6 +590,9 @@ Cache stores may add their own data as well.
 }
 ```
 
+[ActiveSupport::Cache::FileStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
+[ActiveSupport::Cache::MemoryStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemoryStore.html
+[ActiveSupport::Cache::RedisCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
 
