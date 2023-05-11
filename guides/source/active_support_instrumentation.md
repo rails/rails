@@ -491,6 +491,44 @@ Cache stores may add their own data as well.
 | `:key`   | Keys and values written to the store |
 | `:store` | Name of the store class              |
 
+
+#### `cache_increment.active_support`
+
+This event is only emitted when using [`MemCacheStore`][ActiveSupport::Cache::MemCacheStore]
+or [`RedisCacheStore`][ActiveSupport::Cache::RedisCacheStore].
+
+| Key       | Value                   |
+| --------- | ----------------------- |
+| `:key`    | Key used in the store   |
+| `:store`  | Name of the store class |
+| `:amount` | Increment amount        |
+
+```ruby
+{
+  key: "bottles-of-beer",
+  store: "ActiveSupport::Cache::RedisCacheStore",
+  amount: 99
+}
+```
+
+#### `cache_decrement.active_support`
+
+This event is only emitted when using the Memcached or Redis cache stores.
+
+| Key       | Value                   |
+| --------- | ----------------------- |
+| `:key`    | Key used in the store   |
+| `:store`  | Name of the store class |
+| `:amount` | Decrement amount        |
+
+```ruby
+{
+  key: "bottles-of-beer",
+  store: "ActiveSupport::Cache::RedisCacheStore",
+  amount: 1
+}
+```
+
 #### `cache_delete.active_support`
 
 | Key      | Value                   |
@@ -544,6 +582,7 @@ This event is only emitted when using [`RedisCacheStore`][ActiveSupport::Cache::
 ```
 
 [ActiveSupport::Cache::FileStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
+[ActiveSupport::Cache::MemCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html
 [ActiveSupport::Cache::MemoryStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemoryStore.html
 [ActiveSupport::Cache::RedisCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
