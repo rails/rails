@@ -57,11 +57,23 @@ module ActionText
         ActionText::Attachable.from_attachable_sgid(sgid, only: self)
       end
 
+      # Returns the path to the partial that is used for rendering missing attachables.
+      # Defaults to "action_text/attachables/missing_attachable".
+      #
+      # Override to render a different partial:
+      #
+      #   class User < ApplicationRecord
+      #     def self.to_missing_attachable_partial_path
+      #       "users/missing_attachable"
+      #     end
+      #   end
       def to_missing_attachable_partial_path
         ActionText::Attachables::MissingAttachable::DEFAULT_PARTIAL_PATH
       end
     end
 
+    # Returns the Signed Global ID for the attachable. The purpose of the ID is
+    # set to 'attachable' so it can't be reused for other purposes.
     def attachable_sgid
       to_sgid(expires_in: nil, for: LOCATOR_NAME).to_s
     end
@@ -86,14 +98,35 @@ module ActionText
       false
     end
 
+    # Returns the attachable as JSON with the +attachable_sgid+ included.
     def as_json(*)
       super.merge("attachable_sgid" => persisted? ? attachable_sgid : nil)
     end
 
+    # Returns the path to the partial that is used for rendering the attachable
+    # in Trix. Defaults to +to_partial_path+.
+    #
+    # Override to render a different partial:
+    #
+    #   class User < ApplicationRecord
+    #     def to_trix_content_attachment_partial_path
+    #       "users/trix_content_attachment"
+    #     end
+    #   end
     def to_trix_content_attachment_partial_path
       to_partial_path
     end
 
+    # Returns the path to the partial that is used for rendering the attachable.
+    # Defaults to +to_partial_path+.
+    #
+    # Override to render a different partial:
+    #
+    #   class User < ApplicationRecord
+    #     def to_attachable_partial_path
+    #       "users/attachable"
+    #     end
+    #   end
     def to_attachable_partial_path
       to_partial_path
     end
