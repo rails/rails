@@ -80,6 +80,64 @@ class TransactionTest < ActiveRecord::TestCase
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
+
+    def test_connection_removed_from_pool_when_commit_raises_and_rollback_raises
+      connection = Topic.connection
+
+      # Update commit_transaction to raise the first time it is called.
+      Topic.connection.transaction_manager.class_eval do
+        alias :real_commit_transaction :commit_transaction
+        define_method(:commit_transaction) do
+          raise "commit failed"
+        end
+      end
+
+      # Update rollback_transaction to raise.
+      Topic.connection.transaction_manager.class_eval do
+        alias :real_rollback_transaction :rollback_transaction
+        define_method(:rollback_transaction) do |*_args|
+          raise "rollback failed"
+        end
+      end
+
+      # Start a transaction and update a record. The commit and rollback will fail.
+      topic = topics(:fifth)
+      exception = assert_raises(RuntimeError) do
+        ActiveRecord::Base.transaction do
+          topic.update(title: "Updated title")
+        end
+      end
+      assert_equal "rollback failed", exception.message
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+      assert_equal "The Fifth Topic of the day", topic.reload.title
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+    end
+
+    def test_connection_removed_from_pool_when_begin_raises_after_successfully_beginning_a_transaction
+      connection = Topic.connection
+      # Disable lazy transactions so that we will begin a transaction before attempting to write.
+      connection.disable_lazy_transactions!
+
+      # Update begin_db_transaction to successfully begin a transaction, then raise.
+      Topic.connection.class_eval do
+        alias :real_begin_db_transaction :begin_db_transaction
+        define_method(:begin_db_transaction) do |*_args|
+          raise "begin failed"
+        end
+      end
+
+      # Attempt to begin a transaction. This will raise, causing a rollback.
+      exception = assert_raises(RuntimeError) do
+        ActiveRecord::Base.transaction { }
+      end
+      assert_equal "begin failed", exception.message
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+    end
   end
 
   def test_rollback_dirty_changes_multiple_saves

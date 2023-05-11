@@ -1,3 +1,20 @@
+*   Discard connections which may have been left in a transaction.
+
+    There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:
+    - Writes appear to fail when they actually succeed.
+    - Writes appear to succeed when they actually fail.
+    - Reads return stale or uncommitted data.
+
+    Previously, the following case was detected:
+    - An error is encountered during the transaction, then another error is encountered while attempting to roll it back.
+
+    Now, the following additional cases are detected:
+    - An error is encountered just after successfully beginning a transaction.
+    - An error is encountered while committing a transaction, then another error is encountered while attempting to roll it back.
+    - An error is encountered while rolling back a transaction.
+
+    *Nick Dower*
+
 *   Active Record query cache now evicts least recently used entries
 
     By default it only keeps the `100` most recently used queries.

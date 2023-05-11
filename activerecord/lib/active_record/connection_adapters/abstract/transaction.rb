@@ -487,23 +487,17 @@ module ActiveRecord
       def within_new_transaction(isolation: nil, joinable: true)
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
-          ret = yield
-          completed = true
-          ret
-        rescue Exception => error
-          if transaction
+          begin
+            ret = yield
+            completed = true
+            ret
+          rescue Exception => error
             rollback_transaction
             after_failure_actions(transaction, error)
-          end
 
-          raise
-        ensure
-          if transaction
-            if error
-              # @connection still holds an open or invalid transaction, so we must not
-              # put it back in the pool for reuse.
-              @connection.throw_away! unless transaction.state.rolledback?
-            else
+            raise
+          ensure
+            unless error
               if Thread.current.status == "aborting"
                 rollback_transaction
               elsif !completed && transaction.written
@@ -540,6 +534,10 @@ module ActiveRecord
               end
             end
           end
+        rescue Exception
+          @connection.throw_away! unless transaction&.state&.completed?
+
+          raise
         end
       end
 
