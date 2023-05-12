@@ -596,6 +596,22 @@ This event is only emitted when using [`RedisCacheStore`][ActiveSupport::Cache::
 }
 ```
 
+#### `cache_cleanup.active_support`
+
+This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::MemoryStore].
+
+| Key      | Value                                         |
+| -------- | --------------------------------------------- |
+| `:store` | Name of the store class                       |
+| `:size`  | Number of entries in the cache before cleanup |
+
+```ruby
+{
+  store: "ActiveSupport::Cache::MemoryStore",
+  size: 9001
+}
+```
+
 #### `cache_exist?.active_support`
 
 | Key      | Value                   |
