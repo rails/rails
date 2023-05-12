@@ -102,54 +102,6 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 
 ### Action Controller
 
-#### `write_fragment.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
-#### `read_fragment.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
-#### `expire_fragment.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
-#### `exist_fragment?.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
 #### `start_processing.action_controller`
 
 | Key           | Value                                                     |
@@ -254,6 +206,56 @@ Additional keys may be added by the caller.
 | ------------- | ----------------------------------------------------------------------------- |
 | `:keys`       | The unpermitted keys                                                          |
 | `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
+
+### Action Controller — Caching
+
+#### `write_fragment.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
+
+#### `read_fragment.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
+
+#### `expire_fragment.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
+
+#### `exist_fragment?.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
 
 ### Action Dispatch
 
@@ -412,7 +414,7 @@ Adapters may add their own data as well.
 }
 ```
 
-### Active Support
+### Active Support — Caching
 
 #### `cache_read.active_support`
 
@@ -717,6 +719,22 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 
 ### Active Storage
 
+#### `preview.active_storage`
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+
+#### `transform.active_storage`
+
+#### `analyze.active_storage`
+
+| Key          | Value                          |
+| ------------ | ------------------------------ |
+| `:analyzer`  | Name of analyzer e.g., ffprobe |
+
+### Active Storage — Storage Service
+
 #### `service_upload.active_storage`
 
 | Key          | Value                        |
@@ -787,20 +805,6 @@ This event is only emitted when using the Google Cloud Storage service.
 | `:service`      | Name of the service              |
 | `:content_type` | HTTP `Content-Type` field        |
 | `:disposition`  | HTTP `Content-Disposition` field |
-
-#### `preview.active_storage`
-
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:key`       | Secure token        |
-
-#### `transform.active_storage`
-
-#### `analyze.active_storage`
-
-| Key          | Value                          |
-| ------------ | ------------------------------ |
-| `:analyzer`  | Name of analyzer e.g., ffprobe |
 
 ### Railties
 
