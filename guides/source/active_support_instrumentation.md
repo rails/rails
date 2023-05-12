@@ -583,6 +583,24 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 }
 ```
 
+#### `cache_prune.active_support`
+
+This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::MemoryStore].
+
+| Key      | Value                                         |
+| -------- | --------------------------------------------- |
+| `:store` | Name of the store class                       |
+| `:key`   | Target size (in bytes) for the cache          |
+| `:from`  | Size (in bytes) of the cache before prune     |
+
+```ruby
+{
+  store: "ActiveSupport::Cache::MemoryStore",
+  key: 5000,
+  from: 9001
+}
+```
+
 #### `cache_exist?.active_support`
 
 | Key      | Value                   |
