@@ -208,6 +208,10 @@ task :preview_docs do
   system("tar -czf preview.tar.gz -C preview .")
 end
 
+Rails::API::NameListTask.new("namelist") do |name_list_task|
+  name_list_task.rdoc_dir = "doc/names"
+end
+
 # We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
 #
