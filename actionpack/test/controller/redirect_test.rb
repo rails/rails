@@ -153,6 +153,11 @@ class RedirectController < ActionController::Base
     redirect_to "\000/lol\r\nwat"
   end
 
+  def unsafe_redirect_with_illegal_http_header_value_character
+    redirect_to "javascript:alert(document.domain)\b"
+  end
+
+
   def rescue_errors(e) raise e end
 
   private
@@ -437,6 +442,18 @@ class RedirectTest < ActionController::TestCase
       assert_redirected_to "http://test.host/redirect/hello_world"
     end
   end
+
+  def test_unsafe_redirect_with_illegal_http_header_value_character
+    error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+      get :unsafe_redirect_with_illegal_http_header_value_character
+    end
+
+    msg = "The redirect URL javascript:alert(document.domain)\b contains one or more illegal HTTP header field character. " \
+      "Set of legal characters defined in https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6"
+
+    assert_equal msg, error.message
+  end
+
 end
 
 module ModuleTest
