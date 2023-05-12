@@ -70,7 +70,7 @@ FROM base
 <% unless dockerfile_deploy_packages.empty? -%>
 # Install packages needed for deployment
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y <%= dockerfile_deploy_packages.join(" ") %> && \
+    apt-get install --no-install-recommends -y curl <%= dockerfile_deploy_packages.join(" ") %> && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 <% end -%>
