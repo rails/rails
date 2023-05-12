@@ -14,6 +14,10 @@ module ActiveRecord
         HIGH_PRECISION_CURRENT_TIMESTAMP = Arel.sql("CURRENT_TIMESTAMP(6)").freeze # :nodoc:
         private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
 
+        def query(sql, name = nil) # :nodoc:
+          raw_execute(sql, name).to_a
+        end
+
         def write_query?(sql) # :nodoc:
           !READ_QUERY.match?(sql)
         rescue ArgumentError # Invalid encoding
