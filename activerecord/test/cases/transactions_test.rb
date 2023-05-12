@@ -138,6 +138,55 @@ class TransactionTest < ActiveRecord::TestCase
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
+
+    def test_connection_removed_from_pool_when_transaction_attempted_while_in_unknown_transaction_state
+      connection = Topic.connection
+
+      # Update rollback_transaction to raise.
+      Topic.connection.transaction_manager.class_eval do
+        alias :real_rollback_transaction :rollback_transaction
+        define_method(:rollback_transaction) do
+          raise "rollback failed"
+        end
+      end
+
+      # Update throw_away! to raise the first time it is called.
+      Topic.connection.class_eval do
+        alias :real_throw_away! :throw_away!
+        define_method(:throw_away!) do
+          @ran_once ||= false
+          unless @ran_once
+            @ran_once = true
+            raise "throw away failed"
+          end
+          real_throw_away!
+        end
+      end
+
+      # Start a transaction, update a record, then roll back. The rollback and connection removal will fail.
+      topic = topics(:fifth)
+      exception = assert_raises(RuntimeError) do
+        ActiveRecord::Base.transaction do
+          topic.update(title: "Updated title")
+          raise ActiveRecord::Rollback
+        end
+      end
+      assert_equal "throw away failed", exception.message
+      assert connection.active?
+      assert Topic.connection_pool.connections.include?(connection)
+
+      # Attempt to reuse the connection. This will raise since the connection was left in a bad state.
+      assert_raises(ActiveRecord::TransactionStateUnknown) do
+        ActiveRecord::Base.transaction do
+          topic.update(title: "More updated title")
+        end
+      end
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+      assert_equal "The Fifth Topic of the day", topic.reload.title
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+    end
   end
 
   def test_rollback_dirty_changes_multiple_saves

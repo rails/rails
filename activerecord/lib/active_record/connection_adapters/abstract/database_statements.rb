@@ -322,6 +322,7 @@ module ActiveRecord
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
+          transaction_manager.check_transaction_state_known!
           yield
         else
           transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable, &block)

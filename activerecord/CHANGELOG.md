@@ -12,6 +12,7 @@
     - An error is encountered just after successfully beginning a transaction.
     - An error is encountered while committing a transaction, then another error is encountered while attempting to roll it back.
     - An error is encountered while rolling back a transaction.
+    - An error is encountered which prevents the connection from being discarded.
 
     *Nick Dower*
 

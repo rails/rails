@@ -362,6 +362,7 @@ module ActiveRecord
         @has_unmaterialized_transactions = false
         @materializing_transactions = false
         @lazy_transactions_enabled = true
+        @lock_stack = []
       end
 
       def begin_transaction(isolation: nil, joinable: true, _lazy: true)
@@ -486,58 +487,61 @@ module ActiveRecord
 
       def within_new_transaction(isolation: nil, joinable: true)
         @connection.lock.synchronize do
-          transaction = begin_transaction(isolation: isolation, joinable: joinable)
-          begin
-            ret = yield
-            completed = true
-            ret
-          rescue Exception => error
-            rollback_transaction
-            after_failure_actions(transaction, error)
+          check_transaction_state_known!
+          transaction_lock = (@lock_stack << Mutex.new).last
+          transaction_lock.synchronize do
+            transaction = begin_transaction(isolation: isolation, joinable: joinable)
+            begin
+              ret = yield
+              completed = true
+              ret
+            rescue Exception => error
+              rollback_transaction
+              after_failure_actions(transaction, error)
 
-            raise
-          ensure
-            unless error
-              if Thread.current.status == "aborting"
-                rollback_transaction
-              elsif !completed && transaction.written
-                # This was deprecated in 6.1, and has now changed to a rollback
-                rollback_transaction
-              elsif !completed && !transaction.written_indirectly
-                # This was a silent commit in 6.1, but now becomes a rollback; we skipped
-                # the warning because (having not been written) the change generally won't
-                # have any effect
-                rollback_transaction
-              else
-                if !completed && transaction.written_indirectly
-                  # This is the case that was missed in the 6.1 deprecation, so we have to
-                  # do it now
-                  ActiveRecord.deprecator.warn(<<~EOW)
-                    Using `return`, `break` or `throw` to exit a transaction block is
-                    deprecated without replacement. If the `throw` came from
-                    `Timeout.timeout(duration)`, pass an exception class as a second
-                    argument so it doesn't use `throw` to abort its block. This results
-                    in the transaction being committed, but in the next release of Rails
-                    it will rollback.
-                  EOW
-                end
+              raise
+            ensure
+              unless error
+                if Thread.current.status == "aborting"
+                  rollback_transaction
+                elsif !completed && transaction.written
+                  # This was deprecated in 6.1, and has now changed to a rollback
+                  rollback_transaction
+                elsif !completed && !transaction.written_indirectly
+                  # This was a silent commit in 6.1, but now becomes a rollback; we skipped
+                  # the warning because (having not been written) the change generally won't
+                  # have any effect
+                  rollback_transaction
+                else
+                  if !completed && transaction.written_indirectly
+                    # This is the case that was missed in the 6.1 deprecation, so we have to
+                    # do it now
+                    ActiveRecord.deprecator.warn(<<~EOW)
+                      Using `return`, `break` or `throw` to exit a transaction block is
+                      deprecated without replacement. If the `throw` came from
+                      `Timeout.timeout(duration)`, pass an exception class as a second
+                      argument so it doesn't use `throw` to abort its block. This results
+                      in the transaction being committed, but in the next release of Rails
+                      it will rollback.
+                    EOW
+                  end
 
-                begin
-                  commit_transaction
-                rescue ActiveRecord::ConnectionFailed
-                  transaction.invalidate! unless transaction.state.completed?
-                  raise
-                rescue Exception
-                  rollback_transaction(transaction) unless transaction.state.completed?
-                  raise
+                  begin
+                    commit_transaction
+                  rescue ActiveRecord::ConnectionFailed
+                    transaction.invalidate! unless transaction.state.completed?
+                    raise
+                  rescue Exception
+                    rollback_transaction(transaction) unless transaction.state.completed?
+                    raise
+                  end
                 end
               end
             end
+          ensure
+            @connection.throw_away! unless transaction&.state&.completed?
+            @lock_stack.delete(transaction_lock)
           end
-        rescue Exception
-          @connection.throw_away! unless transaction&.state&.completed?
-
-          raise
         end
       end
 
@@ -547,6 +551,14 @@ module ActiveRecord
 
       def current_transaction
         @stack.last || NULL_TRANSACTION
+      end
+
+      # Discards the connection and raises if the current transaction state is unknown.
+      def check_transaction_state_known!
+        unless @lock_stack.all?(&:locked?)
+          @connection.throw_away!
+          raise ActiveRecord::TransactionStateUnknown
+        end
       end
 
       private
