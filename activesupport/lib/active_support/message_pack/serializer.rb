@@ -25,7 +25,7 @@ module ActiveSupport
       end
 
       def signature?(dumped)
-        dumped.start_with?(SIGNATURE)
+        dumped.getbyte(0) == SIGNATURE.getbyte(0) && dumped.getbyte(1) == SIGNATURE.getbyte(1)
       end
 
       def message_pack_factory
