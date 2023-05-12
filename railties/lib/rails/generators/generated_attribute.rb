@@ -78,6 +78,8 @@ module Rails
           # when declaring options curly brackets should be used
           def parse_type_and_options(type)
             case type
+            when /(text|binary)\{([a-z]+)\}/
+              return $1, size: $2.to_sym
             when /(string|text|binary|integer)\{(\d+)\}/
               return $1, limit: $2.to_i
             when /decimal\{(\d+)[,.-](\d+)\}/

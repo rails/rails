@@ -1,3 +1,27 @@
+*   Enable passing column size to migration generator
+
+    Previously you could pass a limit to the migration generator:
+
+    `rails generate migration CreateAuthor name:text{65535}`
+
+    Now, a size attribute can be passed to the migration generator:
+
+    `rails generate migration CreateAuthor name:text{medium}`
+
+    This generates a migration which includes the size attribute:
+
+    ```ruby
+    class CreateAuthor < ActiveRecord::Migration[7.1]
+      def change
+        create_table :authors do |t|
+          t.text :name, size: :medium
+        end
+      end
+    end
+    ```
+
+    *Josh Broughton*, *Hartley McGuire*
+
 *   Trying to set a config key with the same name of a method now raises:
 
     ```ruby
