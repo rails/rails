@@ -180,13 +180,6 @@ module AbstractController
         )
       end
 
-      def test_protocol
-        add_host!
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https")
-        )
-      end
-
       def test_protocol_with_and_without_separators
         add_host!
         assert_equal("https://www.basecamphq.com/c/a/i",
