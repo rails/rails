@@ -213,6 +213,12 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_reflect_on_all_associations
+    assert_equal 5, Company.reflect_on_all_associations(:has_many).length
+    assert_equal 7, Company.reflect_on_all_associations(:has_many, :has_one).length
+    assert_equal 2, Company.reflect_on_all_associations(:has_one).length
+  end
+
   def test_has_many_reflection
     reflection_for_clients = ActiveRecord::Reflection.create(:has_many, :clients, nil, { order: "id", dependent: :destroy }, Firm)
 

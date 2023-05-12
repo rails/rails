@@ -96,16 +96,18 @@ module ActiveRecord
       # Returns an array of AssociationReflection objects for all the
       # associations in the class. If you only want to reflect on a certain
       # association type, pass in the symbol (<tt>:has_many</tt>, <tt>:has_one</tt>,
-      # <tt>:belongs_to</tt>) as the first parameter.
+      # <tt>:belongs_to</tt>) as the first parameter. It is also possible to pass
+      # multiple associations as symbols.
       #
       # Example:
       #
-      #   Account.reflect_on_all_associations             # returns an array of all associations
-      #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
+      #   Account.reflect_on_all_associations                       # returns an array of all associations
+      #   Account.reflect_on_all_associations(:has_many)            # returns an array of all has_many associations
+      #   Account.reflect_on_all_associations(:has_many, :has_one)  # returns an array of all has_many and has_one associations
       #
-      def reflect_on_all_associations(macro = nil)
+      def reflect_on_all_associations(*macro)
         association_reflections = reflections.values
-        association_reflections.select! { |reflection| reflection.macro == macro } if macro
+        association_reflections.select! { |reflection| macro.include?(reflection.macro) } unless macro.empty?
         association_reflections
       end
 
