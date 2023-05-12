@@ -156,6 +156,13 @@ module ActiveRecord
         end
       end
 
+      def execute(sql, name = nil, allow_retry: false)
+        sql = transform_query(sql)
+        check_if_write_query(sql)
+
+        raw_execute(sql, name, allow_retry: allow_retry)
+      end
+
       private
         def text_type?(type)
           TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)

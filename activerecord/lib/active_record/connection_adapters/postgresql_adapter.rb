@@ -864,8 +864,8 @@ module ActiveRecord
           stmt_key = prepare_statement(sql, binds)
           type_casted_binds = type_casted_binds(binds)
 
-          with_raw_connection do |conn|
-            log(sql, name, binds, type_casted_binds, stmt_key, async: async) do
+          log(sql, name, binds, type_casted_binds, stmt_key, async: async) do
+            with_raw_connection do |conn|
               conn.exec_prepared(stmt_key, type_casted_binds)
             end
           end

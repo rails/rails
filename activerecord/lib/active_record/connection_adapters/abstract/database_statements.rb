@@ -124,7 +124,7 @@ module ActiveRecord
       # method may be manually memory managed. Consider using the exec_query
       # wrapper instead.
       def execute(sql, name = nil, allow_retry: false)
-        internal_execute(sql, name, allow_retry: allow_retry)
+        raise NotImplementedError
       end
 
       # Executes +sql+ statement in the context of this connection using
@@ -491,23 +491,14 @@ module ActiveRecord
       end
 
       private
-        def internal_execute(sql, name = "SCHEMA", allow_retry: false, materialize_transactions: true)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          mark_transaction_written_if_write(sql)
-
-          raw_execute(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
+        def internal_execute(sql, name = "SCHEMA")
+          execute(sql, name)
         end
 
         def execute_batch(statements, name = nil)
           statements.each do |statement|
-            internal_execute(statement, name)
+            execute(statement, name)
           end
-        end
-
-        def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
-          raise NotImplementedError
         end
 
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze

@@ -15,7 +15,7 @@ module ActiveRecord
         private_constant :HIGH_PRECISION_CURRENT_TIMESTAMP
 
         def query(sql, name = nil) # :nodoc:
-          raw_execute(sql, name).to_a
+          execute(sql, name).to_a
         end
 
         def write_query?(sql) # :nodoc:
