@@ -13,28 +13,16 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-          mark_transaction_written_if_write(sql)
-
-          result = raw_execute(sql, name, async: async)
+          result = execute(sql, name, async: async)
           ActiveRecord::Result.new(result.fields, result.to_a)
         end
 
         def exec_insert(sql, name, binds, pk = nil, sequence_name = nil) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-          mark_transaction_written_if_write(sql)
-
-          raw_execute(to_sql(sql, binds), name)
+          execute(to_sql(sql, binds), name)
         end
 
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-          mark_transaction_written_if_write(sql)
-
-          result = raw_execute(to_sql(sql, binds), name)
+          result = execute(to_sql(sql, binds), name)
           result.affected_rows
         end
 
