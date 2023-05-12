@@ -1,3 +1,51 @@
+*   Add support for the HTML picture tag. It supports passing a String, an Array or a Block.
+    Supports passing properties directly to the img tag via the `:image` key.
+    Since the picture tag requires an img tag, the last element you provide will be used for the img tag.
+    For complete control over the picture tag, a block can be passed, which will populate the contents of the tag accordingly.
+
+    Can be used like this for a single source:
+    ```erb
+    <%= picture_tag("picture.webp") %>
+    ```
+    which will generate the following:
+    ```html
+    <picture>
+        <img src="/images/picture.webp" />
+    </picture>
+    ```
+
+    For multiple sources:
+    ```erb
+    <%= picture_tag("picture.webp", "picture.png", :class => "mt-2", :image => { alt: "Image", class: "responsive-img" }) %>
+    ```
+    will generate:
+    ```html
+    <picture class="mt-2">
+        <source srcset="/images/picture.webp" />
+        <source srcset="/images/picture.png" />
+        <img alt="Image" class="responsive-img" src="/images/picture.png" />
+    </picture>
+    ```
+
+    Full control via a block:
+    ```erb
+    <%= picture_tag(:class => "my-class") do %>
+        <%= tag(:source, :srcset => image_path("picture.webp")) %>
+        <%= tag(:source, :srcset => image_path("picture.png")) %>
+        <%= image_tag("picture.png", :alt => "Image") %>
+    <% end %>
+    ```
+    will generate:
+    ```html
+    <picture class="my-class">
+        <source srcset="/images/picture.webp" />
+        <source srcset="/images/picture.png" />
+        <img alt="Image" src="/images/picture.png" />
+    </picture>
+    ```
+
+    *Juan Pablo Balarini*
+
 *   Remove deprecated support to passing instance variables as locals to partials.
 
     *Rafael Mendonça França*

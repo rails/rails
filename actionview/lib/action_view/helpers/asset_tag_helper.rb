@@ -435,6 +435,63 @@ module ActionView
         tag("img", options)
       end
 
+      # Returns an HTML picture tag for the +sources+. If +sources+ is a string,
+      # a single picture tag will be returned. If +sources+ is an array, a picture
+      # tag with nested source tags for each source will be returned. The
+      # +sources+ can be full paths, files that exist in your public images
+      # directory, or Active Storage attachments. Since the picture tag requires
+      # an img tag, the last element you provide will be used for the img tag.
+      # For complete control over the picture tag, a block can be passed, which
+      # will populate the contents of the tag accordingly.
+      #
+      # ==== Options
+      #
+      # When the last parameter is a hash you can add HTML attributes using that
+      # parameter. Apart from all the HTML supported options, the following are supported:
+      #
+      # * <tt>:image</tt> - Hash of options that are passed directly to the +image_tag+ helper.
+      #
+      # ==== Examples
+      #
+      #   picture_tag("picture.webp")
+      #   # => <picture><img src="/images/picture.webp" /></picture>
+      #   picture_tag("gold.png", :image => { :size => "20" }
+      #   # => <picture><img height="20" src="/images/gold.png" width="20" /></picture>
+      #   picture_tag("gold.png", :image => { :size => "45x70" })
+      #   # => <picture><img height="70" src="/images/gold.png" width="45" /></picture>
+      #   picture_tag("picture.webp", "picture.png")
+      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img src="/images/picture.png" /></picture>
+      #   picture_tag("picture.webp", "picture.png", :image => { alt: "Image" })
+      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   picture_tag(["picture.webp", "picture.png"], :image => { alt: "Image" })
+      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   picture_tag(:class => "my-class") { tag(:source, :srcset => image_path("picture.webp")) + image_tag("picture.png", :alt => "Image") }
+      #   # => <picture class="my-class"><source srcset="/images/picture.webp" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   picture_tag { tag(:source, :srcset => image_path("picture-small.webp"), :media => "(min-width: 600px)") + tag(:source, :srcset => image_path("picture-big.webp")) + image_tag("picture.png", :alt => "Image") }
+      #   # => <picture><source srcset="/images/picture-small.webp" media="(min-width: 600px)" /><source srcset="/images/picture-big.webp" /><img alt="Image" src="/images/picture.png" /></picture>
+      #
+      # Active Storage blobs (images that are uploaded by the users of your app):
+      #
+      #   picture_tag(user.profile_picture)
+      #   # => <picture><img src="/rails/active_storage/blobs/.../profile_picture.webp" /></picture>
+      def picture_tag(*sources, &block)
+        sources.flatten!
+        options = sources.extract_options!.symbolize_keys
+        picture_options = options.except(:image)
+        image_options = options.fetch(:image, {})
+        skip_pipeline = options.delete(:skip_pipeline)
+        source_tags = []
+
+        content_tag(:picture, picture_options) do
+          if block.present?
+            capture(&block).html_safe
+          else
+            source_tags = sources.map { |source| tag("source", srcset: resolve_asset_source("image", source, skip_pipeline)) } if sources.size > 1
+            safe_join(source_tags << image_tag(sources.last, image_options))
+          end
+        end
+      end
+
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
       # a single video tag will be returned. If +sources+ is an array, a video
       # tag with nested source tags for each source will be returned. The
