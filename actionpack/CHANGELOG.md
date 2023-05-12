@@ -375,4 +375,16 @@
 
     *Drew Bragg*
 
+*   Add `:unsafe_hashes` mapping for `content_security_policy`
+
+    ```ruby
+    # Before
+    policy.script_src  :strict_dynamic, "'unsafe-hashes'", "'sha256-rRMdkshZyJlCmDX27XnL7g3zXaxv7ei6Sg+yt4R3svU='"
+
+    # After
+    policy.script_src  :strict_dynamic, :unsafe_hashes, "'sha256-rRMdkshZyJlCmDX27XnL7g3zXaxv7ei6Sg+yt4R3svU='"
+    ```
+
+    *Igor Morozov*
+
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionpack/CHANGELOG.md) for previous changes.

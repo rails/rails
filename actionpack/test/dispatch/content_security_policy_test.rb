@@ -59,6 +59,9 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
     @policy.script_src :none, :report_sample
     assert_equal "script-src 'none' 'report-sample'", @policy.build
+
+    @policy.script_src :unsafe_hashes
+    assert_equal "script-src 'unsafe-hashes'", @policy.build
   end
 
   def test_fetch_directives
