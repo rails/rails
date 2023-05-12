@@ -102,54 +102,6 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 
 ### Action Controller
 
-#### `write_fragment.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
-#### `read_fragment.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
-#### `expire_fragment.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
-#### `exist_fragment?.action_controller`
-
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
-
-```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
-```
-
 #### `start_processing.action_controller`
 
 | Key           | Value                                                     |
@@ -254,6 +206,56 @@ Additional keys may be added by the caller.
 | ------------- | ----------------------------------------------------------------------------- |
 | `:keys`       | The unpermitted keys                                                          |
 | `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
+
+### Action Controller — Caching
+
+#### `write_fragment.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
+
+#### `read_fragment.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
+
+#### `expire_fragment.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
+
+#### `exist_fragment?.action_controller`
+
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
+
+```ruby
+{
+  key: 'posts/1-dashboard-view'
+}
+```
 
 ### Action Dispatch
 
@@ -441,7 +443,7 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
 }
 ```
 
-### Active Support
+### Active Support — Caching
 
 #### `cache_read.active_support`
 
@@ -644,6 +646,15 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 }
 ```
 
+[ActiveSupport::Cache::FileStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
+[ActiveSupport::Cache::MemCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html
+[ActiveSupport::Cache::MemoryStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemoryStore.html
+[ActiveSupport::Cache::RedisCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
+[ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
+[ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
+
+### Active Support — Messages
+
 #### `message_serializer_fallback.active_support`
 
 | Key             | Value                         |
@@ -661,13 +672,6 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
   deserialized: { "Hello" => "World" },
 }
 ```
-
-[ActiveSupport::Cache::FileStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
-[ActiveSupport::Cache::MemCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html
-[ActiveSupport::Cache::MemoryStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemoryStore.html
-[ActiveSupport::Cache::RedisCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
-[ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
-[ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
 
 ### Active Job
 
@@ -772,6 +776,22 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 
 ### Active Storage
 
+#### `preview.active_storage`
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+
+#### `transform.active_storage`
+
+#### `analyze.active_storage`
+
+| Key          | Value                          |
+| ------------ | ------------------------------ |
+| `:analyzer`  | Name of analyzer e.g., ffprobe |
+
+### Active Storage — Storage Service
+
 #### `service_upload.active_storage`
 
 | Key          | Value                        |
@@ -842,20 +862,6 @@ This event is only emitted when using the Google Cloud Storage service.
 | `:service`      | Name of the service              |
 | `:content_type` | HTTP `Content-Type` field        |
 | `:disposition`  | HTTP `Content-Disposition` field |
-
-#### `preview.active_storage`
-
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:key`       | Secure token        |
-
-#### `transform.active_storage`
-
-#### `analyze.active_storage`
-
-| Key          | Value                          |
-| ------------ | ------------------------------ |
-| `:analyzer`  | Name of analyzer e.g., ffprobe |
 
 ### Action Mailbox
 
