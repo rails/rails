@@ -9,7 +9,10 @@ module ActionView
     # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
+      mattr_accessor :sanitizer_vendor, default: Rails::Html::Sanitizer
+
       extend ActiveSupport::Concern
+
       # Sanitizes HTML input, stripping all but known-safe tags and attributes.
       #
       # It also strips href/src attributes with unsafe protocols like
@@ -126,7 +129,7 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :safe_list_sanitizer
 
         def sanitizer_vendor
-          Rails::Html::Sanitizer
+          ActionView::Helpers::SanitizeHelper.sanitizer_vendor
         end
 
         def sanitized_allowed_tags
