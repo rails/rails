@@ -233,6 +233,10 @@ ActiveRecord::Schema.define do
     t.references :citation
   end
 
+  create_table :paragraphs, force: true do |t|
+    t.references :book
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id
@@ -1325,7 +1329,7 @@ end
 
 Course.connection.create_table :courses, force: true do |t|
   t.column :name, :string, null: false
-  t.column :college_id, :integer
+  t.column :college_id, :integer, index: true
 end
 
 College.connection.create_table :colleges, force: true do |t|
