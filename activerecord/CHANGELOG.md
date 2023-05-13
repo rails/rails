@@ -1735,7 +1735,8 @@
 
     *wahabmangat*
 
-*    Refactored the code in `uniq!` and `order_column` definition in `activerecord/lib/active_record/relation/query_methods.rb`
+*   Refactored the code in `uniq!` and `order_column` definition in
+    `activerecord/lib/active_record/relation/query_methods.rb`
 
     ```ruby
     attr_name == "count" && !group_values.empty?
