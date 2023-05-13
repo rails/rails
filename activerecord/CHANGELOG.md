@@ -1735,14 +1735,10 @@
 
     *wahabmangat*
 
-*    Refactored the code in uniq! and order_column definition in activerecord/lib/ active_record/relation/query_methods.rb
+*    Refactored the code in `uniq!` and `order_column` definition in `activerecord/lib/active_record/relation/query_methods.rb`
 
     ```ruby
-    #PREVIOUSLY uniq! & order_columns
-    def order_column(field)
-      arel_column(field) do |attr_name|
-        if attr_name == "count" && !group_values.empty?
-        ...
+    attr_name == "count" && !group_values.empty?
 
     def uniq!(name)
       if values = @values[name]
@@ -1750,11 +1746,11 @@
       end
       self
     end
+    ```
 
-    #UPDATED
-    def order_column(field)
-      arel_column(field) do |attr_name|
-        if attr_name == "count" && group_values.present?
+    `UPDATED`
+    ```ruby
+    attr_name == "count" && group_values.present?
 
     def uniq!(name)
       values = @values[name]
