@@ -12,6 +12,7 @@ module ActionCable
       attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host, :filter_parameters
       attr_accessor :cable, :url, :mount_path
       attr_accessor :precompile_assets
+      attr_accessor :health_check_path, :health_check_application
 
       def initialize
         @log_tags = []
@@ -22,6 +23,10 @@ module ActionCable
         @disable_request_forgery_protection = false
         @allow_same_origin_as_host = true
         @filter_parameters = []
+
+        @health_check_application = ->(env) {
+          [204, { "Content-Type" => "text/html", "date" => Time.now.httpdate }, []]
+        }
       end
 
       # Returns constant of subscription adapter specified in config/cable.yml.

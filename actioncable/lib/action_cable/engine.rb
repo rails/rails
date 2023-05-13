@@ -24,6 +24,12 @@ module ActionCable
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "action_cable.health_check_application" do
+      ActiveSupport.on_load(:action_cable) {
+        self.health_check_application = ->(env) { Rails::HealthController.action(:show).call(env) }
+      }
+    end
+
     initializer "action_cable.asset" do
       config.after_initialize do |app|
         if app.config.respond_to?(:assets) && app.config.action_cable.precompile_assets
