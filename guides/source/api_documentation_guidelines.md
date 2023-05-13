@@ -185,6 +185,16 @@ For example,
 #   # => #<Customer id: 10, first_name: "Ryan">
 ```
 
+### Bash / Command-line
+
+For command-line examples, always prefix the command with `$`, the output doesn't have to be prefixed with anything.
+
+```
+# Run the following command:
+#   $ bin/rails new zomg
+#   ...
+```
+
 Booleans
 --------
 
