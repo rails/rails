@@ -93,7 +93,7 @@ module ActionView
           break translated unless translated == MISSING_TRANSLATION
 
           if alternatives.present? && !alternatives.first.is_a?(Symbol)
-            break alternatives.first && I18n.translate(**options, default: alternatives)
+            break alternatives.first && I18n.translate(nil, **options, default: alternatives)
           end
 
           first_key ||= key
