@@ -1733,7 +1733,36 @@
     User.authenticate_by(email: "...", password: "...")
     ```
 
-    *Jonathan Hefner*
+  *wahabmangat*
+  Refactored the code in uniq! and order_column definition in activerecord/lib/active_record/relation/query_methods.rb
 
+  ```ruby
+  #PREVIOUSLY
+  def uniq!(name)
+    if values = @values[name]
+      values.uniq! if values.is_a?(Array) && !values.empty?
+    end
+    self
+  end
+
+  #UPDATED
+  def uniq!(name)
+    values = @values[name]
+    values.uniq! if values&.is_a?(Array)
+    self
+  end
+
+  #PREVIOUSLY
+  def order_column(field)
+    arel_column(field) do |attr_name|
+      if attr_name == "count" && !group_values.empty?
+      ...
+
+  #UPDATED
+  def order_column(field)
+    arel_column(field) do |attr_name|
+      if attr_name == "count" && group_values.present?
+  ```
+  *wahabmangat*
 
 Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activerecord/CHANGELOG.md) for previous changes.
