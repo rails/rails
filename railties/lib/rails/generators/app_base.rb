@@ -555,7 +555,7 @@ module Rails
       end
 
       def dockerfile_deploy_packages
-        packages = []
+        packages = ["curl"]
 
         # ActiveRecord databases
         packages << deploy_package_for_database unless skip_active_record?
