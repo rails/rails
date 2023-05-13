@@ -455,7 +455,7 @@ module ActionView
       #
       #   picture_tag("picture.webp")
       #   # => <picture><img src="/images/picture.webp" /></picture>
-      #   picture_tag("gold.png", :image => { :size => "20" }
+      #   picture_tag("gold.png", :image => { :size => "20" })
       #   # => <picture><img height="20" src="/images/gold.png" width="20" /></picture>
       #   picture_tag("gold.png", :image => { :size => "45x70" })
       #   # => <picture><img height="70" src="/images/gold.png" width="45" /></picture>
