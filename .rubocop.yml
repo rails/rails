@@ -19,6 +19,7 @@ AllCops:
     - 'actionmailbox/test/dummy/**/*'
     - 'activestorage/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
+    - 'tools/rail_inspector/test/fixtures/*'
     - '**/node_modules/**/*'
     - '**/CHANGELOG.md'
     - '**/2_*_release_notes.md'

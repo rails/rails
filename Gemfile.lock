@@ -369,6 +369,7 @@ GEM
       ast (~> 2.4.1)
     path_expander (1.1.1)
     pg (1.5.3)
+    prettier_print (1.2.1)
     propshaft (0.6.4)
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
@@ -513,6 +514,8 @@ GEM
     stringio (3.0.7)
     sucker_punch (3.1.0)
       concurrent-ruby (~> 1.0)
+    syntax_tree (6.1.1)
+      prettier_print (>= 1.2.0)
     tailwindcss-rails (2.0.21)
       railties (>= 6.0.0)
     tailwindcss-rails (2.0.21-x86_64-darwin)
@@ -631,6 +634,7 @@ DEPENDENCIES
   stackprof
   stimulus-rails
   sucker_punch
+  syntax_tree (= 6.1.1)
   tailwindcss-rails
   terser (>= 1.1.4)
   trilogy (>= 2.5.0)
