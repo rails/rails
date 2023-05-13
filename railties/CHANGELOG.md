@@ -14,6 +14,7 @@
 
     `bin/rails secrets:show` and `bin/rails secrets:edit` have been deprecated
     in favor of credentials.
+
     Run `bin/rails credentials:help` for more information
 
     *Petrik de Heus*
@@ -29,7 +30,7 @@
     The following would previously fail with a "No Rakefile found" error.
 
     ```bash
-    blog/bin/rails restart
+    $ blog/bin/rails restart
     ```
 
     *Petrik de Heus*
@@ -138,7 +139,7 @@
     options reference an action that doesn't exist. This will be enabled by
     default but can be overridden via config.
 
-    ```
+    ```ruby
     # config/environments/production.rb
     config.action_controller.raise_on_missing_callback_actions = false
     ```
@@ -157,24 +158,24 @@
 
     Example:
 
-    ```
-    docker build -t app .
-    docker volume create app-storage
-    docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
+    ```bash
+    $ docker build -t app .
+    $ docker volume create app-storage
+    $ docker run --rm -it -v app-storage:/rails/storage -p 3000:3000 --env RAILS_MASTER_KEY=<see config/master.key> app
     ```
 
     You can also start a console or a runner from this image:
 
-    ```
-    docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
+    ```bash
+    $ docker run --rm -it -v app-storage:/rails/storage --env RAILS_MASTER_KEY=<see config/master.key> app console
     ```
 
     To create a multi-platform image on Apple Silicon to deploy on AMD or Intel and push to Docker Hub for user/app:
 
-    ```
-    docker login -u <user>
-    docker buildx create --use
-    docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
+    ```bash
+    $ docker login -u <user>
+    $ docker buildx create --use
+    $ docker buildx build --push --platform=linux/amd64,linux/arm64 -t <user/image> .
     ```
 
     *DHH, Sam Ruby*
@@ -320,8 +321,8 @@
 
     Example:
 
-    ```
-    > bin/rails routes --grep /cats/1
+    ```bash
+    $ bin/rails routes --grep /cats/1
     Prefix Verb   URI Pattern         Controller#Action
        cat GET    /cats/:id(.:format) cats#show
            PATCH  /cats/:id(.:format) cats#update
@@ -346,8 +347,8 @@
 
     Example:
 
-    ```
-    > bin/rails routes --unused
+    ```bash
+    $ bin/rails routes --unused
 
     Found 2 unused routes:
 
@@ -394,7 +395,7 @@
 *   `--no-*` options now work with the app generator's `--minimal` option, and
     are both comprehensive and precise.  For example:
 
-    ```console
+    ```bash
     $ rails new my_cool_app --minimal
     Based on the specified options, the following options will also be activated:
 
