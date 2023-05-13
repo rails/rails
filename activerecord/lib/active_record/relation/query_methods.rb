@@ -1424,9 +1424,8 @@ module ActiveRecord
 
     # Deduplicate multiple values.
     def uniq!(name)
-      if values = @values[name]
-        values.uniq! if values.is_a?(Array) && !values.empty?
-      end
+      values = @values[name]
+      values.uniq! if values&.is_a?(Array)
       self
     end
 
@@ -1911,7 +1910,7 @@ module ActiveRecord
 
       def order_column(field)
         arel_column(field) do |attr_name|
-          if attr_name == "count" && !group_values.empty?
+          if attr_name == "count" && group_values.present?
             table[attr_name]
           else
             Arel.sql(connection.quote_table_name(attr_name))
