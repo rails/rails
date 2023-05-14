@@ -385,11 +385,11 @@ ActionCable.server.broadcast("chat_Best Room", { body: "This Room is Best Room."
 If you have a stream that is related to a model, then the broadcasting name
 can be generated from the channel and model. For example, the following code
 uses [`stream_for`][] to subscribe to a broadcasting like
-`comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
+`posts:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
 the GlobalID of the Post model.
 
 ```ruby
-class CommentsChannel < ApplicationCable::Channel
+class PostsChannel < ApplicationCable::Channel
   def subscribed
     post = Post.find(params[:id])
     stream_for post
@@ -400,7 +400,7 @@ end
 You can then broadcast to this channel by calling [`broadcast_to`][]:
 
 ```ruby
-CommentsChannel.broadcast_to(@post, @comment)
+PostsChannel.broadcast_to(@post, @comment)
 ```
 
 [`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
