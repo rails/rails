@@ -230,6 +230,16 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     end
   end
 
+  test "#execute triggers the query size validation (check_if_max_allowed_packet_reached)" do
+    @conn.send :max_allowed_packet # sets the @max_allowed_packet instance variable
+
+    @conn.stub(:max_allowed_packet, 8) do
+      assert_raises_with_message ActiveRecord::ActiveRecordError, "Query is too large: 20 vs 8 bytes. Consider increasing the max_allowed_packet variable or reduce your payload." do
+        @conn.execute "SELECT * FROM posts;"
+      end
+    end
+  end
+
   test "#indexes answers indexes with existing indexes" do
     proof = [{
       table: "posts",

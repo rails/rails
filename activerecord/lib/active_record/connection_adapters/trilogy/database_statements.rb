@@ -42,6 +42,8 @@ module ActiveRecord
 
         private
           def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+            check_if_max_allowed_packet_reached(sql)
+
             log(sql, name, async: async) do
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)
@@ -73,6 +75,18 @@ module ActiveRecord
                 conn.next_result while conn.more_results_exist?
               end
             end
+          end
+
+          def check_if_max_allowed_packet_reached(packet)
+            return if @max_allowed_packet.nil? # accessing the variable directly in order to avoid a circular dependency on exec_query
+            return if packet.bytesize <= max_allowed_packet
+
+            raise ActiveRecordError,
+                  "Query is too large: #{packet.bytesize} vs #{max_allowed_packet} bytes. Consider increasing the max_allowed_packet variable or reduce your payload."
+          end
+
+          def max_allowed_packet
+            @max_allowed_packet ||= show_variable("max_allowed_packet")
           end
 
           def multi_statements_enabled?
