@@ -6,6 +6,15 @@ ActiveRecord::Schema.define do
 
   uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
 
+  create_table :chat_messages, id: :uuid, force: true, **uuid_default do |t|
+    t.text :content
+  end
+
+  create_table :chat_messages_custom_pk, id: false, force: true do |t|
+    t.uuid :message_id, primary_key: true, default: "uuid_generate_v4()"
+    t.text :content
+  end
+
   create_table :uuid_parents, id: :uuid, force: true, **uuid_default do |t|
     t.string :name
   end

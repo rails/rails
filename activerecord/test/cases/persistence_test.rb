@@ -22,6 +22,7 @@ require "models/ship"
 require "models/admin"
 require "models/admin/user"
 require "models/cpk"
+require "models/chat_message"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -461,6 +462,23 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic_reloaded.title)
   end
+
+  def test_create_model_with_uuid_pk_populates_id
+    message = ChatMessage.create(content: "New Message")
+    assert_not_nil message.id
+
+    message_reloaded = ChatMessage.find(message.id)
+    assert_equal "New Message", message_reloaded.content
+  end if current_adapter?(:PostgreSQLAdapter)
+
+
+  def test_create_model_with_custom_named_uuid_pk_populates_id
+    message = ChatMessageCustomPk.create(content: "New Message")
+    assert_not_nil message.message_id
+
+    message_reloaded = ChatMessageCustomPk.find(message.message_id)
+    assert_equal "New Message", message_reloaded.content
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_build
     topic = Topic.build(title: "New Topic")
