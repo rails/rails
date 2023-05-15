@@ -47,7 +47,9 @@ The first step is to create a file at `lib/generators/initializer_generator.rb` 
 ```ruby
 class InitializerGenerator < Rails::Generators::Base
   def create_initializer_file
-    create_file "config/initializers/initializer.rb", "# Add initialization content here"
+    create_file "config/initializers/initializer.rb", <<~RUBY
+      # Add initialization content here
+    RUBY
   end
 end
 ```
@@ -74,7 +76,9 @@ Rails is usually able to generate good descriptions if a generator is namespaced
 class InitializerGenerator < Rails::Generators::Base
   desc "This generator creates an initializer file at config/initializers"
   def create_initializer_file
-    create_file "config/initializers/initializer.rb", "# Add initialization content here"
+    create_file "config/initializers/initializer.rb", <<~RUBY
+      # Add initialization content here
+    RUBY
   end
 end
 ```
@@ -241,11 +245,11 @@ Add the method below, so our generator looks like the following:
 # lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
-    create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
-module #{class_name}Helper
-  attr_reader :#{plural_name}, :#{plural_name.singularize}
-end
-    FILE
+    create_file "app/helpers/#{file_name}_helper.rb", <<~RUBY
+      module #{class_name}Helper
+        attr_reader :#{plural_name}, :#{plural_name.singularize}
+      end
+    RUBY
   end
 end
 ```
@@ -296,11 +300,11 @@ To do that, we can change the generator this way:
 # lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
-    create_file "app/helpers/#{file_name}_helper.rb", <<-FILE
-module #{class_name}Helper
-  attr_reader :#{plural_name}, :#{plural_name.singularize}
-end
-    FILE
+    create_file "app/helpers/#{file_name}_helper.rb", <<~RUBY
+      module #{class_name}Helper
+        attr_reader :#{plural_name}, :#{plural_name.singularize}
+      end
+    RUBY
   end
 
   hook_for :test_framework
