@@ -6,6 +6,8 @@ module ActiveRecord
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/range_handler"
     require "active_record/relation/predicate_builder/relation_handler"
+    require "active_record/relation/predicate_builder/relation_in_handler"
+    require "active_record/relation/predicate_builder/relation_exists_handler"
     require "active_record/relation/predicate_builder/association_query_value"
     require "active_record/relation/predicate_builder/polymorphic_array_value"
 
@@ -15,7 +17,7 @@ module ActiveRecord
 
       register_handler(BasicObject, BasicObjectHandler.new(self))
       register_handler(Range, RangeHandler.new(self))
-      register_handler(Relation, RelationHandler.new)
+      register_handler(Relation, PredicateBuilder.relation_handler)
       register_handler(Array, ArrayHandler.new(self))
       register_handler(Set, ArrayHandler.new(self))
     end
@@ -33,6 +35,10 @@ module ActiveRecord
           result << Arel.sql(key[0, idx])
         end
       end
+    end
+
+    def self.relation_handler
+      ActiveRecord.use_exists_for_subqueries ? RelationExistsHandler.new : RelationInHandler.new
     end
 
     # Define how a class is converted to Arel nodes when passed to +where+.

@@ -54,6 +54,10 @@
 # See https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted for more details.
 # Rails.application.config.active_record.sqlite3_adapter_strict_strings_by_default = true
 
+# Enable handling subqueries using `EXISTS`, It can bring some performance improvements.
+# The previous behavior was handling subqueries using `IN`.
+# Rails.application.config.active_record.use_exists_for_subqueries = true
+
 # Disable deprecated singular associations names
 # Rails.application.config.active_record.allow_deprecated_singular_associations_name = false
 

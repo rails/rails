@@ -74,6 +74,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.run_after_transaction_callbacks_in_order_defined`](#config-active-record-run-after-transaction-callbacks-in-order-defined): `true`
 - [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
+- [`config.active_record.use_exists_for_subqueries`](#config-active-record-use-exists-for-subqueries): `true`
 - [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.1`
 - [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json_allow_marshal`
 - [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
@@ -1368,6 +1369,16 @@ For example, it is possible to create an index for a non existing column.
 See [SQLite documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted) for more details.
 
 The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 7.1                   | `true`               |
+
+#### `config.active_record.use_exists_for_subqueries`
+
+Enable handling subqueries using `EXISTS`, It can bring some performance improvements.
+The previous behavior was handling subqueries using `IN`.
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |

@@ -316,6 +316,9 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
+  singleton_class.attr_accessor :use_exists_for_subqueries
+  self.use_exists_for_subqueries = true
+
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of

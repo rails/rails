@@ -1,3 +1,25 @@
+*   Handle subqueries using `EXISTS` instead of `IN`, It can bring some performance improvements.
+
+    ```ruby
+    Post.where(author: Author.all)
+
+    # Before, subqueries were handled using IN:
+    #=> SELECT ... WHERE "posts"."author_id" IN (SELECT "authors"."id" FROM "authors")
+
+    # After, subqueries are handled using EXISTS:
+    #=> SELECT ... WHERE EXISTS (SELECT 1 FROM "authors" WHERE "authors"."id" = "posts"."author_id")
+    ```
+
+    This behavior can be controlled by configuration:
+
+    ```ruby
+    config.active_record.use_exists_for_subqueries = false
+    ```
+
+    and will be enabled by default with `config.load_defaults 7.1`.
+
+    *Lázaro Nixon*
+
 *   Discard connections which may have been left in a transaction.
 
     There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:
