@@ -18,7 +18,7 @@ module ActiveRecord
           result
         end
 
-        def exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
+        def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
           if without_prepared_statement?(binds)
             execute_and_free(sql, name, async: async) do |result|
               if result

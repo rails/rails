@@ -105,7 +105,7 @@ module ActiveRecord
       end
 
       def query(sql, name = nil) # :nodoc:
-        exec_query(sql, name).rows
+        internal_exec_query(sql, name).rows
       end
 
       # Determines whether the SQL statement is a write query.
@@ -120,8 +120,12 @@ module ActiveRecord
       # executing the SQL statement in case of a connection-related exception.
       # This option should only be enabled for known idempotent queries.
       #
+      # Note: the query is assumed to have side effects and the query cache
+      # will be cleared. If the query is read-only, consider using #select_all
+      # instead.
+      #
       # Note: depending on your database connector, the result returned by this
-      # method may be manually memory managed. Consider using the exec_query
+      # method may be manually memory managed. Consider using #exec_query
       # wrapper instead.
       def execute(sql, name = nil, allow_retry: false)
         internal_execute(sql, name, allow_retry: allow_retry)
@@ -130,8 +134,12 @@ module ActiveRecord
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
+      #
+      # Note: the query is assumed to have side effects and the query cache
+      # will be cleared. If the query is read-only, consider using #select_all
+      # instead.
       def exec_query(sql, name = "SQL", binds = [], prepare: false)
-        raise NotImplementedError
+        internal_exec_query(sql, name, binds, prepare: prepare)
       end
 
       # Executes insert +sql+ statement in the context of this connection using
@@ -139,25 +147,25 @@ module ActiveRecord
       # the executed +sql+ statement.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
         sql, binds = sql_for_insert(sql, pk, binds)
-        exec_query(sql, name, binds)
+        internal_exec_query(sql, name, binds)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name = nil, binds = [])
-        exec_query(sql, name, binds)
+        internal_exec_query(sql, name, binds)
       end
 
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name = nil, binds = [])
-        exec_query(sql, name, binds)
+        internal_exec_query(sql, name, binds)
       end
 
       def exec_insert_all(sql, name) # :nodoc:
-        exec_query(sql, name)
+        internal_exec_query(sql, name)
       end
 
       def explain(arel, binds = [], options = []) # :nodoc:
@@ -490,6 +498,10 @@ module ActiveRecord
         HIGH_PRECISION_CURRENT_TIMESTAMP
       end
 
+      def internal_exec_query(sql, name = "SQL", binds = [], prepare: false, async: false) # :nodoc:
+        raise NotImplementedError
+      end
+
       private
         def internal_execute(sql, name = "SCHEMA", allow_retry: false, materialize_transactions: true)
           sql = transform_query(sql)
@@ -606,7 +618,7 @@ module ActiveRecord
             return future_result
           end
 
-          result = exec_query(sql, name, binds, prepare: prepare)
+          result = internal_exec_query(sql, name, binds, prepare: prepare)
           if async
             FutureResult::Complete.new(result)
           else

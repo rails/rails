@@ -459,7 +459,7 @@ module ActiveRecord
         sql = +"CREATE EXTENSION IF NOT EXISTS \"#{name}\""
         sql << " SCHEMA #{schema}" if schema
 
-        exec_query(sql).tap { reload_type_map }
+        internal_exec_query(sql).tap { reload_type_map }
       end
 
       # Removes an extension from the database.
@@ -468,7 +468,7 @@ module ActiveRecord
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       def disable_extension(name, force: false)
-        exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
+        internal_exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
           reload_type_map
         }
       end
@@ -482,7 +482,7 @@ module ActiveRecord
       end
 
       def extensions
-        exec_query("SELECT extname FROM pg_extension", "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values
+        internal_exec_query("SELECT extname FROM pg_extension", "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values
       end
 
       # Returns a list of defined enum types, and their values.
@@ -500,7 +500,7 @@ module ActiveRecord
           GROUP BY type.OID, n.nspname, type.typname;
         SQL
 
-        exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.each_with_object({}) do |row, memo|
+        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.each_with_object({}) do |row, memo|
           name, schema = row[0], row[2]
           schema = nil if schema == current_schema
           full_name = [schema, name].compact.join(".")
@@ -527,7 +527,7 @@ module ActiveRecord
           END
           $$;
         SQL
-        exec_query(query)
+        internal_exec_query(query)
       end
 
       # Drops an enum type.
@@ -543,7 +543,7 @@ module ActiveRecord
         query = <<~SQL
           DROP TYPE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(name)};
         SQL
-        exec_query(query)
+        internal_exec_query(query)
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
