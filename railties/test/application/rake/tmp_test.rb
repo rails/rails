@@ -42,6 +42,20 @@ module ApplicationTests
         FileUtils.remove_dir("#{app_path}/tmp")
         rails "tmp:clear"
       end
+
+      test "tmp:create creates cache, sockets, pids, screenshots, and storage folders" do
+        Dir.chdir(app_path) do
+          FileUtils.remove_dir("#{app_path}/tmp")
+
+          rails "tmp:create"
+
+          assert Dir.exist?("tmp/cache/assets")
+          assert Dir.exist?("tmp/sockets")
+          assert Dir.exist?("tmp/pids")
+          assert Dir.exist?("tmp/screenshots")
+          assert Dir.exist?("tmp/storage")
+        end
+      end
     end
   end
 end
