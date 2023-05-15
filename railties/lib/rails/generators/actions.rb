@@ -220,11 +220,20 @@ module Rails
       end
       alias :application :environment
 
-      # Run a command in git.
+      # Runs one or more git commands.
       #
       #   git :init
+      #   # => runs `git init`
+      #
       #   git add: "this.file that.rb"
-      #   git add: "onefile.rb", rm: "badfile.cxx"
+      #   # => runs `git add this.file that.rb`
+      #
+      #   git commit: "-m 'First commit'"
+      #   # => runs `git commit -m 'First commit'`
+      #
+      #   git add: "good.rb", rm: "bad.cxx"
+      #   # => runs `git add good.rb; git rm bad.cxx`
+      #
       def git(commands = {})
         if commands.is_a?(Symbol)
           run "git #{commands}"
