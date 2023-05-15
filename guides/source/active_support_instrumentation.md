@@ -96,11 +96,10 @@ end
 [`ActiveSupport::Notifications.monotonic_subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe
 [`ActiveSupport::Notifications.subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe
 
-View timings from instrumentation in your browser
------------------------
+View Timings from Instrumentation in Your Browser
+-------------------------------------------------
 
 Rails implements the [Server Timing](https://www.w3.org/TR/server-timing/) standard to make timing information available in the web browser. To enable, edit your environment configuration (usually `development.rb` as this is most-used in development) to include the following:
-
 
 ```ruby
   config.server_timing = true
