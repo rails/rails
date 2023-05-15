@@ -3,7 +3,8 @@
 Creating and Customizing Rails Generators & Templates
 =====================================================
 
-Rails generators are an essential tool if you plan to improve your workflow. With this guide you will learn how to create generators and customize existing ones.
+Rails generators are an essential tool for improving your workflow. With this
+guide you will learn how to create generators and customize existing ones.
 
 After reading this guide, you will know:
 
@@ -20,7 +21,9 @@ After reading this guide, you will know:
 First Contact
 -------------
 
-When you create an application using the `rails` command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking `bin/rails generate`:
+When you create an application using the `rails` command, you are in fact using
+a Rails generator. After that, you can get a list of all available generators by
+invoking `bin/rails generate`:
 
 ```bash
 $ rails new myapp
@@ -28,20 +31,28 @@ $ cd myapp
 $ bin/rails generate
 ```
 
-NOTE: To create a rails application we use the `rails` global command, the rails gem installed via `gem install rails`. When inside the directory of your application, we use  the command `bin/rails` which uses the bundled rails inside this application.
+NOTE: To create a rails application we use the `rails` global command which uses
+the version of Rails installed via `gem install rails`. When inside the
+directory of your application, we use the `bin/rails` command which uses the
+version of Rails bundled with the application.
 
-You will get a list of all generators that come with Rails. If you need a detailed description of the helper generator, for example, you can simply do:
+You will get a list of all generators that come with Rails. To see a detailed
+description of a particular generator, invoke the generator with the `--help`
+option. For example:
 
 ```bash
-$ bin/rails generate helper --help
+$ bin/rails generate scaffold --help
 ```
 
 Creating Your First Generator
 -----------------------------
 
-Generators are built on top of [Thor](https://github.com/rails/thor). Thor provides powerful options for parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
+Generators are built on top of [Thor](https://github.com/rails/thor), which
+provides powerful options for parsing and a great API for manipulating files.
 
-The first step is to create a file at `lib/generators/initializer_generator.rb` with the following content:
+Let's build a generator that creates an initializer file named `initializer.rb`
+inside `config/initializers`. The first step is to create a file at
+`lib/generators/initializer_generator.rb` with the following content:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::Base
@@ -53,23 +64,28 @@ class InitializerGenerator < Rails::Generators::Base
 end
 ```
 
-NOTE: [`create_file`][] is a method provided by [`Thor::Actions`][]. See the `Thor::Actions` documentation for other methods it provides.
+Our new generator is quite simple: it inherits from [`Rails::Generators::Base`][]
+and has one method definition. When a generator is invoked, each public method
+in the generator is executed sequentially in the order that it is defined. Our
+method invokes [`create_file`][], which will create a file at the given
+destination with the given content.
 
-Our new generator is quite simple: it inherits from [`Rails::Generators::Base`][] and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the `create_file` method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
-
-To invoke our new generator, we just need to do:
+To invoke our new generator, we run:
 
 ```bash
 $ bin/rails generate initializer
 ```
 
-Before we go on, let's see our brand new generator description:
+Before we go on, let's see the description of our new generator:
 
 ```bash
 $ bin/rails generate initializer --help
 ```
 
-Rails is usually able to generate good descriptions if a generator is namespaced, as `ActiveRecord::Generators::ModelGenerator`, but not in this particular case. We can solve this problem in two ways. The first one is calling [`desc`][] inside our generator:
+Rails is usually able to derive a good description if a generator is namespaced,
+such as `ActiveRecord::Generators::ModelGenerator`, but not in this case. We can
+solve this problem in two ways. The first way to add a description is by calling
+[`desc`][] inside our generator:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::Base
@@ -82,7 +98,10 @@ class InitializerGenerator < Rails::Generators::Base
 end
 ```
 
-Now we can see the new description by invoking `--help` on the new generator. The second way to add a description is by creating a file named `USAGE` in the same directory as our generator. We are going to do that in the next step.
+Now we can see the new description by invoking `--help` on the new generator.
+
+The second way to add a description is by creating a file named `USAGE` in the
+same directory as our generator. We are going to do that in the next step.
 
 [`Rails::Generators::Base`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html
 [`Thor::Actions`]: https://www.rubydoc.info/gems/thor/Thor/Actions
@@ -92,9 +111,12 @@ Now we can see the new description by invoking `--help` on the new generator. Th
 Creating Generators with Generators
 -----------------------------------
 
-Generators themselves have a generator:
+Generators themselves have a generator. Let's remove our `InitializerGenerator`
+and use `bin/rails generate generator` to generate a new one:
 
 ```bash
+$ rm lib/generators/initializer_generator.rb
+
 $ bin/rails generate generator initializer
       create  lib/generators/initializer
       create  lib/generators/initializer/initializer_generator.rb
@@ -108,13 +130,16 @@ This is the generator just created:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path('templates', __dir__)
+  source_root File.expand_path("templates", __dir__)
 end
 ```
 
-First, notice that we are inheriting from [`Rails::Generators::NamedBase`][] instead of `Rails::Generators::Base`. This means that our generator expects at least one argument, which will be the name of the initializer, and will be available in our code in the variable `name`.
+First, notice that the generator inherits from [`Rails::Generators::NamedBase`][]
+instead of `Rails::Generators::Base`. This means that our generator expects at
+least one argument, which will be the name of the initializer and will be
+available to our code via `name`.
 
-We can see that by invoking the description of this new generator (don't forget to delete the old generator file):
+We can see that by checking the description of the new generator:
 
 ```bash
 $ bin/rails generate initializer --help
@@ -122,19 +147,24 @@ Usage:
   bin/rails generate initializer NAME [options]
 ```
 
-We can also see that our new generator has a class method called [`source_root`][]. This method points to where our generator templates will be placed, if any, and by default it points to the created directory `lib/generators/initializer/templates`.
+Also, notice that the generator has a class method called [`source_root`][].
+This method points to the location of our templates, if any. By default it
+points to the `lib/generators/initializer/templates` directory that was just
+created.
 
-In order to understand what a generator template means, let's create the file `lib/generators/initializer/templates/initializer.rb` with the following content:
+In order to understand how generator templates work, let's create the file
+`lib/generators/initializer/templates/initializer.rb` with the following
+content:
 
 ```ruby
 # Add initialization content here
 ```
 
-And now let's change the generator to copy this template when invoked:
+And let's change the generator to copy this template when invoked:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path('templates', __dir__)
+  source_root File.expand_path("templates", __dir__)
 
   def copy_initializer_file
     copy_file "initializer.rb", "config/initializers/#{file_name}.rb"
@@ -142,7 +172,7 @@ class InitializerGenerator < Rails::Generators::NamedBase
 end
 ```
 
-And let's execute our generator:
+Now let's run our generator:
 
 ```bash
 $ bin/rails generate initializer core_extensions
@@ -152,9 +182,9 @@ $ cat config/initializers/core_extensions.rb
 # Add initialization content here
 ```
 
-We can see that now an initializer named core_extensions was created at `config/initializers/core_extensions.rb` with the contents of our template. That means that [`copy_file`][] copied a file in our source root to the destination path we gave. The method `file_name` is automatically created when we inherit from `Rails::Generators::NamedBase`.
-
-The methods that are available for generators are covered in the [final section](#generator-methods) of this guide.
+We see that [`copy_file`][] created `config/initializers/core_extensions.rb`
+with the contents of our template. (The `file_name` method used in the
+destination path is inherited from `Rails::Generators::NamedBase`.)
 
 [`Rails::Generators::NamedBase`]: https://api.rubyonrails.org/classes/Rails/Generators/NamedBase.html
 [`copy_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
@@ -189,21 +219,22 @@ end
 [`class_option`]: https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_option-instance_method
 [`options`]: https://www.rubydoc.info/gems/thor/Thor/Base#options-instance_method
 
-Generators Lookup
------------------
+Generator Resolution
+--------------------
 
-When you run `bin/rails generate initializer core_extensions` Rails requires these files in turn until one is found:
+When resolving a generator's name, Rails looks for the generator using multiple
+file names. For example, when you run `bin/rails generate initializer core_extensions`,
+Rails tries to load each of the following files, in order, until one is found:
 
-```
-rails/generators/initializer/initializer_generator.rb
-generators/initializer/initializer_generator.rb
-rails/generators/initializer_generator.rb
-generators/initializer_generator.rb
-```
+* `rails/generators/initializer/initializer_generator.rb`
+* `generators/initializer/initializer_generator.rb`
+* `rails/generators/initializer_generator.rb`
+* `generators/initializer_generator.rb`
 
-If none is found you get an error message.
+If none of these are found, an error will be raised.
 
-INFO: The examples above put files under the application's `lib` because said directory belongs to `$LOAD_PATH`.
+We put our generator in the application's `lib/` directory because that
+directory is in `$LOAD_PATH`, thus allowing Rails to find and load the file.
 
 Overriding Rails Generator Templates
 ------------------------------------
@@ -422,8 +453,8 @@ Application Templates
 ---------------------
 
 Application templates are a special kind of generator. They can use all of the
-[generator helper methods](#generator-methods), but are written as a Ruby script
-instead of a Ruby class. Here is an example:
+[generator helper methods](#generator-helper-methods), but are written as a Ruby
+script instead of a Ruby class. Here is an example:
 
 ```ruby
 # template.rb
@@ -473,8 +504,8 @@ $ rails new my_cool_app -m http://example.com/template.rb
 $ bin/rails app:template LOCATION=http://example.com/template.rb
 ```
 
-Generator methods
------------------
+Generator Helper Methods
+------------------------
 
 Thor provides many generator helper methods via [`Thor::Actions`][], such as:
 
