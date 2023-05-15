@@ -162,18 +162,47 @@ module Rails
         end
       end
 
-      # Adds a line inside the Application class for <tt>config/application.rb</tt>.
+      # Adds configuration code to a Rails runtime environment.
       #
-      # If options <tt>:env</tt> is specified, the line is appended to the corresponding
-      # file in <tt>config/environments</tt>.
+      # By default, adds code inside the +Application+ class in
+      # +config/application.rb+ so that it applies to all environments.
+      #
+      #   environment %(config.asset_host = "cdn.provider.com")
+      #
+      # Results in:
+      #
+      #   # config/application.rb
+      #   class Application < Rails::Application
+      #     config.asset_host = "cdn.provider.com"
+      #     # ...
+      #   end
+      #
+      # If the +:env+ option is specified, the code will be added to the
+      # corresponding file in +config/environments+ instead.
+      #
+      #   environment %(config.asset_host = "localhost:3000"), env: "development"
+      #
+      # Results in:
+      #
+      #   # config/environments/development.rb
+      #   Rails.application.configure do
+      #     config.asset_host = "localhost:3000"
+      #     # ...
+      #   end
+      #
+      # +:env+ can also be an array. In which case, the code is added to each
+      # corresponding file in +config/environments+.
+      #
+      # The code can also be specified as the return value of the block:
       #
       #   environment do
-      #     "config.asset_host = 'cdn.provider.com'"
+      #     %(config.asset_host = "cdn.provider.com")
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.asset_host = 'localhost:3000'"
+      #     %(config.asset_host = "localhost:3000")
       #   end
+      #
       def environment(data = nil, options = {})
         sentinel = "class Application < Rails::Application\n"
         env_file_sentinel = "Rails.application.configure do\n"
