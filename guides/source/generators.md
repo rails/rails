@@ -54,9 +54,9 @@ class InitializerGenerator < Rails::Generators::Base
 end
 ```
 
-NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](https://www.rubydoc.info/gems/thor/Thor/Actions).
+NOTE: [`create_file`][] is a method provided by [`Thor::Actions`][]. See the `Thor::Actions` documentation for other methods it provides.
 
-Our new generator is quite simple: it inherits from `Rails::Generators::Base` and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the `create_file` method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
+Our new generator is quite simple: it inherits from [`Rails::Generators::Base`][] and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the `create_file` method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
 
 To invoke our new generator, we just need to do:
 
@@ -70,7 +70,7 @@ Before we go on, let's see our brand new generator description:
 $ bin/rails generate initializer --help
 ```
 
-Rails is usually able to generate good descriptions if a generator is namespaced, as `ActiveRecord::Generators::ModelGenerator`, but not in this particular case. We can solve this problem in two ways. The first one is calling `desc` inside our generator:
+Rails is usually able to generate good descriptions if a generator is namespaced, as `ActiveRecord::Generators::ModelGenerator`, but not in this particular case. We can solve this problem in two ways. The first one is calling [`desc`][] inside our generator:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::Base
@@ -84,6 +84,11 @@ end
 ```
 
 Now we can see the new description by invoking `--help` on the new generator. The second way to add a description is by creating a file named `USAGE` in the same directory as our generator. We are going to do that in the next step.
+
+[`Rails::Generators::Base`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html
+[`Thor::Actions`]: https://www.rubydoc.info/gems/thor/Thor/Actions
+[`create_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
+[`desc`]: https://www.rubydoc.info/gems/thor/Thor#desc-class_method
 
 Creating Generators with Generators
 -----------------------------------
@@ -108,7 +113,7 @@ class InitializerGenerator < Rails::Generators::NamedBase
 end
 ```
 
-First, notice that we are inheriting from `Rails::Generators::NamedBase` instead of `Rails::Generators::Base`. This means that our generator expects at least one argument, which will be the name of the initializer, and will be available in our code in the variable `name`.
+First, notice that we are inheriting from [`Rails::Generators::NamedBase`][] instead of `Rails::Generators::Base`. This means that our generator expects at least one argument, which will be the name of the initializer, and will be available in our code in the variable `name`.
 
 We can see that by invoking the description of this new generator (don't forget to delete the old generator file):
 
@@ -118,7 +123,7 @@ Usage:
   bin/rails generate initializer NAME [options]
 ```
 
-We can also see that our new generator has a class method called `source_root`. This method points to where our generator templates will be placed, if any, and by default it points to the created directory `lib/generators/initializer/templates`.
+We can also see that our new generator has a class method called [`source_root`][]. This method points to where our generator templates will be placed, if any, and by default it points to the created directory `lib/generators/initializer/templates`.
 
 In order to understand what a generator template means, let's create the file `lib/generators/initializer/templates/initializer.rb` with the following content:
 
@@ -148,9 +153,13 @@ $ cat config/initializers/core_extensions.rb
 # Add initialization content here
 ```
 
-We can see that now an initializer named core_extensions was created at `config/initializers/core_extensions.rb` with the contents of our template. That means that `copy_file` copied a file in our source root to the destination path we gave. The method `file_name` is automatically created when we inherit from `Rails::Generators::NamedBase`.
+We can see that now an initializer named core_extensions was created at `config/initializers/core_extensions.rb` with the contents of our template. That means that [`copy_file`][] copied a file in our source root to the destination path we gave. The method `file_name` is automatically created when we inherit from `Rails::Generators::NamedBase`.
 
 The methods that are available for generators are covered in the [final section](#generator-methods) of this guide.
+
+[`Rails::Generators::NamedBase`]: https://api.rubyonrails.org/classes/Rails/Generators/NamedBase.html
+[`copy_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
+[`source_root`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-source_root
 
 Generators Lookup
 -----------------
@@ -458,7 +467,7 @@ Whilst the final section of this guide doesn't cover how to generate the most aw
 Adding Command Line Arguments
 -----------------------------
 
-Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_options-instance_method):
+Rails generators can be easily modified to accept custom command line arguments using [`class_option`][]:
 
 ```ruby
 class_option :scope, type: :string, default: 'read_products'
@@ -470,11 +479,14 @@ Now our generator can be invoked as follows:
 $ bin/rails generate initializer --scope write_products
 ```
 
-The command line arguments are accessed through the `options` method inside the generator class. e.g:
+The command line arguments are accessed through the [`options`][] method inside the generator class. e.g:
 
 ```ruby
 @scope = options['scope']
 ```
+
+[`class_option`]: https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_option-instance_method
+[`options`]: https://www.rubydoc.info/gems/thor/Thor/Base#options-instance_method
 
 Generator methods
 -----------------
