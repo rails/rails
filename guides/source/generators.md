@@ -40,7 +40,7 @@ $ bin/rails generate helper --help
 Creating Your First Generator
 -----------------------------
 
-Since Rails 3.0, generators are built on top of [Thor](https://github.com/rails/thor). Thor provides powerful options for parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
+Generators are built on top of [Thor](https://github.com/rails/thor). Thor provides powerful options for parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
 
 The first step is to create a file at `lib/generators/initializer_generator.rb` with the following content:
 
@@ -206,7 +206,7 @@ $ bin/rails generate scaffold User name:string
       create    test/system/users_test.rb
 ```
 
-Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything; it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the `scaffold_controller` generator, which invokes `erb`, `test_unit`, and `helper` generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
+Looking at this output, it's easy to understand how generators work. The scaffold generator doesn't actually generate anything; it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the `scaffold_controller` generator, which invokes `erb`, `test_unit`, and `helper` generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
 
 The next customization on the workflow will be to stop generating stylesheet and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
 
@@ -288,7 +288,7 @@ $ bin/rails generate scaffold Article body:text
 
 We can notice on the output that our new helper was invoked instead of the Rails default. However one thing is missing, which is tests for our new generator and to do that, we are going to reuse old helpers test generators.
 
-Since Rails 3.0, this is easy to do due to the hooks concept. Our new helper does not need to be focused in one specific test framework, it can simply provide a hook and a test framework just needs to implement this hook in order to be compatible.
+This is easy to do due to the hooks concept. Our new helper does not need to be focused in one specific test framework, it can simply provide a hook and a test framework just needs to implement this hook in order to be compatible.
 
 To do that, we can change the generator this way:
 
@@ -321,7 +321,7 @@ Customizing Your Workflow by Changing Generators Templates
 
 In the step above we simply wanted to add a line to the generated helper, without adding any extra functionality. There is a simpler way to do that, and it's by replacing the templates of already existing generators, in that case `Rails::Generators::HelperGenerator`.
 
-In Rails 3.0 and above, generators don't just look in the source root for templates, they also search for templates in other paths. And one of them is `lib/templates`. Since we want to customize `Rails::Generators::HelperGenerator`, we can do that by simply making a template copy inside `lib/templates/rails/helper` with the name `helper.rb`. So let's create that file with the following content:
+Generators don't just look in the source root for templates, they also search for templates in other paths. And one of them is `lib/templates`. Since we want to customize `Rails::Generators::HelperGenerator`, we can do that by simply making a template copy inside `lib/templates/rails/helper` with the name `helper.rb`. So let's create that file with the following content:
 
 ```erb
 module <%= class_name %>Helper
