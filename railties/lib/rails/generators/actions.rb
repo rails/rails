@@ -244,15 +244,17 @@ module Rails
         end
       end
 
-      # Create a new file in the <tt>vendor/</tt> directory. Code can be specified
-      # in a block or a data string can be given.
+      # Creates a file in +vendor/+. The contents can be specified as an
+      # argument or as the return value of the block.
       #
-      #   vendor("sekrit.rb") do
-      #     sekrit_salt = "#{Time.now}--#{3.years.ago}--#{rand}--"
-      #     "salt = '#{sekrit_salt}'"
+      #   vendor "foreign.rb", <<~RUBY
+      #     # Foreign code is fun
+      #   RUBY
+      #
+      #   vendor "foreign.rb" do
+      #     "# Foreign code is fun"
       #   end
       #
-      #   vendor("foreign.rb", "# Foreign code is fun")
       def vendor(filename, data = nil)
         log :vendor, filename
         data ||= yield if block_given?
