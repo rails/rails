@@ -12,13 +12,58 @@ module Rails
         @indentation = 0
       end
 
-      # Adds an entry into +Gemfile+ for the supplied gem.
+      # Adds a +gem+ declaration to the +Gemfile+ for the specified gem.
       #
       #   gem "rspec", group: :test
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
       #   gem "rails", "3.0", git: "https://github.com/rails/rails"
       #   gem "RedCloth", ">= 4.1.0", "< 4.2.0"
       #   gem "rspec", comment: "Put this comment above the gem declaration"
+      #
+      # Note that this method only adds the gem to the +Gemfile+; it does not
+      # install the gem.
+      #
+      # ==== Options
+      #
+      # [+:version+]
+      #   The version constraints for the gem, specified as a string or an
+      #   array of strings:
+      #
+      #     gem "my_gem", version: "~> 1.1"
+      #     gem "my_gem", version: [">= 1.1", "< 2.0"]
+      #
+      #   Alternatively, can be specified as one or more arguments following the
+      #   gem name:
+      #
+      #     gem "my_gem", ">= 1.1", "< 2.0"
+      #
+      # [+:comment+]
+      #   Outputs a comment above the +gem+ declaration in the +Gemfile+.
+      #
+      #     gem "my_gem", comment: "First line.\nSecond line."
+      #
+      #   Outputs:
+      #
+      #     # First line.
+      #     # Second line.
+      #     gem "my_gem"
+      #
+      # [+:group+]
+      #   The gem group in the +Gemfile+ that the gem belongs to.
+      #
+      # [+:git+]
+      #   The URL of the git repository for the gem.
+      #
+      # Any additional options passed to this method will be appended to the
+      # +gem+ declaration in the +Gemfile+. For example:
+      #
+      #   gem "my_gem", comment: "Edge my_gem", git: "https://example.com/my_gem.git", branch: "master"
+      #
+      # Outputs:
+      #
+      #   # Edge my_gem
+      #   gem "my_gem", git: "https://example.com/my_gem.git", branch: "master"
+      #
       def gem(*args)
         options = args.extract_options!
         name, *versions = args
