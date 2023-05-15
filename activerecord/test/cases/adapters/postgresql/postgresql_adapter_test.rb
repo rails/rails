@@ -319,7 +319,7 @@ module ActiveRecord
         with_example_table do
           @connection.add_index "ex", %w{ id }, name: "include", include: :number
           index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-          assert_equal [:number], index.include
+          assert_equal ["number"], index.include
         end
       end
 
@@ -327,7 +327,7 @@ module ActiveRecord
         with_example_table do
           @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
           index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-          assert_equal [:number, :data], index.include
+          assert_equal ["number", "data"], index.include
         end
       end
 
