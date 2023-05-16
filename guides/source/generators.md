@@ -142,6 +142,10 @@ And let's execute our generator:
 
 ```bash
 $ bin/rails generate initializer core_extensions
+      create  config/initializers/core_extensions.rb
+
+$ cat config/initializers/core_extensions.rb
+# Add initialization content here
 ```
 
 We can see that now an initializer named core_extensions was created at `config/initializers/core_extensions.rb` with the contents of our template. That means that `copy_file` copied a file in our source root to the destination path we gave. The method `file_name` is automatically created when we inherit from `Rails::Generators::NamedBase`.
