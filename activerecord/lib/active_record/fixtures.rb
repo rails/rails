@@ -402,7 +402,7 @@ module ActiveRecord
   #     monkey_id: <%= ActiveRecord::FixtureSet.identify(:reginald) %>
   #     pirate_id: <%= ActiveRecord::FixtureSet.identify(:george) %>
   #
-  # If the model uses UUID values for identifiers, add the `:uuid` argument:
+  # If the model uses UUID values for identifiers, add the +:uuid+ argument:
   #
   #   ActiveRecord::FixtureSet.identify(:boaty_mcboatface, :uuid)
   #
