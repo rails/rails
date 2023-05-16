@@ -278,21 +278,27 @@ module Rails
         create_file("lib/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new +Rakefile+ with the provided code (either in a block or a string).
+      # Creates a Rake tasks file in +lib/tasks/+. The code can be specified as
+      # an argument or as the return value of the block.
       #
-      #   rakefile("bootstrap.rake") do
+      #   rakefile "bootstrap.rake", <<~RUBY
+      #     task :bootstrap do
+      #       puts "Boots! Boots! Boots!"
+      #     end
+      #   RUBY
+      #
+      #   rakefile "bootstrap.rake" do
       #     project = ask("What is the UNIX name of your project?")
       #
-      #     <<-TASK
+      #     <<~RUBY
       #       namespace :#{project} do
       #         task :bootstrap do
-      #           puts "I like boots!"
+      #           puts "Boots! Boots! Boots!"
       #         end
       #       end
-      #     TASK
+      #     RUBY
       #   end
       #
-      #   rakefile('seed.rake', 'puts "Planting seeds"')
       def rakefile(filename, data = nil)
         log :rakefile, filename
         data ||= yield if block_given?
