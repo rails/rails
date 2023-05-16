@@ -21,10 +21,10 @@
 #
 # true, false, on, off, yes, no
 #
-# Instead, surround them with single quotes.
+# Instead, surround them with double quotes.
 #
 # en:
-#   'true': 'foo'
+#   "true": "foo"
 #
 # To learn more, please read the Rails Internationalization guide
 # available at https://guides.rubyonrails.org/i18n.html.
