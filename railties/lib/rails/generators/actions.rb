@@ -338,12 +338,29 @@ module Rails
         rails_command "generate #{what} #{args.join(" ")}", options
       end
 
-      # Runs the supplied rake task (invoked with 'rake ...')
+      # Runs the specified Rake task.
       #
-      #   rake("db:migrate")
-      #   rake("db:migrate", env: "production")
-      #   rake("gems:install", sudo: true)
-      #   rake("gems:install", capture: true)
+      #   rake "db:migrate"
+      #   rake "db:migrate", env: "production"
+      #   rake "db:migrate", abort_on_failure: true
+      #   rake "stats", capture: true
+      #   rake "gems:install", sudo: true
+      #
+      # ==== Options
+      #
+      # [+:env+]
+      #   The Rails environment in which to run the task. Defaults to
+      #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
+      #
+      # [+:abort_on_failure+]
+      #   Whether to halt the generator if the task exits with a non-success
+      #   exit status.
+      #
+      # [+:capture+]
+      #   Whether to capture and return the output of the task.
+      #
+      # [+:sudo+]
+      #   Whether to run the task using +sudo+.
       def rake(command, options = {})
         execute_command :rake, command, options
       end
