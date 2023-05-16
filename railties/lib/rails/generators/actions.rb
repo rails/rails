@@ -365,12 +365,29 @@ module Rails
         execute_command :rake, command, options
       end
 
-      # Runs the supplied rake task (invoked with 'rails ...')
+      # Runs the specified Rails command.
       #
-      #   rails_command("db:migrate")
-      #   rails_command("db:migrate", env: "production")
-      #   rails_command("gems:install", sudo: true)
-      #   rails_command("gems:install", capture: true)
+      #   rails_command "db:migrate"
+      #   rails_command "db:migrate", env: "production"
+      #   rails_command "db:migrate", abort_on_failure: true
+      #   rails_command "stats", capture: true
+      #   rails_command "gems:install", sudo: true
+      #
+      # ==== Options
+      #
+      # [+:env+]
+      #   The Rails environment in which to run the command. Defaults to
+      #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
+      #
+      # [+:abort_on_failure+]
+      #   Whether to halt the generator if the command exits with a non-success
+      #   exit status.
+      #
+      # [+:capture+]
+      #   Whether to capture and return the output of the command.
+      #
+      # [+:sudo+]
+      #   Whether to run the command using +sudo+.
       def rails_command(command, options = {})
         if options[:inline]
           log :rails, command
