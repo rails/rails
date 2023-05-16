@@ -491,224 +491,37 @@ The command line arguments are accessed through the [`options`][] method inside 
 Generator methods
 -----------------
 
-The following are methods available for both generators and templates for Rails.
-
-NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](https://www.rubydoc.info/gems/thor/Thor/Actions)
-
-### `gem`
-
-Specifies a gem dependency of the application.
-
-```ruby
-gem "rspec", group: "test", version: "2.1.0"
-gem "devise", "1.1.5"
-```
-
-Available options are:
-
-* `:group` - The group in the `Gemfile` where this gem should go.
-* `:version` - The version string of the gem you want to use. Can also be specified as the second argument to the method.
-* `:git` - The URL to the git repository for this gem.
-
-Any additional options passed to this method are put on the end of the line:
-
-```ruby
-gem "devise", git: "https://github.com/plataformatec/devise.git", branch: "master"
-```
-
-The above code will put the following line into `Gemfile`:
-
-```ruby
-gem "devise", git: "https://github.com/plataformatec/devise.git", branch: "master"
-```
-
-### `gem_group`
-
-Wraps gem entries inside a group:
-
-```ruby
-gem_group :development, :test do
-  gem "rspec-rails"
-end
-```
-
-### `add_source`
-
-Adds a specified source to `Gemfile`:
-
-```ruby
-add_source "http://gems.github.com"
-```
-
-This method also takes a block:
-
-```ruby
-add_source "http://gems.github.com" do
-  gem "rspec-rails"
-end
-```
-
-### `inject_into_file`
-
-Injects a block of code into a defined position in your file.
-
-```ruby
-inject_into_file 'name_of_file.rb', after: "#The code goes below this line. Don't forget the Line break at the end\n" do <<-'RUBY'
-  puts "Hello World"
-RUBY
-end
-```
-
-### `gsub_file`
-
-Replaces text inside a file.
-
-```ruby
-gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code'
-```
-
-Regular Expressions can be used to make this method more precise. You can also use `append_file` and `prepend_file` in the same way to place code at the beginning and end of a file respectively.
-
-### `application`
-
-Adds a line to `config/application.rb` directly after the application class definition.
-
-```ruby
-application "config.asset_host = 'http://example.com'"
-```
-
-This method can also take a block:
-
-```ruby
-application do
-  "config.asset_host = 'http://example.com'"
-end
-```
-
-Available options are:
-
-* `:env` - Specify an environment for this configuration option. If you wish to use this option with the block syntax the recommended syntax is as follows:
-
-```ruby
-application(nil, env: "development") do
-  "config.asset_host = 'http://localhost:3000'"
-end
-```
-
-### `git`
-
-Runs the specified git command:
-
-```ruby
-git :init
-git add: "."
-git commit: "-m First commit!"
-git add: "onefile.rb", rm: "badfile.cxx"
-```
-
-The values of the hash here being the arguments or options passed to the specific git command. As per the final example shown here, multiple git commands can be specified at a time, but the order of their running is not guaranteed to be the same as the order that they were specified in.
-
-### `vendor`
-
-Places a file into `vendor` which contains the specified code.
-
-```ruby
-vendor "sekrit.rb", '#top secret stuff'
-```
-
-This method also takes a block:
-
-```ruby
-vendor "seeds.rb" do
-  "puts 'in your app, seeding your database'"
-end
-```
-
-### `lib`
-
-Places a file into `lib` which contains the specified code.
-
-```ruby
-lib "special.rb", "p Rails.root"
-```
-
-This method also takes a block:
-
-```ruby
-lib "super_special.rb" do
-  "puts 'Super special!'"
-end
-```
-
-### `rakefile`
-
-Creates a Rake file in the `lib/tasks` directory of the application.
-
-```ruby
-rakefile "test.rake", 'task(:hello) { puts "Hello, there" }'
-```
-
-This method also takes a block:
-
-```ruby
-rakefile "test.rake" do
-  %Q{
-    task rock: :environment do
-      puts "Rockin'"
-    end
-  }
-end
-```
-
-### `initializer`
-
-Creates an initializer in the `config/initializers` directory of the application:
-
-```ruby
-initializer "begin.rb", "puts 'this is the beginning'"
-```
-
-This method also takes a block, expected to return a string:
-
-```ruby
-initializer "begin.rb" do
-  "puts 'this is the beginning'"
-end
-```
-
-### `generate`
-
-Runs the specified generator where the first argument is the generator name and the remaining arguments are passed directly to the generator.
-
-```ruby
-generate "scaffold", "forums title:string description:text"
-```
-
-### `rake`
-
-Runs the specified Rake task.
-
-```ruby
-rake "db:migrate"
-```
-
-Available options are:
-
-* `:env` - Specifies the environment in which to run this rake task.
-* `:sudo` - Whether or not to run this task using `sudo`. Defaults to `false`.
-
-### `route`
-
-Adds text to the `config/routes.rb` file:
-
-```ruby
-route "resources :people"
-```
-
-### `readme`
-
-Output the contents of a file in the template's `source_path`, usually a README.
-
-```ruby
-readme "README"
-```
+Thor provides many generator helper methods via [`Thor::Actions`][], such as:
+
+* [`copy_file`][]
+* [`create_file`][]
+* [`gsub_file`][]
+* [`insert_into_file`][]
+* [`inside`][]
+
+In addition to those, Rails also provides many helper methods via
+[`Rails::Generators::Actions`][], such as:
+
+* [`environment`][]
+* [`gem`][]
+* [`generate`][]
+* [`git`][]
+* [`initializer`][]
+* [`lib`][]
+* [`rails_command`][]
+* [`rake`][]
+* [`route`][]
+
+[`Rails::Generators::Actions`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html
+[`environment`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-environment
+[`gem`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem
+[`generate`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-generate
+[`git`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-git
+[`gsub_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#gsub_file-instance_method
+[`initializer`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-initializer
+[`insert_into_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#insert_into_file-instance_method
+[`inside`]: https://www.rubydoc.info/gems/thor/Thor/Actions#inside-instance_method
+[`lib`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-lib
+[`rails_command`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rails_command
+[`rake`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rake
+[`route`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-route
