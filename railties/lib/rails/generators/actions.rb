@@ -305,19 +305,17 @@ module Rails
         create_file("lib/tasks/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new initializer with the provided code (either in a block or a string).
+      # Creates an initializer file in +config/initializers/+. The code can be
+      # specified as an argument or as the return value of the block.
       #
-      #   initializer("globals.rb") do
-      #     data = ""
+      #   initializer "api.rb", <<~RUBY
+      #     API_KEY = "123456"
+      #   RUBY
       #
-      #     ['MY_WORK', 'ADMINS', 'BEST_COMPANY_EVAR'].each do |const|
-      #       data << "#{const} = :entp\n"
-      #     end
-      #
-      #     data
+      #   initializer "api.rb" do
+      #     %(API_KEY = "123456")
       #   end
       #
-      #   initializer("api.rb", "API_KEY = '123456'")
       def initializer(filename, data = nil)
         log :initializer, filename
         data ||= yield if block_given?
