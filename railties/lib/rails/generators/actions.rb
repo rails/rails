@@ -322,11 +322,13 @@ module Rails
         create_file("config/initializers/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Generate something using a generator from Rails or a plugin.
-      # The second parameter is the argument string that is passed to
-      # the generator or an Array that is joined.
+      # Runs another generator.
       #
-      #   generate(:authenticated, "user session")
+      #   generate "scaffold", "Post title:string body:text"
+      #   generate "scaffold", "Post", "title:string", "body:text"
+      #
+      # The first argument is the generator name, and the remaining arguments
+      # are joined together and passed to the generator.
       def generate(what, *args)
         log :generate, what
 
