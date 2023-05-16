@@ -707,6 +707,16 @@ module Arel
             )
           ])
         end
+
+        it "can be constructed with a range where the begin and end are equal" do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(1..1)
+
+          _(node).must_equal Nodes::Equality.new(
+            attribute,
+            Nodes::Casted.new(1, attribute)
+          )
+        end
       end
 
       describe "#in" do
