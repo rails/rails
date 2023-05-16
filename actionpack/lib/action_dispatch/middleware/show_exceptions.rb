@@ -6,14 +6,17 @@ module ActionDispatch
   # This middleware rescues any exception returned by the application
   # and calls an exceptions app that will wrap it in a format for the end user.
   #
-  # The exceptions app should be passed as parameter on initialization
-  # of ShowExceptions. Every time there is an exception, ShowExceptions will
-  # store the exception in env["action_dispatch.exception"], rewrite the
-  # PATH_INFO to the exception status code and call the Rack app.
+  # The exceptions app should be passed as a parameter on initialization of
+  # +ShowExceptions+. Every time there is an exception, +ShowExceptions+ will
+  # store the exception in <tt>env["action_dispatch.exception"]</tt>, rewrite
+  # the +PATH_INFO+ to the exception status code and call the Rack app.
   #
-  # If the application returns a "X-Cascade" pass response, this middleware
-  # will send an empty response as result with the correct status code.
-  # If any exception happens inside the exceptions app, this middleware
+  # In \Rails applications, the exceptions app can be configured with
+  # +config.exceptions_app+, which defaults to ActionDispatch::PublicExceptions.
+  #
+  # If the application returns an <tt>"X-Cascade" => "pass"</tt> response, this
+  # middleware will send an empty response as a result with the correct status
+  # code. If any exception happens inside the exceptions app, this middleware
   # catches the exceptions and returns a failsafe response.
   class ShowExceptions
     def initialize(app, exceptions_app)
