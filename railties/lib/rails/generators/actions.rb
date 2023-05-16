@@ -261,14 +261,17 @@ module Rails
         create_file("vendor/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new file in the <tt>lib/</tt> directory. Code can be specified
-      # in a block or a data string can be given.
+      # Creates a file in +lib/+. The contents can be specified as an argument
+      # or as the return value of the block.
       #
-      #   lib("crypto.rb") do
-      #     "crypted_special_value = '#{rand}--#{Time.now}--#{rand(1337)}--'"
+      #   lib "foreign.rb", <<~RUBY
+      #     # Foreign code is fun
+      #   RUBY
+      #
+      #   lib "foreign.rb" do
+      #     "# Foreign code is fun"
       #   end
       #
-      #   lib("foreign.rb", "# Foreign code is fun")
       def lib(filename, data = nil)
         log :lib, filename
         data ||= yield if block_given?
