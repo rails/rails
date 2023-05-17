@@ -16,10 +16,11 @@ module ActionDispatch
   # In \Rails applications, the exceptions app can be configured with
   # +config.exceptions_app+, which defaults to ActionDispatch::PublicExceptions.
   #
-  # If the application returns an <tt>"X-Cascade" => "pass"</tt> response, this
-  # middleware will send an empty response as a result with the correct status
-  # code. If any exception happens inside the exceptions app, this middleware
-  # catches the exceptions and returns a failsafe response.
+  # If the application returns a response with the <tt>X-Cascade</tt> header
+  # set to <tt>"pass"</tt>, this middleware will send an empty response as a
+  # result with the correct status code. If any exception happens inside the
+  # exceptions app, this middleware catches the exceptions and returns a
+  # failsafe response.
   class ShowExceptions
     def initialize(app, exceptions_app)
       @app = app
