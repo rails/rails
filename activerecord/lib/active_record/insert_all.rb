@@ -74,7 +74,7 @@ module ActiveRecord
 
         verify_attributes(attributes)
 
-        keys_including_timestamps.map do |key|
+        append_if_exist_keys_including_timestamps.map do |key|
           yield key, attributes[key]
         end
       end
