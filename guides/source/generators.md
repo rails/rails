@@ -421,38 +421,57 @@ $ bin/rails generate scaffold Comment body:text
 Application Templates
 ---------------------
 
-Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred to as a "template". This is a brief overview of the Templates API. For detailed documentation see the [Rails Application Templates guide](rails_application_templates.html).
+Application templates are a special kind of generator. They can use all of the
+[generator helper methods](#generator-methods), but are written as a Ruby script
+instead of a Ruby class. Here is an example:
 
 ```ruby
-gem "rspec-rails", group: "test"
-gem "cucumber-rails", group: "test"
+# template.rb
 
 if yes?("Would you like to install Devise?")
   gem "devise"
-  generate "devise:install"
-  model_name = ask("What would you like the user model to be called? [user]")
-  model_name = "user" if model_name.blank?
-  generate "devise", model_name
+  devise_model = ask("What would you like the user model to be called?", default: "User")
+end
+
+after_bundle do
+  if devise_model
+    generate "devise:install"
+    generate "devise", devise_model
+    rails_command "db:migrate"
+  end
+
+  git add: ".", commit: %(-m 'Initial commit')
 end
 ```
 
-In the above template we specify that the application relies on the `rspec-rails` and `cucumber-rails` gem so these two will be added to the `test` group in the `Gemfile`. Then we pose a question to the user about whether or not they would like to install Devise. If the user replies "y" or "yes" to this question, then the template will add Devise to the `Gemfile` outside of any group and then runs the `devise:install` generator. This template then takes the users input and runs the `devise` generator, with the user's answer from the last question being passed to this generator.
+First, the template asks the user whether they would like to install Devise.
+If the user replies "yes" (or "y"), the template adds Devise to the `Gemfile`
+asks the user for the name of the Devise user model (defaulting to `User`).
+Later, after `bundle install` has been run, the template will run the Devise
+generators and `rails db:migrate` if a Devise model was specified. Finally, the
+template will `git add` and `git commit` the entire app directory.
 
-Imagine that this template was in a file called `template.rb`. We can use it to modify the outcome of the `rails new` command by using the `-m` option and passing in the filename:
-
-```bash
-$ rails new thud -m template.rb
-```
-
-This command will generate the `Thud` application, and then apply the template to the generated output.
-
-Templates don't have to be stored on the local system, the `-m` option also supports online templates:
+We can run our template when generating a new Rails application by passing the
+`-m` option to the `rails new` command:
 
 ```bash
-$ rails new thud -m https://gist.github.com/radar/722911/raw/
+$ rails new my_cool_app -m path/to/template.rb
 ```
 
-Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
+Alternatively, we can run our template inside an existing application with
+`bin/rails app:template`:
+
+```bash
+$ bin/rails app:template LOCATION=path/to/template.rb
+```
+
+Templates also don't need to be stored locally — you can specify a URL instead
+of a path:
+
+```bash
+$ rails new my_cool_app -m http://example.com/template.rb
+$ bin/rails app:template LOCATION=http://example.com/template.rb
+```
 
 Generator methods
 -----------------
