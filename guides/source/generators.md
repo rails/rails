@@ -10,9 +10,9 @@ After reading this guide, you will know:
 * How to see which generators are available in your application.
 * How to create a generator using templates.
 * How Rails searches for generators before invoking them.
+* How to customize your scaffold by overriding generator templates.
 * How Rails internally generates Rails code from the templates.
 * How to customize your scaffold by creating new generators.
-* How to customize your scaffold by changing generator templates.
 * How to use fallbacks to avoid overwriting a huge set of generators.
 * How to create an application template.
 
@@ -206,6 +206,44 @@ If none is found you get an error message.
 
 INFO: The examples above put files under the application's `lib` because said directory belongs to `$LOAD_PATH`.
 
+Overriding Rails Generator Templates
+------------------------------------
+
+Rails will also look in multiple places when resolving generator template files.
+One of those places is the application's `lib/templates/` directory. This
+behavior allows us to override the templates used by Rails' built-in generators.
+For example, we could override the [scaffold controller template][] or the
+[scaffold view templates][].
+
+To see this in action, let's create a `lib/templates/erb/scaffold/index.html.erb.tt`
+file with the following contents:
+
+```erb
+<%% @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
+```
+
+Note that the template is an ERB template that renders _another_ ERB template.
+So any `<%` that should appear in the _resulting_ template must be escaped as
+`<%%` in the _generator_ template.
+
+Now let's run Rails' built-in scaffold generator:
+
+```bash
+$ bin/rails generate scaffold Post title:string
+      ...
+      create      app/views/posts/index.html.erb
+      ...
+```
+
+The contents of `app/views/posts/index.html.erb` is:
+
+```erb
+<% @posts.count %> Posts
+```
+
+[scaffold controller template]: https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
+[scaffold view templates]: https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates
+
 Customizing Your Workflow
 -------------------------
 
@@ -360,49 +398,6 @@ hook_for :test_framework, as: :helper
 ```
 
 And now you can re-run scaffold for another resource and see it generating tests as well!
-
-Customizing Your Workflow by Changing Generators Templates
-----------------------------------------------------------
-
-In the step above we simply wanted to add a line to the generated helper, without adding any extra functionality. There is a simpler way to do that, and it's by replacing the templates of already existing generators, in that case `Rails::Generators::HelperGenerator`.
-
-Generators don't just look in the source root for templates, they also search for templates in other paths. And one of them is `lib/templates`. Since we want to customize `Rails::Generators::HelperGenerator`, we can do that by simply making a template copy inside `lib/templates/rails/helper` with the name `helper.rb`. So let's create that file with the following content:
-
-```erb
-module <%= class_name %>Helper
-  attr_reader :<%= plural_name %>, :<%= plural_name.singularize %>
-end
-```
-
-and revert the last change in `config/application.rb`:
-
-```ruby
-config.generators do |g|
-  g.orm             :active_record
-  g.template_engine :erb
-  g.test_framework  :test_unit, fixture: false
-end
-```
-
-Now, if you generate another resource, you will see a similar result!
-
-Another common use of custom templates is overriding the [default scaffold view templates](https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates). You can override any of these by creating the appropriate file (e.g. `index.html.erb`, `show.html.erb`, etc) in `lib/templates/erb/scaffold`.
-
-Scaffold templates in Rails frequently use ERB tags; these tags need to be
-escaped so that the generated output is valid ERB code.
-
-For example, the following escaped ERB tag would be needed in the template
-(note the extra `%`)...
-
-```erb
-<%%= stylesheet_link_tag :application %>
-```
-
-...to generate the following output:
-
-```erb
-<%= stylesheet_link_tag :application %>
-```
 
 Adding Generators Fallbacks
 ---------------------------
