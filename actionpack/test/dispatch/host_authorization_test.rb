@@ -284,7 +284,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: 127.0.0.1", response.body
+    assert_match "Blocked host: www.example.com, 127.0.0.1", response.body
   end
 
   test "blocks requests with spoofed relative X-FORWARDED-HOST" do
@@ -297,7 +297,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: //randomhost.com", response.body
+    assert_match "Blocked host: www.example.com, //randomhost.com", response.body
   end
 
   test "forwarded secondary hosts are allowed when permitted" do
@@ -322,7 +322,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: evil.com", response.body
+    assert_match "Blocked host: domain.com, evil.com", response.body
   end
 
   test "does not consider IP addresses in X-FORWARDED-HOST spoofed when disabled" do
@@ -347,7 +347,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: localhost", response.body
+    assert_match "Blocked host: www.example.com, localhost", response.body
   end
 
   test "forwarded hosts should be permitted" do
@@ -360,7 +360,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: sub.domain.com", response.body
+    assert_match "Blocked host: domain.com, sub.domain.com", response.body
   end
 
   test "sub-sub domains should not be permitted" do
@@ -420,7 +420,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
       }
 
       assert_response :forbidden
-      assert_match "Blocked host: #{host}", response.body
+      assert_match "Blocked host: example.com, #{host}", response.body
     end
   end
 

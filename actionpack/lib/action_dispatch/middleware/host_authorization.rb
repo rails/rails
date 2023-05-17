@@ -94,16 +94,18 @@ module ActionDispatch
         response(format, response_body(request))
       end
 
-      attr_writer :blocked_hosts
-      def blocked_hosts
-        @blocked_hosts || []
-      end
-
       private
+        def all_hosts(request)
+          [
+            request.get_header("HTTP_HOST"), # origin_host
+            request.x_forwarded_host&.split(/,\s?/)&.last # forwarded_host
+          ].compact.uniq
+        end
+
         def response_body(request)
           return "" unless request.get_header("action_dispatch.show_detailed_exceptions")
 
-          template = DebugView.new(hosts: blocked_hosts)
+          template = DebugView.new(hosts: all_hosts(request))
           template.render(template: "rescues/blocked_host", layout: "rescues/layout")
         end
 
@@ -119,7 +121,7 @@ module ActionDispatch
 
           return unless logger
 
-          logger.error("[#{self.class.name}] Blocked host: #{request.host}")
+          logger.error("[#{self.class.name}] Blocked host: #{all_hosts(request).join(', ')}")
         end
 
         def available_logger(request)
@@ -144,21 +146,16 @@ module ActionDispatch
         mark_as_authorized(request)
         @app.call(env)
       else
-        @response_app.blocked_hosts = blocked_hosts(request) if @response_app.respond_to?(:"blocked_hosts=")
         @response_app.call(env)
       end
     end
 
     private
-      def blocked_hosts(request)
+      def authorized?(request)
         origin_host = request.get_header("HTTP_HOST")
         forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
 
-        [origin_host, forwarded_host].compact_blank.reject {|host|  @permissions.allows?(host) }
-      end
-
-      def authorized?(request)
-        blocked_hosts(request).empty?
+        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
       end
 
       def excluded?(request)
