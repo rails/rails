@@ -11,8 +11,7 @@ After reading this guide, you will know:
 * How to create a generator using templates.
 * How Rails searches for generators before invoking them.
 * How to customize your scaffold by overriding generator templates.
-* How Rails internally generates Rails code from the templates.
-* How to customize your scaffold by creating new generators.
+* How to customize your scaffold by overriding generators.
 * How to use fallbacks to avoid overwriting a huge set of generators.
 * How to create an application template.
 
@@ -244,25 +243,18 @@ The contents of `app/views/posts/index.html.erb` is:
 [scaffold controller template]: https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
 [scaffold view templates]: https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates
 
-Customizing Your Workflow
--------------------------
+Overriding Rails Generators
+---------------------------
 
-Rails own generators are flexible enough to let you customize scaffolding. They can be configured in `config/application.rb`, these are some defaults:
+Rails' built-in generators can be configured via [`config.generators`][],
+including overriding some generators entirely.
 
-```ruby
-config.generators do |g|
-  g.orm             :active_record
-  g.template_engine :erb
-  g.test_framework  :test_unit, fixture: true
-end
-```
-
-Before we customize our workflow, let's first see what our scaffold looks like:
+First, let's take a closer look at how the scaffold generator works.
 
 ```bash
 $ bin/rails generate scaffold User name:string
       invoke  active_record
-      create    db/migrate/20130924151154_create_users.rb
+      create    db/migrate/20230518000000_create_users.rb
       create    app/models/user.rb
       invoke    test_unit
       create      test/models/user_test.rb
@@ -278,33 +270,26 @@ $ bin/rails generate scaffold User name:string
       create      app/views/users/show.html.erb
       create      app/views/users/new.html.erb
       create      app/views/users/_form.html.erb
+      create      app/views/users/_user.html.erb
+      invoke    resource_route
       invoke    test_unit
       create      test/controllers/users_controller_test.rb
+      create      test/system/users_test.rb
       invoke    helper
       create      app/helpers/users_helper.rb
+      invoke      test_unit
       invoke    jbuilder
       create      app/views/users/index.json.jbuilder
       create      app/views/users/show.json.jbuilder
-      invoke  test_unit
-      create    test/application_system_test_case.rb
-      create    test/system/users_test.rb
 ```
 
-Looking at this output, it's easy to understand how generators work. The scaffold generator doesn't actually generate anything; it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the `scaffold_controller` generator, which invokes `erb`, `test_unit`, and `helper` generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
+From the output, we can see that the scaffold generator invokes other
+generators, such as the `scaffold_controller` generator. And some of those
+generators invoke other generators too. In particular, the `scaffold_controller`
+generator invokes several other generators, including the `helper` generator.
 
-The next customization on the workflow will be to stop generating stylesheet and test fixture files for scaffolds altogether. We can achieve that by changing our configuration to the following:
-
-```ruby
-config.generators do |g|
-  g.orm             :active_record
-  g.template_engine :erb
-  g.test_framework  :test_unit, fixture: false
-end
-```
-
-If we generate another resource with the scaffold generator, we can see that stylesheet, JavaScript, and fixture files are not created anymore. If you want to customize it further, for example to use DataMapper and RSpec instead of Active Record and TestUnit, it's just a matter of adding their gems to your application and configuring your generators.
-
-To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator within the rails namespace, as this is where rails searches for generators used as hooks:
+Let's override the built-in `helper` generator with a new generator. We'll name
+the generator `my_helper`:
 
 ```bash
 $ bin/rails generate generator rails/my_helper
@@ -316,88 +301,53 @@ $ bin/rails generate generator rails/my_helper
       create    test/lib/generators/rails/my_helper_generator_test.rb
 ```
 
-After that, we can delete both the `templates` directory and the `source_root`
-class method call from our new generator, because we are not going to need them.
-Add the method below, so our generator looks like the following:
+And in `lib/generators/rails/my_helper/my_helper_generator.rb` we'll define
+the generator as:
 
 ```ruby
-# lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<~RUBY
       module #{class_name}Helper
-        attr_reader :#{plural_name}, :#{plural_name.singularize}
+        # I'm helping!
       end
     RUBY
   end
 end
 ```
 
-We can try out our new generator by creating a helper for products:
-
-```bash
-$ bin/rails generate my_helper products
-      create  app/helpers/products_helper.rb
-```
-
-And it will generate the following helper file in `app/helpers`:
-
-```ruby
-module ProductsHelper
-  attr_reader :products, :product
-end
-```
-
-Which is what we expected. We can now tell scaffold to use our new helper generator by editing `config/application.rb` once again:
+Finally, we need to tell Rails to use the `my_helper` generator instead of the
+built-in `helper` generator. For that we use `config.generators`. In
+`config/application.rb`, let's add:
 
 ```ruby
 config.generators do |g|
-  g.orm             :active_record
-  g.template_engine :erb
-  g.test_framework  :test_unit, fixture: false
-  g.stylesheets     false
-  g.helper          :my_helper
+  g.helper :my_helper
 end
 ```
 
-and see it in action when invoking the generator:
+Now if we run the scaffold generator again, we see the `my_helper` generator in
+action:
 
 ```bash
 $ bin/rails generate scaffold Article body:text
-      [...]
+      ...
+      invoke  scaffold_controller
+      ...
       invoke    my_helper
       create      app/helpers/articles_helper.rb
+      ...
 ```
 
-We can notice on the output that our new helper was invoked instead of the Rails default. However one thing is missing, which is tests for our new generator and to do that, we are going to reuse old helpers test generators.
+NOTE: You may notice that the output for the built-in `helper` generator
+includes "invoke test_unit", whereas the output for `my_helper` does not.
+Although the `helper` generator does not generate tests by default, it does
+provide a hook to do so using [`hook_for`][]. We can do the same by including
+`hook_for :test_framework, as: :helper` in the `MyHelperGenerator` class. See
+the `hook_for` documentation for more information.
 
-This is easy to do due to the hooks concept. Our new helper does not need to be focused in one specific test framework, it can simply provide a hook and a test framework just needs to implement this hook in order to be compatible.
-
-To do that, we can change the generator this way:
-
-```ruby
-# lib/generators/rails/my_helper/my_helper_generator.rb
-class Rails::MyHelperGenerator < Rails::Generators::NamedBase
-  def create_helper_file
-    create_file "app/helpers/#{file_name}_helper.rb", <<~RUBY
-      module #{class_name}Helper
-        attr_reader :#{plural_name}, :#{plural_name.singularize}
-      end
-    RUBY
-  end
-
-  hook_for :test_framework
-end
-```
-
-Now, when the helper generator is invoked and TestUnit is configured as the test framework, it will try to invoke both `Rails::TestUnitGenerator` and `TestUnit::MyHelperGenerator`. Since none of those are defined, we can tell our generator to invoke `TestUnit::Generators::HelperGenerator` instead, which is defined since it's a Rails generator. To do that, we just need to add:
-
-```ruby
-# Search for :helper instead of :my_helper
-hook_for :test_framework, as: :helper
-```
-
-And now you can re-run scaffold for another resource and see it generating tests as well!
+[`config.generators`]: configuring.html#configuring-generators
+[`hook_for`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-hook_for
 
 Adding Generators Fallbacks
 ---------------------------
