@@ -576,7 +576,7 @@ module ActiveRecord
       # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
       #   <tt>:precision</tt>, and makes no comments about the requirements of
       #   <tt>:precision</tt>.
-      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30].
+      # * MySQL: <tt>:precision</tt> [1..65], <tt>:scale</tt> [0..30].
       #   Default is (10,0).
       # * PostgreSQL: <tt>:precision</tt> [1..infinity],
       #   <tt>:scale</tt> [0..infinity]. No default.
