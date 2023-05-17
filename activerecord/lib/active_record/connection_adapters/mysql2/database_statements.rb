@@ -93,7 +93,7 @@ module ActiveRecord
             end
           end
 
-          def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: true)
+          def raw_execute(sql, name, async: false, allow_retry: ActiveRecord.retry_queries, materialize_transactions: true)
             log(sql, name, async: async) do
               with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
                 sync_timezone_changes(conn)

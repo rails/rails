@@ -238,6 +238,9 @@ module ActiveRecord
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
 
+  singleton_class.attr_accessor :retry_queries
+  self.retry_queries = false
+
   def self.legacy_connection_handling=(_)
     raise ArgumentError, <<~MSG.squish
       The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1,
