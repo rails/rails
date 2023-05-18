@@ -161,6 +161,35 @@ The methods that are available for generators are covered in the [final section]
 [`copy_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
 [`source_root`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-source_root
 
+Generator Command Line Options
+------------------------------
+
+Generators can support command line options using [`class_option`][]. For
+example:
+
+```ruby
+class InitializerGenerator < Rails::Generators::NamedBase
+  class_option :scope, type: :string, default: "app"
+end
+```
+
+Now our generator can be invoked with a `--scope` option:
+
+```bash
+$ bin/rails generate initializer theme --scope dashboard
+```
+
+Option values are accessible in generator methods via [`options`][]:
+
+```ruby
+def copy_initializer_file
+  @scope = options["scope"]
+end
+```
+
+[`class_option`]: https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_option-instance_method
+[`options`]: https://www.rubydoc.info/gems/thor/Thor/Base#options-instance_method
+
 Generators Lookup
 -----------------
 
@@ -463,30 +492,6 @@ $ rails new thud -m https://gist.github.com/radar/722911/raw/
 ```
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
-
-Adding Command Line Arguments
------------------------------
-
-Rails generators can be easily modified to accept custom command line arguments using [`class_option`][]:
-
-```ruby
-class_option :scope, type: :string, default: 'read_products'
-```
-
-Now our generator can be invoked as follows:
-
-```bash
-$ bin/rails generate initializer --scope write_products
-```
-
-The command line arguments are accessed through the [`options`][] method inside the generator class. e.g:
-
-```ruby
-@scope = options['scope']
-```
-
-[`class_option`]: https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_option-instance_method
-[`options`]: https://www.rubydoc.info/gems/thor/Thor/Base#options-instance_method
 
 Generator methods
 -----------------
