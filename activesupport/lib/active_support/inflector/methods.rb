@@ -184,8 +184,6 @@ module ActiveSupport
     # optional parameter +keep_id_suffix+ to true.
     # By default, this parameter is false.
     #
-    # +titleize+ is also aliased as +titlecase+.
-    #
     #   titleize('man from the boondocks')                       # => "Man From The Boondocks"
     #   titleize('x-men: the last stand')                        # => "X Men: The Last Stand"
     #   titleize('TheManWithoutAPast')                           # => "The Man Without A Past"
