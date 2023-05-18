@@ -4,6 +4,12 @@ require "active_support/rescuable"
 require "active_job/arguments"
 
 module ActiveJob
+  # = Active Job \Execution
+  #
+  # Provides methods to execute jobs immediately, and wraps job execution so
+  # that exceptions configured with
+  # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]
+  # are handled.
   module Execution
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
