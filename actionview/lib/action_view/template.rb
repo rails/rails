@@ -179,7 +179,7 @@ module ActionView
     # source location inside the template.
     def translate_location(backtrace_location, spot)
       if handler.respond_to?(:translate_location)
-        handler.translate_location(spot, backtrace_location, encode!)
+        handler.translate_location(spot, backtrace_location, encode!) || spot
       else
         spot
       end
