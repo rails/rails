@@ -57,7 +57,8 @@ module ActionMailbox
   # complete, the status is changed to +delivered+. If a bounce is triggered, then +bounced+. If an unhandled
   # exception is bubbled up, then +failed+.
   #
-  # Exceptions can be handled at the class level using the familiar +Rescuable+ approach:
+  # Exceptions can be handled at the class level using the familiar
+  # ActiveSupport::Rescuable approach:
   #
   #   class ForwardsMailbox < ApplicationMailbox
   #     rescue_from(ApplicationSpecificVerificationError) { bounced! }
