@@ -349,34 +349,51 @@ the `hook_for` documentation for more information.
 [`config.generators`]: configuring.html#configuring-generators
 [`hook_for`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-hook_for
 
-Adding Generators Fallbacks
----------------------------
+### Generators Fallbacks
 
-One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit like [shoulda](https://github.com/thoughtbot/shoulda) does. Since TestUnit already implements all generators required by Rails and shoulda just wants to overwrite part of it, there is no need for shoulda to reimplement some generators again, it can simply tell Rails to use a `TestUnit` generator if none was found under the `Shoulda` namespace.
+Another way to override specific generators is by using _fallbacks_. A fallback
+allows a generator namespace to delegate to another generator namespace.
 
-We can easily simulate this behavior by changing our `config/application.rb` once again:
+For example, let's say we want to override the `test_unit:model` generator with
+our own `my_test_unit:model` generator, but we don't want to replace all of the
+other `test_unit:*` generators such as `test_unit:controller`.
+
+First, we create the `my_test_unit:model` generator in
+`lib/generators/my_test_unit/model/model_generator.rb`:
 
 ```ruby
-config.generators do |g|
-  g.orm             :active_record
-  g.template_engine :erb
-  g.test_framework  :shoulda, fixture: false
+module MyTestUnit
+  class ModelGenerator < Rails::Generators::NamedBase
+    source_root File.expand_path("templates", __dir__)
 
-  # Add a fallback!
-  g.fallbacks[:shoulda] = :test_unit
+    def do_different_stuff
+      say "Doing different stuff..."
+    end
+  end
 end
 ```
 
-Now, if you create a Comment scaffold, you will see that the shoulda generators are being invoked, and at the end, they are just falling back to TestUnit generators:
+Next, we use `config.generators` to configure the `test_framework` generator as
+`my_test_unit`, but we also configure a fallback such that any missing
+`my_test_unit:*` generators resolve to `test_unit:*`:
+
+```ruby
+config.generators do |g|
+  g.test_framework :my_test_unit, fixture: false
+  g.fallbacks[:my_test_unit] = :test_unit
+end
+```
+
+Now when we run the scaffold generator, we see that `my_test_unit` has replaced
+`test_unit`, but only the model tests have been affected:
 
 ```bash
 $ bin/rails generate scaffold Comment body:text
       invoke  active_record
-      create    db/migrate/20130924143118_create_comments.rb
+      create    db/migrate/20230518000000_create_comments.rb
       create    app/models/comment.rb
-      invoke    shoulda
-      create      test/models/comment_test.rb
-      create      test/fixtures/comments.yml
+      invoke    my_test_unit
+    Doing different stuff...
       invoke  resource_route
        route    resources :comments
       invoke  scaffold_controller
@@ -388,19 +405,18 @@ $ bin/rails generate scaffold Comment body:text
       create      app/views/comments/show.html.erb
       create      app/views/comments/new.html.erb
       create      app/views/comments/_form.html.erb
-      invoke    shoulda
+      create      app/views/comments/_comment.html.erb
+      invoke    resource_route
+      invoke    my_test_unit
       create      test/controllers/comments_controller_test.rb
-      invoke    my_helper
+      create      test/system/comments_test.rb
+      invoke    helper
       create      app/helpers/comments_helper.rb
+      invoke      my_test_unit
       invoke    jbuilder
       create      app/views/comments/index.json.jbuilder
       create      app/views/comments/show.json.jbuilder
-      invoke  test_unit
-      create    test/application_system_test_case.rb
-      create    test/system/comments_test.rb
 ```
-
-Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
 
 Application Templates
 ---------------------
