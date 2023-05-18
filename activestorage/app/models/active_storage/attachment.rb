@@ -21,13 +21,13 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   self.table_name = "active_storage_attachments"
 
   ##
-  # :method: record
+  # :method:
   #
   # Returns the associated record.
   belongs_to :record, polymorphic: true, touch: true
 
   ##
-  # :method: blob
+  # :method:
   #
   # Returns the associated <tt>ActiveStorage::Blob</tt>.
   belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
@@ -39,7 +39,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   after_destroy_commit :purge_dependent_blob_later
 
   ##
-  # :singleton-method: with_all_variant_records
+  # :singleton-method:
   #
   # Eager load all variant records on an attachment at once.
   #
