@@ -829,6 +829,10 @@ module ActiveRecord
       connection.respond_to?(:reverting) && connection.reverting
     end
 
+    def migrating?
+      !reverting?
+    end
+
     ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
       def up
         yield unless reverting
@@ -885,7 +889,25 @@ module ActiveRecord
     #      end
     #    end
     def up_only(&block)
-      execute_block(&block) unless reverting?
+      execute_block(&block) if migrating?
+    end
+
+    # Used to specify an operation that is only run when migrating down
+    # (for example, replacing a value with the previous default).
+    #
+    # In the following example, the column +published+ will be given the
+    # value +false+ for private records before removing the +private+ column.
+    #
+    #    class AddPrivateToPosts < ActiveRecord::Migration[7.1]
+    #      def change
+    #        down_only do
+    #          execute "update posts set published = 'false' where private = 'true'"
+    #        end
+    #        add_column :posts, :private, :boolean, default: false
+    #      end
+    #    end
+    def down_only(&block)
+      execute_block(&block) if reverting?
     end
 
     # Runs the given migration classes.

@@ -1,3 +1,9 @@
+*   Add `migrating?` and `down_only` helpers to migrations.
+    `migrating?` can be used instead of `unless reverting?` (for one-liners).
+    `down_only` can be used instead of `if reverting?` (for blocks).
+
+    *Goulven Champenois*
+
 *   Specify callback in `has_secure_token`
 
     ```ruby

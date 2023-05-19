@@ -220,6 +220,12 @@ module ActiveRecord
       end
     end
 
+    class DownOnlyMigration < SilentMigration
+      def change
+        down_only { execute "update horses set oldie = 2" }
+      end
+    end
+
     self.use_transactional_tests = false
 
     setup do
@@ -521,6 +527,23 @@ module ActiveRecord
       UpOnlyMigration.new.migrate(:down) # should be no error
       connection = ActiveRecord::Base.connection
       assert_not connection.column_exists?(:horses, :oldie)
+      Horse.reset_column_information
+    end
+
+    def test_down_only
+      InvertibleMigration.new.migrate(:up)
+      horse1 = Horse.create
+      # populates existing horses with oldie = 1 but new ones have default 0
+      UpOnlyMigration.new.migrate(:up)
+      # sets oldie = 2 for existing records
+      DownOnlyMigration.new.migrate(:down)
+      Horse.reset_column_information
+      horse1.reload
+      horse2 = Horse.create
+
+      assert_equal 2, horse1.oldie # created before reverting
+      assert_equal 0, horse2.oldie # created after migrations
+
       Horse.reset_column_information
     end
   end
