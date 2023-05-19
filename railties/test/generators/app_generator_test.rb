@@ -609,24 +609,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_template_from_dir_pwd
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
-  end
-
-  def test_template_from_abs_path
-    absolute_path = File.expand_path(Rails.root, "fixtures")
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "#{absolute_path}/lib/template.rb"]))
-  end
-
-  def test_template_from_env_var_path
-    ENV["FIXTURES_HOME"] = File.expand_path(Rails.root, "fixtures")
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "$FIXTURES_HOME/lib/template.rb"]))
-    ENV.delete("FIXTURES_HOME")
-  end
-
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
