@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
 - [`config.active_record.before_committed_on_all_records`](#config-active-record-before-committed-on-all-records): `true`
@@ -1993,6 +1994,17 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.action_view.prepend_content_exfiltration_prevention`
 
 Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
+
+#### `config.action_view.sanitizer_vendor`
+
+Configures the set of HTML sanitizers used by Action View by setting `ActionView::Helpers::SanitizeHelper.sanitizer_vendor`. The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is                 | Which parses markup as |
+|-----------------------|--------------------------------------|------------------------|
+| (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
+| 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
+
+NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to use `Rails::HTML4::Sanitizer`.
 
 ### Configuring Action Mailbox
 

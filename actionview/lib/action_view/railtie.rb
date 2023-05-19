@@ -46,6 +46,12 @@ module ActionView
       ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = prepend_content_exfiltration_prevention
     end
 
+    initializer "action_view.sanitizer_vendor" do |app|
+      if klass = app.config.action_view.delete(:sanitizer_vendor)
+        ActionView::Helpers::SanitizeHelper.sanitizer_vendor = klass
+      end
+    end
+
     config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?

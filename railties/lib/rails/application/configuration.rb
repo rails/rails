@@ -96,7 +96,7 @@ module Rails
         #    configure the default value.
         # 5. Add a commented out section in the `new_framework_defaults` to
         #    configure the default value again.
-        # 6. Update the guide in `configuration.md`.
+        # 6. Update the guide in `configuring.md`.
 
         # To remove configurable deprecated behavior, follow these steps:
         # 1. Update or remove the entry in the guides.
@@ -310,6 +310,12 @@ module Rails
 
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
+          end
+
+          if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
+            if respond_to?(:action_view)
+              action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+            end
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
