@@ -1,3 +1,7 @@
+*   Add `ActiveRecord.disconnect_all!` method to immediately close all connections from all pools.
+
+    *Jean Boussier*
+
 *   Discard connections which may have been left in a transaction.
 
     There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:
