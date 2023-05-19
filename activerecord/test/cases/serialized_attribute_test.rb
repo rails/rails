@@ -5,6 +5,7 @@ require "models/person"
 require "models/traffic_light"
 require "models/post"
 require "models/binary_field"
+require "models/blob"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
   def setup
@@ -714,5 +715,13 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     assert_deprecated(/Please pass the class as a keyword argument/, ActiveRecord.deprecator) do
       Topic.serialize(:content, Hash)
     end
+  end
+
+  def test_unicode_is_not_changed_when_stored_in_mysql_blob
+    value = "\u2022"
+    model = Blob.create!(blob: value)
+    # This looks nonsensical, but without special handling, reading a value can cause binary fields to register as changed.
+    model.blob
+    assert_not model.changed?
   end
 end

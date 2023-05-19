@@ -1113,6 +1113,10 @@ ActiveRecord::Schema.define do
     t.references :customer_carrier
   end
 
+  create_table :blobs, force: true do |t|
+    t.blob :blob
+  end
+
   create_table :speedometers, force: true, id: false do |t|
     t.string :speedometer_id
     t.string :name

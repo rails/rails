@@ -37,8 +37,14 @@ module ActiveRecord
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
         raw_new_value = encoded(value)
-        raw_old_value.nil? != raw_new_value.nil? ||
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
+        return true if raw_old_value.nil? != raw_new_value.nil?
+        if raw_new_value.present? && raw_new_value.is_a?(::String) && raw_new_value.encoding == Encoding::BINARY && raw_old_value.is_a?(ActiveModel::Type::Binary::Data)
+          raw_old_value_s = raw_old_value.to_s.frozen? ? raw_old_value.to_s.dup : raw_old_value.to_s
+          # This line will change the string that is used inside of raw_old_value.
+          raw_old_value_s.force_encoding(Encoding::BINARY) if raw_old_value_s.encoding == Encoding::UTF_8
+          raw_old_value = ActiveModel::Type::Binary::Data.new(raw_old_value_s)
+        end
+        subtype.changed_in_place?(raw_old_value, raw_new_value)
       end
 
       def accessor
