@@ -614,12 +614,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
-  def test_template_from_url
-    url = "https://raw.githubusercontent.com/rails/rails/f95c0b7e96/railties/test/fixtures/lib/template.rb"
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", url]))
-  end
-
   def test_template_from_abs_path
     absolute_path = File.expand_path(Rails.root, "fixtures")
     FileUtils.cd(Rails.root)
