@@ -152,7 +152,7 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test (where `6` is the number of line where the test is defined).
+Let us run this newly added test (where `6` is the line number where the test is defined).
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
