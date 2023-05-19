@@ -1,3 +1,25 @@
+*   Deprecate passing params to `assert_enqueued_email_with` via the `:args`
+    kwarg. `assert_enqueued_email_with` now supports a `:params` kwarg, so use
+    that to pass params:
+
+    ```ruby
+    # BEFORE
+    assert_enqueued_email_with MyMailer, :my_method, args: { my_param: "value" }
+
+    # AFTER
+    assert_enqueued_email_with MyMailer, :my_method, params: { my_param: "value" }
+    ```
+
+    To specify named mailer args as a Hash, wrap the Hash in an array:
+
+    ```ruby
+    assert_enqueued_email_with MyMailer, :my_method, args: [{ my_arg: "value" }]
+    # OR
+    assert_enqueued_email_with MyMailer, :my_method, args: [my_arg: "value"]
+    ```
+
+    *Jonathan Hefner*
+
 *   Accept procs for args and params in `assert_enqueued_email_with`
 
     ```ruby
