@@ -196,12 +196,18 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "clone_empty returns an empty buffer" do
-    assert_equal "", ActiveSupport::SafeBuffer.new("foo").clone_empty
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_equal "", ActiveSupport::SafeBuffer.new("foo").clone_empty
+    end
   end
 
   test "clone_empty keeps the original dirtiness" do
-    assert_predicate @buffer.clone_empty, :html_safe?
-    assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_predicate @buffer.clone_empty, :html_safe?
+    end
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
+    end
   end
 
   test "Should be safe when sliced if original value was safe" do
