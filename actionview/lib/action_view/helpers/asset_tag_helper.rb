@@ -6,6 +6,8 @@ require "active_support/core_ext/object/inclusion"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 
+require "marcel"
+
 module ActionView
   module Helpers # :nodoc:
     # = Action View Asset Tag \Helpers
@@ -486,7 +488,11 @@ module ActionView
           if block.present?
             capture(&block).html_safe
           else
-            source_tags = sources.map { |source| tag("source", srcset: resolve_asset_source("image", source, skip_pipeline)) } if sources.size > 1
+            source_tags = sources.map do |source|
+              tag("source",
+               srcset: resolve_asset_source("image", source, skip_pipeline),
+               type: Marcel::MimeType.for(extension: "." + File.extname(source)[1..]))
+            end if sources.size > 1
             safe_join(source_tags << image_tag(sources.last, image_options))
           end
         end
