@@ -486,7 +486,11 @@ module ActionView
           if block.present?
             capture(&block).html_safe
           else
-            source_tags = sources.map { |source| tag("source", srcset: resolve_asset_source("image", source, skip_pipeline)) } if sources.size > 1
+            source_tags = sources.map do |source|
+              tag("source",
+               srcset: resolve_asset_source("image", source, skip_pipeline),
+               type: Template::Types[File.extname(source)[1..]]&.to_s)
+            end if sources.size > 1
             safe_join(source_tags << image_tag(sources.last, image_options))
           end
         end
