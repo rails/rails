@@ -1,3 +1,8 @@
+*   `bin/rails app:template` now runs `bundle install` and any `after_bundle`
+    blocks after the template is executed.
+
+    *Jonathan Hefner* and *Gerry Caulfield*
+
 *   Enable passing column size to migration generator
 
     Previously you could pass a limit to the migration generator:

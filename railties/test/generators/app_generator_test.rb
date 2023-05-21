@@ -1012,6 +1012,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal @bundle_commands_before_callback, @bundle_commands
   end
 
+  def test_apply_rails_template_class_method_runs_bundle_and_after_bundle_callbacks
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      template = "lib/template.rb"
+      File.write(template, "after_bundle { create_file 'after_bundle_callback_ran' }")
+
+      generator_class.no_commands do
+        assert_called_on_instance_of(generator_class, :run_bundle) do
+          quietly { generator_class.apply_rails_template(template, destination_root) }
+        end
+      end
+
+      assert_file "after_bundle_callback_ran"
+    end
+  end
+
   def test_gitignore
     run_generator
 

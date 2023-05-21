@@ -8,11 +8,9 @@ namespace :app do
   task template: :environment do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
-    template = File.expand_path(template) unless %r{\A[A-Za-z][A-Za-z0-9+\-.]*://}.match?(template)
     require "rails/generators"
     require "rails/generators/rails/app/app_generator"
-    generator = Rails::Generators::AppGenerator.new [Rails.root], {}, { destination_root: Rails.root }
-    generator.apply template, verbose: false
+    Rails::Generators::AppGenerator.apply_rails_template(template, Rails.root)
   end
 
   namespace :templates do
