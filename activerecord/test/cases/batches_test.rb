@@ -694,6 +694,10 @@ class EachTest < ActiveRecord::TestCase
 
       assert_equal @total, total
     end
+
+    test "in_batches should correctly sorted when load is #{load}" do
+      assert_equal Post.order(id: :desc).pluck(:id), Post.in_batches(order: :desc, use_ranges: false, load: load).first.pluck(:id)
+    end
   end
 
   test ".find_each respects table alias" do
