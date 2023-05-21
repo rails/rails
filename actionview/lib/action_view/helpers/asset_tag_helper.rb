@@ -477,20 +477,20 @@ module ActionView
       def picture_tag(*sources, &block)
         sources.flatten!
         options = sources.extract_options!.symbolize_keys
-        picture_options = options.except(:image)
-        image_options = options.fetch(:image, {})
+        image_options = options.delete(:image) || {}
         skip_pipeline = options.delete(:skip_pipeline)
-        source_tags = []
 
-        content_tag(:picture, picture_options) do
+        content_tag("picture", options) do
           if block.present?
             capture(&block).html_safe
+          elsif sources.size <= 1
+            image_tag(sources.last, image_options)
           else
             source_tags = sources.map do |source|
               tag("source",
                srcset: resolve_asset_source("image", source, skip_pipeline),
                type: Template::Types[File.extname(source)[1..]]&.to_s)
-            end if sources.size > 1
+            end
             safe_join(source_tags << image_tag(sources.last, image_options))
           end
         end
