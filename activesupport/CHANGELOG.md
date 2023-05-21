@@ -1,3 +1,9 @@
+*   Deprecate `SafeBuffer#clone_empty`.
+
+    This method has not been used internally since Rails 4.2.0.
+
+    *Mike Dalessio*
+
 *   `MessageEncryptor`, `MessageVerifier`, and `config.active_support.message_serializer`
     now accept `:message_pack` and `:message_pack_allow_marshal` as serializers.
     These serializers require the [`msgpack` gem](https://rubygems.org/gems/msgpack)

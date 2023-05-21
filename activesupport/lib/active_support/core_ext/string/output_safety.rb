@@ -77,7 +77,10 @@ module ActiveSupport # :nodoc:
       @html_safe = other.html_safe?
     end
 
-    def clone_empty
+    def clone_empty # :nodoc:
+      ActiveSupport.deprecator.warn <<~EOM
+        ActiveSupport::SafeBuffer#clone_empty is deprecated and will be removed in Rails 7.2.
+      EOM
       self[0, 0]
     end
 
