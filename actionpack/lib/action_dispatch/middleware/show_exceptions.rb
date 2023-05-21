@@ -11,7 +11,7 @@ module ActionDispatch
   # The exceptions app should be passed as a parameter on initialization of
   # +ShowExceptions+. Every time there is an exception, +ShowExceptions+ will
   # store the exception in <tt>env["action_dispatch.exception"]</tt>, rewrite
-  # the +PATH_INFO+ to the exception status code and call the Rack app.
+  # the +PATH_INFO+ to the exception status code, and call the Rack app.
   #
   # In \Rails applications, the exceptions app can be configured with
   # +config.exceptions_app+, which defaults to ActionDispatch::PublicExceptions.
