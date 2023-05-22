@@ -63,11 +63,11 @@ module ActiveRecord
         def encoded(value)
           return if default_value?(value)
           payload = coder.dump(value)
-          if payload && binary? && payload.encoding != Encoding::BINARY
-            payload = payload.dup if payload.frozen?
-            payload.force_encoding(Encoding::BINARY)
+          if payload && @subtype.binary?
+            ActiveModel::Type::Binary::Data.new(payload)
+          else
+            payload
           end
-          payload
         end
     end
   end

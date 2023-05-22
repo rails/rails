@@ -1,3 +1,7 @@
+*   Fix mutation detection for serialized attributes backed by binary columns.
+
+    *Jean Boussier*
+
 *   Add `ActiveRecord.disconnect_all!` method to immediately close all connections from all pools.
 
     *Jean Boussier*

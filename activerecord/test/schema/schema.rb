@@ -1185,6 +1185,7 @@ ActiveRecord::Schema.define do
       t.text     :content
       t.text     :important
     end
+    t.blob     :binary_content
     t.boolean  :approved, default: true
     t.integer  :replies_count, default: 0
     t.integer  :unique_replies_count, default: 0
