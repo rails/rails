@@ -322,6 +322,23 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_equal 123, @conn.send(:error_number, exception)
   end
 
+  test "read timeout raises ActiveRecord::AdapterTimeout" do
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+    ActiveRecord::Base.establish_connection(
+      db_config.configuration_hash.merge("read_timeout" => 1)
+    )
+
+    error = assert_raises(ActiveRecord::AdapterTimeout) do
+      ActiveRecord::Base.connection.execute("SELECT SLEEP(2)")
+    end
+    assert_kind_of ActiveRecord::QueryAborted, error
+
+    assert_equal Trilogy::TimeoutError, error.cause.class
+  ensure
+    ActiveRecord::Base.establish_connection :arunit
+  end
+
   def assert_raises_with_message(exception, message, &block)
     block.call
   rescue exception => error
