@@ -243,15 +243,15 @@ module ActiveRecord
       end
 
       def commit_db_transaction # :nodoc:
-        internal_execute("COMMIT", "TRANSACTION", allow_retry: ActiveRecord.retry_queries, materialize_transactions: true)
+        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: ActiveRecord.retry_queries, materialize_transactions: true)
+        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_restart_db_transaction # :nodoc:
-        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: ActiveRecord.retry_queries, materialize_transactions: true)
+        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:

@@ -983,7 +983,7 @@ module ActiveRecord
         # still-yielded connection in the outer block), but we currently
         # provide no special enforcement there.
         #
-        def with_raw_connection(allow_retry: ActiveRecord.retry_queries, materialize_transactions: true)
+        def with_raw_connection(allow_retry: false, materialize_transactions: true)
           @lock.synchronize do
             connect! if @raw_connection.nil? && reconnect_can_restore_state?
 

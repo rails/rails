@@ -1,11 +1,3 @@
-*   Introduce config to allow all queries to be retried.
-
-    Active Record config `retry_queries` can be set to enable retries across all database queries,
-    according to the retries configuration in the application's database config. The value will
-    default to false (retries disabled).
-
-    *Adrianna Chang and Scott Yang*
-
 *   Discard connections which may have been left in a transaction.
 
     There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:

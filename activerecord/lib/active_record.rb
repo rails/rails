@@ -238,8 +238,8 @@ module ActiveRecord
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
 
-  singleton_class.attr_accessor :retry_queries
-  self.retry_queries = false
+  singleton_class.attr_accessor :_internal_always_retry_queries_on_execute
+  self._internal_always_retry_queries_on_execute = false
 
   def self.legacy_connection_handling=(_)
     raise ArgumentError, <<~MSG.squish
