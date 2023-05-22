@@ -739,7 +739,7 @@ module ActiveRecord
             c.clean!
           end
           c
-        rescue
+        rescue Exception
           remove c
           c.disconnect!
           raise
