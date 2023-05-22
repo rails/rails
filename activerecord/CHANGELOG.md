@@ -1,3 +1,7 @@
+*   Fix mutation detection for serialized attributes backed by binary columns.
+
+    *Jean Boussier*
+
 *   Fix a bug where using groups and counts with long table names would return incorrect results.
 
     *Shota Toguchi*, *Yusaku Ono*

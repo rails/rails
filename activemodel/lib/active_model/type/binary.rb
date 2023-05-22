@@ -31,7 +31,9 @@ module ActiveModel
 
       class Data # :nodoc:
         def initialize(value)
-          @value = value.to_s
+          value = value.to_s
+          value = value.b unless value.encoding == Encoding::BINARY
+          @value = value
         end
 
         def to_s
