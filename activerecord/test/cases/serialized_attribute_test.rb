@@ -4,7 +4,6 @@ require "cases/helper"
 require "models/person"
 require "models/traffic_light"
 require "models/post"
-require "models/binary_field"
 
 class SerializedAttributeTest < ActiveRecord::TestCase
   def setup
@@ -381,36 +380,37 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal({}, topic.content)
   end
 
-  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-    def test_is_not_changed_when_stored_in_mysql_blob
-      value = %w(Fée)
-      model = BinaryField.create!(normal_blob: value, normal_text: value)
-      model.reload
+  def test_is_not_changed_when_stored_blob
+    Topic.serialize(:binary_content, type: Array)
+    Topic.serialize(:content, type: Array)
 
-      model.normal_text = value
-      assert_not_predicate model, :normal_text_changed?
+    value = %w(Fée)
+    model = Topic.create!(binary_content: value, content: value)
+    model.reload
 
-      model.normal_blob = value
-      assert_not_predicate model, :normal_blob_changed?
+    model.binary_content = value
+    assert_not_predicate model, :binary_content_changed?
+
+    model.content = value
+    assert_not_predicate model, :content_changed?
+  end
+
+  class FrozenCoder < ActiveRecord::Coders::YAMLColumn
+    def dump(obj)
+      super&.freeze
     end
+  end
 
-    class FrozenBinaryField < BinaryField
-      class FrozenCoder < ActiveRecord::Coders::YAMLColumn
-        def dump(obj)
-          super&.freeze
-        end
-      end
-      serialize(:normal_blob, coder: FrozenCoder.new(:normal_blob, Array))
-    end
+  def test_is_not_changed_when_stored_in_blob_frozen_payload
+    Topic.serialize(:binary_content, coder: FrozenCoder.new(:binary_content, Array))
+    Topic.serialize(:content, coder: FrozenCoder.new(:content, Array))
 
-    def test_is_not_changed_when_stored_in_mysql_blob_frozen_payload
-      value = %w(Fée)
-      model = FrozenBinaryField.create!(normal_blob: value, normal_text: value)
-      model.reload
+    value = %w(Fée)
+    model = Topic.create!(binary_content: value, content: value)
+    model.reload
 
-      model.normal_blob = value
-      assert_not_predicate model, :normal_blob_changed?
-    end
+    model.content = value
+    assert_not_predicate model, :content_changed?
   end
 
   def test_values_cast_from_nil_are_persisted_as_nil
