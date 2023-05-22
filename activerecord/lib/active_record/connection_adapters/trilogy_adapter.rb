@@ -211,6 +211,9 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message:, sql:, binds:)
+          if exception.is_a?(::Trilogy::TimeoutError) && !exception.error_code
+            return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+          end
           error_code = exception.error_code if exception.respond_to?(:error_code)
 
           Trilogy::LostConnectionExceptionTranslator.new(exception, message, error_code).translate || super
