@@ -1,3 +1,15 @@
+*   Support multiple column ordering for `find_each`, `find_in_batches` and `in_batches`.
+
+    When find_each/find_in_batches/in_batches are performed on a table with composite primary keys, ascending or descending order can be selected for each key.
+
+    ```ruby
+    Person.find_each(order: [:desc, :asc]) do |person|
+      person.party_all_night!
+    end
+    ```
+
+    *Takuya Kurimoto*
+
 *   Fix where on association with has_one/has_many polymorphic relations.
 
     Before:
