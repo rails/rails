@@ -1023,7 +1023,7 @@ that the text from the new article's title is on the articles index page.
 #### Testing for Multiple Screen Sizes
 
 If you want to test for mobile sizes on top of testing for desktop,
-you can create another class that inherits from SystemTestCase and use in your
+you can create another class that inherits from `ActionDispatch::SystemTestCase` and use it in your
 test suite. In this example a file called `mobile_system_test_case.rb` is created
 in the `/test` directory with the following configuration.
 
