@@ -83,13 +83,13 @@ module ActiveRecord
       end
 
       def invert
-        if predicates.size == 1
-          inverted_predicates = [ invert_predicate(predicates.first) ]
+        if predicates.empty?
+          WhereClause.empty
+        elsif predicates.size == 1
+          WhereClause.new([ invert_predicate(predicates.first) ])
         else
-          inverted_predicates = [ Arel::Nodes::Not.new(ast) ]
+          WhereClause.new([ Arel::Nodes::Not.new(ast) ])
         end
-
-        WhereClause.new(inverted_predicates)
       end
 
       def self.empty
