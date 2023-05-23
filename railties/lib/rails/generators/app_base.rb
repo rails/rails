@@ -553,6 +553,7 @@ module Rails
       end
 
       def dockerfile_deploy_packages
+        # Add curl to work with the default healthcheck strategy in MRSK
         packages = ["curl"]
 
         # ActiveRecord databases
