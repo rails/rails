@@ -156,10 +156,7 @@ module ActiveRecord
     end
   end
 
-  # Superclass for all database execution errors.
-  #
-  # Wraps the underlying database error as +cause+.
-  class StatementInvalid < ActiveRecordError
+  module QueryError # :nodoc:
     def initialize(message = nil, sql: nil, binds: nil)
       super(message || $!&.message)
       @sql = sql
@@ -176,6 +173,13 @@ module ActiveRecord
 
       self
     end
+  end
+
+  # Superclass for all database execution errors.
+  #
+  # Wraps the underlying database error as +cause+.
+  class StatementInvalid < ActiveRecordError
+    include QueryError
   end
 
   # Defunct wrapper class kept for compatibility.
@@ -488,7 +492,8 @@ module ActiveRecord
   end
 
   # Superclass for errors that have been aborted (either by client or server).
-  class QueryAborted < StatementInvalid
+  class QueryAborted < ConnectionNotEstablished
+    include QueryError
   end
 
   # LockWaitTimeout will be raised when lock wait timeout exceeded.
