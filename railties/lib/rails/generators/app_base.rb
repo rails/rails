@@ -558,6 +558,9 @@ module Rails
         # ActiveRecord databases
         packages << deploy_package_for_database unless skip_active_record?
 
+        # Add curl to work with the default healthcheck strategy in MRSK
+        packages << "curl"
+
         # ActiveStorage preview support
         packages << "libvips" unless skip_active_storage?
 
