@@ -304,6 +304,19 @@ module RailtiesTest
       assert_equal "Hi bukkits\n", response[2].body
     end
 
+    test "adds its fixtures path to fixture_paths" do
+      @plugin.write "test/fixtures/bukkits.yml", ""
+
+      boot_rails
+
+      test_class = Class.new
+      test_class.singleton_class.attr_accessor :fixture_paths
+      test_class.fixture_paths = []
+      ActiveSupport.run_load_hooks(:active_record_fixtures, test_class)
+
+      assert_equal test_class.fixture_paths, ["#{Bukkits::Engine.root}/test/fixtures/"]
+    end
+
     test "adds its mailer previews to mailer preview paths" do
       @plugin.write "app/mailers/bukkit_mailer.rb", <<-RUBY
         class BukkitMailer < ActionMailer::Base
