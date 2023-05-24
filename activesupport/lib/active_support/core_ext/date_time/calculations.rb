@@ -4,9 +4,9 @@ require "date"
 
 class DateTime
   class << self
-    # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or
-    # <tt>config.time_zone</tt> are set, otherwise returns
-    # <tt>Time.now.to_datetime</tt>.
+    # Returns +Time.zone.now.to_datetime+ when +Time.zone+ or
+    # +config.time_zone+ are set, otherwise returns
+    # +Time.now.to_datetime+.
     def current
       ::Time.zone ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
     end

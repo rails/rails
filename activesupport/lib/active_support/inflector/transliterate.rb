@@ -22,7 +22,7 @@ module ActiveSupport
     # to ASCII.
     #
     # In order to make your custom transliterations available, you must set
-    # them as the <tt>i18n.transliterate.rule</tt> i18n key:
+    # them as the +i18n.transliterate.rule+ i18n key:
     #
     #   # Store the transliterations in locales/de.yml
     #   i18n:
@@ -41,7 +41,7 @@ module ActiveSupport
     #     }
     #   })
     #
-    # The value for <tt>i18n.transliterate.rule</tt> can be a simple Hash that
+    # The value for +i18n.transliterate.rule+ can be a simple Hash that
     # maps characters to ASCII approximations as shown above, or, for more
     # complex requirements, a Proc:
     #
@@ -119,7 +119,7 @@ module ActiveSupport
     # If the optional parameter +locale+ is specified,
     # the word will be parameterized as a word of that language.
     # By default, this parameter is set to +nil+ and it will use
-    # the configured <tt>I18n.locale</tt>.
+    # the configured +I18n.locale+.
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string, locale: locale)

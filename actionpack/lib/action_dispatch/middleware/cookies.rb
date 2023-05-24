@@ -158,7 +158,7 @@ module ActionDispatch
   #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set +:domain+
   #   to +:all+. To support multiple domains, provide an array, and
-  #   the first domain matching <tt>request.host</tt> will be used. Make
+  #   the first domain matching +request.host+ will be used. Make
   #   sure to specify the +:domain+ option with +:all+ or
   #   +Array+ again when deleting cookies. For more flexibility you
   #   can set the domain on a per-request basis by specifying +:domain+

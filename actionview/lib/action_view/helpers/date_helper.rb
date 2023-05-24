@@ -157,7 +157,7 @@ module ActionView
         end
       end
 
-      # Like +distance_of_time_in_words+, but where +to_time+ is fixed to <tt>Time.now</tt>.
+      # Like +distance_of_time_in_words+, but where +to_time+ is fixed to +Time.now+.
       #
       #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
       #   time_ago_in_words(3.minutes.ago)                      # => 3 minutes
@@ -195,7 +195,7 @@ module ActionView
       #   Note: You can also use Rails' i18n functionality for this.
       # * +:month_format_string+ - Set to a format string. The string gets passed keys +:number+ (integer)
       #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
-      #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
+      #   See +Kernel.sprintf+ for documentation on format sequences.
       # * +:date_separator+    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
       # * +:time_separator+    - Specifies a string to separate the time fields. Default is " : ".
       # * +:datetime_separator+- Specifies a string to separate the date and time fields. Default is " &mdash; ".

@@ -109,13 +109,13 @@ module ActiveSupport
       #   DateTime.current # => Wed, 24 Nov 2004 01:04:44 -0500
       #
       # Dates are taken as their timestamp at the beginning of the day in the
-      # application time zone. <tt>Time.current</tt> returns said timestamp,
-      # and <tt>Time.now</tt> its equivalent in the system time zone. Similarly,
-      # <tt>Date.current</tt> returns a date equal to the argument, and
-      # <tt>Date.today</tt> the date according to <tt>Time.now</tt>, which may
-      # be different. (Note that you rarely want to deal with <tt>Time.now</tt>,
-      # or <tt>Date.today</tt>, in order to honor the application time zone
-      # please always use <tt>Time.current</tt> and <tt>Date.current</tt>.)
+      # application time zone. +Time.current+ returns said timestamp,
+      # and +Time.now+ its equivalent in the system time zone. Similarly,
+      # +Date.current+ returns a date equal to the argument, and
+      # +Date.today+ the date according to +Time.now+, which may
+      # be different. (Note that you rarely want to deal with +Time.now+,
+      # or +Date.today+, in order to honor the application time zone
+      # please always use +Time.current+ and +Date.current+.)
       #
       # Note that the usec for the time passed will be set to 0 to prevent rounding
       # errors with external services, like MySQL (which will round instead of floor,

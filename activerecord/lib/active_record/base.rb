@@ -159,7 +159,7 @@ module ActiveRecord # :nodoc:
   # Sometimes you want to be able to read the raw attribute data without having the column-determined
   # typecast run its course first. That can be done by using the <tt><attribute>_before_type_cast</tt>
   # accessors that all attributes have. For example, if your Account model has a +balance+ attribute,
-  # you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
+  # you can call +account.balance_before_type_cast+ or +account.id_before_type_cast+.
   #
   # This is especially useful in validation situations where the user might supply a string for an
   # integer field and you want to display the original string back in an error message. Accessing the
@@ -169,7 +169,7 @@ module ActiveRecord # :nodoc:
   #
   # Dynamic attribute-based finders are a mildly deprecated way of getting (and/or creating) objects
   # by simple queries without turning to SQL. They work by appending the name of an attribute
-  # to +find_by_+ like <tt>Person.find_by_user_name</tt>.
+  # to +find_by_+ like +Person.find_by_user_name+.
   # Instead of writing <tt>Person.find_by(user_name: user_name)</tt>, you can use
   # <tt>Person.find_by_user_name(user_name)</tt>.
   #
@@ -235,7 +235,7 @@ module ActiveRecord # :nodoc:
   # {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection] and retrieved
   # by ActiveRecord::Base.connection. All classes inheriting from ActiveRecord::Base will use this
   # connection. But you can also set a class-specific connection. For example, if Course is an
-  # ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
+  # ActiveRecord::Base, but resides in a different database, you can just say +Course.establish_connection+
   # and Course and all of its subclasses will use this connection instead.
   #
   # This feature is implemented by keeping a connection pool in ActiveRecord::Base that is

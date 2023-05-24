@@ -285,7 +285,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
   #
-  # By default, the tempfile is created in <tt>Dir.tmpdir</tt>. Pass +tmpdir:+ to create it in a different directory:
+  # By default, the tempfile is created in +Dir.tmpdir+. Pass +tmpdir:+ to create it in a different directory:
   #
   #   blob.open(tmpdir: "/path/to/tmp") do |file|
   #     # ...

@@ -122,7 +122,7 @@ module ActionView
       # This allows the user to submit a form page more than once with the expected results of creating multiple records.
       # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
       #
-      # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>selected: value</tt> to use a different selection
+      # By default, +post.person_id+ is the selected option. Specify <tt>selected: value</tt> to use a different selection
       # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the +:disabled+ option. This can either be a single value or an array of values to be disabled.
       #

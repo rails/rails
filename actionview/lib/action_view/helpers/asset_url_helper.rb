@@ -21,7 +21,7 @@ module ActionView
     # folder, but you can direct Rails to link to assets from a dedicated asset
     # server by setting <tt>ActionController::Base.asset_host</tt> in the application
     # configuration, typically in <tt>config/environments/production.rb</tt>.
-    # For example, you'd define <tt>assets.example.com</tt> to be your asset
+    # For example, you'd define +assets.example.com+ to be your asset
     # host this way, inside the +configure+ block of your environment-specific
     # configuration files or <tt>config/application.rb</tt>:
     #
@@ -168,13 +168,13 @@ module ActionView
       #
       #     asset_path("") # => ""
       #
-      # - If <tt>config.relative_url_root</tt> is specified, all assets will have that
+      # - If +config.relative_url_root+ is specified, all assets will have that
       #   root prepended.
       #
       #     Rails.application.config.relative_url_root = "bar"
       #     asset_path("foo.js", skip_pipeline: true) # => "bar/foo.js"
       #
-      # - A different asset host can be specified via <tt>config.action_controller.asset_host</tt>
+      # - A different asset host can be specified via +config.action_controller.asset_host+
       #   this is commonly used in conjunction with a CDN.
       #
       #     Rails.application.config.action_controller.asset_host = "assets.example.com"

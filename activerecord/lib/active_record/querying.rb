@@ -24,7 +24,7 @@ module ActiveRecord
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call
-    # this method from. For example, if you call <tt>Product.find_by_sql</tt>, then the results will be returned in
+    # this method from. For example, if you call +Product.find_by_sql+, then the results will be returned in
     # a +Product+ object with the attributes you specified in the SQL query.
     #
     # If you call a complicated SQL query which spans multiple tables, the columns specified by the

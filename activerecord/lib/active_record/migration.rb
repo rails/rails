@@ -373,7 +373,7 @@ module ActiveRecord
   #   bin/rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
-  # create an empty migration file <tt>timestamp_my_new_migration.rb</tt>
+  # create an empty migration file +timestamp_my_new_migration.rb+
   # in the <tt>db/migrate/</tt> directory where +timestamp+ is the
   # UTC formatted date and time that the migration was generated.
   #
@@ -381,7 +381,7 @@ module ActiveRecord
   #
   #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
-  # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
+  # This will generate the file +timestamp_add_fieldname_to_tablename.rb+, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration[7.1]
   #     def change
   #       add_column :tablenames, :fieldname, :string
@@ -594,7 +594,7 @@ module ActiveRecord
     end
 
     # This class is used to verify that all migrations have been run before
-    # loading a web page if <tt>config.active_record.migration_error</tt> is set to +:page_load+.
+    # loading a web page if +config.active_record.migration_error+ is set to +:page_load+.
     class CheckPending
       def initialize(app, file_watcher: ActiveSupport::FileUpdateChecker)
         @app = app

@@ -152,7 +152,7 @@ module ActionController
     #
     #   redirect_to url_from(params[:redirect_url]) || root_url
     #
-    # The +location+ is considered internal, and safe, if it's on the same host as <tt>request.host</tt>:
+    # The +location+ is considered internal, and safe, if it's on the same host as +request.host+:
     #
     #   # If request.host is example.com:
     #   url_from("https://example.com/profile") # => "https://example.com/profile"

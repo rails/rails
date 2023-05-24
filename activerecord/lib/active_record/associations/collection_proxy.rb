@@ -15,7 +15,7 @@ module ActiveRecord
     #
     #   blog = Blog.first
     #
-    # The collection proxy returned by <tt>blog.posts</tt> is built from a
+    # The collection proxy returned by +blog.posts+ is built from a
     # +:has_many+ +association+, and delegates to a collection
     # of posts as the +target+.
     #
@@ -756,7 +756,7 @@ module ActiveRecord
       #   person.pets.count { |pet| pet.name.include?('-') } # => 2
 
       # Returns the size of the collection. If the collection hasn't been loaded,
-      # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
+      # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls +collection.size+.
       #
       # If the collection has been already loaded +size+ and +length+ are
       # equivalent. If not and you are going to need the records anyway

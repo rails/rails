@@ -19,7 +19,7 @@ module ActiveRecord
   #
   # Active Record keeps all the +datetime+ and +time+ columns
   # timezone aware. By default, these values are stored in the database as UTC
-  # and converted back to the current <tt>Time.zone</tt> when pulled from the database.
+  # and converted back to the current +Time.zone+ when pulled from the database.
   #
   # This feature can be turned off completely by setting:
   #

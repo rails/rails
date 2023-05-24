@@ -19,7 +19,7 @@ module AbstractController
     include ActionView::ViewPaths
 
     # Normalizes arguments and options, and then delegates to render_to_body and
-    # sticks the result in <tt>self.response_body</tt>.
+    # sticks the result in +self.response_body+.
     #
     # Supported options depend on the underlying +render_to_body+ implementation.
     def render(*args, &block)

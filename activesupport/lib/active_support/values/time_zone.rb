@@ -17,8 +17,8 @@ module ActiveSupport
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
   #   +parse+, +at+, and +now+ methods.
   #
-  # If you set <tt>config.time_zone</tt> in the Rails Application, you can
-  # access this TimeZone object via <tt>Time.zone</tt>:
+  # If you set +config.time_zone+ in the Rails Application, you can
+  # access this TimeZone object via +Time.zone+:
   #
   #   # application.rb:
   #   class Application < Rails::Application

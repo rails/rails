@@ -183,7 +183,7 @@ class String
   # If the optional parameter +locale+ is specified,
   # the word will be parameterized as a word of that language.
   # By default, this parameter is set to +nil+ and it will use
-  # the configured <tt>I18n.locale</tt>.
+  # the configured +I18n.locale+.
   #
   #   class Person
   #     def to_param

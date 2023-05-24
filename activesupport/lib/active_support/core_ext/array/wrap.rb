@@ -16,10 +16,10 @@ class Array
   # This method is similar in purpose to <tt>Kernel#Array</tt>, but there are some differences:
   #
   # * If the argument responds to +to_ary+ the method is invoked. <tt>Kernel#Array</tt>
-  #   moves on to try +to_a+ if the returned value is +nil+, but <tt>Array.wrap</tt> returns
+  #   moves on to try +to_a+ if the returned value is +nil+, but +Array.wrap+ returns
   #   an array with the argument as its single element right away.
   # * If the returned value from +to_ary+ is neither +nil+ nor an +Array+ object, <tt>Kernel#Array</tt>
-  #   raises an exception, while <tt>Array.wrap</tt> does not, it just returns the value.
+  #   raises an exception, while +Array.wrap+ does not, it just returns the value.
   # * It does not call +to_a+ on the argument, if the argument does not respond to +to_ary+
   #   it returns an array with the argument as its single element.
   #

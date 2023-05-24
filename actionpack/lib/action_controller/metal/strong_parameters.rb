@@ -103,7 +103,7 @@ module ActionController
   #   +false+ otherwise. The values can be:
   #   * +false+ to take no action.
   #   * +:log+ to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the
-  #     <tt>unpermitted_parameters.action_controller</tt> topic and log at the DEBUG level.
+  #     +unpermitted_parameters.action_controller+ topic and log at the DEBUG level.
   #   * +:raise+ to raise an ActionController::UnpermittedParameters exception.
   #
   # Examples:
@@ -1226,7 +1226,7 @@ module ActionController
   # for more information.
   module StrongParameters
     # Returns a new ActionController::Parameters object that
-    # has been instantiated with the <tt>request.parameters</tt>.
+    # has been instantiated with the +request.parameters+.
     def params
       @_params ||= begin
         context = {

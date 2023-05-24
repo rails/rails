@@ -70,7 +70,7 @@ module ActionView
     #
     # In particular, thanks to the conventions followed in the generated field names, the
     # controller gets a nested hash <tt>params[:person]</tt> with the person attributes
-    # set in the form. That hash is ready to be passed to <tt>Person.new</tt>:
+    # set in the form. That hash is ready to be passed to +Person.new+:
     #
     #   @person = Person.new(params[:person])
     #   if @person.save
@@ -620,7 +620,7 @@ module ActionView
       #   When set to +true+, the form is submitted via standard HTTP.
       #   When set to +false+, the form is submitted as a "remote form", which
       #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived
-      #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the
+      #   from +config.action_view.form_with_generates_remote_forms+ where the
       #   config's value is actually the inverse of what +local+'s value would be.
       #   As of Rails 6.1, that configuration option defaults to +false+
       #   (which has the equivalent effect of passing <tt>local: true</tt>).

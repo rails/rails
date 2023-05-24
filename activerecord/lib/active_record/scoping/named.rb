@@ -68,8 +68,8 @@ module ActiveRecord
         #     scope :dry_clean_only, -> { joins(:washing_instructions).where('washing_instructions.dry_clean_only = ?', true) }
         #   end
         #
-        # The above calls to #scope define class methods <tt>Shirt.red</tt> and
-        # <tt>Shirt.dry_clean_only</tt>. <tt>Shirt.red</tt>, in effect,
+        # The above calls to #scope define class methods +Shirt.red+ and
+        # +Shirt.dry_clean_only+. +Shirt.red+, in effect,
         # represents the query <tt>Shirt.where(color: 'red')</tt>.
         #
         # Note that this is simply 'syntactic sugar' for defining an actual
@@ -82,20 +82,20 @@ module ActiveRecord
         #   end
         #
         # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by
-        # <tt>Shirt.red</tt> is not an Array but an ActiveRecord::Relation,
+        # +Shirt.red+ is not an Array but an ActiveRecord::Relation,
         # which is composable with other scopes; it resembles the association object
         # constructed by a {has_many}[rdoc-ref:Associations::ClassMethods#has_many]
-        # declaration. For instance, you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>,
+        # declaration. For instance, you can invoke +Shirt.red.first+, +Shirt.red.count+,
         # <tt>Shirt.red.where(size: 'small')</tt>. Also, just as with the
         # association objects, named \scopes act like an Array, implementing
-        # Enumerable; <tt>Shirt.red.each(&block)</tt>, <tt>Shirt.red.first</tt>,
+        # Enumerable; <tt>Shirt.red.each(&block)</tt>, +Shirt.red.first+,
         # and <tt>Shirt.red.inject(memo, &block)</tt> all behave as if
-        # <tt>Shirt.red</tt> really was an array.
+        # +Shirt.red+ really was an array.
         #
         # These named \scopes are composable. For instance,
-        # <tt>Shirt.red.dry_clean_only</tt> will produce all shirts that are
+        # +Shirt.red.dry_clean_only+ will produce all shirts that are
         # both red and dry clean only. Nested finds and calculations also work
-        # with these compositions: <tt>Shirt.red.dry_clean_only.count</tt>
+        # with these compositions: +Shirt.red.dry_clean_only.count+
         # returns the number of garments for which these criteria obtain.
         # Similarly with <tt>Shirt.red.dry_clean_only.average(:thread_count)</tt>.
         #
@@ -108,7 +108,7 @@ module ActiveRecord
         #     has_many :shirts
         #   end
         #
-        # then <tt>elton.shirts.red.dry_clean_only</tt> will return all of
+        # then +elton.shirts.red.dry_clean_only+ will return all of
         # Elton's red, dry clean only shirts.
         #
         # \Named scopes can also have extensions, just as with

@@ -582,7 +582,7 @@ module ActiveRecord
       #   ActiveRecord::RecordNotSaved exception is raised and the assignment is
       #   cancelled.
       # * You can add an object to a collection without automatically saving it by using the
-      #   <tt>collection.build</tt> method (documented below).
+      #   +collection.build+ method (documented below).
       # * All unsaved (<tt>new_record? == true</tt>) members of the collection are automatically
       #   saved when the parent is saved.
       #
@@ -655,13 +655,13 @@ module ActiveRecord
       #
       # * <tt>firm.clients.destroy(client)</tt>
       # * <tt>firm.clients.destroy(*clients)</tt>
-      # * <tt>firm.clients.destroy_all</tt>
+      # * +firm.clients.destroy_all+
       #
       # +delete+ / +delete_all+ methods like the following do *not* trigger remove callbacks:
       #
       # * <tt>firm.clients.delete(client)</tt>
       # * <tt>firm.clients.delete(*clients)</tt>
-      # * <tt>firm.clients.delete_all</tt>
+      # * +firm.clients.delete_all+
       #
       # == Association extensions
       #
@@ -711,8 +711,8 @@ module ActiveRecord
       #
       # However, inside the actual extension code, you will not have access to the +record+ as
       # above. In this case, you can access +proxy_association+. For example,
-      # <tt>record.association(:items)</tt> and <tt>record.items.proxy_association</tt> will return
-      # the same object, allowing you to make calls like <tt>proxy_association.owner</tt> inside
+      # <tt>record.association(:items)</tt> and +record.items.proxy_association+ will return
+      # the same object, allowing you to make calls like +proxy_association.owner+ inside
       # association extensions.
       #
       # == Association Join Models
@@ -1149,7 +1149,7 @@ module ActiveRecord
       #    t = d.traps.first
       #    d.object_id == t.dungeon.object_id # => true
       #
-      # The +Dungeon+ instances +d+ and <tt>t.dungeon</tt> in the above example refer to
+      # The +Dungeon+ instances +d+ and +t.dungeon+ in the above example refer to
       # the same in-memory instance since the association matches the name of the class.
       # The result would be the same if we added +:inverse_of+ to our model definitions:
       #
@@ -1317,7 +1317,7 @@ module ActiveRecord
         #   been saved (if it passed the validation). *Note*: This only works if the base model
         #   already exists in the DB, not if it is a new (unsaved) record!
         # [collection.create!(attributes = {})]
-        #   Does the same as <tt>collection.create</tt>, but raises ActiveRecord::RecordInvalid
+        #   Does the same as +collection.create+, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
         # [collection.reload]
         #   Returns a Relation of all of the associated objects, forcing a database read.
@@ -1789,7 +1789,7 @@ module ActiveRecord
         #   class is created and decremented when it's destroyed. This requires that a column
         #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
         #   is used on the associate class (such as a Post class) - that is the migration for
-        #   <tt>#{table_name}_count</tt> is created on the associate class (such that <tt>Post.comments_count</tt> will
+        #   <tt>#{table_name}_count</tt> is created on the associate class (such that +Post.comments_count+ will
         #   return the count cached, see note below). You can also specify a custom counter
         #   cache column by providing a column name instead of a +true+/+false+ value to this
         #   option (e.g., <tt>counter_cache: :my_custom_counter</tt>.)
@@ -1894,7 +1894,7 @@ module ActiveRecord
         #   An empty Relation is returned if none are found.
         # [collection<<(object, ...)]
         #   Adds one or more objects to the collection by creating associations in the join table
-        #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
+        #   (+collection.push+ and +collection.concat+ are aliases to this method).
         #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
         #   parent object, unless the parent object is a new record.
         # [collection.delete(object, ...)]

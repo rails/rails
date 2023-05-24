@@ -10,12 +10,12 @@ class Time
     attr_accessor :zone_default
 
     # Returns the TimeZone for the current request, if this has been set (via Time.zone=).
-    # If <tt>Time.zone</tt> has not been set for the current request, returns the TimeZone specified in <tt>config.time_zone</tt>.
+    # If +Time.zone+ has not been set for the current request, returns the TimeZone specified in +config.time_zone+.
     def zone
       ::ActiveSupport::IsolatedExecutionState[:time_zone] || zone_default
     end
 
-    # Sets <tt>Time.zone</tt> to a TimeZone object for the current request/thread.
+    # Sets +Time.zone+ to a TimeZone object for the current request/thread.
     #
     # This method accepts any of the following:
     #
@@ -24,8 +24,8 @@ class Time
     # * A +TZInfo::Timezone+ object.
     # * An identifier for a +TZInfo::Timezone+ object (e.g., "America/New_York").
     #
-    # Here's an example of how you might set <tt>Time.zone</tt> on a per request basis and reset it when the request is done.
-    # <tt>current_user.time_zone</tt> just needs to return a string identifying the user's preferred time zone:
+    # Here's an example of how you might set +Time.zone+ on a per request basis and reset it when the request is done.
+    # +current_user.time_zone+ just needs to return a string identifying the user's preferred time zone:
     #
     #   class ApplicationController < ActionController::Base
     #     around_action :set_time_zone
@@ -42,8 +42,8 @@ class Time
       ::ActiveSupport::IsolatedExecutionState[:time_zone] = find_zone!(time_zone)
     end
 
-    # Allows override of <tt>Time.zone</tt> locally inside supplied block;
-    # resets <tt>Time.zone</tt> to existing value when done.
+    # Allows override of +Time.zone+ locally inside supplied block;
+    # resets +Time.zone+ to existing value when done.
     #
     #   class ApplicationController < ActionController::Base
     #     around_action :set_time_zone

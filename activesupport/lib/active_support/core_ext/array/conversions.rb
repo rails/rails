@@ -164,7 +164,7 @@ class Array
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <projects type="array"/>
   #
-  # By default name of the node for the children of root is <tt>root.singularize</tt>.
+  # By default name of the node for the children of root is +root.singularize+.
   # You can change it with the +:children+ option.
   #
   # The +options+ hash is passed downwards:

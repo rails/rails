@@ -106,7 +106,7 @@ class Hash
     #   # => {"hash"=>{"foo"=>1, "bar"=>2}}
     #
     # +DisallowedType+ is raised if the XML contains attributes with <tt>type="yaml"</tt> or
-    # <tt>type="symbol"</tt>. Use <tt>Hash.from_trusted_xml</tt> to
+    # <tt>type="symbol"</tt>. Use +Hash.from_trusted_xml+ to
     # parse this XML.
     #
     # Custom +disallowed_types+ can also be passed in the form of an
@@ -129,7 +129,7 @@ class Hash
       ActiveSupport::XMLConverter.new(xml, disallowed_types).to_h
     end
 
-    # Builds a Hash from XML just like <tt>Hash.from_xml</tt>, but also allows Symbol and YAML.
+    # Builds a Hash from XML just like +Hash.from_xml+, but also allows Symbol and YAML.
     def from_trusted_xml(xml)
       from_xml xml, []
     end

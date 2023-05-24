@@ -152,7 +152,7 @@ module ActiveRecord
   # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
   # that is included in ActiveRecord::FixtureSet.context_class.
   #
-  # - define a helper method in <tt>test_helper.rb</tt>
+  # - define a helper method in +test_helper.rb+
   #     module FixtureFileHelpers
   #       def file_sha(path)
   #         OpenSSL::Digest::SHA256.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
@@ -382,7 +382,7 @@ module ActiveRecord
   #
   # If your table/model specifies any of Active Record's
   # standard timestamp columns (+created_at+, +created_on+, +updated_at+, +updated_on+),
-  # they will automatically be set to <tt>Time.now</tt>.
+  # they will automatically be set to +Time.now+.
   #
   # If you've set specific values, they'll be left alone.
   #

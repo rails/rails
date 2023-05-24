@@ -27,7 +27,7 @@ class Object
   end
 
   # Returns the receiver if it's present otherwise returns +nil+.
-  # <tt>object.presence</tt> is equivalent to
+  # +object.presence+ is equivalent to
   #
   #    object.present? ? object : nil
   #

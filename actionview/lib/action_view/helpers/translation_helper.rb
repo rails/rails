@@ -109,7 +109,7 @@ module ActionView
       end
       alias :t :translate
 
-      # Delegates to <tt>I18n.localize</tt> with no additional functionality.
+      # Delegates to +I18n.localize+ with no additional functionality.
       #
       # See https://www.rubydoc.info/gems/i18n/I18n/Backend/Base:localize
       # for more information.

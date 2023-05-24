@@ -233,7 +233,7 @@ module ActionView
     # This method is responsible for properly setting the encoding of the
     # source. Until this point, we assume that the source is BINARY data.
     # If no additional information is supplied, we assume the encoding is
-    # the same as <tt>Encoding.default_external</tt>.
+    # the same as +Encoding.default_external+.
     #
     # The user can also specify the encoding via a comment on the first
     # line of the template (# encoding: NAME-OF-ENCODING). This will work
@@ -412,7 +412,7 @@ module ActionView
       # specifying the encoding. For instance, ERB supports <%# encoding: %>
       #
       # Otherwise, after we figure out the correct encoding, we then
-      # encode the source into <tt>Encoding.default_internal</tt>.
+      # encode the source into +Encoding.default_internal+.
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
       def compile(mod)

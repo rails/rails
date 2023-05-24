@@ -292,7 +292,7 @@ module ActiveModel
     #   # => ["is too long (maximum is 25 characters)"]
     #
     # If +type+ is a proc, it will be called, allowing for things like
-    # <tt>Time.now</tt> to be used within an error.
+    # +Time.now+ to be used within an error.
     #
     # If the +:strict+ option is set to +true+, it will raise
     # ActiveModel::StrictValidationFailed instead of adding the error.
@@ -428,12 +428,12 @@ module ActiveModel
     end
 
     # Translates an error message in its default scope
-    # (<tt>activemodel.errors.messages</tt>).
+    # (+activemodel.errors.messages+).
     #
-    # Error messages are first looked up in <tt>activemodel.errors.models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>,
-    # if it's not there, it's looked up in <tt>activemodel.errors.models.MODEL.MESSAGE</tt> and if
+    # Error messages are first looked up in +activemodel.errors.models.MODEL.attributes.ATTRIBUTE.MESSAGE+,
+    # if it's not there, it's looked up in +activemodel.errors.models.MODEL.MESSAGE+ and if
     # that is not there also, it returns the translation of the default message
-    # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model
+    # (e.g. +activemodel.errors.messages.MESSAGE+). The translated model
     # name, translated attribute name, and the value are available for
     # interpolation.
     #
@@ -443,14 +443,14 @@ module ActiveModel
     # the +:blank+ error message for the +title+ attribute,
     # it looks for these translations:
     #
-    # * <tt>activemodel.errors.models.admin.attributes.title.blank</tt>
-    # * <tt>activemodel.errors.models.admin.blank</tt>
-    # * <tt>activemodel.errors.models.user.attributes.title.blank</tt>
-    # * <tt>activemodel.errors.models.user.blank</tt>
-    # * any default you provided through the +options+ hash (in the <tt>activemodel.errors</tt> scope)
-    # * <tt>activemodel.errors.messages.blank</tt>
-    # * <tt>errors.attributes.title.blank</tt>
-    # * <tt>errors.messages.blank</tt>
+    # * +activemodel.errors.models.admin.attributes.title.blank+
+    # * +activemodel.errors.models.admin.blank+
+    # * +activemodel.errors.models.user.attributes.title.blank+
+    # * +activemodel.errors.models.user.blank+
+    # * any default you provided through the +options+ hash (in the +activemodel.errors+ scope)
+    # * +activemodel.errors.messages.blank+
+    # * +errors.attributes.title.blank+
+    # * +errors.messages.blank+
     def generate_message(attribute, type = :invalid, options = {})
       Error.generate_message(attribute, type, @base, options)
     end

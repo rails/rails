@@ -14,13 +14,13 @@ class Date
     attr_accessor :beginning_of_week_default
 
     # Returns the week start (e.g. +:monday+) for the current request, if this has been set (via Date.beginning_of_week=).
-    # If <tt>Date.beginning_of_week</tt> has not been set for the current request, returns the week start specified in <tt>config.beginning_of_week</tt>.
+    # If +Date.beginning_of_week+ has not been set for the current request, returns the week start specified in +config.beginning_of_week+.
     # If no +config.beginning_of_week+ was specified, returns +:monday+.
     def beginning_of_week
       ::ActiveSupport::IsolatedExecutionState[:beginning_of_week] || beginning_of_week_default || :monday
     end
 
-    # Sets <tt>Date.beginning_of_week</tt> to a week start (e.g. +:monday+) for current request/thread.
+    # Sets +Date.beginning_of_week+ to a week start (e.g. +:monday+) for current request/thread.
     #
     # This method accepts any of the following day symbols:
     # +:monday+, +:tuesday+, +:wednesday+, +:thursday+, +:friday+, +:saturday+, +:sunday+
@@ -44,7 +44,7 @@ class Date
       ::Date.current.tomorrow
     end
 
-    # Returns Time.zone.today when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns Date.today.
+    # Returns Time.zone.today when +Time.zone+ or +config.time_zone+ are set, otherwise just returns Date.today.
     def current
       ::Time.zone ? ::Time.zone.today : ::Date.today
     end

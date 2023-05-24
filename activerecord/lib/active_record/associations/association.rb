@@ -29,7 +29,7 @@ module ActiveRecord
     #
     #   blog = Blog.first
     #
-    # The association of <tt>blog.posts</tt> has the object +blog+ as its
+    # The association of +blog.posts+ has the object +blog+ as its
     # +owner+, the collection of its posts as +target+, and
     # the +reflection+ object represents a +:has_many+ macro.
     class Association # :nodoc:

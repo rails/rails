@@ -239,7 +239,7 @@ module ActiveRecord
 
     # Marks this record to be destroyed as part of the parent's save transaction.
     # This does _not_ actually destroy the record instantly, rather child record will be destroyed
-    # when <tt>parent.save</tt> is called.
+    # when +parent.save+ is called.
     #
     # Only useful if the +:autosave+ option on the parent is enabled for this associated model.
     def mark_for_destruction

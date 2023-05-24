@@ -73,7 +73,7 @@ module ActiveSupport
       @period ||= time_zone.period_for_utc(@utc)
     end
 
-    # Returns the simultaneous time in <tt>Time.zone</tt>, or the specified zone.
+    # Returns the simultaneous time in +Time.zone+, or the specified zone.
     def in_time_zone(new_zone = ::Time.zone)
       return self if time_zone == new_zone
       utc.in_time_zone(new_zone)

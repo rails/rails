@@ -140,7 +140,7 @@ module ActionMailer
   # You can also define a +default_url_options+ method on individual mailers to override these
   # default settings per-mailer.
   #
-  # By default when <tt>config.force_ssl</tt> is +true+, URLs generated for hosts will use the HTTPS protocol.
+  # By default when +config.force_ssl+ is +true+, URLs generated for hosts will use the HTTPS protocol.
   #
   # = Sending mail
   #
@@ -199,7 +199,7 @@ module ActionMailer
   #     end
   #   end
   #
-  # Which will (if it had both a <tt>welcome.text.erb</tt> and <tt>welcome.html.erb</tt>
+  # Which will (if it had both a +welcome.text.erb+ and +welcome.html.erb+
   # template in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
   # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
@@ -240,7 +240,7 @@ module ActionMailer
   #     end
   #   end
   #
-  # And then to reference the image in the view, you create a <tt>welcome.html.erb</tt> file and
+  # And then to reference the image in the view, you create a +welcome.html.erb+ file and
   # make a call to +image_tag+ passing in the attachment you want to display and then call
   # +url+ on the attachment to get the relative content id path for the image source:
   #

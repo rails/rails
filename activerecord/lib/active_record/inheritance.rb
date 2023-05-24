@@ -7,7 +7,7 @@ module ActiveRecord
   # = Single table inheritance
   #
   # Active Record allows inheritance by storing the name of the class in a column that by
-  # default is named "type" (can be changed by overwriting <tt>Base.inheritance_column</tt>).
+  # default is named "type" (can be changed by overwriting +Base.inheritance_column+).
   # This means that an inheritance looking like this:
   #
   #   class Company < ActiveRecord::Base; end

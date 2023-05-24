@@ -3,9 +3,9 @@
 module Rails
   module Command
     module Actions
-      # Change to the application's path if there is no <tt>config.ru</tt> file in current directory.
+      # Change to the application's path if there is no +config.ru+ file in current directory.
       # This allows us to run <tt>rails server</tt> from other directories, but still get
-      # the main <tt>config.ru</tt> and properly set the +tmp+ directory.
+      # the main +config.ru+ and properly set the +tmp+ directory.
       def set_application_directory!
         Dir.chdir(File.expand_path("../..", APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
       end

@@ -35,7 +35,7 @@ class Time
       days_in_month(2, year) + 337
     end
 
-    # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
+    # Returns +Time.zone.now+ when +Time.zone+ or +config.time_zone+ are set, otherwise just returns +Time.now+.
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
     end

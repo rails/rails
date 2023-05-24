@@ -53,7 +53,7 @@ module ActiveRecord
         #
         # * +table_name+
         # * <tt>"table.name"</tt>
-        # * <tt>schema_name.table_name</tt>
+        # * +schema_name.table_name+
         # * <tt>schema_name."table.name"</tt>
         # * <tt>"schema_name".table_name</tt>
         # * <tt>"schema.name"."table name"</tt>

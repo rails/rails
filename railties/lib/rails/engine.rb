@@ -53,7 +53,7 @@ module Rails
   #
   # == Generators
   #
-  # You can set up generators for engines with <tt>config.generators</tt> method:
+  # You can set up generators for engines with +config.generators+ method:
   #
   #   class MyEngine < Rails::Engine
   #     config.generators do |g|
@@ -63,7 +63,7 @@ module Rails
   #     end
   #   end
   #
-  # You can also set generators for an application by using <tt>config.app_generators</tt>:
+  # You can also set generators for an application by using +config.app_generators+:
   #
   #   class MyEngine < Rails::Engine
   #     # note that you can also pass block to app_generators in the same way you

@@ -216,7 +216,7 @@ module ActionView
       #   tag.article data: { user_id: 123 }
       #   # => <article data-user-id="123"></article>
       #
-      # Thus <tt>data-user-id</tt> can be accessed as <tt>dataset.userId</tt>.
+      # Thus <tt>data-user-id</tt> can be accessed as +dataset.userId+.
       #
       # Data attribute values are encoded to JSON, with the exception of strings, symbols, and
       # BigDecimals.
