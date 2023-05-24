@@ -161,6 +161,24 @@ module Arel
           }
         end
       end
+
+      describe "Nodes::Cte" do
+        it "ignores MATERIALIZED modifiers" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: true)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS (SELECT * FROM "bar")
+          }
+        end
+
+        it "ignores NOT MATERIALIZED modifiers" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: false)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS (SELECT * FROM "bar")
+          }
+        end
+      end
     end
   end
 end

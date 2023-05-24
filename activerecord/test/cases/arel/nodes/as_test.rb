@@ -31,6 +31,18 @@ module Arel
           assert_equal 2, array.uniq.size
         end
       end
+
+      describe "#to_cte" do
+        it "returns a Cte node using the LHS's name and the RHS as the relation" do
+          table = Table.new(:users)
+          as_node = As.new(table, "foo")
+          cte_node = as_node.to_cte
+
+          assert_kind_of Arel::Nodes::Cte, cte_node
+          assert_equal as_node.left.name, cte_node.name
+          assert_equal as_node.right, cte_node.relation
+        end
+      end
     end
   end
 end
