@@ -302,7 +302,7 @@ module ActionDispatch
         @buffer << <<~MESSAGE
           <p>You don't have any routes defined!</p>
           <ul>
-            <li>Please add some routes in <tt>config/routes.rb</tt>.</li>
+            <li>Please add some routes in +config/routes.rb+.</li>
             <li>
               For more information about routes, please see the Rails guide
               <a href="https://guides.rubyonrails.org/routing.html">Rails Routing from the Outside In</a>.

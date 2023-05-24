@@ -6,7 +6,7 @@ module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to
   # redirect incoming requests to controllers and actions. This replaces
   # mod_rewrite rules. Best of all, Rails' \Routing works with any web server.
-  # Routes are defined in <tt>config/routes.rb</tt>.
+  # Routes are defined in +config/routes.rb+.
   #
   # Think of creating routes as drawing a map for your requests. The map tells
   # them where to go based on some predefined pattern:
@@ -50,7 +50,7 @@ module ActionDispatch
   # You may wish to organize groups of controllers under a namespace. Most
   # commonly, you might group a number of administrative controllers under
   # an +admin+ namespace. You would place these controllers under the
-  # <tt>app/controllers/admin</tt> directory, and you can group them together
+  # +app/controllers/admin+ directory, and you can group them together
   # in your router:
   #
   #   namespace "admin" do

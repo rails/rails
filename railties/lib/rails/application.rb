@@ -44,14 +44,14 @@ module Rails
   # == Booting process
   #
   # The application is also responsible for setting up and executing the booting
-  # process. From the moment you require <tt>config/application.rb</tt> in your app,
+  # process. From the moment you require +config/application.rb+ in your app,
   # the booting process goes like this:
   #
   # 1.  <tt>require "config/boot.rb"</tt> to set up load paths.
   # 2.  +require+ railties and engines.
   # 3.  Define +Rails.application+ as <tt>class MyApp::Application < Rails::Application</tt>.
   # 4.  Run +config.before_configuration+ callbacks.
-  # 5.  Load <tt>config/environments/ENV.rb</tt>.
+  # 5.  Load +config/environments/ENV.rb+.
   # 6.  Run +config.before_initialize+ callbacks.
   # 7.  Run <tt>Railtie#initializer</tt> defined by railties, engines, and application.
   #     One by one, each engine sets up its load paths and routes, and runs its <tt>config/initializers/*</tt> files.

@@ -752,7 +752,7 @@ module ActionDispatch
       # You may wish to organize groups of controllers under a namespace.
       # Most commonly, you might group a number of administrative controllers
       # under an +admin+ namespace. You would place these controllers under
-      # the <tt>app/controllers/admin</tt> directory, and you can group them
+      # the +app/controllers/admin+ directory, and you can group them
       # together in your router:
       #
       #   namespace "admin" do
@@ -1116,7 +1116,7 @@ module ActionDispatch
       # You may wish to organize groups of controllers under a namespace. Most
       # commonly, you might group a number of administrative controllers under
       # an +admin+ namespace. You would place these controllers under the
-      # <tt>app/controllers/admin</tt> directory, and you can group them together
+      # +app/controllers/admin+ directory, and you can group them together
       # in your router:
       #
       #   namespace "admin" do
@@ -1685,7 +1685,7 @@ module ActionDispatch
         #
         #   root 'pages#main'
         #
-        # You should put the root route at the top of <tt>config/routes.rb</tt>,
+        # You should put the root route at the top of +config/routes.rb+,
         # because this means it will be matched first. As this is the most popular route
         # of most Rails applications, this is beneficial.
         def root(path, options = {})

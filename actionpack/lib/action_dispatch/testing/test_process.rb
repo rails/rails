@@ -10,7 +10,7 @@ module ActionDispatch
       #
       #   post :change_avatar, params: { avatar: fixture_file_upload('david.png', 'image/png') }
       #
-      # Default fixture files location is <tt>test/fixtures/files</tt>.
+      # Default fixture files location is +test/fixtures/files+.
       #
       # To upload binary files on Windows, pass +:binary+ as the last parameter.
       # This will not affect other platforms:

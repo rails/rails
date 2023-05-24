@@ -113,9 +113,9 @@ module ActionView
       #   <%= render_categorizable_events @person.events %>
       #
       # This marks every template in the directory as a dependency. To find those
-      # templates, the wildcard path must be absolutely defined from <tt>app/views</tt> or paths
+      # templates, the wildcard path must be absolutely defined from +app/views+ or paths
       # otherwise added with +prepend_view_path+ or +append_view_path+.
-      # This way the wildcard for <tt>app/views/recordings/events</tt> would be <tt>recordings/events/*</tt> etc.
+      # This way the wildcard for +app/views/recordings/events+ would be <tt>recordings/events/*</tt> etc.
       #
       # The pattern used to match explicit dependencies is <tt>/# Template Dependency: (\S+)/</tt>,
       # so it's important that you type it out just so.

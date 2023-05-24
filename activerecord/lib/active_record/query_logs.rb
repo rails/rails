@@ -9,7 +9,7 @@ module ActiveRecord
   # Automatically append comments to SQL queries with runtime information tags. This can be used to trace troublesome
   # SQL statements back to the application code that generated these statements.
   #
-  # Query logs can be enabled via Rails configuration in <tt>config/application.rb</tt> or an initializer:
+  # Query logs can be enabled via Rails configuration in +config/application.rb+ or an initializer:
   #
   #     config.active_record.query_log_tags_enabled = true
   #

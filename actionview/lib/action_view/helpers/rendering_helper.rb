@@ -14,12 +14,12 @@ module ActionView
       # * +:file+ - Renders an explicit template file (this used to be the old default), add +:locals+ to pass in those.
       # * +:inline+ - Renders an inline template similar to how it's done in the controller.
       # * +:plain+ - Renders the text passed in out. Setting the content
-      #   type as <tt>text/plain</tt>.
+      #   type as +text/plain+.
       # * +:html+ - Renders the HTML safe string passed in out, otherwise
       #   performs HTML escape on the string first. Setting the content type as
-      #   <tt>text/html</tt>.
+      #   +text/html+.
       # * +:body+ - Renders the text passed in, and inherits the content
-      #   type of <tt>text/plain</tt> from ActionDispatch::Response object.
+      #   type of +text/plain+ from ActionDispatch::Response object.
       #
       # If no +options+ hash is passed or if +:update+ is specified, then:
       #

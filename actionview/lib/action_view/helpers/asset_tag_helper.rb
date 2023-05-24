@@ -30,7 +30,7 @@ module ActionView
       # Returns an HTML script tag for each of the +sources+ provided.
       #
       # Sources may be paths to JavaScript files. Relative paths are assumed to be relative
-      # to <tt>assets/javascripts</tt>, full paths are assumed to be relative to the document
+      # to +assets/javascripts+, full paths are assumed to be relative to the document
       # root. Relative paths are idiomatic, use absolute paths only when needed.
       #
       # When passing paths, the ".js" extension is optional. If you do not want ".js"
@@ -275,7 +275,7 @@ module ActionView
       # request succeeds. If the favicon changes it is hard to get it updated.
       #
       # To have better control applications may let the asset pipeline manage
-      # their favicon storing the file under <tt>app/assets/images</tt>, and
+      # their favicon storing the file under +app/assets/images+, and
       # using this helper to generate its corresponding link tag.
       #
       # The helper gets the name of the favicon file as first argument, which

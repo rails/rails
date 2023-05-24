@@ -54,7 +54,7 @@ module ActionView
   # == Layout assignment
   #
   # You can either specify a layout declaratively (using the #layout class method) or give
-  # it the same name as your controller, and place it in <tt>app/views/layouts</tt>.
+  # it the same name as your controller, and place it in +app/views/layouts+.
   # If a subclass does not have a layout specified, it inherits its layout using normal Ruby inheritance.
   #
   # For instance, if you have PostsController and a template named <tt>app/views/layouts/posts.html.erb</tt>,

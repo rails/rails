@@ -20,10 +20,10 @@ module ActionView
     # By default, Rails links to these assets on the current host in the public
     # folder, but you can direct Rails to link to assets from a dedicated asset
     # server by setting <tt>ActionController::Base.asset_host</tt> in the application
-    # configuration, typically in <tt>config/environments/production.rb</tt>.
+    # configuration, typically in +config/environments/production.rb+.
     # For example, you'd define +assets.example.com+ to be your asset
     # host this way, inside the +configure+ block of your environment-specific
-    # configuration files or <tt>config/application.rb</tt>:
+    # configuration files or +config/application.rb+:
     #
     #   config.action_controller.asset_host = "assets.example.com"
     #

@@ -30,9 +30,9 @@ module Rails
   #     end
   #   end
   #
-  # Then ensure that this file is loaded at the top of your <tt>config/application.rb</tt>
+  # Then ensure that this file is loaded at the top of your +config/application.rb+
   # (or in your +Gemfile+), and it will automatically load models, controllers, and helpers
-  # inside +app+, load routes at <tt>config/routes.rb</tt>, load locales at
+  # inside +app+, load routes at +config/routes.rb+, load locales at
   # <tt>config/locales/**/*</tt>, and load tasks at <tt>lib/tasks/**/*</tt>.
   #
   # == Configuration
@@ -74,18 +74,18 @@ module Rails
   # == Paths
   #
   # Applications and engines have flexible path configuration, meaning that you
-  # are not required to place your controllers at <tt>app/controllers</tt>, but
+  # are not required to place your controllers at +app/controllers+, but
   # in any place which you find convenient.
   #
-  # For example, let's suppose you want to place your controllers in <tt>lib/controllers</tt>.
+  # For example, let's suppose you want to place your controllers in +lib/controllers+.
   # You can set that as an option:
   #
   #   class MyEngine < Rails::Engine
   #     paths["app/controllers"] = "lib/controllers"
   #   end
   #
-  # You can also have your controllers loaded from both <tt>app/controllers</tt> and
-  # <tt>lib/controllers</tt>:
+  # You can also have your controllers loaded from both +app/controllers+ and
+  # +lib/controllers+:
   #
   #   class MyEngine < Rails::Engine
   #     paths["app/controllers"] << "lib/controllers"
@@ -109,7 +109,7 @@ module Rails
   #
   # The +Application+ class adds a couple more paths to this set. And as in your
   # +Application+, all folders under +app+ are automatically added to the load path.
-  # If you have an <tt>app/services</tt> folder for example, it will be added by default.
+  # If you have an +app/services+ folder for example, it will be added by default.
   #
   # == Endpoint
   #
@@ -322,7 +322,7 @@ module Rails
   # == Migrations & seed data
   #
   # Engines can have their own migrations. The default path for migrations is exactly the same
-  # as in application: <tt>db/migrate</tt>
+  # as in application: +db/migrate+
   #
   # To use engine's migrations in application you can use the rake task below, which copies them to
   # application's dir:
@@ -334,7 +334,7 @@ module Rails
   # migration in the application and rerun copying migrations.
   #
   # If your engine has migrations, you may also want to prepare data for the database in
-  # the <tt>db/seeds.rb</tt> file. You can load that data using the +load_seed+ method, e.g.
+  # the +db/seeds.rb+ file. You can load that data using the +load_seed+ method, e.g.
   #
   #   MyEngine::Engine.load_seed
   #

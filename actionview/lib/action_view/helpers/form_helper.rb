@@ -252,7 +252,7 @@ module ActionView
       # form is going to be sent. However, further simplification is possible
       # if the record passed to +form_for+ is a _resource_, i.e. it corresponds
       # to a set of RESTful routes, e.g. defined using the +resources+ method
-      # in <tt>config/routes.rb</tt>. In this case Rails will simply infer the
+      # in +config/routes.rb+. In this case Rails will simply infer the
       # appropriate URL from the record itself. For example,
       #
       #   <%= form_for @post do |f| %>
@@ -397,7 +397,7 @@ module ActionView
       #
       #   <%= render f %>
       #
-      # The rendered template is <tt>people/_labelling_form</tt> and the local
+      # The rendered template is +people/_labelling_form+ and the local
       # variable referencing the form builder is called
       # +labelling_form+.
       #
@@ -554,7 +554,7 @@ module ActionView
       #
       # In many of the examples just shown, the +:model+ passed to +form_with+
       # is a _resource_. It corresponds to a set of RESTful routes, most likely
-      # defined via +resources+ in <tt>config/routes.rb</tt>.
+      # defined via +resources+ in +config/routes.rb+.
       #
       # So when passing such a model record, Rails infers the URL and method.
       #
@@ -739,7 +739,7 @@ module ActionView
       #
       #   <%= render form %>
       #
-      # The rendered template is <tt>people/_labelling_form</tt> and the local
+      # The rendered template is +people/_labelling_form+ and the local
       # variable referencing the form builder is called
       # +labelling_form+.
       #

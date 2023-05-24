@@ -118,7 +118,7 @@ module AbstractController
       # +key+ can take one of three forms:
       #
       # * String - This would normally take the form of a path, like
-      #   <tt>pages/45/notes</tt>.
+      #   +pages/45/notes+.
       # * Hash - Treated as an implicit call to +url_for+, like
       #   <tt>{ controller: 'pages', action: 'notes', id: 45}</tt>
       # * Regexp - Will remove any fragment that matches, so

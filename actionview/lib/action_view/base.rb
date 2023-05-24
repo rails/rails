@@ -67,7 +67,7 @@ module ActionView # :nodoc:
   #
   #   <%= render "shared/header", { headline: "Welcome", person: person } %>
   #
-  # These can now be accessed in <tt>shared/header</tt> with:
+  # These can now be accessed in +shared/header+ with:
   #
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>

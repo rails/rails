@@ -135,8 +135,8 @@ module Rails
         # Default file root to place extra files a command might need, placed
         # one folder above the command file.
         #
-        # For a Rails::Command::TestCommand placed in <tt>rails/command/test_command.rb</tt>
-        # would return <tt>rails/test</tt>.
+        # For a Rails::Command::TestCommand placed in +rails/command/test_command.rb+
+        # would return +rails/test+.
         def default_command_root
           @default_command_root = resolve_path(".") unless defined?(@default_command_root)
           @default_command_root

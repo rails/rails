@@ -402,7 +402,7 @@ module Rails
         end
       end
 
-      # Make an entry in Rails routing file <tt>config/routes.rb</tt>
+      # Make an entry in Rails routing file +config/routes.rb+
       #
       #   route "root 'welcome#index'"
       #   route "root 'admin#index'", namespace: :admin

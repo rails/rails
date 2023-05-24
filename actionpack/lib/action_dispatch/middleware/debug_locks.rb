@@ -6,7 +6,7 @@ module ActionDispatch
   # This middleware can be used to diagnose deadlocks in the autoload interlock.
   #
   # To use it, insert it near the top of the middleware stack, using
-  # <tt>config/application.rb</tt>:
+  # +config/application.rb+:
   #
   #     config.middleware.insert_before Rack::Sendfile, ActionDispatch::DebugLocks
   #

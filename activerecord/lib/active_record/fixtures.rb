@@ -22,7 +22,7 @@ module ActiveRecord
   # They are stored in YAML files, one file per model, which are placed in the directories
   # appointed by <tt>ActiveSupport::TestCase.fixture_paths=(path)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>,
-  # or in the <tt>test/fixtures</tt> folder under any of your application's engines).
+  # or in the +test/fixtures+ folder under any of your application's engines).
   # The fixture file ends with the +.yml+ file extension, for example:
   # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>).
   #

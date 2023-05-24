@@ -4,11 +4,11 @@ module ActionDispatch
   module Routing
     # = Action Dispatch Routing \UrlFor
     #
-    # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
+    # In +config/routes.rb+ you define URL-to-controller mappings, but the reverse
     # is also possible: a URL can be generated from one of your routing definitions.
     # URL generation functionality is centralized in this module.
     #
-    # See ActionDispatch::Routing for general information about routing and <tt>config/routes.rb</tt>.
+    # See ActionDispatch::Routing for general information about routing and +config/routes.rb+.
     #
     # <b>Tip:</b> If you need to generate URLs from your models or some other place,
     # then ActionDispatch::Routing::UrlFor is what you're looking for. Read on for
@@ -67,7 +67,7 @@ module ActionDispatch
     #
     # UrlFor also allows one to access methods that have been auto-generated from
     # named routes. For example, suppose that you have a 'users' resource in your
-    # <tt>config/routes.rb</tt>:
+    # +config/routes.rb+:
     #
     #   resources :users
     #
@@ -118,7 +118,7 @@ module ActionDispatch
       end
 
       # Generate a URL based on the options provided, +default_url_options+, and the
-      # routes defined in <tt>config/routes.rb</tt>. The following options are supported:
+      # routes defined in +config/routes.rb+. The following options are supported:
       #
       # * +:only_path+ - If true, the relative URL is returned. Defaults to +false+.
       # * +:protocol+ - The protocol to connect to. Defaults to <tt>"http"</tt>.
