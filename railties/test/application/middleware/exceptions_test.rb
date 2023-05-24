@@ -60,7 +60,7 @@ module ApplicationTests
 
       add_to_config "config.exceptions_app = self.routes"
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
       request "/", { "REQUEST_METHOD" => "NOT_AN_HTTP_METHOD" }
       assert_equal 405, last_response.status
@@ -87,7 +87,7 @@ module ApplicationTests
       RUBY
 
       add_to_config "config.exceptions_app = self.routes"
-      add_to_config "config.action_dispatch.show_exceptions = true"
+      add_to_config "config.action_dispatch.show_exceptions = :all"
       add_to_config "config.consider_all_requests_local = false"
 
       get "/foo", {}, { "HTTP_ACCEPT" => "invalid" }
@@ -102,7 +102,7 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
       get "/foo"
       assert_equal 404, last_response.status
@@ -118,14 +118,14 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
       get "/foo"
       assert_equal 500, last_response.status
     end
 
     test "unspecified route when action_dispatch.show_exceptions is not set raises an exception" do
-      app.config.action_dispatch.show_exceptions = false
+      app.config.action_dispatch.show_exceptions = :none
 
       assert_raise(ActionController::RoutingError) do
         get "/foo"
@@ -133,7 +133,7 @@ module ApplicationTests
     end
 
     test "unspecified route when action_dispatch.show_exceptions is set shows 404" do
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
 
       assert_nothing_raised do
         get "/foo"
@@ -142,7 +142,7 @@ module ApplicationTests
     end
 
     test "unspecified route when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       assert_nothing_raised do
@@ -158,7 +158,7 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       get "/articles"
@@ -173,7 +173,7 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       app_file "app/views/foo/index.html.erb", <<-ERB
@@ -194,7 +194,7 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       get "/foo?x[y]=1&x[y][][w]=2"
@@ -210,7 +210,7 @@ module ApplicationTests
         end
       RUBY
 
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
       limit = Rack::Utils.param_depth_limit + 1
@@ -229,7 +229,7 @@ module ApplicationTests
           end
         end
       RUBY
-      app.config.action_dispatch.show_exceptions = true
+      app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
       app.config.action_dispatch.ignore_accept_header = false
 
@@ -242,6 +242,36 @@ module ApplicationTests
       assert_equal 500, last_response.status
       assert_equal "text/plain", last_response.media_type
       assert_match "ActiveRecord::StatementInvalid", last_response.body
+    end
+
+    test "show_exceptions :rescubale with a rescuable error" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise AbstractController::ActionNotFound
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = :rescuable
+
+      get "/foo"
+      assert_equal 404, last_response.status
+    end
+
+    test "show_exceptions :rescubale with a non-rescuable error" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            raise 'oops'
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = :rescuable
+
+      error = assert_raises(RuntimeError) { get "/foo" }
+      assert_equal "oops", error.message
     end
   end
 end

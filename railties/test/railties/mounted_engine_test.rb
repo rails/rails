@@ -11,7 +11,7 @@ module ApplicationTests
     def setup
       build_app
 
-      add_to_config("config.action_dispatch.show_exceptions = false")
+      add_to_config("config.action_dispatch.show_exceptions = :none")
 
       @simple_plugin = engine "weblog"
       @plugin = engine "blog"

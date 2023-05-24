@@ -1,3 +1,11 @@
+*   Change `action_dispatch.show_exceptions` to one of `:all`, `:rescuable`, or
+    `:none`. `:all` and `:none` behave the same as the previous `true` and
+    `false` respectively. The new `:rescuable` option will only show exceptions
+    that can be rescued (e.g. `ActiveRecord::RecordNotFound`). `:rescuable` is
+    now the default for the test environment.
+
+    *Jon Dufresne*
+
 *   `config.action_dispatch.cookies_serializer` now accepts `:message_pack` and
     `:message_pack_allow_marshal` as serializers. These serializers require the
     [`msgpack` gem](https://rubygems.org/gems/msgpack) (>= 1.7.0).

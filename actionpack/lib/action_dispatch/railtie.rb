@@ -9,7 +9,7 @@ module ActionDispatch
     config.action_dispatch = ActiveSupport::OrderedOptions.new
     config.action_dispatch.x_sendfile_header = nil
     config.action_dispatch.ip_spoofing_check = true
-    config.action_dispatch.show_exceptions = true
+    config.action_dispatch.show_exceptions = :all
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
     config.action_dispatch.rescue_templates = {}

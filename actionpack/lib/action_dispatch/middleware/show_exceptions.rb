@@ -31,18 +31,18 @@ module ActionDispatch
       @app.call(env)
     rescue Exception => exception
       request = ActionDispatch::Request.new env
-      if request.show_exceptions?
-        render_exception(request, exception)
+      backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+      if wrapper.show?(request)
+        render_exception(request, wrapper)
       else
         raise exception
       end
     end
 
     private
-      def render_exception(request, exception)
-        backtrace_cleaner = request.get_header "action_dispatch.backtrace_cleaner"
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-        status  = wrapper.status_code
+      def render_exception(request, wrapper)
+        status = wrapper.status_code
         request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
         request.set_header "action_dispatch.original_path", request.path_info
         request.set_header "action_dispatch.original_request_method", request.raw_request_method

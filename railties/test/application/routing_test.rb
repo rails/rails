@@ -751,7 +751,7 @@ module ApplicationTests
     test "request to rails/welcome for api_only app is successful" do
       add_to_config <<-RUBY
         config.api_only = true
-        config.action_dispatch.show_exceptions = false
+        config.action_dispatch.show_exceptions = :none
         config.action_controller.allow_forgery_protection = true
       RUBY
 
@@ -763,7 +763,7 @@ module ApplicationTests
 
     test "request to rails/welcome is successful when default_protect_from_forgery is false" do
       add_to_config <<-RUBY
-        config.action_dispatch.show_exceptions = false
+        config.action_dispatch.show_exceptions = :none
         config.action_controller.default_protect_from_forgery = false
       RUBY
 

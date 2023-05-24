@@ -331,7 +331,7 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
       env["action_dispatch.content_security_policy"] = POLICY
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
@@ -481,7 +481,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       env["action_dispatch.content_security_policy"] = POLICY
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
@@ -597,7 +597,7 @@ class DisabledContentSecurityPolicyIntegrationTest < ActionDispatch::Integration
       env["action_dispatch.content_security_policy"] = nil
       env["action_dispatch.content_security_policy_nonce_generator"] = nil
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
@@ -653,7 +653,7 @@ class NonceDirectiveContentSecurityPolicyIntegrationTest < ActionDispatch::Integ
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
       env["action_dispatch.content_security_policy_nonce_directives"] = %w(script-src)
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
@@ -725,7 +725,7 @@ class HelpersContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
       env["action_dispatch.content_security_policy"] = POLICY
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end

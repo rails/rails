@@ -879,7 +879,7 @@ module ApplicationTests
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
           config.action_controller.allow_forgery_protection = true
-          config.action_dispatch.show_exceptions = false
+          config.action_dispatch.show_exceptions = :none
         end
       RUBY
 
