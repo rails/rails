@@ -86,7 +86,7 @@ module ActionController
   #
   # +ActionController::Metal+ by default provides no utilities for rendering
   # views, partials, or other responses aside from explicitly calling of
-  # <tt>response_body=</tt>, <tt>content_type=</tt>, and <tt>status=</tt>. To
+  # +response_body=+, +content_type=+, and +status=+. To
   # add the render helpers you're used to having in a normal controller, you
   # can do the following:
   #

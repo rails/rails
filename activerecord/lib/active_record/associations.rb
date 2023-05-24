@@ -578,7 +578,7 @@ module ActiveRecord
       #   stored in the database.
       # * If saving any of the objects being added to a collection (via +push+ or similar)
       #   fails, then +push+ returns +false+.
-      # * If saving fails while replacing the collection (via <tt>association=</tt>), an
+      # * If saving fails while replacing the collection (via +association=+), an
       #   ActiveRecord::RecordNotSaved exception is raised and the assignment is
       #   cancelled.
       # * You can add an object to a collection without automatically saving it by using the
@@ -892,7 +892,7 @@ module ActiveRecord
       # and member posts that use the posts table for STI. In this case, there must be a +type+
       # column in the posts table.
       #
-      # Note: The <tt>attachable_type=</tt> method is being called when assigning an +attachable+.
+      # Note: The +attachable_type=+ method is being called when assigning an +attachable+.
       # The +class_name+ of the +attachable+ is passed as a String.
       #
       #   class Asset < ActiveRecord::Base
@@ -1291,7 +1291,7 @@ module ActiveRecord
         #   Returns an array of the associated objects' ids
         # [collection_singular_ids=ids]
         #   Replace the collection with the objects identified by the primary keys in +ids+. This
-        #   method loads the models and calls <tt>collection=</tt>. See above.
+        #   method loads the models and calls +collection=+. See above.
         # [collection.clear]
         #   Removes every object from the collection. This destroys the associated objects if they
         #   are associated with <tt>dependent: :destroy</tt>, deletes them directly from the

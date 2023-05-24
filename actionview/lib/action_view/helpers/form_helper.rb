@@ -854,7 +854,7 @@ module ActionView
       # with +accepts_nested_attributes_for+ in a model definition or by
       # defining a method with the proper name. For example: the attribute
       # writer for the association +:address+ is called
-      # <tt>address_attributes=</tt>.
+      # +address_attributes=+.
       #
       # Whether a one-to-one or one-to-many style form builder will be yielded
       # depends on whether the normal reader method returns a _single_ object
@@ -864,7 +864,7 @@ module ActionView
       #
       # Consider a Person class which returns a _single_ Address from the
       # +address+ reader method and responds to the
-      # <tt>address_attributes=</tt> writer method:
+      # +address_attributes=+ writer method:
       #
       #   class Person
       #     def address
@@ -921,7 +921,7 @@ module ActionView
       #
       # Consider a Person class which returns an _array_ of Project instances
       # from the +projects+ reader method and responds to the
-      # <tt>projects_attributes=</tt> writer method:
+      # +projects_attributes=+ writer method:
       #
       #   class Person
       #     def projects
@@ -933,7 +933,7 @@ module ActionView
       #     end
       #   end
       #
-      # Note that the <tt>projects_attributes=</tt> writer method is in fact
+      # Note that the +projects_attributes=+ writer method is in fact
       # required for fields_for to correctly identify +:projects+ as a
       # collection, and the correct indices to be set in the form markup.
       #
@@ -2111,7 +2111,7 @@ module ActionView
       # with +accepts_nested_attributes_for+ in a model definition or by
       # defining a method with the proper name. For example: the attribute
       # writer for the association +:address+ is called
-      # <tt>address_attributes=</tt>.
+      # +address_attributes=+.
       #
       # Whether a one-to-one or one-to-many style form builder will be yielded
       # depends on whether the normal reader method returns a _single_ object
@@ -2121,7 +2121,7 @@ module ActionView
       #
       # Consider a Person class which returns a _single_ Address from the
       # +address+ reader method and responds to the
-      # <tt>address_attributes=</tt> writer method:
+      # +address_attributes=+ writer method:
       #
       #   class Person
       #     def address
@@ -2178,7 +2178,7 @@ module ActionView
       #
       # Consider a Person class which returns an _array_ of Project instances
       # from the +projects+ reader method and responds to the
-      # <tt>projects_attributes=</tt> writer method:
+      # +projects_attributes=+ writer method:
       #
       #   class Person
       #     def projects
@@ -2190,7 +2190,7 @@ module ActionView
       #     end
       #   end
       #
-      # Note that the <tt>projects_attributes=</tt> writer method is in fact
+      # Note that the +projects_attributes=+ writer method is in fact
       # required for fields_for to correctly identify +:projects+ as a
       # collection, and the correct indices to be set in the form markup.
       #

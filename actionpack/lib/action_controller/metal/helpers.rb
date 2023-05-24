@@ -68,7 +68,7 @@ module ActionController
 
     module ClassMethods
       # Declares helper accessors for controller attributes. For example, the
-      # following adds new +name+ and <tt>name=</tt> instance methods to a
+      # following adds new +name+ and +name=+ instance methods to a
       # controller and makes them available to the view:
       #   attr_accessor :name
       #   helper_attr :name

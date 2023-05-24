@@ -312,7 +312,7 @@ module ActionMailer
   # mailer method, it will get overwritten by the mailer method.
   #
   # It is also possible to set these default options that will be used in all mailers through
-  # the <tt>default_options=</tt> configuration in <tt>config/application.rb</tt>:
+  # the +default_options=+ configuration in <tt>config/application.rb</tt>:
   #
   #    config.action_mailer.default_options = { from: "no-reply@example.org" }
   #
