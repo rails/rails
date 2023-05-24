@@ -1,3 +1,10 @@
+*   Include the `connection_pool` with exceptions raised from an adapter.
+
+    The `connection_pool` provides added context such as the connection used
+    that led to the exception as well as which role and shard.
+
+    *Luan Vieira*
+
 *   Fix where on association with has_one/has_many polymorphic relations.
 
     Before:

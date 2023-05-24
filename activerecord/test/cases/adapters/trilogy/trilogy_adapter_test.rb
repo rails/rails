@@ -12,6 +12,13 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @conn = ActiveRecord::Base.connection
   end
 
+  test "connection_error" do
+    error = assert_raises ActiveRecord::ConnectionNotEstablished do
+      ActiveRecord::Base.trilogy_connection(host: "invalid", port: 12345).connect!
+    end
+    assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
+  end
+
   test "#explain for one query" do
     explain = @conn.explain("select * from posts")
     assert_match %(possible_keys), explain
@@ -130,9 +137,10 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#exec_query fails with invalid query" do
-    assert_raises_with_message ActiveRecord::StatementInvalid, /'activerecord_unittest.bogus' doesn't exist/ do
+    error = assert_raises_with_message ActiveRecord::StatementInvalid, /'activerecord_unittest.bogus' doesn't exist/ do
       @conn.exec_query "SELECT * FROM bogus;"
     end
+    assert_equal @conn.pool, error.connection_pool
   end
 
   test "#execute answers results for valid query" do
@@ -141,15 +149,18 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#execute fails with invalid query" do
-    assert_raises_with_message ActiveRecord::StatementInvalid, /Table 'activerecord_unittest.bogus' doesn't exist/ do
+    error = assert_raises_with_message ActiveRecord::StatementInvalid, /Table 'activerecord_unittest.bogus' doesn't exist/ do
       @conn.execute "SELECT * FROM bogus;"
     end
+    assert_equal @conn.pool, error.connection_pool
   end
 
   test "#execute fails with invalid SQL" do
-    assert_raises(ActiveRecord::StatementInvalid) do
+    error = assert_raises(ActiveRecord::StatementInvalid) do
       @conn.execute "SELECT bogus FROM posts;"
     end
+
+    assert_equal @conn.pool, error.connection_pool
   end
 
   test "#select_all when query cache is enabled fires the same notification payload for uncached and cached queries" do
@@ -328,13 +339,14 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
     )
+    connection = ActiveRecord::Base.connection
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
-      ActiveRecord::Base.connection.execute("SELECT SLEEP(2)")
+      connection.execute("SELECT SLEEP(2)")
     end
     assert_kind_of ActiveRecord::QueryAborted, error
-
     assert_equal Trilogy::TimeoutError, error.cause.class
+    assert_equal connection.pool, error.connection_pool
   ensure
     ActiveRecord::Base.establish_connection :arunit
   end
@@ -343,6 +355,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     block.call
   rescue exception => error
     assert_match message, error.message
+    error
   else
     fail %(Expected #{exception} with message "#{message}" but nothing failed.)
   end

@@ -109,4 +109,31 @@ class MultipleDbTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_exception_contains_connection_pool
+    error = assert_raises(ActiveRecord::StatementInvalid) do
+      Course.where(wrong_column: "wrong").first!
+    end
+
+    assert_equal Course.connection.pool, error.connection_pool
+  end
+
+  def test_exception_contains_correct_pool
+    course_conn = Course.connection
+    entrant_conn = Entrant.connection
+
+    assert_not_equal course_conn, entrant_conn
+
+    course_error = assert_raises(ActiveRecord::StatementInvalid) do
+      course_conn.execute("SELECT * FROM entrants")
+    end
+
+    assert_equal course_conn.pool, course_error.connection_pool
+
+    entrant_error = assert_raises(ActiveRecord::StatementInvalid) do
+      entrant_conn.execute("SELECT * FROM courses")
+    end
+
+    assert_equal entrant_conn.pool, entrant_error.connection_pool
+  end
 end

@@ -192,6 +192,8 @@ module ActiveRecord
 
         def connect
           self.connection = self.class.new_client(@config)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect
@@ -212,11 +214,11 @@ module ActiveRecord
 
         def translate_exception(exception, message:, sql:, binds:)
           if exception.is_a?(::Trilogy::TimeoutError) && !exception.error_code
-            return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+            return ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           end
           error_code = exception.error_code if exception.respond_to?(:error_code)
 
-          Trilogy::LostConnectionExceptionTranslator.new(exception, message, error_code).translate || super
+          Trilogy::LostConnectionExceptionTranslator.new(exception, message, error_code, @pool).translate || super
         end
 
         def default_prepared_statements

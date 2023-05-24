@@ -116,7 +116,7 @@ module ActiveRecord
               Dir.mkdir(dirname)
             rescue Errno::ENOENT => error
               if error.message.include?("No such file or directory")
-                raise ActiveRecord::NoDatabaseError
+                raise ActiveRecord::NoDatabaseError.new(connection_pool: @pool)
               else
                 raise
               end
@@ -609,13 +609,13 @@ module ActiveRecord
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           if exception.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i)
-            RecordNotUnique.new(message, sql: sql, binds: binds)
+            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i)
-            NotNullViolation.new(message, sql: sql, binds: binds)
+            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
+            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/called on a closed database/i)
-            ConnectionNotEstablished.new(exception)
+            ConnectionNotEstablished.new(exception, connection_pool: @pool)
           else
             super
           end
@@ -679,6 +679,8 @@ module ActiveRecord
 
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect
