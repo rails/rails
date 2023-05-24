@@ -615,6 +615,15 @@ module Rails
       end
     end
 
+    initializer :add_fixture_paths do
+      next if is_a?(Rails::Application)
+
+      fixtures = config.root.join("test", "fixtures")
+      if fixtures.exist? && fixtures.to_s.start_with?(Rails.root.to_s)
+        ActiveSupport.on_load(:active_record_fixtures) { self.fixture_paths |= ["#{fixtures}/"] }
+      end
+    end
+
     initializer :prepend_helpers_path do |app|
       if !isolated? || (app == self)
         app.config.helpers_paths.unshift(*paths["app/helpers"].existent)

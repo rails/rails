@@ -1,3 +1,8 @@
+*   Add engine's `test/fixtures` path to `fixture_paths` in `on_load` hook if
+    path exists and is under the Rails application root.
+
+    *Chris Salzberg*
+
 *   `bin/rails app:template` now runs `bundle install` and any `after_bundle`
     blocks after the template is executed.
 
