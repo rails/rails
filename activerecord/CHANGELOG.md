@@ -490,9 +490,7 @@
     will now read from the create_table_migration.rb.tt template in the following locations in order:
     ```
     lib/templates/active_record/model/create_table_migration.rb
-    lib/rails/generators/active_record/model/templates/create_table_migration.rb
     lib/templates/active_record/migration/create_table_migration.rb
-    lib/rails/generators/active_record/migration/templates/create_table_migration.rb
     ```
 
     *Spencer Neste*

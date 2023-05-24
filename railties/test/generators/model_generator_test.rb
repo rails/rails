@@ -38,7 +38,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_migration_source_paths
-    template = File.join(Rails.root, "lib", "templates", "migration", "templates", "create_table_migration.rb.tt")
+    template = File.join(Rails.root, "lib", "templates", "active_record", "migration", "create_table_migration.rb.tt")
 
     # Create template
     mkdir_p(File.dirname(template))
