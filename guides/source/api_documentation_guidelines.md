@@ -278,9 +278,8 @@ end
 ```
 
 WARNING: Using `+...+` for fixed-width font only works with simple content like
-ordinary method names, symbols, paths (with forward slashes), etc. Please use
-`<tt>...</tt>` for everything else, notably class or module names with a
-namespace as in `<tt>ActiveRecord::Base</tt>`.
+ordinary classes, modules, method names, symbols, paths (with forward slashes),
+etc. Please use `<tt>...</tt>` for everything else.
 
 You can quickly test the RDoc output with the following command:
 
@@ -288,6 +287,8 @@ You can quickly test the RDoc output with the following command:
 $ echo "+:to_param+" | rdoc --pipe
 # => <p><code>:to_param</code></p>
 ```
+
+For example, code with spaces or quotes should use the `<tt>...</tt>` form.
 
 ### Regular Font
 
