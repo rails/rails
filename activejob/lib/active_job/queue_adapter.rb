@@ -14,7 +14,7 @@ module ActiveJob
 
   # = Active Job Queue adapter
   #
-  # The <tt>ActiveJob::QueueAdapter</tt> module is used to load the
+  # The +ActiveJob::QueueAdapter+ module is used to load the
   # correct adapter. The default queue adapter is the +:async+ queue.
   module QueueAdapter # :nodoc:
     extend ActiveSupport::Concern

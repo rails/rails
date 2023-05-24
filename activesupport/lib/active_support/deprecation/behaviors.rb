@@ -51,7 +51,7 @@ module ActiveSupport
     # You can create a custom behavior or set any from the +DEFAULT_BEHAVIORS+
     # constant. Available behaviors are:
     #
-    # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
+    # [+raise+]   Raise ActiveSupport::DeprecationException.
     # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
     # [+log+]     Log all deprecation warnings to +Rails.logger+.
     # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
@@ -78,7 +78,7 @@ module ActiveSupport
       #
       # Available behaviors:
       #
-      # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
+      # [+raise+]   Raise ActiveSupport::DeprecationException.
       # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
       # [+log+]     Log all deprecation warnings to +Rails.logger+.
       # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.

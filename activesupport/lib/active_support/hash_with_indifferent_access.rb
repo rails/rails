@@ -115,7 +115,7 @@ module ActiveSupport
     #   hash.update({ "a" => 1 }, { "b" => 2 }) # => { "a" => 1, "b" => 2 }
     #
     # The arguments can be either an
-    # <tt>ActiveSupport::HashWithIndifferentAccess</tt> or a regular +Hash+.
+    # +ActiveSupport::HashWithIndifferentAccess+ or a regular +Hash+.
     # In either case the merge respects the semantics of indifferent access.
     #
     # If the argument is a regular hash with keys +:key+ and <tt>"key"</tt> only one

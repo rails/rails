@@ -19,9 +19,9 @@ module ActiveModel
     # strings:
     #
     # - Blank strings are cast to +nil+.
-    # - <tt>"Infinity"</tt> is cast to <tt>Float::INFINITY</tt>.
+    # - <tt>"Infinity"</tt> is cast to +Float::INFINITY+.
     # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
-    # - <tt>"NaN"</tt> is cast to <tt>Float::NAN</tt>.
+    # - <tt>"NaN"</tt> is cast to +Float::NAN+.
     #
     #   bag = BagOfCoffee.new
     #

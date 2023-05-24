@@ -24,7 +24,7 @@ module ActiveRecord
       #   user.regenerate_token # => true
       #   user.regenerate_auth_token # => true
       #
-      # <tt>SecureRandom::base58</tt> is used to generate at minimum a 24-character unique token, so collisions are highly unlikely.
+      # +SecureRandom::base58+ is used to generate at minimum a 24-character unique token, so collisions are highly unlikely.
       #
       # Note that it's still possible to generate a race condition in the database in the same way that
       # {validates_uniqueness_of}[rdoc-ref:Validations::ClassMethods#validates_uniqueness_of] can.

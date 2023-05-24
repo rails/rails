@@ -3,13 +3,13 @@
 module ActionText
   # = Action Text \Content
   #
-  # The <tt>ActionText::Content</tt> class wraps an HTML fragment to add support for
+  # The +ActionText::Content+ class wraps an HTML fragment to add support for
   # parsing, rendering and serialization. It can be used to extract links and
   # attachments, convert the fragment to plain text, or serialize the fragment
   # to the database.
   #
-  # The <tt>ActionText::RichText</tt> record serializes the `body` attribute as
-  # <tt>ActionText::Content</tt>.
+  # The ActionText::RichText record serializes the `body` attribute as
+  # +ActionText::Content+.
   #
   #   class Message < ActiveRecord::Base
   #     has_rich_text :content
@@ -53,7 +53,7 @@ module ActionText
       @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
     end
 
-    # Extracts <tt>ActionText::Attachment</tt>s from the HTML fragment:
+    # Extracts +ActionText::Attachment+s from the HTML fragment:
     #
     #   attachable = ActiveStorage::Blob.first
     #   html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
@@ -75,7 +75,7 @@ module ActionText
       @gallery_attachments ||= attachment_galleries.flat_map(&:attachments)
     end
 
-    # Extracts <tt>ActionText::Attachable</tt>s from the HTML fragment:
+    # Extracts +ActionText::Attachable+s from the HTML fragment:
     #
     #   attachable = ActiveStorage::Blob.first
     #   html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)

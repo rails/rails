@@ -3,7 +3,7 @@
 module ActionText
   # = Action Text \Attachable
   #
-  # Include this module to make a record attachable to an <tt>ActionText::Content</tt>.
+  # Include this module to make a record attachable to an ActionText::Content.
   #
   #   class Person < ApplicationRecord
   #     include ActionText::Attachable
@@ -19,7 +19,7 @@ module ActionText
     LOCATOR_NAME = "attachable"
 
     class << self
-      # Extracts the <tt>ActionText::Attachable</tt> from the attachment HTML node:
+      # Extracts the +ActionText::Attachable+ from the attachment HTML node:
       #
       #   person = Person.create! name: "Javan"
       #   html = %Q(<action-text-attachment sgid="#{person.attachable_sgid}"></action-text-attachment>)

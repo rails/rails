@@ -34,7 +34,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   ##
   # :method:
   #
-  # Returns the associated <tt>ActiveStorage::Attachment</tt>s.
+  # Returns the associated +ActiveStorage::Attachment+s.
   has_many :attachments
 
   ##

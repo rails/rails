@@ -6,7 +6,7 @@ module ActiveRecord
     #
     # Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of
     # conflicts with the data. It does this by checking whether another process has made changes to a record since
-    # it was opened, an <tt>ActiveRecord::StaleObjectError</tt> exception is thrown if that has occurred
+    # it was opened, an ActiveRecord::StaleObjectError exception is thrown if that has occurred
     # and the update is ignored.
     #
     # Check out <tt>ActiveRecord::Locking::Pessimistic</tt> for an alternative.

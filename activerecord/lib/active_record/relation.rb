@@ -166,7 +166,7 @@ module ActiveRecord
     # assume it encountered a race condition and will try finding the record
     # once more If somehow the second find still find no record because a
     # concurrent DELETE happened, it will then raise an
-    # <tt>ActiveRecord::RecordNotFound</tt> exception.
+    # ActiveRecord::RecordNotFound exception.
     #
     # Please note <b>this method is not atomic</b>, it runs first a SELECT,
     # and if there are no results an INSERT is attempted. So if the table
@@ -196,7 +196,7 @@ module ActiveRecord
     # * The underlying table must have the relevant columns defined with unique database constraints.
     # * A unique constraint violation may be triggered by only one, or at least less than all,
     #   of the given attributes. This means that the subsequent #find_by! may fail to find a
-    #   matching record, which will then raise an <tt>ActiveRecord::RecordNotFound</tt> exception,
+    #   matching record, which will then raise an ActiveRecord::RecordNotFound exception,
     #   rather than a record with the given attributes.
     # * While we avoid the race condition between SELECT -> INSERT from #find_or_create_by,
     #   we actually have another race condition between INSERT -> SELECT, which can be triggered

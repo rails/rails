@@ -21,7 +21,7 @@ module ActionController
   # your application, they're just not part of the default API controller stack.
   #
   # Normally, +ApplicationController+ is the only controller that inherits from
-  # <tt>ActionController::API</tt>. All other controllers in turn inherit from
+  # +ActionController::API+. All other controllers in turn inherit from
   # +ApplicationController+.
   #
   # A sample controller could look like this:
@@ -64,7 +64,7 @@ module ActionController
   #
   # In some scenarios you may want to add back some functionality provided by
   # ActionController::Base that is not present by default in
-  # <tt>ActionController::API</tt>, for instance <tt>MimeResponds</tt>. This
+  # +ActionController::API+, for instance <tt>MimeResponds</tt>. This
   # module gives you the <tt>respond_to</tt> method. Adding it is quite simple,
   # you just need to include the module in a specific controller or in
   # +ApplicationController+ in case you want it available in your entire
@@ -87,7 +87,7 @@ module ActionController
   #
   # Make sure to check the modules included in ActionController::Base
   # if you want to use any other functionality that is not provided
-  # by <tt>ActionController::API</tt> out of the box.
+  # by +ActionController::API+ out of the box.
   class API < Metal
     abstract!
 

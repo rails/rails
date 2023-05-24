@@ -72,7 +72,7 @@ module AbstractController
       # instance methods on that abstract class. Public instance methods of
       # a controller would normally be considered action methods, so methods
       # declared on abstract classes are being removed.
-      # (<tt>ActionController::Metal</tt> and ActionController::Base are defined as abstract)
+      # (ActionController::Metal and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
 

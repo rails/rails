@@ -350,7 +350,7 @@ module ActiveRecord
         object.is_a?(self)
       end
 
-      # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
+      # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, klass: self)
       end

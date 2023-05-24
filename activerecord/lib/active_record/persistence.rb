@@ -132,7 +132,7 @@ module ActiveRecord
       #
       #   Consider a Book model where no duplicate ISBNs make sense, but if any
       #   row has an existing id, or is not unique by another unique index,
-      #   <tt>ActiveRecord::RecordNotUnique</tt> is raised.
+      #   ActiveRecord::RecordNotUnique is raised.
       #
       #   Unique indexes can be identified by columns or name:
       #
@@ -194,7 +194,7 @@ module ActiveRecord
       # The +attributes+ parameter is an Array of Hashes. Every Hash determines
       # the attributes for a single row and must have the same keys.
       #
-      # Raises <tt>ActiveRecord::RecordNotUnique</tt> if any rows violate a
+      # Raises ActiveRecord::RecordNotUnique if any rows violate a
       # unique index on the table. In that case, no rows are inserted.
       #
       # To skip duplicate rows, see #insert_all. To replace them, see #upsert_all.
@@ -288,7 +288,7 @@ module ActiveRecord
       #
       #   Consider a Book model where no duplicate ISBNs make sense, but if any
       #   row has an existing id, or is not unique by another unique index,
-      #   <tt>ActiveRecord::RecordNotUnique</tt> is raised.
+      #   ActiveRecord::RecordNotUnique is raised.
       #
       #   Unique indexes can be identified by columns or name:
       #

@@ -29,7 +29,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   ##
   # :method:
   #
-  # Returns the associated <tt>ActiveStorage::Blob</tt>.
+  # Returns the associated ActiveStorage::Blob.
   belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
 
   delegate_missing_to :blob
