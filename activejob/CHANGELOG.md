@@ -1,3 +1,5 @@
+## Rails 7.0.5 (May 24, 2023) ##
+
 *   Make delayed job `display_name` failsafe.
 
     *codez*

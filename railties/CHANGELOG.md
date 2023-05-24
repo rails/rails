@@ -1,3 +1,5 @@
+## Rails 7.0.5 (May 24, 2023) ##
+
 *   Add puma app server to Gemfile in order to start test/dummy.
 
     *Donapieppo*

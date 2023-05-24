@@ -1,3 +1,5 @@
+## Rails 7.0.5 (May 24, 2023) ##
+
 *   `FormBuilder#id` finds id set by `form_for` and `form_with`.
 
     *Matt Polito*

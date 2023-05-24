@@ -1,3 +1,8 @@
+## Rails 7.0.5 (May 24, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.0.4.3 (March 13, 2023) ##
 
 *   No changes.

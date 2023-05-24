@@ -1,3 +1,5 @@
+## Rails 7.0.5 (May 24, 2023) ##
+
 *   Type cast `#attribute_changed?` `:from` and `:to` options.
 
     *Andrew Novoselac*

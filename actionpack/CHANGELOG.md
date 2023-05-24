@@ -1,3 +1,5 @@
+## Rails 7.0.5 (May 24, 2023) ##
+
 *   Do not return CSP headers for 304 Not Modified responses.
 
     *Tobias Kraze*
