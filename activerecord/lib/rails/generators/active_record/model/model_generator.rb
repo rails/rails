@@ -16,11 +16,16 @@ module ActiveRecord
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
       class_option :database, type: :string, aliases: %i(--db), desc: "The database for your model's migration. By default, the current environment's primary database is used."
 
+      Rails::Generators.templates_path.each do |path|
+        source_paths << File.join(path, base_name, "migration")
+      end
+      source_paths << File.expand_path(File.join(base_name, "migration", "templates"), base_root)
+
       # creates the migration file for the model.
       def create_migration_file
         return if skip_migration_creation?
         attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
-        migration_template "../../migration/templates/create_table_migration.rb", File.join(db_migrate_path, "create_#{table_name}.rb")
+        migration_template "create_table_migration.rb", File.join(db_migrate_path, "create_#{table_name}.rb")
       end
 
       def create_model_file
