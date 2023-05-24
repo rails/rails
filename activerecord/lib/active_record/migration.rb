@@ -362,7 +362,7 @@ module ActiveRecord
   # == Irreversible transformations
   #
   # Some transformations are destructive in a manner that cannot be reversed.
-  # Migrations of that kind should raise an <tt>ActiveRecord::IrreversibleMigration</tt>
+  # Migrations of that kind should raise an ActiveRecord::IrreversibleMigration
   # exception in their +down+ method.
   #
   # == Running migrations from within Rails
@@ -401,7 +401,7 @@ module ActiveRecord
   # wish to rollback last few migrations. <tt>bin/rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
-  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
+  # If any of the migrations throw an ActiveRecord::IrreversibleMigration exception,
   # that step will fail and you'll have some manual work to do.
   #
   # == More examples
@@ -527,11 +527,11 @@ module ActiveRecord
   # as before.
   #
   # If a command cannot be reversed, an
-  # <tt>ActiveRecord::IrreversibleMigration</tt> exception will be raised when
+  # ActiveRecord::IrreversibleMigration exception will be raised when
   # the migration is moving down.
   #
   # For a list of commands that are reversible, please see
-  # <tt>ActiveRecord::Migration::CommandRecorder</tt>.
+  # +ActiveRecord::Migration::CommandRecorder+.
   #
   # == Transactional Migrations
   #
@@ -642,7 +642,7 @@ module ActiveRecord
         delegate || superclass.nearest_delegate
       end
 
-      # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
+      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending.
       #
       # This is deprecated in favor of +check_pending_migrations!+
       def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
@@ -659,7 +659,7 @@ module ActiveRecord
         end
       end
 
-      # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending
+      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
       # for all database configurations in an environment.
       def check_all_pending!
         pending_migrations = []

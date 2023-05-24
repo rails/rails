@@ -9,12 +9,12 @@ require "pathname"
 require "thread"
 
 module Rails
-  # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
+  # +Rails::Engine+ allows you to wrap a specific Rails application or subset of
   # functionality and share it with other applications or within a larger packaged application.
   # Every Rails::Application is just an engine, which allows for simple
   # feature and application sharing.
   #
-  # Any <tt>Rails::Engine</tt> is also a Rails::Railtie, so the same
+  # Any +Rails::Engine+ is also a Rails::Railtie, so the same
   # methods (like <tt>rake_tasks</tt> and +generators+) and configuration
   # options that are available in railties can also be used in engines.
   #
@@ -181,7 +181,7 @@ module Rails
   #   it's used as default <tt>:as</tt> option
   # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
-  # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
+  # Engine name is set by default based on class name. For +MyEngine::Engine+ it will be
   # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
   #
   #   module MyEngine
@@ -231,14 +231,14 @@ module Rails
   #   end
   #
   # If +MyEngine+ is isolated, the routes above will point to
-  # <tt>MyEngine::ArticlesController</tt>. You also don't need to use longer
+  # +MyEngine::ArticlesController+. You also don't need to use longer
   # URL helpers like +my_engine_articles_path+. Instead, you should simply use
   # +articles_path+, like you would do with your main application.
   #
   # To make this behavior consistent with other parts of the framework,
   # isolated engines also have an effect on ActiveModel::Naming. In a
   # normal Rails app, when you use a namespaced model such as
-  # <tt>Namespace::Article</tt>, ActiveModel::Naming will generate
+  # +Namespace::Article+, ActiveModel::Naming will generate
   # names with the prefix "namespace". In an isolated engine, the prefix will
   # be omitted in URL helpers and form fields, for convenience.
   #
@@ -252,7 +252,7 @@ module Rails
   # Additionally, an isolated engine will set its own name according to its
   # namespace, so <tt>MyEngine::Engine.engine_name</tt> will return
   # "my_engine". It will also set +MyEngine.table_name_prefix+ to "my_engine_",
-  # meaning for example that <tt>MyEngine::Article</tt> will use the
+  # meaning for example that +MyEngine::Article+ will use the
   # +my_engine_articles+ database table by default.
   #
   # == Using Engine's routes outside Engine

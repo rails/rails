@@ -20,7 +20,7 @@ module ActiveModel
   #   person.name # => "bob"
   #   person.age  # => "18"
   #
-  # Note that, by default, <tt>ActiveModel::API</tt> implements <tt>persisted?</tt>
+  # Note that, by default, +ActiveModel::API+ implements <tt>persisted?</tt>
   # to return +false+, which is the most common case. You may want to override
   # it in your class to simulate a different scenario:
   #
@@ -54,7 +54,7 @@ module ActiveModel
   #   person.omg # => true
   #
   # For more detailed information on other functionalities available, please
-  # refer to the specific modules included in <tt>ActiveModel::API</tt>
+  # refer to the specific modules included in +ActiveModel::API+
   # (see below).
   module API
     extend ActiveSupport::Concern

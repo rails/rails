@@ -17,7 +17,7 @@ module Rails
     #
     #     config.middleware.use Magical::Unicorns
     #
-    # This will put the <tt>Magical::Unicorns</tt> middleware on the end of the stack.
+    # This will put the +Magical::Unicorns+ middleware on the end of the stack.
     # You can use +insert_before+ if you wish to add a middleware before another:
     #
     #     config.middleware.insert_before Rack::Head, Magical::Unicorns
@@ -34,8 +34,8 @@ module Rails
     #
     #     config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
     #
-    # This will move the <tt>Magical::Unicorns</tt> middleware before the
-    # <tt>ActionDispatch::Flash</tt>. You can also move it after:
+    # This will move the +Magical::Unicorns+ middleware before the
+    # +ActionDispatch::Flash+. You can also move it after:
     #
     #     config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
     #

@@ -37,7 +37,7 @@ module ActiveModel
   #   person.omg # => true
   #
   # For more detailed information on other functionalities available, please
-  # refer to the specific modules included in <tt>ActiveModel::Model</tt>
+  # refer to the specific modules included in +ActiveModel::Model+
   # (see below).
   module Model
     extend ActiveSupport::Concern

@@ -8,7 +8,7 @@ require "active_support/deprecation/proxy_wrappers"
 module ActiveSupport
   # = Active Support Log \Subscriber
   #
-  # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
+  # +ActiveSupport::LogSubscriber+ is an object set to consume
   # ActiveSupport::Notifications with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based
   # on its given namespace.
@@ -34,7 +34,7 @@ module ActiveSupport
   # (ActiveSupport::Notifications::Event) to the +sql+ method.
   #
   # Being an ActiveSupport::Notifications consumer,
-  # <tt>ActiveSupport::LogSubscriber</tt> exposes a simple interface to check if
+  # +ActiveSupport::LogSubscriber+ exposes a simple interface to check if
   # instrumented code raises an exception. It is common to log a different
   # message in case of an error, and this can be achieved by extending
   # the previous example:
@@ -56,7 +56,7 @@ module ActiveSupport
   #     end
   #   end
   #
-  # <tt>ActiveSupport::LogSubscriber</tt> also has some helpers to deal with
+  # +ActiveSupport::LogSubscriber+ also has some helpers to deal with
   # logging. For example, ActiveSupport::LogSubscriber.flush_all! will ensure
   # that all logs are flushed, and it is called in Rails::Rack::Logger after a
   # request finishes.

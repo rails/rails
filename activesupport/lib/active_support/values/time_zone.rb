@@ -6,14 +6,14 @@ require "concurrent/map"
 module ActiveSupport
   # = Active Support \Time Zone
   #
-  # The TimeZone class serves as a wrapper around <tt>TZInfo::Timezone</tt> instances.
+  # The TimeZone class serves as a wrapper around +TZInfo::Timezone+ instances.
   # It allows us to do the following:
   #
   # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
-  # * Lazily load <tt>TZInfo::Timezone</tt> instances only when they're needed.
+  # * Lazily load +TZInfo::Timezone+ instances only when they're needed.
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
   #   +parse+, +at+, and +now+ methods.
   #
@@ -545,13 +545,13 @@ module ActiveSupport
       tzinfo.local_to_utc(time, dst)
     end
 
-    # Available so that TimeZone instances respond like <tt>TZInfo::Timezone</tt>
+    # Available so that TimeZone instances respond like +TZInfo::Timezone+
     # instances.
     def period_for_utc(time)
       tzinfo.period_for_utc(time)
     end
 
-    # Available so that TimeZone instances respond like <tt>TZInfo::Timezone</tt>
+    # Available so that TimeZone instances respond like +TZInfo::Timezone+
     # instances.
     def period_for_local(time, dst = true)
       tzinfo.period_for_local(time, dst) { |periods| periods.last }

@@ -5,7 +5,7 @@ require "active_support/notifications"
 module ActiveSupport
   # = Active Support \Subscriber
   #
-  # <tt>ActiveSupport::Subscriber</tt> is an object set to consume
+  # +ActiveSupport::Subscriber+ is an object set to consume
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #

@@ -130,7 +130,7 @@ module ActionController
   # environment they should only be set once at boot-time and never mutated at
   # runtime.
   #
-  # You can fetch values of <tt>ActionController::Parameters</tt> using either
+  # You can fetch values of +ActionController::Parameters+ using either
   # <tt>:key</tt> or <tt>"key"</tt>.
   #
   #   params = ActionController::Parameters.new(key: "value")
@@ -222,7 +222,7 @@ module ActionController
       end
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance.
+    # Returns a new +ActionController::Parameters+ instance.
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
     #
@@ -498,7 +498,7 @@ module ActionController
 
     alias :required :require
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # Returns a new +ActionController::Parameters+ instance that
     # includes only the given +filters+ and sets the +permitted+ attribute
     # for the object to +true+. This is useful for limiting which attributes
     # should be allowed for mass updating.
@@ -683,7 +683,7 @@ module ActionController
       @parameters.dig(*keys)
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # Returns a new +ActionController::Parameters+ instance that
     # includes only the given +keys+. If the given +keys+
     # don't exist, returns an empty hash.
     #
@@ -694,14 +694,14 @@ module ActionController
       new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
     end
 
-    # Returns the current <tt>ActionController::Parameters</tt> instance which
+    # Returns the current +ActionController::Parameters+ instance which
     # contains only the given +keys+.
     def slice!(*keys)
       @parameters.slice!(*keys)
       self
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance that
+    # Returns a new +ActionController::Parameters+ instance that
     # filters out the given +keys+.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
@@ -721,7 +721,7 @@ module ActionController
       new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with the results of
+    # Returns a new +ActionController::Parameters+ instance with the results of
     # running +block+ once for every value. The keys are unchanged.
     #
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
@@ -735,14 +735,14 @@ module ActionController
     end
 
     # Performs values transformation and returns the altered
-    # <tt>ActionController::Parameters</tt> instance.
+    # +ActionController::Parameters+ instance.
     def transform_values!
       return to_enum(:transform_values!) unless block_given?
       @parameters.transform_values! { |v| yield convert_value_to_parameters(v) }
       self
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with the
+    # Returns a new +ActionController::Parameters+ instance with the
     # results of running +block+ once for every key. The values are unchanged.
     def transform_keys(&block)
       return to_enum(:transform_keys) unless block_given?
@@ -752,14 +752,14 @@ module ActionController
     end
 
     # Performs keys transformation and returns the altered
-    # <tt>ActionController::Parameters</tt> instance.
+    # +ActionController::Parameters+ instance.
     def transform_keys!(&block)
       return to_enum(:transform_keys!) unless block_given?
       @parameters.transform_keys!(&block)
       self
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with the
+    # Returns a new +ActionController::Parameters+ instance with the
     # results of running +block+ once for every key. This includes the keys
     # from the root hash and from all nested hashes and arrays. The values are unchanged.
     def deep_transform_keys(&block)
@@ -768,7 +768,7 @@ module ActionController
       )
     end
 
-    # Returns the same <tt>ActionController::Parameters</tt> instance with
+    # Returns the same +ActionController::Parameters+ instance with
     # changed keys. This includes the keys from the root hash and from all
     # nested hashes and arrays. The values are unchanged.
     def deep_transform_keys!(&block)
@@ -784,7 +784,7 @@ module ActionController
       convert_value_to_parameters(@parameters.delete(key, &block))
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with only
+    # Returns a new +ActionController::Parameters+ instance with only
     # items that the block evaluates to true.
     def select(&block)
       new_instance_with_inherited_permitted_status(@parameters.select(&block))
@@ -797,7 +797,7 @@ module ActionController
     end
     alias_method :keep_if, :select!
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with items
+    # Returns a new +ActionController::Parameters+ instance with items
     # that the block evaluates to true removed.
     def reject(&block)
       new_instance_with_inherited_permitted_status(@parameters.reject(&block))
@@ -810,7 +810,7 @@ module ActionController
     end
     alias_method :delete_if, :reject!
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with +nil+ values removed.
+    # Returns a new +ActionController::Parameters+ instance with +nil+ values removed.
     def compact
       new_instance_with_inherited_permitted_status(@parameters.compact)
     end
@@ -820,7 +820,7 @@ module ActionController
       self if @parameters.compact!
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance without the blank values.
+    # Returns a new +ActionController::Parameters+ instance without the blank values.
     # Uses Object#blank? for determining if a value is blank.
     def compact_blank
       reject { |_k, v| v.blank? }
@@ -840,12 +840,12 @@ module ActionController
     alias value? has_value?
 
     # Returns values that were assigned to the given +keys+. Note that all the
-    # +Hash+ objects will be converted to <tt>ActionController::Parameters</tt>.
+    # +Hash+ objects will be converted to +ActionController::Parameters+.
     def values_at(*keys)
       convert_value_to_parameters(@parameters.values_at(*keys))
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with all keys from
+    # Returns a new +ActionController::Parameters+ instance with all keys from
     # +other_hash+ merged into current hash.
     def merge(other_hash)
       new_instance_with_inherited_permitted_status(
@@ -853,14 +853,14 @@ module ActionController
       )
     end
 
-    # Returns the current <tt>ActionController::Parameters</tt> instance with
+    # Returns the current +ActionController::Parameters+ instance with
     # +other_hash+ merged into current hash.
     def merge!(other_hash)
       @parameters.merge!(other_hash.to_h)
       self
     end
 
-    # Returns a new <tt>ActionController::Parameters</tt> instance with all keys
+    # Returns a new +ActionController::Parameters+ instance with all keys
     # from current hash merged into +other_hash+.
     def reverse_merge(other_hash)
       new_instance_with_inherited_permitted_status(
@@ -869,7 +869,7 @@ module ActionController
     end
     alias_method :with_defaults, :reverse_merge
 
-    # Returns the current <tt>ActionController::Parameters</tt> instance with
+    # Returns the current +ActionController::Parameters+ instance with
     # current hash merged into +other_hash+.
     def reverse_merge!(other_hash)
       @parameters.merge!(other_hash.to_h) { |key, left, right| left }

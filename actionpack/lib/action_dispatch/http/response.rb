@@ -292,7 +292,7 @@ module ActionDispatch # :nodoc:
       @status
     end
 
-    # Returns a string to ensure compatibility with <tt>Net::HTTPResponse</tt>.
+    # Returns a string to ensure compatibility with +Net::HTTPResponse+.
     def code
       @status.to_s
     end

@@ -10,7 +10,7 @@ module ActiveModel
     # keys matching the attribute names.
     #
     # If the passed hash responds to <tt>permitted?</tt> method and the return value
-    # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
+    # of this method is +false+ an ActiveModel::ForbiddenAttributesError
     # exception is raised.
     #
     #   class Cat

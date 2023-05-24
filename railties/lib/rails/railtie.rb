@@ -7,7 +7,7 @@ require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/delegation"
 
 module Rails
-  # <tt>Rails::Railtie</tt> is the core of the Rails framework and provides
+  # +Rails::Railtie+ is the core of the Rails framework and provides
   # several hooks to extend Rails and/or modify the initialization process.
   #
   # Every major component of Rails (Action Mailer, Action Controller, Active
@@ -29,9 +29,9 @@ module Rails
   #
   # == Creating a Railtie
   #
-  # To extend Rails using a railtie, create a subclass of <tt>Rails::Railtie</tt>.
+  # To extend Rails using a railtie, create a subclass of +Rails::Railtie+.
   # This class must be loaded during the Rails boot process, and is conventionally
-  # called <tt>MyNamespace::Railtie</tt>.
+  # called +MyNamespace::Railtie+.
   #
   # The following example demonstrates an extension which can be used with or
   # without Rails.

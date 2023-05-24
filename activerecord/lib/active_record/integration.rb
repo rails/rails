@@ -10,7 +10,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Indicates the format used to generate the timestamp in the cache key, if
-      # versioning is off. Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
+      # versioning is off. Accepts any of the symbols in +Time::DATE_FORMATS+.
       #
       # This is +:usec+, by default.
       class_attribute :cache_timestamp_format, instance_writer: false, default: :usec

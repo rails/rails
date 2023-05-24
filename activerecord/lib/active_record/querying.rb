@@ -51,7 +51,7 @@ module ActiveRecord
       _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
     end
 
-    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_find_by_sql(sql, binds = [], preparable: nil, &block)
       _query_by_sql(sql, binds, preparable: preparable, async: true).then do |result|
         _load_from_sql(result, &block)
@@ -102,7 +102,7 @@ module ActiveRecord
       connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
     end
 
-    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise
     def async_count_by_sql(sql)
       connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
     end

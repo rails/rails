@@ -18,7 +18,7 @@ module ActiveSupport
   #     end
   #   end
   #
-  # By using <tt>ActiveSupport::Concern</tt> the above module could instead be
+  # By using +ActiveSupport::Concern+ the above module could instead be
   # written as:
   #
   #   require "active_support/concern"
@@ -75,7 +75,7 @@ module ActiveSupport
   #   end
   #
   # Unfortunately this won't work, since when +Foo+ is included, its <tt>base</tt>
-  # is the +Bar+ module, not the +Host+ class. With <tt>ActiveSupport::Concern</tt>,
+  # is the +Bar+ module, not the +Host+ class. With +ActiveSupport::Concern+,
   # module dependencies are properly resolved:
   #
   #   require "active_support/concern"

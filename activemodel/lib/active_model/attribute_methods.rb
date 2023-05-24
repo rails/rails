@@ -18,10 +18,10 @@ module ActiveModel
   # = Active \Model \Attribute \Methods
   #
   # Provides a way to add prefixes and suffixes to your methods as
-  # well as handling the creation of <tt>ActiveRecord::Base</tt>-like
+  # well as handling the creation of ActiveRecord::Base - like
   # class methods such as +table_name+.
   #
-  # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
+  # The requirements to implement +ActiveModel::AttributeMethods+ are to:
   #
   # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
   # * Call each of its methods you want to add, such as +attribute_method_suffix+
@@ -245,7 +245,7 @@ module ActiveModel
       end
 
       # Declares the attributes that should be prefixed and suffixed by
-      # <tt>ActiveModel::AttributeMethods</tt>.
+      # +ActiveModel::AttributeMethods+.
       #
       # To use, pass attribute names (as strings or symbols). Be sure to declare
       # +define_attribute_methods+ after you define any prefix, suffix, or affix
@@ -274,7 +274,7 @@ module ActiveModel
       end
 
       # Declares an attribute that should be prefixed and suffixed by
-      # <tt>ActiveModel::AttributeMethods</tt>.
+      # +ActiveModel::AttributeMethods+.
       #
       # To use, pass an attribute name (as string or symbol). Be sure to declare
       # +define_attribute_method+ after you define any prefix, suffix or affix

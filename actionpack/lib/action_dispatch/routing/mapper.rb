@@ -760,7 +760,7 @@ module ActionDispatch
       #   end
       #
       # This will create a number of routes for each of the posts and comments
-      # controller. For <tt>Admin::PostsController</tt>, Rails will create:
+      # controller. For +Admin::PostsController+, Rails will create:
       #
       #   GET       /admin/posts
       #   GET       /admin/posts/new
@@ -771,7 +771,7 @@ module ActionDispatch
       #   DELETE    /admin/posts/1
       #
       # If you want to route /posts (without the prefix /admin) to
-      # <tt>Admin::PostsController</tt>, you could use
+      # +Admin::PostsController+, you could use
       #
       #   scope module: "admin" do
       #     resources :posts
@@ -820,7 +820,7 @@ module ActionDispatch
         #
         # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
-        #   # route /posts (without the prefix /admin) to <tt>Admin::PostsController</tt>
+        #   # route /posts (without the prefix /admin) to +Admin::PostsController+
         #   scope module: "admin" do
         #     resources :posts
         #   end
@@ -929,7 +929,7 @@ module ActionDispatch
         #     resources :posts
         #   end
         #
-        #   # maps to <tt>Sekret::PostsController</tt> rather than <tt>Admin::PostsController</tt>
+        #   # maps to +Sekret::PostsController+ rather than +Admin::PostsController+
         #   namespace :admin, module: "sekret" do
         #     resources :posts
         #   end
@@ -1462,7 +1462,7 @@ module ActionDispatch
         #
         # === Examples
         #
-        #   # routes call <tt>Admin::PostsController</tt>
+        #   # routes call +Admin::PostsController+
         #   resources :posts, module: "admin"
         #
         #   # resource actions are at /admin/posts.

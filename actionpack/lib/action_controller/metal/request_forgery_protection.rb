@@ -36,7 +36,7 @@ module ActionController # :nodoc:
   #
   # Subclasses of ActionController::Base are protected by default with the
   # <tt>:exception</tt> strategy, which raises an
-  # <tt>ActionController::InvalidAuthenticityToken</tt> error on unverified requests.
+  # ActionController::InvalidAuthenticityToken error on unverified requests.
   #
   # APIs may want to disable this behavior since they are typically designed to be
   # state-less: that is, the request API client handles the session instead of Rails.

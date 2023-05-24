@@ -62,7 +62,7 @@ module ActionController
 
   # = Action Controller \Metal
   #
-  # <tt>ActionController::Metal</tt> is the simplest possible controller, providing a
+  # +ActionController::Metal+ is the simplest possible controller, providing a
   # valid Rack interface without the additional niceties provided by
   # ActionController::Base.
   #
@@ -84,7 +84,7 @@ module ActionController
   #
   # == Rendering Helpers
   #
-  # <tt>ActionController::Metal</tt> by default provides no utilities for rendering
+  # +ActionController::Metal+ by default provides no utilities for rendering
   # views, partials, or other responses aside from explicitly calling of
   # <tt>response_body=</tt>, <tt>content_type=</tt>, and <tt>status=</tt>. To
   # add the render helpers you're used to having in a normal controller, you

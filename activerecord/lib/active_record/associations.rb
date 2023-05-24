@@ -381,9 +381,9 @@ module ActiveRecord
       # === A word of warning
       #
       # Don't create associations that have the same name as {instance methods}[rdoc-ref:ActiveRecord::Core] of
-      # <tt>ActiveRecord::Base</tt>. Since the association adds a method with that name to
-      # its model, using an association with the same name as one provided by <tt>ActiveRecord::Base</tt> will override the method inherited through <tt>ActiveRecord::Base</tt> and will break things.
-      # For instance, +attributes+ and +connection+ would be bad choices for association names, because those names already exist in the list of <tt>ActiveRecord::Base</tt> instance methods.
+      # +ActiveRecord::Base+. Since the association adds a method with that name to
+      # its model, using an association with the same name as one provided by +ActiveRecord::Base+ will override the method inherited through +ActiveRecord::Base+ and will break things.
+      # For instance, +attributes+ and +connection+ would be bad choices for association names, because those names already exist in the list of +ActiveRecord::Base+ instance methods.
       #
       # == Auto-generated methods
       # See also Instance Public methods below for more details.
@@ -1414,7 +1414,7 @@ module ActiveRecord
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
         #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
         #     on polymorphic associations. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there are any associated records.
+        #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there are any associated records.
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
         #
         #   If using with the <tt>:through</tt> option, the association on the join model must be
@@ -1586,7 +1586,7 @@ module ActiveRecord
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
         #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
         #     on polymorphic associations. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there is an associated record
+        #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there is an associated record
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
         #
         #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
