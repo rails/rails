@@ -273,35 +273,5 @@ module ApplicationTests
       error = assert_raises(RuntimeError) { get "/foo" }
       assert_equal "oops", error.message
     end
-
-    test "show_exceptions with deprecated true" do
-      controller :foo, <<-RUBY
-        class FooController < ActionController::Base
-          def index
-            raise 'oops'
-          end
-        end
-      RUBY
-
-      app.config.action_dispatch.show_exceptions = true
-
-      get "/foo"
-      assert_equal 500, last_response.status
-    end
-
-    test "show_exceptions with deprecated false" do
-      controller :foo, <<-RUBY
-        class FooController < ActionController::Base
-          def index
-            raise 'oops'
-          end
-        end
-      RUBY
-
-      app.config.action_dispatch.show_exceptions = false
-
-      error = assert_raises(RuntimeError) { get "/foo" }
-      assert_equal "oops", error.message
-    end
   end
 end
