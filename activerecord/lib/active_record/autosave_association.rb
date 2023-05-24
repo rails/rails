@@ -18,13 +18,13 @@ module ActiveRecord
   # Note that it also means that associations marked for destruction won't
   # be destroyed directly. They will however still be marked for destruction.
   #
-  # Note that <tt>autosave: false</tt> is not same as not declaring <tt>:autosave</tt>.
-  # When the <tt>:autosave</tt> option is not present then new association records are
+  # Note that <tt>autosave: false</tt> is not same as not declaring +:autosave+.
+  # When the +:autosave+ option is not present then new association records are
   # saved but the updated association records are not saved.
   #
   # == Validation
   #
-  # Child records are validated unless <tt>:validate</tt> is +false+.
+  # Child records are validated unless +:validate+ is +false+.
   #
   # == Callbacks
   #
@@ -76,7 +76,7 @@ module ActiveRecord
   #
   # === One-to-many Example
   #
-  # When <tt>:autosave</tt> is not declared new children are saved when their parent is saved:
+  # When +:autosave+ is not declared new children are saved when their parent is saved:
   #
   #   class Post < ActiveRecord::Base
   #     has_many :comments # :autosave option is not declared
@@ -95,7 +95,7 @@ module ActiveRecord
   #   comment.body = 'hi everyone'
   #   post.save # => saves post, but not comment
   #
-  # When <tt>:autosave</tt> is true all children are saved, no matter whether they
+  # When +:autosave+ is true all children are saved, no matter whether they
   # are new records or not:
   #
   #   class Post < ActiveRecord::Base
@@ -241,14 +241,14 @@ module ActiveRecord
     # This does _not_ actually destroy the record instantly, rather child record will be destroyed
     # when <tt>parent.save</tt> is called.
     #
-    # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
+    # Only useful if the +:autosave+ option on the parent is enabled for this associated model.
     def mark_for_destruction
       @marked_for_destruction = true
     end
 
     # Returns whether or not this record will be destroyed as part of the parent's save transaction.
     #
-    # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
+    # Only useful if the +:autosave+ option on the parent is enabled for this associated model.
     def marked_for_destruction?
       @marked_for_destruction
     end
@@ -310,7 +310,7 @@ module ActiveRecord
         end
       end
 
-      # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
+      # Validate the association if +:validate+ or +:autosave+ is
       # turned on for the association.
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
@@ -318,8 +318,8 @@ module ActiveRecord
         association_valid?(reflection, record) if record && (record.changed_for_autosave? || custom_validation_context?)
       end
 
-      # Validate the associated records if <tt>:validate</tt> or
-      # <tt>:autosave</tt> is turned on for the association specified by
+      # Validate the associated records if +:validate+ or
+      # +:autosave+ is turned on for the association specified by
       # +reflection+.
       def validate_collection_association(reflection)
         if association = association_instance_get(reflection.name)
@@ -330,7 +330,7 @@ module ActiveRecord
       end
 
       # Returns whether or not the association is valid and applies any errors to
-      # the parent, +self+, if it wasn't. Skips any <tt>:autosave</tt>
+      # the parent, +self+, if it wasn't. Skips any +:autosave+
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
@@ -378,7 +378,7 @@ module ActiveRecord
       end
 
       # Saves any new associated records, or all loaded autosave associations if
-      # <tt>:autosave</tt> is enabled on the association.
+      # +:autosave+ is enabled on the association.
       #
       # In addition, it destroys all children that were marked for destruction
       # with #mark_for_destruction.
@@ -431,7 +431,7 @@ module ActiveRecord
         end
       end
 
-      # Saves the associated record if it's new or <tt>:autosave</tt> is enabled
+      # Saves the associated record if it's new or +:autosave+ is enabled
       # on the association.
       #
       # In addition, it will destroy the association if it was marked for
@@ -487,7 +487,7 @@ module ActiveRecord
         reflection.active_record != record.class.polymorphic_class_for(class_name)
       end
 
-      # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.
+      # Saves the associated record if it's new or +:autosave+ is enabled.
       #
       # In addition, it will destroy the association if it was marked for destruction.
       def save_belongs_to_association(reflection)

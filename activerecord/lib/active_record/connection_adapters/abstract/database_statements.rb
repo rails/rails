@@ -305,10 +305,10 @@ module ActiveRecord
       #
       # Valid isolation levels are:
       #
-      # * <tt>:read_uncommitted</tt>
-      # * <tt>:read_committed</tt>
-      # * <tt>:repeatable_read</tt>
-      # * <tt>:serializable</tt>
+      # * +:read_uncommitted+
+      # * +:read_committed+
+      # * +:repeatable_read+
+      # * +:serializable+
       #
       # You should consult the documentation for your database to understand the
       # semantics of these different levels:

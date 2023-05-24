@@ -36,17 +36,17 @@ module ActiveRecord
       #
       # Configuration options:
       #
-      # * <tt>:message</tt> - A custom error message (default is: "is invalid").
-      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      # * +:message+ - A custom error message (default is: "is invalid").
+      # * +:on+ - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
+      # * +:if+ - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
+      # * +:unless+ - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or +false+

@@ -421,7 +421,7 @@ module ActiveRecord
       # for available options.
       #
       # Additional options are:
-      # * <tt>:index</tt> -
+      # * +:index+ -
       #   Create an index for the column. Can be either +true+ or an options hash.
       #
       # This method returns +self+.
@@ -463,8 +463,8 @@ module ActiveRecord
       # TableDefinition#timestamps that'll add +created_at+ and +updated_at+ as datetimes.
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
-      # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of
-      # options, these will be used when creating the +_type+ column. The <tt>:index</tt> option
+      # column if the +:polymorphic+ option is supplied. If +:polymorphic+ is a hash of
+      # options, these will be used when creating the +_type+ column. The +:index+ option
       # will also create an index, similar to calling {add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
       # So what can be written like this:
       #
@@ -520,8 +520,8 @@ module ActiveRecord
         check_constraints << new_check_constraint_definition(expression, options)
       end
 
-      # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
-      # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
+      # Appends +:datetime+ columns +:created_at+ and
+      # +:updated_at+ to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
       #   t.timestamps null: false
       def timestamps(**options)

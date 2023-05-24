@@ -95,8 +95,8 @@ module ActiveRecord
 
       # Returns an array of AssociationReflection objects for all the
       # associations in the class. If you only want to reflect on a certain
-      # association type, pass in the symbol (<tt>:has_many</tt>, <tt>:has_one</tt>,
-      # <tt>:belongs_to</tt>) as the first parameter.
+      # association type, pass in the symbol (+:has_many+, +:has_one+,
+      # +:belongs_to+) as the first parameter.
       #
       # Example:
       #
@@ -122,7 +122,7 @@ module ActiveRecord
         _reflections[association.to_s]
       end
 
-      # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
+      # Returns an array of AssociationReflection objects for all associations which have +:autosave+ enabled.
       def reflect_on_all_autosave_associations
         reflections.values.select { |reflection| reflection.options[:autosave] }
       end
@@ -354,8 +354,8 @@ module ActiveRecord
     class MacroReflection < AbstractReflection
       # Returns the name of the macro.
       #
-      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>:balance</tt>
-      # <tt>has_many :clients</tt> returns <tt>:clients</tt>
+      # <tt>composed_of :balance, class_name: 'Money'</tt> returns +:balance+
+      # <tt>has_many :clients</tt> returns +:clients+
       attr_reader :name
 
       attr_reader :scope
@@ -599,7 +599,7 @@ module ActiveRecord
 
       # Returns the macro type.
       #
-      # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
+      # <tt>has_many :clients</tt> returns +:has_many+
       def macro; raise NotImplementedError; end
 
       # Returns whether or not this association reflection is for a collection
@@ -699,7 +699,7 @@ module ActiveRecord
         # us from being able to guess the inverse automatically. First, the
         # +inverse_of+ option cannot be set to false. Second, we must
         # have +has_many+, +has_one+, +belongs_to+ associations.
-        # Third, we must not have options such as <tt>:foreign_key</tt>
+        # Third, we must not have options such as +:foreign_key+
         # which prevent us from correctly guessing the inverse association.
         def can_find_inverse_of_automatically?(reflection, inverse_reflection = false)
           reflection.options[:inverse_of] != false &&
@@ -847,7 +847,7 @@ module ActiveRecord
       end
 
       # Returns the source of the through reflection. It checks both a singularized
-      # and pluralized form for <tt>:belongs_to</tt> or <tt>:has_many</tt>.
+      # and pluralized form for +:belongs_to+ or +:has_many+.
       #
       #   class Post < ActiveRecord::Base
       #     has_many :taggings
@@ -867,7 +867,7 @@ module ActiveRecord
         through_reflection.klass._reflect_on_association(source_reflection_name)
       end
 
-      # Returns the AssociationReflection object specified in the <tt>:through</tt> option
+      # Returns the AssociationReflection object specified in the +:through+ option
       # of a HasManyThrough or HasOneThrough association.
       #
       #   class Post < ActiveRecord::Base
@@ -948,7 +948,7 @@ module ActiveRecord
         source_reflection.join_primary_key(klass)
       end
 
-      # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
+      # Gets an array of possible +:through+ source reflection names in both singular and plural form.
       #
       #   class Post < ActiveRecord::Base
       #     has_many :taggings

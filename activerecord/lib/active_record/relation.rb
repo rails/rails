@@ -536,7 +536,7 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
-    # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
+    # * +:touch+ option - Touch the timestamp columns when updating.
     # * If attributes names are passed, they are updated along with update_at/on attributes.
     #
     # ==== Examples
@@ -592,7 +592,7 @@ module ActiveRecord
 
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
-    # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
+    # Each object's callbacks are executed (including +:dependent+ association options).
     # Returns the collection of objects that were destroyed; each will be frozen, to
     # reflect that no changes should be made (since they can't be persisted).
     #
@@ -615,7 +615,7 @@ module ActiveRecord
     # method nor invoking callbacks.
     # This is a single SQL DELETE statement that goes straight to the database, much more
     # efficient than #destroy_all. Be careful with relations though, in particular
-    # <tt>:dependent</tt> rules defined on associations are not honored. Returns the
+    # +:dependent+ rules defined on associations are not honored. Returns the
     # number of rows affected.
     #
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all

@@ -60,8 +60,8 @@ module ActiveModel
   #   person.as_json             # => {"name"=>"Bob"}
   #   person.to_json             # => "{\"name\":\"Bob\"}"
   #
-  # Valid options are <tt>:only</tt>, <tt>:except</tt>, <tt>:methods</tt> and
-  # <tt>:include</tt>. The following are all valid examples:
+  # Valid options are +:only+, +:except+, +:methods+ and
+  # +:include+. The following are all valid examples:
   #
   #   person.serializable_hash(only: 'name')
   #   person.serializable_hash(include: :address)
@@ -92,7 +92,7 @@ module ActiveModel
     #   person.serializable_hash(methods: :capitalized_name)
     #   # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
     #
-    # Example with <tt>:include</tt> option
+    # Example with +:include+ option
     #
     #   class User
     #     include ActiveModel::Serializers::JSON
@@ -175,7 +175,7 @@ module ActiveModel
         attribute_names.index_with { |n| read_attribute_for_serialization(n) }
       end
 
-      # Add associations specified via the <tt>:include</tt> option.
+      # Add associations specified via the +:include+ option.
       #
       # Expects a block that takes as arguments:
       #   +association+ - name of the association

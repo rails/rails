@@ -159,38 +159,38 @@ module ActiveModel
       #   end
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "is not a number").
-      # * <tt>:only_integer</tt> - Specifies whether the value has to be an
+      # * +:message+ - A custom error message (default is: "is not a number").
+      # * +:only_integer+ - Specifies whether the value has to be an
       #   integer (default is +false+).
-      # * <tt>:only_numeric</tt> - Specifies whether the value has to be an
+      # * +:only_numeric+ - Specifies whether the value has to be an
       #   instance of Numeric (default is +false+). The default behavior is to
       #   attempt parsing the value if it is a String.
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
+      # * +:allow_nil+ - Skip validation if attribute is +nil+ (default is
       #   +false+). Notice that for Integer and Float columns empty strings are
       #   converted to +nil+.
-      # * <tt>:greater_than</tt> - Specifies the value must be greater than the
+      # * +:greater_than+ - Specifies the value must be greater than the
       #   supplied value. The default error message for this option is _"must be
       #   greater than %{count}"_.
-      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be
+      # * +:greater_than_or_equal_to+ - Specifies the value must be
       #   greater than or equal the supplied value. The default error message
       #   for this option is _"must be greater than or equal to %{count}"_.
-      # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied
+      # * +:equal_to+ - Specifies the value must be equal to the supplied
       #   value. The default error message for this option is _"must be equal to
       #   %{count}"_.
-      # * <tt>:less_than</tt> - Specifies the value must be less than the
+      # * +:less_than+ - Specifies the value must be less than the
       #   supplied value. The default error message for this option is _"must be
       #   less than %{count}"_.
-      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less
+      # * +:less_than_or_equal_to+ - Specifies the value must be less
       #   than or equal the supplied value. The default error message for this
       #   option is _"must be less than or equal to %{count}"_.
-      # * <tt>:other_than</tt> - Specifies the value must be other than the
+      # * +:other_than+ - Specifies the value must be other than the
       #   supplied value. The default error message for this option is _"must be
       #   other than %{count}"_.
-      # * <tt>:odd</tt> - Specifies the value must be an odd number. The default
+      # * +:odd+ - Specifies the value must be an odd number. The default
       #   error message for this option is _"must be odd"_.
-      # * <tt>:even</tt> - Specifies the value must be an even number. The
+      # * +:even+ - Specifies the value must be an even number. The
       #   default error message for this option is _"must be even"_.
-      # * <tt>:in</tt> - Check that the value is within a range. The default
+      # * +:in+ - Check that the value is within a range. The default
       #   error message for this option is _"must be in %{count}"_.
       #
       # There is also a list of default options supported by every validator:
@@ -200,13 +200,13 @@ module ActiveModel
       # The following checks can also be supplied with a proc or a symbol which
       # corresponds to a method:
       #
-      # * <tt>:greater_than</tt>
-      # * <tt>:greater_than_or_equal_to</tt>
-      # * <tt>:equal_to</tt>
-      # * <tt>:less_than</tt>
-      # * <tt>:less_than_or_equal_to</tt>
-      # * <tt>:only_integer</tt>
-      # * <tt>:other_than</tt>
+      # * +:greater_than+
+      # * +:greater_than_or_equal_to+
+      # * +:equal_to+
+      # * +:less_than+
+      # * +:less_than_or_equal_to+
+      # * +:only_integer+
+      # * +:other_than+
       #
       # For example:
       #

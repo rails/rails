@@ -19,14 +19,14 @@ class Module
   # public methods as your own.
   #
   # ==== Options
-  # * <tt>:to</tt> - Specifies the target object name as a symbol or string
-  # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
-  # * <tt>:allow_nil</tt> - If set to true, prevents a +Module::DelegationError+
+  # * +:to+ - Specifies the target object name as a symbol or string
+  # * +:prefix+ - Prefixes the new method with the target name or a custom prefix
+  # * +:allow_nil+ - If set to true, prevents a +Module::DelegationError+
   #   from being raised
-  # * <tt>:private</tt> - If set to true, changes method visibility to private
+  # * +:private+ - If set to true, changes method visibility to private
   #
   # The macro receives one or more method names (specified as symbols or
-  # strings) and the name of the target object via the <tt>:to</tt> option
+  # strings) and the name of the target object via the +:to+ option
   # (also a symbol or string).
   #
   # Delegation is particularly useful with Active Record associations:
@@ -89,7 +89,7 @@ class Module
   #
   #   Foo.new.hello # => "world"
   #
-  # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
+  # Delegates can optionally be prefixed using the +:prefix+ option. If the value
   # is +true+, the delegate methods are prefixed with the name of the object being
   # delegated to.
   #
@@ -133,7 +133,7 @@ class Module
   #
   # If the target is +nil+ and does not respond to the delegated method a
   # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
-  # use the <tt>:allow_nil</tt> option.
+  # use the +:allow_nil+ option.
   #
   #   class User < ActiveRecord::Base
   #     has_one :profile
@@ -154,7 +154,7 @@ class Module
   #   User.new.age # nil
   #
   # Note that if the target is not +nil+ then the call is attempted regardless of the
-  # <tt>:allow_nil</tt> option, and thus an exception is still raised if said object
+  # +:allow_nil+ option, and thus an exception is still raised if said object
   # does not respond to the method:
   #
   #   class Foo
@@ -309,7 +309,7 @@ class Module
   #
   # The delegated method must be public on the target, otherwise it will
   # raise +DelegationError+. If you wish to instead return +nil+,
-  # use the <tt>:allow_nil</tt> option.
+  # use the +:allow_nil+ option.
   #
   # The +marshal_dump+ and +_dump+ methods are exempt from
   # delegation due to possible interference when calling

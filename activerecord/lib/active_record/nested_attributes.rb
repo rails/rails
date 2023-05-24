@@ -36,7 +36,7 @@ module ActiveRecord
     #     accepts_nested_attributes_for :author, :pages
     #   end
     #
-    # Note that the <tt>:autosave</tt> option is automatically enabled on every
+    # Note that the +:autosave+ option is automatically enabled on every
     # association that accepts_nested_attributes_for is used for.
     #
     # === One-to-one
@@ -62,7 +62,7 @@ module ActiveRecord
     #   member.update params[:member]
     #   member.avatar.icon # => 'sad'
     #
-    # If you want to update the current avatar without providing the id, you must add <tt>:update_only</tt> option.
+    # If you want to update the current avatar without providing the id, you must add +:update_only+ option.
     #
     #   class Member < ActiveRecord::Base
     #     has_one :avatar
@@ -77,7 +77,7 @@ module ActiveRecord
     # By default you will only be able to set and update attributes on the
     # associated model. If you want to destroy the associated model through the
     # attributes hash, you have to enable it first using the
-    # <tt>:allow_destroy</tt> option.
+    # +:allow_destroy+ option.
     #
     #   class Member < ActiveRecord::Base
     #     has_one :avatar
@@ -186,7 +186,7 @@ module ActiveRecord
     #
     # By default the associated records are protected from being destroyed. If
     # you want to destroy any of the associated records through the attributes
-    # hash, you have to enable it first using the <tt>:allow_destroy</tt>
+    # hash, you have to enable it first using the +:allow_destroy+
     # option. This will allow you to also use the +_destroy+ key to
     # destroy existing records:
     #
@@ -228,7 +228,7 @@ module ActiveRecord
     #
     # The keys of the hash which is the value for +:posts_attributes+ are
     # ignored in this case.
-    # However, it is not allowed to use <tt>'id'</tt> or <tt>:id</tt> for one of
+    # However, it is not allowed to use <tt>'id'</tt> or +:id+ for one of
     # such keys, otherwise the hash will be wrapped in an array and
     # interpreted as an attribute hash for a single post.
     #
@@ -317,7 +317,7 @@ module ActiveRecord
       #   and it should return either +true+ or +false+. When no +:reject_if+
       #   is specified, a record will be built for all attribute hashes that
       #   do not have a +_destroy+ value that evaluates to true.
-      #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
+      #   Passing +:all_blank+ instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank excluding
       #   any value for +_destroy+.
       # [:limit]
@@ -336,11 +336,11 @@ module ActiveRecord
       #   new set of attribute values or be replaced by a wholly new record
       #   containing those values. By default the +:update_only+ option is +false+
       #   and the nested attributes are used to update the existing record only
-      #   if they include the record's <tt>:id</tt> value. Otherwise a new
+      #   if they include the record's +:id+ value. Otherwise a new
       #   record will be instantiated and used to replace the existing one.
       #   However if the +:update_only+ option is +true+, the nested attributes
       #   are used to update the record's attributes always, regardless of
-      #   whether the <tt>:id</tt> is present. The option is ignored for collection
+      #   whether the +:id+ is present. The option is ignored for collection
       #   associations.
       #
       # Examples:
@@ -414,13 +414,13 @@ module ActiveRecord
       # If an associated record does not yet exist, one will be instantiated. If
       # an associated record already exists, the method's behavior depends on
       # the value of the update_only option. If update_only is +false+ and the
-      # given attributes include an <tt>:id</tt> that matches the existing record's
-      # id, then the existing record will be modified. If no <tt>:id</tt> is provided
+      # given attributes include an +:id+ that matches the existing record's
+      # id, then the existing record will be modified. If no +:id+ is provided
       # it will be replaced with a new record. If update_only is +true+ the existing
-      # record will be modified regardless of whether an <tt>:id</tt> is provided.
+      # record will be modified regardless of whether an +:id+ is provided.
       #
-      # If the given attributes include a matching <tt>:id</tt> attribute, or
-      # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
+      # If the given attributes include a matching +:id+ attribute, or
+      # update_only is true, and a +:_destroy+ key set to a truthy value,
       # then the existing record will be marked for destruction.
       def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
         options = nested_attributes_options[association_name]
@@ -456,10 +456,10 @@ module ActiveRecord
 
       # Assigns the given attributes to the collection association.
       #
-      # Hashes with an <tt>:id</tt> value matching an existing associated record
-      # will update that record. Hashes without an <tt>:id</tt> value will build
-      # a new record for the association. Hashes with a matching <tt>:id</tt>
-      # value and a <tt>:_destroy</tt> key set to a truthy value will mark the
+      # Hashes with an +:id+ value matching an existing associated record
+      # will update that record. Hashes without an +:id+ value will build
+      # a new record for the association. Hashes with a matching +:id+
+      # value and a +:_destroy+ key set to a truthy value will mark the
       # matched record for destruction.
       #
       # For example:
@@ -578,7 +578,7 @@ module ActiveRecord
       end
 
       # Determines if a new record should be rejected by checking
-      # has_destroy_flag? or if a <tt>:reject_if</tt> proc exists for this
+      # has_destroy_flag? or if a +:reject_if+ proc exists for this
       # association and evaluates to +true+.
       def reject_new_record?(association_name, attributes)
         will_be_destroyed?(association_name, attributes) || call_reject_if(association_name, attributes)
@@ -600,7 +600,7 @@ module ActiveRecord
         end
       end
 
-      # Only take into account the destroy flag if <tt>:allow_destroy</tt> is true
+      # Only take into account the destroy flag if +:allow_destroy+ is true
       def will_be_destroyed?(association_name, attributes)
         allow_destroy?(association_name) && has_destroy_flag?(attributes)
       end

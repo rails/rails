@@ -14,7 +14,7 @@ module ActionMailbox
     #
     # ==== Options
     #
-    # * <tt>:status</tt> - The +status+ to set for the created InboundEmail.
+    # * +:status+ - The +status+ to set for the created InboundEmail.
     #   For possible statuses, see its documentation.
     #
     # ==== Creating a simple email

@@ -33,12 +33,12 @@ module ActiveRecord
     #   end
     #
     # ==== Options
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
-    # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
-    # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    # * +:batch_size+ - Specifies the size of the batch. Defaults to 1000.
+    # * +:start+ - Specifies the primary key value to start from, inclusive of the value.
+    # * +:finish+ - Specifies the primary key value to end at, inclusive of the value.
+    # * +:error_on_ignore+ - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * +:order+ - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size: it can be less than, equal to, or greater than the limit.
@@ -98,12 +98,12 @@ module ActiveRecord
     # To be yielded each record one by one, use #find_each instead.
     #
     # ==== Options
-    # * <tt>:batch_size</tt> - Specifies the size of the batch. Defaults to 1000.
-    # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
-    # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    # * +:batch_size+ - Specifies the size of the batch. Defaults to 1000.
+    # * +:start+ - Specifies the primary key value to start from, inclusive of the value.
+    # * +:finish+ - Specifies the primary key value to end at, inclusive of the value.
+    # * +:error_on_ignore+ - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * +:order+ - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size: it can be less than, equal to, or greater than the limit.
@@ -162,14 +162,14 @@ module ActiveRecord
     #   Person.in_batches.each_record(&:party_all_night!)
     #
     # ==== Options
-    # * <tt>:of</tt> - Specifies the size of the batch. Defaults to 1000.
-    # * <tt>:load</tt> - Specifies if the relation should be loaded. Defaults to false.
-    # * <tt>:start</tt> - Specifies the primary key value to start from, inclusive of the value.
-    # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
-    # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
+    # * +:of+ - Specifies the size of the batch. Defaults to 1000.
+    # * +:load+ - Specifies if the relation should be loaded. Defaults to false.
+    # * +:start+ - Specifies the primary key value to start from, inclusive of the value.
+    # * +:finish+ - Specifies the primary key value to end at, inclusive of the value.
+    # * +:error_on_ignore+ - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
-    # * <tt>:use_ranges</tt> - Specifies whether to use range iteration (id >= x AND id <= y).
+    # * +:order+ - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * +:use_ranges+ - Specifies whether to use range iteration (id >= x AND id <= y).
     #   It can make iterating over the whole or almost whole tables several times faster.
     #   Only whole table iterations use this style of iteration by default. You can disable this behavior by passing +false+.
     #   If you iterate over the table and the only condition is, e.g., <tt>archived_at: nil</tt> (and only a tiny fraction

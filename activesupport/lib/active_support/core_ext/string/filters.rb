@@ -50,7 +50,7 @@ class String
   #   'Once upon a time in a world far far away'.truncate(27)
   #   # => "Once upon a time in a wo..."
   #
-  # Pass a string or regexp <tt>:separator</tt> to truncate +text+ at a natural break:
+  # Pass a string or regexp +:separator+ to truncate +text+ at a natural break:
   #
   #   'Once upon a time in a world far far away'.truncate(27, separator: ' ')
   #   # => "Once upon a time in a..."
@@ -58,8 +58,8 @@ class String
   #   'Once upon a time in a world far far away'.truncate(27, separator: /\s/)
   #   # => "Once upon a time in a..."
   #
-  # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "...").
-  # The total length will not exceed +truncate_to+ unless both +text+ and <tt>:omission</tt>
+  # The last characters will be replaced with the +:omission+ string (defaults to "...").
+  # The total length will not exceed +truncate_to+ unless both +text+ and +:omission+
   # are longer than +truncate_to+:
   #
   #   'And they found that many people were sleeping better.'.truncate(25, omission: '... (continued)')
@@ -94,10 +94,10 @@ class String
   #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".truncate_bytes(20)
   #   => "🔪🔪🔪🔪…"
   #
-  # The truncated text ends with the <tt>:omission</tt> string, defaulting
+  # The truncated text ends with the +:omission+ string, defaulting
   # to "…", for a total length not exceeding +truncate_to+.
   #
-  # Raises +ArgumentError+ when the bytesize of <tt>:omission</tt> exceeds +truncate_to+.
+  # Raises +ArgumentError+ when the bytesize of +:omission+ exceeds +truncate_to+.
   def truncate_bytes(truncate_to, omission: "…")
     omission ||= ""
 
@@ -130,12 +130,12 @@ class String
   #   'Once upon a time in a world far far away'.truncate_words(4)
   #   # => "Once upon a time..."
   #
-  # Pass a string or regexp <tt>:separator</tt> to specify a different separator of words:
+  # Pass a string or regexp +:separator+ to specify a different separator of words:
   #
   #   'Once<br>upon<br>a<br>time<br>in<br>a<br>world'.truncate_words(5, separator: '<br>')
   #   # => "Once<br>upon<br>a<br>time<br>in..."
   #
-  # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "..."):
+  # The last characters will be replaced with the +:omission+ string (defaults to "..."):
   #
   #   'And they found that many people were sleeping better.'.truncate_words(5, omission: '... (continued)')
   #   # => "And they found that many... (continued)"

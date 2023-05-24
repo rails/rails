@@ -27,9 +27,9 @@ module ActionView
       #
       # ==== Options
       #
-      # * <tt>:tags</tt> - An array of allowed tags.
-      # * <tt>:attributes</tt> - An array of allowed attributes.
-      # * <tt>:scrubber</tt> - A {Rails::Html scrubber}[https://github.com/rails/rails-html-sanitizer]
+      # * +:tags+ - An array of allowed tags.
+      # * +:attributes+ - An array of allowed attributes.
+      # * +:scrubber+ - A {Rails::Html scrubber}[https://github.com/rails/rails-html-sanitizer]
       #   or {Loofah::Scrubber}[https://github.com/flavorjones/loofah] object that
       #   defines custom sanitization rules. A custom scrubber takes precedence over
       #   custom tags and attributes.

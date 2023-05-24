@@ -32,20 +32,20 @@ module ActionView
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
       # ==== Options
-      # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
-      # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
+      # * +:multipart+ - If set to true, the enctype is set to "multipart/form-data".
+      # * +:method+ - The method to use when submitting the form, usually either "get" or "post".
       #   If "patch", "put", "delete", or another verb is used, a hidden input with name +_method+
       #   is added to simulate the verb over post.
-      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
+      # * +:authenticity_token+ - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
       #   (by passing +false+).  Remote forms may omit the embedded authenticity token
       #   by setting <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
       #   This is helpful when you're fragment-caching the form. Remote forms get the
       #   authenticity token from the +meta+ tag, so embedding is unnecessary unless you
       #   support browsers without JavaScript.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
+      # * +:remote+ - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not output.
+      # * +:enforce_utf8+ - If set to false, a hidden input with name utf8 is not output.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -143,17 +143,17 @@ module ActionView
         end
       end
 
-      # Creates a dropdown selection box, or if the <tt>:multiple</tt> option is set to true, a multiple
+      # Creates a dropdown selection box, or if the +:multiple+ option is set to true, a multiple
       # choice selection box.
       #
       # Helpers::FormOptions can be used to create common select boxes such as countries, time zones, or
       # associated records. +option_tags+ is a string containing the option tags for the select box.
       #
       # ==== Options
-      # * <tt>:multiple</tt> - If set to true, the selection will allow multiple choices.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:include_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
-      # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
+      # * +:multiple+ - If set to true, the selection will allow multiple choices.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
+      # * +:include_blank+ - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
+      # * +:prompt+ - Create a prompt option with blank value and the text asking user to select something.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -228,10 +228,10 @@ module ActionView
       # or a search query.
       #
       # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:size</tt> - The number of visible characters that will fit in the input.
-      # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
-      # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
+      # * +:size+ - The number of visible characters that will fit in the input.
+      # * +:maxlength+ - The maximum number of characters that the browser will allow the user to enter.
+      # * +:placeholder+ - The text contained in the field by default which is removed when the field receives focus.
       #   If set to true, use the translation found in the current I18n locale
       #   (through helpers.placeholder.<modelname>.<attribute>).
       # * Any other key creates standard HTML attributes for the tag.
@@ -322,9 +322,9 @@ module ActionView
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
+      # * +:multiple+ - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * +:accept+ - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
       #   file_field_tag 'attachment'
@@ -351,9 +351,9 @@ module ActionView
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
       #
       # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:size</tt> - The number of visible characters that will fit in the input.
-      # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
+      # * +:size+ - The number of visible characters that will fit in the input.
+      # * +:maxlength+ - The maximum number of characters that the browser will allow the user to enter.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -384,11 +384,11 @@ module ActionView
       # Creates a text input area; use a textarea for longer text inputs such as blog posts or descriptions.
       #
       # ==== Options
-      # * <tt>:size</tt> - A string specifying the dimensions (columns by rows) of the textarea (e.g., "25x10").
-      # * <tt>:rows</tt> - Specify the number of rows in the textarea
-      # * <tt>:cols</tt> - Specify the number of columns in the textarea
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:escape</tt> - By default, the contents of the text input are HTML escaped.
+      # * +:size+ - A string specifying the dimensions (columns by rows) of the textarea (e.g., "25x10").
+      # * +:rows+ - Specify the number of rows in the textarea
+      # * +:cols+ - Specify the number of columns in the textarea
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
+      # * +:escape+ - By default, the contents of the text input are HTML escaped.
       #   If you need unescaped contents, set this to false.
       # * Any other key creates standard HTML attributes for the tag.
       #
@@ -432,9 +432,9 @@ module ActionView
       # Creates a check box form input tag.
       #
       # ==== Options
-      # * <tt>:value</tt> - The value of the input. Defaults to <tt>"1"</tt>.
-      # * <tt>:checked</tt> - If set to true, the checkbox will be checked by default.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * +:value+ - The value of the input. Defaults to <tt>"1"</tt>.
+      # * +:checked+ - If set to true, the checkbox will be checked by default.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -472,8 +472,8 @@ module ActionView
       # select from a group of options.
       #
       # ==== Options
-      # * <tt>:checked</tt> - If set to true, the radio button will be selected by default.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * +:checked+ - If set to true, the radio button will be selected by default.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -502,8 +502,8 @@ module ActionView
       # Creates a submit button with the text +value+ as the caption.
       #
       # ==== Options
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
+      # * +:data+ - This option can be used to add custom data attributes.
+      # * +:disabled+ - If true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
@@ -530,7 +530,7 @@ module ActionView
       # * <tt>confirm: 'question?'</tt> - If present the unobtrusive JavaScript
       #   drivers will provide a prompt with the question specified. If the user accepts,
       #   the form is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
+      # * +:disable_with+ - Value of this parameter will be used as the value for a
       #   disabled version of the submit button when the form is submitted. This feature is
       #   provided by the unobtrusive JavaScript driver. To disable this feature for a single submit tag
       #   pass <tt>:data => { disable_with: false }</tt> Defaults to value attribute.
@@ -557,8 +557,8 @@ module ActionView
       # a button tag with type +submit+, if type is not given.
       #
       # ==== Options
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If true, the user will not be able to
+      # * +:data+ - This option can be used to add custom data attributes.
+      # * +:disabled+ - If true, the user will not be able to
       #   use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -591,7 +591,7 @@ module ActionView
       #   unobtrusive JavaScript drivers will provide a prompt with
       #   the question specified. If the user accepts, the form is
       #   processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
+      # * +:disable_with+ - Value of this parameter will be
       #   used as the value for a disabled version of the submit
       #   button when the form is submitted. This feature is provided
       #   by the unobtrusive JavaScript driver.
@@ -623,8 +623,8 @@ module ActionView
       # +source+ is passed to AssetTagHelper#path_to_image
       #
       # ==== Options
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * +:data+ - This option can be used to add custom data attributes.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Data attributes
@@ -780,10 +780,10 @@ module ActionView
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
-      # * <tt>:include_seconds</tt> - Include seconds and ms in the output timestamp format (true by default).
+      # * +:min+ - The minimum acceptable value.
+      # * +:max+ - The maximum acceptable value.
+      # * +:step+ - The acceptable value granularity.
+      # * +:include_seconds+ - Include seconds and ms in the output timestamp format (true by default).
       def time_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :time))
       end
@@ -794,10 +794,10 @@ module ActionView
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
-      # * <tt>:include_seconds</tt> - Include seconds in the output timestamp format (true by default).
+      # * +:min+ - The minimum acceptable value.
+      # * +:max+ - The maximum acceptable value.
+      # * +:step+ - The acceptable value granularity.
+      # * +:include_seconds+ - Include seconds in the output timestamp format (true by default).
       def datetime_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: "datetime-local"))
       end
@@ -810,9 +810,9 @@ module ActionView
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
+      # * +:min+ - The minimum acceptable value.
+      # * +:max+ - The maximum acceptable value.
+      # * +:step+ - The acceptable value granularity.
       def month_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :month))
       end
@@ -823,9 +823,9 @@ module ActionView
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
+      # * +:min+ - The minimum acceptable value.
+      # * +:max+ - The maximum acceptable value.
+      # * +:step+ - The acceptable value granularity.
       def week_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :week))
       end
@@ -882,12 +882,12 @@ module ActionView
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:in</tt> - A range specifying the <tt>:min</tt> and
-      #   <tt>:max</tt> values.
-      # * <tt>:within</tt> - Same as <tt>:in</tt>.
-      # * <tt>:step</tt> - The acceptable value granularity.
+      # * +:min+ - The minimum acceptable value.
+      # * +:max+ - The maximum acceptable value.
+      # * +:in+ - A range specifying the +:min+ and
+      #   +:max+ values.
+      # * +:within+ - Same as +:in+.
+      # * +:step+ - The acceptable value granularity.
       #
       # ==== Examples
       #

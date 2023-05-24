@@ -213,11 +213,11 @@ module ActionController
       #     # disables parameters wrapping for this controller altogether.
       #
       # ==== Options
-      # * <tt>:format</tt> - The list of formats in which the parameters wrapper
+      # * +:format+ - The list of formats in which the parameters wrapper
       #   will be enabled.
-      # * <tt>:include</tt> - The list of attribute names which parameters wrapper
+      # * +:include+ - The list of attribute names which parameters wrapper
       #   will wrap into a nested hash.
-      # * <tt>:exclude</tt> - The list of attribute names which parameters wrapper
+      # * +:exclude+ - The list of attribute names which parameters wrapper
       #   will exclude from a nested hash.
       def wrap_parameters(name_or_model_or_options, options = {})
         model = nil

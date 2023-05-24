@@ -38,7 +38,7 @@ module ActionController
 
   # Raised when a supplied parameter is not expected and
   # ActionController::Parameters.action_on_unpermitted_parameters
-  # is set to <tt>:raise</tt>.
+  # is set to +:raise+.
   #
   #   params = ActionController::Parameters.new(a: "123", b: "456")
   #   params.permit(:c)
@@ -99,12 +99,12 @@ module ActionController
   # * +permit_all_parameters+ - If it's +true+, all the parameters will be
   #   permitted by default. The default is +false+.
   # * +action_on_unpermitted_parameters+ - Controls behavior when parameters that are not explicitly
-  #   permitted are found. The default value is <tt>:log</tt> in test and development environments,
+  #   permitted are found. The default value is +:log+ in test and development environments,
   #   +false+ otherwise. The values can be:
   #   * +false+ to take no action.
-  #   * <tt>:log</tt> to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the
+  #   * +:log+ to emit an <tt>ActiveSupport::Notifications.instrument</tt> event on the
   #     <tt>unpermitted_parameters.action_controller</tt> topic and log at the DEBUG level.
-  #   * <tt>:raise</tt> to raise an ActionController::UnpermittedParameters exception.
+  #   * +:raise+ to raise an ActionController::UnpermittedParameters exception.
   #
   # Examples:
   #
@@ -131,7 +131,7 @@ module ActionController
   # runtime.
   #
   # You can fetch values of +ActionController::Parameters+ using either
-  # <tt>:key</tt> or <tt>"key"</tt>.
+  # +:key+ or <tt>"key"</tt>.
   #
   #   params = ActionController::Parameters.new(key: "value")
   #   params[:key]  # => "value"

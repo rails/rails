@@ -15,7 +15,7 @@ module ActionView
     #
     # The +collection_select+, +select+ and +time_zone_select+ methods take an +options+ parameter, a hash:
     #
-    # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
+    # * +:include_blank+ - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
     #     select(:post, :category, Post::CATEGORIES, { include_blank: true })
     #
@@ -42,7 +42,7 @@ module ActionView
     #       <option value="3">Rafael</option>
     #     </select>
     #
-    # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
+    # * +:prompt+ - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
     #
     #     select(:post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { prompt: "Select Person" })
     #
@@ -55,7 +55,7 @@ module ActionView
     #       <option value="3">Rafael</option>
     #     </select>
     #
-    # * <tt>:index</tt> - like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
+    # * +:index+ - like the other form helpers, +select+ can accept an +:index+ option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
     #   option to be in the +html_options+ parameter.
     #
     #     select("album[]", :genre, %w[ rap rock country ], {}, { index: nil })
@@ -68,7 +68,7 @@ module ActionView
     #       <option value="country">country</option>
     #     </select>
     #
-    # * <tt>:disabled</tt> - can be a single value or an array of values that will be disabled options in the final output.
+    # * +:disabled+ - can be a single value or an array of values that will be disabled options in the final output.
     #
     #     select(:post, :category, Post::CATEGORIES, { disabled: "restricted" })
     #
@@ -80,7 +80,7 @@ module ActionView
     #       <option disabled="disabled" value="restricted">restricted</option>
     #     </select>
     #
-    #   When used with the +collection_select+ helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
+    #   When used with the +collection_select+ helper, +:disabled+ can also be a Proc that identifies those options that should be disabled.
     #
     #     collection_select(:post, :category_id, Category.all, :id, :name, { disabled: -> (category) { category.archived? } })
     #
@@ -124,7 +124,7 @@ module ActionView
       #
       # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>selected: value</tt> to use a different selection
       # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
-      # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
+      # tags by specifying the +:disabled+ option. This can either be a single value or an array of values to be disabled.
       #
       # A block can be passed to +select+ to customize how the options tags will be rendered. This
       # is useful when the options tag has complex attributes.
@@ -162,10 +162,10 @@ module ActionView
 
       # Returns <tt><select></tt> and <tt><option></tt> tags for the collection of existing return values of
       # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
-      # be selected. If calling +method+ returns +nil+, no selection is made without including <tt>:prompt</tt>
-      # or <tt>:include_blank</tt> in the +options+ hash.
+      # be selected. If calling +method+ returns +nil+, no selection is made without including +:prompt+
+      # or +:include_blank+ in the +options+ hash.
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are methods to be called on each member
+      # The +:value_method+ and +:text_method+ parameters are methods to be called on each member
       # of +collection+. The return values are used as the +value+ attribute and contents of each
       # <tt><option></tt> tag, respectively. They can also be any object that responds to +call+, such
       # as a +proc+, that will be called for each member of the +collection+ to
@@ -202,8 +202,8 @@ module ActionView
 
       # Returns <tt><select></tt>, <tt><optgroup></tt> and <tt><option></tt> tags for the collection of existing return values of
       # +method+ for +object+'s class. The value returned from calling +method+ on the instance +object+ will
-      # be selected. If calling +method+ returns +nil+, no selection is made without including <tt>:prompt</tt>
-      # or <tt>:include_blank</tt> in the +options+ hash.
+      # be selected. If calling +method+ returns +nil+, no selection is made without including +:prompt+
+      # or +:include_blank+ in the +options+ hash.
       #
       # Parameters:
       # * +object+ - The instance of the class to be used for the select tag
@@ -262,8 +262,8 @@ module ActionView
       # Returns select and option tags for the given object and method, using
       # #time_zone_options_for_select to generate the list of option tags.
       #
-      # In addition to the <tt>:include_blank</tt> option documented above,
-      # this method also supports a <tt>:model</tt> option, which defaults
+      # In addition to the +:include_blank+ option documented above,
+      # this method also supports a +:model+ option, which defaults
       # to ActiveSupport::TimeZone. This may be used by users to specify a
       # different time zone model object. (See +time_zone_options_for_select+
       # for more information.)
@@ -275,7 +275,7 @@ module ActionView
       # for another country's time zones, or a Regexp to select the zones of
       # your choice.
       #
-      # Finally, this method supports a <tt>:default</tt> option, which selects
+      # Finally, this method supports a +:default+ option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
       #   time_zone_select(:user, :time_zone, nil, include_blank: true)
@@ -333,8 +333,8 @@ module ActionView
       #   # => <option value="$" class="bold">Dollar</option>
       #   # => <option value="DKK" onclick="alert('HI');">Kroner</option>
       #
-      # If you wish to specify disabled option tags, set +selected+ to be a hash, with <tt>:disabled</tt> being either a value
-      # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
+      # If you wish to specify disabled option tags, set +selected+ to be a hash, with +:disabled+ being either a value
+      # or array of values to be disabled. In this case, you can use +:selected+ to specify selected option tags.
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], disabled: "Super Platinum")
       #   # => <option value="Free">Free</option>
@@ -390,7 +390,7 @@ module ActionView
       # If +selected+ is specified as a Proc, those members of the collection that return true for the anonymous
       # function are the selected values.
       #
-      # +selected+ can also be a hash, specifying both <tt>:selected</tt> and/or <tt>:disabled</tt> values as required.
+      # +selected+ can also be a hash, specifying both +:selected+ and/or +:disabled+ values as required.
       #
       # Be sure to specify the same class as the +value_method+ when specifying selected or disabled options.
       # Failure to do this will produce undesired results. Example:
@@ -508,9 +508,9 @@ module ActionView
       #   as you might have the same option in multiple groups. Each will then get <tt>selected="selected"</tt>.
       #
       # Options:
-      # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this
+      # * +:prompt+ - set to true or a prompt string. When the select element doesn't have a value yet, this
       #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
-      # * <tt>:divider</tt> - the divider for the options groups.
+      # * +:divider+ - the divider for the options groups.
       #
       #     grouped_options = [
       #       [['United States','US'], 'Canada'],
@@ -600,11 +600,11 @@ module ActionView
       # Returns a string of option tags for the days of the week.
       #
       # Options:
-      # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the indexes from
+      # * +:index_as_value+ - Defaults to false, set to true to use the indexes from
       #   <tt>I18n.translate("date.day_names")</tt> as the values. By default, Sunday is always 0.
-      # * <tt>:day_format</tt> - The I18n key of the array to use for the weekday options.
+      # * +:day_format+ - The I18n key of the array to use for the weekday options.
       #   Defaults to +:day_names+, set to +:abbr_day_names+ for abbreviations.
-      # * <tt>:beginning_of_week</tt> - Defaults to Date.beginning_of_week.
+      # * +:beginning_of_week+ - Defaults to Date.beginning_of_week.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
@@ -621,7 +621,7 @@ module ActionView
       # +method+ on the instance +object+ will be selected. If calling +method+
       # returns +nil+, no selection is made.
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
+      # The +:value_method+ and +:text_method+ parameters are
       # methods to be called on each member of +collection+. The return values
       # are used as the +value+ attribute and contents of each radio button tag,
       # respectively. They can also be any object that responds to +call+, such
@@ -704,7 +704,7 @@ module ActionView
       # on the instance +object+ will be selected. If calling +method+ returns
       # +nil+, no selection is made.
       #
-      # The <tt>:value_method</tt> and <tt>:text_method</tt> parameters are
+      # The +:value_method+ and +:text_method+ parameters are
       # methods to be called on each member of +collection+. The return values
       # are used as the +value+ attribute and contents of each check box tag,
       # respectively. They can also be any object that responds to +call+, such

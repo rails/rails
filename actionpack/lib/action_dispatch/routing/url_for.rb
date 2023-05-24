@@ -40,7 +40,7 @@ module ActionDispatch
     #
     # Notice the <tt>only_path: true</tt> part. This is because UrlFor has no
     # information about the website hostname that your Rails app is serving. So if you
-    # want to include the hostname as well, then you must also pass the <tt>:host</tt>
+    # want to include the hostname as well, then you must also pass the +:host+
     # argument:
     #
     #   include UrlFor
@@ -52,7 +52,7 @@ module ActionDispatch
     #
     # By default, all controllers and views have access to a special version of +url_for+,
     # that already knows what the current hostname is. So if you use +url_for+ in your
-    # controllers or your views, then you don't need to explicitly pass the <tt>:host</tt>
+    # controllers or your views, then you don't need to explicitly pass the +:host+
     # argument.
     #
     # For convenience, mailers also include ActionDispatch::Routing::UrlFor. So
@@ -120,26 +120,26 @@ module ActionDispatch
       # Generate a URL based on the options provided, +default_url_options+, and the
       # routes defined in <tt>config/routes.rb</tt>. The following options are supported:
       #
-      # * <tt>:only_path</tt> - If true, the relative URL is returned. Defaults to +false+.
-      # * <tt>:protocol</tt> - The protocol to connect to. Defaults to <tt>"http"</tt>.
-      # * <tt>:host</tt> - Specifies the host the link should be targeted at.
-      #   If <tt>:only_path</tt> is false, this option must be
+      # * +:only_path+ - If true, the relative URL is returned. Defaults to +false+.
+      # * +:protocol+ - The protocol to connect to. Defaults to <tt>"http"</tt>.
+      # * +:host+ - Specifies the host the link should be targeted at.
+      #   If +:only_path+ is false, this option must be
       #   provided either explicitly, or via +default_url_options+.
-      # * <tt>:subdomain</tt> - Specifies the subdomain of the link, using the +tld_length+
+      # * +:subdomain+ - Specifies the subdomain of the link, using the +tld_length+
       #   to split the subdomain from the host.
       #   If false, removes all subdomains from the host part of the link.
-      # * <tt>:domain</tt> - Specifies the domain of the link, using the +tld_length+
+      # * +:domain+ - Specifies the domain of the link, using the +tld_length+
       #   to split the domain from the host.
-      # * <tt>:tld_length</tt> - Number of labels the TLD id composed of, only used if
-      #   <tt>:subdomain</tt> or <tt>:domain</tt> are supplied. Defaults to
+      # * +:tld_length+ - Number of labels the TLD id composed of, only used if
+      #   +:subdomain+ or +:domain+ are supplied. Defaults to
       #   <tt>ActionDispatch::Http::URL.tld_length</tt>, which in turn defaults to 1.
-      # * <tt>:port</tt> - Optionally specify the port to connect to.
-      # * <tt>:anchor</tt> - An anchor name to be appended to the path.
-      # * <tt>:params</tt> - The query parameters to be appended to the path.
-      # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in <tt>"/archive/2009/"</tt>.
-      # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
+      # * +:port+ - Optionally specify the port to connect to.
+      # * +:anchor+ - An anchor name to be appended to the path.
+      # * +:params+ - The query parameters to be appended to the path.
+      # * +:trailing_slash+ - If true, adds a trailing slash, as in <tt>"/archive/2009/"</tt>.
+      # * +:script_name+ - Specifies application path relative to domain root. If provided, prepends application path.
       #
-      # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
+      # Any other key (+:controller+, +:action+, etc.) given to
       # +url_for+ is forwarded to the Routes module.
       #
       #    url_for controller: 'tasks', action: 'testing', host: 'somehost.org', port: '8080'

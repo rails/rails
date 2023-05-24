@@ -73,7 +73,7 @@ module ActiveRecord
   #
   # Note that when an array is used, the implicit mapping from the values to database
   # integers is derived from the order the values appear in the array. In the example,
-  # <tt>:active</tt> is mapped to +0+ as it's the first element, and <tt>:archived</tt>
+  # +:active+ is mapped to +0+ as it's the first element, and +:archived+
   # is mapped to +1+. In general, the +i+-th element is mapped to <tt>i-1</tt> in the
   # database.
   #

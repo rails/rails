@@ -65,7 +65,7 @@ module Rails
   #     end
   #   end
   #
-  # Finally, you can also pass <tt>:before</tt> and <tt>:after</tt> as options to
+  # Finally, you can also pass +:before+ and +:after+ as options to
   # +initializer+, in case you want to couple it with a specific step in the
   # initialization process.
   #

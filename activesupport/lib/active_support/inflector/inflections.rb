@@ -12,7 +12,7 @@ module ActiveSupport
     # A singleton instance of this class is yielded by Inflector.inflections,
     # which can then be used to specify additional inflection rules. If passed
     # an optional locale, rules for other languages can be specified. The
-    # default locale is <tt>:en</tt>. Only rules for English are provided.
+    # default locale is +:en+. Only rules for English are provided.
     #
     #   ActiveSupport::Inflector.inflections(:en) do |inflect|
     #     inflect.plural /^(ox)$/i, '\1\2en'
@@ -222,9 +222,9 @@ module ActiveSupport
       end
 
       # Clears the loaded inflections within a given scope (default is
-      # <tt>:all</tt>). Give the scope as a symbol of the inflection type, the
-      # options are: <tt>:plurals</tt>, <tt>:singulars</tt>, <tt>:uncountables</tt>,
-      # <tt>:humans</tt>, <tt>:acronyms</tt>.
+      # +:all+). Give the scope as a symbol of the inflection type, the
+      # options are: +:plurals+, +:singulars+, +:uncountables+,
+      # +:humans+, +:acronyms+.
       #
       #   clear :all
       #   clear :plurals
@@ -256,7 +256,7 @@ module ActiveSupport
 
     # Yields a singleton instance of Inflector::Inflections so you can specify
     # additional inflector rules. If passed an optional locale, rules for other
-    # languages can be specified. If not specified, defaults to <tt>:en</tt>.
+    # languages can be specified. If not specified, defaults to +:en+.
     # Only rules for English are provided.
     #
     #   ActiveSupport::Inflector.inflections(:en) do |inflect|

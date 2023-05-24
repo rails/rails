@@ -135,7 +135,7 @@ module ActiveModel
     attr_reader :attributes
 
     # Returns a new validator instance. All options will be available via the
-    # +options+ reader, however the <tt>:attributes</tt> option will be removed
+    # +options+ reader, however the +:attributes+ option will be removed
     # and instead be made available through the +attributes+ reader.
     def initialize(options)
       @attributes = Array(options.delete(:attributes))

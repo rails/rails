@@ -42,23 +42,23 @@ module ActiveModel
       #   end
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "failed comparison").
-      # * <tt>:greater_than</tt> - Specifies the value must be greater than the
+      # * +:message+ - A custom error message (default is: "failed comparison").
+      # * +:greater_than+ - Specifies the value must be greater than the
       #   supplied value. The default error message for this option is _"must be
       #   greater than %{count}"_.
-      # * <tt>:greater_than_or_equal_to</tt> - Specifies the value must be
+      # * +:greater_than_or_equal_to+ - Specifies the value must be
       #   greater than or equal to the supplied value. The default error message
       #   for this option is _"must be greater than or equal to %{count}"_.
-      # * <tt>:equal_to</tt> - Specifies the value must be equal to the supplied
+      # * +:equal_to+ - Specifies the value must be equal to the supplied
       #   value. The default error message for this option is _"must be equal to
       #   %{count}"_.
-      # * <tt>:less_than</tt> - Specifies the value must be less than the
+      # * +:less_than+ - Specifies the value must be less than the
       #   supplied value. The default error message for this option is _"must be
       #   less than %{count}"_.
-      # * <tt>:less_than_or_equal_to</tt> - Specifies the value must be less
+      # * +:less_than_or_equal_to+ - Specifies the value must be less
       #   than or equal to the supplied value. The default error message for
       #   this option is _"must be less than or equal to %{count}"_.
-      # * <tt>:other_than</tt> - Specifies the value must not be equal to the
+      # * +:other_than+ - Specifies the value must not be equal to the
       #   supplied value. The default error message for this option is _"must be
       #   other than %{count}"_.
       #
@@ -69,12 +69,12 @@ module ActiveModel
       # The validator requires at least one of the following checks to be supplied.
       # Each will accept a proc, value, or a symbol which corresponds to a method:
       #
-      # * <tt>:greater_than</tt>
-      # * <tt>:greater_than_or_equal_to</tt>
-      # * <tt>:equal_to</tt>
-      # * <tt>:less_than</tt>
-      # * <tt>:less_than_or_equal_to</tt>
-      # * <tt>:other_than</tt>
+      # * +:greater_than+
+      # * +:greater_than_or_equal_to+
+      # * +:equal_to+
+      # * +:less_than+
+      # * +:less_than_or_equal_to+
+      # * +:other_than+
       #
       # For example:
       #

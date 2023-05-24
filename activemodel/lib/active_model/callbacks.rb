@@ -22,7 +22,7 @@ module ActiveModel
   #   define_model_callbacks :create, :update
   #
   # This will provide all three standard callbacks (before, around and after)
-  # for both the <tt>:create</tt> and <tt>:update</tt> methods. To implement,
+  # for both the +:create+ and +:update+ methods. To implement,
   # you need to wrap the methods you want callbacks on in a block so that the
   # callbacks get a chance to fire:
   #
@@ -71,7 +71,7 @@ module ActiveModel
 
     # +define_model_callbacks+ accepts the same options +define_callbacks+ does,
     # in case you want to overwrite a default. Besides that, it also accepts an
-    # <tt>:only</tt> option, where you can choose if you want all types (before,
+    # +:only+ option, where you can choose if you want all types (before,
     # around or after) or just some.
     #
     #   define_model_callbacks :initialize, only: :after

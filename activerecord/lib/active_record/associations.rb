@@ -484,7 +484,7 @@ module ActiveRecord
       #
       # There are two ways to build a many-to-many relationship.
       #
-      # The first way uses a #has_many association with the <tt>:through</tt> option and a join model, so
+      # The first way uses a #has_many association with the +:through+ option and a join model, so
       # there are two stages of associations.
       #
       #   class Assignment < ActiveRecord::Base
@@ -512,7 +512,7 @@ module ActiveRecord
       #
       # Choosing which way to build a many-to-many relationship is not always simple.
       # If you need to work with the relationship model as its own entity,
-      # use #has_many <tt>:through</tt>. Use #has_and_belongs_to_many when working with legacy schemas or when
+      # use #has_many +:through+. Use #has_and_belongs_to_many when working with legacy schemas or when
       # you never work directly with the relationship itself.
       #
       # == Is it a #belongs_to or #has_one association?
@@ -551,10 +551,10 @@ module ActiveRecord
       # there is some special behavior you should be aware of, mostly involving the saving of
       # associated objects.
       #
-      # You can set the <tt>:autosave</tt> option on a #has_one, #belongs_to,
+      # You can set the +:autosave+ option on a #has_one, #belongs_to,
       # #has_many, or #has_and_belongs_to_many association. Setting it
       # to +true+ will _always_ save the members, whereas setting it to +false+ will
-      # _never_ save the members. More details about <tt>:autosave</tt> option is available at
+      # _never_ save the members. More details about +:autosave+ option is available at
       # AutosaveAssociation.
       #
       # === One-to-one associations
@@ -717,7 +717,7 @@ module ActiveRecord
       #
       # == Association Join Models
       #
-      # Has Many associations can be configured with the <tt>:through</tt> option to use an
+      # Has Many associations can be configured with the +:through+ option to use an
       # explicit join model to retrieve the data. This operates similarly to a
       # #has_and_belongs_to_many association. The advantage is that you're able to add validations,
       # callbacks, and extra attributes on the join model. Consider the following schema:
@@ -786,27 +786,27 @@ module ActiveRecord
       # == Setting Inverses
       #
       # If you are using a #belongs_to on the join model, it is a good idea to set the
-      # <tt>:inverse_of</tt> option on the #belongs_to, which will mean that the following example
-      # works correctly (where +tags+ is a #has_many <tt>:through</tt> association):
+      # +:inverse_of+ option on the #belongs_to, which will mean that the following example
+      # works correctly (where +tags+ is a #has_many +:through+ association):
       #
       #   @post = Post.first
       #   @tag = @post.tags.build name: "ruby"
       #   @tag.save
       #
       # The last line ought to save the through record (a +Tagging+). This will only work if the
-      # <tt>:inverse_of</tt> is set:
+      # +:inverse_of+ is set:
       #
       #   class Tagging < ActiveRecord::Base
       #     belongs_to :post
       #     belongs_to :tag, inverse_of: :taggings
       #   end
       #
-      # If you do not set the <tt>:inverse_of</tt> record, the association will
+      # If you do not set the +:inverse_of+ record, the association will
       # do its best to match itself up with the correct inverse. Automatic
       # inverse detection only works on #has_many, #has_one, and
       # #belongs_to associations.
       #
-      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations
+      # +:foreign_key+ and +:through+ options on the associations
       # will also prevent the association's inverse from being found automatically,
       # as will a custom scopes in some cases. See further details in the
       # {Active Record Associations guide}[https://guides.rubyonrails.org/association_basics.html#bi-directional-associations].
@@ -816,7 +816,7 @@ module ActiveRecord
       # especially the ones with non-standard names.
       #
       # You can turn off the automatic detection of inverse associations by setting
-      # the <tt>:inverse_of</tt> option to +false+ like so:
+      # the +:inverse_of+ option to +false+ like so:
       #
       #   class Tagging < ActiveRecord::Base
       #     belongs_to :tag, inverse_of: false
@@ -824,8 +824,8 @@ module ActiveRecord
       #
       # == Nested \Associations
       #
-      # You can actually specify *any* association with the <tt>:through</tt> option, including an
-      # association which has a <tt>:through</tt> option itself. For example:
+      # You can actually specify *any* association with the +:through+ option, including an
+      # association which has a +:through+ option itself. For example:
       #
       #   class Author < ActiveRecord::Base
       #     has_many :posts
@@ -952,7 +952,7 @@ module ActiveRecord
       #
       #   Post.includes(:author).each do |post|
       #
-      # This references the name of the #belongs_to association that also used the <tt>:author</tt>
+      # This references the name of the #belongs_to association that also used the +:author+
       # symbol. After loading the posts, +find+ will collect the +author_id+ from each one and load
       # all of the referenced authors with one query. Doing so will cut down the number of queries
       # from 201 to 102.
@@ -1011,7 +1011,7 @@ module ActiveRecord
       # This will load posts and eager load the +approved_comments+ association, which contains
       # only those comments that have been approved.
       #
-      # If you eager load an association with a specified <tt>:limit</tt> option, it will be ignored,
+      # If you eager load an association with a specified +:limit+ option, it will be ignored,
       # returning all the associated objects:
       #
       #   class Picture < ActiveRecord::Base
@@ -1173,7 +1173,7 @@ module ActiveRecord
       #
       # === Dependent associations
       #
-      # #has_many, #has_one, and #belongs_to associations support the <tt>:dependent</tt> option.
+      # #has_many, #has_one, and #belongs_to associations support the +:dependent+ option.
       # This allows you to specify that associated records should be deleted when the owner is
       # deleted.
       #
@@ -1184,17 +1184,17 @@ module ActiveRecord
       #     end
       #     Author.find(1).destroy # => Will destroy all of the author's posts, too
       #
-      # The <tt>:dependent</tt> option can have different values which specify how the deletion
+      # The +:dependent+ option can have different values which specify how the deletion
       # is done. For more information, see the documentation for this option on the different
       # specific association types. When no option is given, the behavior is to do nothing
       # with the associated records when destroying a record.
       #
-      # Note that <tt>:dependent</tt> is implemented using Rails' callback
+      # Note that +:dependent+ is implemented using Rails' callback
       # system, which works by processing callbacks in order. Therefore, other
-      # callbacks declared either before or after the <tt>:dependent</tt> option
+      # callbacks declared either before or after the +:dependent+ option
       # can affect what it does.
       #
-      # Note that <tt>:dependent</tt> option is ignored for #has_one <tt>:through</tt> associations.
+      # Note that +:dependent+ option is ignored for #has_one +:through+ associations.
       #
       # === Delete or destroy?
       #
@@ -1206,10 +1206,10 @@ module ActiveRecord
       #
       # For #has_many, +destroy+ and +destroy_all+ will always call the +destroy+ method of the
       # record(s) being removed so that callbacks are run. However +delete+ and +delete_all+ will either
-      # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
-      # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
+      # do the deletion according to the strategy specified by the +:dependent+ option, or
+      # if no +:dependent+ option is given, then it will follow the default strategy.
       # The default strategy is to do nothing (leave the foreign keys with the parent ids set), except for
-      # #has_many <tt>:through</tt>, where the default strategy is +delete_all+ (delete
+      # #has_many +:through+, where the default strategy is +delete_all+ (delete
       # the join records, without running their callbacks).
       #
       # There is also a +clear+ method which is the same as +delete_all+, except that
@@ -1217,14 +1217,14 @@ module ActiveRecord
       #
       # === What gets deleted?
       #
-      # There is a potential pitfall here: #has_and_belongs_to_many and #has_many <tt>:through</tt>
+      # There is a potential pitfall here: #has_and_belongs_to_many and #has_many +:through+
       # associations have records in join tables, as well as the associated records. So when we
       # call one of these deletion methods, what exactly should be deleted?
       #
       # The answer is that it is assumed that deletion on an association is about removing the
       # <i>link</i> between the owner and the associated object(s), rather than necessarily the
       # associated objects themselves. So with #has_and_belongs_to_many and #has_many
-      # <tt>:through</tt>, the join records will be deleted, but the associated records won't.
+      # +:through+, the join records will be deleted, but the associated records won't.
       #
       # This makes sense if you think about it: if you were to call <tt>post.tags.delete(Tag.find_by(name: 'food'))</tt>
       # you would want the 'food' tag to be unlinked from the post, rather than for the tag itself
@@ -1235,19 +1235,19 @@ module ActiveRecord
       # tasks, we would probably not want the project to be deleted. In this scenario, the delete method
       # won't actually work: it can only be used if the association on the join model is a
       # #belongs_to. In other situations you are expected to perform operations directly on
-      # either the associated records or the <tt>:through</tt> association.
+      # either the associated records or the +:through+ association.
       #
       # With a regular #has_many there is no distinction between the "associated records"
       # and the "link", so there is only one choice for what gets deleted.
       #
-      # With #has_and_belongs_to_many and #has_many <tt>:through</tt>, if you want to delete the
+      # With #has_and_belongs_to_many and #has_many +:through+, if you want to delete the
       # associated records themselves, you can always do something along the lines of
       # <tt>person.tasks.each(&:destroy)</tt>.
       #
       # == Type safety with ActiveRecord::AssociationTypeMismatch
       #
       # If you attempt to assign an object to an association that doesn't match the inferred
-      # or specified <tt>:class_name</tt>, you'll get an ActiveRecord::AssociationTypeMismatch.
+      # or specified +:class_name+, you'll get an ActiveRecord::AssociationTypeMismatch.
       #
       # == Options
       #
@@ -1273,17 +1273,17 @@ module ActiveRecord
         #   Objects will be in addition destroyed if they're associated with <tt>dependent: :destroy</tt>,
         #   and deleted if they're associated with <tt>dependent: :delete_all</tt>.
         #
-        #   If the <tt>:through</tt> option is used, then the join records are deleted (rather than
+        #   If the +:through+ option is used, then the join records are deleted (rather than
         #   nullified) by default, but you can specify <tt>dependent: :destroy</tt> or
         #   <tt>dependent: :nullify</tt> to override this.
         # [collection.destroy(object, ...)]
         #   Removes one or more objects from the collection by running +destroy+ on
         #   each record, regardless of any dependent option, ensuring callbacks are run.
         #
-        #   If the <tt>:through</tt> option is used, then the join records are destroyed
+        #   If the +:through+ option is used, then the join records are destroyed
         #   instead, not the objects themselves.
         # [collection=objects]
-        #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
+        #   Replaces the collections content by deleting and adding objects as appropriate. If the +:through+
         #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
         #   direct by default. You can specify <tt>dependent: :destroy</tt> or
         #   <tt>dependent: :nullify</tt> to override this.
@@ -1296,7 +1296,7 @@ module ActiveRecord
         #   Removes every object from the collection. This destroys the associated objects if they
         #   are associated with <tt>dependent: :destroy</tt>, deletes them directly from the
         #   database if <tt>dependent: :delete_all</tt>, otherwise sets their foreign keys to +NULL+.
-        #   If the <tt>:through</tt> option is true no destroy callbacks are invoked on the join models.
+        #   If the +:through+ option is true no destroy callbacks are invoked on the join models.
         #   Join models are directly deleted.
         # [collection.empty?]
         #   Returns +true+ if there are no associated objects.
@@ -1387,37 +1387,37 @@ module ActiveRecord
         # [:foreign_key]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_many
-        #   association will use "person_id" as the default <tt>:foreign_key</tt>.
+        #   association will use "person_id" as the default +:foreign_key+.
         #
-        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
-        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
+        #   Setting the +:foreign_key+ option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the +:inverse_of+ option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
         #   specified on "as" option with a "_type" suffix. So a class that defines a
         #   <tt>has_many :tags, as: :taggable</tt> association will use "taggable_type" as the
-        #   default <tt>:foreign_type</tt>.
+        #   default +:foreign_type+.
         # [:primary_key]
         #   Specify the name of the column to use as the primary key for the association. By default this is +id+.
         # [:dependent]
         #   Controls what happens to the associated objects when
         #   their owner is destroyed. Note that these are implemented as
         #   callbacks, and Rails executes callbacks in order. Therefore, other
-        #   similar callbacks may affect the <tt>:dependent</tt> behavior, and the
-        #   <tt>:dependent</tt> behavior may affect other callbacks.
+        #   similar callbacks may affect the +:dependent+ behavior, and the
+        #   +:dependent+ behavior may affect other callbacks.
         #
         #   * +nil+ do nothing (default).
-        #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
-        #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job. <b>WARNING:</b> Do not use
+        #   * +:destroy+ causes all the associated objects to also be destroyed.
+        #   * +:destroy_async+ destroys all the associated objects in a background job. <b>WARNING:</b> Do not use
         #     this option if the association is backed by foreign key constraints in your database. The foreign key
         #     constraint actions will occur inside the same transaction that deletes its owner.
-        #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
-        #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
+        #   * +:delete_all+ causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
+        #   * +:nullify+ causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
         #     on polymorphic associations. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there are any associated records.
-        #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
+        #   * +:restrict_with_exception+ causes an ActiveRecord::DeleteRestrictionError exception to be raised if there are any associated records.
+        #   * +:restrict_with_error+ causes an error to be added to the owner if there are any associated objects.
         #
-        #   If using with the <tt>:through</tt> option, the association on the join model must be
+        #   If using with the +:through+ option, the association on the join model must be
         #   a #belongs_to, and the records which get deleted are the join records, rather than
         #   the associated records.
         #
@@ -1428,22 +1428,22 @@ module ActiveRecord
         #   database would still contain a foreign key pointing to the now deleted post.
         # [:counter_cache]
         #   This option can be used to configure a custom named <tt>:counter_cache.</tt> You only need this option,
-        #   when you customized the name of your <tt>:counter_cache</tt> on the #belongs_to association.
+        #   when you customized the name of your +:counter_cache+ on the #belongs_to association.
         # [:as]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [:through]
         #   Specifies an association through which to perform the query. This can be any other type
-        #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
-        #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
+        #   of association, including other +:through+ associations. Options for +:class_name+,
+        #   +:primary_key+ and +:foreign_key+ are ignored, as the association uses the
         #   source reflection.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
-        #   and the records on the <tt>:through</tt> model will be automatically created and removed
+        #   and the records on the +:through+ model will be automatically created and removed
         #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
-        #   <tt>:through</tt> association directly.
+        #   +:through+ association directly.
         #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
+        #   a good idea to set the +:inverse_of+ option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
         #   and 'Setting Inverses' sections above.)
@@ -1453,12 +1453,12 @@ module ActiveRecord
         #   due to database limitations. This option is only applicable on <tt>has_many :through</tt> associations as
         #   +has_many+ alone do not perform a join.
         # [:source]
-        #   Specifies the source association name used by #has_many <tt>:through</tt> queries.
+        #   Specifies the source association name used by #has_many +:through+ queries.
         #   Only use it if the name cannot be inferred from the association.
-        #   <tt>has_many :subscribers, through: :subscriptions</tt> will look for either <tt>:subscribers</tt> or
-        #   <tt>:subscriber</tt> on Subscription, unless a <tt>:source</tt> is given.
+        #   <tt>has_many :subscribers, through: :subscriptions</tt> will look for either +:subscribers+ or
+        #   +:subscriber+ on Subscription, unless a +:source+ is given.
         # [:source_type]
-        #   Specifies type of the source association used by #has_many <tt>:through</tt> queries where the source
+        #   Specifies type of the source association used by #has_many +:through+ queries where the source
         #   association is a polymorphic #belongs_to.
         # [:validate]
         #   When set to +true+, validates new objects added to association when saving the parent object. +true+ by default.
@@ -1471,7 +1471,7 @@ module ActiveRecord
         #   may need to be explicitly saved in any user-defined +before_save+ callbacks.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
-        #   <tt>:autosave</tt> to +true+.
+        #   +:autosave+ to +true+.
         # [:inverse_of]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_many association.
@@ -1579,47 +1579,47 @@ module ActiveRecord
         #   its owner is destroyed:
         #
         #   * +nil+ do nothing (default).
-        #   * <tt>:destroy</tt> causes the associated object to also be destroyed
-        #   * <tt>:destroy_async</tt> causes the associated object to be destroyed in a background job. <b>WARNING:</b> Do not use
+        #   * +:destroy+ causes the associated object to also be destroyed
+        #   * +:destroy_async+ causes the associated object to be destroyed in a background job. <b>WARNING:</b> Do not use
         #     this option if the association is backed by foreign key constraints in your database. The foreign key
         #     constraint actions will occur inside the same transaction that deletes its owner.
-        #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
-        #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
+        #   * +:delete+ causes the associated object to be deleted directly from the database (so callbacks will not execute)
+        #   * +:nullify+ causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
         #     on polymorphic associations. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an ActiveRecord::DeleteRestrictionError exception to be raised if there is an associated record
-        #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
+        #   * +:restrict_with_exception+ causes an ActiveRecord::DeleteRestrictionError exception to be raised if there is an associated record
+        #   * +:restrict_with_error+ causes an error to be added to the owner if there is an associated object
         #
-        #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
+        #   Note that +:dependent+ option is ignored when using +:through+ option.
         # [:foreign_key]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_one association
-        #   will use "person_id" as the default <tt>:foreign_key</tt>.
+        #   will use "person_id" as the default +:foreign_key+.
         #
-        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
-        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
+        #   Setting the +:foreign_key+ option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the +:inverse_of+ option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
         #   specified on "as" option with a "_type" suffix. So a class that defines a
         #   <tt>has_one :tag, as: :taggable</tt> association will use "taggable_type" as the
-        #   default <tt>:foreign_type</tt>.
+        #   default +:foreign_type+.
         # [:primary_key]
         #   Specify the method that returns the primary key used for the association. By default this is +id+.
         # [:as]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [:through]
-        #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
-        #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
-        #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
+        #   Specifies a Join Model through which to perform the query. Options for +:class_name+,
+        #   +:primary_key+, and +:foreign_key+ are ignored, as the association uses the
+        #   source reflection. You can only use a +:through+ query through a #has_one
         #   or #belongs_to association on the join model.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
-        #   and the records on the <tt>:through</tt> model will be automatically created and removed
+        #   and the records on the +:through+ model will be automatically created and removed
         #   as appropriate. Otherwise, the collection is read-only, so you should manipulate the
-        #   <tt>:through</tt> association directly.
+        #   +:through+ association directly.
         #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
+        #   a good idea to set the +:inverse_of+ option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
         #   and 'Setting Inverses' sections above.)
@@ -1629,12 +1629,12 @@ module ActiveRecord
         #   due to database limitations. This option is only applicable on <tt>has_one :through</tt> associations as
         #   +has_one+ alone does not perform a join.
         # [:source]
-        #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
+        #   Specifies the source association name used by #has_one +:through+ queries.
         #   Only use it if the name cannot be inferred from the association.
         #   <tt>has_one :favorite, through: :favorites</tt> will look for a
-        #   <tt>:favorite</tt> on Favorite, unless a <tt>:source</tt> is given.
+        #   +:favorite+ on Favorite, unless a +:source+ is given.
         # [:source_type]
-        #   Specifies type of the source association used by #has_one <tt>:through</tt> queries where the source
+        #   Specifies type of the source association used by #has_one +:through+ queries where the source
         #   association is a polymorphic #belongs_to.
         # [:validate]
         #   When set to +true+, validates new objects added to association when saving the parent object. +false+ by default.
@@ -1645,7 +1645,7 @@ module ActiveRecord
         #   By default, only save the associated object if it's a new record.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
-        #   <tt>:autosave</tt> to +true+.
+        #   +:autosave+ to +true+.
         # [:touch]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
@@ -1762,24 +1762,24 @@ module ActiveRecord
         # [:foreign_key]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>
-        #   association will use "person_id" as the default <tt>:foreign_key</tt>. Similarly,
+        #   association will use "person_id" as the default +:foreign_key+. Similarly,
         #   <tt>belongs_to :favorite_person, class_name: "Person"</tt> will use a foreign key
         #   of "favorite_person_id".
         #
-        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
-        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
+        #   Setting the +:foreign_key+ option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the +:inverse_of+ option as well.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the association with a "_type"
         #   suffix. So a class that defines a <tt>belongs_to :taggable, polymorphic: true</tt>
-        #   association will use "taggable_type" as the default <tt>:foreign_type</tt>.
+        #   association will use "taggable_type" as the default +:foreign_type+.
         # [:primary_key]
         #   Specify the method that returns the primary key of associated object used for the association.
         #   By default this is +id+.
         # [:dependent]
-        #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-        #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to
-        #   <tt>:destroy_async</tt>, the associated object is scheduled to be destroyed in a background job.
+        #   If set to +:destroy+, the associated object is destroyed when this object is. If set to
+        #   +:delete+, the associated object is deleted *without* calling its destroy method. If set to
+        #   +:destroy_async+, the associated object is scheduled to be destroyed in a background job.
         #   This option should not be specified when #belongs_to is used in conjunction with
         #   a #has_many relationship on another class because of the potential to leave
         #   orphaned records behind.
@@ -1809,7 +1809,7 @@ module ActiveRecord
         #   By default, only save the associated object if it's a new record.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for
-        #   sets <tt>:autosave</tt> to +true+.
+        #   sets +:autosave+ to +true+.
         # [:touch]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
@@ -1867,7 +1867,7 @@ module ActiveRecord
         # lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers"
         # to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes",
         # but it in fact generates a join table name of "paper_boxes_papers". Be aware of this caveat, and use the
-        # custom <tt>:join_table</tt> option if you need to.
+        # custom +:join_table+ option if you need to.
         # If your tables share a common prefix, it will only appear once at the beginning. For example,
         # the tables "catalog_categories" and "catalog_products" generate a join table name of "catalog_categories_products".
         #
@@ -2003,15 +2003,15 @@ module ActiveRecord
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes
         #   a #has_and_belongs_to_many association to Project will use "person_id" as the
-        #   default <tt>:foreign_key</tt>.
+        #   default +:foreign_key+.
         #
-        #   Setting the <tt>:foreign_key</tt> option prevents automatic detection of the association's
-        #   inverse, so it is generally a good idea to set the <tt>:inverse_of</tt> option as well.
+        #   Setting the +:foreign_key+ option prevents automatic detection of the association's
+        #   inverse, so it is generally a good idea to set the +:inverse_of+ option as well.
         # [:association_foreign_key]
         #   Specify the foreign key used for the association on the receiving side of the association.
         #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
         #   So if a Person class makes a #has_and_belongs_to_many association to Project,
-        #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
+        #   the association will use "project_id" as the default +:association_foreign_key+.
         # [:validate]
         #   When set to +true+, validates new objects added to association when saving the parent object. +true+ by default.
         #   If you want to ensure associated objects are revalidated on every update, use +validates_associated+.
@@ -2022,7 +2022,7 @@ module ActiveRecord
         #   By default, only save associated objects that are new records.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
-        #   <tt>:autosave</tt> to +true+.
+        #   +:autosave+ to +true+.
         # [:strict_loading]
         #   Enforces strict loading every time an associated record is loaded through this association.
         #

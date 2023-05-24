@@ -28,14 +28,14 @@ module ActiveModel
       #   end
       #
       # Configuration options:
-      # * <tt>:in</tt> - An enumerable object of items that the value shouldn't
+      # * +:in+ - An enumerable object of items that the value shouldn't
       #   be part of. This can be supplied as a proc, lambda, or symbol which returns an
       #   enumerable. If the enumerable is a numerical, time, or datetime range the test
       #   is performed with <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>. When
       #   using a proc or lambda the instance under validation is passed as an argument.
-      # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
+      # * +:within+ - A synonym(or alias) for +:in+
       #   <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>.
-      # * <tt>:message</tt> - Specifies a custom error message (default is: "is
+      # * +:message+ - Specifies a custom error message (default is: "is
       #   reserved").
       #
       # There is also a list of default options supported by every validator:

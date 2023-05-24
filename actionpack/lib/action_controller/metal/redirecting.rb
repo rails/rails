@@ -30,7 +30,7 @@ module ActionController
     #   redirect_to posts_url
     #   redirect_to proc { edit_post_url(@post) }
     #
-    # The redirection happens as a <tt>302 Found</tt> header unless otherwise specified using the <tt>:status</tt> option:
+    # The redirection happens as a <tt>302 Found</tt> header unless otherwise specified using the +:status+ option:
     #
     #   redirect_to post_url(@post), status: :found
     #   redirect_to action: 'atom', status: :moved_permanently
@@ -114,7 +114,7 @@ module ActionController
     #   redirect_back_or_to '/', allow_other_host: false
     #
     # ==== Options
-    # * <tt>:allow_other_host</tt> - Allow or disallow redirection to the host that is different to the current host, defaults to true.
+    # * +:allow_other_host+ - Allow or disallow redirection to the host that is different to the current host, defaults to true.
     #
     # All other options that can be passed to #redirect_to are accepted as
     # options, and the behavior is identical.

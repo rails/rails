@@ -7,7 +7,7 @@ module ActiveRecord
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
     # Establishes the connection to the database. Accepts a hash as input where
-    # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
+    # the +:adapter+ key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, PostgreSQL, etc):
     #
     #   ActiveRecord::Base.establish_connection(

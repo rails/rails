@@ -84,20 +84,20 @@ module ActiveModel
       # anchors in the provided regular expression. In most cases, you should be
       # using <tt>\A</tt> and <tt>\z</tt>.
       #
-      # You must pass either <tt>:with</tt> or <tt>:without</tt> as an option.
+      # You must pass either +:with+ or +:without+ as an option.
       # In addition, both must be a regular expression or a proc or lambda, or
       # else an exception will be raised.
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "is invalid").
-      # * <tt>:with</tt> - Regular expression that if the attribute matches will
+      # * +:message+ - A custom error message (default is: "is invalid").
+      # * +:with+ - Regular expression that if the attribute matches will
       #   result in a successful validation. This can be provided as a proc or
       #   lambda returning regular expression which will be called at runtime.
-      # * <tt>:without</tt> - Regular expression that if the attribute does not
+      # * +:without+ - Regular expression that if the attribute does not
       #   match will result in a successful validation. This can be provided as
       #   a proc or lambda returning regular expression which will be called at
       #   runtime.
-      # * <tt>:multiline</tt> - Set to true if your regular expression contains
+      # * +:multiline+ - Set to true if your regular expression contains
       #   anchors that match the beginning or end of lines as opposed to the
       #   beginning or end of the string. These anchors are <tt>^</tt> and <tt>$</tt>.
       #

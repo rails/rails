@@ -11,10 +11,10 @@ module ActiveRecord
           create_database(name, options)
         end
 
-        # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-        # <tt>:encoding</tt> (defaults to utf8), <tt>:collation</tt>, <tt>:ctype</tt>,
-        # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
-        # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
+        # Create a new PostgreSQL database. Options include +:owner+, +:template+,
+        # +:encoding+ (defaults to utf8), +:collation+, +:ctype+,
+        # +:tablespace+, and +:connection_limit+ (note that MySQL uses
+        # +:charset+ while PostgreSQL uses +:encoding+).
         #
         # Example:
         #   create_database config[:database], config
@@ -676,9 +676,9 @@ module ActiveRecord
         #   ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
         #
         # The +options+ hash can include the following keys:
-        # [<tt>:name</tt>]
+        # [+:name+]
         #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
-        # [<tt>:deferrable</tt>]
+        # [+:deferrable+]
         #   Specify whether or not the exclusion constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
@@ -725,11 +725,11 @@ module ActiveRecord
         #   add_unique_key :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
         #
         # The +options+ hash can include the following keys:
-        # [<tt>:name</tt>]
+        # [+:name+]
         #   The constraint name. Defaults to <tt>uniq_rails_<identifier></tt>.
-        # [<tt>:deferrable</tt>]
+        # [+:deferrable+]
         #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
-        # [<tt>:using_index</tt>]
+        # [+:using_index+]
         #   To specify an existing unique index name. Defaults to +nil+.
         def add_unique_key(table_name, column_name = nil, **options)
           options = unique_key_options(table_name, column_name, options)

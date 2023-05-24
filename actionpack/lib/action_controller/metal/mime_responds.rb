@@ -134,8 +134,8 @@ module ActionController # :nodoc:
     #
     # Formats can have different variants.
     #
-    # The request variant is a specialization of the request format, like <tt>:tablet</tt>,
-    # <tt>:phone</tt>, or <tt>:desktop</tt>.
+    # The request variant is a specialization of the request format, like +:tablet+,
+    # +:phone+, or +:desktop+.
     #
     # We often want to render different html/json/xml templates for phones,
     # tablets, and desktop browsers. Variants make it easy.

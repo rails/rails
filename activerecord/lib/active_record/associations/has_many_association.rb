@@ -6,7 +6,7 @@ module ActiveRecord
     #
     # This is the proxy that handles a has many association.
     #
-    # If the association has a <tt>:through</tt> option further specialization
+    # If the association has a +:through+ option further specialization
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < CollectionAssociation # :nodoc:
       include ForeignAssociation
@@ -67,7 +67,7 @@ module ActiveRecord
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
-        # it will attempt to do a count via SQL, bounded to <tt>:limit</tt> if
+        # it will attempt to do a count via SQL, bounded to +:limit+ if
         # there's one. Some configuration options like :group make it impossible
         # to do an SQL count, in those cases the array count will be used.
         #
@@ -123,7 +123,7 @@ module ActiveRecord
           count
         end
 
-        # Deletes the records according to the <tt>:dependent</tt> option.
+        # Deletes the records according to the +:dependent+ option.
         def delete_records(records, method)
           if method == :destroy
             records.each(&:destroy!)

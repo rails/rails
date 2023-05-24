@@ -21,15 +21,15 @@ module ActiveJob
       # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
       # ==== Options
-      # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
+      # * +:wait+ - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that takes the number of executions so far as an argument, or as a symbol reference of
-      #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
+      #   +:exponentially_longer+, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
-      # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
+      # * +:attempts+ - Re-enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of +:unlimited+
       #   to retry the job until it succeeds
-      # * <tt>:queue</tt> - Re-enqueues the job on a different queue
-      # * <tt>:priority</tt> - Re-enqueues the job with a different priority
-      # * <tt>:jitter</tt> - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
+      # * +:queue+ - Re-enqueues the job on a different queue
+      # * +:priority+ - Re-enqueues the job with a different priority
+      # * +:jitter+ - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
       #
       # ==== Examples
       #
@@ -106,10 +106,10 @@ module ActiveJob
     # performing your job.
     #
     # ==== Options
-    # * <tt>:wait</tt> - Enqueues the job with the specified delay in seconds
-    # * <tt>:wait_until</tt> - Enqueues the job at the time specified
-    # * <tt>:queue</tt> - Enqueues the job on the specified queue
-    # * <tt>:priority</tt> - Enqueues the job with the specified priority
+    # * +:wait+ - Enqueues the job with the specified delay in seconds
+    # * +:wait_until+ - Enqueues the job at the time specified
+    # * +:queue+ - Enqueues the job on the specified queue
+    # * +:priority+ - Enqueues the job with the specified priority
     #
     # ==== Examples
     #

@@ -16,7 +16,7 @@ module ActiveRecord
     #   blog = Blog.first
     #
     # The collection proxy returned by <tt>blog.posts</tt> is built from a
-    # <tt>:has_many</tt> +association+, and delegates to a collection
+    # +:has_many+ +association+, and delegates to a collection
     # of posts as the +target+.
     #
     # This class delegates unknown methods to the +association+'s
@@ -452,7 +452,7 @@ module ActiveRecord
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 2, 3)
       #
-      # If it is set to <tt>:delete_all</tt>, all the objects are deleted
+      # If it is set to +:delete_all+, all the objects are deleted
       # *without* calling their +destroy+ method.
       #
       #   class Person < ActiveRecord::Base
@@ -538,7 +538,7 @@ module ActiveRecord
       #   Pet.find(1)
       #   # => #<Pet id: 1, name: "Fancy-Fancy", person_id: nil>
       #
-      # If it is set to <tt>:destroy</tt> all the +records+ are removed by calling
+      # If it is set to +:destroy+ all the +records+ are removed by calling
       # their +destroy+ method. See +destroy+ for more information.
       #
       #   class Person < ActiveRecord::Base
@@ -566,7 +566,7 @@ module ActiveRecord
       #   Pet.find(1, 3)
       #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with 'id': (1, 3)
       #
-      # If it is set to <tt>:delete_all</tt>, all the +records+ are deleted
+      # If it is set to +:delete_all+, all the +records+ are deleted
       # *without* calling their +destroy+ method.
       #
       #   class Person < ActiveRecord::Base

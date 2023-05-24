@@ -30,7 +30,7 @@ module ActionView
   # == The +:as+ and +:object+ options
   #
   # By default ActionView::PartialRenderer doesn't have any local variables.
-  # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
+  # The +:object+ option can be used to pass an object to the partial. For instance:
   #
   #   <%= render partial: "account", object: @buyer %>
   #
@@ -39,7 +39,7 @@ module ActionView
   #
   #   <%= render partial: "account", locals: { account: @buyer } %>
   #
-  # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
+  # With the +:as+ option we can specify a different name for said local variable. For example, if we
   # wanted it to be +user+ instead of +account+ we'd do:
   #
   #   <%= render partial: "account", object: @buyer, as: 'user' %>
@@ -65,14 +65,14 @@ module ActionView
   # For backwards compatibility the +partial_name_counter+ is still present and is mapped to the iteration's
   # +index+ method.
   #
-  # The <tt>:as</tt> option may be used when rendering partials.
+  # The +:as+ option may be used when rendering partials.
   #
-  # You can specify a partial to be rendered between elements via the <tt>:spacer_template</tt> option.
+  # You can specify a partial to be rendered between elements via the +:spacer_template+ option.
   # The following example will render <tt>advertiser/_ad_divider.html.erb</tt> between each ad partial:
   #
   #   <%= render partial: "ad", collection: @advertisements, spacer_template: "ad_divider" %>
   #
-  # If the given <tt>:collection</tt> is +nil+ or empty, +render+ will return +nil+. This will allow you
+  # If the given +:collection+ is +nil+ or empty, +render+ will return +nil+. This will allow you
   # to specify a text which will be displayed instead by using this form:
   #
   #   <%= render(partial: "ad", collection: @advertisements) || "There's no ad to be displayed" %>
@@ -216,7 +216,7 @@ module ActionView
   #     Title: <%= chief.name %>
   #   </div>
   #
-  # As you can see, the <tt>:locals</tt> hash is shared between both the partial and its layout.
+  # As you can see, the +:locals+ hash is shared between both the partial and its layout.
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
 

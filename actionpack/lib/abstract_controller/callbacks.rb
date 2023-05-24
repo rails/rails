@@ -78,12 +78,12 @@ module AbstractController
       # The basic idea is that <tt>:only => :index</tt> gets converted to
       # <tt>:if => proc {|c| c.action_name == "index" }</tt>.
       #
-      # Note that <tt>:only</tt> has priority over <tt>:if</tt> in case they
+      # Note that +:only+ has priority over +:if+ in case they
       # are used together.
       #
       #   only: :index, if: -> { true } # the :if option will be ignored.
       #
-      # Note that <tt>:if</tt> has priority over <tt>:except</tt> in case they
+      # Note that +:if+ has priority over +:except+ in case they
       # are used together.
       #
       #   except: :index, if: -> { true } # the :except option will be ignored.

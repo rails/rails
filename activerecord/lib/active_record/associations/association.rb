@@ -31,7 +31,7 @@ module ActiveRecord
     #
     # The association of <tt>blog.posts</tt> has the object +blog+ as its
     # +owner+, the collection of its posts as +target+, and
-    # the +reflection+ object represents a <tt>:has_many</tt> macro.
+    # the +reflection+ object represents a +:has_many+ macro.
     class Association # :nodoc:
       attr_reader :owner, :target, :reflection, :disable_joins
 

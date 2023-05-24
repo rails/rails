@@ -28,10 +28,10 @@ module ActionText
       #
       # ==== Options
       #
-      # * <tt>:encrypted</tt> - Pass true to encrypt the rich text attribute. The encryption will be non-deterministic. See
+      # * +:encrypted+ - Pass true to encrypt the rich text attribute. The encryption will be non-deterministic. See
       #   +ActiveRecord::Encryption::EncryptableRecord.encrypts+. Default: false.
       #
-      # * <tt>:strict_loading</tt> - Pass true to force strict loading. When
+      # * +:strict_loading+ - Pass true to force strict loading. When
       #   omitted, <tt>strict_loading:</tt> will be set to the value of the
       #   +strict_loading_by_default+ class attribute (false by default).
       def has_rich_text(name, encrypted: false, strict_loading: strict_loading_by_default)

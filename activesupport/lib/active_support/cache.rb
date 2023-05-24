@@ -391,8 +391,8 @@ module ActiveSupport
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
       #
-      # Note, if data was written with the <tt>:expires_in</tt> or
-      # <tt>:version</tt> options, both of these conditions are applied before
+      # Note, if data was written with the +:expires_in+ or
+      # +:version+ options, both of these conditions are applied before
       # the data is returned.
       #
       # ==== Options

@@ -74,8 +74,8 @@ module ActiveModel
 
       # Passes if the object's model responds to +model_name+ both as
       # an instance method and as a class method, and if calling this method
-      # returns a string with some convenience methods: <tt>:human</tt>,
-      # <tt>:singular</tt> and <tt>:plural</tt>.
+      # returns a string with some convenience methods: +:human+,
+      # +:singular+ and +:plural+.
       #
       # Check ActiveModel::Naming for more information.
       def test_model_naming

@@ -22,7 +22,7 @@ module ActionDispatch
   #   :controller maps to your controller name
   #   :action     maps to an action with your controllers
   #
-  # Other names simply map to a parameter as in the case of <tt>:id</tt>.
+  # Other names simply map to a parameter as in the case of +:id+.
   #
   # == Resources
   #
@@ -80,13 +80,13 @@ module ActionDispatch
   # URL will route to the +show+ action.
   #
   # If your route needs to respond to more than one HTTP method (or all methods) then using the
-  # <tt>:via</tt> option on +match+ is preferable.
+  # +:via+ option on +match+ is preferable.
   #
   #   match 'post/:id', to: 'posts#show', via: [:get, :post]
   #
   # == Named routes
   #
-  # Routes can be named by passing an <tt>:as</tt> option,
+  # Routes can be named by passing an +:as+ option,
   # allowing for easy reference within your source as +name_of_route_url+
   # for the full URL and +name_of_route_path+ for the URI path.
   #

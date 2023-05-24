@@ -135,7 +135,7 @@ module ActionView
       #
       # === Collection Caching
       #
-      # When rendering a collection of objects that each use the same partial, a <tt>:cached</tt>
+      # When rendering a collection of objects that each use the same partial, a +:cached+
       # option can be passed.
       #
       # For collections rendered such:

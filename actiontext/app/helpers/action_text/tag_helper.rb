@@ -11,7 +11,7 @@ module ActionText
     # that Trix will write to on changes, so the content will be sent on form submissions.
     #
     # ==== Options
-    # * <tt>:class</tt> - Defaults to "trix-content" so that default styles will be applied.
+    # * +:class+ - Defaults to "trix-content" so that default styles will be applied.
     #   Setting this to a different value will prevent default styles from being applied.
     # * <tt>[:data][:direct_upload_url]</tt> - Defaults to +rails_direct_uploads_url+.
     # * <tt>[:data][:blob_url_template]</tt> - Defaults to <tt>rails_service_blob_url(":signed_id", ":filename")</tt>.
@@ -60,8 +60,8 @@ module ActionView::Helpers
     # that Trix will write to on changes, so the content will be sent on form submissions.
     #
     # ==== Options
-    # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
-    # * <tt>:value</tt> - Adds a default value to the HTML input tag.
+    # * +:class+ - Defaults to "trix-content" which ensures default styling is applied.
+    # * +:value+ - Adds a default value to the HTML input tag.
     # * <tt>[:data][:direct_upload_url]</tt> - Defaults to +rails_direct_uploads_url+.
     # * <tt>[:data][:blob_url_template]</tt> - Defaults to <tt>rails_service_blob_url(":signed_id", ":filename")</tt>.
     #

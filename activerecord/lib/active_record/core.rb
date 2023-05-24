@@ -622,7 +622,7 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +value+ - Boolean specifying whether to enable or disable strict loading.
-    # * <tt>:mode</tt> - Symbol specifying strict loading mode. Defaults to :all. Using
+    # * +:mode+ - Symbol specifying strict loading mode. Defaults to :all. Using
     #   :n_plus_one_only mode will only raise an error if an association that
     #   will lead to an n plus one query is lazily loaded.
     #

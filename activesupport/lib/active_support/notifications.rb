@@ -76,9 +76,9 @@ module ActiveSupport
   # that order.
   #
   # If an exception happens during that particular instrumentation the payload will
-  # have a key <tt>:exception</tt> with an array of two elements as value: a string with
+  # have a key +:exception+ with an array of two elements as value: a string with
   # the name of the exception class, and the exception message.
-  # The <tt>:exception_object</tt> key of the payload will have the exception
+  # The +:exception_object+ key of the payload will have the exception
   # itself as the value:
   #
   #   event.payload[:exception]         # => ["ArgumentError", "Invalid value"]
@@ -148,8 +148,8 @@ module ActiveSupport
   # after that.
   #
   # To record +started+ and +finished+ values with monotonic time,
-  # specify the optional <tt>:monotonic</tt> option to the
-  # +subscribed+ method. The <tt>:monotonic</tt> option is set
+  # specify the optional +:monotonic+ option to the
+  # +subscribed+ method. The +:monotonic+ option is set
   # to +false+ by default.
   #
   #   callback = lambda {|name, started, finished, unique_id, payload| ... }

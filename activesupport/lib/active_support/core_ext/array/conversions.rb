@@ -15,13 +15,13 @@ class Array
   #
   # ==== Options
   #
-  # * <tt>:words_connector</tt> - The sign or word used to join all but the last
+  # * +:words_connector+ - The sign or word used to join all but the last
   #   element in arrays with three or more elements (default: ", ").
-  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
+  # * +:last_word_connector+ - The sign or word used to join the last element
   #   in arrays with three or more elements (default: ", and ").
-  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
+  # * +:two_words_connector+ - The sign or word used to join the elements
   #   in arrays with two elements (default: " and ").
-  # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
+  # * +:locale+ - If +i18n+ is available, you can set a locale and use
   #   the connector options defined on the 'support.array' namespace in the
   #   corresponding dictionary file.
   #
@@ -41,7 +41,7 @@ class Array
   #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
   #   # => "one or two or at least three"
   #
-  # Using <tt>:locale</tt> option:
+  # Using +:locale+ option:
   #
   #   # Given this locale dictionary:
   #   #
@@ -84,7 +84,7 @@ class Array
   end
 
   # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
-  # comma separated id list if <tt>:db</tt> argument is given as the format.
+  # comma separated id list if +:db+ argument is given as the format.
   #
   # This method is aliased to +to_formatted_s+.
   #
@@ -157,7 +157,7 @@ class Array
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <nil-classes type="array"/>
   #
-  # To ensure a meaningful root element use the <tt>:root</tt> option:
+  # To ensure a meaningful root element use the +:root+ option:
   #
   #   customer_with_no_projects.projects.to_xml(root: 'projects')
   #
@@ -165,7 +165,7 @@ class Array
   #   <projects type="array"/>
   #
   # By default name of the node for the children of root is <tt>root.singularize</tt>.
-  # You can change it with the <tt>:children</tt> option.
+  # You can change it with the +:children+ option.
   #
   # The +options+ hash is passed downwards:
   #

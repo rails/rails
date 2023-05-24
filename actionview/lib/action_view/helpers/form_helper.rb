@@ -22,7 +22,7 @@ module ActionView
     # Typically, a form designed to create or update a resource reflects the
     # identity of the resource in several ways: (i) the URL that the form is
     # sent to (the form element's +action+ attribute) should result in a request
-    # being routed to the appropriate controller action (with the appropriate <tt>:id</tt>
+    # being routed to the appropriate controller action (with the appropriate +:id+
     # parameter in the case of an existing resource), (ii) input fields should
     # be named in such a way that in the controller their values appear in the
     # appropriate places within the +params+ hash, and (iii) for an existing record,
@@ -138,7 +138,7 @@ module ActionView
       #
       # The variable +f+ yielded to the block is a FormBuilder object that
       # incorporates the knowledge about the model object represented by
-      # <tt>:person</tt> passed to +form_for+. Methods defined on the FormBuilder
+      # +:person+ passed to +form_for+. Methods defined on the FormBuilder
       # are used to generate fields bound to this model. Thus, for example,
       #
       #   <%= f.text_field :first_name %>
@@ -153,7 +153,7 @@ module ActionView
       # <tt>params[:person][:first_name]</tt>.
       #
       # For fields generated in this way using the FormBuilder,
-      # if <tt>:person</tt> also happens to be the name of an instance variable
+      # if +:person+ also happens to be the name of an instance variable
       # <tt>@person</tt>, the default value of the field shown when the form is
       # initially displayed (e.g. in the situation where you are editing an
       # existing record) will be the value of the corresponding attribute of
@@ -162,22 +162,22 @@ module ActionView
       # The rightmost argument to +form_for+ is an
       # optional hash of options -
       #
-      # * <tt>:url</tt> - The URL the form is to be submitted to. This may be
+      # * +:url+ - The URL the form is to be submitted to. This may be
       #   represented in the same way as values passed to +url_for+ or +link_to+.
       #   So for example you may use a named route directly. When the model is
       #   represented by a string or symbol, as in the example above, if the
-      #   <tt>:url</tt> option is not specified, by default the form will be
+      #   +:url+ option is not specified, by default the form will be
       #   sent back to the current URL (We will describe below an alternative
       #   resource-oriented usage of +form_for+ in which the URL does not need
       #   to be specified explicitly).
-      # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
+      # * +:namespace+ - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
       #   with underscore on the generated HTML id.
-      # * <tt>:method</tt> - The method to use when submitting the form, usually
+      # * +:method+ - The method to use when submitting the form, usually
       #   either "get" or "post". If "patch", "put", "delete", or another verb
       #   is used, a hidden input with name +_method+ is added to
       #   simulate the verb over post.
-      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
+      # * +:authenticity_token+ - Authenticity token to use in the form.
       #   Use only if you need to pass custom authenticity token string, or to
       #   not add authenticity_token field at all (by passing +false+).
       #   Remote forms may omit the embedded authenticity token by setting
@@ -185,11 +185,11 @@ module ActionView
       #   This is helpful when you're fragment-caching the form. Remote forms
       #   get the authenticity token from the +meta+ tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
+      # * +:remote+ - If set to true, will allow the Unobtrusive
       #   JavaScript drivers to control the submit behavior.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
+      # * +:enforce_utf8+ - If set to false, a hidden input with name
       #   utf8 is not output.
-      # * <tt>:html</tt> - Optional HTML attributes for the form tag.
+      # * +:html+ - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
       # possible to use both the stand-alone FormHelper methods and methods
@@ -224,7 +224,7 @@ module ActionView
       # elements within the form (hence the key that denotes them in the +params+
       # hash) is actually derived from the object's _class_, e.g. <tt>params[:post]</tt>
       # if the object's class is +Post+. However, this can be overwritten using
-      # the <tt>:as</tt> option, e.g. -
+      # the +:as+ option, e.g. -
       #
       #   <%= form_for(@person, as: :client) do |f| %>
       #     ...
@@ -248,7 +248,7 @@ module ActionView
       # === Resource-oriented style
       #
       # In the examples just shown, although not indicated explicitly, we still
-      # need to use the <tt>:url</tt> option in order to specify where the
+      # need to use the +:url+ option in order to specify where the
       # form is going to be sent. However, further simplification is possible
       # if the record passed to +form_for+ is a _resource_, i.e. it corresponds
       # to a set of RESTful routes, e.g. defined using the +resources+ method
@@ -420,7 +420,7 @@ module ActionView
       # When you build forms to external resources sometimes you need to set an authenticity token or just render a form
       # without it, for example when you submit data to a payment gateway number and types of fields could be limited.
       #
-      # To set an authenticity token you need to pass an <tt>:authenticity_token</tt> parameter
+      # To set an authenticity token you need to pass an +:authenticity_token+ parameter
       #
       #   <%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
       #     ...
@@ -582,31 +582,31 @@ module ActionView
       #
       # ==== +form_with+ options
       #
-      # * <tt>:url</tt> - The URL the form submits to. Akin to values passed to
+      # * +:url+ - The URL the form submits to. Akin to values passed to
       #   +url_for+ or +link_to+. For example, you may use a named route
-      #   directly. When a <tt>:scope</tt> is passed without a <tt>:url</tt> the
+      #   directly. When a +:scope+ is passed without a +:url+ the
       #   form just submits to the current URL.
-      # * <tt>:method</tt> - The method to use when submitting the form, usually
+      # * +:method+ - The method to use when submitting the form, usually
       #   either "get" or "post". If "patch", "put", "delete", or another verb
       #   is used, a hidden input named +_method+ is added to
       #   simulate the verb over post.
-      # * <tt>:format</tt> - The format of the route the form submits to.
-      #   Useful when submitting to another resource type, like <tt>:json</tt>.
-      #   Skipped if a <tt>:url</tt> is passed.
-      # * <tt>:scope</tt> - The scope to prefix input field names with and
+      # * +:format+ - The format of the route the form submits to.
+      #   Useful when submitting to another resource type, like +:json+.
+      #   Skipped if a +:url+ is passed.
+      # * +:scope+ - The scope to prefix input field names with and
       #   thereby how the submitted parameters are grouped in controllers.
-      # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
+      # * +:namespace+ - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
       #   with underscore on the generated HTML id.
-      # * <tt>:model</tt> - A model object to infer the <tt>:url</tt> and
-      #   <tt>:scope</tt> by, plus fill out input field values.
+      # * +:model+ - A model object to infer the +:url+ and
+      #   +:scope+ by, plus fill out input field values.
       #   So if a +title+ attribute is set to "Ahoy!" then a +title+ input
       #   field's value would be "Ahoy!".
       #   If the model is a new record a create form is generated, if an
       #   existing record, however, an update form is generated.
-      #   Pass <tt>:scope</tt> or <tt>:url</tt> to override the defaults.
+      #   Pass +:scope+ or +:url+ to override the defaults.
       #   E.g. turn <tt>params[:post]</tt> into <tt>params[:article]</tt>.
-      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
+      # * +:authenticity_token+ - Authenticity token to use in the form.
       #   Override with a custom authenticity token or pass +false+ to
       #   skip the authenticity token field altogether.
       #   Useful when submitting to an external resource like a payment gateway
@@ -616,7 +616,7 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the +meta+ tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:local</tt> - Whether to use standard HTTP form submission.
+      # * +:local+ - Whether to use standard HTTP form submission.
       #   When set to +true+, the form is submitted via standard HTTP.
       #   When set to +false+, the form is submitted as a "remote form", which
       #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived
@@ -626,13 +626,13 @@ module ActionView
       #   (which has the equivalent effect of passing <tt>local: true</tt>).
       #   In previous versions of Rails, that configuration option defaults to
       #   +true+ (the equivalent of passing <tt>local: false</tt>).
-      # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
+      # * +:skip_enforcing_utf8+ - If set to true, a hidden input with name
       #   utf8 is not output.
-      # * <tt>:builder</tt> - Override the object used to build the form.
-      # * <tt>:id</tt> - Optional HTML id attribute.
-      # * <tt>:class</tt> - Optional HTML class attribute.
-      # * <tt>:data</tt> - Optional HTML data attributes.
-      # * <tt>:html</tt> - Other optional HTML attributes for the form tag.
+      # * +:builder+ - Override the object used to build the form.
+      # * +:id+ - Optional HTML id attribute.
+      # * +:class+ - Optional HTML class attribute.
+      # * +:data+ - Optional HTML data attributes.
+      # * +:html+ - Other optional HTML attributes for the form tag.
       #
       # === Examples
       #
@@ -822,7 +822,7 @@ module ActionView
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
-      # ...in which case, if <tt>:permission</tt> also happens to be the name of an
+      # ...in which case, if +:permission+ also happens to be the name of an
       # instance variable <tt>@permission</tt>, the initial state of the input
       # field will reflect the value of that variable's attribute <tt>@permission.admin</tt>.
       #
@@ -853,7 +853,7 @@ module ActionView
       # association. The most common way of defining these writers is either
       # with +accepts_nested_attributes_for+ in a model definition or by
       # defining a method with the proper name. For example: the attribute
-      # writer for the association <tt>:address</tt> is called
+      # writer for the association +:address+ is called
       # <tt>address_attributes=</tt>.
       #
       # Whether a one-to-one or one-to-many style form builder will be yielded
@@ -896,7 +896,7 @@ module ActionView
       #   end
       #
       # If you want to destroy the associated model through the form, you have
-      # to enable it first using the <tt>:allow_destroy</tt> option for
+      # to enable it first using the +:allow_destroy+ option for
       # +accepts_nested_attributes_for+:
       #
       #   class Person < ActiveRecord::Base
@@ -934,7 +934,7 @@ module ActionView
       #   end
       #
       # Note that the <tt>projects_attributes=</tt> writer method is in fact
-      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # required for fields_for to correctly identify +:projects+ as a
       # collection, and the correct indices to be set in the form markup.
       #
       # When projects is already an association on Person you can use
@@ -984,7 +984,7 @@ module ActionView
       #   <% end %>
       #
       # If you want to destroy any of the associated models through the
-      # form, you have to enable it first using the <tt>:allow_destroy</tt>
+      # form, you have to enable it first using the +:allow_destroy+
       # option for +accepts_nested_attributes_for+:
       #
       #   class Person < ActiveRecord::Base
@@ -1030,7 +1030,7 @@ module ActionView
       end
 
       # Scopes input fields with either an explicit scope or model.
-      # Like +form_with+ does with <tt>:scope</tt> or <tt>:model</tt>,
+      # Like +form_with+ does with +:scope+ or +:model+,
       # except it doesn't output the form tags.
       #
       #   # Using a scope prefixes the input field names:
@@ -1056,7 +1056,7 @@ module ActionView
       #
       # Much like +form_with+ a FormBuilder instance associated with the scope
       # or model is yielded, so any generated field names are prefixed with
-      # either the passed scope or the scope inferred from the <tt>:model</tt>.
+      # either the passed scope or the scope inferred from the +:model+.
       #
       # === Mixing with other form helpers
       #
@@ -1090,7 +1090,7 @@ module ActionView
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
       # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
-      # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
+      # onto the HTML as an HTML element attribute as in the example shown, except for the +:value+ option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
       #
       # ==== Examples
@@ -1220,10 +1220,10 @@ module ActionView
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
-      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
+      # * +:multiple+ - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * +:include_hidden+ - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
+      # * +:accept+ - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
       #   file_field(:user, :avatar)
@@ -1283,8 +1283,8 @@ module ActionView
       # ==== Options
       #
       # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
-      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
-      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
+      # * +:checked+ - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * +:include_hidden+ - If set to false, the auxiliary hidden field described below will not be generated.
       #
       # ==== Gotcha
       #
@@ -1742,7 +1742,7 @@ module ActionView
       #     <% end %>
       #   <% end %>
       #
-      # In the example above, the <tt>:sticky_footer</tt> content area will
+      # In the example above, the +:sticky_footer+ content area will
       # exist outside of the <tt><form></tt> element. By declaring the
       # +form+ HTML attribute, we hint to the browser that the generated
       # <tt><button></tt> element should be treated as the <tt><form></tt>
@@ -2067,7 +2067,7 @@ module ActionView
       #     Admin?: <%= permission_fields.check_box :admin %>
       #   <% end %>
       #
-      # ...in which case, if <tt>:permission</tt> also happens to be the name of an
+      # ...in which case, if +:permission+ also happens to be the name of an
       # instance variable <tt>@permission</tt>, the initial state of the input
       # field will reflect the value of that variable's attribute <tt>@permission.admin</tt>.
       #
@@ -2110,7 +2110,7 @@ module ActionView
       # association. The most common way of defining these writers is either
       # with +accepts_nested_attributes_for+ in a model definition or by
       # defining a method with the proper name. For example: the attribute
-      # writer for the association <tt>:address</tt> is called
+      # writer for the association +:address+ is called
       # <tt>address_attributes=</tt>.
       #
       # Whether a one-to-one or one-to-many style form builder will be yielded
@@ -2153,7 +2153,7 @@ module ActionView
       #   end
       #
       # If you want to destroy the associated model through the form, you have
-      # to enable it first using the <tt>:allow_destroy</tt> option for
+      # to enable it first using the +:allow_destroy+ option for
       # +accepts_nested_attributes_for+:
       #
       #   class Person < ActiveRecord::Base
@@ -2191,7 +2191,7 @@ module ActionView
       #   end
       #
       # Note that the <tt>projects_attributes=</tt> writer method is in fact
-      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # required for fields_for to correctly identify +:projects+ as a
       # collection, and the correct indices to be set in the form markup.
       #
       # When projects is already an association on Person you can use
@@ -2241,7 +2241,7 @@ module ActionView
       #   <% end %>
       #
       # If you want to destroy any of the associated models through the
-      # form, you have to enable it first using the <tt>:allow_destroy</tt>
+      # form, you have to enable it first using the +:allow_destroy+
       # option for +accepts_nested_attributes_for+:
       #
       #   class Person < ActiveRecord::Base
@@ -2330,7 +2330,7 @@ module ActionView
       # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
       # is found in the current I18n locale (through <tt>helpers.label.<modelname>.<attribute></tt>) or you specify it explicitly.
       # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
-      # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
+      # onto the HTML as an HTML element attribute as in the example shown, except for the +:value+ option, which is designed to
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
       #
       # ==== Examples
@@ -2405,8 +2405,8 @@ module ActionView
       # ==== Options
       #
       # * Any standard HTML attributes for the tag can be passed in, for example +:class+.
-      # * <tt>:checked</tt> - +true+ or +false+ forces the state of the checkbox to be checked or not.
-      # * <tt>:include_hidden</tt> - If set to false, the auxiliary hidden field described below will not be generated.
+      # * +:checked+ - +true+ or +false+ forces the state of the checkbox to be checked or not.
+      # * +:include_hidden+ - If set to false, the auxiliary hidden field described below will not be generated.
       #
       # ==== Gotcha
       #
@@ -2519,10 +2519,10 @@ module ActionView
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
-      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      # * +:disabled+ - If set to true, the user will not be able to use this input.
+      # * +:multiple+ - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * +:include_hidden+ - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
+      # * +:accept+ - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
       #   # Let's say that @user has avatar:

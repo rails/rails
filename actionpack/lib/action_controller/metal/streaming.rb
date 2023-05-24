@@ -181,7 +181,7 @@ module ActionController # :nodoc:
   #
   #   unicorn_rails --config-file unicorn.config.rb
   #
-  # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
+  # You may also want to configure other parameters like +:tcp_nodelay+.
   #
   # Please check its documentation for more information:
   #

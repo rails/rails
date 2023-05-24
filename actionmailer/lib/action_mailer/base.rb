@@ -23,7 +23,7 @@ module ActionMailer
   # The generated model inherits from +ApplicationMailer+ which in turn
   # inherits from +ActionMailer::Base+. A mailer model defines methods
   # used to generate an email message. In these methods, you can set up variables to be used in
-  # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
+  # the mailer views, options on the mail itself such as the +:from+ address, and attachments.
   #
   #   class ApplicationMailer < ActionMailer::Base
   #     default from: 'from@example.com'
@@ -120,11 +120,11 @@ module ActionMailer
   # Action Pack, the mailer instance doesn't have any context about the incoming request, so you'll need
   # to provide all of the details needed to generate a URL.
   #
-  # When using +url_for+ you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
+  # When using +url_for+ you'll need to provide the +:host+, +:controller+, and +:action+:
   #
   #   <%= url_for(host: "example.com", controller: "welcome", action: "greeting") %>
   #
-  # When using named routes you only need to supply the <tt>:host</tt>:
+  # When using named routes you only need to supply the +:host+:
   #
   #   <%= users_url(host: "example.com") %>
   #
@@ -132,7 +132,7 @@ module ActionMailer
   # +named_route_path+ style (which generates relative URLs), since clients reading the mail will
   # have no concept of a current URL from which to determine a relative path.
   #
-  # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
+  # It is also possible to set a default host that will be used in all mailers by setting the +:host+
   # option as a configuration option in <tt>config/application.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
@@ -421,43 +421,43 @@ module ActionMailer
   # * +logger+ - the logger is used for generating information on the mailing run if available.
   #   Can be set to +nil+ for no logging. Compatible with both Ruby's own +Logger+ and Log4r loggers.
   #
-  # * +smtp_settings+ - Allows detailed configuration for <tt>:smtp</tt> delivery method:
-  #   * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default
+  # * +smtp_settings+ - Allows detailed configuration for +:smtp+ delivery method:
+  #   * +:address+ - Allows you to use a remote mail server. Just change it from its default
   #     "localhost" setting.
-  #   * <tt>:port</tt> - On the off chance that your mail server doesn't run on port 25, you can change it.
-  #   * <tt>:domain</tt> - If you need to specify a HELO domain, you can do it here.
-  #   * <tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.
-  #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
-  #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the
+  #   * +:port+ - On the off chance that your mail server doesn't run on port 25, you can change it.
+  #   * +:domain+ - If you need to specify a HELO domain, you can do it here.
+  #   * +:user_name+ - If your mail server requires authentication, set the username in this setting.
+  #   * +:password+ - If your mail server requires authentication, set the password in this setting.
+  #   * +:authentication+ - If your mail server requires authentication, you need to specify the
   #     authentication type here.
-  #     This is a symbol and one of <tt>:plain</tt> (will send the password Base64 encoded), <tt>:login</tt> (will
-  #     send the password Base64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
+  #     This is a symbol and one of +:plain+ (will send the password Base64 encoded), +:login+ (will
+  #     send the password Base64 encoded) or +:cram_md5+ (combines a Challenge/Response mechanism to exchange
   #     information and a cryptographic Message Digest 5 algorithm to hash important information)
-  #   * <tt>:enable_starttls</tt> - Use STARTTLS when connecting to your SMTP server and fail if unsupported. Defaults
+  #   * +:enable_starttls+ - Use STARTTLS when connecting to your SMTP server and fail if unsupported. Defaults
   #     to +false+. Requires at least version 2.7 of the Mail gem.
-  #   * <tt>:enable_starttls_auto</tt> - Detects if STARTTLS is enabled in your SMTP server and starts
+  #   * +:enable_starttls_auto+ - Detects if STARTTLS is enabled in your SMTP server and starts
   #     to use it. Defaults to +true+.
-  #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
+  #   * +:openssl_verify_mode+ - When using TLS, you can set how OpenSSL checks the certificate. This is
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
   #     of an OpenSSL verify constant (<tt>'none'</tt> or <tt>'peer'</tt>) or directly the constant
   #     (+OpenSSL::SSL::VERIFY_NONE+ or +OpenSSL::SSL::VERIFY_PEER+).
   #   * <tt>:ssl/:tls</tt> Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection)
-  #   * <tt>:open_timeout</tt> Number of seconds to wait while attempting to open a connection.
-  #   * <tt>:read_timeout</tt> Number of seconds to wait until timing-out a read(2) call.
+  #   * +:open_timeout+ Number of seconds to wait while attempting to open a connection.
+  #   * +:read_timeout+ Number of seconds to wait until timing-out a read(2) call.
   #
-  # * +sendmail_settings+ - Allows you to override options for the <tt>:sendmail</tt> delivery method.
-  #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
-  #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>%w[ -i ]</tt> with <tt>-f sender@address</tt>
+  # * +sendmail_settings+ - Allows you to override options for the +:sendmail+ delivery method.
+  #   * +:location+ - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
+  #   * +:arguments+ - The command line arguments. Defaults to <tt>%w[ -i ]</tt> with <tt>-f sender@address</tt>
   #     added automatically before the message is sent.
   #
-  # * +file_settings+ - Allows you to override options for the <tt>:file</tt> delivery method.
-  #   * <tt>:location</tt> - The directory into which emails will be written. Defaults to the application
+  # * +file_settings+ - Allows you to override options for the +:file+ delivery method.
+  #   * +:location+ - The directory into which emails will be written. Defaults to the application
   #     <tt>tmp/mails</tt>.
   #
   # * +raise_delivery_errors+ - Whether or not errors should be raised if the email fails to be delivered.
   #
-  # * +delivery_method+ - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
-  #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
+  # * +delivery_method+ - Defines a delivery method. Possible values are +:smtp+ (default),
+  #   +:sendmail+, +:test+, and +:file+. Or you may provide a custom delivery method
   #   object e.g. +MyOwnDeliveryMethodClass+. See the Mail gem documentation on the interface you need to
   #   implement for a custom delivery agent.
   #
@@ -590,7 +590,7 @@ module ActionMailer
       # Wraps an email delivery inside of ActiveSupport::Notifications instrumentation.
       #
       # This method is actually called by the +Mail::Message+ object itself
-      # through a callback when you call <tt>:deliver</tt> on the +Mail::Message+,
+      # through a callback when you call +:deliver+ on the +Mail::Message+,
       # calling +deliver_mail+ directly and passing a +Mail::Message+ will do
       # nothing except tell the logger you sent the email.
       def deliver_mail(mail) # :nodoc:
@@ -821,7 +821,7 @@ module ActionMailer
     # method name that it is being called from, it will then create parts for
     # each of these templates intelligently, making educated guesses on correct
     # content type and sequence, and return a fully prepared +Mail::Message+
-    # ready to call <tt>:deliver</tt> on to send.
+    # ready to call +:deliver+ on to send.
     #
     # For example:
     #

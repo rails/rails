@@ -38,12 +38,12 @@ class DateTime
   end
 
   # Returns a new DateTime where one or more of the elements have been changed
-  # according to the +options+ parameter. The time options (<tt>:hour</tt>,
-  # <tt>:min</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
+  # according to the +options+ parameter. The time options (+:hour+,
+  # +:min+, +:sec+) reset cascadingly, so if only the hour is
   # passed, then minute and sec is set to 0. If the hour and minute is passed,
   # then sec is set to 0. The +options+ parameter takes a hash with any of these
-  # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>,
-  # <tt>:min</tt>, <tt>:sec</tt>, <tt>:offset</tt>, <tt>:start</tt>.
+  # keys: +:year+, +:month+, +:day+, +:hour+,
+  # +:min+, +:sec+, +:offset+, +:start+.
   #
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => DateTime.new(2012, 8, 1, 22, 35, 0)
   #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => DateTime.new(1981, 8, 1, 22, 35, 0)
@@ -72,9 +72,9 @@ class DateTime
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days.
-  # The +options+ parameter takes a hash with any of these keys: <tt>:years</tt>,
-  # <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>,
-  # <tt>:minutes</tt>, <tt>:seconds</tt>.
+  # The +options+ parameter takes a hash with any of these keys: +:years+,
+  # +:months+, +:weeks+, +:days+, +:hours+,
+  # +:minutes+, +:seconds+.
   #
   # Just like Date#advance, increments are applied in order of time units from
   # largest to smallest. This order can affect the result around the end of a

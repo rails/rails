@@ -5,7 +5,7 @@ require "ripper"
 module Rails
   # Implements the logic behind +Rails::Command::NotesCommand+. See <tt>rails notes --help</tt> for usage information.
   #
-  # Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
+  # Annotation objects are triplets +:line+, +:tag+, +:text+ that
   # represent the line where the annotation lives, its tag, and its text. Note
   # the filename is not stored.
   #
@@ -102,7 +102,7 @@ module Rails
       #
       #   [126] [TODO] This algorithm is simple and clearly correct, make it faster.
       #
-      # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
+      # If +options+ has a flag +:tag+ the tag is shown as in the example above.
       # Otherwise the string contains just line and text.
       def to_s(options = {})
         s = +"[#{line.to_s.rjust(options[:indent])}] "
@@ -116,11 +116,11 @@ module Rails
     #
     # If +tag+ is +nil+, annotations with either default or registered tags are printed.
     #
-    # Specific directories can be explicitly set using the <tt>:dirs</tt> key in +options+.
+    # Specific directories can be explicitly set using the +:dirs+ key in +options+.
     #
     #   Rails::SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
     #
-    # If +options+ has a <tt>:tag</tt> flag, it will be passed to each annotation's +to_s+.
+    # If +options+ has a +:tag+ flag, it will be passed to each annotation's +to_s+.
     #
     # See SourceAnnotationExtractor#find_in for a list of file extensions that will be taken into account.
     #

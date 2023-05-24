@@ -21,13 +21,13 @@ module ActiveRecord
     #
     # ==== Options
     #
-    # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
-    # * <tt>:name</tt> - The db config name. In a standard two-tier
+    # * +:env_name+ - The Rails environment, i.e. "development".
+    # * +:name+ - The db config name. In a standard two-tier
     #   database configuration this will default to "primary". In a multiple
     #   database three-tier database configuration this corresponds to the name
     #   used in the second tier, for example "primary_readonly".
-    # * <tt>:url</tt> - The database URL.
-    # * <tt>:config</tt> - The config hash. This is the hash that contains the
+    # * +:url+ - The database URL.
+    # * +:config+ - The config hash. This is the hash that contains the
     #   database adapter, name, and other important information for database
     #   connections.
     class UrlConfig < HashConfig

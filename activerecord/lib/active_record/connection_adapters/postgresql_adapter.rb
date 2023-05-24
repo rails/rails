@@ -38,21 +38,21 @@ module ActiveRecord
     #
     # Options:
     #
-    # * <tt>:host</tt> - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
+    # * +:host+ - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
     #   the default is to connect to localhost.
-    # * <tt>:port</tt> - Defaults to 5432.
-    # * <tt>:username</tt> - Defaults to be the same as the operating system name of the user running the application.
-    # * <tt>:password</tt> - Password to be used if the server demands password authentication.
-    # * <tt>:database</tt> - Defaults to be the same as the username.
-    # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
-    #   as a string of comma-separated schema names. This is backward-compatible with the <tt>:schema_order</tt> option.
-    # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
+    # * +:port+ - Defaults to 5432.
+    # * +:username+ - Defaults to be the same as the operating system name of the user running the application.
+    # * +:password+ - Password to be used if the server demands password authentication.
+    # * +:database+ - Defaults to be the same as the username.
+    # * +:schema_search_path+ - An optional schema search path for the connection given
+    #   as a string of comma-separated schema names. This is backward-compatible with the +:schema_order+ option.
+    # * +:encoding+ - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
-    # * <tt>:min_messages</tt> - An optional client min messages that is used in a
+    # * +:min_messages+ - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
-    # * <tt>:variables</tt> - An optional hash of additional parameters that
+    # * +:variables+ - An optional hash of additional parameters that
     #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
-    # * <tt>:insert_returning</tt> - An optional boolean to control the use of +RETURNING+ for +INSERT+ statements
+    # * +:insert_returning+ - An optional boolean to control the use of +RETURNING+ for +INSERT+ statements
     #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
@@ -464,7 +464,7 @@ module ActiveRecord
 
       # Removes an extension from the database.
       #
-      # [<tt>:force</tt>]
+      # [+:force+]
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       def disable_extension(name, force: false)

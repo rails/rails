@@ -108,7 +108,7 @@ class Date
   alias_method :-, :minus_with_duration
 
   # Provides precise Date calculations for years, months, and days. The +options+ parameter takes a hash with
-  # any of these keys: <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>.
+  # any of these keys: +:years+, +:months+, +:weeks+, +:days+.
   #
   # The increments are applied in order of time units from largest to smallest.
   # In other words, the date is incremented first by +:years+, then by
@@ -136,7 +136,7 @@ class Date
   end
 
   # Returns a new Date where one or more of the elements have been changed according to the +options+ parameter.
-  # The +options+ parameter is a hash with a combination of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>.
+  # The +options+ parameter is a hash with a combination of these keys: +:year+, +:month+, +:day+.
   #
   #   Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
   #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)

@@ -27,18 +27,18 @@ module ActionController # :nodoc:
       # download any file on your server.
       #
       # Options:
-      # * <tt>:filename</tt> - suggests a filename for the browser to use.
+      # * +:filename+ - suggests a filename for the browser to use.
       #   Defaults to <tt>File.basename(path)</tt>.
-      # * <tt>:type</tt> - specifies an HTTP content type.
+      # * +:type+ - specifies an HTTP content type.
       #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example +:json+.
-      #   If omitted, the type will be inferred from the file extension specified in <tt>:filename</tt>.
+      #   If omitted, the type will be inferred from the file extension specified in +:filename+.
       #   If no content type is registered for the extension, the default type +application/octet-stream+ will be used.
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
+      # * +:disposition+ - specifies whether the file will be shown inline or downloaded.
       #   Valid values are <tt>"inline"</tt> and <tt>"attachment"</tt> (default).
-      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
-      # * <tt>:url_based_filename</tt> - set to +true+ if you want the browser to guess the filename from
+      # * +:status+ - specifies the status code to send with the response. Defaults to 200.
+      # * +:url_based_filename+ - set to +true+ if you want the browser to guess the filename from
       #   the URL, which is necessary for i18n filenames on certain browsers
-      #   (setting <tt>:filename</tt> overrides this option).
+      #   (setting +:filename+ overrides this option).
       #
       # The default +Content-Type+ and +Content-Disposition+ headers are
       # set to download arbitrary binary files in as many browsers as
@@ -86,14 +86,14 @@ module ActionController # :nodoc:
       # the file name, and other things.
       #
       # Options:
-      # * <tt>:filename</tt> - suggests a filename for the browser to use.
-      # * <tt>:type</tt> - specifies an HTTP content type. Defaults to +application/octet-stream+.
+      # * +:filename+ - suggests a filename for the browser to use.
+      # * +:type+ - specifies an HTTP content type. Defaults to +application/octet-stream+.
       #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example +:json+.
-      #   If omitted, type will be inferred from the file extension specified in <tt>:filename</tt>.
+      #   If omitted, type will be inferred from the file extension specified in +:filename+.
       #   If no content type is registered for the extension, the default type +application/octet-stream+ will be used.
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
+      # * +:disposition+ - specifies whether the file will be shown inline or downloaded.
       #   Valid values are <tt>"inline"</tt> and <tt>"attachment"</tt> (default).
-      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to 200.
+      # * +:status+ - specifies the status code to send with the response. Defaults to 200.
       #
       # Generic data download:
       #

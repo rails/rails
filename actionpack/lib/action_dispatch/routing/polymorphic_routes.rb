@@ -26,7 +26,7 @@ module ActionDispatch
     # * +url_for+, so you can use it with a record as the argument, e.g.
     #   <tt>url_for(@article)</tt>;
     # * ActionView::Helpers::FormHelper uses +polymorphic_path+, so you can write
-    #   <tt>form_for(@article)</tt> without having to specify <tt>:url</tt> parameter for the form
+    #   <tt>form_for(@article)</tt> without having to specify +:url+ parameter for the form
     #   action;
     # * +redirect_to+ (which, in fact, uses +url_for+) so you can write
     #   <tt>redirect_to(post)</tt> in your controllers;
@@ -69,13 +69,13 @@ module ActionDispatch
       #
       # ==== Options
       #
-      # * <tt>:action</tt> - Specifies the action prefix for the named route:
-      #   <tt>:new</tt> or <tt>:edit</tt>. Default is no prefix.
-      # * <tt>:routing_type</tt> - Allowed values are <tt>:path</tt> or <tt>:url</tt>.
-      #   Default is <tt>:url</tt>.
+      # * +:action+ - Specifies the action prefix for the named route:
+      #   +:new+ or +:edit+. Default is no prefix.
+      # * +:routing_type+ - Allowed values are +:path+ or +:url+.
+      #   Default is +:url+.
       #
       # Also includes all the options from +url_for+. These include such
-      # things as <tt>:anchor</tt> or <tt>:trailing_slash</tt>. Example usage
+      # things as +:anchor+ or +:trailing_slash+. Example usage
       # is given below:
       #
       #   polymorphic_url([blog, post], anchor: 'my_anchor')

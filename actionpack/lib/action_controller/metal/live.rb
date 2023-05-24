@@ -320,12 +320,12 @@ module ActionController
     # don't want the entire file buffered in memory first. Similar to send_data, but where the data is generated live.
     #
     # Options:
-    # * <tt>:filename</tt> - suggests a filename for the browser to use.
-    # * <tt>:type</tt> - specifies an HTTP content type.
+    # * +:filename+ - suggests a filename for the browser to use.
+    # * +:type+ - specifies an HTTP content type.
     #   You can specify either a string or a symbol for a registered type with <tt>Mime::Type.register</tt>, for example :json.
-    #   If omitted, type will be inferred from the file extension specified in <tt>:filename</tt>.
+    #   If omitted, type will be inferred from the file extension specified in +:filename+.
     #   If no content type is registered for the extension, the default type 'application/octet-stream' will be used.
-    # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.
+    # * +:disposition+ - specifies whether the file will be shown inline or downloaded.
     #   Valid values are 'inline' and 'attachment' (default).
     #
     # Example of generating a csv export:

@@ -8,11 +8,11 @@ class Class
   #
   # ==== Options
   #
-  # * <tt>:instance_reader</tt> - Sets the instance reader method (defaults to true).
-  # * <tt>:instance_writer</tt> - Sets the instance writer method (defaults to true).
-  # * <tt>:instance_accessor</tt> - Sets both instance methods (defaults to true).
-  # * <tt>:instance_predicate</tt> - Sets a predicate method (defaults to true).
-  # * <tt>:default</tt> - Sets a default value for the attribute (defaults to nil).
+  # * +:instance_reader+ - Sets the instance reader method (defaults to true).
+  # * +:instance_writer+ - Sets the instance writer method (defaults to true).
+  # * +:instance_accessor+ - Sets both instance methods (defaults to true).
+  # * +:instance_predicate+ - Sets a predicate method (defaults to true).
+  # * +:default+ - Sets a default value for the attribute (defaults to nil).
   #
   # ==== Examples
   #

@@ -107,10 +107,10 @@ module ActiveRecord
       #
       # Rows are considered to be unique by every unique index on the table. Any
       # duplicate rows are skipped.
-      # Override with <tt>:unique_by</tt> (see below).
+      # Override with +:unique_by+ (see below).
       #
       # Returns an ActiveRecord::Result with its contents based on
-      # <tt>:returning</tt> (see below).
+      # +:returning+ (see below).
       #
       # ==== Options
       #
@@ -128,7 +128,7 @@ module ActiveRecord
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
       #
-      #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
+      #   To skip rows according to just one unique index pass +:unique_by+.
       #
       #   Consider a Book model where no duplicate ISBNs make sense, but if any
       #   row has an existing id, or is not unique by another unique index,
@@ -146,13 +146,13 @@ module ActiveRecord
       #   behavior.
       #
       #   To override this and force automatic setting of timestamp columns one
-      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #   way or the other, pass +:record_timestamps+:
       #
       #     record_timestamps: true  # Always set timestamps automatically
       #     record_timestamps: false # Never set timestamps automatically
       #
       # Because it relies on the index information from the database
-      # <tt>:unique_by</tt> is recommended to be paired with
+      # +:unique_by+ is recommended to be paired with
       # Active Record's schema_cache.
       #
       # ==== Example
@@ -200,7 +200,7 @@ module ActiveRecord
       # To skip duplicate rows, see #insert_all. To replace them, see #upsert_all.
       #
       # Returns an ActiveRecord::Result with its contents based on
-      # <tt>:returning</tt> (see below).
+      # +:returning+ (see below).
       #
       # ==== Options
       #
@@ -220,7 +220,7 @@ module ActiveRecord
       #   behavior.
       #
       #   To override this and force automatic setting of timestamp columns one
-      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #   way or the other, pass +:record_timestamps+:
       #
       #     record_timestamps: true  # Always set timestamps automatically
       #     record_timestamps: false # Never set timestamps automatically
@@ -262,7 +262,7 @@ module ActiveRecord
       # the attributes for a single row and must have the same keys.
       #
       # Returns an ActiveRecord::Result with its contents based on
-      # <tt>:returning</tt> (see below).
+      # +:returning+ (see below).
       #
       # By default, +upsert_all+ will update all the columns that can be updated when
       # there is a conflict. These are all the columns except primary keys, read-only
@@ -284,7 +284,7 @@ module ActiveRecord
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
       #   by every unique index on the table. Any duplicate rows are skipped.
       #
-      #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
+      #   To skip rows according to just one unique index pass +:unique_by+.
       #
       #   Consider a Book model where no duplicate ISBNs make sense, but if any
       #   row has an existing id, or is not unique by another unique index,
@@ -297,7 +297,7 @@ module ActiveRecord
       #     unique_by: :index_books_on_isbn
       #
       # Because it relies on the index information from the database
-      # <tt>:unique_by</tt> is recommended to be paired with
+      # +:unique_by+ is recommended to be paired with
       # Active Record's schema_cache.
       #
       # [:on_duplicate]
@@ -343,7 +343,7 @@ module ActiveRecord
       #   behavior.
       #
       #   To override this and force automatic setting of timestamp columns one
-      #   way or the other, pass <tt>:record_timestamps</tt>:
+      #   way or the other, pass +:record_timestamps+:
       #
       #     record_timestamps: true  # Always set timestamps automatically
       #     record_timestamps: false # Never set timestamps automatically
@@ -542,7 +542,7 @@ module ActiveRecord
       # Deletes the row with a primary key matching the +id+ argument, using an
       # SQL +DELETE+ statement, and returns the number of rows deleted. Active
       # Record objects are not instantiated, so the object's callbacks are not
-      # executed, including any <tt>:dependent</tt> association options.
+      # executed, including any +:dependent+ association options.
       #
       # You can delete multiple rows at once by passing an Array of +id+s.
       #
@@ -752,7 +752,7 @@ module ActiveRecord
     # Note that this will also delete records marked as {#readonly?}[rdoc-ref:Core#readonly?].
     #
     # To enforce the object's +before_destroy+ and +after_destroy+
-    # callbacks or any <tt>:dependent</tt> association
+    # callbacks or any +:dependent+ association
     # options, use #destroy.
     def delete
       _delete_row if persisted?
@@ -1026,7 +1026,7 @@ module ActiveRecord
     # is raised. Otherwise, in addition to the in-place modification the method
     # returns +self+ for convenience.
     #
-    # The optional <tt>:lock</tt> flag option allows you to lock the reloaded record:
+    # The optional +:lock+ flag option allows you to lock the reloaded record:
     #
     #   reload(lock: true) # reload with pessimistic locking
     #

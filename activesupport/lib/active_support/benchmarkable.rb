@@ -19,9 +19,9 @@ module ActiveSupport
     # That would add something like "Process data files (345.2ms)" to the log,
     # which you can then use to compare timings when optimizing your code.
     #
-    # You may give an optional logger level (<tt>:debug</tt>, <tt>:info</tt>,
-    # <tt>:warn</tt>, <tt>:error</tt>) as the <tt>:level</tt> option. The
-    # default logger level value is <tt>:info</tt>.
+    # You may give an optional logger level (+:debug+, +:info+,
+    # +:warn+, +:error+) as the +:level+ option. The
+    # default logger level value is +:info+.
     #
     #  <% benchmark 'Low-level files', level: :debug do %>
     #    <%= lowlevel_files_operation %>

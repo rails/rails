@@ -53,23 +53,23 @@ module ActiveModel
       # defined, which is the record to be validated.
       #
       # Configuration options:
-      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      # * +:on+ - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
+      # * +:if+ - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>).
       #   The method, proc, or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
+      # * +:unless+ - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur
       #   (e.g. <tt>unless: :skip_validation</tt>, or
       #   <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>).
       #   The method, proc, or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict.
+      # * +:strict+ - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validations#validates!</tt> for more information.
       #
       # If you pass any additional configuration options, they will be passed
@@ -133,8 +133,8 @@ module ActiveModel
     #     end
     #   end
     #
-    # Standard configuration options (<tt>:on</tt>, <tt>:if</tt> and
-    # <tt>:unless</tt>), which are available on the class version of
+    # Standard configuration options (+:on+, +:if+ and
+    # +:unless+), which are available on the class version of
     # +validates_with+, should instead be placed on the +validates+ method
     # as these are applied and tested in the callback.
     #

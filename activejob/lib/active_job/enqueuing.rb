@@ -74,10 +74,10 @@ module ActiveJob
     # Enqueues the job to be performed by the queue adapter.
     #
     # ==== Options
-    # * <tt>:wait</tt> - Enqueues the job with the specified delay
-    # * <tt>:wait_until</tt> - Enqueues the job at the time specified
-    # * <tt>:queue</tt> - Enqueues the job on the specified queue
-    # * <tt>:priority</tt> - Enqueues the job with the specified priority
+    # * +:wait+ - Enqueues the job with the specified delay
+    # * +:wait_until+ - Enqueues the job at the time specified
+    # * +:queue+ - Enqueues the job on the specified queue
+    # * +:priority+ - Enqueues the job with the specified priority
     #
     # ==== Examples
     #

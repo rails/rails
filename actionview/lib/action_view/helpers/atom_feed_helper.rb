@@ -50,14 +50,14 @@ module ActionView
       #
       # The options for atom_feed are:
       #
-      # * <tt>:language</tt>: Defaults to "en-US".
-      # * <tt>:root_url</tt>: The HTML alternative that this feed is doubling for. Defaults to / on the current host.
-      # * <tt>:url</tt>: The URL for this feed. Defaults to the current URL.
-      # * <tt>:id</tt>: The id for this feed. Defaults to "tag:localhost,2005:/posts", in this case.
-      # * <tt>:schema_date</tt>: The date at which the tag scheme for the feed was first used. A good default is the year you
+      # * +:language+: Defaults to "en-US".
+      # * +:root_url+: The HTML alternative that this feed is doubling for. Defaults to / on the current host.
+      # * +:url+: The URL for this feed. Defaults to the current URL.
+      # * +:id+: The id for this feed. Defaults to "tag:localhost,2005:/posts", in this case.
+      # * +:schema_date+: The date at which the tag scheme for the feed was first used. A good default is the year you
       #   created the feed. See http://feedvalidator.org/docs/error/InvalidTAG.html for more information. If not specified,
       #   2005 is used (as an "I don't care" value).
-      # * <tt>:instruct</tt>: Hash of XML processing instructions in the form {target => {attribute => value, }} or {target => [{attribute => value, }, ]}
+      # * +:instruct+: Hash of XML processing instructions in the form {target => {attribute => value, }} or {target => [{attribute => value, }, ]}
       #
       # Other namespaces can be added to the root element:
       #
@@ -174,11 +174,11 @@ module ActionView
         #
         # Options:
         #
-        # * <tt>:published</tt>: Time first published. Defaults to the created_at attribute on the record if one such exists.
-        # * <tt>:updated</tt>: Time of update. Defaults to the updated_at attribute on the record if one such exists.
-        # * <tt>:url</tt>: The URL for this entry or +false+ or +nil+ for not having a link tag. Defaults to the +polymorphic_url+ for the record.
-        # * <tt>:id</tt>: The ID for this entry. Defaults to "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}"
-        # * <tt>:type</tt>: The TYPE for this entry. Defaults to "text/html".
+        # * +:published+: Time first published. Defaults to the created_at attribute on the record if one such exists.
+        # * +:updated+: Time of update. Defaults to the updated_at attribute on the record if one such exists.
+        # * +:url+: The URL for this entry or +false+ or +nil+ for not having a link tag. Defaults to the +polymorphic_url+ for the record.
+        # * +:id+: The ID for this entry. Defaults to "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}"
+        # * +:type+: The TYPE for this entry. Defaults to "text/html".
         def entry(record, options = {})
           @xml.entry do
             @xml.id(options[:id] || "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}")

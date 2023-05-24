@@ -33,7 +33,7 @@ module ActiveRecord
     #
     # Options:
     #
-    # * <tt>:database</tt> - Path to the database file.
+    # * +:database+ - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
 

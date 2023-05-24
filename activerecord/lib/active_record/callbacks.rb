@@ -260,7 +260,7 @@ module ActiveRecord
   # == Debugging callbacks
   #
   # The callback chain is accessible via the <tt>_*_callbacks</tt> method on an object. Active Model \Callbacks support
-  # <tt>:before</tt>, <tt>:after</tt> and <tt>:around</tt> as values for the +kind+ property. The +kind+ property
+  # +:before+, +:after+ and +:around+ as values for the +kind+ property. The +kind+ property
   # defines what part of the chain the callback runs in.
   #
   # To find all callbacks in the +before_save+ callback chain:

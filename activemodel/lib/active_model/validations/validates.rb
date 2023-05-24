@@ -73,25 +73,25 @@ module ActiveModel
       #
       # There is also a list of options that could be used along with validators:
       #
-      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      # * +:on+ - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
+      # * +:if+ - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to determine
+      # * +:unless+ - Specifies a method, proc, or string to call to determine
       #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
-      # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.
-      # * <tt>:strict</tt> - If the <tt>:strict</tt> option is set to true
+      # * +:allow_nil+ - Skip validation if the attribute is +nil+.
+      # * +:allow_blank+ - Skip validation if the attribute is blank.
+      # * +:strict+ - If the +:strict+ option is set to true
       #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
-      #   <tt>:strict</tt> option can also be set to any other exception.
+      #   +:strict+ option can also be set to any other exception.
       #
       # Example:
       #
@@ -129,7 +129,7 @@ module ActiveModel
 
       # This method is used to define validations that cannot be corrected by end
       # users and are considered exceptional. So each validator defined with bang
-      # or <tt>:strict</tt> option set to +true+ will always raise
+      # or +:strict+ option set to +true+ will always raise
       # ActiveModel::StrictValidationFailed instead of adding error
       # when validation fails. See +validates+ for more information about
       # the validation itself.

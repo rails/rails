@@ -20,7 +20,7 @@ module ActiveModel
       # The first_name attribute must be in the object and it must be blank.
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "must be blank").
+      # * +:message+ - A custom error message (default is: "must be blank").
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.

@@ -134,7 +134,7 @@ module ActiveRecord
       # == Custom constructors and converters
       #
       # By default value objects are initialized by calling the +new+ constructor of the value
-      # class passing each of the mapped attributes, in the order specified by the <tt>:mapping</tt>
+      # class passing each of the mapped attributes, in the order specified by the +:mapping+
       # option, as arguments. If the value class doesn't support this convention then #composed_of allows
       # a custom constructor to be specified.
       #
@@ -146,7 +146,7 @@ module ActiveRecord
       # aggregated using the +NetAddr::CIDR+ value class (https://www.rubydoc.info/gems/netaddr/1.5.0/NetAddr/CIDR).
       # The constructor for the value class is called +create+ and it expects a CIDR address string as a parameter.
       # New values can be assigned to the value object using either another +NetAddr::CIDR+ object, a string
-      # or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to meet
+      # or an array. The +:constructor+ and +:converter+ options can be used to meet
       # these requirements:
       #
       #   class NetworkResource < ActiveRecord::Base
@@ -185,28 +185,28 @@ module ActiveRecord
         # <tt>composed_of :address</tt> adds +address+ and <tt>address=(new_address)</tt> methods.
         #
         # Options are:
-        # * <tt>:class_name</tt> - Specifies the class name of the association. Use it only if that name
+        # * +:class_name+ - Specifies the class name of the association. Use it only if that name
         #   can't be inferred from the part id. So <tt>composed_of :address</tt> will by default be linked
         #   to the Address class, but if the real class name is +CompanyAddress+, you'll have to specify it
         #   with this option.
-        # * <tt>:mapping</tt> - Specifies the mapping of entity attributes to attributes of the value
+        # * +:mapping+ - Specifies the mapping of entity attributes to attributes of the value
         #   object. Each mapping is represented as a key-value pair where the key is the name of the
         #   entity attribute and the value is the name of the attribute in the value object. The
         #   order in which mappings are defined determines the order in which attributes are sent to the
         #   value class constructor. The mapping can be written as a hash or as an array of pairs.
-        # * <tt>:allow_nil</tt> - Specifies that the value object will not be instantiated when all mapped
+        # * +:allow_nil+ - Specifies that the value object will not be instantiated when all mapped
         #   attributes are +nil+. Setting the value object to +nil+ has the effect of writing +nil+ to all
         #   mapped attributes.
         #   This defaults to +false+.
-        # * <tt>:constructor</tt> - A symbol specifying the name of the constructor method or a Proc that
+        # * +:constructor+ - A symbol specifying the name of the constructor method or a Proc that
         #   is called to initialize the value object. The constructor is passed all of the mapped attributes,
         #   in the order that they are defined in the <tt>:mapping option</tt>, as arguments and uses them
-        #   to instantiate a <tt>:class_name</tt> object.
-        #   The default is <tt>:new</tt>.
-        # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt>
+        #   to instantiate a +:class_name+ object.
+        #   The default is +:new+.
+        # * +:converter+ - A symbol specifying the name of a class method of +:class_name+
         #   or a Proc that is called when a new value is assigned to the value object. The converter is
         #   passed the single value that is used in the assignment and is only called if the new value is
-        #   not an instance of <tt>:class_name</tt>. If <tt>:allow_nil</tt> is set to true, the converter
+        #   not an instance of +:class_name+. If +:allow_nil+ is set to true, the converter
         #   can return +nil+ to skip the assignment.
         #
         # Option examples:

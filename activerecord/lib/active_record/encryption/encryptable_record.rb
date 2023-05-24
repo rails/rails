@@ -18,11 +18,11 @@ module ActiveRecord
         #
         # === Options
         #
-        # * <tt>:key_provider</tt> - A key provider to provide encryption and decryption keys. Defaults to
+        # * +:key_provider+ - A key provider to provide encryption and decryption keys. Defaults to
         #   +ActiveRecord::Encryption.key_provider+.
-        # * <tt>:key</tt> - A password to derive the key from. It's a shorthand for a +:key_provider+ that
+        # * +:key+ - A password to derive the key from. It's a shorthand for a +:key_provider+ that
         #   serves derivated keys. Both options can't be used at the same time.
-        # * <tt>:deterministic</tt> - By default, encryption is not deterministic. It will use a random
+        # * +:deterministic+ - By default, encryption is not deterministic. It will use a random
         #   initialization vector for each encryption operation. This means that encrypting the same content
         #   with the same key twice will generate different ciphertexts. When set to +true+, it will generate the
         #   initialization vector based on the encrypted content. This means that the same content will generate
@@ -30,16 +30,16 @@ module ActiveRecord
         #   will use the oldest encryption scheme to encrypt new data by default. You can change this by setting
         #   +deterministic: { fixed: false }+. That will make it use the newest encryption scheme for encrypting new
         #   data.
-        # * <tt>:downcase</tt> - When true, it converts the encrypted content to downcase automatically. This allows to
+        # * +:downcase+ - When true, it converts the encrypted content to downcase automatically. This allows to
         #   effectively ignore case when querying data. Notice that the case is lost. Use +:ignore_case+ if you are interested
         #   in preserving it.
-        # * <tt>:ignore_case</tt> - When true, it behaves like +:downcase+ but, it also preserves the original case in a specially
+        # * +:ignore_case+ - When true, it behaves like +:downcase+ but, it also preserves the original case in a specially
         #   designated column +original_<name>+. When reading the encrypted content, the version with the original case is
         #   served. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
         #   is true.
-        # * <tt>:context_properties</tt> - Additional properties that will override +Context+ settings when this attribute is
+        # * +:context_properties+ - Additional properties that will override +Context+ settings when this attribute is
         #   encrypted and decrypted. E.g: +encryptor:+, +cipher:+, +message_serializer:+, etc.
-        # * <tt>:previous</tt> - List of previous encryption schemes. When provided, they will be used in order when trying to read
+        # * +:previous+ - List of previous encryption schemes. When provided, they will be used in order when trying to read
         #   the attribute. Each entry of the list can contain the properties supported by #encrypts. Also, when deterministic
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)

@@ -12,7 +12,7 @@ module ActionView
       #   </head>
       #
       # These are used to generate the dynamic forms that implement non-remote links with
-      # <tt>:method</tt>.
+      # +:method+.
       #
       # You don't need to use these tags for regular forms as they generate their own hidden fields.
       #

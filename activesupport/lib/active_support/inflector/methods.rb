@@ -22,7 +22,7 @@ module ActiveSupport
     #
     # If passed an optional +locale+ parameter, the word will be
     # pluralized using rules defined for that language. By default,
-    # this parameter is set to <tt>:en</tt>.
+    # this parameter is set to +:en+.
     #
     #   pluralize('post')             # => "posts"
     #   pluralize('octopus')          # => "octopi"
@@ -39,7 +39,7 @@ module ActiveSupport
     #
     # If passed an optional +locale+ parameter, the word will be
     # singularized using rules defined for that language. By default,
-    # this parameter is set to <tt>:en</tt>.
+    # this parameter is set to +:en+.
     #
     #   singularize('posts')            # => "post"
     #   singularize('octopi')           # => "octopus"

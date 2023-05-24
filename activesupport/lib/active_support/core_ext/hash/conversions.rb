@@ -22,20 +22,20 @@ class Hash
   # To do so, the method loops over the pairs and builds nodes that depend on
   # the _values_. Given a pair +key+, +value+:
   #
-  # * If +value+ is a hash there's a recursive call with +key+ as <tt>:root</tt>.
+  # * If +value+ is a hash there's a recursive call with +key+ as +:root+.
   #
-  # * If +value+ is an array there's a recursive call with +key+ as <tt>:root</tt>,
-  #   and +key+ singularized as <tt>:children</tt>.
+  # * If +value+ is an array there's a recursive call with +key+ as +:root+,
+  #   and +key+ singularized as +:children+.
   #
   # * If +value+ is a callable object it must expect one or two arguments. Depending
   #   on the arity, the callable is invoked with the +options+ hash as first argument
-  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The
+  #   with +key+ as +:root+, and +key+ singularized as second argument. The
   #   callable can add nodes by using <tt>options[:builder]</tt>.
   #
   #     {foo: lambda { |options, key| options[:builder].b(key) }}.to_xml
   #     # => "<b>foo</b>"
   #
-  # * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
+  # * If +value+ responds to +to_xml+ the method is invoked with +key+ as +:root+.
   #
   #     class Foo
   #       def to_xml(options)
@@ -51,7 +51,7 @@ class Hash
   #
   # * Otherwise, a node with +key+ as tag is created with a string representation of
   #   +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added.
-  #   Unless the option <tt>:skip_types</tt> exists and is true, an attribute "type" is
+  #   Unless the option +:skip_types+ exists and is true, an attribute "type" is
   #   added as well according to the following mapping:
   #
   #     XML_TYPE_NAMES = {
@@ -66,11 +66,11 @@ class Hash
   #       "Time"       => "dateTime"
   #     }
   #
-  # By default the root node is "hash", but that's configurable via the <tt>:root</tt> option.
+  # By default the root node is "hash", but that's configurable via the +:root+ option.
   #
   # The default XML builder is a fresh instance of +Builder::XmlMarkup+. You can
-  # configure your own builder with the <tt>:builder</tt> option. The method also accepts
-  # options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
+  # configure your own builder with the +:builder+ option. The method also accepts
+  # options like +:dasherize+ and friends, they are forwarded to the builder.
   def to_xml(options = {})
     require "active_support/builder" unless defined?(Builder::XmlMarkup)
 

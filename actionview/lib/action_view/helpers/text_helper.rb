@@ -64,15 +64,15 @@ module ActionView
         output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
       end
 
-      # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>
-      # (defaults to 30). The last characters will be replaced with the <tt>:omission</tt> (defaults to "...")
-      # for a total length not exceeding <tt>:length</tt>.
+      # Truncates a given +text+ after a given +:length+ if +text+ is longer than +:length+
+      # (defaults to 30). The last characters will be replaced with the +:omission+ (defaults to "...")
+      # for a total length not exceeding +:length+.
       #
-      # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
+      # Pass a +:separator+ to truncate +text+ at a natural break.
       #
       # Pass a block if you want to show extra content when the text is truncated.
       #
-      # The result is marked as HTML-safe, but it is escaped by default, unless <tt>:escape</tt> is
+      # The result is marked as HTML-safe, but it is escaped by default, unless +:escape+ is
       # +false+. Care should be taken if +text+ contains HTML tags or entities, because truncation
       # may produce invalid HTML (such as unbalanced or incomplete tags).
       #
@@ -108,11 +108,11 @@ module ActionView
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
-      # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
+      # a +:highlighter+ string. The highlighter can be specialized by passing +:highlighter+
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
       # <tt><mark>\1</mark></tt>) or passing a block that receives each matched term. By default +text+
       # is sanitized to prevent possible XSS attacks. If the input is trustworthy, passing false
-      # for <tt>:sanitize</tt> will turn sanitizing off.
+      # for +:sanitize+ will turn sanitizing off.
       #
       #   highlight('You searched for: rails', 'rails')
       #   # => You searched for: <mark>rails</mark>
@@ -157,10 +157,10 @@ module ActionView
       end
 
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
-      # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
-      # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
-      # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
+      # The +:radius+ option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
+      # defined in +:radius+ (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
+      # then the +:omission+ option (which defaults to "...") will be prepended/appended accordingly. Use the
+      # +:separator+ option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
       # isn't found, +nil+ is returned.
       #
       #   excerpt('This is an example', 'an', radius: 5)
@@ -290,8 +290,8 @@ module ActionView
       # will be added to all created paragraphs.
       #
       # ==== Options
-      # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
-      # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
+      # * +:sanitize+ - If +false+, does not sanitize +text+.
+      # * +:wrapper_tag+ - String representing the wrapper tag, defaults to <tt>"p"</tt>
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
@@ -333,7 +333,7 @@ module ActionView
       # Creates a Cycle object whose _to_s_ method cycles through elements of an
       # array every time it is called. This can be used for example, to alternate
       # classes for table rows. You can use named cycles to allow nesting in loops.
-      # Passing a Hash as the last parameter with a <tt>:name</tt> key will create a
+      # Passing a Hash as the last parameter with a +:name+ key will create a
       # named cycle. The default name for a cycle without a +:name+ key is
       # <tt>"default"</tt>. You can manually reset a cycle by calling reset_cycle
       # and passing the name of the cycle. The current cycle string can be obtained

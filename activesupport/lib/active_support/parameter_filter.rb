@@ -73,7 +73,7 @@ module ActiveSupport
     #
     # ==== Options
     #
-    # * <tt>:mask</tt> - A replaced object when filtered. Defaults to <tt>"[FILTERED]"</tt>.
+    # * +:mask+ - A replaced object when filtered. Defaults to <tt>"[FILTERED]"</tt>.
     def initialize(filters = [], mask: FILTERED)
       @mask = mask
       compile_filters!(filters)

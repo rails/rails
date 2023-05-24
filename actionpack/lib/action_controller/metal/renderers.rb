@@ -24,7 +24,7 @@ module ActionController
     extend ActiveSupport::Concern
 
     # A Set containing renderer names that correspond to available renderer procs.
-    # Default values are <tt>:json</tt>, <tt>:js</tt>, <tt>:xml</tt>.
+    # Default values are +:json+, +:js+, +:xml+.
     RENDERERS = Set.new
 
     included do
@@ -108,7 +108,7 @@ module ActionController
       #
       # Rather than including ActionController::Renderers::All and including all renderers,
       # you may specify which renderers to include by passing the renderer name or names to
-      # +use_renderers+. For example, a controller that includes only the <tt>:json</tt> renderer
+      # +use_renderers+. For example, a controller that includes only the +:json+ renderer
       # (+_render_with_renderer_json+) might look like:
       #
       #   class MetalRenderingController < ActionController::Metal

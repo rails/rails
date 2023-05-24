@@ -269,7 +269,7 @@ module ActiveRecord
         sql
       end
 
-      # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
+      # Create a new MySQL database with optional +:charset+ and +:collation+.
       # Charset defaults to utf8mb4.
       #
       # Example:
@@ -341,13 +341,13 @@ module ActiveRecord
 
       # Drops a table from the database.
       #
-      # [<tt>:force</tt>]
+      # [+:force+]
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
-      # [<tt>:if_exists</tt>]
+      # [+:if_exists+]
       #   Set to +true+ to only drop the table if it exists.
       #   Defaults to false.
-      # [<tt>:temporary</tt>]
+      # [+:temporary+]
       #   Set to +true+ to drop temporary table.
       #   Defaults to false.
       #

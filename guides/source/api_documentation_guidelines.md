@@ -299,11 +299,11 @@ When "true" and "false" are English words rather than Ruby keywords use a regula
 # Returns true if no errors are found, false otherwise.
 #
 # If the argument is false (default is +nil+), the context is
-# set to <tt>:create</tt> if <tt>new_record?</tt> is true,
-# and to <tt>:update</tt> if it is not.
+# set to +:create+ if <tt>new_record?</tt> is true,
+# and to +:update+ if it is not.
 #
-# Validations with no <tt>:on</tt> option will run no
-# matter the context. Validations with # some <tt>:on</tt>
+# Validations with no +:on+ option will run no
+# matter the context. Validations with # some +:on+
 # option will only run in the specified context.
 def valid?(context = nil)
   # ...
@@ -316,7 +316,7 @@ Description Lists
 In lists of options, parameters, etc. use a hyphen between the item and its description (reads better than a colon because normally options are symbols):
 
 ```ruby
-# * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
+# * +:allow_nil+ - Skip validation if attribute is +nil+.
 ```
 
 The description starts in upper case and ends with a full stop—it's standard English.

@@ -178,7 +178,7 @@ module Rails
   # There are some places where an Engine's name is used:
   #
   # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
-  #   it's used as default <tt>:as</tt> option
+  #   it's used as default +:as+ option
   # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
   # Engine name is set by default based on class name. For +MyEngine::Engine+ it will be
@@ -285,7 +285,7 @@ module Rails
   #     end
   #   end
   #
-  # Note that the <tt>:as</tt> option given to mount takes the +engine_name+ as default, so most of the time
+  # Note that the +:as+ option given to mount takes the +engine_name+ as default, so most of the time
   # you can simply omit it.
   #
   # Finally, if you want to generate a URL to an engine's route using

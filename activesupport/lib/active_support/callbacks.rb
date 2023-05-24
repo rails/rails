@@ -743,7 +743,7 @@ module ActiveSupport
         #
         # The callback can be specified as a symbol naming an instance method; as a
         # proc, lambda, or block; or as an object that responds to a certain method
-        # determined by the <tt>:scope</tt> argument to +define_callbacks+.
+        # determined by the +:scope+ argument to +define_callbacks+.
         #
         # If a proc, lambda, or block is given, its body is evaluated in the context
         # of the current object. It can also optionally accept the current object as
@@ -757,21 +757,21 @@ module ActiveSupport
         #
         # ===== Options
         #
-        # * <tt>:if</tt> - A symbol or an array of symbols, each naming an instance
+        # * +:if+ - A symbol or an array of symbols, each naming an instance
         #   method or a proc; the callback will be called only when they all return
         #   a true value.
         #
         #   If a proc is given, its body is evaluated in the context of the
         #   current object. It can also optionally accept the current object as
         #   an argument.
-        # * <tt>:unless</tt> - A symbol or an array of symbols, each naming an
+        # * +:unless+ - A symbol or an array of symbols, each naming an
         #   instance method or a proc; the callback will be called only when they
         #   all return a false value.
         #
         #   If a proc is given, its body is evaluated in the context of the
         #   current object. It can also optionally accept the current object as
         #   an argument.
-        # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
+        # * +:prepend+ - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
@@ -787,8 +787,8 @@ module ActiveSupport
           end
         end
 
-        # Skip a previously set callback. Like +set_callback+, <tt>:if</tt> or
-        # <tt>:unless</tt> options may be passed in order to control when the
+        # Skip a previously set callback. Like +set_callback+, +:if+ or
+        # +:unless+ options may be passed in order to control when the
         # callback is skipped.
         #
         #   class Writer < PersonRecord
@@ -818,7 +818,7 @@ module ActiveSupport
         #   saved
         #
         # An +ArgumentError+ will be raised if the callback has not
-        # already been set (unless the <tt>:raise</tt> option is set to +false+).
+        # already been set (unless the +:raise+ option is set to +false+).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
 
@@ -863,7 +863,7 @@ module ActiveSupport
         #
         # ===== Options
         #
-        # * <tt>:terminator</tt> - Determines when a before filter will halt the
+        # * +:terminator+ - Determines when a before filter will halt the
         #   callback chain, preventing following before and around callbacks from
         #   being called and the event from being triggered.
         #   This should be a lambda to be executed.
@@ -877,13 +877,13 @@ module ActiveSupport
         #
         #   The default terminator halts the chain when a callback throws +:abort+.
         #
-        # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
-        #   callbacks should be terminated by the <tt>:terminator</tt> option. By
+        # * +:skip_after_callbacks_if_terminated+ - Determines if after
+        #   callbacks should be terminated by the +:terminator+ option. By
         #   default after callbacks are executed no matter if callback chain was
-        #   terminated or not. This option has no effect if <tt>:terminator</tt>
+        #   terminated or not. This option has no effect if +:terminator+
         #   option is set to +nil+.
         #
-        # * <tt>:scope</tt> - Indicates which methods should be executed when an
+        # * +:scope+ - Indicates which methods should be executed when an
         #   object is used as a callback.
         #
         #     class Audit

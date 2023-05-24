@@ -51,20 +51,20 @@ module ActionView
       # When the last parameter is a hash you can add HTML attributes using that
       # parameter. This includes but is not limited to the following options:
       #
-      # * <tt>:extname</tt>  - Append an extension to the generated URL unless the extension
+      # * +:extname+  - Append an extension to the generated URL unless the extension
       #   already exists. This only applies for relative URLs.
-      # * <tt>:protocol</tt>  - Sets the protocol of the generated URL. This option only
+      # * +:protocol+  - Sets the protocol of the generated URL. This option only
       #   applies when a relative URL and +host+ options are provided.
-      # * <tt>:host</tt>  - When a relative URL is provided the host is added to the
+      # * +:host+  - When a relative URL is provided the host is added to the
       #   that path.
-      # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
+      # * +:skip_pipeline+  - This option is used to bypass the asset pipeline
       #   when it is set to true.
-      # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
+      # * +:nonce+  - When set to true, adds an automatic nonce value if
       #   you have Content Security Policy enabled.
-      # * <tt>:async</tt>  - When set to +true+, adds the +async+ HTML
+      # * +:async+  - When set to +true+, adds the +async+ HTML
       #   attribute, allowing the script to be fetched in parallel to be parsed
       #   and evaluated as soon as possible.
-      # * <tt>:defer</tt>  - When set to +true+, adds the +defer+ HTML
+      # * +:defer+  - When set to +true+, adds the +defer+ HTML
       #   attribute, which indicates to the browser that the script is meant to
       #   be executed after the document has been parsed. Additionally, prevents
       #   sending the Preload Links header.
@@ -72,7 +72,7 @@ module ActionView
       # Any other specified options will be treated as HTML attributes for the
       # +script+ tag.
       #
-      # For more information regarding how the <tt>:async</tt> and <tt>:defer</tt>
+      # For more information regarding how the +:async+ and +:defer+
       # options affect the <tt><script></tt> tag, please refer to the
       # {MDN docs}[https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script].
       #
@@ -157,13 +157,13 @@ module ActionView
       #
       # ==== Options
       #
-      # * <tt>:extname</tt>  - Append an extension to the generated URL unless the extension
+      # * +:extname+  - Append an extension to the generated URL unless the extension
       #   already exists. This only applies for relative URLs.
-      # * <tt>:protocol</tt>  - Sets the protocol of the generated URL. This option only
+      # * +:protocol+  - Sets the protocol of the generated URL. This option only
       #   applies when a relative URL and +host+ options are provided.
-      # * <tt>:host</tt>  - When a relative URL is provided the host is added to the
+      # * +:host+  - When a relative URL is provided the host is added to the
       #   that path.
-      # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
+      # * +:skip_pipeline+  - This option is used to bypass the asset pipeline
       #   when it is set to true.
       #
       # ==== Examples
@@ -228,15 +228,15 @@ module ActionView
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
-      # an RSS, Atom, or JSON feed. The +type+ can be <tt>:rss</tt> (default),
-      # <tt>:atom</tt>, or <tt>:json</tt>. Control the link options in url_for format
+      # an RSS, Atom, or JSON feed. The +type+ can be +:rss+ (default),
+      # +:atom+, or +:json+. Control the link options in url_for format
       # using the +url_options+. You can modify the LINK tag itself in +tag_options+.
       #
       # ==== Options
       #
-      # * <tt>:rel</tt>  - Specify the relation of this link, defaults to "alternate"
-      # * <tt>:type</tt>  - Override the auto-generated mime type
-      # * <tt>:title</tt>  - Specify the title of the link, defaults to the +type+
+      # * +:rel+  - Specify the relation of this link, defaults to "alternate"
+      # * +:type+  - Override the auto-generated mime type
+      # * +:title+  - Specify the title of the link, defaults to the +type+
       #
       # ==== Examples
       #
@@ -309,11 +309,11 @@ module ActionView
       #
       # ==== Options
       #
-      # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to the mime type for +source+ extension.
-      # * <tt>:as</tt>  - Override the auto-generated value for as attribute, calculated using +source+ extension and mime type.
-      # * <tt>:crossorigin</tt>  - Specify the crossorigin attribute, required to load cross-origin resources.
-      # * <tt>:nopush</tt>  - Specify if the use of server push is not desired for the resource. Defaults to +false+.
-      # * <tt>:integrity</tt> - Specify the integrity attribute.
+      # * +:type+  - Override the auto-generated mime type, defaults to the mime type for +source+ extension.
+      # * +:as+  - Override the auto-generated value for as attribute, calculated using +source+ extension and mime type.
+      # * +:crossorigin+  - Specify the crossorigin attribute, required to load cross-origin resources.
+      # * +:nopush+  - Specify if the use of server push is not desired for the resource. Defaults to +false+.
+      # * +:integrity+ - Specify the integrity attribute.
       #
       # ==== Examples
       #
@@ -376,10 +376,10 @@ module ActionView
       # You can add HTML attributes using the +options+. The +options+ supports
       # additional keys for convenience and conformance:
       #
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
+      # * +:size+ - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
-      #   <tt>:size</tt> will be ignored if the value is not in the correct format.
-      # * <tt>:srcset</tt> - If supplied as a hash or array of <tt>[source, descriptor]</tt>
+      #   +:size+ will be ignored if the value is not in the correct format.
+      # * +:srcset+ - If supplied as a hash or array of <tt>[source, descriptor]</tt>
       #   pairs, each image path will be expanded before the list is formatted as a string.
       #
       # ==== Examples
@@ -449,7 +449,7 @@ module ActionView
       # When the last parameter is a hash you can add HTML attributes using that
       # parameter. Apart from all the HTML supported options, the following are supported:
       #
-      # * <tt>:image</tt> - Hash of options that are passed directly to the +image_tag+ helper.
+      # * +:image+ - Hash of options that are passed directly to the +image_tag+ helper.
       #
       # ==== Examples
       #
@@ -507,13 +507,13 @@ module ActionView
       # When the last parameter is a hash you can add HTML attributes using that
       # parameter. The following options are supported:
       #
-      # * <tt>:poster</tt> - Set an image (like a screenshot) to be shown
+      # * +:poster+ - Set an image (like a screenshot) to be shown
       #   before the video loads. The path is calculated like the +src+ of +image_tag+.
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
+      # * +:size+ - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
-      #   <tt>:size</tt> will be ignored if the value is not in the correct format.
-      # * <tt>:poster_skip_pipeline</tt> will bypass the asset pipeline when using
-      #   the <tt>:poster</tt> option instead using an asset in the public folder.
+      #   +:size+ will be ignored if the value is not in the correct format.
+      # * +:poster_skip_pipeline+ will bypass the asset pipeline when using
+      #   the +:poster+ option instead using an asset in the public folder.
       #
       # ==== Examples
       #

@@ -7,18 +7,18 @@ module ActionView
     # Returns the URL for the set of +options+ provided. This takes the
     # same options as +url_for+ in Action Controller (see the
     # documentation for ActionDispatch::Routing::UrlFor#url_for). Note that by default
-    # <tt>:only_path</tt> is +true+ so you'll get the relative <tt>"/controller/action"</tt>
+    # +:only_path+ is +true+ so you'll get the relative <tt>"/controller/action"</tt>
     # instead of the fully qualified URL like <tt>"http://example.com/controller/action"</tt>.
     #
     # ==== Options
-    # * <tt>:anchor</tt> - Specifies the anchor name to be appended to the path.
-    # * <tt>:only_path</tt> - If true, returns the relative URL (omitting the protocol, host name, and port) (+true+ by default unless <tt>:host</tt> is specified).
-    # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in <tt>"/archive/2005/"</tt>. Note that this
+    # * +:anchor+ - Specifies the anchor name to be appended to the path.
+    # * +:only_path+ - If true, returns the relative URL (omitting the protocol, host name, and port) (+true+ by default unless +:host+ is specified).
+    # * +:trailing_slash+ - If true, adds a trailing slash, as in <tt>"/archive/2005/"</tt>. Note that this
     #   is currently not recommended since it breaks caching.
-    # * <tt>:host</tt> - Overrides the default (current) host if provided.
-    # * <tt>:protocol</tt> - Overrides the default (current) protocol if provided.
-    # * <tt>:user</tt> - Inline HTTP authentication (only plucked out if <tt>:password</tt> is also present).
-    # * <tt>:password</tt> - Inline HTTP authentication (only plucked out if <tt>:user</tt> is also present).
+    # * +:host+ - Overrides the default (current) host if provided.
+    # * +:protocol+ - Overrides the default (current) protocol if provided.
+    # * +:user+ - Inline HTTP authentication (only plucked out if +:password+ is also present).
+    # * +:password+ - Inline HTTP authentication (only plucked out if +:user+ is also present).
     #
     # ==== Relying on named routes
     #

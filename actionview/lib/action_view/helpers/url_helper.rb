@@ -66,7 +66,7 @@ module ActionView
       # Creates an anchor element of the given +name+ using a URL created by the set of +options+.
       # See the valid options in the documentation for +url_for+. It's also possible to
       # pass a \String instead of an options hash, which generates an anchor element that uses the
-      # value of the \String as the href for the link. Using a <tt>:back</tt> \Symbol instead
+      # value of the \String as the href for the link. Using a +:back+ \Symbol instead
       # of an options hash will generate a link to the referrer (a JavaScript back link
       # will be used in place of a referrer if none exists). If +nil+ is passed as the name
       # the value of the link itself will become the name.
@@ -91,7 +91,7 @@ module ActionView
       #   link_to(active_record_model)
       #
       # ==== Options
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
+      # * +:data+ - This option can be used to add custom data attributes.
       #
       # ==== Examples
       #
@@ -182,7 +182,7 @@ module ActionView
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
-      #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
+      #   while spidering your site). Supported verbs are +:post+, +:delete+, +:patch+, and +:put+.
       #   Note that if the user has JavaScript disabled, the request will fall back
       #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
@@ -198,7 +198,7 @@ module ActionView
       #   to prompt with the question specified (in this case, the
       #   resulting text would be <tt>question?</tt>). If the user accepts, the
       #   link is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be used as the
+      # * +:disable_with+ - Value of this parameter will be used as the
       #   name for a disabled version of the link.
       #
       # ===== Rails UJS Examples
@@ -225,7 +225,7 @@ module ActionView
       # by the set of +options+. This is the safest method to ensure links that
       # cause changes to your data are not triggered by search bots or accelerators.
       # If the HTML button does not work with your layout, you can also consider
-      # using the +link_to+ method with the <tt>:method</tt> modifier as described in
+      # using the +link_to+ method with the +:method+ modifier as described in
       # the +link_to+ documentation.
       #
       # You can control the form and button behavior with +html_options+. Most
@@ -254,14 +254,14 @@ module ActionView
       # Most values in +html_options+ are passed through to the button element,
       # but there are a few special options:
       #
-      # * <tt>:method</tt> - \Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
-      #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
-      # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:form</tt> - This hash will be form attributes
-      # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
+      # * +:method+ - \Symbol of HTTP verb. Supported verbs are +:post+, +:get+,
+      #   +:delete+, +:patch+, and +:put+. By default it will be +:post+.
+      # * +:disabled+ - If set to true, it will generate a disabled button.
+      # * +:data+ - This option can be used to add custom data attributes.
+      # * +:form+ - This hash will be form attributes
+      # * +:form_class+ - This controls the class of the form within which the submit button will
       #   be placed
-      # * <tt>:params</tt> - \Hash of parameters to be rendered as hidden fields within the form.
+      # * +:params+ - \Hash of parameters to be rendered as hidden fields within the form.
       #
       # ==== Examples
       #   <%= button_to "New", action: "new" %>
@@ -310,7 +310,7 @@ module ActionView
       # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
-      # * <tt>:remote</tt> -  If set to true, will allow <tt>@rails/ujs</tt> to control the
+      # * +:remote+ -  If set to true, will allow <tt>@rails/ujs</tt> to control the
       #   submit behavior. By default this behavior is an Ajax submit.
       #
       # <tt>@rails/ujs</tt> also integrated with the following +:data+ options:
@@ -319,7 +319,7 @@ module ActionView
       #   to prompt with the question specified (in this case, the
       #   resulting text would be <tt>question?</tt>). If the user accepts, the
       #   button is processed normally, otherwise no action is taken.
-      # * <tt>:disable_with</tt> - Value of this parameter will be
+      # * +:disable_with+ - Value of this parameter will be
       #   used as the value for a disabled version of the submit
       #   button when the form is submitted.
       #
@@ -492,11 +492,11 @@ module ActionView
       # passing special keys to +html_options+.
       #
       # ==== Options
-      # * <tt>:subject</tt> - Preset the subject line of the email.
-      # * <tt>:body</tt> - Preset the body of the email.
-      # * <tt>:cc</tt> - Carbon Copy additional recipients on the email.
-      # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
-      # * <tt>:reply_to</tt> - Preset the +Reply-To+ field of the email.
+      # * +:subject+ - Preset the subject line of the email.
+      # * +:body+ - Preset the body of the email.
+      # * +:cc+ - Carbon Copy additional recipients on the email.
+      # * +:bcc+ - Blind Carbon Copy additional recipients on the email.
+      # * +:reply_to+ - Preset the +Reply-To+ field of the email.
       #
       # ==== Obfuscation
       # Prior to Rails 4.0, +mail_to+ provided options for encoding the address
@@ -642,8 +642,8 @@ module ActionView
       # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
-      # * <tt>:country_code</tt> - Prepend the country code to the phone number.
-      # * <tt>:body</tt> - Preset the body of the message.
+      # * +:country_code+ - Prepend the country code to the phone number.
+      # * +:body+ - Preset the body of the message.
       #
       # ==== Examples
       #   sms_to "5155555785"
@@ -697,7 +697,7 @@ module ActionView
       # Additional HTML attributes for the link can be passed via +html_options+.
       #
       # ==== Options
-      # * <tt>:country_code</tt> - Prepends the country code to the phone number
+      # * +:country_code+ - Prepends the country code to the phone number
       #
       # ==== Examples
       #   phone_to "1234567890"

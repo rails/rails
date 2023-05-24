@@ -214,7 +214,7 @@ module ActiveModel
     end
 
     # Returns a Hash that can be used as the JSON representation for this
-    # object. You can pass the <tt>:full_messages</tt> option. This determines
+    # object. You can pass the +:full_messages+ option. This determines
     # if the JSON object should contain full messages or not (false by default).
     #
     #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
@@ -267,7 +267,7 @@ module ActiveModel
 
     # Adds a new error of +type+ on +attribute+.
     # More than one error can be added to the same +attribute+.
-    # If no +type+ is supplied, <tt>:invalid</tt> is assumed.
+    # If no +type+ is supplied, +:invalid+ is assumed.
     #
     #   person.errors.add(:name)
     #   # Adds <#ActiveModel::Error attribute=name, type=invalid>
@@ -294,9 +294,9 @@ module ActiveModel
     # If +type+ is a proc, it will be called, allowing for things like
     # <tt>Time.now</tt> to be used within an error.
     #
-    # If the <tt>:strict</tt> option is set to +true+, it will raise
+    # If the +:strict+ option is set to +true+, it will raise
     # ActiveModel::StrictValidationFailed instead of adding the error.
-    # <tt>:strict</tt> option can also be set to any other exception.
+    # +:strict+ option can also be set to any other exception.
     #
     #   person.errors.add(:name, :invalid, strict: true)
     #   # => ActiveModel::StrictValidationFailed: Name is invalid
@@ -305,7 +305,7 @@ module ActiveModel
     #
     #   person.errors.messages # => {}
     #
-    # +attribute+ should be set to <tt>:base</tt> if the error is not
+    # +attribute+ should be set to +:base+ if the error is not
     # directly associated with a single attribute.
     #
     #   person.errors.add(:base, :name_or_email_blank,
@@ -440,7 +440,7 @@ module ActiveModel
     # When using inheritance in your models, it will check all the inherited
     # models too, but only if the model itself hasn't been found. Say you have
     # <tt>class Admin < User; end</tt> and you wanted the translation for
-    # the <tt>:blank</tt> error message for the +title+ attribute,
+    # the +:blank+ error message for the +title+ attribute,
     # it looks for these translations:
     #
     # * <tt>activemodel.errors.models.admin.attributes.title.blank</tt>

@@ -172,7 +172,7 @@ module ActionView
   #
   # If you have a layout that by default is applied to all the actions of a controller, you still have the option of rendering
   # a given action or set of actions without a layout, or restricting a layout to only a single action or a set of actions. The
-  # <tt>:only</tt> and <tt>:except</tt> options can be passed to the layout call. For example:
+  # +:only+ and +:except+ options can be passed to the layout call. For example:
   #
   #   class WeblogController < ActionController::Base
   #     layout "weblog_standard", except: :rss
@@ -184,14 +184,14 @@ module ActionView
   # This will assign "weblog_standard" as the WeblogController's layout for all actions except for the +rss+ action, which will
   # be rendered directly, without wrapping a layout around the rendered view.
   #
-  # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so
+  # Both the +:only+ and +:except+ condition can accept an arbitrary number of method references, so
   # <tt>except: [ :rss, :text_only ]</tt> is valid, as is <tt>except: :rss</tt>.
   #
   # == Using a different layout in the action render call
   #
   # If most of your actions use the same layout, it makes perfect sense to define a controller-wide layout as described above.
   # Sometimes you'll have exceptions where one action wants to use a different layout than the rest of the controller.
-  # You can do this by passing a <tt>:layout</tt> option to the +render+ call. For example:
+  # You can do this by passing a +:layout+ option to the +render+ call. For example:
   #
   #   class WeblogController < ActionController::Base
   #     layout "weblog_standard"

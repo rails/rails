@@ -17,8 +17,8 @@ module ActiveRecord
 
       # === Options
       #
-      # * <tt>:scheme</tt> - A +Scheme+ with the encryption properties for this attribute.
-      # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize
+      # * +:scheme+ - A +Scheme+ with the encryption properties for this attribute.
+      # * +:cast_type+ - A type that will be used to serialize (before encrypting) and deserialize
       #   (after decrypting). ActiveModel::Type::String by default.
       def initialize(scheme:, cast_type: ActiveModel::Type::String.new, previous_type: false, default: nil)
         super()

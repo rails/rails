@@ -248,8 +248,8 @@ module ActiveRecord # :nodoc:
   # * ActiveRecordError - Generic error class and superclass of all other errors raised by Active Record.
   # * AdapterNotSpecified - The configuration hash used in
   #   {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection]
-  #   didn't include an <tt>:adapter</tt> key.
-  # * AdapterNotFound - The <tt>:adapter</tt> key used in
+  #   didn't include an +:adapter+ key.
+  # * AdapterNotFound - The +:adapter+ key used in
   #   {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection]
   #   specified a non-existent adapter
   #   (or a bad spelling of an existing one).

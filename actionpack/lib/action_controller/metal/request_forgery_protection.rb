@@ -35,12 +35,12 @@ module ActionController # :nodoc:
   # Ajax) requests are allowed to make requests for JavaScript responses.
   #
   # Subclasses of ActionController::Base are protected by default with the
-  # <tt>:exception</tt> strategy, which raises an
+  # +:exception+ strategy, which raises an
   # ActionController::InvalidAuthenticityToken error on unverified requests.
   #
   # APIs may want to disable this behavior since they are typically designed to be
   # state-less: that is, the request API client handles the session instead of Rails.
-  # One way to achieve this is to use the <tt>:null_session</tt> strategy instead,
+  # One way to achieve this is to use the +:null_session+ strategy instead,
   # which allows unverified requests to be handled, but with an empty session:
   #
   #   class ApplicationController < ActionController::Base
@@ -66,7 +66,7 @@ module ActionController # :nodoc:
 
     included do
       # Sets the token parameter name for RequestForgery. Calling +protect_from_forgery+
-      # sets it to <tt>:authenticity_token</tt> by default.
+      # sets it to +:authenticity_token+ by default.
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
 
@@ -121,19 +121,19 @@ module ActionController # :nodoc:
       #
       # Valid Options:
       #
-      # * <tt>:only</tt> / <tt>:except</tt> - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
-      # * <tt>:if</tt> / <tt>:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
-      # * <tt>:prepend</tt> - By default, the verification of the authentication token will be added at the position of the
+      # * +:only+ / +:except+ - Only apply forgery protection to a subset of actions. For example <tt>only: [ :create, :create_all ]</tt>.
+      # * +:if+ / +:unless+ - Turn off the forgery protection entirely depending on the passed Proc or method reference.
+      # * +:prepend+ - By default, the verification of the authentication token will be added at the position of the
       #   protect_from_forgery call in your application. This means any callbacks added before are run first. This is useful
       #   when you want your forgery protection to depend on other callbacks, like authentication methods (Oauth vs Cookie auth).
       #
       #   If you need to add verification to the beginning of the callback chain, use <tt>prepend: true</tt>.
-      # * <tt>:with</tt> - Set the method to handle unverified request.
+      # * +:with+ - Set the method to handle unverified request.
       #
       # Built-in unverified request handling methods are:
-      # * <tt>:exception</tt> - Raises ActionController::InvalidAuthenticityToken exception.
-      # * <tt>:reset_session</tt> - Resets the session.
-      # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
+      # * +:exception+ - Raises ActionController::InvalidAuthenticityToken exception.
+      # * +:reset_session+ - Resets the session.
+      # * +:null_session+ - Provides an empty session during request but doesn't reset it completely. Used as default if +:with+ option is not specified.
       #
       # You can also implement custom strategy classes for unverified request handling:
       #
@@ -150,11 +150,11 @@ module ActionController # :nodoc:
       #    class ApplicationController < ActionController:x:Base
       #      protect_from_forgery with: CustomStrategy
       #    end
-      # * <tt>:store</tt> - Set the strategy to store and retrieve CSRF tokens.
+      # * +:store+ - Set the strategy to store and retrieve CSRF tokens.
       #
       # Built-in session token strategies are:
-      # * <tt>:session</tt> - Store the CSRF token in the session.  Used as default if <tt>:store</tt> option is not specified.
-      # * <tt>:cookie</tt> - Store the CSRF token in an encrypted cookie.
+      # * +:session+ - Store the CSRF token in the session.  Used as default if +:store+ option is not specified.
+      # * +:cookie+ - Store the CSRF token in an encrypted cookie.
       #
       # You can also implement custom strategy classes for CSRF token storage:
       #

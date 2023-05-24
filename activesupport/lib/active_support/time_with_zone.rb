@@ -206,8 +206,8 @@ module ActiveSupport
     # This method is aliased to +to_formatted_s+.
     #
     # Accepts an optional +format+:
-    # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
-    # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_fs(:db).
+    # * +:default+ - default value, mimics Ruby Time#to_s format.
+    # * +:db+ - format outputs time in UTC :db time. See Time#to_fs(:db).
     # * Any key in +Time::DATE_FORMATS+ can be used. See active_support/core_ext/time/conversions.rb.
     def to_fs(format = :default)
       if format == :db
@@ -363,15 +363,15 @@ module ActiveSupport
     end
 
     # Returns a new +ActiveSupport::TimeWithZone+ where one or more of the elements have
-    # been changed according to the +options+ parameter. The time options (<tt>:hour</tt>,
-    # <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly,
+    # been changed according to the +options+ parameter. The time options (+:hour+,
+    # +:min+, +:sec+, +:usec+, +:nsec+) reset cascadingly,
     # so if only the hour is passed, then minute, sec, usec, and nsec is set to 0. If the
     # hour and minute is passed, then sec, usec, and nsec is set to 0. The +options+
-    # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
-    # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>,
-    # <tt>:nsec</tt>, <tt>:offset</tt>, <tt>:zone</tt>. Pass either <tt>:usec</tt>
-    # or <tt>:nsec</tt>, not both. Similarly, pass either <tt>:zone</tt> or
-    # <tt>:offset</tt>, not both.
+    # parameter takes a hash with any of these keys: +:year+, +:month+,
+    # +:day+, +:hour+, +:min+, +:sec+, +:usec+,
+    # +:nsec+, +:offset+, +:zone+. Pass either +:usec+
+    # or +:nsec+, not both. Similarly, pass either +:zone+ or
+    # +:offset+, not both.
     #
     #   t = Time.zone.now          # => Fri, 14 Apr 2017 11:45:15.116992711 EST -05:00
     #   t.change(year: 2020)       # => Tue, 14 Apr 2020 11:45:15.116992711 EST -05:00
@@ -403,8 +403,8 @@ module ActiveSupport
     # new TimeWithZone object.
     #
     # The +options+ parameter takes a hash with any of these keys:
-    # <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>,
-    # <tt>:hours</tt>, <tt>:minutes</tt>, <tt>:seconds</tt>.
+    # +:years+, +:months+, +:weeks+, +:days+,
+    # +:hours+, +:minutes+, +:seconds+.
     #
     # If advancing by a value of variable length (i.e., years, weeks, months,
     # days), move forward from #time, otherwise move forward from #utc, for

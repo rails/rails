@@ -624,7 +624,7 @@ module ActionDispatch
   # Calling +parsed_body+ on the response parses the response body based on the
   # last response MIME type.
   #
-  # Out of the box, only <tt>:json</tt> is supported. But for any custom MIME
+  # Out of the box, only +:json+ is supported. But for any custom MIME
   # types you've registered, you can add your own encoders with:
   #
   #   ActionDispatch::IntegrationTest.register_encoder :wibble,

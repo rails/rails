@@ -85,18 +85,18 @@ module ActiveModel
       #   end
       #
       # Options:
-      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      # * +:on+ - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
-      # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
-      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
+      # * +:allow_nil+ - Skip validation if attribute is +nil+.
+      # * +:allow_blank+ - Skip validation if attribute is blank.
+      # * +:if+ - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
+      # * +:unless+ - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or +false+
@@ -151,16 +151,16 @@ module ActiveModel
       # It's not possible to halt the validate callback chain.
       #
       # Options:
-      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      # * +:on+ - Specifies the contexts where this validation is active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
+      # * +:if+ - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
+      # * +:unless+ - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or +false+
@@ -348,7 +348,7 @@ module ActiveModel
     #   person.valid? # => true
     #
     # Context can optionally be supplied to define which callbacks to test
-    # against (the context is defined on the validations using <tt>:on</tt>).
+    # against (the context is defined on the validations using +:on+).
     #
     #   class Person
     #     include ActiveModel::Validations
@@ -387,7 +387,7 @@ module ActiveModel
     #   person.invalid? # => false
     #
     # Context can optionally be supplied to define which callbacks to test
-    # against (the context is defined on the validations using <tt>:on</tt>).
+    # against (the context is defined on the validations using +:on+).
     #
     #   class Person
     #     include ActiveModel::Validations
@@ -406,8 +406,8 @@ module ActiveModel
     # Runs all the validations within the specified context. Returns +true+ if
     # no errors are found, raises +ValidationError+ otherwise.
     #
-    # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
-    # some <tt>:on</tt> option will only run in the specified context.
+    # Validations with no +:on+ option will run no matter the context. Validations with
+    # some +:on+ option will only run in the specified context.
     def validate!(context = nil)
       valid?(context) || raise_validation_error
     end

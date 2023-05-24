@@ -296,11 +296,11 @@ module ActiveRecord
   # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column
   #   to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
-  #   <tt>:string</tt>, <tt>:text</tt>, <tt>:integer</tt>, <tt>:float</tt>,
-  #   <tt>:decimal</tt>, <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
-  #   <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>. A default value can be
+  #   +:string+, +:text+, +:integer+, +:float+,
+  #   +:decimal+, +:datetime+, +:timestamp+, +:time+,
+  #   +:date+, +:binary+, +:boolean+. A default value can be
   #   specified by passing an +options+ hash like <tt>{ default: 11 }</tt>.
-  #   Other options include <tt>:limit</tt> and <tt>:null</tt> (e.g.
+  #   Other options include +:limit+ and +:null+ (e.g.
   #   <tt>{ limit: 50, null: false }</tt>) -- see
   #   ActiveRecord::ConnectionAdapters::TableDefinition#column for details.
   # * <tt>add_foreign_key(from_table, to_table, options)</tt>: Adds a new
@@ -308,8 +308,8 @@ module ActiveRecord
   #   the referenced primary key.
   # * <tt>add_index(table_name, column_names, options)</tt>: Adds a new index
   #   with the name of the column. Other options include
-  #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
-  #   <tt>{ name: 'users_name_index', unique: true }</tt>) and <tt>:order</tt>
+  #   +:name+, +:unique+ (e.g.
+  #   <tt>{ name: 'users_name_index', unique: true }</tt>) and +:order+
   #   (e.g. <tt>{ order: { name: :desc } }</tt>).
   # * <tt>add_reference(:table_name, :reference_name)</tt>: Adds a new column
   #   +reference_name_id+ by default an integer. See
@@ -323,7 +323,7 @@ module ActiveRecord
   #   the column to a different type using the same parameters as add_column.
   # * <tt>change_column_default(table_name, column_name, default_or_changes)</tt>:
   #   Sets a default value for +column_name+ defined by +default_or_changes+ on
-  #   +table_name+. Passing a hash containing <tt>:from</tt> and <tt>:to</tt>
+  #   +table_name+. Passing a hash containing +:from+ and +:to+
   #   as +default_or_changes+ will make this change reversible in the migration.
   # * <tt>change_column_null(table_name, column_name, null, default = nil)</tt>:
   #   Sets or removes a <tt>NOT NULL</tt> constraint on +column_name+. The +null+ flag

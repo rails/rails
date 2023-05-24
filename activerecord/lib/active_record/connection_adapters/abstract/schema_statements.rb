@@ -180,14 +180,14 @@ module ActiveRecord
       #   add_column(:suppliers, :name, :string, {limit: 60})
       #
       # The +options+ hash can include the following keys:
-      # [<tt>:id</tt>]
+      # [+:id+]
       #   Whether to automatically add a primary key column. Defaults to true.
       #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
-      # [<tt>:primary_key</tt>]
+      # [+:primary_key+]
       #   The name of the primary key, if one is to be added automatically.
-      #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
+      #   Defaults to +id+. If +:id+ is false, then this option is ignored.
       #
       #   If an array is passed, a composite primary key will be created.
       #
@@ -196,20 +196,20 @@ module ActiveRecord
       #   {self.primary_key=}[rdoc-ref:AttributeMethods::PrimaryKey::ClassMethods#primary_key=] on the model
       #   to define the key explicitly.
       #
-      # [<tt>:options</tt>]
+      # [+:options+]
       #   Any extra options you want appended to the table definition.
-      # [<tt>:temporary</tt>]
+      # [+:temporary+]
       #   Make a temporary table.
-      # [<tt>:force</tt>]
+      # [+:force+]
       #   Set to true to drop the table before creating it.
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
-      # [<tt>:if_not_exists</tt>]
+      # [+:if_not_exists+]
       #   Set to true to avoid raising an error when the table already exists.
       #   Defaults to false.
-      # [<tt>:as</tt>]
+      # [+:as+]
       #   SQL to use to generate the table. When this option is used, the block is
-      #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
+      #   ignored, as are the +:id+ and +:primary_key+ options.
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
@@ -340,15 +340,15 @@ module ActiveRecord
       #   create_join_table(:assemblies, :parts)
       #
       # You can pass an +options+ hash which can include the following keys:
-      # [<tt>:table_name</tt>]
+      # [+:table_name+]
       #   Sets the table name, overriding the default.
-      # [<tt>:column_options</tt>]
+      # [+:column_options+]
       #   Any extra options you want appended to the columns definition.
-      # [<tt>:options</tt>]
+      # [+:options+]
       #   Any extra options you want appended to the table definition.
-      # [<tt>:temporary</tt>]
+      # [+:temporary+]
       #   Make a temporary table.
-      # [<tt>:force</tt>]
+      # [+:force+]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
       #
@@ -423,7 +423,7 @@ module ActiveRecord
       #   end
       #
       # The +options+ hash can include the following keys:
-      # [<tt>:bulk</tt>]
+      # [+:bulk+]
       #   Set this to true to make this a bulk alter query, such as
       #
       #     ALTER TABLE `users` ADD COLUMN age INT, ADD COLUMN birthdate DATETIME ...
@@ -512,10 +512,10 @@ module ActiveRecord
 
       # Drops a table from the database.
       #
-      # [<tt>:force</tt>]
+      # [+:force+]
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
-      # [<tt>:if_exists</tt>]
+      # [+:if_exists+]
       #   Set to +true+ to only drop the table if it exists.
       #   Defaults to false.
       #
@@ -533,35 +533,35 @@ module ActiveRecord
       #
       # The +type+ parameter is normally one of the migrations native types,
       # which is one of the following:
-      # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
-      # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>, <tt>:numeric</tt>,
-      # <tt>:datetime</tt>, <tt>:time</tt>, <tt>:date</tt>,
-      # <tt>:binary</tt>, <tt>:blob</tt>, <tt>:boolean</tt>.
+      # +:primary_key+, +:string+, +:text+,
+      # +:integer+, +:bigint+, +:float+, +:decimal+, +:numeric+,
+      # +:datetime+, +:time+, +:date+,
+      # +:binary+, +:blob+, +:boolean+.
       #
       # You may use a type not in this list as long as it is supported by your
       # database (for example, "polygon" in MySQL), but this will not be database
       # agnostic and should usually be avoided.
       #
       # Available options are (none of these exists by default):
-      # * <tt>:comment</tt> -
+      # * +:comment+ -
       #   Specifies the comment for the column. This option is ignored by some backends.
-      # * <tt>:collation</tt> -
-      #   Specifies the collation for a <tt>:string</tt> or <tt>:text</tt> column.
+      # * +:collation+ -
+      #   Specifies the collation for a +:string+ or +:text+ column.
       #   If not specified, the column will have the same collation as the table.
-      # * <tt>:default</tt> -
+      # * +:default+ -
       #   The column's default value. Use +nil+ for +NULL+.
-      # * <tt>:limit</tt> -
-      #   Requests a maximum column length. This is the number of characters for a <tt>:string</tt> column
-      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt>, <tt>:blob</tt>, and <tt>:integer</tt> columns.
+      # * +:limit+ -
+      #   Requests a maximum column length. This is the number of characters for a +:string+ column
+      #   and number of bytes for +:text+, +:binary+, +:blob+, and +:integer+ columns.
       #   This option is ignored by some backends.
-      # * <tt>:null</tt> -
+      # * +:null+ -
       #   Allows or disallows +NULL+ values in the column.
-      # * <tt>:precision</tt> -
-      #   Specifies the precision for the <tt>:decimal</tt>, <tt>:numeric</tt>,
-      #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
-      # * <tt>:scale</tt> -
-      #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
-      # * <tt>:if_not_exists</tt> -
+      # * +:precision+ -
+      #   Specifies the precision for the +:decimal+, +:numeric+,
+      #   +:datetime+, and +:time+ columns.
+      # * +:scale+ -
+      #   Specifies the scale for the +:decimal+ and +:numeric+ columns.
+      # * +:if_not_exists+ -
       #   Specifies if the column already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
       #
@@ -572,19 +572,19 @@ module ActiveRecord
       # range from -999.99 to 999.99.
       #
       # Please be aware of different RDBMS implementations behavior with
-      # <tt>:decimal</tt> columns:
-      # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
-      #   <tt>:precision</tt>, and makes no comments about the requirements of
-      #   <tt>:precision</tt>.
-      # * MySQL: <tt>:precision</tt> [1..65], <tt>:scale</tt> [0..30].
+      # +:decimal+ columns:
+      # * The SQL standard says the default scale should be 0, +:scale+ <=
+      #   +:precision+, and makes no comments about the requirements of
+      #   +:precision+.
+      # * MySQL: +:precision+ [1..65], +:scale+ [0..30].
       #   Default is (10,0).
-      # * PostgreSQL: <tt>:precision</tt> [1..infinity],
-      #   <tt>:scale</tt> [0..infinity]. No default.
-      # * SQLite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
-      #   but the maximum supported <tt>:precision</tt> is 16. No default.
-      # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127].
+      # * PostgreSQL: +:precision+ [1..infinity],
+      #   +:scale+ [0..infinity]. No default.
+      # * SQLite3: No restrictions on +:precision+ and +:scale+,
+      #   but the maximum supported +:precision+ is 16. No default.
+      # * Oracle: +:precision+ [1..38], +:scale+ [-84..127].
       #   Default is (38,0).
-      # * SqlServer: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
+      # * SqlServer: +:precision+ [1..38], +:scale+ [0..38].
       #   Default (38,0).
       #
       # == Examples
@@ -754,7 +754,7 @@ module ActiveRecord
       # an Array of Symbols.
       #
       # The index will be named after the table and the column name(s), unless
-      # you pass <tt>:name</tt> as an option.
+      # you pass +:name+ as an option.
       #
       # ====== Creating a simple index
       #
@@ -980,23 +980,23 @@ module ActiveRecord
       end
 
       # Adds a reference. The reference column is a bigint by default,
-      # the <tt>:type</tt> option can be used to specify a different type.
-      # Optionally adds a +_type+ column, if <tt>:polymorphic</tt> option is provided.
+      # the +:type+ option can be used to specify a different type.
+      # Optionally adds a +_type+ column, if +:polymorphic+ option is provided.
       # #add_reference and #add_belongs_to are acceptable.
       #
       # The +options+ hash can include the following keys:
-      # [<tt>:type</tt>]
+      # [+:type+]
       #   The reference column type. Defaults to +:bigint+.
-      # [<tt>:index</tt>]
+      # [+:index+]
       #   Add an appropriate index. Defaults to true.
       #   See #add_index for usage of this option.
-      # [<tt>:foreign_key</tt>]
+      # [+:foreign_key+]
       #   Add an appropriate foreign key constraint. Defaults to false, pass true
       #   to add. In case the join table can't be inferred from the association
-      #   pass <tt>:to_table</tt> with the appropriate table name.
-      # [<tt>:polymorphic</tt>]
+      #   pass +:to_table+ with the appropriate table name.
+      # [+:polymorphic+]
       #   Whether an additional +_type+ column should be added. Defaults to false.
-      # [<tt>:null</tt>]
+      # [+:null+]
       #   Whether the column allows nulls. Defaults to true.
       #
       # ====== Create a user_id bigint column without an index
@@ -1077,7 +1077,7 @@ module ActiveRecord
       #
       # The foreign key will be named after the following pattern: <tt>fk_rails_<identifier></tt>.
       # +identifier+ is a 10 character long string which is deterministically generated from the
-      # +from_table+ and +column+. A custom name can be specified with the <tt>:name</tt> option.
+      # +from_table+ and +column+. A custom name can be specified with the +:name+ option.
       #
       # ====== Creating a simple foreign key
       #
@@ -1108,22 +1108,22 @@ module ActiveRecord
       #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_e74ce85cbc FOREIGN KEY ("author_id") REFERENCES "authors" ("id") ON DELETE CASCADE
       #
       # The +options+ hash can include the following keys:
-      # [<tt>:column</tt>]
+      # [+:column+]
       #   The foreign key column name on +from_table+. Defaults to <tt>to_table.singularize + "_id"</tt>
-      # [<tt>:primary_key</tt>]
+      # [+:primary_key+]
       #   The primary key column name on +to_table+. Defaults to +id+.
-      # [<tt>:name</tt>]
+      # [+:name+]
       #   The constraint name. Defaults to <tt>fk_rails_<identifier></tt>.
-      # [<tt>:on_delete</tt>]
+      # [+:on_delete+]
       #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
-      # [<tt>:on_update</tt>]
+      # [+:on_update+]
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+, and +:restrict+
-      # [<tt>:if_not_exists</tt>]
+      # [+:if_not_exists+]
       #   Specifies if the foreign key already exists to not try to re-add it. This will avoid
       #   duplicate column errors.
-      # [<tt>:validate</tt>]
+      # [+:validate+]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
-      # [<tt>:deferrable</tt>]
+      # [+:deferrable+]
       #   (PostgreSQL only) Specify whether or not the foreign key should be deferrable. Valid values are booleans or
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
@@ -1165,7 +1165,7 @@ module ActiveRecord
       #
       # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key
       # with an addition of
-      # [<tt>:to_table</tt>]
+      # [+:to_table+]
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless use_foreign_keys?
@@ -1222,9 +1222,9 @@ module ActiveRecord
       #   ALTER TABLE "products" ADD CONSTRAINT price_check CHECK (price > 0)
       #
       # The +options+ hash can include the following keys:
-      # [<tt>:name</tt>]
+      # [+:name+]
       #   The constraint name. Defaults to <tt>chk_rails_<identifier></tt>.
-      # [<tt>:validate</tt>]
+      # [+:validate+]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
       def add_check_constraint(table_name, expression, **options)
         return unless supports_check_constraints?

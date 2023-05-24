@@ -55,8 +55,8 @@ module ActiveSupport
     #
     # Options:
     #
-    # * <tt>:yield</tt> - Yields the object that run_load_hooks to +block+.
-    # * <tt>:run_once</tt> - Given +block+ will run only once.
+    # * +:yield+ - Yields the object that run_load_hooks to +block+.
+    # * +:run_once+ - Given +block+ will run only once.
     def on_load(name, options = {}, &block)
       @loaded[name].each do |base|
         execute_hook(name, base, options, block)

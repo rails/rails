@@ -151,17 +151,17 @@ module ActionDispatch
   #
   # The option symbols for setting cookies are:
   #
-  # * <tt>:value</tt> - The cookie's value.
-  # * <tt>:path</tt> - The path for which this cookie applies. Defaults to the root
+  # * +:value+ - The cookie's value.
+  # * +:path+ - The path for which this cookie applies. Defaults to the root
   #   of the application.
-  # * <tt>:domain</tt> - The domain for which this cookie applies so you can
+  # * +:domain+ - The domain for which this cookie applies so you can
   #   restrict to the domain level. If you use a schema like www.example.com
-  #   and want to share session with user.example.com set <tt>:domain</tt>
-  #   to <tt>:all</tt>. To support multiple domains, provide an array, and
+  #   and want to share session with user.example.com set +:domain+
+  #   to +:all+. To support multiple domains, provide an array, and
   #   the first domain matching <tt>request.host</tt> will be used. Make
-  #   sure to specify the <tt>:domain</tt> option with <tt>:all</tt> or
+  #   sure to specify the +:domain+ option with +:all+ or
   #   +Array+ again when deleting cookies. For more flexibility you
-  #   can set the domain on a per-request basis by specifying <tt>:domain</tt>
+  #   can set the domain on a per-request basis by specifying +:domain+
   #   with a proc.
   #
   #     domain: nil  # Does not set cookie domain. (default)
@@ -173,15 +173,15 @@ module ActionDispatch
   #     domain: proc { |req| ".sub.#{req.host}" }     # Set cookie domain dynamically based on request
   #
   #
-  # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, this option can be used to explicitly
+  # * +:tld_length+ - When using <tt>:domain => :all</tt>, this option can be used to explicitly
   #   set the TLD length when using a short (<= 3 character) domain that is being interpreted as part of a TLD.
-  #   For example, to share cookies between user1.lvh.me and user2.lvh.me, set <tt>:tld_length</tt> to 2.
-  # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time or ActiveSupport::Duration object.
-  # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
+  #   For example, to share cookies between user1.lvh.me and user2.lvh.me, set +:tld_length+ to 2.
+  # * +:expires+ - The time at which this cookie expires, as a \Time or ActiveSupport::Duration object.
+  # * +:secure+ - Whether this cookie is only transmitted to HTTPS servers.
   #   Default is +false+.
-  # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
+  # * +:httponly+ - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
-  # * <tt>:same_site</tt> - The value of the +SameSite+ cookie attribute, which
+  # * +:same_site+ - The value of the +SameSite+ cookie attribute, which
   #   determines how this cookie should be restricted in cross-site contexts.
   #   Possible values are +nil+, +:none+, +:lax+, and +:strict+. Defaults to
   #   +:lax+.
@@ -381,7 +381,7 @@ module ActionDispatch
 
       # Removes the cookie on the client machine by setting the value to an empty string
       # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
-      # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
+      # an options hash to delete cookies with extra data such as a +:path+.
       def delete(name, options = {})
         return unless @cookies.has_key? name.to_s
 
@@ -395,7 +395,7 @@ module ActionDispatch
 
       # Whether the given cookie is to be deleted by this CookieJar.
       # Like <tt>[]=</tt>, you can pass in an options hash to test if a
-      # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
+      # deletion applies to a specific +:path+, +:domain+ etc.
       def deleted?(name, options = {})
         options.symbolize_keys!
         handle_options(options)

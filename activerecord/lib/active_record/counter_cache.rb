@@ -18,7 +18,7 @@ module ActiveRecord
       #
       # * +id+ - The id of the object you wish to reset a counter on.
       # * +counters+ - One or more association counters to reset. Association name or counter name can be given.
-      # * <tt>:touch</tt> - Touch timestamp columns when updating.
+      # * +:touch+ - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
       #
@@ -81,7 +81,7 @@ module ActiveRecord
       # * +id+ - The id of the object you wish to update a counter on or an array of ids.
       # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
-      # * <tt>:touch</tt> option - Touch timestamp columns when updating.
+      # * +:touch+ option - Touch timestamp columns when updating.
       #   If attribute names are passed, they are updated along with updated_at/on
       #   attributes.
       #
@@ -126,8 +126,8 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be incremented.
       # * +id+ - The id of the object that should be incremented or an array of ids.
-      # * <tt>:by</tt> - The amount by which to increment the value. Defaults to +1+.
-      # * <tt>:touch</tt> - Touch timestamp columns when updating.
+      # * +:by+ - The amount by which to increment the value. Defaults to +1+.
+      # * +:touch+ - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
       #
@@ -156,8 +156,8 @@ module ActiveRecord
       #
       # * +counter_name+ - The name of the field that should be decremented.
       # * +id+ - The id of the object that should be decremented or an array of ids.
-      # * <tt>:by</tt> - The amount by which to decrement the value. Defaults to +1+.
-      # * <tt>:touch</tt> - Touch timestamp columns when updating.
+      # * +:by+ - The amount by which to decrement the value. Defaults to +1+.
+      # * +:touch+ - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
       #

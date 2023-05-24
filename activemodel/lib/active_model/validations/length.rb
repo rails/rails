@@ -94,27 +94,27 @@ module ActiveModel
       #
       # Constraint options:
       #
-      # * <tt>:minimum</tt> - The minimum size of the attribute.
-      # * <tt>:maximum</tt> - The maximum size of the attribute. Allows +nil+ by
+      # * +:minimum+ - The minimum size of the attribute.
+      # * +:maximum+ - The maximum size of the attribute. Allows +nil+ by
       #   default if not used with +:minimum+.
-      # * <tt>:is</tt> - The exact size of the attribute.
-      # * <tt>:within</tt> - A range specifying the minimum and maximum size of
+      # * +:is+ - The exact size of the attribute.
+      # * +:within+ - A range specifying the minimum and maximum size of
       #   the attribute.
-      # * <tt>:in</tt> - A synonym (or alias) for <tt>:within</tt>.
+      # * +:in+ - A synonym (or alias) for +:within+.
       #
       # Other options:
       #
-      # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
-      # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
-      # * <tt>:too_long</tt> - The error message if the attribute goes over the
+      # * +:allow_nil+ - Attribute may be +nil+; skip validation.
+      # * +:allow_blank+ - Attribute may be blank; skip validation.
+      # * +:too_long+ - The error message if the attribute goes over the
       #   maximum (default is: "is too long (maximum is %{count} characters)").
-      # * <tt>:too_short</tt> - The error message if the attribute goes under the
+      # * +:too_short+ - The error message if the attribute goes under the
       #   minimum (default is: "is too short (minimum is %{count} characters)").
-      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt>
+      # * +:wrong_length+ - The error message if using the +:is+
       #   method and the attribute is the wrong size (default is: "is the wrong
       #   length (should be %{count} characters)").
-      # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
-      #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
+      # * +:message+ - The error message to use for a +:minimum+,
+      #   +:maximum+, or +:is+ violation. An alias of the appropriate
       #   +too_long+/+too_short+/+wrong_length+ message.
       #
       # There is also a list of default options supported by every validator:

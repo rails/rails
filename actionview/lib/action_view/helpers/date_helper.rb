@@ -15,11 +15,11 @@ module ActionView
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
-    # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
+    # * +:prefix+ - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
     #   would give \birthday[month] instead of \date[month] if passed to the +select_month+ method.
-    # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
-    # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
-    #   the +select_month+ method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
+    # * +:include_blank+ - set to true if it should be possible to set an empty date.
+    # * +:discard_type+ - set to true if you want to discard the type part of the select name. If set to true,
+    #   the +select_month+ method would use simply "date" (which can be overwritten using +:prefix+) instead
     #   of \date[month].
     module DateHelper
       MINUTES_IN_YEAR = 525600
@@ -183,55 +183,55 @@ module ActionView
       # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
       #
       # ==== Options
-      # * <tt>:use_month_numbers</tt> - Set to true if you want to use month numbers rather than month names (e.g.
+      # * +:use_month_numbers+ - Set to true if you want to use month numbers rather than month names (e.g.
       #   "2" instead of "February").
-      # * <tt>:use_two_digit_numbers</tt> - Set to true if you want to display two digit month and day numbers (e.g.
+      # * +:use_two_digit_numbers+ - Set to true if you want to display two digit month and day numbers (e.g.
       #   "02" instead of "February" and "08" instead of "8").
-      # * <tt>:use_short_month</tt>   - Set to true if you want to use abbreviated month names instead of full
+      # * +:use_short_month+   - Set to true if you want to use abbreviated month names instead of full
       #   month names (e.g. "Feb" instead of "February").
-      # * <tt>:add_month_numbers</tt>  - Set to true if you want to use both month numbers and month names (e.g.
+      # * +:add_month_numbers+  - Set to true if you want to use both month numbers and month names (e.g.
       #   "2 - February" instead of "February").
-      # * <tt>:use_month_names</tt>   - Set to an array with 12 month names if you want to customize month names.
+      # * +:use_month_names+   - Set to an array with 12 month names if you want to customize month names.
       #   Note: You can also use Rails' i18n functionality for this.
-      # * <tt>:month_format_string</tt> - Set to a format string. The string gets passed keys +:number+ (integer)
+      # * +:month_format_string+ - Set to a format string. The string gets passed keys +:number+ (integer)
       #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
       #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
-      # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
-      # * <tt>:time_separator</tt>    - Specifies a string to separate the time fields. Default is " : ".
-      # * <tt>:datetime_separator</tt>- Specifies a string to separate the date and time fields. Default is " &mdash; ".
-      # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt> if
-      #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
+      # * +:date_separator+    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
+      # * +:time_separator+    - Specifies a string to separate the time fields. Default is " : ".
+      # * +:datetime_separator+- Specifies a string to separate the date and time fields. Default is " &mdash; ".
+      # * +:start_year+        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt> if
+      #   you are creating new record. While editing existing record, +:start_year+ defaults to
       #   the current selected year minus 5.
-      # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
-      #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
+      # * +:end_year+          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
+      #   you are creating new record. While editing existing record, +:end_year+ defaults to
       #   the current selected year plus 5.
-      # * <tt>:year_format</tt>       - Set format of years for year select. Lambda should be passed.
-      # * <tt>:day_format</tt>        - Set format of days for day select. Lambda should be passed.
-      # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
+      # * +:year_format+       - Set format of years for year select. Lambda should be passed.
+      # * +:day_format+        - Set format of days for day select. Lambda should be passed.
+      # * +:discard_day+       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
-      # * <tt>:discard_month</tt>     - Set to true if you don't want to show a month select. This includes the month
+      # * +:discard_month+     - Set to true if you don't want to show a month select. This includes the month
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets :discard_day to true.
-      # * <tt>:discard_year</tt>      - Set to true if you don't want to show a year select. This includes the year
+      # * +:discard_year+      - Set to true if you don't want to show a year select. This includes the year
       #   as a hidden field instead of showing a select field.
-      # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
+      # * +:order+             - Set to an array containing +:day+, +:month+ and +:year+ to
       #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
       #   select will not be shown (like when you set <tt>discard_xxx: true</tt>. Defaults to the order defined in
       #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
-      # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
+      # * +:include_blank+     - Include a blank option in every select field so it's possible to set empty
       #   dates.
-      # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.
-      # * <tt>:selected</tt>          - Set a date that overrides the actual value.
-      # * <tt>:disabled</tt>          - Set to true if you want show the select fields as disabled.
-      # * <tt>:prompt</tt>            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
-      #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
+      # * +:default+           - Set a default date if the affected date isn't set or is +nil+.
+      # * +:selected+          - Set a date that overrides the actual value.
+      # * +:disabled+          - Set to true if you want show the select fields as disabled.
+      # * +:prompt+            - Set to true (for a generic prompt), a prompt string or a hash of prompt strings
+      #   for +:year+, +:month+, +:day+, +:hour+, +:minute+ and +:second+.
       #   Setting this option prepends a select option with a generic prompt  (Day, Month, Year, Hour, Minute, Seconds)
       #   or the given prompt string.
-      # * <tt>:with_css_classes</tt>  - Set to true or a hash of strings. Use true if you want to assign generic styles for
+      # * +:with_css_classes+  - Set to true or a hash of strings. Use true if you want to assign generic styles for
       #   select tags. This automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second'. A hash of
-      #   strings for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt>, <tt>:second</tt>
+      #   strings for +:year+, +:month+, +:day+, +:hour+, +:minute+, +:second+
       #   will extend the select type with the given value. Use +html_options+ to modify every select tag in the set.
-      # * <tt>:use_hidden</tt>         - Set to true if you only want to generate hidden input tags.
+      # * +:use_hidden+         - Set to true if you only want to generate hidden input tags.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
@@ -293,11 +293,11 @@ module ActionView
 
       # Returns a set of select tags (one for hour, minute, and optionally second) pre-selected for accessing a
       # specified time-based attribute (identified by +method+) on an object assigned to the template (identified by
-      # +object+). You can include the seconds with <tt>:include_seconds</tt>. You can get hours in the AM/PM format
-      # with <tt>:ampm</tt> option.
+      # +object+). You can include the seconds with +:include_seconds+. You can get hours in the AM/PM format
+      # with +:ampm+ option.
       #
       # This method will also generate 3 input hidden tags, for the actual year, month, and day unless the option
-      # <tt>:ignore_date</tt> is set to +true+. If you set the <tt>:ignore_date</tt> to +true+, you must have a
+      # +:ignore_date+ is set to +true+. If you set the +:ignore_date+ to +true+, you must have a
       # +date_select+ on the same method within the form otherwise an exception will be raised.
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
@@ -309,7 +309,7 @@ module ActionView
       #   # the sunrise attribute.
       #   time_select("article", "start_time", include_seconds: true)
       #
-      #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30, and 45.
+      #   # You can set the +:minute_step+ to 15 which will give you: 00, 15, 30, and 45.
       #   time_select 'game', 'game_time', { minute_step: 15 }
       #
       #   # Creates a time select tag with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
@@ -364,10 +364,10 @@ module ActionView
       end
 
       # Returns a set of HTML select-tags (one for year, month, day, hour, minute, and second) pre-selected with the
-      # +datetime+. It's also possible to explicitly set the order of the tags using the <tt>:order</tt> option with
-      # an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order. If you do not
-      # supply a Symbol, it will be appended onto the <tt>:order</tt> passed in. You can also add
-      # <tt>:date_separator</tt>, <tt>:datetime_separator</tt> and <tt>:time_separator</tt> keys to the +options+ to
+      # +datetime+. It's also possible to explicitly set the order of the tags using the +:order+ option with
+      # an array of symbols +:year+, +:month+ and +:day+ in the desired order. If you do not
+      # supply a Symbol, it will be appended onto the +:order+ passed in. You can also add
+      # +:date_separator+, +:datetime_separator+ and +:time_separator+ keys to the +options+ to
       # control visual display of the elements.
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
@@ -413,9 +413,9 @@ module ActionView
       end
 
       # Returns a set of HTML select-tags (one for year, month, and day) pre-selected with the +date+.
-      # It's possible to explicitly set the order of the tags using the <tt>:order</tt> option with an array of
-      # symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order.
-      # If the array passed to the <tt>:order</tt> option does not contain all the three symbols, all tags will be hidden.
+      # It's possible to explicitly set the order of the tags using the +:order+ option with an array of
+      # symbols +:year+, +:month+ and +:day+ in the desired order.
+      # If the array passed to the +:order+ option does not contain all the three symbols, all tags will be hidden.
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
@@ -452,8 +452,8 @@ module ActionView
       end
 
       # Returns a set of HTML select-tags (one for hour and minute).
-      # You can set <tt>:time_separator</tt> key to format the output, and
-      # the <tt>:include_seconds</tt> option to include an input for seconds.
+      # You can set +:time_separator+ key to format the output, and
+      # the +:include_seconds+ option to include an input for seconds.
       #
       # If anything is passed in the html_options hash it will be applied to every select tag in the set.
       #
@@ -483,7 +483,7 @@ module ActionView
       #   # Generates a time select field with hours that range from 2 to 14
       #   select_time(my_time, start_hour: 2, end_hour: 14)
       #
-      #   # Generates a time select with a custom prompt. Use <tt>:prompt</tt> to true for generic prompts.
+      #   # Generates a time select with a custom prompt. Use +:prompt+ to true for generic prompts.
       #   select_time(my_time, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
       #   select_time(my_time, prompt: { hour: true }) # generic prompt for hours
       #   select_time(my_time, prompt: true) # generic prompts for all
@@ -493,7 +493,7 @@ module ActionView
 
       # Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
       # The +datetime+ can be either a +Time+ or +DateTime+ object or an integer.
-      # Override the field name using the <tt>:field_name</tt> option, 'second' by default.
+      # Override the field name using the +:field_name+ option, 'second' by default.
       #
       #   my_time = Time.now + 16.seconds
       #
@@ -517,7 +517,7 @@ module ActionView
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
       # Also can return a select tag with options by +minute_step+ from 0 through 59 with the 00 minute
       # selected. The +datetime+ can be either a +Time+ or +DateTime+ object or an integer.
-      # Override the field name using the <tt>:field_name</tt> option, 'minute' by default.
+      # Override the field name using the +:field_name+ option, 'minute' by default.
       #
       #   my_time = Time.now + 10.minutes
       #
@@ -540,7 +540,7 @@ module ActionView
 
       # Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
       # The +datetime+ can be either a +Time+ or +DateTime+ object or an integer.
-      # Override the field name using the <tt>:field_name</tt> option, 'hour' by default.
+      # Override the field name using the +:field_name+ option, 'hour' by default.
       #
       #   my_time = Time.now + 6.hours
       #
@@ -569,8 +569,8 @@ module ActionView
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
       # The +date+ can also be substituted for a day number.
-      # If you want to display days with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
-      # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
+      # If you want to display days with a leading zero set the +:use_two_digit_numbers+ key in +options+ to true.
+      # Override the field name using the +:field_name+ option, 'day' by default.
       #
       #   my_date = Time.now + 2.days
       #
@@ -597,12 +597,12 @@ module ActionView
       # Returns a select tag with options for each of the months January through December with the current month
       # selected. The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are
       # used as values (what's submitted to the server). It's also possible to use month numbers for the presentation
-      # instead of names -- set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. If you
-      # want both numbers and names, set the <tt>:add_month_numbers</tt> key in +options+ to true. If you would prefer
-      # to show month names as abbreviations, set the <tt>:use_short_month</tt> key in +options+ to true. If you want
-      # to use your own month names, set the <tt>:use_month_names</tt> key in +options+ to an array of 12 month names.
-      # If you want to display months with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
-      # Override the field name using the <tt>:field_name</tt> option, 'month' by default.
+      # instead of names -- set the +:use_month_numbers+ key in +options+ to true for this to happen. If you
+      # want both numbers and names, set the +:add_month_numbers+ key in +options+ to true. If you would prefer
+      # to show month names as abbreviations, set the +:use_short_month+ key in +options+ to true. If you want
+      # to use your own month names, set the +:use_month_names+ key in +options+ to an array of 12 month names.
+      # If you want to display months with a leading zero set the +:use_two_digit_numbers+ key in +options+ to true.
+      # Override the field name using the +:field_name+ option, 'month' by default.
       #
       #   # Generates a select field for months that defaults to the current month that
       #   # will use keys like "January", "March".
@@ -640,10 +640,10 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the five years on each side of the current, which is selected.
-      # The five year radius can be changed using the <tt>:start_year</tt> and <tt>:end_year</tt> keys in the
-      # +options+. Both ascending and descending year lists are supported by making <tt>:start_year</tt> less than or
-      # greater than <tt>:end_year</tt>. The +date+ can also be substituted for a year given as a number.
-      # Override the field name using the <tt>:field_name</tt> option, 'year' by default.
+      # The five year radius can be changed using the +:start_year+ and +:end_year+ keys in the
+      # +options+. Both ascending and descending year lists are supported by making +:start_year+ less than or
+      # greater than +:end_year+. The +date+ can also be substituted for a year given as a number.
+      # Override the field name using the +:field_name+ option, 'year' by default.
       #
       #   # Generates a select field for years that defaults to the current year that
       #   # has ascending year values.
@@ -899,7 +899,7 @@ module ActionView
         #           "August", "September", "October",
         #           "November", "December"]
         #
-        # If <tt>:use_short_month</tt> option is set
+        # If +:use_short_month+ option is set
         #  => [nil, "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         #           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         def translated_month_names
@@ -932,19 +932,19 @@ module ActionView
         #
         #   month_name(1) # => "January"
         #
-        # If the <tt>:use_month_numbers</tt> option is passed:
+        # If the +:use_month_numbers+ option is passed:
         #
         #   month_name(1) # => 1
         #
-        # If the <tt>:use_two_digit_numbers</tt> option is passed:
+        # If the +:use_two_digit_numbers+ option is passed:
         #
         #   month_name(1) # => '01'
         #
-        # If the <tt>:add_month_numbers</tt> option is passed:
+        # If the +:add_month_numbers+ option is passed:
         #
         #   month_name(1) # => "1 - January"
         #
-        # If the <tt>:month_format_string</tt> option is passed:
+        # If the +:month_format_string+ option is passed:
         #
         #   month_name(1) # => "January (01)"
         #
@@ -967,7 +967,7 @@ module ActionView
         #
         #   year_name(1998) # => 1998
         #
-        # If the <tt>:year_format</tt> option is passed:
+        # If the +:year_format+ option is passed:
         #
         #   year_name(1998) # => "Heisei 10"
         def year_name(number)
@@ -1014,7 +1014,7 @@ module ActionView
         #       <option value="2">02</option>
         #       <option value="3">03</option>..."
         #
-        # If <tt>:step</tt> options is passed:
+        # If +:step+ options is passed:
         #
         #   build_options(15, start: 1, end: 31, step: 2)
         #   => "<option value="1">1</option>

@@ -17,7 +17,7 @@ class String
   #
   # If the optional parameter +locale+ is specified,
   # the word will be pluralized as a word of that language.
-  # By default, this parameter is set to <tt>:en</tt>.
+  # By default, this parameter is set to +:en+.
   # You must define your own inflection rules for languages other than English.
   #
   #   'post'.pluralize             # => "posts"
@@ -45,7 +45,7 @@ class String
   #
   # If the optional parameter +locale+ is specified,
   # the word will be singularized as a word of that language.
-  # By default, this parameter is set to <tt>:en</tt>.
+  # By default, this parameter is set to +:en+.
   # You must define your own inflection rules for languages other than English.
   #
   #   'posts'.singularize            # => "post"
@@ -88,7 +88,7 @@ class String
   end
 
   # By default, +camelize+ converts strings to UpperCamelCase. If the argument to camelize
-  # is set to <tt>:lower</tt> then camelize produces lowerCamelCase.
+  # is set to +:lower+ then camelize produces lowerCamelCase.
   #
   # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
   #

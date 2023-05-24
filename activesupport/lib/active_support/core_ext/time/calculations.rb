@@ -124,13 +124,13 @@ class Time
   end
 
   # Returns a new Time where one or more of the elements have been changed according
-  # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
-  # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
+  # to the +options+ parameter. The time options (+:hour+, +:min+,
+  # +:sec+, +:usec+, +:nsec+) reset cascadingly, so if only
   # the hour is passed, then minute, sec, usec, and nsec is set to 0. If the hour
   # and minute is passed, then sec, usec, and nsec is set to 0. The +options+ parameter
-  # takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>,
-  # <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>,
-  # <tt>:offset</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
+  # takes a hash with any of these keys: +:year+, +:month+, +:day+,
+  # +:hour+, +:min+, +:sec+, +:usec+, +:nsec+,
+  # +:offset+. Pass either +:usec+ or +:nsec+, not both.
   #
   #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
@@ -186,9 +186,9 @@ class Time
 
   # Uses Date to provide precise Time calculations for years, months, and days
   # according to the proleptic Gregorian calendar. The +options+ parameter
-  # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
-  # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
-  # <tt>:seconds</tt>.
+  # takes a hash with any of these keys: +:years+, +:months+,
+  # +:weeks+, +:days+, +:hours+, +:minutes+,
+  # +:seconds+.
   #
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(seconds: 1) # => 2015-08-01 14:35:01 -0700
   #   Time.new(2015, 8, 1, 14, 35, 0).advance(minutes: 1) # => 2015-08-01 14:36:00 -0700

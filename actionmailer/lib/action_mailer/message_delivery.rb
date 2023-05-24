@@ -59,10 +59,10 @@ module ActionMailer
     #
     # Options:
     #
-    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
-    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
-    # * <tt>:queue</tt> - Enqueue the email on the specified queue
-    # * <tt>:priority</tt> - Enqueues the email with the specified priority
+    # * +:wait+ - Enqueue the email to be delivered with a delay
+    # * +:wait_until+ - Enqueue the email to be delivered at (after) a specific date / time
+    # * +:queue+ - Enqueue the email on the specified queue
+    # * +:priority+ - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using ActionMailer::MailDeliveryJob on
     # the default queue. Mailer classes can customize the queue name used for the default
@@ -86,10 +86,10 @@ module ActionMailer
     #
     # Options:
     #
-    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
-    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
-    # * <tt>:queue</tt> - Enqueue the email on the specified queue.
-    # * <tt>:priority</tt> - Enqueues the email with the specified priority
+    # * +:wait+ - Enqueue the email to be delivered with a delay.
+    # * +:wait_until+ - Enqueue the email to be delivered at (after) a specific date / time.
+    # * +:queue+ - Enqueue the email on the specified queue.
+    # * +:priority+ - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using ActionMailer::MailDeliveryJob on
     # the default queue. Mailer classes can customize the queue name used for the default
