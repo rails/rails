@@ -9,7 +9,7 @@ module ActionCable
     #
     # To use the test adapter set +adapter+ value to +test+ in your +config/cable.yml+ file.
     #
-    # NOTE: Test adapter extends the <tt>ActionCable::SubscriptionAdapter::Async</tt> adapter,
+    # NOTE: Test adapter extends the +ActionCable::SubscriptionAdapter::Async+ adapter,
     # so it could be used in system tests too.
     class Test < Async
       def broadcast(channel, payload)

@@ -40,7 +40,7 @@ module ActiveJob
       # Builds a +QC::Queue+ object to schedule jobs on.
       #
       # If you have a custom +QC::Queue+ subclass you'll need to subclass
-      # <tt>ActiveJob::QueueAdapters::QueueClassicAdapter</tt> and override the
+      # +ActiveJob::QueueAdapters::QueueClassicAdapter+ and override the
       # <tt>build_queue</tt> method.
       def build_queue(queue_name)
         QC::Queue.new(queue_name)

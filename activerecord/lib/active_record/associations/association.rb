@@ -19,7 +19,7 @@ module ActiveRecord
     # Associations in Active Record are middlemen between the object that
     # holds the association, known as the <tt>owner</tt>, and the associated
     # result set, known as the <tt>target</tt>. Association metadata is available in
-    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    # <tt>reflection</tt>, which is an instance of +ActiveRecord::Reflection::AssociationReflection+.
     #
     # For example, given
     #

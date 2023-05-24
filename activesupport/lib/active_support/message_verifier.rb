@@ -70,7 +70,7 @@ module ActiveSupport
   #
   # Messages can then be verified and returned until expiry.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
-  # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
+  # +ActiveSupport::MessageVerifier::InvalidSignature+.
   #
   # === Rotating keys
   #

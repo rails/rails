@@ -44,7 +44,7 @@ module Rails
     #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
     #   root["app/controllers"].existent # => ["/rails/app/controllers"]
     #
-    # Check the <tt>Rails::Paths::Path</tt> documentation for more information.
+    # Check the +Rails::Paths::Path+ documentation for more information.
     class Root
       attr_accessor :path
 
