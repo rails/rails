@@ -114,15 +114,23 @@ module ActionView
             tok_name, str = *tok
             case tok_name
             when :TEXT
+              loop do
+                break if compiled.match?(str)
+                compiled.getch
+              end
               raise LocationParsingError unless compiled.scan(str)
             when :CODE
-              raise LocationParsingError, "We went too far" if compiled.pos > error_column
+              if compiled.pos > error_column
+                raise LocationParsingError, "We went too far"
+              end
 
               if compiled.pos + str.bytesize >= error_column
                 offset = error_column - compiled.pos
                 return passed_tokens.map(&:last).join.bytesize + offset
               else
-                raise LocationParsingError unless compiled.scan(str)
+                unless compiled.scan(str)
+                  raise LocationParsingError, "Couldn't find code snippet"
+                end
               end
             when :OPEN
               next_tok = source_tokens.first.last
