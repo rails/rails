@@ -187,7 +187,7 @@ module ActionView
       #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
-      #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>patch?</tt>, or <tt>put?</tt>.
+      #   the request object's methods for +post?+, +delete?+, +patch?+, or +put?+.
       # * <tt>remote: true</tt> - This will allow <tt>@rails/ujs</tt>
       #   to make an Ajax request to the URL in question instead of following
       #   the link.
@@ -196,7 +196,7 @@ module ActionView
       #
       # * <tt>confirm: "question?"</tt> - This will allow <tt>@rails/ujs</tt>
       #   to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>). If the user accepts, the
+      #   resulting text would be +question?+). If the user accepts, the
       #   link is processed normally, otherwise no action is taken.
       # * +:disable_with+ - Value of this parameter will be used as the
       #   name for a disabled version of the link.
@@ -317,7 +317,7 @@ module ActionView
       #
       # * <tt>confirm: "question?"</tt> - This will allow <tt>@rails/ujs</tt>
       #   to prompt with the question specified (in this case, the
-      #   resulting text would be <tt>question?</tt>). If the user accepts, the
+      #   resulting text would be +question?+). If the user accepts, the
       #   button is processed normally, otherwise no action is taken.
       # * +:disable_with+ - Value of this parameter will be
       #   used as the value for a disabled version of the submit

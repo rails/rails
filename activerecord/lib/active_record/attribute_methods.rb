@@ -293,8 +293,8 @@ module ActiveRecord
     end
 
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
-    # database load and is neither +nil+ nor <tt>empty?</tt> (the latter only applies
-    # to objects that respond to <tt>empty?</tt>, most notably Strings). Otherwise, +false+.
+    # database load and is neither +nil+ nor +empty?+ (the latter only applies
+    # to objects that respond to +empty?+, most notably Strings). Otherwise, +false+.
     # Note that it always returns +true+ with boolean attributes.
     #
     #   class Task < ActiveRecord::Base

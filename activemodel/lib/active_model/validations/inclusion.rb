@@ -30,7 +30,7 @@ module ActiveModel
       # * +:in+ - An enumerable object of available items. This can be
       #   supplied as a proc, lambda, or symbol which returns an enumerable. If the
       #   enumerable is a numerical, time, or datetime range the test is performed
-      #   with <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>. When using
+      #   with <tt>Range#cover?</tt>, otherwise with +include?+. When using
       #   a proc or lambda the instance under validation is passed as an argument.
       # * +:within+ - A synonym(or alias) for +:in+
       # * +:message+ - Specifies a custom error message (default is: "is

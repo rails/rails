@@ -17,8 +17,8 @@ module ActiveModel
     #     after_validation  :do_stuff_after_validation
     #   end
     #
-    # Like other <tt>before_*</tt> callbacks if +before_validation+ throws
-    # +:abort+ then <tt>valid?</tt> will not be called.
+    # Like other +before_*+ callbacks if +before_validation+ throws
+    # +:abort+ then +valid?+ will not be called.
     module Callbacks
       extend ActiveSupport::Concern
 

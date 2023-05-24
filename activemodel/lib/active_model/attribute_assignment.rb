@@ -9,7 +9,7 @@ module ActiveModel
     # Allows you to set all the attributes by passing in a hash of attributes with
     # keys matching the attribute names.
     #
-    # If the passed hash responds to <tt>permitted?</tt> method and the return value
+    # If the passed hash responds to +permitted?+ method and the return value
     # of this method is +false+ an ActiveModel::ForbiddenAttributesError
     # exception is raised.
     #

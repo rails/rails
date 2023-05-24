@@ -299,7 +299,7 @@ When "true" and "false" are English words rather than Ruby keywords use a regula
 # Returns true if no errors are found, false otherwise.
 #
 # If the argument is false (default is +nil+), the context is
-# set to +:create+ if <tt>new_record?</tt> is true,
+# set to +:create+ if +new_record?+ is true,
 # and to +:update+ if it is not.
 #
 # Validations with no +:on+ option will run no

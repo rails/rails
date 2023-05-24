@@ -541,7 +541,7 @@ module ActionDispatch
         #
         # [:constraints]
         #   Constrains parameters with a hash of regular expressions
-        #   or an object that responds to <tt>matches?</tt>. In addition, constraints
+        #   or an object that responds to +matches?+. In addition, constraints
         #   other than path can also be specified with any object
         #   that responds to <tt>===</tt> (e.g. String, Array, Range, etc.).
         #

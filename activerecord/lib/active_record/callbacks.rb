@@ -162,7 +162,7 @@ module ActiveRecord
   #       end
   #   end
   #
-  # == <tt>before_validation*</tt> returning statements
+  # == +before_validation*+ returning statements
   #
   # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will return +false+.
@@ -171,7 +171,7 @@ module ActiveRecord
   #
   # == Canceling callbacks
   #
-  # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
+  # If a +before_*+ callback throws +:abort+, all the later callbacks and
   # the associated action are cancelled.
   # \Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
@@ -248,12 +248,12 @@ module ActiveRecord
   # == \Transactions
   #
   # The entire callback chain of a {#save}[rdoc-ref:Persistence#save], {#save!}[rdoc-ref:Persistence#save!],
-  # or {#destroy}[rdoc-ref:Persistence#destroy] call runs within a transaction. That includes <tt>after_*</tt> hooks.
+  # or {#destroy}[rdoc-ref:Persistence#destroy] call runs within a transaction. That includes +after_*+ hooks.
   # If everything goes fine a +COMMIT+ is executed once the chain has been completed.
   #
-  # If a <tt>before_*</tt> callback cancels the action a +ROLLBACK+ is issued. You
+  # If a +before_*+ callback cancels the action a +ROLLBACK+ is issued. You
   # can also trigger a +ROLLBACK+ raising an exception in any of the callbacks,
-  # including <tt>after_*</tt> hooks. Note, however, that in that case the client
+  # including +after_*+ hooks. Note, however, that in that case the client
   # needs to be aware of it because an ordinary {#save}[rdoc-ref:Persistence#save] will raise such exception
   # instead of quietly returning +false+.
   #

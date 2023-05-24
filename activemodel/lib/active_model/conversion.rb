@@ -62,7 +62,7 @@ module ActiveModel
     end
 
     # Returns a +string+ representing the object's key suitable for use in URLs,
-    # or +nil+ if <tt>persisted?</tt> is +false+.
+    # or +nil+ if +persisted?+ is +false+.
     #
     #   class Person
     #     include ActiveModel::Conversion

@@ -20,7 +20,7 @@ module ActiveModel
   #   person.name # => "bob"
   #   person.age  # => "18"
   #
-  # Note that, by default, +ActiveModel::API+ implements <tt>persisted?</tt>
+  # Note that, by default, +ActiveModel::API+ implements +persisted?+
   # to return +false+, which is the most common case. You may want to override
   # it in your class to simulate a different scenario:
   #

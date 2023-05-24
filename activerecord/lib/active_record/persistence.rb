@@ -699,7 +699,7 @@ module ActiveRecord
     # timestamps will not be updated.
     #
     # There's a series of callbacks associated with #save. If any of the
-    # <tt>before_*</tt> callbacks throws +:abort+ the action is cancelled and
+    # +before_*+ callbacks throws +:abort+ the action is cancelled and
     # #save returns +false+. See ActiveRecord::Callbacks for further
     # details.
     #
@@ -730,7 +730,7 @@ module ActiveRecord
     # timestamps will not be updated.
     #
     # There's a series of callbacks associated with #save!. If any of
-    # the <tt>before_*</tt> callbacks throws +:abort+ the action is cancelled
+    # the +before_*+ callbacks throws +:abort+ the action is cancelled
     # and #save! raises ActiveRecord::RecordNotSaved. See
     # ActiveRecord::Callbacks for further details.
     #
@@ -862,7 +862,7 @@ module ActiveRecord
     # This method raises an ActiveRecord::ActiveRecordError if the
     # attribute is marked as readonly.
     #
-    # If any of the <tt>before_*</tt> callbacks throws +:abort+ the action is cancelled
+    # If any of the +before_*+ callbacks throws +:abort+ the action is cancelled
     # and #update_attribute! raises ActiveRecord::RecordNotSaved. See
     # ActiveRecord::Callbacks for further details.
     def update_attribute!(name, value)
@@ -982,7 +982,7 @@ module ActiveRecord
       increment!(attribute, -by, touch: touch)
     end
 
-    # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
+    # Assigns to +attribute+ the boolean opposite of +attribute?+. So
     # if the predicate returns +true+ the attribute will become +false+. This
     # method toggles directly the underlying value without calling any setter.
     # Returns +self+.

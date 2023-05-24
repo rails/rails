@@ -111,7 +111,7 @@ module ActiveRecord
       end
 
       # Set this to +true+ if this is an abstract class (see
-      # <tt>abstract_class?</tt>).
+      # +abstract_class?+).
       # If you are using inheritance with Active Record and don't want a class
       # to be considered as part of the STI hierarchy, you must set this to
       # true.

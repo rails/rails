@@ -370,7 +370,7 @@ module ActiveModel
 
     alias_method :validate, :valid?
 
-    # Performs the opposite of <tt>valid?</tt>. Returns +true+ if errors were
+    # Performs the opposite of +valid?+. Returns +true+ if errors were
     # added, +false+ otherwise.
     #
     #   class Person
@@ -449,7 +449,7 @@ module ActiveModel
 
   # = Active \Model \ValidationError
   #
-  # Raised by <tt>validate!</tt> when the model is invalid. Use the
+  # Raised by +validate!+ when the model is invalid. Use the
   # +model+ method to retrieve the record which did not validate.
   #
   #   begin

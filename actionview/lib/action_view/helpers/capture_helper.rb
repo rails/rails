@@ -191,7 +191,7 @@ module ActionView
         result unless content
       end
 
-      # <tt>content_for?</tt> checks whether any content has been captured yet using +content_for+.
+      # +content_for?+ checks whether any content has been captured yet using +content_for+.
       #
       # Useful to render parts of your layout differently based on what is in your views.
       #

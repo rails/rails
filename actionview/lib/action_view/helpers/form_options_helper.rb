@@ -84,7 +84,7 @@ module ActionView
     #
     #     collection_select(:post, :category_id, Category.all, :id, :name, { disabled: -> (category) { category.archived? } })
     #
-    #   If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
+    #   If the categories "2008 stuff" and "Christmas" return true when the method +archived?+ is called, this would return:
     #     <select name="post[category_id]" id="post_category_id">
     #       <option value="1" disabled="disabled">2008 stuff</option>
     #       <option value="2" disabled="disabled">Christmas</option>

@@ -128,7 +128,7 @@ module ActiveRecord # :nodoc:
   # Query methods allow you to test whether an attribute value is present.
   # Additionally, when dealing with numeric values, a query method will return false if the value is zero.
   #
-  # For example, an Active Record User with the +name+ attribute has a <tt>name?</tt> method that you can call
+  # For example, an Active Record User with the +name+ attribute has a +name?+ method that you can call
   # to determine whether the user has a name:
   #
   #   user = User.new(name: "David")

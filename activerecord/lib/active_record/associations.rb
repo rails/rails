@@ -339,7 +339,7 @@ module ActiveRecord
       # foreign keys. They express relationships like "Project has one Project Manager"
       # or "Project belongs to a Portfolio". Each macro adds a number of methods to the
       # class which are specialized according to the collection or association symbol and the
-      # options hash. It works much the same way as Ruby's own <tt>attr*</tt>
+      # options hash. It works much the same way as Ruby's own +attr*+
       # methods.
       #
       #   class Project < ActiveRecord::Base

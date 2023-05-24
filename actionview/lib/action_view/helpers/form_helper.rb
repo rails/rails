@@ -1019,7 +1019,7 @@ module ActionView
       #   <% end %>
       #
       # Note that fields_for will automatically generate a hidden field
-      # to store the ID of the record if it responds to <tt>persisted?</tt>.
+      # to store the ID of the record if it responds to +persisted?+.
       # There are circumstances where this hidden field is not needed and you
       # can pass <tt>include_id: false</tt> to prevent fields_for from
       # rendering it automatically.

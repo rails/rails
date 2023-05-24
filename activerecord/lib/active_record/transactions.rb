@@ -85,7 +85,7 @@ module ActiveRecord
     # that whatever you do in validations or callbacks will happen under its
     # protected cover. So you can use validations to check for values that
     # the transaction depends on or you can raise exceptions in the callbacks
-    # to rollback, including <tt>after_*</tt> callbacks.
+    # to rollback, including +after_*+ callbacks.
     #
     # As a consequence changes to the database are not seen outside your connection
     # until the operation is complete. For example, if you try to update the index

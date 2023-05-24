@@ -14,7 +14,7 @@ module ActiveModel
     # you want all features out of the box.
     #
     # These tests do not attempt to determine the semantic correctness of the
-    # returned values. For instance, you could implement <tt>valid?</tt> to
+    # returned values. For instance, you could implement +valid?+ to
     # always return +true+, and the tests would pass. It is up to you to ensure
     # that the values are semantically meaningful.
     #
@@ -60,10 +60,10 @@ module ActiveModel
         assert_kind_of String, model.to_partial_path
       end
 
-      # Passes if the object's model responds to <tt>persisted?</tt> and if
+      # Passes if the object's model responds to +persisted?+ and if
       # calling this method returns either +true+ or +false+. Fails otherwise.
       #
-      # <tt>persisted?</tt> is used when calculating the URL for an object.
+      # +persisted?+ is used when calculating the URL for an object.
       # If the object is not persisted, a form for that object, for instance,
       # will route to the create action. If it is persisted, a form for the
       # object will route to the update action.
