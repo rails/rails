@@ -242,7 +242,7 @@ module ActiveSupport
     # method is useful for reporting file sizes to users. You can
     # customize the format in the +options+ hash.
     #
-    # See <tt>number_to_human</tt> if you want to pretty-print a
+    # See +number_to_human+ if you want to pretty-print a
     # generic number.
     #
     # ==== Options
@@ -289,7 +289,7 @@ module ActiveSupport
     # Billion"). This is useful for numbers that can get very large
     # (and too hard to read).
     #
-    # See <tt>number_to_human_size</tt> if you want to print a file
+    # See +number_to_human_size+ if you want to print a file
     # size.
     #
     # You can also define your own unit-quantifier names if you want

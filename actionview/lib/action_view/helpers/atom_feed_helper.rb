@@ -93,7 +93,7 @@ module ActionView
       #    end
       #
       #
-      # <tt>atom_feed</tt> yields an +AtomFeedBuilder+ instance. Nested elements yield
+      # +atom_feed+ yields an +AtomFeedBuilder+ instance. Nested elements yield
       # an +AtomBuilder+ instance.
       def atom_feed(options = {}, &block)
         if options[:schema_date]

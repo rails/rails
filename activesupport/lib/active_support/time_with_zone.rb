@@ -54,12 +54,12 @@ module ActiveSupport
       @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
     end
 
-    # Returns a <tt>Time</tt> instance that represents the time in +time_zone+.
+    # Returns a +Time+ instance that represents the time in +time_zone+.
     def time
       @time ||= incorporate_utc_offset(@utc, utc_offset)
     end
 
-    # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
+    # Returns a +Time+ instance of the simultaneous time in the UTC timezone.
     def utc
       @utc ||= incorporate_utc_offset(@time, -utc_offset)
     end
@@ -79,7 +79,7 @@ module ActiveSupport
       utc.in_time_zone(new_zone)
     end
 
-    # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
+    # Returns a +Time+ instance of the simultaneous time in the system timezone.
     def localtime(utc_offset = nil)
       utc.getlocal(utc_offset)
     end
@@ -203,9 +203,9 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     #
-    # This method is aliased to <tt>to_formatted_s</tt>.
+    # This method is aliased to +to_formatted_s+.
     #
-    # Accepts an optional <tt>format</tt>:
+    # Accepts an optional +format+:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
     # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_fs(:db).
     # * Any key in +Time::DATE_FORMATS+ can be used. See active_support/core_ext/time/conversions.rb.

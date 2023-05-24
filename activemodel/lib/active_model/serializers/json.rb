@@ -18,9 +18,9 @@ module ActiveModel
       # Returns a hash representing the model. Some configuration can be
       # passed through +options+.
       #
-      # The option <tt>include_root_in_json</tt> controls the top-level behavior
+      # The option +include_root_in_json+ controls the top-level behavior
       # of +as_json+. If +true+, +as_json+ will emit a single root node named
-      # after the object's type. The default value for <tt>include_root_in_json</tt>
+      # after the object's type. The default value for +include_root_in_json+
       # option is +false+.
       #
       #   user = User.find(1)

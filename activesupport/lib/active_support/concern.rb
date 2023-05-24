@@ -74,7 +74,7 @@ module ActiveSupport
   #     include Bar
   #   end
   #
-  # Unfortunately this won't work, since when +Foo+ is included, its <tt>base</tt>
+  # Unfortunately this won't work, since when +Foo+ is included, its +base+
   # is the +Bar+ module, not the +Host+ class. With +ActiveSupport::Concern+,
   # module dependencies are properly resolved:
   #
@@ -104,11 +104,11 @@ module ActiveSupport
   #
   # === Prepending concerns
   #
-  # Just like <tt>include</tt>, concerns also support <tt>prepend</tt> with a corresponding
+  # Just like +include+, concerns also support +prepend+ with a corresponding
   # <tt>prepended do</tt> callback. <tt>module ClassMethods</tt> or <tt>class_methods do</tt> are
   # prepended as well.
   #
-  # <tt>prepend</tt> is also used for any dependencies.
+  # +prepend+ is also used for any dependencies.
   module Concern
     class MultipleIncludedBlocks < StandardError # :nodoc:
       def initialize

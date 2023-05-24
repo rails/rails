@@ -697,8 +697,8 @@ module ActiveRecord
 
         # Checks to see if the reflection doesn't have any options that prevent
         # us from being able to guess the inverse automatically. First, the
-        # <tt>inverse_of</tt> option cannot be set to false. Second, we must
-        # have <tt>has_many</tt>, <tt>has_one</tt>, <tt>belongs_to</tt> associations.
+        # +inverse_of+ option cannot be set to false. Second, we must
+        # have +has_many+, +has_one+, +belongs_to+ associations.
         # Third, we must not have options such as <tt>:foreign_key</tt>
         # which prevent us from correctly guessing the inverse association.
         def can_find_inverse_of_automatically?(reflection, inverse_reflection = false)
@@ -709,9 +709,9 @@ module ActiveRecord
         end
 
         # Scopes on the potential inverse reflection prevent automatic
-        # <tt>inverse_of</tt>, since the scope could exclude the owner record
+        # +inverse_of+, since the scope could exclude the owner record
         # we would inverse from. Scopes on the reflection itself allow for
-        # automatic <tt>inverse_of</tt> as long as
+        # automatic +inverse_of+ as long as
         # <tt>config.active_record.automatic_scope_inversing<tt> is set to
         # +true+ (the default for new applications).
         def scope_allows_automatic_inverse_of?(reflection, inverse_reflection)

@@ -45,7 +45,7 @@ class String
     self
   end
 
-  # Truncates a given +text+ to length <tt>truncate_to</tt> if +text+ is longer than <tt>truncate_to</tt>:
+  # Truncates a given +text+ to length +truncate_to+ if +text+ is longer than +truncate_to+:
   #
   #   'Once upon a time in a world far far away'.truncate(27)
   #   # => "Once upon a time in a wo..."
@@ -59,8 +59,8 @@ class String
   #   # => "Once upon a time in a..."
   #
   # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "...").
-  # The total length will not exceed <tt>truncate_to</tt> unless both +text+ and <tt>:omission</tt>
-  # are longer than <tt>truncate_to</tt>:
+  # The total length will not exceed +truncate_to+ unless both +text+ and <tt>:omission</tt>
+  # are longer than +truncate_to+:
   #
   #   'And they found that many people were sleeping better.'.truncate(25, omission: '... (continued)')
   #   # => "And they f... (continued)"
@@ -82,7 +82,7 @@ class String
     +"#{self[0, stop]}#{omission}"
   end
 
-  # Truncates +text+ to at most <tt>truncate_to</tt> bytes in length without
+  # Truncates +text+ to at most +truncate_to+ bytes in length without
   # breaking string encoding by splitting multibyte characters or breaking
   # grapheme clusters ("perceptual characters") by truncating at combining
   # characters.
@@ -95,9 +95,9 @@ class String
   #   => "🔪🔪🔪🔪…"
   #
   # The truncated text ends with the <tt>:omission</tt> string, defaulting
-  # to "…", for a total length not exceeding <tt>truncate_to</tt>.
+  # to "…", for a total length not exceeding +truncate_to+.
   #
-  # Raises +ArgumentError+ when the bytesize of <tt>:omission</tt> exceeds <tt>truncate_to</tt>.
+  # Raises +ArgumentError+ when the bytesize of <tt>:omission</tt> exceeds +truncate_to+.
   def truncate_bytes(truncate_to, omission: "…")
     omission ||= ""
 
@@ -125,7 +125,7 @@ class String
     end
   end
 
-  # Truncates a given +text+ after a given number of words (<tt>words_count</tt>):
+  # Truncates a given +text+ after a given number of words (+words_count+):
   #
   #   'Once upon a time in a world far far away'.truncate_words(4)
   #   # => "Once upon a time..."

@@ -666,7 +666,7 @@ module ActiveRecord
     # This is short-hand for <tt>relation.where(condition).delete_all</tt>.
     # Returns the number of rows affected.
     #
-    # If no record is found, returns <tt>0</tt> as zero rows were affected.
+    # If no record is found, returns +0+ as zero rows were affected.
     #
     #   Person.delete_by(id: 13)
     #   Person.delete_by(name: 'Spartacus', rating: 4)
@@ -690,7 +690,7 @@ module ActiveRecord
     # fixtures are enabled.
     #
     # If the query was actually executed in the background, the Active Record logs will show
-    # it by prefixing the log line with <tt>ASYNC</tt>:
+    # it by prefixing the log line with +ASYNC+:
     #
     #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
@@ -710,7 +710,7 @@ module ActiveRecord
       self
     end
 
-    # Returns <tt>true</tt> if the relation was scheduled on the background
+    # Returns +true+ if the relation was scheduled on the background
     # thread pool.
     def scheduled?
       !!@future_result

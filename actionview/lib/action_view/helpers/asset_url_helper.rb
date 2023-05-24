@@ -22,7 +22,7 @@ module ActionView
     # server by setting <tt>ActionController::Base.asset_host</tt> in the application
     # configuration, typically in <tt>config/environments/production.rb</tt>.
     # For example, you'd define <tt>assets.example.com</tt> to be your asset
-    # host this way, inside the <tt>configure</tt> block of your environment-specific
+    # host this way, inside the +configure+ block of your environment-specific
     # configuration files or <tt>config/application.rb</tt>:
     #
     #   config.action_controller.asset_host = "assets.example.com"
@@ -139,7 +139,7 @@ module ActionView
       #
       # === Without the asset pipeline (<tt>skip_pipeline: true</tt>)
       #
-      # Accepts a <tt>type</tt> option that can specify the asset's extension. No error
+      # Accepts a +type+ option that can specify the asset's extension. No error
       # checking is done to verify the source passed into +asset_path+ is valid
       # and that the file exists on disk.
       #
@@ -180,7 +180,7 @@ module ActionView
       #     Rails.application.config.action_controller.asset_host = "assets.example.com"
       #     asset_path("foo.js", skip_pipeline: true) # => "http://assets.example.com/foo.js"
       #
-      # - An extension name can be specified manually with <tt>extname</tt>.
+      # - An extension name can be specified manually with +extname+.
       #
       #     asset_path("foo", skip_pipeline: true, extname: ".js")     # => "/foo.js"
       #     asset_path("foo.css", skip_pipeline: true, extname: ".js") # => "/foo.css.js"

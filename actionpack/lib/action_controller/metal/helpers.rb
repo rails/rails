@@ -12,8 +12,8 @@ module ActionController
   # will include all helpers. These helpers are only accessible on the controller through <tt>#helpers</tt>
   #
   # In previous versions of \Rails the controller will include a helper which
-  # matches the name of the controller, e.g., <tt>MyController</tt> will automatically
-  # include <tt>MyHelper</tt>. You can revert to the old behavior with the following:
+  # matches the name of the controller, e.g., +MyController+ will automatically
+  # include +MyHelper+. You can revert to the old behavior with the following:
   #
   #    # config/application.rb
   #    class Application < Rails::Application
@@ -41,7 +41,7 @@ module ActionController
   #     end
   #   end
   #
-  # Then, in any view rendered by <tt>EventsController</tt>, the <tt>format_time</tt> method can be called:
+  # Then, in any view rendered by +EventsController+, the +format_time+ method can be called:
   #
   #   <% @events.each do |event| -%>
   #     <p>
@@ -74,7 +74,7 @@ module ActionController
       #   helper_attr :name
       #
       # ==== Parameters
-      # * <tt>attrs</tt> - Names of attributes to be converted into helpers.
+      # * +attrs+ - Names of attributes to be converted into helpers.
       def helper_attr(*attrs)
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
@@ -97,10 +97,10 @@ module ActionController
       # all helpers in helpers_path.
       #
       # ==== Parameters
-      # * <tt>args</tt> - A list of helpers
+      # * +args+ - A list of helpers
       #
       # ==== Returns
-      # * <tt>array</tt> - A normalized list of modules for the list of helpers provided.
+      # * +array+ - A normalized list of modules for the list of helpers provided.
       def modules_for_helpers(args)
         args += all_application_helpers if args.delete(:all)
         super(args)

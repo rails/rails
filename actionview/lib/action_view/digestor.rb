@@ -9,10 +9,10 @@ module ActionView
     class << self
       # Supported options:
       #
-      # * <tt>name</tt>         - Template name
-      # * <tt>format</tt>       - Template format
-      # * +finder+              - An instance of ActionView::LookupContext
-      # * <tt>dependencies</tt> - An array of dependent views
+      # * +name+         - Template name
+      # * +format+       - Template format
+      # * +finder+       - An instance of ActionView::LookupContext
+      # * +dependencies+ - An array of dependent views
       def digest(name:, format: nil, finder:, dependencies: nil)
         if dependencies.nil? || dependencies.empty?
           cache_key = "#{name}.#{format}"

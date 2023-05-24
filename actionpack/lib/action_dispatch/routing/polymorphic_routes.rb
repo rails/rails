@@ -23,24 +23,24 @@ module ActionDispatch
     #
     # Polymorphic URL helpers are used in a number of places throughout the \Rails framework:
     #
-    # * <tt>url_for</tt>, so you can use it with a record as the argument, e.g.
+    # * +url_for+, so you can use it with a record as the argument, e.g.
     #   <tt>url_for(@article)</tt>;
-    # * ActionView::Helpers::FormHelper uses <tt>polymorphic_path</tt>, so you can write
+    # * ActionView::Helpers::FormHelper uses +polymorphic_path+, so you can write
     #   <tt>form_for(@article)</tt> without having to specify <tt>:url</tt> parameter for the form
     #   action;
-    # * <tt>redirect_to</tt> (which, in fact, uses <tt>url_for</tt>) so you can write
+    # * +redirect_to+ (which, in fact, uses +url_for+) so you can write
     #   <tt>redirect_to(post)</tt> in your controllers;
     # * ActionView::Helpers::AtomFeedHelper, so you don't have to explicitly specify URLs
     #   for feed entries.
     #
     # == Prefixed polymorphic helpers
     #
-    # In addition to <tt>polymorphic_url</tt> and <tt>polymorphic_path</tt> methods, a
+    # In addition to +polymorphic_url+ and +polymorphic_path+ methods, a
     # number of prefixed helpers are available as a shorthand to <tt>action: "..."</tt>
     # in options. Those are:
     #
-    # * <tt>edit_polymorphic_url</tt>, <tt>edit_polymorphic_path</tt>
-    # * <tt>new_polymorphic_url</tt>, <tt>new_polymorphic_path</tt>
+    # * +edit_polymorphic_url+, +edit_polymorphic_path+
+    # * +new_polymorphic_url+, +new_polymorphic_path+
     #
     # Example usage:
     #
@@ -74,7 +74,7 @@ module ActionDispatch
       # * <tt>:routing_type</tt> - Allowed values are <tt>:path</tt> or <tt>:url</tt>.
       #   Default is <tt>:url</tt>.
       #
-      # Also includes all the options from <tt>url_for</tt>. These include such
+      # Also includes all the options from +url_for+. These include such
       # things as <tt>:anchor</tt> or <tt>:trailing_slash</tt>. Example usage
       # is given below:
       #

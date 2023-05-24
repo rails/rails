@@ -120,7 +120,7 @@ module ActionCable
         worker_pool.async_invoke(self, method, *arguments)
       end
 
-      # Return a basic hash of statistics for the connection keyed with <tt>identifier</tt>, <tt>started_at</tt>, <tt>subscriptions</tt>, and <tt>request_id</tt>.
+      # Return a basic hash of statistics for the connection keyed with +identifier+, +started_at+, +subscriptions+, and +request_id+.
       # This can be returned by a health check against the connection.
       def statistics
         {

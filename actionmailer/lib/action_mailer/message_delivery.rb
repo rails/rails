@@ -7,7 +7,7 @@ module ActionMailer
   #
   # The +ActionMailer::MessageDelivery+ class is used by
   # ActionMailer::Base when creating a new mailer.
-  # <tt>MessageDelivery</tt> is a wrapper (+Delegator+ subclass) around a lazy
+  # +MessageDelivery+ is a wrapper (+Delegator+ subclass) around a lazy
   # created +Mail::Message+. You can get direct access to the
   # +Mail::Message+, deliver the email or schedule the email to be sent
   # through Active Job.

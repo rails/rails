@@ -5,7 +5,7 @@ module ActiveRecord
     # = Active Record Collection Proxy
     #
     # Collection proxies in Active Record are middlemen between an
-    # <tt>association</tt>, and its <tt>target</tt> result set.
+    # +association+, and its +target+ result set.
     #
     # For example, given
     #
@@ -16,13 +16,13 @@ module ActiveRecord
     #   blog = Blog.first
     #
     # The collection proxy returned by <tt>blog.posts</tt> is built from a
-    # <tt>:has_many</tt> <tt>association</tt>, and delegates to a collection
-    # of posts as the <tt>target</tt>.
+    # <tt>:has_many</tt> +association+, and delegates to a collection
+    # of posts as the +target+.
     #
-    # This class delegates unknown methods to the <tt>association</tt>'s
+    # This class delegates unknown methods to the +association+'s
     # relation class via a delegate cache.
     #
-    # The <tt>target</tt> result set is not loaded until needed. For example,
+    # The +target+ result set is not loaded until needed. For example,
     #
     #   blog.posts.count
     #

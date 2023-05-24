@@ -104,8 +104,8 @@ module ActionDispatch
         assert_equal(expected_path, generated_path, msg)
       end
 
-      # Asserts that path and options match both ways; in other words, it verifies that <tt>path</tt> generates
-      # <tt>options</tt> and then that <tt>options</tt> generates <tt>path</tt>. This essentially combines +assert_recognizes+
+      # Asserts that path and options match both ways; in other words, it verifies that +path+ generates
+      # +options+ and then that +options+ generates +path+. This essentially combines +assert_recognizes+
       # and +assert_generates+ into one step.
       #
       # The +extras+ hash allows you to specify options that would normally be provided as a query string to the action. The

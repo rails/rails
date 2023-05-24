@@ -70,17 +70,17 @@ module ActionDispatch
   #
   # == Non-resourceful routes
   #
-  # For routes that don't fit the <tt>resources</tt> mold, you can use the HTTP helper
-  # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
+  # For routes that don't fit the +resources+ mold, you can use the HTTP helper
+  # methods +get+, +post+, +patch+, +put+ and +delete+.
   #
   #   get 'post/:id', to: 'posts#show'
   #   post 'post/:id', to: 'posts#create_comment'
   #
-  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the <tt>create_comment</tt> action. A GET on the same
-  # URL will route to the <tt>show</tt> action.
+  # Now, if you POST to <tt>/posts/:id</tt>, it will route to the +create_comment+ action. A GET on the same
+  # URL will route to the +show+ action.
   #
   # If your route needs to respond to more than one HTTP method (or all methods) then using the
-  # <tt>:via</tt> option on <tt>match</tt> is preferable.
+  # <tt>:via</tt> option on +match+ is preferable.
   #
   #   match 'post/:id', to: 'posts#show', via: [:get, :post]
   #
@@ -102,7 +102,7 @@ module ActionDispatch
   #
   #   redirect_to show_item_path(id: 25)
   #
-  # Use <tt>root</tt> as a shorthand to name a route for the root path "/".
+  # Use +root+ as a shorthand to name a route for the root path "/".
   #
   #   # In config/routes.rb
   #   root to: 'blogs#index'

@@ -42,16 +42,16 @@ module ActionView
       # opt out of span-wrapping behavior globally by setting
       # <tt>config.i18n.raise_on_missing_translations = true</tt> or
       # individually by passing <tt>raise: true</tt> as an option to
-      # <tt>translate</tt>.
+      # +translate+.
       #
-      # Second, if the key starts with a period <tt>translate</tt> will scope
+      # Second, if the key starts with a period +translate+ will scope
       # the key by the current partial. Calling <tt>translate(".foo")</tt> from
       # the <tt>people/index.html.erb</tt> template is equivalent to calling
       # <tt>translate("people.index.foo")</tt>. This makes it less
       # repetitive to translate many keys within the same partial and provides
       # a convention to scope keys consistently.
       #
-      # Third, the translation will be marked as <tt>html_safe</tt> if the key
+      # Third, the translation will be marked as +html_safe+ if the key
       # has the suffix "_html" or the last element of the key is "html". Calling
       # <tt>translate("footer_html")</tt> or <tt>translate("footer.html")</tt>
       # will return an HTML safe string that won't be escaped by other HTML
@@ -61,7 +61,7 @@ module ActionView
       # they can provide HTML values for.
       #
       # To access the translated text along with the fully resolved
-      # translation key, <tt>translate</tt> accepts a block:
+      # translation key, +translate+ accepts a block:
       #
       #     <%= translate(".relative_key") do |translation, resolved_key| %>
       #       <span title="<%= resolved_key %>"><%= translation %></span>

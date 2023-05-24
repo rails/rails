@@ -22,7 +22,7 @@ class Date
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
-  # This method is aliased to <tt>to_formatted_s</tt>.
+  # This method is aliased to +to_formatted_s+.
   #
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #

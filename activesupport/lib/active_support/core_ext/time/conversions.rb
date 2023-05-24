@@ -27,7 +27,7 @@ class Time
 
   # Converts to a formatted string. See DATE_FORMATS for built-in formats.
   #
-  # This method is aliased to <tt>to_formatted_s</tt>.
+  # This method is aliased to +to_formatted_s+.
   #
   #   time = Time.now                    # => 2007-01-18 06:10:17 -06:00
   #

@@ -449,7 +449,7 @@ module ActionDispatch
   # more completely than either unit or functional tests do, exercising the
   # entire stack, from the dispatcher to the database.
   #
-  # At its simplest, you simply extend <tt>IntegrationTest</tt> and write your tests
+  # At its simplest, you simply extend +IntegrationTest+ and write your tests
   # using the get/post methods:
   #
   #   require "test_helper"

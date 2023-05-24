@@ -18,7 +18,7 @@ module ActiveSupport
       alias :unwrapped_html_escape :html_escape # :nodoc:
 
       # A utility method for escaping HTML tag characters.
-      # This method is also aliased as <tt>h</tt>.
+      # This method is also aliased as +h+.
       #
       #   puts html_escape('is a > 0 & a < 10?')
       #   # => is a &gt; 0 &amp; a &lt; 10?

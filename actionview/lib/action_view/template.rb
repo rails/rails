@@ -17,8 +17,8 @@ module ActionView
     # templates are usually read from disk, and Ruby (like most
     # encoding-aware programming languages) assumes that the
     # String retrieved through File IO is encoded in the
-    # <tt>default_external</tt> encoding. In Rails, the default
-    # <tt>default_external</tt> encoding is UTF-8.
+    # +default_external+ encoding. In Rails, the default
+    # +default_external+ encoding is UTF-8.
     #
     # As a result, if a user saves their template as ISO-8859-1
     # (for instance, using a non-Unicode-aware text editor),
@@ -59,7 +59,7 @@ module ActionView
     # to you if it could not determine the original encoding.
     #
     # For the greatest simplicity, you can support only
-    # UTF-8 as the <tt>default_internal</tt>. This means
+    # UTF-8 as the +default_internal+. This means
     # that from the perspective of your handler, the
     # entire pipeline is just UTF-8.
     #
@@ -80,7 +80,7 @@ module ActionView
     # you are handling out-of-band metadata, you are
     # also responsible for alerting the user to any
     # problems with converting the user's data to
-    # the <tt>default_internal</tt>.
+    # the +default_internal+.
     #
     # To do so, simply raise +WrongEncodingError+ as follows:
     #

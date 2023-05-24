@@ -84,7 +84,7 @@ module ActiveRecord
     #     accepts_nested_attributes_for :avatar, allow_destroy: true
     #   end
     #
-    # Now, when you add the <tt>_destroy</tt> key to the attributes hash, with a
+    # Now, when you add the +_destroy+ key to the attributes hash, with a
     # value that evaluates to +true+, you will destroy the associated model:
     #
     #   member.avatar_attributes = { id: '2', _destroy: '1' }
@@ -110,8 +110,8 @@ module ActiveRecord
     # an attribute hash for a member: include the key +:posts_attributes+
     # with an array of hashes of post attributes as a value.
     #
-    # For each hash that does _not_ have an <tt>id</tt> key a new record will
-    # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
+    # For each hash that does _not_ have an +id+ key a new record will
+    # be instantiated, unless the hash also contains a +_destroy+ key
     # that evaluates to +true+.
     #
     #   params = { member: {
@@ -165,7 +165,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    # If the hash contains an <tt>id</tt> key that matches an already
+    # If the hash contains an +id+ key that matches an already
     # associated record, the matching record will be modified:
     #
     #   member.attributes = {
@@ -187,7 +187,7 @@ module ActiveRecord
     # By default the associated records are protected from being destroyed. If
     # you want to destroy any of the associated records through the attributes
     # hash, you have to enable it first using the <tt>:allow_destroy</tt>
-    # option. This will allow you to also use the <tt>_destroy</tt> key to
+    # option. This will allow you to also use the +_destroy+ key to
     # destroy existing records:
     #
     #   class Member < ActiveRecord::Base
@@ -308,7 +308,7 @@ module ActiveRecord
       # Supported options:
       # [:allow_destroy]
       #   If true, destroys any members from the attributes hash with a
-      #   <tt>_destroy</tt> key and a value that evaluates to +true+
+      #   +_destroy+ key and a value that evaluates to +true+
       #   (e.g. 1, '1', true, or 'true'). This option is off by default.
       # [:reject_if]
       #   Allows you to specify a Proc or a Symbol pointing to a method
@@ -316,7 +316,7 @@ module ActiveRecord
       #   hash. The hash is passed to the supplied Proc or the method
       #   and it should return either +true+ or +false+. When no +:reject_if+
       #   is specified, a record will be built for all attribute hashes that
-      #   do not have a <tt>_destroy</tt> value that evaluates to true.
+      #   do not have a +_destroy+ value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank excluding
       #   any value for +_destroy+.

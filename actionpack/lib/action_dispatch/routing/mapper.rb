@@ -566,7 +566,7 @@ module ActionDispatch
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
         # [:anchor]
-        #   Boolean to anchor a <tt>match</tt> pattern. Default is true. When set to
+        #   Boolean to anchor a +match+ pattern. Default is true. When set to
         #   false, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
@@ -1507,7 +1507,7 @@ module ActionDispatch
         #
         # This will enable Rails to recognize paths such as <tt>/photos/search</tt>
         # with GET, and route to the search action of +PhotosController+. It will also
-        # create the <tt>search_photos_url</tt> and <tt>search_photos_path</tt>
+        # create the +search_photos_url+ and +search_photos_path+
         # route helpers.
         def collection(&block)
           unless resource_scope?
@@ -1529,7 +1529,7 @@ module ActionDispatch
         #
         # This will recognize <tt>/photos/1/preview</tt> with GET, and route to the
         # preview action of +PhotosController+. It will also create the
-        # <tt>preview_photo_url</tt> and <tt>preview_photo_path</tt> helpers.
+        # +preview_photo_url+ and +preview_photo_path+ helpers.
         def member(&block)
           unless resource_scope?
             raise ArgumentError, "can't use member outside resource(s) scope"
@@ -2029,7 +2029,7 @@ module ActionDispatch
         # Concerns may be defined inline, using a block, or handled by
         # another object, by passing that object as the second parameter.
         #
-        # The concern object, if supplied, should respond to <tt>call</tt>,
+        # The concern object, if supplied, should respond to +call+,
         # which will receive two parameters:
         #
         #   * The current mapper
@@ -2079,7 +2079,7 @@ module ActionDispatch
         #
         # Any routing helpers can be used inside a concern. If using a
         # callable, they're accessible from the Mapper that's passed to
-        # <tt>call</tt>.
+        # +call+.
         def concern(name, callable = nil, &block)
           callable ||= lambda { |mapper, options| mapper.instance_exec(options, &block) }
           @concerns[name] = callable

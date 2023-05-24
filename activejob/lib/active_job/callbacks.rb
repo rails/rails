@@ -9,12 +9,12 @@ module ActiveJob
   # Active Job provides hooks during the life cycle of a job. Callbacks allow you
   # to trigger logic during this cycle. Available callbacks are:
   #
-  # * <tt>before_enqueue</tt>
-  # * <tt>around_enqueue</tt>
-  # * <tt>after_enqueue</tt>
-  # * <tt>before_perform</tt>
-  # * <tt>around_perform</tt>
-  # * <tt>after_perform</tt>
+  # * +before_enqueue+
+  # * +around_enqueue+
+  # * +after_enqueue+
+  # * +before_perform+
+  # * +around_perform+
+  # * +after_perform+
   #
   # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
   #

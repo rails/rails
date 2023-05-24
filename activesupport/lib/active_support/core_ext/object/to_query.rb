@@ -3,13 +3,13 @@
 require "cgi"
 
 class Object
-  # Alias of <tt>to_s</tt>.
+  # Alias of +to_s+.
   def to_param
     to_s
   end
 
   # Converts an object into a string suitable for use as a URL query string,
-  # using the given <tt>key</tt> as the param name.
+  # using the given +key+ as the param name.
   def to_query(key)
     "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
   end
@@ -37,8 +37,8 @@ class FalseClass
 end
 
 class Array
-  # Calls <tt>to_param</tt> on all its elements and joins the result with
-  # slashes. This is used by <tt>url_for</tt> in Action Pack.
+  # Calls +to_param+ on all its elements and joins the result with
+  # slashes. This is used by +url_for+ in Action Pack.
   def to_param
     collect(&:to_param).join "/"
   end

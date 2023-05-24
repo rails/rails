@@ -374,7 +374,7 @@ module ActiveRecord
   #
   # where MyNewMigration is the name of your migration. The generator will
   # create an empty migration file <tt>timestamp_my_new_migration.rb</tt>
-  # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the
+  # in the <tt>db/migrate/</tt> directory where +timestamp+ is the
   # UTC formatted date and time that the migration was generated.
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
@@ -390,13 +390,13 @@ module ActiveRecord
   #
   # To run migrations against the currently configured database, use
   # <tt>bin/rails db:migrate</tt>. This will update the database by running all of the
-  # pending migrations, creating the <tt>schema_migrations</tt> table
+  # pending migrations, creating the +schema_migrations+ table
   # (see "About the schema_migrations table" section below) if missing. It will also
   # invoke the db:schema:dump command, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>bin/rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>bin/rails db:rollback VERSION=X</tt> where +X+ is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
   # wish to rollback last few migrations. <tt>bin/rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.

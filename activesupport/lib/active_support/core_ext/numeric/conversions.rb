@@ -11,7 +11,7 @@ module ActiveSupport
     # Options are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size, and pretty printing.
     #
-    # This method is aliased to <tt>to_formatted_s</tt>.
+    # This method is aliased to +to_formatted_s+.
     #
     # ==== Options
     #

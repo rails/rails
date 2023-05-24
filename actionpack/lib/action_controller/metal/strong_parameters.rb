@@ -303,7 +303,7 @@ module ActionController
       end
     end
 
-    # Returns a safe <tt>Hash</tt> representation of the parameters
+    # Returns a safe +Hash+ representation of the parameters
     # with all unpermitted keys removed.
     #
     #   params = ActionController::Parameters.new({
@@ -1196,7 +1196,7 @@ module ActionController
   #       end
   #   end
   #
-  # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
+  # In order to use +accepts_nested_attributes_for+ with Strong \Parameters, you
   # will need to specify which nested attributes should be permitted. You might want
   # to allow +:id+ and +:_destroy+, see ActiveRecord::NestedAttributes for more information.
   #

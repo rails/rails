@@ -20,7 +20,7 @@ module ActionMailer
   #
   #   $ bin/rails generate mailer Notifier
   #
-  # The generated model inherits from <tt>ApplicationMailer</tt> which in turn
+  # The generated model inherits from +ApplicationMailer+ which in turn
   # inherits from +ActionMailer::Base+. A mailer model defines methods
   # used to generate an email message. In these methods, you can set up variables to be used in
   # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
@@ -56,7 +56,7 @@ module ActionMailer
   # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
   #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
   #
-  # * <tt>mail</tt> - Allows you to specify email to be sent.
+  # * +mail+ - Allows you to specify email to be sent.
   #
   # The hash passed to the mail method allows you to specify any header that a +Mail::Message+
   # will accept (any valid email header including optional fields).
@@ -116,11 +116,11 @@ module ActionMailer
   #
   # = Generating URLs
   #
-  # URLs can be generated in mailer views using <tt>url_for</tt> or named routes. Unlike controllers from
+  # URLs can be generated in mailer views using +url_for+ or named routes. Unlike controllers from
   # Action Pack, the mailer instance doesn't have any context about the incoming request, so you'll need
   # to provide all of the details needed to generate a URL.
   #
-  # When using <tt>url_for</tt> you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
+  # When using +url_for+ you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
   #
   #   <%= url_for(host: "example.com", controller: "welcome", action: "greeting") %>
   #
@@ -128,8 +128,8 @@ module ActionMailer
   #
   #   <%= users_url(host: "example.com") %>
   #
-  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the
-  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will
+  # You should use the +named_route_url+ style (which generates absolute URLs) and avoid using the
+  # +named_route_path+ style (which generates relative URLs), since clients reading the mail will
   # have no concept of a current URL from which to determine a relative path.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
@@ -137,7 +137,7 @@ module ActionMailer
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
   #
-  # You can also define a <tt>default_url_options</tt> method on individual mailers to override these
+  # You can also define a +default_url_options+ method on individual mailers to override these
   # default settings per-mailer.
   #
   # By default when <tt>config.force_ssl</tt> is +true+, URLs generated for hosts will use the HTTPS protocol.
@@ -153,7 +153,7 @@ module ActionMailer
   #
   # The ActionMailer::MessageDelivery class is a wrapper around a delegate that will call
   # your method to generate the mail. If you want direct access to the delegator, or +Mail::Message+,
-  # you can call the <tt>message</tt> method on the ActionMailer::MessageDelivery object.
+  # you can call the +message+ method on the ActionMailer::MessageDelivery object.
   #
   #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
   #
@@ -162,7 +162,7 @@ module ActionMailer
   #
   #   NotifierMailer.welcome(User.first).deliver_later # enqueue the email sending to Active Job
   #
-  # Note that <tt>deliver_later</tt> will execute your method from the background job.
+  # Note that +deliver_later+ will execute your method from the background job.
   #
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
   # All instance methods are expected to return a message object to be sent.
@@ -284,7 +284,7 @@ module ActionMailer
   # * <tt>content_type: "text/plain"</tt>
   # * <tt>parts_order:  [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
-  # <tt>parts_order</tt> and <tt>charset</tt> are not actually valid +Mail::Message+ header fields,
+  # +parts_order+ and +charset+ are not actually valid +Mail::Message+ header fields,
   # but Action Mailer translates them appropriately and sets the correct values.
   #
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
@@ -295,7 +295,7 @@ module ActionMailer
   #             content_description: 'This is a description'
   #   end
   #
-  # Finally, Action Mailer also supports passing <tt>Proc</tt> and <tt>Lambda</tt> objects into the default hash,
+  # Finally, Action Mailer also supports passing +Proc+ and +Lambda+ objects into the default hash,
   # so you can define methods that evaluate as the message is being generated:
   #
   #   class NotifierMailer < ApplicationMailer
@@ -318,8 +318,8 @@ module ActionMailer
   #
   # = Callbacks
   #
-  # You can specify callbacks using <tt>before_action</tt> and <tt>after_action</tt> for configuring your messages,
-  # and using <tt>before_deliver</tt> and <tt>after_deliver</tt> for wrapping the delivery process.
+  # You can specify callbacks using +before_action+ and +after_action+ for configuring your messages,
+  # and using +before_deliver+ and +after_deliver+ for wrapping the delivery process.
   # For example, when you want to add default inline attachments and log delivery for all messages
   # sent out by a certain mailer class:
   #
@@ -347,7 +347,7 @@ module ActionMailer
   # inherit from ActionController::Base.
   #
   # Note that unless you have a specific reason to do so, you should prefer
-  # using <tt>before_action</tt> rather than <tt>after_action</tt> in your
+  # using +before_action+ rather than +after_action+ in your
   # Action Mailer classes so that headers are parsed properly.
   #
   # = Rescuing Errors
@@ -386,8 +386,8 @@ module ActionMailer
   #   end
   #
   # Methods must return a +Mail::Message+ object which can be generated by calling the mailer
-  # method without the additional <tt>deliver_now</tt> / <tt>deliver_later</tt>. The location of the
-  # mailer preview directories can be configured using the <tt>preview_paths</tt> option which has a default
+  # method without the additional +deliver_now+ / +deliver_later+. The location of the
+  # mailer preview directories can be configured using the +preview_paths+ option which has a default
   # of <tt>test/mailers/previews</tt>:
   #
   #   config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
@@ -396,7 +396,7 @@ module ActionMailer
   # on a running development server instance.
   #
   # Previews can also be intercepted in a similar manner as deliveries can be by registering
-  # a preview interceptor that has a <tt>previewing_email</tt> method:
+  # a preview interceptor that has a +previewing_email+ method:
   #
   #   class CssInlineStyler
   #     def self.previewing_email(message)
@@ -406,8 +406,8 @@ module ActionMailer
   #
   #   config.action_mailer.preview_interceptors :css_inline_styler
   #
-  # Note that interceptors need to be registered both with <tt>register_interceptor</tt>
-  # and <tt>register_preview_interceptor</tt> if they should operate on both sending and
+  # Note that interceptors need to be registered both with +register_interceptor+
+  # and +register_preview_interceptor+ if they should operate on both sending and
   # previewing emails.
   #
   # = Configuration options
@@ -415,13 +415,13 @@ module ActionMailer
   # These options are specified on the class level, like
   # <tt>ActionMailer::Base.raise_delivery_errors = true</tt>
   #
-  # * <tt>default_options</tt> - You can pass this in at a class level as well as within the class itself as
+  # * +default_options+ - You can pass this in at a class level as well as within the class itself as
   #   per the above section.
   #
-  # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
+  # * +logger+ - the logger is used for generating information on the mailing run if available.
   #   Can be set to +nil+ for no logging. Compatible with both Ruby's own +Logger+ and Log4r loggers.
   #
-  # * <tt>smtp_settings</tt> - Allows detailed configuration for <tt>:smtp</tt> delivery method:
+  # * +smtp_settings+ - Allows detailed configuration for <tt>:smtp</tt> delivery method:
   #   * <tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default
   #     "localhost" setting.
   #   * <tt>:port</tt> - On the off chance that your mail server doesn't run on port 25, you can change it.
@@ -434,9 +434,9 @@ module ActionMailer
   #     send the password Base64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
   #     information and a cryptographic Message Digest 5 algorithm to hash important information)
   #   * <tt>:enable_starttls</tt> - Use STARTTLS when connecting to your SMTP server and fail if unsupported. Defaults
-  #     to <tt>false</tt>. Requires at least version 2.7 of the Mail gem.
+  #     to +false+. Requires at least version 2.7 of the Mail gem.
   #   * <tt>:enable_starttls_auto</tt> - Detects if STARTTLS is enabled in your SMTP server and starts
-  #     to use it. Defaults to <tt>true</tt>.
+  #     to use it. Defaults to +true+.
   #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
   #     of an OpenSSL verify constant (<tt>'none'</tt> or <tt>'peer'</tt>) or directly the constant
@@ -445,34 +445,34 @@ module ActionMailer
   #   * <tt>:open_timeout</tt> Number of seconds to wait while attempting to open a connection.
   #   * <tt>:read_timeout</tt> Number of seconds to wait until timing-out a read(2) call.
   #
-  # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
+  # * +sendmail_settings+ - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
   #   * <tt>:arguments</tt> - The command line arguments. Defaults to <tt>%w[ -i ]</tt> with <tt>-f sender@address</tt>
   #     added automatically before the message is sent.
   #
-  # * <tt>file_settings</tt> - Allows you to override options for the <tt>:file</tt> delivery method.
+  # * +file_settings+ - Allows you to override options for the <tt>:file</tt> delivery method.
   #   * <tt>:location</tt> - The directory into which emails will be written. Defaults to the application
   #     <tt>tmp/mails</tt>.
   #
-  # * <tt>raise_delivery_errors</tt> - Whether or not errors should be raised if the email fails to be delivered.
+  # * +raise_delivery_errors+ - Whether or not errors should be raised if the email fails to be delivered.
   #
-  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
+  # * +delivery_method+ - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
   #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
   #   object e.g. +MyOwnDeliveryMethodClass+. See the Mail gem documentation on the interface you need to
   #   implement for a custom delivery agent.
   #
-  # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
+  # * +perform_deliveries+ - Determines whether emails are actually sent from Action Mailer when you
   #   call <tt>.deliver</tt> on an email message or on an Action Mailer method. This is on by default but can
   #   be turned off to aid in functional testing.
   #
-  # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
+  # * +deliveries+ - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>delivery_job</tt> - The job class used with <tt>deliver_later</tt>. Mailers can set this to use a
+  # * +delivery_job+ - The job class used with +deliver_later+. Mailers can set this to use a
   #   custom delivery job. Defaults to +ActionMailer::MailDeliveryJob+.
   #
-  # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
-  #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue name.
+  # * +deliver_later_queue_name+ - The queue name used by +deliver_later+ with the default
+  #   +delivery_job+. Mailers can set this to use a custom queue name.
   class Base < AbstractController::Base
     include Callbacks
     include DeliveryMethods
@@ -931,7 +931,7 @@ module ActionMailer
 
       # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
       # If it does not find a translation for the +subject+ under the specified scope it will default to a
-      # humanized version of the <tt>action_name</tt>.
+      # humanized version of the +action_name+.
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
       def default_i18n_subject(interpolations = {}) # :doc:
         mailer_scope = self.class.mailer_name.tr("/", ".")

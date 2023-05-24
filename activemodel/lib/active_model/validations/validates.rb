@@ -129,9 +129,9 @@ module ActiveModel
 
       # This method is used to define validations that cannot be corrected by end
       # users and are considered exceptional. So each validator defined with bang
-      # or <tt>:strict</tt> option set to <tt>true</tt> will always raise
+      # or <tt>:strict</tt> option set to +true+ will always raise
       # ActiveModel::StrictValidationFailed instead of adding error
-      # when validation fails. See <tt>validates</tt> for more information about
+      # when validation fails. See +validates+ for more information about
       # the validation itself.
       #
       #   class Person

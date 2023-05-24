@@ -22,12 +22,12 @@ module ActionCable
     #     received: (data) ->
     #       new Notification data['title'], body: data['body']
     module Broadcasting
-      # Broadcast a hash directly to a named <tt>broadcasting</tt>. This will later be JSON encoded.
+      # Broadcast a hash directly to a named +broadcasting+. This will later be JSON encoded.
       def broadcast(broadcasting, message, coder: ActiveSupport::JSON)
         broadcaster_for(broadcasting, coder: coder).broadcast(message)
       end
 
-      # Returns a broadcaster for a named <tt>broadcasting</tt> that can be reused. Useful when you have an object that
+      # Returns a broadcaster for a named +broadcasting+ that can be reused. Useful when you have an object that
       # may need multiple spots to transmit to a specific broadcasting over and over.
       def broadcaster_for(broadcasting, coder: ActiveSupport::JSON)
         Broadcaster.new(self, String(broadcasting), coder: coder)

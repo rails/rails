@@ -160,7 +160,7 @@ module ActionDispatch
   #   to <tt>:all</tt>. To support multiple domains, provide an array, and
   #   the first domain matching <tt>request.host</tt> will be used. Make
   #   sure to specify the <tt>:domain</tt> option with <tt>:all</tt> or
-  #   <tt>Array</tt> again when deleting cookies. For more flexibility you
+  #   +Array+ again when deleting cookies. For more flexibility you
   #   can set the domain on a per-request basis by specifying <tt>:domain</tt>
   #   with a proc.
   #
@@ -402,7 +402,7 @@ module ActionDispatch
         @delete_cookies[name.to_s] == options
       end
 
-      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie.
+      # Removes all cookies on the client machine by calling +delete+ for each cookie.
       def clear(options = {})
         @cookies.each_key { |k| delete(k, options) }
       end

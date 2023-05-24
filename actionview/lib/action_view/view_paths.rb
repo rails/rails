@@ -38,7 +38,7 @@ module ActionView
       # Append a path to the list of view paths for this controller.
       #
       # ==== Parameters
-      # * <tt>path</tt> - If a String is provided, it gets converted into
+      # * +path+ - If a String is provided, it gets converted into
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def append_view_path(path)
@@ -48,7 +48,7 @@ module ActionView
       # Prepend a path to the list of view paths for this controller.
       #
       # ==== Parameters
-      # * <tt>path</tt> - If a String is provided, it gets converted into
+      # * +path+ - If a String is provided, it gets converted into
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def prepend_view_path(path)
@@ -63,7 +63,7 @@ module ActionView
       # Set the view paths.
       #
       # ==== Parameters
-      # * <tt>paths</tt> - If a PathSet is provided, use that;
+      # * +paths+ - If a PathSet is provided, use that;
       #   otherwise, process the parameter into a PathSet.
       def view_paths=(paths)
         self._view_paths = _build_view_paths(paths)
@@ -97,7 +97,7 @@ module ActionView
     # Append a path to the list of view paths for the current LookupContext.
     #
     # ==== Parameters
-    # * <tt>path</tt> - If a String is provided, it gets converted into
+    # * +path+ - If a String is provided, it gets converted into
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def append_view_path(path)
@@ -107,7 +107,7 @@ module ActionView
     # Prepend a path to the list of view paths for the current LookupContext.
     #
     # ==== Parameters
-    # * <tt>path</tt> - If a String is provided, it gets converted into
+    # * +path+ - If a String is provided, it gets converted into
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)

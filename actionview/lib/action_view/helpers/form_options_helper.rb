@@ -13,7 +13,7 @@ module ActionView
     #
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     #
-    # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:
+    # The +collection_select+, +select+ and +time_zone_select+ methods take an +options+ parameter, a hash:
     #
     # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
@@ -27,7 +27,7 @@ module ActionView
     #       <option value="poem">poem</option>
     #     </select>
     #
-    #   Another common case is a select tag for a <tt>belongs_to</tt>-associated object.
+    #   Another common case is a select tag for a +belongs_to+-associated object.
     #
     #   Example with <tt>@post.person_id => 2</tt>:
     #
@@ -55,7 +55,7 @@ module ActionView
     #       <option value="3">Rafael</option>
     #     </select>
     #
-    # * <tt>:index</tt> - like the other form helpers, <tt>select</tt> can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, <tt>select</tt> expects this
+    # * <tt>:index</tt> - like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
     #   option to be in the +html_options+ parameter.
     #
     #     select("album[]", :genre, %w[ rap rock country ], {}, { index: nil })
@@ -80,7 +80,7 @@ module ActionView
     #       <option disabled="disabled" value="restricted">restricted</option>
     #     </select>
     #
-    #   When used with the <tt>collection_select</tt> helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
+    #   When used with the +collection_select+ helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
     #
     #     collection_select(:post, :category_id, Category.all, :id, :name, { disabled: -> (category) { category.archived? } })
     #
@@ -100,8 +100,8 @@ module ActionView
       #
       # There are two possible formats for the +choices+ parameter, corresponding to other helpers' output:
       #
-      # * A flat collection (see <tt>options_for_select</tt>).
-      # * A nested collection (see <tt>grouped_options_for_select</tt>).
+      # * A flat collection (see +options_for_select+).
+      # * A nested collection (see +grouped_options_for_select+).
       #
       # Example with <tt>@post.person_id => 2</tt>:
       #
@@ -189,7 +189,7 @@ module ActionView
       #
       #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, prompt: true)
       #
-      # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
+      # If <tt>@post.author_id</tt> is already +1+, this would return:
       #   <select name="post[author_id]" id="post_author_id">
       #     <option value="">Please select</option>
       #     <option value="1" selected="selected">D. Heinemeier Hansson</option>
@@ -294,7 +294,7 @@ module ActionView
       end
 
       # Returns select and option tags for the given object and method, using
-      # <tt>weekday_options_for_select</tt> to generate the list of option tags.
+      # +weekday_options_for_select+ to generate the list of option tags.
       def weekday_select(object, method, options = {}, html_options = {}, &block)
         Tags::WeekdaySelect.new(object, method, self, options, html_options, &block).render
       end
@@ -411,7 +411,7 @@ module ActionView
         options_for_select(options, select_deselect)
       end
 
-      # Returns a string of <tt><option></tt> tags, like <tt>options_from_collection_for_select</tt>, but
+      # Returns a string of <tt><option></tt> tags, like +options_from_collection_for_select+, but
       # groups them by <tt><optgroup></tt> tags based on the object relationships of the arguments.
       #
       # Parameters:
@@ -468,7 +468,7 @@ module ActionView
         end.join.html_safe
       end
 
-      # Returns a string of <tt><option></tt> tags, like <tt>options_for_select</tt>, but
+      # Returns a string of <tt><option></tt> tags, like +options_for_select+, but
       # wraps them with <tt><optgroup></tt> tags:
       #
       #   grouped_options = [
@@ -499,9 +499,9 @@ module ActionView
       # Parameters:
       # * +grouped_options+ - Accepts a nested array or hash of strings. The first value serves as the
       #   <tt><optgroup></tt> label while the second value must be an array of options. The second value can be a
-      #   nested array of text-value pairs. See <tt>options_for_select</tt> for more info.
+      #   nested array of text-value pairs. See +options_for_select+ for more info.
       #    Ex. ["North America",[["United States","US"],["Canada","CA"]]]
-      #   An optional third value can be provided as HTML attributes for the <tt>optgroup</tt>.
+      #   An optional third value can be provided as HTML attributes for the +optgroup+.
       #    Ex. ["North America",[["United States","US"],["Canada","CA"]], { disabled: "disabled" }]
       # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
       #   which will have the +selected+ attribute set. Note: It is possible for this value to match multiple options
@@ -645,7 +645,7 @@ module ActionView
       # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
       #
-      # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
+      # If <tt>@post.author_id</tt> is already +1+, this would return:
       #   <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
       #   <label for="post_author_id_1">D. Heinemeier Hansson</label>
       #   <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
@@ -665,14 +665,14 @@ module ActionView
       # Using it, you can change the label and radio button display order or
       # even use the label as wrapper, as in the example above.
       #
-      # The builder methods <tt>label</tt> and <tt>radio_button</tt> also accept
+      # The builder methods +label+ and +radio_button+ also accept
       # extra HTML options:
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #     b.label(class: "radio_button") { b.radio_button(class: "radio_button") }
       #   end
       #
-      # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
-      # <tt>value</tt>, which are the current item being rendered, its text and value methods,
+      # There are also three special methods available: +object+, +text+ and
+      # +value+, which are the current item being rendered, its text and value methods,
       # respectively. You can use them like this:
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.radio_button + b.text }
@@ -746,14 +746,14 @@ module ActionView
       # Using it, you can change the label and check box display order or even
       # use the label as wrapper, as in the example above.
       #
-      # The builder methods <tt>label</tt> and <tt>check_box</tt> also accept
+      # The builder methods +label+ and +check_box+ also accept
       # extra HTML options:
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
       #     b.label(class: "check_box") { b.check_box(class: "check_box") }
       #   end
       #
-      # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
-      # <tt>value</tt>, which are the current item being rendered, its text and value methods,
+      # There are also three special methods available: +object+, +text+ and
+      # +value+, which are the current item being rendered, its text and value methods,
       # respectively. You can use them like this:
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
       #      b.label(:"data-value" => b.value) { b.check_box + b.text }

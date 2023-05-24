@@ -118,7 +118,7 @@ module ActiveRecord
       #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
-      #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
+      #   or <tt>returning: false</tt> to omit the underlying +RETURNING+ SQL
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
@@ -142,7 +142,7 @@ module ActiveRecord
       #
       # [:record_timestamps]
       #   By default, automatic setting of timestamp columns is controlled by
-      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   the model's +record_timestamps+ config, matching typical
       #   behavior.
       #
       #   To override this and force automatic setting of timestamp columns one
@@ -208,7 +208,7 @@ module ActiveRecord
       #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
-      #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
+      #   or <tt>returning: false</tt> to omit the underlying +RETURNING+ SQL
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
@@ -216,7 +216,7 @@ module ActiveRecord
       #
       # [:record_timestamps]
       #   By default, automatic setting of timestamp columns is controlled by
-      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   the model's +record_timestamps+ config, matching typical
       #   behavior.
       #
       #   To override this and force automatic setting of timestamp columns one
@@ -274,7 +274,7 @@ module ActiveRecord
       #   (PostgreSQL only) An array of attributes to return for all successfully
       #   inserted records, which by default is the primary key.
       #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
-      #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
+      #   or <tt>returning: false</tt> to omit the underlying +RETURNING+ SQL
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
@@ -339,7 +339,7 @@ module ActiveRecord
       #
       # [:record_timestamps]
       #   By default, automatic setting of timestamp columns is controlled by
-      #   the model's <tt>record_timestamps</tt> config, matching typical
+      #   the model's +record_timestamps+ config, matching typical
       #   behavior.
       #
       #   To override this and force automatic setting of timestamp columns one
@@ -544,7 +544,7 @@ module ActiveRecord
       # Record objects are not instantiated, so the object's callbacks are not
       # executed, including any <tt>:dependent</tt> association options.
       #
-      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
+      # You can delete multiple rows at once by passing an Array of +id+s.
       #
       # Note: Although it is often much faster than the alternative, #destroy,
       # skipping callbacks might bypass business logic in your application
@@ -764,7 +764,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     #
     # There's a series of callbacks associated with #destroy. If the
-    # <tt>before_destroy</tt> callback throws +:abort+ the action is cancelled
+    # +before_destroy+ callback throws +:abort+ the action is cancelled
     # and #destroy returns +false+.
     # See ActiveRecord::Callbacks for further details.
     def destroy
@@ -779,7 +779,7 @@ module ActiveRecord
     # that no changes should be made (since they can't be persisted).
     #
     # There's a series of callbacks associated with #destroy!. If the
-    # <tt>before_destroy</tt> callback throws +:abort+ the action is cancelled
+    # +before_destroy+ callback throws +:abort+ the action is cancelled
     # and #destroy! raises ActiveRecord::RecordNotDestroyed.
     # See ActiveRecord::Callbacks for further details.
     def destroy!

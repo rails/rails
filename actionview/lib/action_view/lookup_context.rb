@@ -7,9 +7,9 @@ require "action_view/template/resolver"
 module ActionView
   # = Action View Lookup Context
   #
-  # <tt>LookupContext</tt> is the object responsible for holding all information
+  # +LookupContext+ is the object responsible for holding all information
   # required for looking up templates, i.e. view paths and details.
-  # <tt>LookupContext</tt> is also responsible for generating a key, given to
+  # +LookupContext+ is also responsible for generating a key, given to
   # view paths, used in the resolver cache lookup. Since this key is generated
   # only once during the request, it speeds up all cache accesses.
   class LookupContext # :nodoc:

@@ -217,10 +217,10 @@ module ActionDispatch
       #
       # This method enables you to use the flash as a central messaging system in your app.
       # When you need to pass an object to the next action, you use the standard flash assign (<tt>[]=</tt>).
-      # When you need to pass an object to the current action, you use <tt>now</tt>, and your object will
+      # When you need to pass an object to the current action, you use +now+, and your object will
       # vanish when the current action is done.
       #
-      # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
+      # Entries set via +now+ are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
       #
       # Also, brings two convenience accessors:
       #

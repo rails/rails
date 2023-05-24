@@ -529,7 +529,7 @@ module ActiveSupport
         #
         #   Symbols:: A method to call.
         #   Procs::   A proc to call with the object.
-        #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
+        #   Objects:: An object with a +before_foo+ method on it to call.
         #
         # All of these objects are converted into a CallTemplate and handled
         # the same after this point.
@@ -817,8 +817,8 @@ module ActiveSupport
         #   - save
         #   saved
         #
-        # An <tt>ArgumentError</tt> will be raised if the callback has not
-        # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
+        # An +ArgumentError+ will be raised if the callback has not
+        # already been set (unless the <tt>:raise</tt> option is set to +false+).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
 

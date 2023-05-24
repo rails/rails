@@ -23,7 +23,7 @@ module ActionCable
     #   end
     #
     # Based on the above example, the subscribers of this channel will get whatever data is put into the,
-    # let's say, <tt>comments_for_45</tt> broadcasting as soon as it's put there.
+    # let's say, +comments_for_45+ broadcasting as soon as it's put there.
     #
     # An example broadcasting for this channel looks like so:
     #
@@ -71,7 +71,7 @@ module ActionCable
         on_unsubscribe :stop_all_streams
       end
 
-      # Start streaming from the named <tt>broadcasting</tt> pubsub queue. Optionally, you can pass a <tt>callback</tt> that'll be used
+      # Start streaming from the named +broadcasting+ pubsub queue. Optionally, you can pass a +callback+ that'll be used
       # instead of the default of just transmitting the updates straight to the subscriber.
       # Pass <tt>coder: ActiveSupport::JSON</tt> to decode messages as JSON before passing to the callback.
       # Defaults to <tt>coder: nil</tt> which does no decoding, passes raw messages.
@@ -94,8 +94,8 @@ module ActionCable
         end
       end
 
-      # Start streaming the pubsub queue for the <tt>model</tt> in this channel. Optionally, you can pass a
-      # <tt>callback</tt> that'll be used instead of the default of just transmitting the updates straight
+      # Start streaming the pubsub queue for the +model+ in this channel. Optionally, you can pass a
+      # +callback+ that'll be used instead of the default of just transmitting the updates straight
       # to the subscriber.
       #
       # Pass <tt>coder: ActiveSupport::JSON</tt> to decode messages as JSON before passing to the callback.
@@ -104,7 +104,7 @@ module ActionCable
         stream_from(broadcasting_for(model), callback || block, coder: coder)
       end
 
-      # Unsubscribes streams from the named <tt>broadcasting</tt>.
+      # Unsubscribes streams from the named +broadcasting+.
       def stop_stream_from(broadcasting)
         callback = streams.delete(broadcasting)
         if callback
@@ -113,7 +113,7 @@ module ActionCable
         end
       end
 
-      # Unsubscribes streams for the <tt>model</tt>.
+      # Unsubscribes streams for the +model+.
       def stop_stream_for(model)
         stop_stream_from(broadcasting_for(model))
       end
@@ -126,7 +126,7 @@ module ActionCable
         end.clear
       end
 
-      # Calls stream_for with the given <tt>model</tt> if it's present to start streaming,
+      # Calls stream_for with the given +model+ if it's present to start streaming,
       # otherwise rejects the subscription.
       def stream_or_reject_for(model)
         if model

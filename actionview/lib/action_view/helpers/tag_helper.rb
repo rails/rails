@@ -323,8 +323,8 @@ module ActionView
       # Note: this is legacy syntax, see +tag+ method description for details.
       #
       # ==== Options
-      # The +options+ hash can be used with attributes with no value like (<tt>disabled</tt> and
-      # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
+      # The +options+ hash can be used with attributes with no value like (+disabled+ and
+      # +readonly+), which you can give a value of true in the +options+ hash. You can use
       # symbols or strings for the attribute names.
       #
       # ==== Examples

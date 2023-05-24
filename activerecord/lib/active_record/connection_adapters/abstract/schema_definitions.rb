@@ -422,9 +422,9 @@ module ActiveRecord
       #
       # Additional options are:
       # * <tt>:index</tt> -
-      #   Create an index for the column. Can be either <tt>true</tt> or an options hash.
+      #   Create an index for the column. Can be either +true+ or an options hash.
       #
-      # This method returns <tt>self</tt>.
+      # This method returns +self+.
       #
       # == Examples
       #
@@ -464,7 +464,7 @@ module ActiveRecord
       #
       # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
       # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of
-      # options, these will be used when creating the <tt>_type</tt> column. The <tt>:index</tt> option
+      # options, these will be used when creating the +_type+ column. The <tt>:index</tt> option
       # will also create an index, similar to calling {add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
       # So what can be written like this:
       #

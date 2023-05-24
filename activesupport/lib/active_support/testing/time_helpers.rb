@@ -77,8 +77,8 @@ module ActiveSupport
       #
       # Note that the usec for the resulting time will be set to 0 to prevent rounding
       # errors with external services, like MySQL (which will round instead of floor,
-      # leading to off-by-one-second errors), unless the <tt>with_usec</tt> argument
-      # is set to <tt>true</tt>.
+      # leading to off-by-one-second errors), unless the +with_usec+ argument
+      # is set to +true+.
       #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel 1.day
@@ -119,8 +119,8 @@ module ActiveSupport
       #
       # Note that the usec for the time passed will be set to 0 to prevent rounding
       # errors with external services, like MySQL (which will round instead of floor,
-      # leading to off-by-one-second errors), unless the <tt>with_usec</tt> argument
-      # is set to <tt>true</tt>.
+      # leading to off-by-one-second errors), unless the +with_usec+ argument
+      # is set to +true+.
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -233,7 +233,7 @@ module ActiveSupport
       end
       alias_method :unfreeze_time, :travel_back
 
-      # Calls +travel_to+ with +Time.now+. Forwards optional <tt>with_usec</tt> argument.
+      # Calls +travel_to+ with +Time.now+. Forwards optional +with_usec+ argument.
       #
       #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   freeze_time

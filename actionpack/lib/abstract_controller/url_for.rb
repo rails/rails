@@ -4,11 +4,11 @@ module AbstractController
   # = URL For
   #
   # Includes +url_for+ into the host class (e.g. an abstract controller or mailer). The class
-  # has to provide a +RouteSet+ by implementing the <tt>_routes</tt> methods. Otherwise, an
+  # has to provide a +RouteSet+ by implementing the +_routes+ methods. Otherwise, an
   # exception will be raised.
   #
   # Note that this module is completely decoupled from HTTP - the only requirement is a valid
-  # <tt>_routes</tt> implementation.
+  # +_routes+ implementation.
   module UrlFor
     extend ActiveSupport::Concern
     include ActionDispatch::Routing::UrlFor

@@ -132,7 +132,7 @@ module ActiveRecord
   #
   # Note that autosave will only trigger for already-persisted association records
   # if the records themselves have been changed. This is to protect against
-  # <tt>SystemStackError</tt> caused by circular association validations. The one
+  # +SystemStackError+ caused by circular association validations. The one
   # exception is if a custom validation context is used, in which case the validations
   # will always fire on the associated records.
   module AutosaveAssociation
@@ -230,7 +230,7 @@ module ActiveRecord
         end
     end
 
-    # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
+    # Reloads the attributes of the object as usual and clears +marked_for_destruction+ flag.
     def reload(options = nil)
       @marked_for_destruction = false
       @destroyed_by_association = nil
@@ -330,7 +330,7 @@ module ActiveRecord
       end
 
       # Returns whether or not the association is valid and applies any errors to
-      # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
+      # the parent, +self+, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)

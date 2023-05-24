@@ -17,7 +17,7 @@ module ActiveStorage
   # ActiveStorage::Blob records inherit from ActiveRecord::Base instances and
   # therefore can be populated by fixtures.
   #
-  # Consider a hypothetical <tt>Article</tt> model class, its related
+  # Consider a hypothetical +Article+ model class, its related
   # fixture data, as well as fixture data for related ActiveStorage::Attachment
   # and ActiveStorage::Blob records:
   #

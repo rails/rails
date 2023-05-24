@@ -90,7 +90,7 @@ class Module
   #   Foo.new.hello # => "world"
   #
   # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
-  # is <tt>true</tt>, the delegate methods are prefixed with the name of the object being
+  # is +true+, the delegate methods are prefixed with the name of the object being
   # delegated to.
   #
   #   Person = Struct.new(:name, :address)
@@ -311,10 +311,10 @@ class Module
   # raise +DelegationError+. If you wish to instead return +nil+,
   # use the <tt>:allow_nil</tt> option.
   #
-  # The <tt>marshal_dump</tt> and <tt>_dump</tt> methods are exempt from
+  # The +marshal_dump+ and +_dump+ methods are exempt from
   # delegation due to possible interference when calling
   # <tt>Marshal.dump(object)</tt>, should the delegation target method
-  # of <tt>object</tt> add or remove instance variables.
+  # of +object+ add or remove instance variables.
   def delegate_missing_to(target, allow_nil: nil)
     target = target.to_s
     target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)

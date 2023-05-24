@@ -11,7 +11,7 @@ class Array
   #
   # You can pass the following options to change the default behavior. If you
   # pass an option key that doesn't exist in the list below, it will raise an
-  # <tt>ArgumentError</tt>.
+  # +ArgumentError+.
   #
   # ==== Options
   #
@@ -86,7 +86,7 @@ class Array
   # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
   # comma separated id list if <tt>:db</tt> argument is given as the format.
   #
-  # This method is aliased to <tt>to_formatted_s</tt>.
+  # This method is aliased to +to_formatted_s+.
   #
   #   Blog.all.to_fs(:db)  # => "1,2,3"
   #   Blog.none.to_fs(:db) # => "null"

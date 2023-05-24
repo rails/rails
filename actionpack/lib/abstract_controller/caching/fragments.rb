@@ -130,7 +130,7 @@ module AbstractController
       #   memcached).
       #
       # +options+ is passed through to the cache store's +delete+
-      # method (or <tt>delete_matched</tt>, for Regexp keys).
+      # method (or +delete_matched+, for Regexp keys).
       def expire_fragment(key, options = nil)
         return unless cache_configured?
         key = combined_fragment_cache_key(key) unless key.is_a?(Regexp)

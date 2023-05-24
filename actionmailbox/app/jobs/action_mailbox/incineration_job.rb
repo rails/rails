@@ -4,7 +4,7 @@ module ActionMailbox
   # You can configure when this +IncinerationJob+ will be run as a time-after-processing using the
   # +config.action_mailbox.incinerate_after+ or +ActionMailbox.incinerate_after+ setting.
   #
-  # Since this incineration is set for the future, it'll automatically ignore any <tt>InboundEmail</tt>s
+  # Since this incineration is set for the future, it'll automatically ignore any +InboundEmail+s
   # that have already been deleted and discard itself if so.
   #
   # You can disable incinerating processed emails by setting +config.action_mailbox.incinerate+ or

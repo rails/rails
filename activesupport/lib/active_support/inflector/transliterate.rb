@@ -118,7 +118,7 @@ module ActiveSupport
     #
     # If the optional parameter +locale+ is specified,
     # the word will be parameterized as a word of that language.
-    # By default, this parameter is set to <tt>nil</tt> and it will use
+    # By default, this parameter is set to +nil+ and it will use
     # the configured <tt>I18n.locale</tt>.
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       # Replace accented chars with their ASCII equivalents.

@@ -114,7 +114,7 @@ module Rails
     # Prints all annotations with tag +tag+ under the root directories +app+,
     # +config+, +db+, +lib+, and +test+ (recursively).
     #
-    # If +tag+ is <tt>nil</tt>, annotations with either default or registered tags are printed.
+    # If +tag+ is +nil+, annotations with either default or registered tags are printed.
     #
     # Specific directories can be explicitly set using the <tt>:dirs</tt> key in +options+.
     #

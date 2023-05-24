@@ -16,10 +16,10 @@ module ActionView
     # elements. All of the select-type methods share a number of common options that are as follows:
     #
     # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday"
-    #   would give \birthday[month] instead of \date[month] if passed to the <tt>select_month</tt> method.
+    #   would give \birthday[month] instead of \date[month] if passed to the +select_month+ method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true,
-    #   the <tt>select_month</tt> method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
+    #   the +select_month+ method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead
     #   of \date[month].
     module DateHelper
       MINUTES_IN_YEAR = 525600
@@ -72,7 +72,7 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
-      # With the <tt>scope</tt> option, you can define a custom scope for Rails
+      # With the +scope+ option, you can define a custom scope for Rails
       # to look up the translation.
       #
       # For example you can define the following in your locale (e.g. en.yml).
@@ -157,7 +157,7 @@ module ActionView
         end
       end
 
-      # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
+      # Like +distance_of_time_in_words+, but where +to_time+ is fixed to <tt>Time.now</tt>.
       #
       #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
       #   time_ago_in_words(3.minutes.ago)                      # => 3 minutes
@@ -171,7 +171,7 @@ module ActionView
       #   from_time = (3.days + 14.minutes + 25.seconds).ago
       #   time_ago_in_words(from_time)      # => 3 days
       #
-      # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
+      # Note that you cannot pass a +Numeric+ value to +time_ago_in_words+.
       #
       def time_ago_in_words(from_time, options = {})
         distance_of_time_in_words(from_time, Time.now, options)
@@ -492,7 +492,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
-      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
+      # The +datetime+ can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'second' by default.
       #
       #   my_time = Time.now + 16.seconds
@@ -515,8 +515,8 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
-      # Also can return a select tag with options by <tt>minute_step</tt> from 0 through 59 with the 00 minute
-      # selected. The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
+      # Also can return a select tag with options by +minute_step+ from 0 through 59 with the 00 minute
+      # selected. The +datetime+ can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'minute' by default.
       #
       #   my_time = Time.now + 10.minutes
@@ -539,7 +539,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
-      # The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
+      # The +datetime+ can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'hour' by default.
       #
       #   my_time = Time.now + 6.hours
@@ -568,7 +568,7 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
-      # The <tt>date</tt> can also be substituted for a day number.
+      # The +date+ can also be substituted for a day number.
       # If you want to display days with a leading zero set the <tt>:use_two_digit_numbers</tt> key in +options+ to true.
       # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
       #
@@ -642,7 +642,7 @@ module ActionView
       # Returns a select tag with options for each of the five years on each side of the current, which is selected.
       # The five year radius can be changed using the <tt>:start_year</tt> and <tt>:end_year</tt> keys in the
       # +options+. Both ascending and descending year lists are supported by making <tt>:start_year</tt> less than or
-      # greater than <tt>:end_year</tt>. The <tt>date</tt> can also be substituted for a year given as a number.
+      # greater than <tt>:end_year</tt>. The +date+ can also be substituted for a year given as a number.
       # Override the field name using the <tt>:field_name</tt> option, 'year' by default.
       #
       #   # Generates a select field for years that defaults to the current year that

@@ -21,7 +21,7 @@ module ActionView
       # * <tt>:body</tt> - Renders the text passed in, and inherits the content
       #   type of <tt>text/plain</tt> from ActionDispatch::Response object.
       #
-      # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
+      # If no +options+ hash is passed or if <tt>:update</tt> is specified, then:
       #
       # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
       # passing in the current view context.

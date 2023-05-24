@@ -432,8 +432,8 @@ module ActionController
         end
 
         # Authenticate using an HTTP Bearer token.
-        # Returns the return value of <tt>login_procedure</tt> if a
-        # token is found. Returns <tt>nil</tt> if no token is found.
+        # Returns the return value of +login_procedure+ if a
+        # token is found. Returns +nil+ if no token is found.
         #
         # See ActionController::HttpAuthentication::Token for example usage.
         def authenticate_with_http_token(&login_procedure)
@@ -450,8 +450,8 @@ module ActionController
       # If token Authorization header is present, call the login
       # procedure with the present token and options.
       #
-      # Returns the return value of <tt>login_procedure</tt> if a
-      # token is found. Returns <tt>nil</tt> if no token is found.
+      # Returns the return value of +login_procedure+ if a
+      # token is found. Returns +nil+ if no token is found.
       #
       # ==== Parameters
       #

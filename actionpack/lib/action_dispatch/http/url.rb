@@ -317,13 +317,13 @@ module ActionDispatch
       end
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
-      # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
+      # a different +tld_length+, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
       def domain(tld_length = @@tld_length)
         ActionDispatch::Http::URL.extract_domain(host, tld_length)
       end
 
       # Returns all the \subdomains as an array, so <tt>["dev", "www"]</tt> would be
-      # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
+      # returned for "dev.www.rubyonrails.org". You can specify a different +tld_length+,
       # such as 2 to catch <tt>["www"]</tt> instead of <tt>["www", "rubyonrails"]</tt>
       # in "www.rubyonrails.co.uk".
       def subdomains(tld_length = @@tld_length)
@@ -331,7 +331,7 @@ module ActionDispatch
       end
 
       # Returns all the \subdomains as a string, so <tt>"dev.www"</tt> would be
-      # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
+      # returned for "dev.www.rubyonrails.org". You can specify a different +tld_length+,
       # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
       def subdomain(tld_length = @@tld_length)

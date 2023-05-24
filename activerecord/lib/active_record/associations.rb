@@ -576,8 +576,8 @@ module ActiveRecord
       # * Adding an object to a collection (#has_many or #has_and_belongs_to_many) automatically
       #   saves that object, except if the parent object (the owner of the collection) is not yet
       #   stored in the database.
-      # * If saving any of the objects being added to a collection (via <tt>push</tt> or similar)
-      #   fails, then <tt>push</tt> returns +false+.
+      # * If saving any of the objects being added to a collection (via +push+ or similar)
+      #   fails, then +push+ returns +false+.
       # * If saving fails while replacing the collection (via <tt>association=</tt>), an
       #   ActiveRecord::RecordNotSaved exception is raised and the assignment is
       #   cancelled.
@@ -588,7 +588,7 @@ module ActiveRecord
       #
       # == Customizing the query
       #
-      # \Associations are built from <tt>Relation</tt> objects, and you can use the Relation syntax
+      # \Associations are built from +Relation+ objects, and you can use the Relation syntax
       # to customize them. For example, to add a condition:
       #
       #   class Blog < ActiveRecord::Base
@@ -709,8 +709,8 @@ module ActiveRecord
       # * <tt>record.association(:items).target</tt> - Returns the associated object for #belongs_to and #has_one, or
       #   the collection of associated objects for #has_many and #has_and_belongs_to_many.
       #
-      # However, inside the actual extension code, you will not have access to the <tt>record</tt> as
-      # above. In this case, you can access <tt>proxy_association</tt>. For example,
+      # However, inside the actual extension code, you will not have access to the +record+ as
+      # above. In this case, you can access +proxy_association+. For example,
       # <tt>record.association(:items)</tt> and <tt>record.items.proxy_association</tt> will return
       # the same object, allowing you to make calls like <tt>proxy_association.owner</tt> inside
       # association extensions.
@@ -787,13 +787,13 @@ module ActiveRecord
       #
       # If you are using a #belongs_to on the join model, it is a good idea to set the
       # <tt>:inverse_of</tt> option on the #belongs_to, which will mean that the following example
-      # works correctly (where <tt>tags</tt> is a #has_many <tt>:through</tt> association):
+      # works correctly (where +tags+ is a #has_many <tt>:through</tt> association):
       #
       #   @post = Post.first
       #   @tag = @post.tags.build name: "ruby"
       #   @tag.save
       #
-      # The last line ought to save the through record (a <tt>Tagging</tt>). This will only work if the
+      # The last line ought to save the through record (a +Tagging+). This will only work if the
       # <tt>:inverse_of</tt> is set:
       #
       #   class Tagging < ActiveRecord::Base
@@ -816,7 +816,7 @@ module ActiveRecord
       # especially the ones with non-standard names.
       #
       # You can turn off the automatic detection of inverse associations by setting
-      # the <tt>:inverse_of</tt> option to <tt>false</tt> like so:
+      # the <tt>:inverse_of</tt> option to +false+ like so:
       #
       #   class Tagging < ActiveRecord::Base
       #     belongs_to :tag, inverse_of: false
@@ -862,8 +862,8 @@ module ActiveRecord
       #
       # When using a nested association, you will not be able to modify the association because there
       # is not enough information to know what modification to make. For example, if you tried to
-      # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the
-      # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.
+      # add a +Commenter+ in the example above, there would be no way to tell how to set up the
+      # intermediate +Post+ and +Comment+ objects.
       #
       # == Polymorphic \Associations
       #
@@ -996,7 +996,7 @@ module ActiveRecord
       # <tt>order: "author.name DESC"</tt> will work but <tt>order: "name DESC"</tt> will not.
       #
       # If you want to load all posts (including posts with no approved comments), then write
-      # your own <tt>LEFT OUTER JOIN</tt> query using <tt>ON</tt>:
+      # your own <tt>LEFT OUTER JOIN</tt> query using +ON+:
       #
       #   Post.joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id AND comments.approved = '1'")
       #
@@ -1065,7 +1065,7 @@ module ActiveRecord
       #   #                        INNER JOIN parents_mixins ...
       #   #                        INNER JOIN mixins childrens_mixins_2
       #
-      # Has and Belongs to Many join tables use the same idea, but add a <tt>_join</tt> suffix:
+      # Has and Belongs to Many join tables use the same idea, but add a +_join+ suffix:
       #
       #   Post.joins(:categories)
       #   # SELECT ... FROM posts INNER JOIN categories_posts ... INNER JOIN categories ...
@@ -1198,21 +1198,21 @@ module ActiveRecord
       #
       # === Delete or destroy?
       #
-      # #has_many and #has_and_belongs_to_many associations have the methods <tt>destroy</tt>,
-      # <tt>delete</tt>, <tt>destroy_all</tt> and <tt>delete_all</tt>.
+      # #has_many and #has_and_belongs_to_many associations have the methods +destroy+,
+      # +delete+, +destroy_all+ and +delete_all+.
       #
-      # For #has_and_belongs_to_many, <tt>delete</tt> and <tt>destroy</tt> are the same: they
+      # For #has_and_belongs_to_many, +delete+ and +destroy+ are the same: they
       # cause the records in the join table to be removed.
       #
-      # For #has_many, <tt>destroy</tt> and <tt>destroy_all</tt> will always call the <tt>destroy</tt> method of the
-      # record(s) being removed so that callbacks are run. However <tt>delete</tt> and <tt>delete_all</tt> will either
+      # For #has_many, +destroy+ and +destroy_all+ will always call the +destroy+ method of the
+      # record(s) being removed so that callbacks are run. However +delete+ and +delete_all+ will either
       # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
       # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
       # The default strategy is to do nothing (leave the foreign keys with the parent ids set), except for
-      # #has_many <tt>:through</tt>, where the default strategy is <tt>delete_all</tt> (delete
+      # #has_many <tt>:through</tt>, where the default strategy is +delete_all+ (delete
       # the join records, without running their callbacks).
       #
-      # There is also a <tt>clear</tt> method which is the same as <tt>delete_all</tt>, except that
+      # There is also a +clear+ method which is the same as +delete_all+, except that
       # it returns the association rather than the records which have been deleted.
       #
       # === What gets deleted?
@@ -1277,7 +1277,7 @@ module ActiveRecord
         #   nullified) by default, but you can specify <tt>dependent: :destroy</tt> or
         #   <tt>dependent: :nullify</tt> to override this.
         # [collection.destroy(object, ...)]
-        #   Removes one or more objects from the collection by running <tt>destroy</tt> on
+        #   Removes one or more objects from the collection by running +destroy+ on
         #   each record, regardless of any dependent option, ensuring callbacks are run.
         #
         #   If the <tt>:through</tt> option is used, then the join records are destroyed
@@ -1406,7 +1406,7 @@ module ActiveRecord
         #   similar callbacks may affect the <tt>:dependent</tt> behavior, and the
         #   <tt>:dependent</tt> behavior may affect other callbacks.
         #
-        #   * <tt>nil</tt> do nothing (default).
+        #   * +nil+ do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
         #   * <tt>:destroy_async</tt> destroys all the associated objects in a background job. <b>WARNING:</b> Do not use
         #     this option if the association is backed by foreign key constraints in your database. The foreign key
@@ -1423,7 +1423,7 @@ module ActiveRecord
         #
         #   If using <tt>dependent: :destroy</tt> on a scoped association, only the scoped objects are destroyed.
         #   For example, if a Post model defines
-        #   <tt>has_many :comments, -> { where published: true }, dependent: :destroy</tt> and <tt>destroy</tt> is
+        #   <tt>has_many :comments, -> { where published: true }, dependent: :destroy</tt> and +destroy+ is
         #   called on a post, only published comments are destroyed. This means that any unpublished comments in the
         #   database would still contain a foreign key pointing to the now deleted post.
         # [:counter_cache]
@@ -1471,7 +1471,7 @@ module ActiveRecord
         #   may need to be explicitly saved in any user-defined +before_save+ callbacks.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
-        #   <tt>:autosave</tt> to <tt>true</tt>.
+        #   <tt>:autosave</tt> to +true+.
         # [:inverse_of]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_many association.
@@ -1528,7 +1528,7 @@ module ActiveRecord
         #   with +attributes+, linked to this object through a foreign key, and that
         #   has already been saved (if it passed the validation).
         # [create_association!(attributes = {})]
-        #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
+        #   Does the same as +create_association+, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
         # [reload_association]
         #   Returns the associated object, forcing a database read.
@@ -1578,7 +1578,7 @@ module ActiveRecord
         #   Controls what happens to the associated object when
         #   its owner is destroyed:
         #
-        #   * <tt>nil</tt> do nothing (default).
+        #   * +nil+ do nothing (default).
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
         #   * <tt>:destroy_async</tt> causes the associated object to be destroyed in a background job. <b>WARNING:</b> Do not use
         #     this option if the association is backed by foreign key constraints in your database. The foreign key
@@ -1645,7 +1645,7 @@ module ActiveRecord
         #   By default, only save the associated object if it's a new record.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
-        #   <tt>:autosave</tt> to <tt>true</tt>.
+        #   <tt>:autosave</tt> to +true+.
         # [:touch]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
@@ -1708,7 +1708,7 @@ module ActiveRecord
         #   with +attributes+, linked to this object through a foreign key, and that
         #   has already been saved (if it passed the validation).
         # [create_association!(attributes = {})]
-        #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
+        #   Does the same as +create_association+, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
         # [reload_association]
         #   Returns the associated object, forcing a database read.
@@ -1809,7 +1809,7 @@ module ActiveRecord
         #   By default, only save the associated object if it's a new record.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for
-        #   sets <tt>:autosave</tt> to <tt>true</tt>.
+        #   sets <tt>:autosave</tt> to +true+.
         # [:touch]
         #   If true, the associated object will be touched (the +updated_at+ / +updated_on+ attributes set to current time)
         #   when this record is either saved or destroyed. If you specify a symbol, that attribute
@@ -1826,7 +1826,7 @@ module ActiveRecord
         #   When set to +true+, the association will also have its presence validated.
         #   This will validate the association itself, not the id. You can use
         #   +:inverse_of+ to avoid an extra query during validation.
-        #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
+        #   NOTE: +required+ is set to +true+ by default and is deprecated. If
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
         # [:default]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
@@ -2022,7 +2022,7 @@ module ActiveRecord
         #   By default, only save associated objects that are new records.
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
-        #   <tt>:autosave</tt> to <tt>true</tt>.
+        #   <tt>:autosave</tt> to +true+.
         # [:strict_loading]
         #   Enforces strict loading every time an associated record is loaded through this association.
         #

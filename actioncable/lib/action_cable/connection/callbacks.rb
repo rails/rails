@@ -6,7 +6,7 @@ module ActionCable
   module Connection
     # = Action Cable \Connection \Callbacks
     #
-    # There are <tt>before_command</tt>, <tt>after_command</tt>, and <tt>around_command</tt> callbacks
+    # There are +before_command+, +after_command+, and +around_command+ callbacks
     # available to be invoked before, after or around every command received by a client respectively.
     # The term "command" here refers to any interaction received by a client (subscribing, unsubscribing or performing actions):
     #

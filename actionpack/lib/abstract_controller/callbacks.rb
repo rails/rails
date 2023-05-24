@@ -6,18 +6,18 @@ module AbstractController
   # Abstract Controller provides hooks during the life cycle of a controller action.
   # Callbacks allow you to trigger logic during this cycle. Available callbacks are:
   #
-  # * <tt>after_action</tt>
-  # * <tt>append_after_action</tt>
-  # * <tt>append_around_action</tt>
-  # * <tt>append_before_action</tt>
-  # * <tt>around_action</tt>
-  # * <tt>before_action</tt>
-  # * <tt>prepend_after_action</tt>
-  # * <tt>prepend_around_action</tt>
-  # * <tt>prepend_before_action</tt>
-  # * <tt>skip_after_action</tt>
-  # * <tt>skip_around_action</tt>
-  # * <tt>skip_before_action</tt>
+  # * +after_action+
+  # * +append_after_action+
+  # * +append_around_action+
+  # * +append_before_action+
+  # * +around_action+
+  # * +before_action+
+  # * +prepend_after_action+
+  # * +prepend_around_action+
+  # * +prepend_before_action+
+  # * +skip_after_action+
+  # * +skip_around_action+
+  # * +skip_before_action+
   #
   # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
   #
@@ -89,8 +89,8 @@ module AbstractController
       #   except: :index, if: -> { true } # the :except option will be ignored.
       #
       # ==== Options
-      # * <tt>only</tt>   - The callback should be run only for this action.
-      # * <tt>except</tt>  - The callback should be run for all actions except this action.
+      # * +only+   - The callback should be run only for this action.
+      # * +except+  - The callback should be run for all actions except this action.
       def _normalize_callback_options(options)
         _normalize_callback_option(options, :only, :if)
         _normalize_callback_option(options, :except, :unless)
@@ -109,13 +109,13 @@ module AbstractController
       # the normalization across several methods that use it.
       #
       # ==== Parameters
-      # * <tt>callbacks</tt> - An array of callbacks, with an optional
+      # * +callbacks+ - An array of callbacks, with an optional
       #   options hash as the last parameter.
-      # * <tt>block</tt>    - A proc that should be added to the callbacks.
+      # * +block+    - A proc that should be added to the callbacks.
       #
       # ==== Block Parameters
-      # * <tt>name</tt>     - The callback to be added.
-      # * <tt>options</tt>  - A hash of options to be used when adding the callback.
+      # * +name+     - The callback to be added.
+      # * +options+  - A hash of options to be used when adding the callback.
       def _insert_callbacks(callbacks, block = nil)
         options = callbacks.extract_options!
         callbacks.push(block) if block
@@ -253,7 +253,7 @@ module AbstractController
 
     private
       # Override <tt>AbstractController::Base#process_action</tt> to run the
-      # <tt>process_action</tt> callbacks around the normal behavior.
+      # +process_action+ callbacks around the normal behavior.
       def process_action(...)
         run_callbacks(:process_action) do
           super

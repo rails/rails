@@ -16,9 +16,9 @@ module ActiveSupport
     end
 
     module ClassMethods
-      # Registers exception classes with a handler to be called by <tt>rescue_with_handler</tt>.
+      # Registers exception classes with a handler to be called by +rescue_with_handler+.
       #
-      # <tt>rescue_from</tt> receives a series of exception classes or class
+      # +rescue_from+ receives a series of exception classes or class
       # names, and an exception handler specified by a trailing <tt>:with</tt>
       # option containing the name of a method or a Proc object. Alternatively, a block
       # can be given as the handler.

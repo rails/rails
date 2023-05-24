@@ -73,7 +73,7 @@ module ActiveRecord
     # is no implied ordering so if order matters, you should specify it
     # yourself.
     #
-    # If no record is found, returns <tt>nil</tt>.
+    # If no record is found, returns +nil+.
     #
     #   Post.find_by name: 'Spartacus', rating: 4
     #   Post.find_by "published_at < ?", 2.weeks.ago

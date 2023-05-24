@@ -115,7 +115,7 @@ module ActiveModel
       #   length (should be %{count} characters)").
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
       #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
-      #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
+      #   +too_long+/+too_short+/+wrong_length+ message.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, and +:strict+.

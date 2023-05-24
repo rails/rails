@@ -286,7 +286,7 @@ module ActionView
       # <tt><br /></tt> tag is appended. This method does not remove the
       # newlines from the +text+.
       #
-      # You can pass any HTML attributes into <tt>html_options</tt>. These
+      # You can pass any HTML attributes into +html_options+. These
       # will be added to all created paragraphs.
       #
       # ==== Options

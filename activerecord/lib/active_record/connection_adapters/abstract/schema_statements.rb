@@ -734,7 +734,7 @@ module ActiveRecord
       # allows them to be +NULL+ (drops the constraint).
       #
       # The method accepts an optional fourth argument to replace existing
-      # <tt>NULL</tt>s with some other value. Use that one when enabling the
+      # +NULL+s with some other value. Use that one when enabling the
       # constraint if needed, since otherwise those rows would not be valid.
       #
       # Please note the fourth argument does not set a column's default.

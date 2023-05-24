@@ -41,7 +41,7 @@ module ActionCable
     # Unlike subclasses of ActionController::Base, channels do not follow a RESTful
     # constraint form for their actions. Instead, Action Cable operates through a
     # remote-procedure call model. You can declare any public method on the
-    # channel (optionally taking a <tt>data</tt> argument), and this method is
+    # channel (optionally taking a +data+ argument), and this method is
     # automatically exposed as callable to the client.
     #
     # Example:
@@ -76,7 +76,7 @@ module ActionCable
     # parameter, which it then uses as part of its model call. <tt>#away</tt>
     # does not, since it's simply a trigger action.
     #
-    # Also note that in this example, <tt>current_user</tt> is available because
+    # Also note that in this example, +current_user+ is available because
     # it was marked as an identifying attribute on the connection. All such
     # identifiers will automatically create a delegation method of the same name
     # on the channel instance.
@@ -94,7 +94,7 @@ module ActionCable
     #   end
     #
     # In this example, the subscription will be rejected if the
-    # <tt>current_user</tt> does not have access to the chat room. On the
+    # +current_user+ does not have access to the chat room. On the
     # client-side, the <tt>Channel#rejected</tt> callback will get invoked when
     # the server rejects the subscription request.
     class Base
@@ -116,7 +116,7 @@ module ActionCable
         # itself.
         #
         # ==== Returns
-        # * <tt>Set</tt> - A set of all methods that should be considered actions.
+        # * +Set+ - A set of all methods that should be considered actions.
         def action_methods
           @action_methods ||= begin
             # All public instance methods of this class, including ancestors

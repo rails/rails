@@ -97,7 +97,7 @@ module ActiveRecord
   #     assert_equal 2, web_sites.length
   #   end
   #
-  # Passing in any fixture name that does not exist will raise <tt>StandardError</tt>:
+  # Passing in any fixture name that does not exist will raise +StandardError+:
   #
   #   test "find by name that does not exist" do
   #     assert_raise(StandardError) { web_sites(:reddit) }

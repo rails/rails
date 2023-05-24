@@ -41,7 +41,7 @@ module ActionController
   # The default API Controller stack includes all renderers, which means you
   # can use <tt>render :json</tt> and siblings freely in your controllers. Keep
   # in mind that templates are not going to be rendered, so you need to ensure
-  # your controller is calling either <tt>render</tt> or <tt>redirect_to</tt> in
+  # your controller is calling either +render+ or +redirect_to+ in
   # all actions, otherwise it will return <tt>204 No Content</tt>.
   #
   #   def show
@@ -52,7 +52,7 @@ module ActionController
   # == Redirects
   #
   # Redirects are used to move from one action to another. You can use the
-  # <tt>redirect_to</tt> method in your controllers in the same way as in
+  # +redirect_to+ method in your controllers in the same way as in
   # ActionController::Base. For example:
   #
   #   def create
@@ -64,8 +64,8 @@ module ActionController
   #
   # In some scenarios you may want to add back some functionality provided by
   # ActionController::Base that is not present by default in
-  # +ActionController::API+, for instance <tt>MimeResponds</tt>. This
-  # module gives you the <tt>respond_to</tt> method. Adding it is quite simple,
+  # +ActionController::API+, for instance +MimeResponds+. This
+  # module gives you the +respond_to+ method. Adding it is quite simple,
   # you just need to include the module in a specific controller or in
   # +ApplicationController+ in case you want it available in your entire
   # application:

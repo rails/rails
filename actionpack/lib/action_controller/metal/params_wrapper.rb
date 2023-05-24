@@ -49,7 +49,7 @@ module ActionController
   #
   # On Active Record models with no +:include+ or +:exclude+ option set,
   # it will only wrap the parameters returned by the class method
-  # <tt>attribute_names</tt>.
+  # +attribute_names+.
   #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
   # <tt>User.new(params[:user])</tt>), you might consider passing the model class to

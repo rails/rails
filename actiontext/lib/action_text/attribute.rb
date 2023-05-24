@@ -33,7 +33,7 @@ module ActionText
       #
       # * <tt>:strict_loading</tt> - Pass true to force strict loading. When
       #   omitted, <tt>strict_loading:</tt> will be set to the value of the
-      #   <tt>strict_loading_by_default</tt> class attribute (false by default).
+      #   +strict_loading_by_default+ class attribute (false by default).
       def has_rich_text(name, encrypted: false, strict_loading: strict_loading_by_default)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}

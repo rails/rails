@@ -166,7 +166,7 @@ class DateTime
   end
   alias :at_end_of_minute :end_of_minute
 
-  # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
+  # Returns a +Time+ instance of the simultaneous time in the system timezone.
   def localtime(utc_offset = nil)
     utc = new_offset(0)
 
@@ -177,7 +177,7 @@ class DateTime
   end
   alias_method :getlocal, :localtime
 
-  # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
+  # Returns a +Time+ instance of the simultaneous time in the UTC timezone.
   #
   #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24))     # => Mon, 21 Feb 2005 10:11:12 -0600
   #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc # => Mon, 21 Feb 2005 16:11:12 UTC

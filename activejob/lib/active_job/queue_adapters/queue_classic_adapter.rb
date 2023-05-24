@@ -41,7 +41,7 @@ module ActiveJob
       #
       # If you have a custom +QC::Queue+ subclass you'll need to subclass
       # +ActiveJob::QueueAdapters::QueueClassicAdapter+ and override the
-      # <tt>build_queue</tt> method.
+      # +build_queue+ method.
       def build_queue(queue_name)
         QC::Queue.new(queue_name)
       end

@@ -1449,7 +1449,7 @@ module ActiveRecord
     #
     # This is short-hand for <tt>.where.not(id: post.id)</tt> and <tt>.where.not(id: [post_one.id, post_two.id])</tt>.
     #
-    # An <tt>ArgumentError</tt> will be raised if either no records are
+    # An +ArgumentError+ will be raised if either no records are
     # specified, or if any of the records in the collection (if a collection
     # is passed in) are not instances of the same model that the relation is
     # scoping.

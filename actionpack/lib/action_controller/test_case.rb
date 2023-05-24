@@ -320,7 +320,7 @@ module ActionController
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # On top of the collections, you have the complete URL that a given action redirected to available in <tt>redirect_to_url</tt>.
+  # On top of the collections, you have the complete URL that a given action redirected to available in +redirect_to_url+.
   #
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.

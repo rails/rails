@@ -112,7 +112,7 @@ module ActiveRecord
 
       private
         # Returns an SQL comment +String+ containing the query log tags.
-        # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
+        # Sets and returns a cached comment if +cache_query_log_tags+ is +true+.
         def comment(connection)
           if cache_query_log_tags
             self.cached_comment ||= uncached_comment(connection)

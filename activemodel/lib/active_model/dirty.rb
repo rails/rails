@@ -11,14 +11,14 @@ module ActiveModel
   # The requirements for implementing ActiveModel::Dirty are:
   #
   # * <tt>include ActiveModel::Dirty</tt> in your object.
-  # * Call <tt>define_attribute_methods</tt> passing each method you want to
+  # * Call +define_attribute_methods+ passing each method you want to
   #   track.
   # * Call <tt>[attr_name]_will_change!</tt> before each change to the tracked
   #   attribute.
-  # * Call <tt>changes_applied</tt> after the changes are persisted.
-  # * Call <tt>clear_changes_information</tt> when you want to reset the changes
+  # * Call +changes_applied+ after the changes are persisted.
+  # * Call +clear_changes_information+ when you want to reset the changes
   #   information.
-  # * Call <tt>restore_attributes</tt> when you want to restore previous data.
+  # * Call +restore_attributes+ when you want to restore previous data.
   #
   # A minimal implementation could be:
   #

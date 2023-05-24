@@ -124,7 +124,7 @@ module ActionController
       #   end
       #
       # You must specify a +use_renderer+, else the +controller.renderer+ and
-      # +controller._renderers+ will be <tt>nil</tt>, and the action will fail.
+      # +controller._renderers+ will be +nil+, and the action will fail.
       def use_renderers(*args)
         renderers = _renderers + args
         self._renderers = renderers.freeze

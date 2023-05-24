@@ -37,7 +37,7 @@ module ActiveJob
 
       # Returns deserialized object.
       # Will look up through all known serializers.
-      # If no serializer found will raise <tt>ArgumentError</tt>.
+      # If no serializer found will raise +ArgumentError+.
       def deserialize(argument)
         serializer_name = argument[Arguments::OBJECT_SERIALIZER_KEY]
         raise ArgumentError, "Serializer name is not present in the argument: #{argument.inspect}" unless serializer_name

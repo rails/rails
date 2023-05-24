@@ -28,7 +28,7 @@ module ActiveRecord
         attribute_method_suffix("_change_to_be_saved", "_in_database", parameters: false)
       end
 
-      # <tt>reload</tt> the record and clears changed attributes.
+      # +reload+ the record and clears changed attributes.
       def reload(*)
         super.tap do
           @mutations_before_last_save = nil

@@ -36,7 +36,7 @@ module ActiveModel
   #   person = Person.new(id: 1, name: 'bob')
   #   person.persisted? # => true
   #
-  # Also, if for some reason you need to run code on <tt>initialize</tt>, make
+  # Also, if for some reason you need to run code on +initialize+, make
   # sure you call +super+ if you want the attributes hash initialization to
   # happen.
   #

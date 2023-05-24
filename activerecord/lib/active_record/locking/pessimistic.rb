@@ -43,7 +43,7 @@ module ActiveRecord
     #   end
     #
     # You can start a transaction and acquire the lock in one go by calling
-    # <tt>with_lock</tt> with a block. The block is called from within
+    # +with_lock+ with a block. The block is called from within
     # a transaction, the object is already locked. Example:
     #
     #   account = Account.first

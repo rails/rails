@@ -66,10 +66,10 @@ module ActiveRecord # :nodoc:
   #     end
   #   end
   #
-  # The <tt>authenticate_unsafely</tt> method inserts the parameters directly into the query
-  # and is thus susceptible to SQL-injection attacks if the <tt>user_name</tt> and +password+
-  # parameters come directly from an HTTP request. The <tt>authenticate_safely</tt> and
-  # <tt>authenticate_safely_simply</tt> both will sanitize the <tt>user_name</tt> and +password+
+  # The +authenticate_unsafely+ method inserts the parameters directly into the query
+  # and is thus susceptible to SQL-injection attacks if the +user_name+ and +password+
+  # parameters come directly from an HTTP request. The +authenticate_safely+ and
+  # +authenticate_safely_simply+ both will sanitize the +user_name+ and +password+
   # before inserting them in the query, which will ensure that an attacker can't escape the
   # query and fake the login (or worse).
   #
@@ -128,7 +128,7 @@ module ActiveRecord # :nodoc:
   # Query methods allow you to test whether an attribute value is present.
   # Additionally, when dealing with numeric values, a query method will return false if the value is zero.
   #
-  # For example, an Active Record User with the <tt>name</tt> attribute has a <tt>name?</tt> method that you can call
+  # For example, an Active Record User with the +name+ attribute has a <tt>name?</tt> method that you can call
   # to determine whether the user has a name:
   #
   #   user = User.new(name: "David")
@@ -158,7 +158,7 @@ module ActiveRecord # :nodoc:
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined
   # typecast run its course first. That can be done by using the <tt><attribute>_before_type_cast</tt>
-  # accessors that all attributes have. For example, if your Account model has a <tt>balance</tt> attribute,
+  # accessors that all attributes have. For example, if your Account model has a +balance+ attribute,
   # you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
   #
   # This is especially useful in validation situations where the user might supply a string for an
@@ -169,7 +169,7 @@ module ActiveRecord # :nodoc:
   #
   # Dynamic attribute-based finders are a mildly deprecated way of getting (and/or creating) objects
   # by simple queries without turning to SQL. They work by appending the name of an attribute
-  # to <tt>find_by_</tt> like <tt>Person.find_by_user_name</tt>.
+  # to +find_by_+ like <tt>Person.find_by_user_name</tt>.
   # Instead of writing <tt>Person.find_by(user_name: user_name)</tt>, you can use
   # <tt>Person.find_by_user_name(user_name)</tt>.
   #
@@ -177,7 +177,7 @@ module ActiveRecord # :nodoc:
   # ActiveRecord::RecordNotFound error if they do not return any records,
   # like <tt>Person.find_by_last_name!</tt>.
   #
-  # It's also possible to use multiple attributes in the same <tt>find_by_</tt> by separating them with
+  # It's also possible to use multiple attributes in the same +find_by_+ by separating them with
   # "_and_".
   #
   #  Person.find_by(user_name: user_name, password: password)

@@ -6,7 +6,7 @@
 # Blobs can be created in two ways:
 #
 # 1. Ahead of the file being uploaded server-side to the service, via <tt>create_and_upload!</tt>. A rewindable
-#    <tt>io</tt> with the file contents must be available at the server for this operation.
+#    +io+ with the file contents must be available at the server for this operation.
 # 2. Ahead of the file being directly uploaded client-side to the service, via <tt>create_before_direct_upload!</tt>.
 #
 # The first option doesn't require any client-side JavaScript integration, and can be used by any other back-end
@@ -95,7 +95,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     # Creates a new blob instance and then uploads the contents of
-    # the given <tt>io</tt> to the service. The blob instance is going to
+    # the given +io+ to the service. The blob instance is going to
     # be saved before the upload begins to prevent the upload clobbering another due to key collisions.
     # When providing a content type, pass <tt>identify: false</tt> to bypass
     # automatic content type inference.

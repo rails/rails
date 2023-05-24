@@ -35,7 +35,7 @@ class Array
   # which returns <tt>[]</tt> for +nil+, but calls to <tt>Array(object)</tt> otherwise.
   #
   # The differences with <tt>Kernel#Array</tt> explained above
-  # apply to the rest of <tt>object</tt>s.
+  # apply to the rest of +object+s.
   def self.wrap(object)
     if object.nil?
       []

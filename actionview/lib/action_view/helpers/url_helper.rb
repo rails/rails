@@ -168,7 +168,7 @@ module ActionView
       #   link_to "Nonsense search", searches_path(foo: "bar", baz: "quux")
       #   # => <a href="/searches?foo=bar&baz=quux">Nonsense search</a>
       #
-      # You can set any link attributes such as <tt>target</tt>, <tt>rel</tt>, <tt>type</tt>:
+      # You can set any link attributes such as +target+, +rel+, +type+:
       #
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
@@ -243,7 +243,7 @@ module ActionView
       # ==== Options
       # The +options+ hash accepts the same options as +url_for+. To generate a
       # <tt><form></tt> element without an <tt>[action]</tt> attribute, pass
-      # <tt>false</tt>:
+      # +false+:
       #
       #   <%= button_to "New", false %>
       #   # => "<form method="post" class="button_to">

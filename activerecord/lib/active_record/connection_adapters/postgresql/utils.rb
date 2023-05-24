@@ -51,7 +51,7 @@ module ActiveRecord
         # +schema+ and +identifier+ exclude surrounding quotes (regardless of whether provided in +string+)
         # +string+ supports the range of schema/table references understood by PostgreSQL, for example:
         #
-        # * <tt>table_name</tt>
+        # * +table_name+
         # * <tt>"table.name"</tt>
         # * <tt>schema_name.table_name</tt>
         # * <tt>schema_name."table.name"</tt>

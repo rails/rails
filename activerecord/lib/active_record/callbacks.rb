@@ -9,32 +9,32 @@ module ActiveRecord
   # to massage attributes before they're validated (by overwriting +before_validation+).
   # As an example of the callbacks initiated, consider the {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] call for a new record:
   #
-  # * (-) <tt>save</tt>
-  # * (-) <tt>valid</tt>
-  # * (1) <tt>before_validation</tt>
-  # * (-) <tt>validate</tt>
-  # * (2) <tt>after_validation</tt>
-  # * (3) <tt>before_save</tt>
-  # * (4) <tt>before_create</tt>
-  # * (-) <tt>create</tt>
-  # * (5) <tt>after_create</tt>
-  # * (6) <tt>after_save</tt>
-  # * (7) <tt>after_commit</tt>
+  # * (-) +save+
+  # * (-) +valid+
+  # * (1) +before_validation+
+  # * (-) +validate+
+  # * (2) +after_validation+
+  # * (3) +before_save+
+  # * (4) +before_create+
+  # * (-) +create+
+  # * (5) +after_create+
+  # * (6) +after_save+
+  # * (7) +after_commit+
   #
-  # Also, an <tt>after_rollback</tt> callback can be configured to be triggered whenever a rollback is issued.
-  # Check out ActiveRecord::Transactions for more details about <tt>after_commit</tt> and
-  # <tt>after_rollback</tt>.
+  # Also, an +after_rollback+ callback can be configured to be triggered whenever a rollback is issued.
+  # Check out ActiveRecord::Transactions for more details about +after_commit+ and
+  # +after_rollback+.
   #
-  # Additionally, an <tt>after_touch</tt> callback is triggered whenever an
+  # Additionally, an +after_touch+ callback is triggered whenever an
   # object is touched.
   #
-  # Lastly an <tt>after_find</tt> and <tt>after_initialize</tt> callback is triggered for each object that
-  # is found and instantiated by a finder, with <tt>after_initialize</tt> being triggered after new objects
+  # Lastly an +after_find+ and +after_initialize+ callback is triggered for each object that
+  # is found and instantiated by a finder, with +after_initialize+ being triggered after new objects
   # are instantiated as well.
   #
   # There are nineteen callbacks in total, which give a lot of control over how to react and prepare for each state in the
   # Active Record life cycle. The sequence for calling {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] for an existing record is similar,
-  # except that each <tt>_create</tt> callback is replaced by the corresponding <tt>_update</tt> callback.
+  # except that each +_create+ callback is replaced by the corresponding +_update+ callback.
   #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
@@ -260,7 +260,7 @@ module ActiveRecord
   # == Debugging callbacks
   #
   # The callback chain is accessible via the <tt>_*_callbacks</tt> method on an object. Active Model \Callbacks support
-  # <tt>:before</tt>, <tt>:after</tt> and <tt>:around</tt> as values for the <tt>kind</tt> property. The <tt>kind</tt> property
+  # <tt>:before</tt>, <tt>:after</tt> and <tt>:around</tt> as values for the +kind+ property. The +kind+ property
   # defines what part of the chain the callback runs in.
   #
   # To find all callbacks in the +before_save+ callback chain:
@@ -269,7 +269,7 @@ module ActiveRecord
   #
   # Returns an array of callback objects that form the +before_save+ chain.
   #
-  # To further check if the before_save chain contains a proc defined as <tt>rest_when_dead</tt> use the <tt>filter</tt> property of the callback object:
+  # To further check if the before_save chain contains a proc defined as +rest_when_dead+ use the +filter+ property of the callback object:
   #
   #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }.collect(&:filter).include?(:rest_when_dead)
   #

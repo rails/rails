@@ -444,13 +444,13 @@ module ActiveModel
     end
 
     # Allows access to the object attributes, which are held in the hash
-    # returned by <tt>attributes</tt>, as though they were first-class
+    # returned by +attributes+, as though they were first-class
     # methods. So a +Person+ class with a +name+ attribute can for example use
     # <tt>Person#name</tt> and <tt>Person#name=</tt> and never directly use
     # the attributes hash -- except for multiple assignments with
     # <tt>ActiveRecord::Base#attributes=</tt>.
     #
-    # It's also possible to instantiate related objects, so a <tt>Client</tt>
+    # It's also possible to instantiate related objects, so a +Client+
     # class belonging to the +clients+ table with a +master_id+ foreign key
     # can instantiate master through <tt>Client#master</tt>.
     def method_missing(method, *args, &block)

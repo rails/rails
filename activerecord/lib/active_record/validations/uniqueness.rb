@@ -202,7 +202,7 @@ module ActiveRecord
       # * <tt>:scope</tt> - One or more columns by which to limit the scope of
       #   the uniqueness constraint.
       # * <tt>:conditions</tt> - Specify the conditions to be included as a
-      #   <tt>WHERE</tt> SQL fragment to limit the uniqueness constraint lookup
+      #   +WHERE+ SQL fragment to limit the uniqueness constraint lookup
       #   (e.g. <tt>conditions: -> { where(status: 'active') }</tt>).
       # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by
       #   non-text columns. The default behavior respects the default database collation.

@@ -30,7 +30,7 @@ module ActionView
     # of the resource should show the current values of those attributes.
     #
     # In Rails, this is usually achieved by creating the form using +form_for+ and
-    # a number of related helper methods. +form_for+ generates an appropriate <tt>form</tt>
+    # a number of related helper methods. +form_for+ generates an appropriate +form+
     # tag and yields a form builder object that knows the model the form is about.
     # Input fields are created by calling methods defined on the form builder, which
     # means they are able to generate the appropriate names and default values
@@ -175,15 +175,15 @@ module ActionView
       #   with underscore on the generated HTML id.
       # * <tt>:method</tt> - The method to use when submitting the form, usually
       #   either "get" or "post". If "patch", "put", "delete", or another verb
-      #   is used, a hidden input with name <tt>_method</tt> is added to
+      #   is used, a hidden input with name +_method+ is added to
       #   simulate the verb over post.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
       #   Use only if you need to pass custom authenticity token string, or to
-      #   not add authenticity_token field at all (by passing <tt>false</tt>).
+      #   not add authenticity_token field at all (by passing +false+).
       #   Remote forms may omit the embedded authenticity token by setting
       #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
       #   This is helpful when you're fragment-caching the form. Remote forms
-      #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
+      #   get the authenticity token from the +meta+ tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
       #   JavaScript drivers to control the submit behavior.
@@ -283,7 +283,7 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # You can omit the <tt>action</tt> attribute by passing <tt>url: false</tt>:
+      # You can omit the +action+ attribute by passing <tt>url: false</tt>:
       #
       #   <%= form_for(@post, url: false) do |f| %>
       #     ...
@@ -329,7 +329,7 @@ module ActionView
       #
       # in the options hash creates a form that will allow the unobtrusive JavaScript drivers to modify its
       # behavior. The form submission will work just like a regular submission as viewed by the receiving
-      # side (all elements available in <tt>params</tt>).
+      # side (all elements available in +params+).
       #
       # Example:
       #
@@ -399,7 +399,7 @@ module ActionView
       #
       # The rendered template is <tt>people/_labelling_form</tt> and the local
       # variable referencing the form builder is called
-      # <tt>labelling_form</tt>.
+      # +labelling_form+.
       #
       # The custom FormBuilder class is automatically merged with the options
       # of a nested fields_for call, unless it's explicitly set.
@@ -426,7 +426,7 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # If you don't want to an authenticity token field be rendered at all just pass <tt>false</tt>:
+      # If you don't want to an authenticity token field be rendered at all just pass +false+:
       #
       #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f| %>
       #     ...
@@ -588,7 +588,7 @@ module ActionView
       #   form just submits to the current URL.
       # * <tt>:method</tt> - The method to use when submitting the form, usually
       #   either "get" or "post". If "patch", "put", "delete", or another verb
-      #   is used, a hidden input named <tt>_method</tt> is added to
+      #   is used, a hidden input named +_method+ is added to
       #   simulate the verb over post.
       # * <tt>:format</tt> - The format of the route the form submits to.
       #   Useful when submitting to another resource type, like <tt>:json</tt>.
@@ -607,25 +607,25 @@ module ActionView
       #   Pass <tt>:scope</tt> or <tt>:url</tt> to override the defaults.
       #   E.g. turn <tt>params[:post]</tt> into <tt>params[:article]</tt>.
       # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
-      #   Override with a custom authenticity token or pass <tt>false</tt> to
+      #   Override with a custom authenticity token or pass +false+ to
       #   skip the authenticity token field altogether.
       #   Useful when submitting to an external resource like a payment gateway
       #   that might limit the valid fields.
       #   Remote forms may omit the embedded authenticity token by setting
       #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
       #   This is helpful when fragment-caching the form. Remote forms
-      #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
+      #   get the authenticity token from the +meta+ tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:local</tt> - Whether to use standard HTTP form submission.
-      #   When set to <tt>true</tt>, the form is submitted via standard HTTP.
-      #   When set to <tt>false</tt>, the form is submitted as a "remote form", which
+      #   When set to +true+, the form is submitted via standard HTTP.
+      #   When set to +false+, the form is submitted as a "remote form", which
       #   is handled by Rails UJS as an XHR. When unspecified, the behavior is derived
       #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the
-      #   config's value is actually the inverse of what <tt>local</tt>'s value would be.
-      #   As of Rails 6.1, that configuration option defaults to <tt>false</tt>
+      #   config's value is actually the inverse of what +local+'s value would be.
+      #   As of Rails 6.1, that configuration option defaults to +false+
       #   (which has the equivalent effect of passing <tt>local: true</tt>).
       #   In previous versions of Rails, that configuration option defaults to
-      #   <tt>true</tt> (the equivalent of passing <tt>local: false</tt>).
+      #   +true+ (the equivalent of passing <tt>local: false</tt>).
       # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
       #   utf8 is not output.
       # * <tt>:builder</tt> - Override the object used to build the form.
@@ -741,7 +741,7 @@ module ActionView
       #
       # The rendered template is <tt>people/_labelling_form</tt> and the local
       # variable referencing the form builder is called
-      # <tt>labelling_form</tt>.
+      # +labelling_form+.
       #
       # The custom FormBuilder class is automatically merged with the options
       # of a nested +fields+ call, unless it's explicitly set.
@@ -863,7 +863,7 @@ module ActionView
       # ==== One-to-one
       #
       # Consider a Person class which returns a _single_ Address from the
-      # <tt>address</tt> reader method and responds to the
+      # +address+ reader method and responds to the
       # <tt>address_attributes=</tt> writer method:
       #
       #   class Person
@@ -904,7 +904,7 @@ module ActionView
       #     accepts_nested_attributes_for :address, allow_destroy: true
       #   end
       #
-      # Now, when you use a form element with the <tt>_destroy</tt> parameter,
+      # Now, when you use a form element with the +_destroy+ parameter,
       # with a value that evaluates to +true+, you will destroy the associated
       # model (e.g. 1, '1', true, or 'true'):
       #
@@ -920,7 +920,7 @@ module ActionView
       # ==== One-to-many
       #
       # Consider a Person class which returns an _array_ of Project instances
-      # from the <tt>projects</tt> reader method and responds to the
+      # from the +projects+ reader method and responds to the
       # <tt>projects_attributes=</tt> writer method:
       #
       #   class Person
@@ -993,7 +993,7 @@ module ActionView
       #   end
       #
       # This will allow you to specify which models to destroy in the
-      # attributes hash by adding a form element for the <tt>_destroy</tt>
+      # attributes hash by adding a form element for the +_destroy+
       # parameter with a value that evaluates to +true+
       # (e.g. 1, '1', true, or 'true'):
       #
@@ -1006,7 +1006,7 @@ module ActionView
       #   <% end %>
       #
       # When a collection is used you might want to know the index of each
-      # object into the array. For this purpose, the <tt>index</tt> method
+      # object into the array. For this purpose, the +index+ method
       # is available in the FormBuilder object.
       #
       #   <%= form_for @person do |person_form| %>
@@ -1730,9 +1730,9 @@ module ActionView
         @index = options[:index] || options[:child_index]
       end
 
-      # Generate an HTML <tt>id</tt> attribute value.
+      # Generate an HTML +id+ attribute value.
       #
-      # return the <tt><form></tt> element's <tt>id</tt> attribute.
+      # return the <tt><form></tt> element's +id+ attribute.
       #
       #   <%= form_for @post do |f| %>
       #     <%# ... %>
@@ -1744,16 +1744,16 @@ module ActionView
       #
       # In the example above, the <tt>:sticky_footer</tt> content area will
       # exist outside of the <tt><form></tt> element. By declaring the
-      # <tt>form</tt> HTML attribute, we hint to the browser that the generated
+      # +form+ HTML attribute, we hint to the browser that the generated
       # <tt><button></tt> element should be treated as the <tt><form></tt>
       # element's submit button, regardless of where it exists in the DOM.
       def id
         options.dig(:html, :id) || options[:id]
       end
 
-      # Generate an HTML <tt>id</tt> attribute value for the given field
+      # Generate an HTML +id+ attribute value for the given field
       #
-      # Return the value generated by the <tt>FormBuilder</tt> for the given
+      # Return the value generated by the +FormBuilder+ for the given
       # attribute name.
       #
       #   <%= form_for @post do |f| %>
@@ -1765,16 +1765,16 @@ module ActionView
       # In the example above, the <tt><input type="text"></tt> element built by
       # the call to <tt>FormBuilder#text_field</tt> declares an
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
-      # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
+      # element, sharing a common +id+ root (+post_title+, in this
       # case).
       def field_id(method, *suffixes, namespace: @options[:namespace], index: @index)
         @template.field_id(@object_name, method, *suffixes, namespace: namespace, index: index)
       end
 
-      # Generate an HTML <tt>name</tt> attribute value for the given name and
+      # Generate an HTML +name+ attribute value for the given name and
       # field combination
       #
-      # Return the value generated by the <tt>FormBuilder</tt> for the given
+      # Return the value generated by the +FormBuilder+ for the given
       # attribute name.
       #
       #   <%= form_for @post do |f| %>
@@ -2120,7 +2120,7 @@ module ActionView
       # ==== One-to-one
       #
       # Consider a Person class which returns a _single_ Address from the
-      # <tt>address</tt> reader method and responds to the
+      # +address+ reader method and responds to the
       # <tt>address_attributes=</tt> writer method:
       #
       #   class Person
@@ -2161,7 +2161,7 @@ module ActionView
       #     accepts_nested_attributes_for :address, allow_destroy: true
       #   end
       #
-      # Now, when you use a form element with the <tt>_destroy</tt> parameter,
+      # Now, when you use a form element with the +_destroy+ parameter,
       # with a value that evaluates to +true+, you will destroy the associated
       # model (e.g. 1, '1', true, or 'true'):
       #
@@ -2177,7 +2177,7 @@ module ActionView
       # ==== One-to-many
       #
       # Consider a Person class which returns an _array_ of Project instances
-      # from the <tt>projects</tt> reader method and responds to the
+      # from the +projects+ reader method and responds to the
       # <tt>projects_attributes=</tt> writer method:
       #
       #   class Person
@@ -2250,7 +2250,7 @@ module ActionView
       #   end
       #
       # This will allow you to specify which models to destroy in the
-      # attributes hash by adding a form element for the <tt>_destroy</tt>
+      # attributes hash by adding a form element for the +_destroy+
       # parameter with a value that evaluates to +true+
       # (e.g. 1, '1', true, or 'true'):
       #
@@ -2263,7 +2263,7 @@ module ActionView
       #   <% end %>
       #
       # When a collection is used you might want to know the index of each
-      # object into the array. For this purpose, the <tt>index</tt> method
+      # object into the array. For this purpose, the +index+ method
       # is available in the FormBuilder object.
       #
       #   <%= form_for @person do |person_form| %>

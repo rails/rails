@@ -78,7 +78,7 @@ module ActiveModel
     def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
 
     # The actual array of +Error+ objects
-    # This method is aliased to <tt>objects</tt>.
+    # This method is aliased to +objects+.
     attr_reader :errors
     alias :objects :errors
 
@@ -99,7 +99,7 @@ module ActiveModel
       super
     end
 
-    # Copies the errors from <tt>other</tt>.
+    # Copies the errors from +other+.
     # For copying errors but keep <tt>@base</tt> as is.
     #
     # ==== Parameters
@@ -135,7 +135,7 @@ module ActiveModel
       @errors.append(NestedError.new(@base, error, override_options))
     end
 
-    # Merges the errors from <tt>other</tt>,
+    # Merges the errors from +other+,
     # each Error wrapped as NestedError.
     #
     # ==== Parameters
@@ -440,7 +440,7 @@ module ActiveModel
     # When using inheritance in your models, it will check all the inherited
     # models too, but only if the model itself hasn't been found. Say you have
     # <tt>class Admin < User; end</tt> and you wanted the translation for
-    # the <tt>:blank</tt> error message for the <tt>title</tt> attribute,
+    # the <tt>:blank</tt> error message for the +title+ attribute,
     # it looks for these translations:
     #
     # * <tt>activemodel.errors.models.admin.attributes.title.blank</tt>

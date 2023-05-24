@@ -130,7 +130,7 @@ module ActiveRecord
       #   Polygon.create!    # => #<Polygon id: 2, type: "Polygon">
       #   Square.create!     # => #<Square id: 3, type: "Square">
       #
-      # However, when using <tt>abstract_class</tt>, +Shape+ is omitted from
+      # However, when using +abstract_class+, +Shape+ is omitted from
       # the hierarchy:
       #
       #   class Shape < ActiveRecord::Base

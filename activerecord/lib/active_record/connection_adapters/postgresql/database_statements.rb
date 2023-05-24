@@ -40,7 +40,7 @@ module ActiveRecord
         # This option should only be enabled for known idempotent queries.
         #
         # Note: the PG::Result object is manually memory managed; if you don't
-        # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
+        # need it specifically, you may want consider the +exec_query+ wrapper.
         def execute(...) # :nodoc:
           super
         ensure

@@ -122,11 +122,11 @@ module ActionController
     abstract!
 
     # Returns the last part of the controller's name, underscored, without the ending
-    # <tt>Controller</tt>. For instance, PostsController returns <tt>posts</tt>.
-    # Namespaces are left out, so Admin::PostsController returns <tt>posts</tt> as well.
+    # +Controller+. For instance, PostsController returns +posts+.
+    # Namespaces are left out, so Admin::PostsController returns +posts+ as well.
     #
     # ==== Returns
-    # * <tt>string</tt>
+    # * +string+
     def self.controller_name
       @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore unless anonymous?)
     end

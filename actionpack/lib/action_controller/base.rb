@@ -55,8 +55,8 @@ module ActionController
   # == Parameters
   #
   # All request parameters, whether they come from a query string in the URL or form data submitted through a POST request are
-  # available through the <tt>params</tt> method which returns a hash. For example, an action that was performed through
-  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in <tt>params</tt>.
+  # available through the +params+ method which returns a hash. For example, an action that was performed through
+  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in +params+.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -64,7 +64,7 @@ module ActionController
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
   # A request coming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
-  # If the address input had been named <tt>post[address][street]</tt>, the <tt>params</tt> would have included
+  # If the address input had been named <tt>post[address][street]</tt>, the +params+ would have included
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
@@ -74,7 +74,7 @@ module ActionController
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
   #
-  # You can place objects in the session by using the <tt>session</tt> method, which accesses a hash:
+  # You can place objects in the session by using the +session+ method, which accesses a hash:
   #
   #   session[:person] = Person.authenticate(user_name, password)
   #
@@ -130,9 +130,9 @@ module ActionController
   #
   # == Redirects
   #
-  # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to the
+  # Redirects are used to move from one action to another. For example, after a +create+ action, which stores a blog entry to the
   # database, we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're
-  # going to reuse (and redirect to) a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
+  # going to reuse (and redirect to) a +show+ action that we'll assume has already been created. The code might look like this:
   #
   #   def create
   #     @entry = Entry.new(params[:entry])
@@ -144,11 +144,11 @@ module ActionController
   #     end
   #   end
   #
-  # In this case, after saving our new entry to the database, the user is redirected to the <tt>show</tt> method, which is then executed.
+  # In this case, after saving our new entry to the database, the user is redirected to the +show+ method, which is then executed.
   # Note that this is an external HTTP-level redirection which will cause the browser to make a second request (a GET to the show action),
   # and not some internal re-routing which calls both "create" and then "show" within one request.
   #
-  # Learn more about <tt>redirect_to</tt> and what options you have in ActionController::Redirecting.
+  # Learn more about +redirect_to+ and what options you have in ActionController::Redirecting.
   #
   # == Calling multiple redirects or renders
   #

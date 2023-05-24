@@ -133,7 +133,7 @@ module ActiveRecord
       #
       # == Custom constructors and converters
       #
-      # By default value objects are initialized by calling the <tt>new</tt> constructor of the value
+      # By default value objects are initialized by calling the +new+ constructor of the value
       # class passing each of the mapped attributes, in the order specified by the <tt>:mapping</tt>
       # option, as arguments. If the value class doesn't support this convention then #composed_of allows
       # a custom constructor to be specified.
@@ -182,7 +182,7 @@ module ActiveRecord
       #
       module ClassMethods
         # Adds reader and writer methods for manipulating a value object:
-        # <tt>composed_of :address</tt> adds <tt>address</tt> and <tt>address=(new_address)</tt> methods.
+        # <tt>composed_of :address</tt> adds +address+ and <tt>address=(new_address)</tt> methods.
         #
         # Options are:
         # * <tt>:class_name</tt> - Specifies the class name of the association. Use it only if that name

@@ -6,14 +6,14 @@ require "active_support/core_ext/array/extract"
 module ActiveSupport
   # = Active Support Parameter Filter
   #
-  # +ParameterFilter+ replaces values in a <tt>Hash</tt>-like object if their
+  # +ParameterFilter+ replaces values in a +Hash+-like object if their
   # keys match one of the specified filters.
   #
   # Matching based on nested keys is possible by using dot notation, e.g.
   # <tt>"credit_card.number"</tt>.
   #
-  # If a proc is given as a filter, each key and value of the <tt>Hash</tt>-like
-  # and of any nested <tt>Hash</tt>es will be passed to it. The value or key can
+  # If a proc is given as a filter, each key and value of the +Hash+-like
+  # and of any nested +Hash+es will be passed to it. The value or key can
   # then be mutated as desired using methods such as <tt>String#replace</tt>.
   #
   #   # Replaces values with "[FILTERED]" for keys that match /password/i.

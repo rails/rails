@@ -4,7 +4,7 @@ module ActionController
   # = Action Controller \UrlFor
   #
   # Includes +url_for+ into the host class. The class has to provide a +RouteSet+ by implementing
-  # the <tt>_routes</tt> method. Otherwise, an exception will be raised.
+  # the +_routes+ method. Otherwise, an exception will be raised.
   #
   # In addition to AbstractController::UrlFor, this module accesses the HTTP layer to define
   # URL options like the +host+. In order to do so, this module requires the host class

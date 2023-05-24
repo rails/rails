@@ -166,7 +166,7 @@ class Module
   #
   # A default value may be specified using the +:default+ option. Because
   # multiple threads can access the default value, non-frozen default values
-  # will be <tt>dup</tt>ed and frozen.
+  # will be +dup+ed and frozen.
   def thread_mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil)
     thread_mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor, default: default)
     thread_mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor)

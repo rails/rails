@@ -103,7 +103,7 @@ module ActionView
   # * The +InformationController+ uses the "information" layout, explicitly set.
   # * The +TellerController+ also uses the "information" layout, because the parent explicitly set it.
   # * The +EmployeeController+ uses the "employee" layout, because it set the layout to +nil+, resetting the parent configuration.
-  # * The +VaultController+ chooses a layout dynamically by calling the <tt>access_level_layout</tt> method.
+  # * The +VaultController+ chooses a layout dynamically by calling the +access_level_layout+ method.
   # * The +TillController+ does not use a layout at all.
   #
   # == Types of layouts
@@ -150,7 +150,7 @@ module ActionView
   #   end
   #
   # The template will be looked always in <tt>app/views/layouts/</tt> folder. But you can point
-  # <tt>layouts</tt> folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
+  # +layouts+ folder direct also. <tt>layout "layouts/demo"</tt> is the same as <tt>layout "demo"</tt>.
   #
   # Setting the layout to +nil+ forces it to be looked up in the filesystem and fallbacks to the parent behavior if none exists.
   # Setting it to +nil+ is useful to re-enable template lookup overriding a previous configuration set in the parent:
@@ -191,7 +191,7 @@ module ActionView
   #
   # If most of your actions use the same layout, it makes perfect sense to define a controller-wide layout as described above.
   # Sometimes you'll have exceptions where one action wants to use a different layout than the rest of the controller.
-  # You can do this by passing a <tt>:layout</tt> option to the <tt>render</tt> call. For example:
+  # You can do this by passing a <tt>:layout</tt> option to the +render+ call. For example:
   #
   #   class WeblogController < ActionController::Base
   #     layout "weblog_standard"
@@ -228,10 +228,10 @@ module ActionView
         private
           # Determines whether the current action has a layout definition by
           # checking the action name against the :only and :except conditions
-          # set by the <tt>layout</tt> method.
+          # set by the +layout+ method.
           #
           # ==== Returns
-          # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
+          # * +Boolean+ - True if the action has a layout definition, false otherwise.
           def _conditional_layout?
             return unless super
 
@@ -262,7 +262,7 @@ module ActionView
       #
       # ==== Parameters
       #
-      # * <tt>layout</tt> - The layout to use.
+      # * +layout+ - The layout to use.
       #
       # ==== Options (conditions)
       #
@@ -343,7 +343,7 @@ module ActionView
         # value of this method.
         #
         # ==== Returns
-        # * <tt>String</tt> - A template name
+        # * +String+ - A template name
         def _implied_layout_name
           controller_path
         end
@@ -366,10 +366,10 @@ module ActionView
     end
 
     # Controls whether an action should be rendered using a layout.
-    # If you want to disable any <tt>layout</tt> settings for the
+    # If you want to disable any +layout+ settings for the
     # current action so that it is rendered without a layout then
     # either override this method in your controller to return false
-    # for that action or set the <tt>action_has_layout</tt> attribute
+    # for that action or set the +action_has_layout+ attribute
     # to false before rendering.
     def action_has_layout?
       @_action_has_layout
@@ -386,7 +386,7 @@ module ActionView
     # Determine the layout for a given name, taking into account the name type.
     #
     # ==== Parameters
-    # * <tt>name</tt> - The name of the template
+    # * +name+ - The name of the template
     def _layout_for_option(name)
       case name
       when String     then _normalize_layout(name)
@@ -408,12 +408,12 @@ module ActionView
     # Optionally raises an exception if the layout could not be found.
     #
     # ==== Parameters
-    # * <tt>formats</tt> - The formats accepted to this layout
-    # * <tt>require_layout</tt> - If set to +true+ and layout is not found,
+    # * +formats+ - The formats accepted to this layout
+    # * +require_layout+ - If set to +true+ and layout is not found,
     #   an +ArgumentError+ exception is raised (defaults to +false+)
     #
     # ==== Returns
-    # * <tt>template</tt> - The template object for the default layout (or +nil+)
+    # * +template+ - The template object for the default layout (or +nil+)
     def _default_layout(lookup_context, formats, require_layout = false)
       begin
         value = _layout(lookup_context, formats) if action_has_layout?

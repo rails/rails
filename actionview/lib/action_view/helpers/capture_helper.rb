@@ -59,12 +59,12 @@ module ActionView
         end
       end
 
-      # Calling <tt>content_for</tt> stores a block of markup in an identifier for later use.
+      # Calling +content_for+ stores a block of markup in an identifier for later use.
       # In order to access this stored content in other templates, helper modules
-      # or the layout, you would pass the identifier as an argument to <tt>content_for</tt>.
+      # or the layout, you would pass the identifier as an argument to +content_for+.
       #
-      # Note: <tt>yield</tt> can still be used to retrieve the stored content, but calling
-      # <tt>yield</tt> doesn't work in helper modules, while <tt>content_for</tt> does.
+      # Note: +yield+ can still be used to retrieve the stored content, but calling
+      # +yield+ doesn't work in helper modules, while +content_for+ does.
       #
       #   <% content_for :not_authorized do %>
       #     alert('You are not authorized to do that!')
@@ -78,7 +78,7 @@ module ActionView
       #
       #   <%= yield :not_authorized if current_user.nil? %>
       #
-      # <tt>content_for</tt>, however, can also be used in helper modules.
+      # +content_for+, however, can also be used in helper modules.
       #
       #   module StorageHelper
       #     def stored_content
@@ -90,8 +90,8 @@ module ActionView
       #
       #   <%= stored_content %>
       #
-      # You can also use the <tt>yield</tt> syntax alongside an existing call to
-      # <tt>yield</tt> in a layout. For example:
+      # You can also use the +yield+ syntax alongside an existing call to
+      # +yield+ in a layout. For example:
       #
       #   <%# This is the layout %>
       #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -104,8 +104,8 @@ module ActionView
       #   </body>
       #   </html>
       #
-      # And now, we'll create a view that has a <tt>content_for</tt> call that
-      # creates the <tt>script</tt> identifier.
+      # And now, we'll create a view that has a +content_for+ call that
+      # creates the +script+ identifier.
       #
       #   <%# This is our view %>
       #   Please login!
@@ -125,7 +125,7 @@ module ActionView
       # That will place +script+ tags for your default set of JavaScript files on the page;
       # this technique is useful if you'll only be using these scripts in a few views.
       #
-      # Note that <tt>content_for</tt> concatenates (default) the blocks it is given for a particular
+      # Note that +content_for+ concatenates (default) the blocks it is given for a particular
       # identifier in order. For example:
       #
       #   <% content_for :navigation do %>
@@ -142,7 +142,7 @@ module ActionView
       #
       #   <ul><%= content_for :navigation %></ul>
       #
-      # If the flush parameter is +true+ <tt>content_for</tt> replaces the blocks it is given. For example:
+      # If the flush parameter is +true+ +content_for+ replaces the blocks it is given. For example:
       #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Home', action: 'index' %></li>
@@ -162,7 +162,7 @@ module ActionView
       #
       #   <% content_for :script, javascript_include_tag(:defaults) %>
       #
-      # WARNING: <tt>content_for</tt> is ignored in caches. So you shouldn't use it for elements that will be fragment cached.
+      # WARNING: +content_for+ is ignored in caches. So you shouldn't use it for elements that will be fragment cached.
       def content_for(name, content = nil, options = {}, &block)
         if content || block_given?
           if block_given?
@@ -191,7 +191,7 @@ module ActionView
         result unless content
       end
 
-      # <tt>content_for?</tt> checks whether any content has been captured yet using <tt>content_for</tt>.
+      # <tt>content_for?</tt> checks whether any content has been captured yet using +content_for+.
       #
       # Useful to render parts of your layout differently based on what is in your views.
       #

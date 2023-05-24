@@ -6,10 +6,10 @@ class Object
   # An elegant way to factor duplication out of options passed to a series of
   # method calls. Each method called in the block, with the block variable as
   # the receiver, will have its options merged with the default +options+
-  # <tt>Hash</tt> or <tt>Hash</tt>-like object provided. Each method called on
+  # +Hash+ or +Hash+-like object provided. Each method called on
   # the block variable must take an options hash as its final argument.
   #
-  # Without <tt>with_options</tt>, this code contains duplication:
+  # Without +with_options+, this code contains duplication:
   #
   #   class Account < ActiveRecord::Base
   #     has_many :customers, dependent: :destroy
@@ -18,7 +18,7 @@ class Object
   #     has_many :expenses,  dependent: :destroy
   #   end
   #
-  # Using <tt>with_options</tt>, we can remove the duplication:
+  # Using +with_options+, we can remove the duplication:
   #
   #   class Account < ActiveRecord::Base
   #     with_options dependent: :destroy do |assoc|
@@ -48,7 +48,7 @@ class Object
   #     end
   #   end
   #
-  # <tt>with_options</tt> can also be nested since the call is forwarded to its receiver.
+  # +with_options+ can also be nested since the call is forwarded to its receiver.
   #
   # NOTE: Each nesting level will merge inherited defaults in addition to their own.
   #

@@ -149,8 +149,8 @@ module ActiveModel
     module HelperMethods
       # Validates whether the value of the specified attribute is numeric by
       # trying to convert it to a float with +Kernel.Float+ (if
-      # <tt>only_integer</tt> is +false+) or applying it to the regular
-      # expression <tt>/\A[\+\-]?\d+\z/</tt> (if <tt>only_integer</tt> is set to
+      # +only_integer+ is +false+) or applying it to the regular
+      # expression <tt>/\A[\+\-]?\d+\z/</tt> (if +only_integer+ is set to
       # +true+). Precision of +Kernel.Float+ values are guaranteed up to 15
       # digits.
       #

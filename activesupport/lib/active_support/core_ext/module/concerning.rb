@@ -107,8 +107,8 @@ class Module
   #
   # === Prepending concerning
   #
-  # <tt>concerning</tt> supports a <tt>prepend: true</tt> argument which will <tt>prepend</tt> the
-  # concern instead of using <tt>include</tt> for it.
+  # +concerning+ supports a <tt>prepend: true</tt> argument which will +prepend+ the
+  # concern instead of using +include+ for it.
   module Concerning
     # Define a new concern and mix it in.
     def concerning(topic, prepend: false, &block)

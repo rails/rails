@@ -311,7 +311,7 @@ module ActionDispatch # :nodoc:
     alias_method :status_message, :message
 
     # Returns the content of the response as a string. This contains the contents
-    # of any calls to <tt>render</tt>.
+    # of any calls to +render+.
     def body
       @stream.body
     end

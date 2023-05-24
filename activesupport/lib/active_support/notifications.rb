@@ -70,7 +70,7 @@ module ActiveSupport
   #   event.duration  # => 10 (in milliseconds)
   #   event.payload   # => { extra: :information }
   #
-  # The block in the <tt>subscribe</tt> call gets the name of the event, start
+  # The block in the +subscribe+ call gets the name of the event, start
   # timestamp, end timestamp, a string with a unique identifier for that event's instrumenter
   # (something like "535801666f04d0298cd6"), and a hash with the payload, in
   # that order.
@@ -88,8 +88,8 @@ module ActiveSupport
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #
-  # It is also possible to pass an object which responds to <tt>call</tt> method
-  # as the second parameter to the <tt>subscribe</tt> method instead of a block:
+  # It is also possible to pass an object which responds to +call+ method
+  # as the second parameter to the +subscribe+ method instead of a block:
   #
   #   module ActionController
   #     class PageRequest
@@ -121,7 +121,7 @@ module ActiveSupport
   #     ...
   #   end
   #
-  # and even pass no argument to <tt>subscribe</tt>, in which case you are subscribing
+  # and even pass no argument to +subscribe+, in which case you are subscribing
   # to all events.
   #
   # == Temporary Subscriptions
@@ -149,7 +149,7 @@ module ActiveSupport
   #
   # To record +started+ and +finished+ values with monotonic time,
   # specify the optional <tt>:monotonic</tt> option to the
-  # <tt>subscribed</tt> method. The <tt>:monotonic</tt> option is set
+  # +subscribed+ method. The <tt>:monotonic</tt> option is set
   # to +false+ by default.
   #
   #   callback = lambda {|name, started, finished, unique_id, payload| ... }

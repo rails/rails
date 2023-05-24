@@ -10,8 +10,8 @@ module ActiveRecord
       already_in_scope?(klass.scope_registry) ? klass.all : clone
     end
 
-    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
-    # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    # Merges in the conditions from +other+, if +other+ is an ActiveRecord::Relation.
+    # Returns an array representing the intersection of the resulting records with +other+, if +other+ is an array.
     #
     #   Post.where(published: true).joins(:comments).merge( Comment.where(spam: false) )
     #   # Performs a single join query with both where conditions.
@@ -28,7 +28,7 @@ module ActiveRecord
     #
     # This is mainly intended for sharing common conditions between multiple associations.
     #
-    # For conditions that exist in both relations, those from <tt>other</tt> will take precedence.
+    # For conditions that exist in both relations, those from +other+ will take precedence.
     # To find the intersection of two relations, use QueryMethods#and.
     def merge(other, *rest)
       if other.is_a?(Array)

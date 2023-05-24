@@ -4,20 +4,20 @@ class Object
   # Provides a way to check whether some class acts like some other class based on the existence of
   # an appropriately-named marker method.
   #
-  # A class that provides the same interface as <tt>SomeClass</tt> may define a marker method named
+  # A class that provides the same interface as +SomeClass+ may define a marker method named
   # <tt>acts_like_some_class?</tt> to signal its compatibility to callers of
   # <tt>acts_like?(:some_class)</tt>.
   #
-  # For example, Active Support extends <tt>Date</tt> to define an <tt>acts_like_date?</tt> method,
-  # and extends <tt>Time</tt> to define <tt>acts_like_time?</tt>. As a result, developers can call
+  # For example, Active Support extends +Date+ to define an <tt>acts_like_date?</tt> method,
+  # and extends +Time+ to define <tt>acts_like_time?</tt>. As a result, developers can call
   # <tt>x.acts_like?(:time)</tt> and <tt>x.acts_like?(:date)</tt> to test duck-type compatibility,
-  # and classes that are able to act like <tt>Time</tt> can also define an <tt>acts_like_time?</tt>
+  # and classes that are able to act like +Time+ can also define an <tt>acts_like_time?</tt>
   # method to interoperate.
   #
   # Note that the marker method is only expected to exist. It isn't called, so its body or return
   # value are irrelevant.
   #
-  # ==== Example: A class that provides the same interface as <tt>String</tt>
+  # ==== Example: A class that provides the same interface as +String+
   #
   # This class may define:
   #

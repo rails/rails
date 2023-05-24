@@ -11,8 +11,8 @@ module ActionDispatch
     # of time.
     #
     # ==== Options
-    # * <tt>cache</tt>         - The cache to use. If it is not specified, <tt>Rails.cache</tt> will be used.
-    # * <tt>expire_after</tt>  - The length of time a session will be stored before automatically expiring.
+    # * +cache+         - The cache to use. If it is not specified, <tt>Rails.cache</tt> will be used.
+    # * +expire_after+  - The length of time a session will be stored before automatically expiring.
     #   By default, the <tt>:expires_in</tt> option of the cache is used.
     class CacheStore < AbstractSecureStore
       def initialize(app, options = {})

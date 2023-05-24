@@ -14,14 +14,14 @@ module ActionText
   # from ActiveRecord::Base instances and can therefore be populated by
   # fixtures.
   #
-  # Consider an <tt>Article</tt> class:
+  # Consider an +Article+ class:
   #
   #   class Article < ApplicationRecord
   #     has_rich_text :content
   #   end
   #
-  # To declare fixture data for the related <tt>content</tt>, first declare fixture
-  # data for <tt>Article</tt> instances in <tt>test/fixtures/articles.yml</tt>:
+  # To declare fixture data for the related +content+, first declare fixture
+  # data for +Article+ instances in <tt>test/fixtures/articles.yml</tt>:
   #
   #   first:
   #     title: An Article
@@ -38,19 +38,19 @@ module ActionText
   # When processed, Active Record will insert database records for each fixture
   # entry and will ensure the Action Text relationship is intact.
   class FixtureSet
-    # Fixtures support Action Text attachments as part of their <tt>body</tt>
+    # Fixtures support Action Text attachments as part of their +body+
     # HTML.
     #
     # === Examples
     #
-    # For example, consider a second <tt>Article</tt> fixture declared in
+    # For example, consider a second +Article+ fixture declared in
     # <tt>test/fixtures/articles.yml</tt>:
     #
     #   second:
     #     title: Another Article
     #
-    # You can attach a mention of <tt>articles(:first)</tt> to <tt>second</tt>'s
-    # <tt>content</tt> by embedding a call to <tt>ActionText::FixtureSet.attachment</tt>
+    # You can attach a mention of <tt>articles(:first)</tt> to +second+'s
+    # +content+ by embedding a call to <tt>ActionText::FixtureSet.attachment</tt>
     # in the <tt>body:</tt> value in <tt>test/fixtures/action_text/rich_texts.yml</tt>:
     #
     #   second:

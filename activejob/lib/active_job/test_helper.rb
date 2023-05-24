@@ -187,7 +187,7 @@ module ActiveJob
     end
 
     # Asserts that the number of performed jobs matches the given number.
-    # If no block is passed, <tt>perform_enqueued_jobs</tt>
+    # If no block is passed, +perform_enqueued_jobs+
     # must be called around or after the job call.
     #
     #   def test_jobs

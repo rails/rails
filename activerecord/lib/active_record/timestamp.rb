@@ -17,7 +17,7 @@ module ActiveRecord
   #
   # == Time Zone aware attributes
   #
-  # Active Record keeps all the <tt>datetime</tt> and <tt>time</tt> columns
+  # Active Record keeps all the +datetime+ and +time+ columns
   # timezone aware. By default, these values are stored in the database as UTC
   # and converted back to the current <tt>Time.zone</tt> when pulled from the database.
   #
@@ -25,8 +25,8 @@ module ActiveRecord
   #
   #   config.active_record.time_zone_aware_attributes = false
   #
-  # You can also specify that only <tt>datetime</tt> columns should be time-zone
-  # aware (while <tt>time</tt> should not) by setting:
+  # You can also specify that only +datetime+ columns should be time-zone
+  # aware (while +time+ should not) by setting:
   #
   #   ActiveRecord::Base.time_zone_aware_types = [:datetime]
   #

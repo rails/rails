@@ -257,7 +257,7 @@ module Rails
       instance_eval(&block)
     end
 
-    # This is used to create the <tt>config</tt> object on Railties, an instance of
+    # This is used to create the +config+ object on Railties, an instance of
     # Railtie::Configuration, that is used by Railties and Application to store
     # related configuration.
     def config

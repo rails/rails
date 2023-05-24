@@ -19,7 +19,7 @@ module ActiveModel
   #   person.name # => "bob"
   #   person.age  # => "18"
   #
-  # If for some reason you need to run code on <tt>initialize</tt>, make
+  # If for some reason you need to run code on +initialize+, make
   # sure you call +super+ if you want the attributes hash initialization to
   # happen.
   #

@@ -78,7 +78,7 @@ module ActiveRecord
   #
   # All stored values are automatically available through accessors on the Active Record
   # object, but sometimes you want to specialize this behavior. This can be done by overwriting
-  # the default accessors (using the same name as the attribute) and calling <tt>super</tt>
+  # the default accessors (using the same name as the attribute) and calling +super+
   # to actually change things.
   #
   #   class Song < ActiveRecord::Base

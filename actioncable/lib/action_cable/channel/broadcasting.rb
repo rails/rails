@@ -12,12 +12,12 @@ module ActionCable
       end
 
       module ClassMethods
-        # Broadcast a hash to a unique broadcasting for this <tt>model</tt> in this channel.
+        # Broadcast a hash to a unique broadcasting for this +model+ in this channel.
         def broadcast_to(model, message)
           ActionCable.server.broadcast(broadcasting_for(model), message)
         end
 
-        # Returns a unique broadcasting identifier for this <tt>model</tt> in this channel:
+        # Returns a unique broadcasting identifier for this +model+ in this channel:
         #
         #    CommentsChannel.broadcasting_for("all") # => "comments:all"
         #

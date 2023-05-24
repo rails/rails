@@ -6,7 +6,7 @@ require "active_support/ordered_options"
 module ActiveSupport
   # = Active Support \Configurable
   #
-  # Configurable provides a <tt>config</tt> method to store and retrieve
+  # Configurable provides a +config+ method to store and retrieve
   # configuration options as an OrderedOptions.
   module Configurable
     extend ActiveSupport::Concern
@@ -96,7 +96,7 @@ module ActiveSupport
       #   User.new.allowed_access = true # => NoMethodError
       #   User.new.allowed_access        # => NoMethodError
       #
-      # Also you can pass <tt>default</tt> or a block to set up the attribute with a default value.
+      # Also you can pass +default+ or a block to set up the attribute with a default value.
       #
       #   class User
       #     include ActiveSupport::Configurable

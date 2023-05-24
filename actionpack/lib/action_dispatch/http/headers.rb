@@ -82,7 +82,7 @@ module ActionDispatch
       # Returns the value for the given key mapped to @env.
       #
       # If the key is not found and an optional code block is not provided,
-      # raises a <tt>KeyError</tt> exception.
+      # raises a +KeyError+ exception.
       #
       # If the code block is provided, then it will be run and
       # its result returned.
@@ -99,16 +99,16 @@ module ActionDispatch
       end
 
       # Returns a new Http::Headers instance containing the contents of
-      # <tt>headers_or_env</tt> and the original instance.
+      # +headers_or_env+ and the original instance.
       def merge(headers_or_env)
         headers = @req.dup.headers
         headers.merge!(headers_or_env)
         headers
       end
 
-      # Adds the contents of <tt>headers_or_env</tt> to original instance
+      # Adds the contents of +headers_or_env+ to original instance
       # entries; duplicate keys are overwritten with the values from
-      # <tt>headers_or_env</tt>.
+      # +headers_or_env+.
       def merge!(headers_or_env)
         headers_or_env.each do |key, value|
           @req.set_header env_name(key), value

@@ -87,7 +87,7 @@ module AbstractController
       # itself.
       #
       # ==== Returns
-      # * <tt>Set</tt> - A set of all methods that should be considered actions.
+      # * +Set+ - A set of all methods that should be considered actions.
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors
@@ -119,7 +119,7 @@ module AbstractController
       #   MyApp::MyPostsController.controller_path # => "my_app/my_posts"
       #
       # ==== Returns
-      # * <tt>String</tt>
+      # * +String+
       def controller_path
         @controller_path ||= name.delete_suffix("Controller").underscore unless anonymous?
       end
@@ -145,7 +145,7 @@ module AbstractController
     # AbstractController::ActionNotFound error is raised.
     #
     # ==== Returns
-    # * <tt>self</tt>
+    # * +self+
     def process(action, *args)
       @_action_name = action.to_s
 
@@ -178,7 +178,7 @@ module AbstractController
     # through other means, for example, implicit render ones.
     #
     # ==== Parameters
-    # * <tt>action_name</tt> - The name of an action to be tested
+    # * +action_name+ - The name of an action to be tested
     def available_action?(action_name)
       _find_action_name(action_name)
     end
@@ -207,7 +207,7 @@ module AbstractController
       # it has a method defined in the controller.
       #
       # ==== Parameters
-      # * <tt>name</tt> - The name of an action to be tested
+      # * +name+ - The name of an action to be tested
       def action_method?(name)
         self.class.action_methods.include?(name)
       end
@@ -244,10 +244,10 @@ module AbstractController
       # See method_for_action for more information.
       #
       # ==== Parameters
-      # * <tt>action_name</tt> - An action name to find a method name for
+      # * +action_name+ - An action name to find a method name for
       #
       # ==== Returns
-      # * <tt>string</tt> - The name of the method that handles the action
+      # * +string+ - The name of the method that handles the action
       # * false           - No valid method name could be found.
       # Raise +AbstractController::ActionNotFound+.
       def _find_action_name(action_name)
@@ -272,11 +272,11 @@ module AbstractController
       # returns +nil+, an +AbstractController::ActionNotFound+ exception will be raised.
       #
       # ==== Parameters
-      # * <tt>action_name</tt> - An action name to find a method name for
+      # * +action_name+ - An action name to find a method name for
       #
       # ==== Returns
-      # * <tt>string</tt> - The name of the method that handles the action
-      # * <tt>nil</tt>    - No method name could be found.
+      # * +string+ - The name of the method that handles the action
+      # * +nil+    - No method name could be found.
       def method_for_action(action_name)
         if action_method?(action_name)
           action_name

@@ -72,7 +72,7 @@ module ActionView # :nodoc:
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>
   #
-  # The local variables passed to sub templates can be accessed as a hash using the <tt>local_assigns</tt> hash. This lets you access the
+  # The local variables passed to sub templates can be accessed as a hash using the +local_assigns+ hash. This lets you access the
   # variables as:
   #
   #   Headline: <%= local_assigns[:headline] %>
