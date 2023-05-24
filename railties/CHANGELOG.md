@@ -1,3 +1,7 @@
+*   Add puma app server to Gemfile in order to start test/dummy.
+
+    *Donapieppo*
+
 *   Rails console now disables `IRB`'s autocompletion feature in production by default.
 
     Setting `IRB_USE_AUTOCOMPLETE=true` can override this default.

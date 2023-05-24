@@ -1,3 +1,8 @@
+*   Fix `ActionText::Attachable#as_json`.
+
+    *Alexandre Ruban*
+
+
 ## Rails 7.0.4.3 (March 13, 2023) ##
 
 *   No changes.

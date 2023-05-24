@@ -1,3 +1,71 @@
+*   Type cast `#attribute_changed?` `:from` and `:to` options.
+
+    *Andrew Novoselac*
+
+*   Fix `index_exists?` when column is an array.
+
+    *Eileen M. Uchitelle*
+
+*   Handle `Date` objects for PostgreSQL `timestamptz` columns.
+
+    *Alex Ghiculescu*
+
+*   Fix collation for changing column to non-string.
+
+    *Hartley McGuire*
+
+*   Map through subtype in `PostgreSQL::OID::Array`.
+
+    *Jonathan Hefner*
+
+*   Store correct environment in `internal_metadata` when run rails `db:prepare`.
+
+    *fatkodima*
+
+*   Make sure `ActiveRecord::Relation#sum` works with objects that implement `#coerce` without deprecation.
+
+    *Alex Ghiculescu*
+
+*   Fix retrieving foreign keys referencing tables named like keywords in PostgreSQL and MySQL.
+
+    *fatkodima*
+
+*   Support UUIDs in Disable Joins.
+
+    *Samuel Cochran*
+
+*   Fix Active Record's explain for queries starting with comments.
+
+    *fatkodima*
+
+*   Fix incorrectly preloading through association records when middle association has been loaded.
+
+    *Joshua Young*
+
+*   Fix where.missing and where.associated for parent/child associations.
+
+    *fatkodima*
+
+*   Fix Enumerable#in_order_of to preserve duplicates.
+
+    *fatkodima*
+
+*   Fix autoincrement on primary key for mysql.
+
+    *Eileen M. Uchitelle*
+
+*   Restore ability to redefine column in `create_table` for Rails 5.2 migrations.
+
+    *fatkodima*
+
+*   Fix schema cache dumping of virtual columns.
+
+    *fatkodima*
+
+*   Fix Active Record grouped calculations on joined tables on column present in both tables.
+
+    *fatkodima*
+
 *   Fix mutation detection for serialized attributes backed by binary columns.
 
     *Jean Boussier*

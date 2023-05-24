@@ -1,3 +1,23 @@
+*   Do not return CSP headers for 304 Not Modified responses.
+
+    *Tobias Kraze*
+
+*   Fix `EtagWithFlash` when there is no `Flash` middleware available.
+
+    *fatkodima*
+
+*   Fix content-type header with `send_stream`.
+
+    *Elliot Crosby-McCullough*
+
+*   Address Selenium `:capabilities` deprecation warning.
+
+    *Ron Shinall*
+
+*   Fix cookie domain for domain: all on two letter single level TLD.
+
+    *John Hawthorn*
+
 *   Don't double log the `controller`, `action`, or `namespaced_controller` when using `ActiveRecord::QueryLog`
 
     Previously if you set `config.active_record.query_log_tags` to an array that included

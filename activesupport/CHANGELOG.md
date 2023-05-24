@@ -1,3 +1,8 @@
+*   Fixes TimeWithZone ArgumentError.
+
+    *Niklas Häusele*
+
+
 ## Rails 7.0.4.3 (March 13, 2023) ##
 
 *   Implement SafeBuffer#bytesplice

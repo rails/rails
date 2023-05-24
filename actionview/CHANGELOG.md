@@ -1,3 +1,11 @@
+*   `FormBuilder#id` finds id set by `form_for` and `form_with`.
+
+    *Matt Polito*
+
+*   Allow all available locales for template lookups.
+
+    *Ben Dilley*
+
 *   Choices of `select` can optionally contain html attributes as the last element
     of the child arrays when using grouped/nested collections
 

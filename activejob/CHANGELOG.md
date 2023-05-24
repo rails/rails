@@ -1,3 +1,7 @@
+*   Make delayed job `display_name` failsafe.
+
+    *codez*
+
 *   Don't double log the `job` when using `ActiveRecord::QueryLog`
 
     Previously if you set `config.active_record.query_log_tags` to an array that included

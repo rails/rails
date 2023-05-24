@@ -1,3 +1,8 @@
+*   Restore Action Cable Redis pub/sub listener on connection failure.
+
+    *Vladimir Dementyev*
+
+
 ## Rails 7.0.4.3 (March 13, 2023) ##
 
 *   No changes.
