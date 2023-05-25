@@ -209,10 +209,7 @@ module ActionDispatch
 
     def error_highlight_available?
       # ErrorHighlight.spot with backtrace_location keyword is available since error_highlight 0.4.0
-      unless defined?(@@error_highlight_available)
-        @@error_highlight_available = defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
-      end
-      @@error_highlight_available
+      defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
     end
 
     def trace_to_show

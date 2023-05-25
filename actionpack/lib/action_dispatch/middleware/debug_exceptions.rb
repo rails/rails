@@ -123,7 +123,6 @@ module ActionDispatch
           trace_to_show: wrapper.trace_to_show,
           routes_inspector: routes_inspector(wrapper),
           source_extracts: wrapper.source_extracts,
-          error_highlight_available: wrapper.error_highlight_available?
         )
       end
 
