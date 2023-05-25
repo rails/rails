@@ -21,7 +21,9 @@ module ActiveModel
         if value.is_a?(Data)
           value.to_s
         else
-          super
+          value = super
+          value = value.b if ::String === value && value.encoding != Encoding::BINARY
+          value
         end
       end
 
