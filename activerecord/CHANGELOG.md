@@ -76,7 +76,7 @@
 
     *Shota Toguchi*, *Yusaku Ono*
 
-*   Use connection from `#with_raw_connection` in `#quote_string`.
+*   Fix erroneous nil default precision on virtual datetime columns.
 
     Prior to this change, virtual datetime columns did not have the same
     default precision as regular datetime columns, resulting in the following
