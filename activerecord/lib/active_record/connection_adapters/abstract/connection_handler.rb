@@ -292,7 +292,7 @@ module ActiveRecord
           if roles.flatten.uniq.count > 1
             ActiveRecord.deprecator.warn(<<-MSG.squish)
               `#{method}` currently only applies to connection pools in the current
-              role (`#{ActiveRecord::Base.current_role}`). In Rails 7.1, this method
+              role (`#{ActiveRecord::Base.current_role}`). In Rails 7.2, this method
               will apply to all known pools, regardless of role. To affect only those
               connections belonging to a specific role, pass the role name as an
               argument. To switch to the new behavior, pass `:all` as the role name.
