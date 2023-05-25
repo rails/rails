@@ -1,26 +1,3 @@
-*   Add `Arel::Nodes::Cte` for use in `WITH` expressions
-
-    `Cte` nodes also support explicit `MATERIALIZED` or `NOT MATERIALIZED` hints for the query planner.
-
-    ```ruby
-    posts = Arel::Table.new(:posts)
-    comments = Arel::Table.new(:comments)
-
-    good_comments_query = comments.project(Arel.star).where(comments[:rating].gt(7))
-    cte = Arel::Nodes::Cte.new(:good_comments, good_comments_query, materialized: true)
-
-    query = posts.
-      project(Arel.star).
-      with(cte).
-      where(posts[:id].in(cte.to_table.project(:post_id))).
-
-    puts query.to_sql
-
-    # WITH "good_comments" AS MATERIALIZED (SELECT * FROM "comments" WHERE "comments"."rating" > 7) SELECT * FROM "posts" WHERE "posts"."id" IN (SELECT post_id FROM "good_comments")
-    ```
-
-    *Jon Zeppieri*
-
 *   Fix mutation detection for serialized attributes backed by binary columns.
 
     *Jean Boussier*
