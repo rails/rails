@@ -726,6 +726,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_gem "importmap-rails"
+    assert_no_gem "jsbundling-rails"
+    assert_no_node_files
 
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
@@ -734,8 +736,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".gitattributes" do |content|
       assert_no_match(/yarn\.lock/, content)
     end
-
-    assert_no_file ".node-version"
   end
 
   def test_webpack_option
@@ -755,19 +755,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_equal 1, webpacker_called, "`javascript:install:webpack` expected to be called once, but was called #{webpacker_called} times."
     assert_gem "jsbundling-rails"
-
-    assert_file "Dockerfile" do |content|
-      assert_match(/yarn/, content)
-      assert_match(/node-gyp/, content)
-    end
-
-    assert_file ".node-version" do |content|
-      if ENV["NODE_VERSION"]
-        assert_match(/#{ENV["NODE_VERSION"]}/, content)
-      else
-        assert_match(/\d+\.\d+\.\d+/, content)
-      end
-    end
+    assert_node_files
   end
 
   def test_esbuild_option
@@ -787,6 +775,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_equal 1, esbuild_called, "`javascript:install:esbuild` expected to be called once, but was called #{esbuild_called} times."
     assert_gem "jsbundling-rails"
+    assert_node_files
   end
 
   def test_esbuild_option_with_javacript_argument
@@ -861,18 +850,39 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/tailwind/, content)
     end
+    assert_no_node_files
+  end
+
+  def test_css_option_with_tailwind_uses_cssbundling_gem_when_using_node
+    run_generator [destination_root, "--css=tailwind", "--javascript=esbuild"]
+    assert_gem "cssbundling-rails"
+    assert_no_gem "tailwindcss-rails"
   end
 
   def test_css_option_with_asset_pipeline_sass
     run_generator_and_bundler [destination_root, "--css=sass"]
     assert_gem "dartsass-rails"
     assert_file "app/assets/stylesheets/application.scss"
+    assert_no_node_files
+  end
+
+  def test_css_option_with_sass_uses_cssbundling_gem_when_using_node
+    run_generator [destination_root, "--css=sass", "--javascript=esbuild"]
+    assert_gem "cssbundling-rails"
+    assert_no_gem "dartsass-rails"
   end
 
   def test_css_option_with_cssbundling_gem
     run_generator_and_bundler [destination_root, "--css=postcss"]
     assert_gem "cssbundling-rails"
     assert_file "app/assets/stylesheets/application.postcss.css"
+    assert_node_files
+  end
+
+  def test_css_option_with_cssbundling_gem_does_not_force_jsbundling_gem
+    run_generator [destination_root, "--css=postcss"]
+    assert_no_gem "jsbundling-rails"
+    assert_gem "importmap-rails"
   end
 
   def test_dev_gems
@@ -1137,6 +1147,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
+    def assert_node_files
+      assert_file ".node-version" do |content|
+        assert_match %r/\d+\.\d+\.\d+/, content
+      end
+
+      assert_file "Dockerfile" do |content|
+        assert_match "yarn", content
+        assert_match "node-gyp", content
+      end
+    end
+
+    def assert_no_node_files
+      assert_no_file ".node-version"
+
+      assert_file "Dockerfile" do |content|
+        assert_no_match "yarn", content
+        assert_no_match "node-gyp", content
+      end
+    end
+
     def run_generator_and_bundler(args)
       option_args, positional_args = args.partition { |arg| arg.start_with?("--") }
       option_args << "--no-skip-bundle"
