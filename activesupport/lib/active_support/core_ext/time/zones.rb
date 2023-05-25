@@ -69,7 +69,7 @@ class Time
     end
 
     # Returns a TimeZone instance matching the time zone provided.
-    # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
+    # Accepts the time zone in any format supported by +Time.zone=+.
     # Raises an +ArgumentError+ for invalid time zones.
     #
     #   Time.find_zone! "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
@@ -85,7 +85,7 @@ class Time
     end
 
     # Returns a TimeZone instance matching the time zone provided.
-    # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
+    # Accepts the time zone in any format supported by +Time.zone=+.
     # Returns +nil+ for invalid time zones.
     #
     #   Time.find_zone "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>

@@ -277,7 +277,7 @@ module ActiveRecord # :nodoc:
   # * StatementInvalid - The database server rejected the SQL statement. The precise error is added in the message.
   #
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level).
-  # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
+  # So it's possible to assign a logger to the class through +Base.logger=+ which will then be used by all
   # instances in the current object space.
   class Base
     extend ActiveModel::Naming
