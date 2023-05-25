@@ -30,21 +30,44 @@ module ActiveSupport
         extend self
 
         def dump(entry)
-          entry.dup_value! unless entry.compressed?
-          entry
+          if entry.value && entry.value != true && !entry.value.is_a?(Numeric)
+            Cache::Entry.new(dump_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+          else
+            entry
+          end
         end
 
         def dump_compressed(entry, threshold)
-          entry = entry.compressed(threshold)
-          entry.dup_value! unless entry.compressed?
-          entry
+          compressed_entry = entry.compressed(threshold)
+          compressed_entry.compressed? ? compressed_entry : dump(entry)
         end
 
         def load(entry)
-          entry = entry.dup
-          entry.dup_value!
-          entry
+          if !entry.compressed? && entry.value.is_a?(String)
+            Cache::Entry.new(load_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+          else
+            entry
+          end
         end
+
+        private
+          MARSHAL_SIGNATURE = "\x04\x08".b.freeze
+
+          def dump_value(value)
+            if value.is_a?(String) && !value.start_with?(MARSHAL_SIGNATURE)
+              value.dup
+            else
+              Marshal.dump(value)
+            end
+          end
+
+          def load_value(string)
+            if string.start_with?(MARSHAL_SIGNATURE)
+              Marshal.load(string)
+            else
+              string.dup
+            end
+          end
       end
 
       def initialize(options = nil)
