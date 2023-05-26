@@ -448,6 +448,24 @@ module ActiveRecord
     #   Post
     #     .with(posts_with_comments: Post.where("comments_count > ?", 0))
     #     .with(posts_with_tags: Post.where("tags_count > ?", 0))
+    #
+    # The hash values passed to +.with+ also support a more verbose
+    # syntax that allows you to pass options along with your CTE
+    # queries:
+    #
+    #   Post.with(posts_with_tags: { query: Post.where("tags_count > ?", 0), materialized: true })
+    #   # => ActiveRecord::Relation
+    #   # WITH posts_with_tags AS MATERIALIZED (
+    #   #   SELECT * FROM posts WHERE (tags_count > 0)
+    #   # )
+    #   # SELECT * FROM posts
+    #
+    # The +:query+ key is required. Currently, the only supported option
+    # is +:materialized+, which can be set to +true+, as in the above
+    # example, to request that the CTE be materialized (that is,
+    # evaluated separately from the main query), +false+ to request
+    # that it not be materialized, or +nil+ (the default) to omit any
+    # materialization hint.
     def with(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.with!(*args)
@@ -1738,15 +1756,33 @@ module ActiveRecord
 
       def build_with_value_from_hash(hash)
         hash.map do |name, value|
-          expression =
-            case value
-            when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
-            when ActiveRecord::Relation then value.arel
-            when Arel::SelectManager then value
-            else
-              raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
-            end
-          Arel::Nodes::TableAlias.new(expression, name)
+          if value.is_a?(Hash)
+            build_cte_with_options(name, value)
+          else
+            Arel::Nodes::Cte.new(name, build_cte_relation(value))
+          end
+        end
+      end
+
+      VALID_CTE_HASH_KEYS = %i[query materialized]
+
+      def build_cte_with_options(name, value_hash)
+        illegal_options = value_hash.except(*VALID_CTE_HASH_KEYS)
+        raise ArgumentError, "Unsupported options: #{illegal_options}" unless illegal_options.empty?
+
+        value = build_cte_relation(value_hash[:query])
+        materialized = value_hash[:materialized]
+
+        Arel::Nodes::Cte.new(name, value, materialized: materialized)
+      end
+
+      def build_cte_relation(value)
+        case value
+        when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
+        when ActiveRecord::Relation then value.arel
+        when Arel::SelectManager then value
+        else
+          raise ArgumentError, "Unsupported argument type: `#{value}` #{value.class}"
         end
       end
 

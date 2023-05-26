@@ -1,3 +1,19 @@
+*   Allow CTE materialization hint via verbose `.with` argument syntax
+
+    ```ruby
+    Post.with(posts_with_comments: { query: Post.where("comments_count > ?", 0), materialized: true })
+    # => ActiveRecord::Relation
+    # WITH "posts_with_comments" AS MATERIALIZED (
+    #   SELECT "posts".* FROM "posts" WHERE (comments_count > 0)
+    # )
+    # SELECT "posts".* FROM "posts"
+    ```
+
+    The `:materialized` option may be set to `true` to request materialization, `false` to request
+    no materialization, or `nil` (the default) to omit any materialization hint.
+
+    *Jon Zeppieri*
+
 *   Fix mutation detection for serialized attributes backed by binary columns.
 
     *Jean Boussier*
