@@ -51,12 +51,12 @@ class SanitizeHelperTest < ActionView::TestCase
     expected = Set.new(["strong", "em", "b", "i", "p", "code", "pre", "tt", "samp", "kbd", "var",
       "sub", "sup", "dfn", "cite", "big", "small", "address", "hr", "br", "div", "span", "h1", "h2",
       "h3", "h4", "h5", "h6", "ul", "ol", "li", "dl", "dt", "dd", "abbr", "acronym", "a", "img",
-      "blockquote", "del", "ins"])
+      "blockquote", "del", "ins", "time"])
     assert_equal(expected, self.class.sanitized_allowed_tags)
   end
 
   def test_sanitized_allowed_attributes_class_method
-    expected = Set.new(["href", "src", "width", "height", "alt", "cite", "datetime", "title", "class", "name", "xml:lang", "abbr"])
+    expected = Set.new(["href", "src", "width", "height", "alt", "cite", "datetime", "title", "class", "name", "xml:lang", "lang", "abbr"])
     assert_equal(expected, self.class.sanitized_allowed_attributes)
   end
 end
