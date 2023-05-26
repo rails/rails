@@ -480,6 +480,7 @@ module ActiveRecord
               if column.has_default?
                 type = lookup_cast_type_from_column(column)
                 default = type.deserialize(column.default)
+                default = -> { column.default_function } if default.nil?
               end
 
               @definition.column(column_name, column.type,
