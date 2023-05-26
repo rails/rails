@@ -1,7 +1,7 @@
 {
   "private": true,
   "workspaces": [
-    "actioncable",
+    "actioncable",asdasd
     "actiontext",
     "activestorage",
     "actionview"
