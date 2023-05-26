@@ -472,7 +472,7 @@ module ActiveModel
       end
   end
 
-  # = Active \Model \Validator
+  # = Active \Model \StrictValidationFailed
   #
   # Raised when a validation cannot be corrected by end users and are considered
   # exceptional.
