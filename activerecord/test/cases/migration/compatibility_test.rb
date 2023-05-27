@@ -289,7 +289,7 @@ module ActiveRecord
 
         ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
 
-        column = connection.columns(:tests).find { |column| column.name == "some_id" }
+        column = connection.columns(:tests).find { |c| c.name == "some_id" }
         assert_equal :string, column.type
       ensure
         connection.drop_table :tests, if_exists: true
