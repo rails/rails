@@ -191,6 +191,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :cars, force: true do |t|
+    t.belongs_to :person
     t.string  :name
     t.integer :engines_count
     t.integer :wheels_count, default: 0, null: false
@@ -910,6 +911,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
     t.timestamp :born_at
+    t.integer :cars_count, default: 0
     t.timestamps null: false
   end
 
