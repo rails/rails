@@ -265,7 +265,18 @@ module ActionController
       end
     end
 
-    # Alias for +middleware_stack+.
+    # The middleware stack used by this controller.
+    #
+    # By default uses a variation of ActionDispatch::MiddlewareStack which
+    # allows for the following syntax:
+    #
+    #   class PostsController < ApplicationController
+    #     use AuthenticationMiddleware, except: [:index, :show]
+    #   end
+    #
+    # Read more about {Rails middleware
+    # stack}[https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack]
+    # in the guides.
     def self.middleware
       middleware_stack
     end
