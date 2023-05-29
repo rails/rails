@@ -37,4 +37,33 @@ class BinaryTest < ActiveRecord::TestCase
       assert_equal data, bin.reload.data, "Reloaded data differs from original"
     end
   end
+
+  def test_unicode_input_casting
+    binary = Binary.new(name: 123, data: "text")
+
+    # Before saving, attribute methods return casted values, but their
+    # _before_type_cast still returns the original value. (Integer-to-String
+    # conversion used for comparison.)
+    assert_equal "123", binary.name
+    assert_equal 123, binary.name_before_type_cast
+    assert_equal Encoding::BINARY, binary.data.encoding
+    assert_equal Encoding::UTF_8, binary.data_before_type_cast.to_s.encoding
+
+    binary.save!
+
+    # After saving, casted values appear throughout.
+    assert_equal "123", binary.name
+    assert_equal "123", binary.name_before_type_cast
+    assert_equal Encoding::BINARY, binary.data.encoding
+    assert_equal Encoding::BINARY, binary.data_before_type_cast.to_s.encoding
+
+    binary.reload
+
+    assert_equal "123", binary.name
+    assert_equal "123", binary.name_before_type_cast
+    assert_equal Encoding::BINARY, binary.data.encoding
+    # After reloading, data_before_type_cast is adapter-dependent. For
+    # example, PostgreSQL returns the bytea_output encoded representation,
+    # which happens to be UTF-8.
+  end
 end
