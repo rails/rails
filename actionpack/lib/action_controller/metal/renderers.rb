@@ -3,12 +3,12 @@
 require "set"
 
 module ActionController
-  # See <tt>Renderers.add</tt>
+  # See Renderers.add
   def self.add_renderer(key, &block)
     Renderers.add(key, &block)
   end
 
-  # See <tt>Renderers.remove</tt>
+  # See Renderers.remove
   def self.remove_renderer(key)
     Renderers.remove(key)
   end
