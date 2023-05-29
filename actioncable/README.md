@@ -15,7 +15,7 @@ API documentation is at:
 
 * https://api.rubyonrails.org
 
-Bug reports for the Ruby on Rails project can be filed here:
+Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 
