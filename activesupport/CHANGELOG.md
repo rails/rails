@@ -1,3 +1,7 @@
+*   Fix ActionCable Redis configuration with sentinels
+
+    *Dmitriy Ivliev*
+
 ## Rails 7.0.5 (May 24, 2023) ##
 
 *   Fixes TimeWithZone ArgumentError.
