@@ -44,7 +44,7 @@ are bundled together in [Action Pack](files/actionpack/README.rdoc).
 
 [Active Record](files/activerecord/README.rdoc), [Active Model](files/activemodel/README.rdoc), [Action Pack](files/actionpack/README.rdoc), and [Action View](files/actionview/README.rdoc) can each be used independently outside \Rails.
 
-In addition to that, Rails also comes with:
+In addition to that, \Rails also comes with:
 
 - [Action Mailer](files/actionmailer/README.rdoc), a library to generate and send emails
 - [Action Mailbox](files/actionmailbox/README.md), a library to receive emails within a Rails application
