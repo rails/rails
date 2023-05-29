@@ -389,47 +389,47 @@ module ActiveRecord
       # See also Instance Public methods below for more details.
       #
       # === Singular associations (one-to-one)
-      #                                     |            |  belongs_to  |
-      #   generated methods                 | belongs_to | :polymorphic | has_one
-      #   ----------------------------------+------------+--------------+---------
-      #   other                             |     O      |      O       |    O
-      #   other=(other)                     |     O      |      O       |    O
-      #   build_other(attributes={})        |     O      |              |    O
-      #   create_other(attributes={})       |     O      |              |    O
-      #   create_other!(attributes={})      |     O      |              |    O
-      #   reload_other                      |     O      |      O       |    O
-      #   other_changed?                    |     O      |      O       |
-      #   other_previously_changed?         |     O      |      O       |
+      #                                    |            |  belongs_to  |
+      #  generated methods                 | belongs_to | :polymorphic | has_one
+      #  ----------------------------------+------------+--------------+---------
+      #  other                             |     ✅     |      ✅      |    ✅
+      #  other=(other)                     |     ✅     |      ✅      |    ✅
+      #  build_other(attributes={})        |     ✅     |      ⬜️      |    ✅
+      #  create_other(attributes={})       |     ✅     |      ⬜️      |    ✅
+      #  create_other!(attributes={})      |     ✅     |      ⬜️      |    ✅
+      #  reload_other                      |     ✅     |      ✅      |    ✅
+      #  other_changed?                    |     ✅     |      ✅      |    ⬜️
+      #  other_previously_changed?         |     ✅     |      ✅      |    ⬜️
       #
       # === Collection associations (one-to-many / many-to-many)
-      #                                     |       |          | has_many
-      #   generated methods                 | habtm | has_many | :through
-      #   ----------------------------------+-------+----------+----------
-      #   others                            |   O   |    O     |    O
-      #   others=(other,other,...)          |   O   |    O     |    O
-      #   other_ids                         |   O   |    O     |    O
-      #   other_ids=(id,id,...)             |   O   |    O     |    O
-      #   others<<                          |   O   |    O     |    O
-      #   others.push                       |   O   |    O     |    O
-      #   others.concat                     |   O   |    O     |    O
-      #   others.build(attributes={})       |   O   |    O     |    O
-      #   others.create(attributes={})      |   O   |    O     |    O
-      #   others.create!(attributes={})     |   O   |    O     |    O
-      #   others.size                       |   O   |    O     |    O
-      #   others.length                     |   O   |    O     |    O
-      #   others.count                      |   O   |    O     |    O
-      #   others.sum(*args)                 |   O   |    O     |    O
-      #   others.empty?                     |   O   |    O     |    O
-      #   others.clear                      |   O   |    O     |    O
-      #   others.delete(other,other,...)    |   O   |    O     |    O
-      #   others.delete_all                 |   O   |    O     |    O
-      #   others.destroy(other,other,...)   |   O   |    O     |    O
-      #   others.destroy_all                |   O   |    O     |    O
-      #   others.find(*args)                |   O   |    O     |    O
-      #   others.exists?                    |   O   |    O     |    O
-      #   others.distinct                   |   O   |    O     |    O
-      #   others.reset                      |   O   |    O     |    O
-      #   others.reload                     |   O   |    O     |    O
+      #                                    |       |          | has_many
+      #  generated methods                 | habtm | has_many | :through
+      #  ----------------------------------+-------+----------+----------
+      #  others                            |   ✅  |    ✅    |    ✅
+      #  others=(other,other,...)          |   ✅  |    ✅    |    ✅
+      #  other_ids                         |   ✅  |    ✅    |    ✅
+      #  other_ids=(id,id,...)             |   ✅  |    ✅    |    ✅
+      #  others<<                          |   ✅  |    ✅    |    ✅
+      #  others.push                       |   ✅  |    ✅    |    ✅
+      #  others.concat                     |   ✅  |    ✅    |    ✅
+      #  others.build(attributes={})       |   ✅  |    ✅    |    ✅
+      #  others.create(attributes={})      |   ✅  |    ✅    |    ✅
+      #  others.create!(attributes={})     |   ✅  |    ✅    |    ✅
+      #  others.size                       |   ✅  |    ✅    |    ✅
+      #  others.length                     |   ✅  |    ✅    |    ✅
+      #  others.count                      |   ✅  |    ✅    |    ✅
+      #  others.sum(*args)                 |   ✅  |    ✅    |    ✅
+      #  others.empty?                     |   ✅  |    ✅    |    ✅
+      #  others.clear                      |   ✅  |    ✅    |    ✅
+      #  others.delete(other,other,...)    |   ✅  |    ✅    |    ✅
+      #  others.delete_all                 |   ✅  |    ✅    |    ✅
+      #  others.destroy(other,other,...)   |   ✅  |    ✅    |    ✅
+      #  others.destroy_all                |   ✅  |    ✅    |    ✅
+      #  others.find(*args)                |   ✅  |    ✅    |    ✅
+      #  others.exists?                    |   ✅  |    ✅    |    ✅
+      #  others.distinct                   |   ✅  |    ✅    |    ✅
+      #  others.reset                      |   ✅  |    ✅    |    ✅
+      #  others.reload                     |   ✅  |    ✅    |    ✅
       #
       # === Overriding generated methods
       #
