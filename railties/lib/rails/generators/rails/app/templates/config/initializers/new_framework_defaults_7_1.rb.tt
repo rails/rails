@@ -175,3 +175,13 @@
 # When you're ready to change format, add this to `config/application.rb` (NOT
 # this file):
 #   config.active_support.cache_format_version = 7.1
+
+# Configure Action View to use HTML5 standards-compliant sanitizers when they are supported on your
+# platform.
+#
+# `Rails::HTML::Sanitizer.best_supported_vendor` will return `Rails::HTML5::Sanitizer` if it's
+# supported, else fall back to `Rails::HTML4::Sanitizer`.
+#
+# In previous versions of Rails, Action View always used `Rails::HTML4::Sanitizer`.
+#
+# Rails.application.config.action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
