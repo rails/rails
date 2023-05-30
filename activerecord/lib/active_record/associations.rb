@@ -386,7 +386,7 @@ module ActiveRecord
       # For instance, +attributes+ and +connection+ would be bad choices for association names, because those names already exist in the list of +ActiveRecord::Base+ instance methods.
       #
       # == Auto-generated methods
-      # See also Instance Public methods below for more details.
+      # See also "Instance Public methods" below ( from #belongs_to ) for more details.
       #
       # === Singular associations (one-to-one)
       #                                     |            |  belongs_to  |
