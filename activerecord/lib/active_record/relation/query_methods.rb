@@ -9,7 +9,7 @@ module ActiveRecord
   module QueryMethods
     include ActiveModel::ForbiddenAttributesProtection
 
-    # WhereChain objects act as placeholder for queries in which +where+ does not have any parameter.
+    # +WhereChain+ objects act as placeholder for queries in which +where+ does not have any parameter.
     # In this case, +where+ can be chained to return a new relation.
     class WhereChain
       def initialize(scope) # :nodoc:
@@ -212,7 +212,7 @@ module ActiveRecord
     #   #   LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
     #   #   WHERE "posts"."name" = ?  [["name", "example"]]
     #
-    # As the LEFT OUTER JOIN already contains the posts, the second query for
+    # As the <tt>LEFT OUTER JOIN</tt> already contains the posts, the second query for
     # the posts is no longer performed.
     #
     # Note that #includes works with association names while #references needs
@@ -320,7 +320,7 @@ module ActiveRecord
     end
 
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
-    # and should therefore be JOINed in any query rather than loaded separately.
+    # and should therefore be +JOIN+ed in any query rather than loaded separately.
     # This method only works in conjunction with #includes.
     # See #includes for more details.
     #
@@ -419,7 +419,7 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts
     #
-    # Once you define Common Table Expression you can use custom `FROM` value or `JOIN` to reference it.
+    # Once you define Common Table Expression you can use custom +FROM+ value or +JOIN+ to reference it.
     #
     #   Post.with(posts_with_tags: Post.where("tags_count > ?", 0)).from("posts_with_tags AS posts")
     #   # => ActiveRecord::Relation
@@ -647,7 +647,7 @@ module ActiveRecord
     #
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
-    # generates a query with 'ORDER BY id ASC, name ASC'.
+    # generates a query with <tt>ORDER BY id ASC, name ASC</tt>.
     def reorder(*args)
       check_if_method_has_arguments!(__callee__, args) do
         sanitize_order_arguments(args)
