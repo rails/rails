@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/topic"
+require "models/bulb"
 require "models/car"
 require "models/aircraft"
 require "models/wheel"
@@ -245,6 +246,15 @@ class CounterCacheTest < ActiveRecord::TestCase
 
     assert_difference "aircraft.reload.wheels_count", -1 do
       aircraft.wheels.first.destroy
+    end
+  end
+
+  test "removing association updates counter" do
+    michael = people(:michael)
+    car = cars(:honda)
+
+    assert_difference -> { michael.reload.cars_count }, -1 do
+      car.destroy
     end
   end
 
