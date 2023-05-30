@@ -813,7 +813,7 @@ module ActiveRecord
         verify_readonly_attribute(name) || name
       end
 
-      update_constraints = _primary_key_constraints_hash
+      update_constraints = _query_constraints_hash
       attributes = attributes.each_with_object({}) do |(k, v), h|
         h[k] = @attributes.write_cast_value(k, v)
         clear_attribute_change(k)
@@ -1028,7 +1028,7 @@ module ActiveRecord
         (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
     end
 
-    def _primary_key_constraints_hash
+    def _query_constraints_hash
       { @primary_key => id_in_database }
     end
 
@@ -1041,7 +1041,7 @@ module ActiveRecord
     end
 
     def _delete_row
-      self.class._delete_record(_primary_key_constraints_hash)
+      self.class._delete_record(_query_constraints_hash)
     end
 
     def _touch_row(attribute_names, time)
@@ -1057,7 +1057,7 @@ module ActiveRecord
     def _update_row(attribute_names, attempted_action = "update")
       self.class._update_record(
         attributes_with_values(attribute_names),
-        _primary_key_constraints_hash
+        _query_constraints_hash
       )
     end
 
