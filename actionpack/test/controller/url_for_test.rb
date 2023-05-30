@@ -77,8 +77,8 @@ module AbstractController
       end
 
       def test_anchor_should_call_to_param
-        assert_equal("/c/a#anchor",
-          W.new.url_for(only_path: true, controller: "c", action: "a", anchor: Struct.new(:to_param).new("anchor"))
+        assert_equal("/c/a/i#anchor",
+          W.new.url_for(only_path: true, controller: "c", action: "a", id: "i", anchor: Struct.new(:to_param).new("anchor"))
         )
       end
 
@@ -212,6 +212,22 @@ module AbstractController
         )
         assert_equal("//www.basecamphq.com:3000/c/a/i",
           W.new.url_for(controller: "c", action: "a", id: "i", protocol: false)
+        )
+      end
+
+      def test_user_name_and_password
+        add_host!
+        assert_equal(
+          "http://david:secret@www.basecamphq.com/c/a/i",
+          W.new.url_for(user: "david", password: "secret", controller: "c", action: "a", id: "i")
+        )
+      end
+
+      def test_user_name_and_password_with_escape_codes
+        add_host!
+        assert_equal(
+          "http://openid.aol.com%2Fnextangler:one+two%3F@www.basecamphq.com/c/a/i",
+          W.new.url_for(user: "openid.aol.com/nextangler", password: "one two?", controller: "c", action: "a", id: "i")
         )
       end
 
