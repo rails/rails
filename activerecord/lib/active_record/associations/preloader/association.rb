@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :enddoc:
+
 module ActiveRecord
   module Associations
     class Preloader
