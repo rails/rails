@@ -797,7 +797,7 @@ module ActiveRecord
     # SQL is given as an illustration; the actual query generated may be different depending
     # on the database adapter.
     #
-    # === string
+    # === \String
     #
     # A single string, without additional arguments, is passed to the query
     # constructor as an SQL fragment, and used in the where clause of the query.
@@ -809,7 +809,7 @@ module ActiveRecord
     # to injection attacks if not done properly. As an alternative, it is recommended
     # to use one of the following methods.
     #
-    # === array
+    # === \Array
     #
     # If an array is passed, then the first element of the array is treated as a template, and
     # the remaining elements are inserted into the template to generate the condition.
@@ -849,7 +849,7 @@ module ActiveRecord
     # dependencies on the underlying database. If your code is intended for general consumption,
     # test with multiple database backends.
     #
-    # === hash
+    # === \Hash
     #
     # #where will also accept a hash condition, in which the keys are fields and the values
     # are values to be searched for.
@@ -895,7 +895,7 @@ module ActiveRecord
     #    User.joins(:posts).where("posts.published" => true)
     #    User.joins(:posts).where(posts: { published: true })
     #
-    # === no argument
+    # === No Argument
     #
     # If no argument is passed, #where returns a new instance of WhereChain, that
     # can be chained with WhereChain#not, WhereChain#missing, or WhereChain#associated.
@@ -919,7 +919,7 @@ module ActiveRecord
     #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
     #    # WHERE "authors"."id" IS NULL
     #
-    # === blank condition
+    # === Blank Condition
     #
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
@@ -1315,7 +1315,7 @@ module ActiveRecord
     #
     # The object returned is a relation, which can be further extended.
     #
-    # === Using a module
+    # === Using a \Module
     #
     #   module Pagination
     #     def page(number)
@@ -1330,7 +1330,7 @@ module ActiveRecord
     #
     #   scope = Model.all.extending(Pagination, SomethingElse)
     #
-    # === Using a block
+    # === Using a Block
     #
     #   scope = Model.all.extending do
     #     def page(number)
