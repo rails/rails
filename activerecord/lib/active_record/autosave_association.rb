@@ -26,7 +26,7 @@ module ActiveRecord
   #
   # Child records are validated unless <tt>:validate</tt> is +false+.
   #
-  # == Callbacks
+  # == \Callbacks
   #
   # Association with autosave option defines several callbacks on your
   # model (around_save, before_save, after_create, after_update). Please note that
