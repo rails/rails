@@ -31,6 +31,7 @@ module ActionCable
 
       # Called by Rack to set up the server.
       def call(env)
+        return config.health_check_application.call(env) if env["PATH_INFO"] == config.health_check_path
         setup_heartbeat_timer
         config.connection_class.call.new(self, env).process
       end

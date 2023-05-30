@@ -1,3 +1,9 @@
+*   Added `health_check_path` and `health_check_application` config to
+    mount a given health check rack app on a given path.
+    Useful when mounting Action Cable standalone.
+
+    *Joé Dupuis*
+
 *   `assert_broadcasts` now returns the messages that were broadcast.
 
     This makes it easier to do further analysis on those messages:
