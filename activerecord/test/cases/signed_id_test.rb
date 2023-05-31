@@ -22,6 +22,16 @@ class SignedIdTest < ActiveRecord::TestCase
       end
   end
 
+  class AccountPolymorphicName < ActiveRecord::Base
+    self.table_name = "accounts"
+
+    class << self
+      def polymorphic_name
+        "Account"
+      end
+    end
+  end
+
   fixtures :accounts, :toys, :companies
 
   setup do
@@ -195,5 +205,10 @@ class SignedIdTest < ActiveRecord::TestCase
 
   test "can get a signed ID in an after_create" do
     assert_not_nil GetSignedIDInCallback.create.signed_id_from_callback
+  end
+
+  test "uses the class polymorphic_name to build the base purpose" do
+    assert_equal @account.id, AccountPolymorphicName.find_signed!(@account.signed_id).id
+    assert_equal @account.id, Account.find_signed!(@account.becomes(AccountPolymorphicName).signed_id).id
   end
 end
