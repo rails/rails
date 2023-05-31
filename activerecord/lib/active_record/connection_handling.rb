@@ -352,7 +352,7 @@ module ActiveRecord
 
         append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
         return_value = yield
-        return_value.load if return_value.is_a? ActiveRecord::Relation
+        return_value.load if return_value.is_a?(ActiveRecord::Relation) && !return_value.scheduled?
         return_value
       ensure
         self.connected_to_stack.pop
