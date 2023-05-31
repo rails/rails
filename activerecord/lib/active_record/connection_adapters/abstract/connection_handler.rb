@@ -157,6 +157,7 @@ module ActiveRecord
 
           payload = {
             connection_name: pool_config.connection_name,
+            role: role,
             shard: shard,
             config: db_config.configuration_hash
           }

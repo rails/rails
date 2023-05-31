@@ -531,9 +531,10 @@ module ActiveRecord
 
         @connection_test_model_class.establish_connection :arunit
 
-        assert_equal [:config, :connection_name, :shard], payloads[0].keys.sort
+        assert_equal [:config, :connection_name, :role, :shard], payloads[0].keys.sort
         assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
         assert_equal ActiveRecord::Base.default_shard, payloads[0][:shard]
+        assert_equal :writing, payloads[0][:role]
       ensure
         @connection_test_model_class.remove_connection
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
@@ -546,9 +547,10 @@ module ActiveRecord
         end
         @connection_test_model_class.connects_to shards: { default: { writing: :arunit } }
 
-        assert_equal [:config, :connection_name, :shard], payloads[0].keys.sort
+        assert_equal [:config, :connection_name, :role, :shard], payloads[0].keys.sort
         assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
         assert_equal :default, payloads[0][:shard]
+        assert_equal :writing, payloads[0][:role]
       ensure
         @connection_test_model_class.remove_connection
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
