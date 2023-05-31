@@ -87,12 +87,11 @@ module ActiveRecord
 
       connections = []
 
-      database.each do |role, database_key|
-        db_config = resolve_config_for_connection(database_key)
-
-        self.connection_class = true
-        connections << connection_handler.establish_connection(db_config, owner_name: self, role: role)
+      if shards.empty?
+        shards[:default] = database
       end
+
+      self.default_shard = shards.keys.first
 
       shards.each do |shard, database_keys|
         database_keys.each do |role, database_key|

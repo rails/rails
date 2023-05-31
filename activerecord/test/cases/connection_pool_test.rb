@@ -535,6 +535,7 @@ module ActiveRecord
         assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
         assert_equal ActiveRecord::Base.default_shard, payloads[0][:shard]
       ensure
+        @connection_test_model_class.remove_connection
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 
@@ -543,12 +544,13 @@ module ActiveRecord
         subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
           payloads << payload
         end
-        @connection_test_model_class.connects_to shards: { shard_two: { writing: :arunit } }
+        @connection_test_model_class.connects_to shards: { default: { writing: :arunit } }
 
         assert_equal [:config, :connection_name, :shard], payloads[0].keys.sort
         assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
-        assert_equal :shard_two, payloads[0][:shard]
+        assert_equal :default, payloads[0][:shard]
       ensure
+        @connection_test_model_class.remove_connection
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 

@@ -1,3 +1,25 @@
+*   Use the first key in the `shards` hash from `connected_to` for the `default_shard`.
+
+    Some applications may not want to use `:default` as a shard name in their connection model. Unfortunately Active Record expects there to be a `:default` shard because it must assume a shard to get the right connection from the pool manager. Rather than force applications to manually set this, `connects_to` can infer the default shard name from the hash of shards and will now assume that the first shard is your default.
+
+    For example if your model looked like this:
+
+    ```ruby
+    class ShardRecord < ApplicationRecord
+      self.abstract_class = true
+
+      connects_to shards: {
+        shard_one: { writing: :shard_one },
+        shard_two: { writing: :shard_two }
+      }
+    ```
+
+    Then the `default_shard` for this class would be set to `shard_one`.
+
+    Fixes: #45390
+
+    *Eileen M. Uchitelle*
+
 *   Fix mutation detection for serialized attributes backed by binary columns.
 
     *Jean Boussier*

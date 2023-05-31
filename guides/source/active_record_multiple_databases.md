@@ -426,17 +426,21 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
+You are not required to use `default` as the first shard name. Rails will assume the first
+shard name in the `connects_to` hash is the "default" connection. This connection is used
+internally to load type data and other information where the schema is the same across shards.
+
 Then models can swap connections manually via the `connected_to` API. If
 using sharding, both a `role` and a `shard` must be passed:
 
 ```ruby
 ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
-  @id = Person.create! # Creates a record in shard default
+  @id = Person.create! # Creates a record in shard named ":default"
 end
 
 ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
   Person.find(@id) # Can't find record, doesn't exist because it was created
-                   # in the default shard
+                   # in the shard named ":default".
 end
 ```
 
