@@ -309,6 +309,14 @@ module ActiveRecord
       class ShardConnectionTestModelB < SomeOtherBase
       end
 
+      def test_default_shard_is_chosen_by_first_key_or_default
+        SecondaryBase.connects_to shards: { not_default: { writing: { database: ":memory:", adapter: "sqlite3" } } }
+        SomeOtherBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" } }
+
+        assert_equal :not_default, SecondaryBase.default_shard
+        assert_equal :default, SomeOtherBase.default_shard
+      end
+
       def test_same_shards_across_clusters
         SecondaryBase.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
         SomeOtherBase.connects_to shards: { one: { writing: { database: ":memory:", adapter: "sqlite3" } } }
