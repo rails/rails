@@ -44,6 +44,26 @@
       }
     });
 
+    var backToTop = createElement("a", "back-to-top");
+    backToTop.setAttribute("href", "#");
+
+    document.body.appendChild(backToTop);
+
+    backToTop.addEventListener("click", function(e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    var toggleBackToTop = function() {
+      if (window.scrollY > 300) {
+        backToTop.classList.add("show");
+      } else {
+        backToTop.classList.remove("show");
+      }
+    }
+
+    document.addEventListener("scroll", toggleBackToTop);
+
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1) || 'index.html';
