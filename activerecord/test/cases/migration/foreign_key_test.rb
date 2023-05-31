@@ -220,6 +220,20 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_equal "fk_rails_78146ddd2e", fk.name unless current_adapter?(:SQLite3Adapter)
         end
 
+        def test_astronaut_should_return_all_foreign_keys
+          @connection.add_foreign_key :astronauts, :rockets
+
+          foreign_keys = Astronaut.foreign_keys
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "astronauts", fk.from_table
+          assert_equal "rockets", fk.to_table
+          assert_equal "rocket_id", fk.column
+          assert_equal "id", fk.primary_key
+          assert_equal "fk_rails_78146ddd2e", fk.name unless current_adapter?(:SQLite3Adapter)
+        end
+
         def test_add_foreign_key_with_column
           @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
 
