@@ -150,6 +150,7 @@ module ActiveRecord
 
     included do
       Associations::Builder::Association.extensions << AssociationBuilderExtension
+      around_save :around_save_mark_as_saving_record
     end
 
     module ClassMethods # :nodoc:
@@ -275,6 +276,7 @@ module ActiveRecord
     private
       def init_internals
         super
+        @_marked_as_saving = false
         @_already_called = nil
       end
 
@@ -364,6 +366,18 @@ module ActiveRecord
         else
           "#{reflection.name}.#{attribute}"
         end
+      end
+
+      def already_trying_to_save?
+        @_marked_as_saving
+      end
+
+      def around_save_mark_as_saving_record
+        @_marked_as_saving = true
+        yield
+        @_marked_as_saving = false
+      ensure
+        @_marked_as_saving = false
       end
 
       # Is used as an around_save callback to check while saving a collection
@@ -456,6 +470,8 @@ module ActiveRecord
                 record[reflection.foreign_key] = key
                 association.set_inverse_instance(record)
               end
+
+              return if record.send(:already_trying_to_save?)
 
               saved = record.save(validate: !autosave)
               raise ActiveRecord::Rollback if !saved && autosave
