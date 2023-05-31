@@ -14,10 +14,22 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
     @encrypted_file = "config/tokens.yml.enc"
   end
 
-  test "edit without editor gives hint" do
-    run_edit_command(editor: "").tap do |output|
-      assert_match "No $EDITOR to open file in", output
+  test "edit without visual or editor gives hint" do
+    run_edit_command(visual: "", editor: "").tap do |output|
+      assert_match "No $VISUAL or $EDITOR to open file in", output
       assert_match "rails encrypted:edit", output
+    end
+  end
+
+  test "edit with visual but not editor does not give hint" do
+    run_edit_command(visual: "cat", editor: "").tap do |output|
+      assert_no_match "No $VISUAL or $EDITOR to open file in", output
+    end
+  end
+
+  test "edit with editor but not visual does not give hint" do
+    run_edit_command(visual: "", editor: "cat").tap do |output|
+      assert_no_match "No $VISUAL or $EDITOR to open file in", output
     end
   end
 
@@ -85,7 +97,7 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
     assert_match %r/file encrypted and saved/i, run_edit_command
 
     interrupt_command_process = %(ruby -e "Process.kill 'INT', Process.ppid")
-    output = run_edit_command(editor: interrupt_command_process)
+    output = run_edit_command(visual: interrupt_command_process)
 
     assert_no_match %r/file encrypted and saved/i, output
     assert_match %r/nothing saved/i, output
@@ -94,7 +106,7 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
   test "edit command preserves user's content even if it contains invalid YAML" do
     write_invalid_yaml = %(ruby -e "File.write ARGV[0], 'foo: bar: bad'")
 
-    assert_match %r/WARNING: Invalid YAML/, run_edit_command(editor: write_invalid_yaml)
+    assert_match %r/WARNING: Invalid YAML/, run_edit_command(visual: write_invalid_yaml)
     assert_match %r/foo: bar: bad/, run_edit_command
   end
 
@@ -139,9 +151,11 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
   end
 
   private
-    def run_edit_command(file = @encrypted_file, key: nil, editor: "cat", **options)
-      switch_env("EDITOR", editor) do
-        rails "encrypted:edit", prepare_args(file, key), **options
+    def run_edit_command(file = @encrypted_file, key: nil, visual: "cat", editor: "cat", **options)
+      switch_env("VISUAL", visual) do
+        switch_env("EDITOR", editor) do
+          rails "encrypted:edit", prepare_args(file, key), **options
+        end
       end
     end
 

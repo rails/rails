@@ -251,8 +251,9 @@ namespace :all do
     # Permit the avatar param.
     substitute.call("app/controllers/users_controller.rb", /:admin/, ":admin, :avatar")
 
-    if ENV["EDITOR"]
-      `#{ENV["EDITOR"]} #{File.expand_path(app_name)}`
+    editor = ENV["VISUAL"] || ENV["EDITOR"]
+    if editor
+      `#{editor} #{File.expand_path(app_name)}`
     end
 
     puts "Booting a Rails server. Verify the release by:"

@@ -10,8 +10,16 @@ class Rails::Command::SecretsTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
-  test "edit without editor gives hint" do
-    assert_match "No $EDITOR to open file in", run_edit_command(editor: "")
+  test "edit without visual or editor gives hint" do
+    assert_match "No $VISUAL or $EDITOR to open file in", run_edit_command(visual: "", editor: "")
+  end
+
+  test "edit with visual but not editor does not give hint" do
+    assert_no_match "No $VISUAL or $EDITOR to open file in", run_edit_command(visual: "cat", editor: "")
+  end
+
+  test "edit with editor but not visual does not give hint" do
+    assert_no_match "No $VISUAL or $EDITOR to open file in", run_edit_command(visual: "", editor: "cat")
   end
 
   test "edit secrets" do
@@ -44,9 +52,11 @@ class Rails::Command::SecretsTest < ActiveSupport::TestCase
       end
     end
 
-    def run_edit_command(editor: "cat")
-      switch_env("EDITOR", editor) do
-        rails "secrets:edit", allow_failure: true
+    def run_edit_command(visual: "cat", editor: "cat")
+      switch_env("VISUAL", visual) do
+        switch_env("EDITOR", editor) do
+          rails "secrets:edit", allow_failure: true
+        end
       end
     end
 
