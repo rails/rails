@@ -5,6 +5,7 @@ require "support/schema_dumping_helper"
 
 if supports_datetime_with_precision?
   class DateTimePrecisionTest < ActiveRecord::TestCase
+    include InTimeZone
     include SchemaDumpingHelper
     self.use_transactional_tests = false
 
@@ -209,6 +210,19 @@ if supports_datetime_with_precision?
 
           date = ::Date.new(2001, 2, 3)
           assert_equal date, Foo.create!(happened_at: date).happened_at
+        end
+      end
+
+      def test_writing_a_time_with_zone_attribute_timestamptz
+        with_postgresql_datetime_type(:timestamptz) do
+          @connection.create_table(:foos, force: true) do |t|
+            t.datetime :happened_at
+          end
+
+          in_time_zone("Pacific Time (US & Canada)") do
+            time = Time.zone.now
+            assert_equal time.zone, Foo.new(happened_at: time).happened_at.zone
+          end
         end
       end
     end
