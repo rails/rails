@@ -5,10 +5,13 @@ module Cpk
     self.table_name = :cpk_books
     self.primary_key = [:author_id, :number]
 
-    belongs_to :order
     belongs_to :author, class_name: "Cpk::Author"
   end
 
   class BestSeller < Book
+  end
+
+  class BrokenBook < Book
+    belongs_to :order
   end
 end

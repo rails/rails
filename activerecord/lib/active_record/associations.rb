@@ -184,6 +184,22 @@ module ActiveRecord
     end
   end
 
+  class CompositePrimaryKeyMismatchError < ActiveRecordError # :nodoc:
+    attr_reader :reflection
+
+    def initialize(reflection = nil)
+      if reflection
+        if reflection.has_one? || reflection.collection?
+          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.active_record_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints.")
+        else
+          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.association_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints.")
+        end
+      else
+        super("Association primary key doesn't match with foreign key.")
+      end
+    end
+  end
+
   class AmbiguousSourceReflectionForThroughAssociation < ActiveRecordError # :nodoc:
     def initialize(klass, macro, association_name, options, possible_sources)
       example_options = options.dup
