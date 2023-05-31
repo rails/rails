@@ -422,6 +422,11 @@ module ActiveRecord
         @columns ||= columns_hash.values.freeze
       end
 
+      def foreign_keys
+        load_schema
+        connection.foreign_keys(table_name)
+      end
+
       def attribute_types # :nodoc:
         load_schema
         @attribute_types ||= Hash.new(Type.default_value)
