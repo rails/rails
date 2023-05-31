@@ -82,6 +82,38 @@ module ActiveRecord
         assert_equal Post.count, records.size
         assert_equal POSTS_WITH_COMMENTS, records.filter_map { _1.id if _1.has_comments }
       end
+
+      def test_hash_value
+        relation = Post
+          .with(posts_with_comments: { query: Post.where("legacy_comments_count > 0") })
+          .from("posts_with_comments AS posts")
+
+        assert_equal POSTS_WITH_COMMENTS, relation.order(:id).pluck(:id)
+        assert_not relation.to_sql.include?("MATERIALIZED")
+      end
+
+      def test_hash_value_with_illegal_keys
+        error = assert_raises(ArgumentError) do
+          Post.with(t: { query: Post.where("legacy_comments_count > 0"), foo: true }).load
+        end
+
+        assert_match "Unsupported options: {:foo=>true}", error.message
+      end
+
+      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+        def test_materialized
+          puts Post.with(posts_with_comments: { query: Post.where("comments_count > ?", 0), materialized: true }).to_sql
+          relation = Post.with(t: { query: Post.where("1=1"), materialized: true })
+
+          assert relation.to_sql.include?('"t" AS MATERIALIZED')
+        end
+
+        def test_not_materialized
+          relation = Post.with(t: { query: Post.where("1=1"), materialized: false })
+
+          assert relation.to_sql.include?('"t" AS NOT MATERIALIZED')
+        end
+      end
     else
       def test_common_table_expressions_are_unsupported
         assert_raises ActiveRecord::StatementInvalid do
