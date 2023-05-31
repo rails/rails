@@ -1,0 +1,40 @@
+name: Publish docs preview
+on:
+  push:
+    branches:
+      - main
+      - *-stable
+    tags:
+      - v*
+  pull_request:
+
+jobs:
+  publish:
+    if: github.repository_owner == 'rails'
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_WITHOUT: db:job:cable:storage:ujs
+    permissions:
+      contents: read
+    name: Publish to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby 3.2
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+
+      - name: Generate Docs
+        run: bundle exec rake preview_docs
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 54aafc02b891b0d13e7e56083770f1af
+          projectName: rails
+          directory: preview
+          wranglerVersion: "3"
