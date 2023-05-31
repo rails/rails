@@ -282,7 +282,7 @@ module ActionDispatch
 
               if args.size < path_params_size
                 path_params -= controller_options.keys
-                path_params -= result.keys
+                path_params -= (result[:path_params] || {}).merge(result).keys
               else
                 path_params = path_params.dup
               end
