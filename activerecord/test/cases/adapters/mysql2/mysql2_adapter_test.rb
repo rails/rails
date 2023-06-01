@@ -42,38 +42,6 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_mysql2_prepared_statements_default_deprecation_warning
-    fake_connection = Class.new do
-      def query_options
-        {}
-      end
-
-      def query(*)
-      end
-
-      def close
-      end
-    end.new
-
-    assert_deprecated(ActiveRecord.deprecator) do
-      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
-        fake_connection,
-        ActiveRecord::Base.logger,
-        nil,
-        { socket: File::NULL }
-      )
-    end
-
-    assert_not_deprecated(ActiveRecord.deprecator) do
-      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
-        fake_connection,
-        ActiveRecord::Base.logger,
-        nil,
-        { socket: File::NULL, prepared_statements: false }
-      )
-    end
-  end
-
   def test_mysql2_default_prepared_statements
     fake_connection = Class.new do
       def query_options
