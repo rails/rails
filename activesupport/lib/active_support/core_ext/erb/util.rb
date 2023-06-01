@@ -166,6 +166,7 @@ class ERB
       while !source.eos?
         pos = source.pos
         source.scan_until(/(?:#{start_re}|#{finish_re})/)
+        raise NotImplementedError if source.matched.nil?
         len = source.pos - source.matched.bytesize - pos
 
         case source.matched
@@ -176,13 +177,13 @@ class ERB
             tokens << [:CODE, source.matched] unless source.matched.empty?
             tokens << [:CLOSE, source.scan(finish_re)] unless source.eos?
           else
-            raise NotImplemented
+            raise NotImplementedError
           end
         when finish_re
           tokens << [:CODE, source.string[pos, len]] if len > 0
           tokens << [:CLOSE, source.matched]
         else
-          raise NotImplemented, source.matched
+          raise NotImplementedError, source.matched
         end
       end
 
