@@ -64,7 +64,7 @@ module ActiveRecord
             fields.each_with_index do |fname, i|
               ftype = result.ftype i
               fmod  = result.fmod i
-              types[fname] = get_oid_type(ftype, fmod, fname)
+              types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
             end
             build_result(columns: fields, rows: result.values, column_types: types)
           end
