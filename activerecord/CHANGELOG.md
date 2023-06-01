@@ -1,3 +1,8 @@
+*   Generate and validate signed ids with a base purpose derived from the
+    class's polymorphic name
+
+    *Alexandre Chakroun*
+
 *   Use the first key in the `shards` hash from `connected_to` for the `default_shard`.
 
     Some applications may not want to use `:default` as a shard name in their connection model. Unfortunately Active Record expects there to be a `:default` shard because it must assume a shard to get the right connection from the pool manager. Rather than force applications to manually set this, `connects_to` can infer the default shard name from the hash of shards and will now assume that the first shard is your default.

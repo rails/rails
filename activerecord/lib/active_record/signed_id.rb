@@ -90,7 +90,7 @@ module ActiveRecord
 
       # :nodoc:
       def combine_signed_id_purposes(purpose)
-        [ base_class.name.underscore, purpose.to_s ].compact_blank.join("/")
+        [ base_class.polymorphic_name.underscore, purpose.to_s ].compact_blank.join("/")
       end
     end
 
