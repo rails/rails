@@ -132,12 +132,13 @@ module ActiveRecord
             super unless internal
           end
 
-          def new_column_from_field(table_name, field)
+          def new_column_from_field(table_name, field, definitions)
             default = field["dflt_value"]
 
             type_metadata = fetch_type_metadata(field["type"])
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
+            rowid = is_column_the_rowid?(field, definitions)
 
             Column.new(
               field["name"],
@@ -147,7 +148,18 @@ module ActiveRecord
               default_function,
               collation: field["collation"],
               auto_increment: field["auto_increment"],
+              rowid: rowid
             )
+          end
+
+          INTEGER_REGEX = /integer/i
+          # if a rowid table has a primary key that consists of a single column
+          # and the declared type of that column is "INTEGER" in any mixture of upper and lower case,
+          # then the column becomes an alias for the rowid.
+          def is_column_the_rowid?(field, column_definitions)
+            return false unless INTEGER_REGEX.match?(field["type"]) && field["pk"] == 1
+            # is the primary key a single column?
+            column_definitions.one? { |c| c["pk"] > 0 }
           end
 
           def data_source_sql(name = nil, type: nil)

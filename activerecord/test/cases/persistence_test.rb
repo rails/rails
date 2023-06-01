@@ -23,10 +23,37 @@ require "models/admin"
 require "models/admin/user"
 require "models/cpk"
 require "models/chat_message"
+require "models/default"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
     :posts, :minivans, :clothing_items, :cpk_books
+
+  def test_populates_non_primary_key_autoincremented_column
+    topic = TitlePrimaryKeyTopic.create!(title: "title pk topic")
+
+    assert_not_nil topic.attributes["id"]
+  end
+
+  def test_populates_non_primary_key_autoincremented_column_for_a_cpk_model
+    order = Cpk::Order.create(shop_id: 111_222)
+
+    _shop_id, order_id = order.id
+
+    assert_not_nil order_id
+  end
+
+  def test_fills_auto_populated_columns_on_creation
+    record_with_defaults = Default.create
+    assert_not_nil record_with_defaults.id
+    assert_equal "Ruby on Rails", record_with_defaults.ruby_on_rails
+    assert_not_nil record_with_defaults.rand_number
+    assert_not_nil record_with_defaults.modified_date
+    assert_not_nil record_with_defaults.modified_date_function
+    assert_not_nil record_with_defaults.modified_time
+    assert_not_nil record_with_defaults.modified_time_without_precision
+    assert_not_nil record_with_defaults.modified_time_function
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_update_many
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }

@@ -422,6 +422,12 @@ module ActiveRecord
         @columns ||= columns_hash.values.freeze
       end
 
+      def _returning_columns_for_insert # :nodoc:
+        @_returning_columns_for_insert ||= columns.filter_map do |c|
+          c.name if connection.return_value_after_insert?(c)
+        end
+      end
+
       def attribute_types # :nodoc:
         load_schema
         @attribute_types ||= Hash.new(Type.default_value)
@@ -546,6 +552,7 @@ module ActiveRecord
         end
 
         def reload_schema_from_cache(recursive = true)
+          @_returning_columns_for_insert = nil
           @arel_table = nil
           @column_names = nil
           @symbol_column_to_string_name_hash = nil

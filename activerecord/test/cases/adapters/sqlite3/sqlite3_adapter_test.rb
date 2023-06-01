@@ -710,6 +710,42 @@ module ActiveRecord
         end
       end
 
+      def test_rowid_column
+        with_example_table "id_uppercase INTEGER PRIMARY KEY" do
+          assert @conn.columns("ex").index_by(&:name)["id_uppercase"].rowid
+        end
+      end
+
+      def test_lowercase_rowid_column
+        with_example_table "id_lowercase integer PRIMARY KEY" do
+          assert @conn.columns("ex").index_by(&:name)["id_lowercase"].rowid
+        end
+      end
+
+      def test_non_integer_column_returns_false_for_rowid
+        with_example_table "id_int_short int PRIMARY KEY" do
+          assert_not @conn.columns("ex").index_by(&:name)["id_int_short"].rowid
+        end
+      end
+
+      def test_mixed_case_integer_colum_returns_true_for_rowid
+        with_example_table "id_mixed_case InTeGeR PRIMARY KEY" do
+          assert @conn.columns("ex").index_by(&:name)["id_mixed_case"].rowid
+        end
+      end
+
+      def test_rowid_column_with_autoincrement_returns_true_for_rowid
+        with_example_table "id_autoincrement integer PRIMARY KEY AUTOINCREMENT" do
+          assert @conn.columns("ex").index_by(&:name)["id_autoincrement"].rowid
+        end
+      end
+
+      def test_integer_cpk_column_returns_false_for_rowid
+        with_example_table("id integer, shop_id integer, PRIMARY KEY (shop_id, id)", "cpk_table") do
+          assert_not @conn.columns("cpk_table").any?(&:rowid)
+        end
+      end
+
       private
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
