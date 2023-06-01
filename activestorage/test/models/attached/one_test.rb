@@ -289,7 +289,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "updating an existing record to remove a dependent attachment" do
+  test "updating an existing record to nil to remove a dependent attachment" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
 
@@ -301,12 +301,36 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "updating an existing record to remove an independent attachment" do
+  test "updating an existing record to an empty string to remove a dependent attachment" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.avatar.attach blob
+
+      assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blob ] do
+        @user.update! avatar: ""
+      end
+
+      assert_not @user.avatar.attached?
+    end
+  end
+
+  test "updating an existing record to nil to remove an independent attachment" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.cover_photo.attach blob
 
       assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
         @user.update! cover_photo: nil
+      end
+
+      assert_not @user.cover_photo.attached?
+    end
+  end
+
+  test "updating an existing record to an empty string to remove an independent attachment" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.cover_photo.attach blob
+
+      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+        @user.update! cover_photo: ""
       end
 
       assert_not @user.cover_photo.attached?

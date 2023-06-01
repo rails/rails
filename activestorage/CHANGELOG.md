@@ -1,3 +1,22 @@
+*   Allow an ActiveStorage attachment to be removed via a form post
+
+    Attachments can already be removed by updating the attachment to be nil such as:
+    ```ruby
+    User.find(params[:id]).update!(avatar: nil)
+    ```
+
+    However, a form cannot post a nil param, it can only post an empty string. But, posting an
+    empty string would result in an `ActiveSupport::MessageVerifier::InvalidSignature: mismatched digest`
+    error being raised, because it's being treated as a signed blob id.
+
+    Now, nil and an empty string are treated as a delete, which allows attachments to be removed via:
+    ```ruby
+    User.find(params[:id]).update!(params.require(:user).permit(:avatar))
+
+    ```
+
+    *Nate Matykiewicz*
+
 *   Remove mini_mime usage in favour of marcel.
 
     We have two libraries that are have similar usage. This change removes
