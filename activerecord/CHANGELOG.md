@@ -1,8 +1,9 @@
-*   Assign auto populated columns on Active Record record creation
+*   Assign auto populated columns on Active Record record creation.
 
     Changes record creation logic to allow for the `auto_increment` column to be assigned
-    right after creation regardless of it's relation to model's primary key.
-    PostgreSQL adapter benefits the most from the change allowing for any number of auto-populated
+    immediately after creation regardless of it's relation to the model's primary key.
+
+    The PostgreSQL adapter benefits the most from the change allowing for any number of auto-populated
     columns to be assigned on the object immediately after row insertion utilizing the `RETURNING` statement.
 
     *Nikita Vasilevsky*
