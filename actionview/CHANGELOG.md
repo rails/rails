@@ -1,3 +1,19 @@
+*   `simple_format` helper now handles a `:sanitize_options` - any extra options you want appending to the sanitize.
+
+    Before:
+    ```ruby
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>")
+      # => "<p><a href=\"http://example.com\">Continue</a></p>"
+    ```
+
+    After:
+    ```ruby
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+      # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
+    ```
+
+    *Andrei Andriichuk*
+
 *   Add support for HTML5 standards-compliant sanitizers, and default to `Rails::HTML5::Sanitizer`
     in the Rails 7.1 configuration if it is supported.
 
