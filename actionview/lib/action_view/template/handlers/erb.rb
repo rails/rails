@@ -54,7 +54,7 @@ module ActionView
           spot[:script_lines] = source.lines
 
           spot
-        rescue LocationParsingError
+        rescue NotImplementedError, LocationParsingError
           nil
         end
 
