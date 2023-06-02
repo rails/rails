@@ -2706,6 +2706,10 @@ module ActionView
             association = @object.public_send(association_name)
           end
 
+          if @object.respond_to?(:nested_attributes_options)
+            options[:public_id_column] = @object.nested_attributes_options.dig(association_name.to_sym, :public_id_column)
+          end
+
           if association.respond_to?(:to_ary)
             explicit_child_index = options[:child_index]
             output = ActiveSupport::SafeBuffer.new
@@ -2733,7 +2737,11 @@ module ActionView
 
           @template.fields_for(name, object, fields_options) do |f|
             output = @template.capture(f, &block)
-            output.concat f.hidden_field(:id) if output && emit_hidden_id && !f.emitted_hidden_id?
+            id_col = fields_options.delete(:public_id_column)
+            if id_col
+              id_val = f.object.send(id_col)
+            end
+            output.concat f.hidden_field(:id, {value: id_val}.compact) if output && emit_hidden_id && !f.emitted_hidden_id?
             output
           end
         end

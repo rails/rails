@@ -59,6 +59,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal "Tweetie", pirate.birds_with_reject_all_blank.first.name
   end
 
+  def test_should_edit_existing_records_with_public_id
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    bird = pirate.birds_with_public_id_column.create!(name: "Original")
+
+    pirate.birds_with_public_id_column_attributes = [{id: "Original", name: "Updated"}]
+    pirate.save!
+
+    assert_equal 1, pirate.birds_with_public_id_column.count
+    assert_equal "Updated", bird.reload.name
+  end
+
   def test_should_raise_an_ArgumentError_for_non_existing_associations
     exception = assert_raise ArgumentError do
       Pirate.accepts_nested_attributes_for :honesty

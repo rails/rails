@@ -41,6 +41,7 @@ class Pirate < ActiveRecord::Base
     before_remove: proc { |p, b| p.ship_log << "before_removing_proc_bird_#{b.id}" },
     after_remove: proc { |p, b| p.ship_log << "after_removing_proc_bird_#{b.id}" }
   has_many :birds_with_reject_all_blank, class_name: "Bird"
+  has_many :birds_with_public_id_column, class_name: "Bird"
 
   has_one :foo_bulb, -> { where name: "foo" }, foreign_key: :car_id, class_name: "Bulb"
 
@@ -53,6 +54,7 @@ class Pirate < ActiveRecord::Base
   accepts_nested_attributes_for :parrots_with_method_callbacks, :parrots_with_proc_callbacks,
     :birds_with_method_callbacks, :birds_with_proc_callbacks, allow_destroy: true
   accepts_nested_attributes_for :birds_with_reject_all_blank, reject_if: :all_blank
+  accepts_nested_attributes_for :birds_with_public_id_column, public_id_column: :name
 
   validates_presence_of :catchphrase
 
