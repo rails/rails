@@ -135,7 +135,13 @@ module ActiveModel
 
       hash = serializable_attributes(attribute_names)
 
-      Array(options[:methods]).each { |m| hash[m.to_s] = send(m) }
+      Array(options[:methods]).each do |m|
+        if m.is_a?(Hash)
+          m.each { |key, method_name| hash[key.to_s] = send(method_name) }
+        else
+          hash[m.to_s] = send(m)
+        end
+      end
 
       serializable_add_includes(options) do |association, records, opts|
         hash[association.to_s] = if records.respond_to?(:to_ary)

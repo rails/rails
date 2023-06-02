@@ -82,6 +82,11 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected, @user.serializable_hash(except: [:name, :email], methods: [:foo, :bar])
   end
 
+  def test_method_serializable_hash_should_work_with_methods_aliases
+    expected = { "foo" => "i_am_foo", "user_gender" => "male", "bar" => "i_am_bar" }
+    assert_equal expected, @user.serializable_hash(only: [], methods: [:foo, { user_gender: :gender }, :bar])
+  end
+
   def test_should_raise_NoMethodError_for_non_existing_method
     assert_raise(NoMethodError) { @user.serializable_hash(methods: [:nada]) }
   end
