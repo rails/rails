@@ -453,7 +453,9 @@ module ActiveRecord
 
             if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, key)
               unless reflection.through_reflection
-                record[reflection.foreign_key] = key
+                Array(key).zip(Array(reflection.foreign_key)).each do |primary_key, foreign_key_column|
+                  record[foreign_key_column] = primary_key
+                end
                 association.set_inverse_instance(record)
               end
 

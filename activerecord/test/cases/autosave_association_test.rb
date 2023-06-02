@@ -486,6 +486,12 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal true, squeak.mouse.present?
     assert_equal true, squeak.valid?
   end
+
+  test "composite primary key autosave" do
+    assert_nothing_raised do
+      Cpk::Order.create!(id: [1, 2], book: Cpk::Book.new(title: "Book", author_id: 3, number: 4))
+    end
+  end
 end
 
 class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttributes < ActiveRecord::TestCase
