@@ -747,7 +747,7 @@ module ActiveRecord
           end
 
           options = options.dup
-          options[:name] ||= unique_key_name(table_name, column_name: column_name, **options)
+          options[:name] ||= unique_key_name(table_name, column: column_name, **options)
           options
         end
 
@@ -759,7 +759,7 @@ module ActiveRecord
         # to provide this in a migration's +change+ method so it can be reverted.
         # In that case, +column_name+ will be used by #add_unique_key.
         def remove_unique_key(table_name, column_name = nil, **options)
-          unique_name_to_delete = unique_key_for!(table_name, column_name: column_name, **options).name
+          unique_name_to_delete = unique_key_for!(table_name, column: column_name, **options).name
 
           at = create_alter_table(table_name)
           at.drop_unique_key(unique_name_to_delete)
@@ -1030,8 +1030,8 @@ module ActiveRecord
 
           def unique_key_name(table_name, **options)
             options.fetch(:name) do
-              column_name_or_index_name = options.fetch(:column_name) || options[:using_index]
-              identifier = "#{table_name}_#{column_name_or_index_name}_unique"
+              column_or_index = Array(options[:column] || options[:using_index]).map(&:to_s)
+              identifier = "#{table_name}_#{column_or_index * '_and_'}_unique"
               hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
 
               "uniq_rails_#{hashed_identifier}"
@@ -1039,13 +1039,13 @@ module ActiveRecord
           end
 
           def unique_key_for(table_name, **options)
-            unique_key_name = unique_key_name(table_name, **options)
-            unique_keys(table_name).detect { |unique_key| unique_key.name == unique_key_name }
+            name = unique_key_name(table_name, **options) unless options.key?(:column)
+            unique_keys(table_name).detect { |unique_key| unique_key.defined_for?(name: name, **options) }
           end
 
-          def unique_key_for!(table_name, column_name: nil, **options)
-            unique_key_for(table_name, column_name: column_name, **options) ||
-              raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column_name || options}")
+          def unique_key_for!(table_name, column: nil, **options)
+            unique_key_for(table_name, column: column, **options) ||
+              raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column || options}")
           end
 
           def data_source_sql(name = nil, type: nil)

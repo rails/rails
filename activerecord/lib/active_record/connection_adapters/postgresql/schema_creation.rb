@@ -50,7 +50,7 @@ module ActiveRecord
           end
 
           def visit_UniqueKeyDefinition(o)
-            column_name = Array(o.columns).map { |column| quote_column_name(column) }.join(", ")
+            column_name = Array(o.column).map { |column| quote_column_name(column) }.join(", ")
 
             sql = ["CONSTRAINT"]
             sql << quote_column_name(o.name)
