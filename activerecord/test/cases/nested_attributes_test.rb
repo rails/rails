@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/pirate"
+require "models/developer"
 require "models/ship"
 require "models/ship_part"
 require "models/bird"
