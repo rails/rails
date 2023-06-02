@@ -485,6 +485,10 @@ module ActiveRecord
         foreign_key
       end
 
+      def join_primary_type
+        type
+      end
+
       def join_foreign_key
         active_record_primary_key
       end
@@ -586,6 +590,10 @@ module ActiveRecord
 
       def polymorphic?
         options[:polymorphic]
+      end
+
+      def polymorphic_name
+        active_record.polymorphic_name
       end
 
       def add_as_source(seed)
