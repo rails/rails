@@ -86,6 +86,22 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
 
+  test "validate pool arguments" do
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { size: [] })
+    end
+
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { timeout: [] })
+    end
+
+    ActiveSupport::Cache::MemCacheStore.new(pool: { size: "12", timeout: "1.5" })
+  end
+
+  test "instantiating the store doesn't connect to Memcache" do
+    ActiveSupport::Cache::MemCacheStore.new("memcached://localhost:1")
+  end
+
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
   def test_clear_also_clears_local_cache

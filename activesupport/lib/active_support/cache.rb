@@ -186,35 +186,44 @@ module ActiveSupport
           private_constant :DEFAULT_POOL_OPTIONS
 
           def retrieve_pool_options(options)
-            unless options.key?(:pool) || options.key?(:pool_size) || options.key?(:pool_timeout)
-              options[:pool] = true
-            end
+            if options.key?(:pool)
+              pool_options = options.delete(:pool)
+            elsif options.key?(:pool_size) || options.key?(:pool_timeout)
+              pool_options = {}
 
-            if (pool_options = options.delete(:pool))
-              if Hash === pool_options
-                DEFAULT_POOL_OPTIONS.merge(pool_options)
-              else
-                DEFAULT_POOL_OPTIONS
+              if options.key?(:pool_size)
+                ActiveSupport.deprecator.warn(<<~MSG)
+                  Using :pool_size is deprecated and will be removed in Rails 7.2.
+                  Use `pool: { size: #{options[:pool_size].inspect} }` instead.
+                MSG
+                pool_options[:size] = options.delete(:pool_size)
+              end
+
+              if options.key?(:pool_timeout)
+                ActiveSupport.deprecator.warn(<<~MSG)
+                  Using :pool_timeout is deprecated and will be removed in Rails 7.2.
+                  Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
+                MSG
+                pool_options[:timeout] = options.delete(:pool_timeout)
               end
             else
-              {}.tap do |pool_options|
-                if options[:pool_size]
-                  ActiveSupport.deprecator.warn(<<~MSG)
-                    Using :pool_size is deprecated and will be removed in Rails 7.2.
-                    Use `pool: { size: #{options[:pool_size].inspect} }` instead.
-                  MSG
-                  pool_options[:size] = options.delete(:pool_size)
-                end
-
-                if options[:pool_timeout]
-                  ActiveSupport.deprecator.warn(<<~MSG)
-                    Using :pool_timeout is deprecated and will be removed in Rails 7.2.
-                    Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
-                  MSG
-                  pool_options[:timeout] = options.delete(:pool_timeout)
-                end
-              end
+              pool_options = true
             end
+
+            case pool_options
+            when false, nil
+              return false
+            when true
+              pool_options = DEFAULT_POOL_OPTIONS
+            when Hash
+              pool_options[:size] = Integer(pool_options[:size]) if pool_options.key?(:size)
+              pool_options[:timeout] = Float(pool_options[:timeout]) if pool_options.key?(:timeout)
+              pool_options = DEFAULT_POOL_OPTIONS.merge(pool_options)
+            else
+              raise TypeError, "Invalid :pool argument, expected Hash, got: #{pool_options.inspect}"
+            end
+
+            pool_options unless pool_options.empty?
           end
       end
 

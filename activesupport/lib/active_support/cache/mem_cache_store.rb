@@ -99,10 +99,10 @@ module ActiveSupport
         addresses = nil if addresses.compact.empty?
         pool_options = retrieve_pool_options(options)
 
-        if pool_options.empty?
-          Dalli::Client.new(addresses, options)
-        else
+        if pool_options
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+        else
+          Dalli::Client.new(addresses, options)
         end
       end
 
