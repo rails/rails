@@ -458,6 +458,11 @@ module ActiveRecord
       assert_equal essays(:david_modest_proposal), essay
     end
 
+    def test_where_on_association_with_collection_polymorphic_relation
+      treasures = Treasure.where(name: ["diamond", "emerald"], price_estimates: PriceEstimate.all)
+      assert_equal [treasures(:diamond)], treasures
+    end
+
     def test_where_with_strong_parameters
       author = authors(:david)
       params = ProtectedParams.new(name: author.name)
