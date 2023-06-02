@@ -11,10 +11,22 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
-  test "edit without editor gives hint" do
-    run_edit_command(editor: "").tap do |output|
-      assert_match "No $EDITOR to open file in", output
+  test "edit without visual or editor gives hint" do
+    run_edit_command(visual: "", editor: "").tap do |output|
+      assert_match "No $VISUAL or $EDITOR to open file in", output
       assert_match "rails credentials:edit", output
+    end
+  end
+
+  test "edit with visual but not editor does not give hint" do
+    run_edit_command(visual: "cat", editor: "").tap do |output|
+      assert_no_match "No $VISUAL or $EDITOR to open file in", output
+    end
+  end
+
+  test "edit with editor but not visual does not give hint" do
+    run_edit_command(visual: "", editor: "cat").tap do |output|
+      assert_no_match "No $VISUAL or $EDITOR to open file in", output
     end
   end
 
@@ -145,7 +157,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match %r/file encrypted and saved/i, run_edit_command
 
     interrupt_command_process = %(ruby -e "Process.kill 'INT', Process.ppid")
-    output = run_edit_command(editor: interrupt_command_process)
+    output = run_edit_command(visual: interrupt_command_process)
 
     assert_no_match %r/file encrypted and saved/i, output
     assert_match %r/nothing saved/i, output
@@ -154,7 +166,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   test "edit command preserves user's content even if it contains invalid YAML" do
     write_invalid_yaml = %(ruby -e "File.write ARGV[0], 'foo: bar: bad'")
 
-    assert_match %r/WARNING: Invalid YAML/, run_edit_command(editor: write_invalid_yaml)
+    assert_match %r/WARNING: Invalid YAML/, run_edit_command(visual: write_invalid_yaml)
     assert_match %r/foo: bar: bad/, run_edit_command
   end
 
@@ -327,10 +339,12 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
-    def run_edit_command(editor: "cat", environment: nil, **options)
-      switch_env("EDITOR", editor) do
-        args = environment ? ["--environment", environment] : []
-        rails "credentials:edit", args, **options
+    def run_edit_command(visual: "cat", editor: "cat", environment: nil, **options)
+      switch_env("VISUAL", visual) do
+        switch_env("EDITOR", editor) do
+          args = environment ? ["--environment", environment] : []
+          rails "credentials:edit", args, **options
+        end
       end
     end
 
@@ -346,7 +360,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     def write_credentials(content, **options)
       switch_env("CONTENT", content) do
-        run_edit_command(editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"), **options)
+        run_edit_command(visual: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"), **options)
       end
     end
 

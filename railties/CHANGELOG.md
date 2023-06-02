@@ -1,3 +1,8 @@
+*   Support `VISUAL` environment variable for commands which open an editor,
+    and prefer it over `EDITOR`.
+
+    *Summer ☀️*
+
 *   Add engine's `test/fixtures` path to `fixture_paths` in `on_load` hook if
     path exists and is under the Rails application root.
 

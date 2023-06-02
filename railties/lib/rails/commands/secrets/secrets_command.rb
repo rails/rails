@@ -9,7 +9,7 @@ module Rails
     class SecretsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
 
-      desc "edit", "**deprecated** Open the secrets in `$EDITOR` for editing"
+      desc "edit", "**deprecated** Open the secrets in `$VISUAL` or `$EDITOR` for editing"
       def edit
         Rails.deprecator.warn(<<~MSG.squish)
           `bin/rails secrets:edit` is deprecated in favor of credentials and will be removed in Rails 7.2.
