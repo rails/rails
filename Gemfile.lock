@@ -506,7 +506,7 @@ GEM
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
-    stringio (3.0.4)
+    stringio (3.0.7)
     sucker_punch (3.1.0)
       concurrent-ruby (~> 1.0)
     tailwindcss-rails (2.0.21)
