@@ -110,9 +110,25 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_same @cache.redis, redis_instance
     end
 
+    test "validate pool arguments" do
+      assert_raises TypeError do
+        build(url: REDIS_URL, pool: { size: [] })
+      end
+
+      assert_raises TypeError do
+        build(url: REDIS_URL, pool: { timeout: [] })
+      end
+
+      build(url: REDIS_URL, pool: { size: "12", timeout: "1.5" })
+    end
+
+    test "instantiating the store doesn't connect to Redis" do
+      build(url: "redis://localhost:1")
+    end
+
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(**kwargs.merge(pool: false)).tap(&:redis)
+        ActiveSupport::Cache::RedisCacheStore.new(pool: false, **kwargs).tap(&:redis)
       end
   end
 
