@@ -24,12 +24,6 @@
 
     *Nikita Vasilevsky*
 
-*   Remove the deprecation warning when `prepared_statements` configuration is set for the mysql2 adapter.
-
-    There is a known bug in `mysql2`. We don't want to encourage applications to migrate to `prepared_statements: true` until it's fixed.
-
-    *Eileen M. Uchitelle*
-
 *   Use the first key in the `shards` hash from `connected_to` for the `default_shard`.
 
     Some applications may not want to use `:default` as a shard name in their connection model. Unfortunately Active Record expects there to be a `:default` shard because it must assume a shard to get the right connection from the pool manager. Rather than force applications to manually set this, `connects_to` can infer the default shard name from the hash of shards and will now assume that the first shard is your default.
@@ -1775,11 +1769,6 @@
     bigint instead of integer for the SQLite Adapter.
 
     *Marcelo Lauxen*
-
-*   Add a deprecation warning when `prepared_statements` configuration is not
-    set for the mysql2 adapter.
-
-    *Thiago Araujo and Stefanni Brasil*
 
 *   Fix `QueryMethods#in_order_of` to handle empty order list.
 
