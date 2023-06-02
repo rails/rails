@@ -253,11 +253,11 @@ module ActiveRecord
       end
 
       def check_validity_of_inverse!
-        unless polymorphic?
-          if has_inverse? && inverse_of.nil?
+        if !polymorphic? && has_inverse?
+          if inverse_of.nil?
             raise InverseOfAssociationNotFoundError.new(self)
           end
-          if has_inverse? && inverse_of == self
+          if inverse_of == self
             raise InverseOfAssociationRecursiveError.new(self)
           end
         end
@@ -541,6 +541,14 @@ module ActiveRecord
 
       def check_validity!
         check_validity_of_inverse!
+
+        if !polymorphic? && klass.composite_primary_key?
+          if (has_one? || collection?) && Array(active_record_primary_key).length != Array(foreign_key).length
+            raise CompositePrimaryKeyMismatchError.new(self)
+          elsif belongs_to? && Array(association_primary_key).length != Array(foreign_key).length
+            raise CompositePrimaryKeyMismatchError.new(self)
+          end
+        end
       end
 
       def check_eager_loadable!

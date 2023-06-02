@@ -3174,6 +3174,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  test "composite primary key malformed association" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrder.new(id: [1, 2], books: [Cpk::Book.new(title: "Some book")])
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrder#books primary key ["shop_id", "id"]
+      doesn't match with foreign key broken_order_id. Please specify query_constraints.
+    MESSAGE
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target

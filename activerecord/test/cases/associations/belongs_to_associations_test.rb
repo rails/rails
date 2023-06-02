@@ -30,6 +30,7 @@ require "models/citation"
 require "models/tree"
 require "models/node"
 require "models/club"
+require "models/cpk"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -1744,6 +1745,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   ensure
     ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
+
+  test "composite primary key malformed association" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      book = Cpk::BrokenBook.new(title: "Some book", order: Cpk::Order.new(id: [1, 2]))
+      book.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenBook#order primary key ["shop_id", "id"]
+      doesn't match with foreign key order_id. Please specify query_constraints.
+    MESSAGE
   end
 end
 

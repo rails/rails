@@ -18,6 +18,7 @@ require "models/department"
 require "models/club"
 require "models/membership"
 require "models/parrot"
+require "models/cpk"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -901,5 +902,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       car.build_special_bulb
       car.build_special_bulb
     end
+  end
+
+  test "composite primary key malformed association" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrder.new(id: [1, 2], book: Cpk::Book.new(title: "Some book"))
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrder#book primary key ["shop_id", "id"]
+      doesn't match with foreign key broken_order_id. Please specify query_constraints.
+    MESSAGE
   end
 end

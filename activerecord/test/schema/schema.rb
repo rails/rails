@@ -246,6 +246,7 @@ ActiveRecord::Schema.define do
     t.string :title
     t.integer :revision
     t.integer :order_id
+    t.integer :shop_id
   end
 
   create_table :cpk_authors, force: true do |t|
