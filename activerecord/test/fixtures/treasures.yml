@@ -8,3 +8,7 @@ sapphire:
 ruby:
   name: $LABEL
   looter: louis (Parrot)
+
+emerald:
+  id: 1
+  name: $LABEL
