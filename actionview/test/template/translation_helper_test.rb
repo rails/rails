@@ -129,9 +129,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_raise_arg_overrides_raise_config_option
     ActionView::Helpers::TranslationHelper.raise_on_missing_translations = true
+    translation_missing_message = <<~MSG
+      Translation missing. Options considered were:
+      - en.translations.missing
+    MSG
 
-    expected = "translation missing: en.translations.missing"
-    assert_equal expected, translate(:"translations.missing", raise: false)
+    assert_equal translation_missing_message.chomp, translate(:"translations.missing", raise: false)
   ensure
     ActionView::Helpers::TranslationHelper.raise_on_missing_translations = false
   end
