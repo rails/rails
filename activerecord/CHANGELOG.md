@@ -1,3 +1,19 @@
+*   Fix where on association with has_one/has_many polymorphic relations.
+
+    Before:
+    ```ruby
+    Treasure.where(price_estimates: PriceEstimate.all)
+    #=> SELECT (...) WHERE "treasures"."id" IN (SELECT "price_estimates"."estimate_of_id" FROM "price_estimates")
+    ```
+
+    Later:
+    ```ruby
+    Treasure.where(price_estimates: PriceEstimate.all)
+    #=> SELECT (...) WHERE "treasures"."id" IN (SELECT "price_estimates"."estimate_of_id" FROM "price_estimates" WHERE "price_estimates"."estimate_of_type" = 'Treasure')
+    ```
+
+    *Lázaro Nixon*
+
 *   Assign auto populated columns on Active Record record creation.
 
     Changes record creation logic to allow for the `auto_increment` column to be assigned
