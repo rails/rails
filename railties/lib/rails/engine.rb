@@ -586,6 +586,7 @@ module Rails
       routing_paths = paths["config/routes.rb"].existent
       external_paths = self.paths["config/routes"].paths
       routes.draw_paths.concat(external_paths)
+      app.routes.draw_paths.concat(external_paths)
 
       if routes? || routing_paths.any?
         app.routes_reloader.paths.unshift(*routing_paths)

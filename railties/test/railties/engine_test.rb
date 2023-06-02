@@ -267,6 +267,34 @@ module RailtiesTest
       assert_nothing_raised { BukkitController }
     end
 
+    test "can draw routes in app routes from engines" do
+      @plugin.write "config/routes/testing.rb", <<~RUBY
+        Rails.application.routes.draw do
+          get "/testing", to: "test#action", as: :testing
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<~RUBY
+        Rails.application.routes.draw do
+          draw(:testing)
+        end
+      RUBY
+
+      @plugin.write "app/controllers/testing_controller.rb", <<-RUBY
+        class TestingController < ActionController::Base
+          def index
+            render plain: "test"
+          end
+        end
+      RUBY
+
+      boot_rails
+
+      get("/testing")
+
+      assert_equal("test", last_response.body)
+    end
+
     test "adds its views to view paths" do
       @plugin.write "app/controllers/bukkit_controller.rb", <<-RUBY
         class BukkitController < ActionController::Base
