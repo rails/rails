@@ -169,6 +169,10 @@ module ActionController
     # The ActionDispatch::Response instance for the current response.
     attr_internal_reader :response
 
+    ##
+    # The ActionDispatch::Request::Session instance for the current request.
+    # See further details in the
+    # {Active Controller Session guide}[https://guides.rubyonrails.org/action_controller_overview.html#session].
     delegate :session, to: "@_request"
 
     ##
