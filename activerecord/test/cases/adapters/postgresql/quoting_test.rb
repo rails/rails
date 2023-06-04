@@ -35,6 +35,11 @@ module ActiveRecord
           assert_equal "'[1,0]'", @conn.quote(type.serialize(range))
         end
 
+        def test_quote_array
+          values = [[1, "test1"], [2, "test2"]]
+          assert_equal "((1, 'test1'), (2, 'test2'))", @conn.quote(values)
+        end
+
         def test_quote_bit_string
           value = "'); SELECT * FROM users; /*\n01\n*/--"
           type = OID::Bit.new
