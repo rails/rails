@@ -21,6 +21,9 @@ module PluginHelpers
       gem "rails", path: #{File.expand_path("../..", __dir__).inspect}
     RUBY
     File.write(gemfile_path, gemfile)
+
+    # Make sure the plugin's dependencies are installed.
+    in_plugin_context(plugin_path) { system(*%w[bundle install], out: File::NULL, exception: true) }
   end
 
   def in_plugin_context(plugin_path, &block)
