@@ -15,14 +15,6 @@ GIT
       event_emitter
       websocket
 
-GIT
-  remote: https://github.com/ruby-i18n/i18n.git
-  revision: 5d5c40f0dd25c421b09bfc856352cd28fecc1516
-  branch: master
-  specs:
-    i18n (1.14.0)
-      concurrent-ruby (~> 1.0)
-
 PATH
   remote: .
   specs:
@@ -273,6 +265,8 @@ GEM
       signet (>= 0.16, < 2.a)
     hashdiff (1.0.1)
     httpclient (2.8.3)
+    i18n (1.12.0)
+      concurrent-ruby (~> 1.0)
     image_processing (1.12.2)
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
@@ -589,7 +583,6 @@ DEPENDENCIES
   delayed_job_active_record
   error_highlight (>= 0.4.0)
   google-cloud-storage (~> 1.11)
-  i18n!
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
