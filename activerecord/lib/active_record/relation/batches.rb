@@ -6,6 +6,7 @@ module ActiveRecord
   # = Active Record \Batches
   module Batches
     ORDER_IGNORE_MESSAGE = "Scoped order is ignored, it's forced to be batch order."
+    DEFAULT_ORDER = :asc
 
     # Looping through a collection of records from the database
     # (using the Scoping::Named::ClassMethods.all method, for example)
@@ -38,7 +39,16 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+ or an array consisting
+    #   of :asc or :desc). Defaults to +:asc+.
+    #
+    #     class Order < ActiveRecord::Base
+    #       self.primary_key = [:id_1, :id_2]
+    #     end
+    #
+    #     Order.find_each(order: [:asc, :desc])
+    #
+    #   In the above code, +id_1+ is sorted in ascending order and +id_2+ in descending order.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size: it can be less than, equal to, or greater than the limit.
@@ -66,7 +76,7 @@ module ActiveRecord
     #
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
-    def find_each(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: :asc, &block)
+    def find_each(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: DEFAULT_ORDER, &block)
       if block_given?
         find_in_batches(start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore, order: order) do |records|
           records.each(&block)
@@ -74,7 +84,7 @@ module ActiveRecord
       else
         enum_for(:find_each, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore, order: order) do
           relation = self
-          apply_limits(relation, start, finish, order).size
+          apply_limits(relation, start, finish, build_batch_orders(order)).size
         end
       end
     end
@@ -103,7 +113,16 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+ or an array consisting
+    #   of :asc or :desc). Defaults to +:asc+.
+    #
+    #     class Order < ActiveRecord::Base
+    #       self.primary_key = [:id_1, :id_2]
+    #     end
+    #
+    #     Order.find_in_batches(order: [:asc, :desc])
+    #
+    #   In the above code, +id_1+ is sorted in ascending order and +id_2+ in descending order.
     #
     # Limits are honored, and if present there is no requirement for the batch
     # size: it can be less than, equal to, or greater than the limit.
@@ -126,11 +145,11 @@ module ActiveRecord
     #
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
-    def find_in_batches(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: :asc)
+    def find_in_batches(start: nil, finish: nil, batch_size: 1000, error_on_ignore: nil, order: DEFAULT_ORDER)
       relation = self
       unless block_given?
         return to_enum(:find_in_batches, start: start, finish: finish, batch_size: batch_size, error_on_ignore: error_on_ignore, order: order) do
-          total = apply_limits(relation, start, finish, order).size
+          total = apply_limits(relation, start, finish, build_batch_orders(order)).size
           (total - 1).div(batch_size) + 1
         end
       end
@@ -168,7 +187,17 @@ module ActiveRecord
     # * <tt>:finish</tt> - Specifies the primary key value to end at, inclusive of the value.
     # * <tt>:error_on_ignore</tt> - Overrides the application config to specify if an error should be raised when
     #   an order is present in the relation.
-    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the primary key order (can be +:asc+ or +:desc+ or an array consisting
+    #   of :asc or :desc). Defaults to +:asc+.
+    #
+    #     class Order < ActiveRecord::Base
+    #       self.primary_key = [:id_1, :id_2]
+    #     end
+    #
+    #     Order.in_batches(order: [:asc, :desc])
+    #
+    #   In the above code, +id_1+ is sorted in ascending order and +id_2+ in descending order.
+    #
     # * <tt>:use_ranges</tt> - Specifies whether to use range iteration (id >= x AND id <= y).
     #   It can make iterating over the whole or almost whole tables several times faster.
     #   Only whole table iterations use this style of iteration by default. You can disable this behavior by passing +false+.
@@ -207,11 +236,11 @@ module ActiveRecord
     #
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
-    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: :asc, use_ranges: nil)
+    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: DEFAULT_ORDER, use_ranges: nil)
       relation = self
 
-      unless [:asc, :desc].include?(order)
-        raise ArgumentError, ":order must be :asc or :desc, got #{order.inspect}"
+      unless Array(order).all? { |ord| [:asc, :desc].include?(ord) }
+        raise ArgumentError, ":order must be :asc or :desc or an array consisting of :asc or :desc, got #{order.inspect}"
       end
 
       unless block_given?
@@ -228,8 +257,9 @@ module ActiveRecord
         batch_limit = remaining if remaining < batch_limit
       end
 
-      relation = relation.reorder(*batch_order(order)).limit(batch_limit)
-      relation = apply_limits(relation, start, finish, order)
+      batch_orders = build_batch_orders(order)
+      relation = relation.reorder(batch_orders.to_h).limit(batch_limit)
+      relation = apply_limits(relation, start, finish, batch_orders)
       relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
       batch_relation = relation
       empty_scope = to_sql == klass.unscoped.all.to_sql
@@ -244,7 +274,7 @@ module ActiveRecord
           ids = batch_relation.ids
           finish = ids.last
           if finish
-            yielded_relation = apply_finish_limit(batch_relation, finish, order)
+            yielded_relation = apply_finish_limit(batch_relation, finish, batch_orders)
             yielded_relation = yielded_relation.except(:limit, :order)
             yielded_relation.skip_query_cache!(false)
           end
@@ -274,46 +304,55 @@ module ActiveRecord
           end
         end
 
-        batch_relation = batch_condition(
-          relation, primary_key, primary_key_offset, order == :desc ? :lt : :gt
-        )
+        batch_orders_copy = batch_orders.dup
+        _last_column, last_order = batch_orders_copy.pop
+        operators = batch_orders_copy.map do |_column, order|
+          order == :desc ? :lteq : :gteq
+        end
+        operators << (last_order == :desc ? :lt : :gt)
+
+        batch_relation = batch_condition(relation, primary_key, primary_key_offset, operators)
       end
     end
 
     private
-      def apply_limits(relation, start, finish, order)
-        relation = apply_start_limit(relation, start, order) if start
-        relation = apply_finish_limit(relation, finish, order) if finish
+      def apply_limits(relation, start, finish, batch_orders)
+        relation = apply_start_limit(relation, start, batch_orders) if start
+        relation = apply_finish_limit(relation, finish, batch_orders) if finish
         relation
       end
 
-      def apply_start_limit(relation, start, order)
-        batch_condition(relation, primary_key, start, order == :desc ? :lteq : :gteq)
+      def apply_start_limit(relation, start, batch_orders)
+        operators = batch_orders.map do |_column, order|
+          order == :desc ? :lteq : :gteq
+        end
+        batch_condition(relation, primary_key, start, operators)
       end
 
-      def apply_finish_limit(relation, finish, order)
-        batch_condition(relation, primary_key, finish, order == :desc ? :gteq : :lteq)
+      def apply_finish_limit(relation, finish, batch_orders)
+        operators = batch_orders.map do |_column, order|
+          order == :desc ? :gteq : :lteq
+        end
+        batch_condition(relation, primary_key, finish, operators)
       end
 
-      def batch_condition(relation, columns, values, operator)
-        columns = Array(columns)
-        values = Array(values)
-        cursor_positions = columns.zip(values)
+      def batch_condition(relation, columns, values, operators)
+        cursor_positions = Array(columns).zip(Array(values), operators)
 
-        first_clause_column, first_clause_value = cursor_positions.pop
+        first_clause_column, first_clause_value, operator = cursor_positions.pop
         where_clause = predicate_builder[first_clause_column, first_clause_value, operator]
 
-        cursor_positions.reverse_each do |column_name, value|
-          where_clause = predicate_builder[column_name, value, operator == :lteq ? :lt : :gt].or(
-            predicate_builder[column_name, value, :eq].and(where_clause)
-          )
+        cursor_positions.reverse_each do |column_name, value, operator|
+          where_clause = predicate_builder[column_name, value, operator].and(where_clause)
         end
 
         relation.where(where_clause)
       end
 
-      def batch_order(order)
-        Array(primary_key).map { |column| table[column].public_send(order) }
+      def build_batch_orders(order)
+        get_the_order_of_primary_key(order).map do |column, ord|
+          [column, ord || DEFAULT_ORDER]
+        end
       end
 
       def act_on_ignored_order(error_on_ignore)
@@ -324,6 +363,10 @@ module ActiveRecord
         elsif logger
           logger.warn(ORDER_IGNORE_MESSAGE)
         end
+      end
+
+      def get_the_order_of_primary_key(order)
+        Array(primary_key).zip(Array(order))
       end
   end
 end

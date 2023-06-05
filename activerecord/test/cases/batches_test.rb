@@ -796,4 +796,42 @@ class EachTest < ActiveRecord::TestCase
     relation = Cpk::Order.where("shop_id > ? OR shop_id = ? AND id > ?", shop_id, shop_id, id).in_batches(of: 1).first
     assert_equal order2, relation.first
   end
+
+  test ".find_each with multiple column ordering and using composite primary key" do
+    Cpk::Book.create(author_id: 1, number: 1)
+    Cpk::Book.create(author_id: 1, number: 2)
+    Cpk::Book.create(author_id: 1, number: 3)
+    books = Cpk::Book.order(author_id: :asc, number: :desc).to_a
+    Cpk::Book.find_each(batch_size: 1, order: [:asc, :desc]).with_index do |book, index|
+      assert_equal books[index], book
+    end
+  end
+
+  test ".in_batches should start from the start option when using composite primary key with multiple column ordering" do
+    Cpk::Book.create(author_id: 1, number: 1)
+    Cpk::Book.create(author_id: 1, number: 2)
+    Cpk::Book.create(author_id: 1, number: 3)
+    second_book = Cpk::Book.order(author_id: :asc, number: :desc).second
+    relation = Cpk::Book.in_batches(of: 1, start: second_book.id, order: [:asc, :desc]).first
+    assert_equal second_book, relation.first
+  end
+
+  test ".in_batches should end at the finish option when using composite primary key with multiple column ordering" do
+    Cpk::Book.create(author_id: 1, number: 1)
+    Cpk::Book.create(author_id: 1, number: 2)
+    Cpk::Book.create(author_id: 1, number: 3)
+    second_book = Cpk::Book.order(author_id: :asc, number: :desc).second
+    relation = Cpk::Book.in_batches(of: 1, finish: second_book.id, order: [:asc, :desc]).to_a.last
+    assert_equal second_book, relation.first
+  end
+
+  test ".in_batches with scope and multiple column ordering and using composite primary key" do
+    Cpk::Book.create(author_id: 1, number: 1)
+    Cpk::Book.create(author_id: 1, number: 2)
+    Cpk::Book.create(author_id: 1, number: 3)
+    book1, book2 = Cpk::Book.order(author_id: :asc, number: :desc).first(2)
+    author_id, number = book1.id
+    relation = Cpk::Book.where("author_id >= ? AND number < ?", author_id, number).in_batches(of: 1, order: [:asc, :desc]).first
+    assert_equal book2, relation.first
+  end
 end
