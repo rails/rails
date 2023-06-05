@@ -52,7 +52,6 @@ module ActiveSupport
     require "active_support/core_ext/module/deprecation"
     require "concurrent/atomic/thread_local_var"
 
-    include Singleton # :nodoc:
     include InstanceDelegator
     include Behavior
     include Reporting
