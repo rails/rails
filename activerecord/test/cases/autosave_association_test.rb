@@ -1028,6 +1028,18 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_nil Pirate.find_by_id(id)
   end
 
+  # belongs_to for CPK
+  def test_autosave_cpk_association_should_destroy_parent_association_when_marked_for_destruction
+    book = Cpk::Book.new(title: "Book", author_id: 1, number: 2)
+    Cpk::Order.create!(id: [3, 4], book: book)
+
+    book.order.mark_for_destruction
+
+    assert book.save
+    assert_nil book.reload.order
+    assert_nil Cpk::Order.find_by(id: 4, shop_id: 3)
+  end
+
   def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction
     @ship.pirate.catchphrase = ""
     assert_not_predicate @ship, :valid?

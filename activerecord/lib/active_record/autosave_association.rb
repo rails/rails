@@ -501,7 +501,8 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
-            self[reflection.foreign_key] = nil
+            foreign_key = Array(reflection.foreign_key)
+            foreign_key.each { |key| self[key] = nil }
             record.destroy
           elsif autosave != false
             saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
