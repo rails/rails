@@ -939,6 +939,8 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     Parrot.delete_all
     @ship.delete
     @pirate.delete
+    Cpk::Book.delete_all
+    Cpk::Order.delete_all
   end
 
   # reload
