@@ -1,3 +1,11 @@
+*   The `Mime::Type` now supports handling types with parameters and correctly handles quotes.
+    When parsing the accept header, the parameters before the q-parameter are kept and if a matching mime-type exists it is used.
+    To keep the current functionality, a fallback is created to look for the media-type without the parameters.
+
+    This change allows for custom MIME-types that are more complex like `application/vnd.api+json; profile="https://jsonapi.org/profiles/ethanresnick/cursor-pagination/" ext="https://jsonapi.org/ext/atomic"` for the [JSON API](https://jsonapi.org/).
+
+    *Nicolas Erni*
+
 *   The url_for helpers now support a new option called `path_params`.
     This is very useful in situations where you only want to add a required param that is part of the route's URL but for other route not append an extraneous query param.
 

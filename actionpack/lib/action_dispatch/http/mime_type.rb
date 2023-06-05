@@ -152,14 +152,18 @@ module Mime
 
     class << self
       TRAILING_STAR_REGEXP = /^(text|application)\/\*/
-      PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
+      # all media-type parameters need to be before the q-parameter
+      # https://www.rfc-editor.org/rfc/rfc7231#section-5.3.2
+      PARAMETER_SEPARATOR_REGEXP = /\s*;\s*q="?/
+      ACCEPT_HEADER_REGEXP = /[^,\s"](?:[^,"]|"[^"]*")*/
 
       def register_callback(&block)
         @register_callbacks << block
       end
 
       def lookup(string)
-        LOOKUP[string] || Type.new(string)
+        # fallback to the media-type without parameters if it was not found
+        LOOKUP[string] || LOOKUP[string.split(";", 2)[0].rstrip] || Type.new(string)
       end
 
       def lookup_by_extension(extension)
@@ -195,7 +199,7 @@ module Mime
           parse_trailing_star(accept_header) || Array(Mime::Type.lookup(accept_header))
         else
           list, index = [], 0
-          accept_header.split(",").each do |header|
+          accept_header.scan(ACCEPT_HEADER_REGEXP).each do |header|
             params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
 
             next unless params
@@ -244,7 +248,7 @@ module Mime
     attr_reader :hash
 
     MIME_NAME = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}"
-    MIME_PARAMETER_VALUE = "#{Regexp.escape('"')}?#{MIME_NAME}#{Regexp.escape('"')}?"
+    MIME_PARAMETER_VALUE = "(?:#{MIME_NAME}|\"[^\"\r\\\\]*\")"
     MIME_PARAMETER = "\s*;\s*#{MIME_NAME}(?:=#{MIME_PARAMETER_VALUE})?"
     MIME_REGEXP = /\A(?:\*\/\*|#{MIME_NAME}\/(?:\*|#{MIME_NAME})(?>#{MIME_PARAMETER})*\s*)\z/
 
