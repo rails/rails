@@ -35,7 +35,7 @@ require "models/cpk"
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes
+           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes, :cpk_books
 
   def test_belongs_to
     client = Client.find(3)
@@ -354,6 +354,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     apple    = citibank.build_firm("name" => "Apple")
     citibank.save
     assert_equal apple.id, citibank.firm_id
+  end
+
+  def test_building_the_belonging_object_for_composite_primary_key
+    cpk_book = cpk_books(:cpk_great_author_first_book)
+    order = cpk_book.build_order
+    cpk_book.save
+
+    _shop_id, id = order.id
+    assert_equal id, cpk_book.order_id
   end
 
   def test_building_the_belonging_object_with_implicit_sti_base_class
