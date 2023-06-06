@@ -633,7 +633,10 @@ module ActionView
           end
         end
 
-        MAX_HEADER_SIZE = 8_000 # Some HTTP client and proxies have a 8kiB header limit
+        # Some HTTP client and proxies have a 4kiB header limit, but more importantly
+        # including preload links has diminishing returns so it's best to not go overboard
+        MAX_HEADER_SIZE = 1_000 # :nodoc:
+
         def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
           return if preload_links.empty?
           response_present = respond_to?(:response) && response
@@ -644,30 +647,15 @@ module ActionView
           end
 
           if response_present
-            header = response.headers["Link"]
-            header = header ? header.dup : +""
-
-            # rindex count characters not bytes, but we assume non-ascii characters
-            # are rare in urls, and we have a 192 bytes margin.
-            last_line_offset = header.rindex("\n")
-            last_line_size = if last_line_offset
-              header.bytesize - last_line_offset
-            else
-              header.bytesize
-            end
-
+            header = +response.headers["Link"].to_s
             preload_links.each do |link|
-              if link.bytesize + last_line_size + 1 < max_header_size
-                unless header.empty?
-                  header << ","
-                  last_line_size += 1
-                end
+              break if header.bytesize + link.bytesize > max_header_size
+
+              if header.empty?
+                header << link
               else
-                header << "\n"
-                last_line_size = 0
+                header << "," << link
               end
-              header << link
-              last_line_size += link.bytesize
             end
 
             response.headers["Link"] = header

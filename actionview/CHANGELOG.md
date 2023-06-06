@@ -1,3 +1,13 @@
+*   Stop generating `Link preload` headers once it has reached 1KB.
+
+    Some proxies have trouble handling large headers, but more importantly preload links
+    have diminishing returns so it's preferable not to go overboard with them.
+
+    If tighter control is needed, it's recommended to disable automatic generation of preloads
+    and to generate them manually from the controller or from a middleware.
+
+    *Jean Boussier*
+
 *   `simple_format` helper now handles a `:sanitize_options` - any extra options you want appending to the sanitize.
 
     Before:

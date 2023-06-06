@@ -648,8 +648,8 @@ class AssetTagHelperTest < ActionView::TestCase
         stylesheet_link_tag("http://example.com/style.css?#{i}")
         javascript_include_tag("http://example.com/all.js?#{i}")
       end
-      lines = @response.headers["Link"].split("\n")
-      assert_equal 2, lines.size
+      links = @response.headers["Link"].count(",")
+      assert_equal 14, links
     end
   end
 
