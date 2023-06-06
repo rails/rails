@@ -570,6 +570,36 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal [], guitar.errors.details[:"tuning_pegs.pitch"]
   end
 
+  def test_errors_details_with_error_on_base_should_be_indexed_when_passed_as_array
+    reference = Class.new(ActiveRecord::Base) do
+      self.table_name = "references"
+      def self.name; "Reference"; end
+
+      validate :should_be_favorite
+
+      private
+        def should_be_favorite
+          errors.add(:base, "should be favorite") unless favorite?
+        end
+    end
+
+    person = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      has_many :references, autosave: true, index_errors: true, anonymous_class: reference
+      def self.name; "Person"; end
+    end
+
+    p = person.new
+    reference_valid = reference.new(favorite: true)
+    reference_invalid = reference.new(favorite: false)
+    p.references = [reference_valid, reference_invalid]
+
+    assert_predicate reference_valid, :valid?
+    assert_not_predicate reference_invalid, :valid?
+    assert_not_predicate p, :valid?
+    assert_equal [{ error: "should be favorite" }], p.errors.details[:"references[1]"]
+  end
+
   def test_errors_details_should_be_indexed_when_global_flag_is_set
     old_attribute_config = ActiveRecord.index_nested_attribute_errors
     ActiveRecord.index_nested_attribute_errors = true

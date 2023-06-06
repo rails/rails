@@ -359,11 +359,15 @@ module ActiveRecord
       end
 
       def normalize_reflection_attribute(indexed_attribute, reflection, index, attribute)
-        if indexed_attribute
-          "#{reflection.name}[#{index}].#{attribute}"
-        else
-          "#{reflection.name}.#{attribute}"
-        end
+        normalized_attribute =
+          if indexed_attribute
+            "#{reflection.name}[#{index}]"
+          else
+            reflection.name
+          end
+
+        normalized_attribute = "#{normalized_attribute}.#{attribute}" if attribute != :base
+        normalized_attribute
       end
 
       # Is used as an around_save callback to check while saving a collection
