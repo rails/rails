@@ -93,8 +93,8 @@ module Enumerable
   def many?
     cnt = 0
     if block_given?
-      any? do |element, *args|
-        cnt += 1 if yield element, *args
+      any? do |*args|
+        cnt += 1 if yield(*args)
         cnt > 1
       end
     else
