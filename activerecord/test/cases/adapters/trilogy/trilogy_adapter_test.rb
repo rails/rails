@@ -137,7 +137,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#exec_query fails with invalid query" do
-    error = assert_raises_with_message ActiveRecord::StatementInvalid, /'activerecord_unittest.bogus' doesn't exist/ do
+    error = assert_raises ActiveRecord::StatementInvalid, match: /'activerecord_unittest.bogus' doesn't exist/ do
       @conn.exec_query "SELECT * FROM bogus;"
     end
     assert_equal @conn.pool, error.connection_pool
@@ -149,7 +149,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#execute fails with invalid query" do
-    error = assert_raises_with_message ActiveRecord::StatementInvalid, /Table 'activerecord_unittest.bogus' doesn't exist/ do
+    error = assert_raises ActiveRecord::StatementInvalid, match: /Table 'activerecord_unittest.bogus' doesn't exist/ do
       @conn.execute "SELECT * FROM bogus;"
     end
     assert_equal @conn.pool, error.connection_pool
@@ -349,15 +349,6 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_equal connection.pool, error.connection_pool
   ensure
     ActiveRecord::Base.establish_connection :arunit
-  end
-
-  def assert_raises_with_message(exception, message, &block)
-    block.call
-  rescue exception => error
-    assert_match message, error.message
-    error
-  else
-    fail %(Expected #{exception} with message "#{message}" but nothing failed.)
   end
 
   # Create a temporary subscription to verify notification is sent.
