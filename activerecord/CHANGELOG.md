@@ -1,3 +1,7 @@
+*   Fix assignment into an `has_one` relationship deleting the old record before the new one is validated.
+
+    *Jean Boussier*
+
 *   Fix where on association with has_one/has_many polymorphic relations.
 
     Before:
