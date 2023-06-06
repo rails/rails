@@ -667,7 +667,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take_bang_missing
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").take!
     end
   end
@@ -678,19 +678,19 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_sole_failing_none
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").sole
     end
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.find_sole_by("title = 'This title does not exist'")
     end
   end
 
   def test_sole_failing_many
-    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+    assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
       Topic.where("author_name = 'Carl'").sole
     end
-    assert_raises_with_message ActiveRecord::SoleRecordExceeded, "Wanted only one Topic" do
+    assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
       Topic.find_sole_by("author_name = 'Carl'")
     end
   end
@@ -710,7 +710,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_first_bang_missing
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").first!
     end
   end
@@ -726,7 +726,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.first!
     end
   end
@@ -750,7 +750,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_second_bang
     assert Topic.second!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.second!
     end
   end
@@ -774,7 +774,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_third_bang
     assert Topic.third!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.third!
     end
   end
@@ -798,7 +798,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fourth_bang
     assert Topic.fourth!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.fourth!
     end
   end
@@ -822,7 +822,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fifth_bang
     assert Topic.fifth!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.fifth!
     end
   end
@@ -851,7 +851,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_second_to_last_bang
     assert Topic.second_to_last!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.second_to_last!
     end
   end
@@ -882,7 +882,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_third_to_last_bang
     assert Topic.third_to_last!
     Topic.delete_all
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.third_to_last!
     end
   end
@@ -905,14 +905,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_last_bang_missing
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").last!
     end
   end
 
   def test_model_class_responds_to_last_bang
     assert_equal topics(:fifth), Topic.last!
-    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.delete_all
       Topic.last!
     end
@@ -1390,7 +1390,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_one_attribute_bang
     assert_equal topics(:first), Topic.find_by_title!("The First Topic")
-    assert_raises_with_message(ActiveRecord::RecordNotFound, "Couldn't find Topic") do
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.find_by_title!("The First Topic!")
     end
   end
@@ -1822,10 +1822,5 @@ class FinderTest < ActiveRecord::TestCase
           "MercedesCar"
         end
       end)
-    end
-
-    def assert_raises_with_message(exception_class, message, &block)
-      err = assert_raises(exception_class) { block.call }
-      assert_match message, err.message
     end
 end
