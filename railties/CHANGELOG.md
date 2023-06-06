@@ -1,3 +1,8 @@
+*   Add engine's draw paths to application route set, so that the application
+    can draw route files defined in engine paths.
+
+    *Gannon McGibbon*
+
 *   Support `VISUAL` environment variable for commands which open an editor,
     and prefer it over `EDITOR`.
 
