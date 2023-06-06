@@ -1,3 +1,27 @@
+*   The `with_routing` helper can now be called at the class level. When called at the class level, the routes will
+    be setup before each test, and reset after every test. For example:
+
+    ```ruby
+    class RoutingTest < ActionController::TestCase
+      with_routing do |routes|
+        routes.draw do
+          resources :articles
+          resources :authors
+        end
+      end
+
+      def test_articles_route
+        assert_routing("/articles", controller: "articles", action: "index")
+      end
+
+       def test_authors_route
+        assert_routing("/authors", controller: "authors", action: "index")
+      end
+    end
+    ```
+
+    *Andrew Novoselac*
+
 *   The `Mime::Type` now supports handling types with parameters and correctly handles quotes.
     When parsing the accept header, the parameters before the q-parameter are kept and if a matching mime-type exists it is used.
     To keep the current functionality, a fallback is created to look for the media-type without the parameters.

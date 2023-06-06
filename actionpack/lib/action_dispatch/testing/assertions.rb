@@ -6,6 +6,8 @@ require "action_dispatch/testing/assertions/routing"
 
 module ActionDispatch
   module Assertions
+    extend ActiveSupport::Concern
+
     include ResponseAssertions
     include RoutingAssertions
     include Rails::Dom::Testing::Assertions
