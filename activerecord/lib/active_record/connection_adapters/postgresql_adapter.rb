@@ -742,7 +742,7 @@ module ActiveRecord
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
             if exception.message.match?(/connection is closed/i)
-              ConnectionNotEstablished.new(exception)
+              ConnectionNotEstablished.new(exception, connection_pool: @pool)
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
               # errors do not. We separate these cases because a pg-internal
@@ -750,33 +750,33 @@ module ActiveRecord
               # whereas a libpq failure could have occurred at any time (meaning the
               # server may have already executed part or all of the query).
               if exception.message.end_with?("\n")
-                ConnectionFailed.new(exception)
+                ConnectionFailed.new(exception, connection_pool: @pool)
               else
-                ConnectionNotEstablished.new(exception)
+                ConnectionNotEstablished.new(exception, connection_pool: @pool)
               end
             else
               super
             end
           when UNIQUE_VIOLATION
-            RecordNotUnique.new(message, sql: sql, binds: binds)
+            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when FOREIGN_KEY_VIOLATION
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
+            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when VALUE_LIMIT_VIOLATION
-            ValueTooLong.new(message, sql: sql, binds: binds)
+            ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when NUMERIC_VALUE_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds)
+            RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when NOT_NULL_VIOLATION
-            NotNullViolation.new(message, sql: sql, binds: binds)
+            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when SERIALIZATION_FAILURE
-            SerializationFailure.new(message, sql: sql, binds: binds)
+            SerializationFailure.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when DEADLOCK_DETECTED
-            Deadlocked.new(message, sql: sql, binds: binds)
+            Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when DUPLICATE_DATABASE
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when LOCK_NOT_AVAILABLE
-            LockWaitTimeout.new(message, sql: sql, binds: binds)
+            LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when QUERY_CANCELED
-            QueryCanceled.new(message, sql: sql, binds: binds)
+            QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end
@@ -940,6 +940,8 @@ module ActiveRecord
         # connected server's characteristics.
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect
@@ -966,7 +968,7 @@ module ActiveRecord
               message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
               code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
               level = result.error_field(PG::Result::PG_DIAG_SEVERITY)
-              @notice_receiver_sql_warnings << SQLWarning.new(message, code, level)
+              @notice_receiver_sql_warnings << SQLWarning.new(message, code, level, nil, @pool)
             end
           end
 

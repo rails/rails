@@ -1154,7 +1154,7 @@ module ActiveRecord
           when RuntimeError, ActiveRecord::ActiveRecordError
             exception
           else
-            ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds)
+            ActiveRecord::StatementInvalid.new(message, sql: sql, binds: binds, connection_pool: @pool)
           end
         end
 

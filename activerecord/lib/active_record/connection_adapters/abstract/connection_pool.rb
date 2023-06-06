@@ -690,6 +690,8 @@ module ActiveRecord
           connection.pool = self
           connection.check_version
           connection
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(self)
         end
 
         # If the pool is not at a <tt>@size</tt> limit, establish new connection. Connecting

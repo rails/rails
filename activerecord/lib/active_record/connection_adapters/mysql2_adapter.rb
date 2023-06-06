@@ -155,6 +155,8 @@ module ActiveRecord
 
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect
@@ -179,12 +181,12 @@ module ActiveRecord
 
         def translate_exception(exception, message:, sql:, binds:)
           if exception.is_a?(::Mysql2::Error::TimeoutError) && !exception.error_number
-            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.is_a?(::Mysql2::Error::ConnectionError)
             if exception.message.match?(/MySQL client is not connected/i)
-              ActiveRecord::ConnectionNotEstablished.new(exception)
+              ActiveRecord::ConnectionNotEstablished.new(exception, connection_pool: @pool)
             else
-              ActiveRecord::ConnectionFailed.new(message, sql: sql, binds: binds)
+              ActiveRecord::ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
             end
           else
             super

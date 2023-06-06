@@ -1,3 +1,10 @@
+*   Include the `connection_pool` with exceptions raised from an adapter.
+
+    The `connection_pool` provides added context such as the connection used
+    that led to the exception as well as which role and shard.
+
+    *Luan Vieira*
+
 *   Support multiple column ordering for `find_each`, `find_in_batches` and `in_batches`.
 
     When find_each/find_in_batches/in_batches are performed on a table with composite primary keys, ascending or descending order can be selected for each key.

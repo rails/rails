@@ -19,9 +19,10 @@ module ActiveRecord
       end
 
       def test_connection_error
-        assert_raises ActiveRecord::ConnectionNotEstablished do
+        error = assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.postgresql_connection(host: File::NULL).connect!
         end
+        assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
       end
 
       def test_reconnection_error
@@ -66,6 +67,7 @@ module ActiveRecord
           end
 
           assert_equal("actual bad connection error", error.message)
+          assert_equal @conn.pool, error.connection_pool
         end
       end
 
@@ -81,12 +83,15 @@ module ActiveRecord
       def test_bad_connection_to_postgres_database
         connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, 'FATAL:  database "postgres" does not exist') }
         PG.stub(:connect, connect_raises_error) do
-          assert_raises ActiveRecord::ConnectionNotEstablished do
+          connection = nil
+          error = assert_raises ActiveRecord::ConnectionNotEstablished do
             db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
             configuration = db_config.configuration_hash.merge(database: "postgres")
             connection = ActiveRecord::Base.postgresql_connection(configuration)
             connection.exec_query("SELECT 1")
           end
+          assert_not_nil connection
+          assert_equal connection.pool, error.connection_pool
         end
       end
 
@@ -156,9 +161,11 @@ module ActiveRecord
         assert_equal "public.accounts_id_seq",
           @connection.serial_sequence("accounts", "id")
 
-        assert_raises(ActiveRecord::StatementInvalid) do
+        error = assert_raises(ActiveRecord::StatementInvalid) do
           @connection.serial_sequence("zomg", "id")
         end
+
+        assert_equal @connection.pool, error.connection_pool
       end
 
       def test_default_sequence_name
@@ -359,6 +366,7 @@ module ActiveRecord
             @connection.add_index(:ex, :number, unique: true, algorithm: :concurrently, name: :invalid_index)
           end
           assert_match(/could not create unique index/, error.message)
+          assert_equal @connection.pool, error.connection_pool
 
           assert @connection.index_exists?(:ex, :number, name: :invalid_index)
           assert_not @connection.index_exists?(:ex, :number, name: :invalid_index, valid: true)
@@ -543,9 +551,10 @@ module ActiveRecord
 
       def test_raises_warnings_when_behaviour_raise
         with_db_warnings_action(:raise) do
-          assert_raises(ActiveRecord::SQLWarning) do
+          error = assert_raises(ActiveRecord::SQLWarning) do
             @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
           end
+          assert_equal @connection.pool, error.connection_pool
         end
       end
 

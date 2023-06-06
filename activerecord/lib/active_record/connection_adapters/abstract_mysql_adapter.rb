@@ -720,7 +720,7 @@ module ActiveRecord
           @affected_rows_before_warnings = @raw_connection.affected_rows
           result = @raw_connection.query("SHOW WARNINGS")
           result.each do |level, code, message|
-            warning = SQLWarning.new(message, code, level, sql)
+            warning = SQLWarning.new(message, code, level, sql, @pool)
             next if warning_ignored?(warning)
 
             ActiveRecord.db_warnings_action.call(warning)
@@ -764,40 +764,40 @@ module ActiveRecord
           case error_number(exception)
           when nil
             if exception.message.match?(/MySQL client is not connected/i)
-              ConnectionNotEstablished.new(exception)
+              ConnectionNotEstablished.new(exception, connection_pool: @pool)
             else
               super
             end
           when ER_CONNECTION_KILLED, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
-            ConnectionFailed.new(message, sql: sql, binds: binds)
+            ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DB_CREATE_EXISTS
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DUP_ENTRY
-            RecordNotUnique.new(message, sql: sql, binds: binds)
+            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
+            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_ADD_FOREIGN, ER_FK_INCOMPATIBLE_COLUMNS
-            mismatched_foreign_key(message, sql: sql, binds: binds)
+            mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_CREATE_TABLE
             if message.include?("errno: 150")
-              mismatched_foreign_key(message, sql: sql, binds: binds)
+              mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
             else
               super
             end
           when ER_DATA_TOO_LONG
-            ValueTooLong.new(message, sql: sql, binds: binds)
+            ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds)
+            RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
-            NotNullViolation.new(message, sql: sql, binds: binds)
+            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_DEADLOCK
-            Deadlocked.new(message, sql: sql, binds: binds)
+            Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_WAIT_TIMEOUT
-            LockWaitTimeout.new(message, sql: sql, binds: binds)
+            LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_QUERY_TIMEOUT, ER_FILSORT_ABORT
-            StatementTimeout.new(message, sql: sql, binds: binds)
+            StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_QUERY_INTERRUPTED
-            QueryCanceled.new(message, sql: sql, binds: binds)
+            QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end
@@ -943,11 +943,12 @@ module ActiveRecord
           options
         end
 
-        def mismatched_foreign_key(message, sql:, binds:)
+        def mismatched_foreign_key(message, sql:, binds:, connection_pool:)
           options = {
             message: message,
             sql: sql,
             binds: binds,
+            connection_pool: connection_pool
           }
 
           if sql
