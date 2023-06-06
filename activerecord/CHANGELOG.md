@@ -1,3 +1,21 @@
+*   Allow composite primary key to be derived from schema
+
+    Booting an application with a schema that contains composite primary keys
+    will not issue warning and won't `nil`ify the `ActiveRecord::Base#primary_key` value anymore.
+
+    Given a `travel_routes` table definition and a `TravelRoute` model like:
+    ```ruby
+    create_table :travel_routes, primary_key: [:origin, :destination], force: true do |t|
+      t.string :origin
+      t.string :destination
+    end
+
+    class TravelRoute < ActiveRecord::Base; end
+    ```
+    The `TravelRoute.primary_key` value will be automatically derived to `["origin", "destination"]`
+
+    *Nikita Vasilevsky*
+
 *   Include the `connection_pool` with exceptions raised from an adapter.
 
     The `connection_pool` provides added context such as the connection used

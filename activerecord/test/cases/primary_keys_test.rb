@@ -463,16 +463,16 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_primary_key_issues_warning
-    model = Class.new(ActiveRecord::Base) do
-      def self.table_name
-        "uber_barcodes"
+  def test_derives_composite_primary_key
+    def test_primary_key_issues_warning
+      model = Class.new(ActiveRecord::Base) do
+        def self.table_name
+          "uber_barcodes"
+        end
       end
+
+      assert_equal ["region", "code"], model.primary_key
     end
-    warning = capture(:stderr) do
-      assert_nil model.primary_key
-    end
-    assert_match(/WARNING: Active Record does not support composite primary key\./, warning)
   end
 
   def test_collectly_dump_composite_primary_key
