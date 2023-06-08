@@ -196,7 +196,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    curses (1.4.0)
+    curses (1.4.4)
     daemons (1.4.0)
     dalli (3.2.1)
     dante (0.2.0)
