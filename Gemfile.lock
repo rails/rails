@@ -607,7 +607,7 @@ DEPENDENCIES
   rubocop-rails
   sass-rails
   sdoc (>= 2.3.0)
-  selenium-webdriver (< 4.2)
+  selenium-webdriver (>= 4.0.0.alpha7, < 4.2)
   sequel
   sidekiq
   sneakers
