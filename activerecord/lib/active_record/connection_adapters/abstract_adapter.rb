@@ -1198,8 +1198,13 @@ module ActiveRecord
         #
         # This is an internal hook to make possible connection adapters to build
         # custom result objects with connection-specific data.
-        def build_result(columns:, rows:, column_types: {})
-          ActiveRecord::Result.new(columns, rows, column_types)
+        def build_result(columns:, rows:, column_types: {}, raw_result: nil)
+          result_class.new(columns, rows, column_types, raw_result: raw_result)
+        end
+
+        # Abstraction to allow adapter-specific result classes with different capabilities.
+        def result_class
+          ActiveRecord::Result
         end
 
         # Perform any necessary initialization upon the newly-established

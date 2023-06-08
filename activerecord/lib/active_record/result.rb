@@ -46,11 +46,12 @@ module ActiveRecord
       end
     end
 
-    def initialize(columns, rows, column_types = {})
+    def initialize(columns, rows, column_types = {}, raw_result: nil)
       @columns      = columns
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types
+      @raw_result   = raw_result
     end
 
     # Returns true if this result set includes the column named +name+
@@ -192,7 +193,7 @@ module ActiveRecord
           end
       end
 
-      EMPTY = new([].freeze, [].freeze, {}.freeze).freeze
+      EMPTY = new([].freeze, [].freeze, {}.freeze, raw_result: nil).freeze
       private_constant :EMPTY
 
       EMPTY_ASYNC = FutureResult::Complete.new(EMPTY).freeze

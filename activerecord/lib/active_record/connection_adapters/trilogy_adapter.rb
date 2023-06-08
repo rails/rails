@@ -157,6 +157,10 @@ module ActiveRecord
       end
 
       private
+        def result_class
+          ActiveRecord::TrilogyResult
+        end
+
         def text_type?(type)
           TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
         end

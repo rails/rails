@@ -122,7 +122,7 @@ module ActiveRecord
 
     def test_exec_query_returns_an_empty_result
       result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
-      assert_instance_of(ActiveRecord::Result, result)
+      assert_kind_of(ActiveRecord::Result, result)
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

@@ -18,15 +18,7 @@ module ActiveRecord
           mark_transaction_written_if_write(sql)
 
           result = raw_execute(sql, name, async: async)
-          ActiveRecord::Result.new(result.fields, result.to_a)
-        end
-
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-          mark_transaction_written_if_write(sql)
-
-          raw_execute(to_sql(sql, binds), name)
+          build_result(columns: result.fields, rows: result.to_a, raw_result: result)
         end
 
         def exec_delete(sql, name = nil, binds = []) # :nodoc:
@@ -52,8 +44,8 @@ module ActiveRecord
             end
           end
 
-          def last_inserted_id(result)
-            result.last_insert_id
+          def last_inserted_id(ar_result)
+            ar_result.last_insert_id
           end
 
           def sync_timezone_changes(conn)
