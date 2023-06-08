@@ -92,6 +92,10 @@ module ActiveRecord
           replace(record, false)
         end
 
+        def replace_keys(record, force: false)
+          # Has one association doesn't have foreign keys to replace.
+        end
+
         def remove_target!(method)
           case method
           when :delete

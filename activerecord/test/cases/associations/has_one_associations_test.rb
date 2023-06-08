@@ -20,6 +20,8 @@ require "models/club"
 require "models/membership"
 require "models/parrot"
 require "models/cpk"
+require "models/user"
+require "models/content"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -902,6 +904,46 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) do
       car.build_special_bulb
       car.build_special_bulb
+    end
+  end
+
+  class InvalidPost < Post
+    validate :always_fail
+
+    def always_fail
+      errors.add(:base, "Oops")
+    end
+  end
+
+  test "preserve old record if new one is invalid" do
+    author = Author.create!(id: 33, name: "Hank Moody")
+    author.create_post!(id: 1234, title: "Some title", body: "Some content")
+
+    assert_no_difference -> { Post.count } do
+      assert_raises ActiveRecord::RecordNotSaved do
+        author.post = InvalidPost.new(title: "Some title", body: "Some content")
+      end
+      author.save!
+    end
+  end
+
+  class SpecialContentPosition < ActiveRecord::Base
+    self.table_name = "content_positions"
+    belongs_to :content, class_name: name + "::SpecialContentPosition"
+    validates :content_id, presence: true, uniqueness: true
+  end
+
+  class SpecialContent < ActiveRecord::Base
+    self.table_name = "content"
+    has_one :content_position, dependent: :destroy, foreign_key: :content_id, class_name: SpecialContentPosition.name
+  end
+
+  test "uniqueness validator doesn't prevent from replacing the old record if dependent: :destroy is set" do
+    content = SpecialContent.create!
+    content.create_content_position!
+
+    assert_no_difference -> { ContentPosition.count } do
+      content.create_content_position!
     end
   end
 
