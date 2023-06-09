@@ -331,6 +331,7 @@ module ActiveRecord
           wr.binmode
 
           pid = fork {
+            raise "testing."
             rd.close
             wr.write Marshal.dump ActiveRecord::Base.connection.object_id
             wr.close
