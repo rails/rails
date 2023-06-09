@@ -31,6 +31,7 @@ module ActiveRecord
       # Sets the primary key column's value.
       def id=(value)
         if self.class.composite_primary_key?
+          raise TypeError, "Expected value matching #{self.class.primary_key.inspect}, got #{value.inspect}." unless value.is_a?(Enumerable)
           @primary_key.zip(value) { |attr, value| _write_attribute(attr, value) }
         else
           _write_attribute(@primary_key, value)
