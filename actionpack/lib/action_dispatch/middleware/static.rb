@@ -108,7 +108,7 @@ module ActionDispatch
       end
 
       def try_files(filepath, content_type, accept_encoding:)
-        headers = { "content-type" => content_type }
+        headers = { Rack::CONTENT_TYPE => content_type }
 
         if compressible? content_type
           try_precompressed_files filepath, headers, accept_encoding: accept_encoding

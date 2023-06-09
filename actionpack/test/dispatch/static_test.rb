@@ -199,6 +199,18 @@ module StaticTests
     assert_equal file_name, env["PATH_INFO"]
   end
 
+  def test_only_set_one_content_type
+    file_name = "/gzip/foo.zoo"
+    gzip_env = { "PATH_INFO" => file_name, "HTTP_ACCEPT_ENCODING" => "gzip", "REQUEST_METHOD" => "GET" }
+    response = @app.call(gzip_env)
+
+    env = { "PATH_INFO" => file_name, "REQUEST_METHOD" => "GET" }
+    default_response = @app.call(env)
+
+    assert_equal 1, response[1].slice("Content-Type", "content-type").size
+    assert_equal 1, default_response[1].slice("Content-Type", "content-type").size
+  end
+
   def test_serves_gzip_with_proper_content_type_fallback
     file_name = "/gzip/foo.zoo"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
