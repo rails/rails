@@ -26,7 +26,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   def wait
-    sleep 1
+    sleep 0.5
   end
 
   def touch(files)
@@ -43,11 +43,16 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_not_predicate checker, :updated?
 
     # Pipes used for flow control across fork.
-    boot_reader,  boot_writer  = IO.pipe
+    boot_reader, boot_writer = IO.pipe
     touch_reader, touch_writer = IO.pipe
+    result_reader, result_writer = IO.pipe
 
     pid = fork do
       assert_not_predicate checker, :updated?
+
+      # The listen gem start multiple background threads that need to reach a ready state.
+      # Unfortunately, it doesn't look like there is a clean way to block until they are ready.
+      wait
 
       # Fork is booted, ready for file to be touched
       # notify parent process.
@@ -58,9 +63,16 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       IO.select([touch_reader])
 
       assert_predicate checker, :updated?
+    rescue Exception => ex
+      result_writer.write("#{ex.class.name}: #{ex.message}")
+      raise
+    ensure
+      result_writer.close
     end
 
     assert pid
+
+    result_writer.close
 
     # Wait for fork to be booted before touching files.
     IO.select([boot_reader])
@@ -72,17 +84,26 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
 
     Process.wait(pid)
+
+    assert_equal "", result_reader.read
   end
 
   test "can be garbage collected" do
-    previous_threads = Thread.list
-    checker_ref = WeakRef.new(ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { })
-    listener_threads = Thread.list - previous_threads
+    # Use a separate thread to isolate objects and ensure they will be garbage collected.
+    checker_ref, listener_threads = Thread.new do
+      threads_before_checker = Thread.list
+      checker = ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { }
 
-    wait # Wait for listener thread to start processing events.
+      # Wait for listener thread to start processing events.
+      wait
+
+      [WeakRef.new(checker), Thread.list - threads_before_checker]
+    end.value
+
     GC.start
+    listener_threads.each { |t| t.join(1) }
 
-    assert_not_predicate checker_ref, :weakref_alive?
+    assert_not checker_ref.weakref_alive?, "EventedFileUpdateChecker was not garbage collected"
     assert_empty Thread.list & listener_threads
   end
 
