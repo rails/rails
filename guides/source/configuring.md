@@ -2411,9 +2411,10 @@ The default value depends on the `config.load_defaults` target version:
 Specifies which serialization format to use for the cache. Possible values are
 `6.1`, `7.0`, and `7.1`.
 
-The `6.1`, `7.0`, and `7.1` formats all use `Marshal` for the default coder, but
-`7.0` uses a more efficient representation for cache entries, and `7.1` includes
-an additional optimization for bare string values such as view fragments.
+`7.0` serializes cache entries more efficiently.
+
+`7.1` further improves efficiency, and includes an optimization for bare string
+values such as view fragments.
 
 All formats are backward and forward compatible, meaning cache entries written
 in one format can be read when using another format. This behavior makes it

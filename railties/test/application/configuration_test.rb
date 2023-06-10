@@ -4242,9 +4242,10 @@ module ApplicationTests
 
       app "development"
 
+      assert_not_nil Rails.cache.instance_variable_get(:@coder)
       assert_equal \
-        ActiveSupport::Cache::NullStore.new.instance_variable_get(:@coder),
-        Rails.cache.instance_variable_get(:@coder)
+        Marshal.dump(ActiveSupport::Cache::NullStore.new.instance_variable_get(:@coder)),
+        Marshal.dump(Rails.cache.instance_variable_get(:@coder))
     end
 
     test "ActiveSupport::Cache.format_version 6.1 is deprecated" do

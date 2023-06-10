@@ -1,3 +1,39 @@
+*   Active Support cache stores now support replacing the default compressor via
+    a `:compressor` option. The specified compressor must respond to `deflate`
+    and `inflate`. For example:
+
+      ```ruby
+      module MyCompressor
+        def self.deflate(string)
+          # compression logic...
+        end
+
+        def self.inflate(compressed)
+          # decompression logic...
+        end
+      end
+
+      config.cache_store = :redis_cache_store, { compressor: MyCompressor }
+      ```
+
+    *Jonathan Hefner*
+
+*   Active Support cache stores now support a `:serializer` option. Similar to
+    the `:coder` option, serializers must respond to `dump` and `load`. However,
+    serializers are only responsible for serializing a cached value, whereas
+    coders are responsible for serializing the entire `ActiveSupport::Cache::Entry`
+    instance.  Additionally, the output from serializers can be automatically
+    compressed, whereas coders are responsible for their own compression.
+
+    Specifying a serializer instead of a coder also enables performance
+    optimizations, including the bare string optimization introduced by cache
+    format version 7.1.
+
+    The `:serializer` and `:coder` options are mutually exclusive. Specifying
+    both will raise an `ArgumentError`.
+
+    *Jonathan Hefner*
+
 *   Fix `ActiveSupport::Inflector.humanize(nil)` raising ``NoMethodError: undefined method `end_with?' for nil:NilClass``.
 
     *James Robinson*
@@ -164,25 +200,23 @@
     read caches from upgraded servers, leave the cache format unchanged on the
     first deploy, then enable the `7.1` cache format on a subsequent deploy.
 
-    The new `:message_pack` cache coder also includes this optimization.
-
     *Jonathan Hefner*
 
-*   The `:coder` option for Active Support cache stores now supports a
-    `:message_pack` value:
+*   Active Support cache stores can now use a preconfigured serializer based on
+    `ActiveSupport::MessagePack` via the `:serializer` option:
 
       ```ruby
-      config.cache_store = :redis_cache_store, { coder: :message_pack }
+      config.cache_store = :redis_cache_store, { serializer: :message_pack }
       ```
 
-    The `:message_pack` coder can reduce cache entry sizes and improve
+    The `:message_pack` serializer can reduce cache entry sizes and improve
     performance, but requires the [`msgpack` gem](https://rubygems.org/gems/msgpack)
     (>= 1.7.0).
 
-    The `:message_pack` coder can read cache entries written by the default
-    coder, and the default coder can now read entries written by the
-    `:message_pack` coder. These behaviors make it easy to migrate between
-    coders without invalidating the entire cache.
+    The `:message_pack` serializer can read cache entries written by the default
+    serializer, and the default serializer can now read entries written by the
+    `:message_pack` serializer. These behaviors make it easy to migrate between
+    serializer without invalidating the entire cache.
 
     *Jonathan Hefner*
 

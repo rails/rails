@@ -72,6 +72,7 @@ module ActiveSupport
 
       def initialize(options = nil)
         options ||= {}
+        options[:coder] = DupCoder unless options.key?(:coder) || options.key?(:serializer)
         # Disable compression by default.
         options[:compress] ||= false
         super(options)
@@ -188,10 +189,6 @@ module ActiveSupport
 
       private
         PER_ENTRY_OVERHEAD = 240
-
-        def default_coder
-          DupCoder
-        end
 
         def cached_size(key, payload)
           key.to_s.bytesize + payload.bytesize + PER_ENTRY_OVERHEAD

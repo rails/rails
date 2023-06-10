@@ -222,7 +222,7 @@ module ActiveSupport
       end
 
       private
-        def default_coder
+        def default_serializer
           if Cache.format_version == 6.1
             ActiveSupport.deprecator.warn <<~EOM
               Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.

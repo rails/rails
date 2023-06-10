@@ -78,6 +78,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
   include CacheStoreCompressionBehavior
+  include CacheStoreSerializerBehavior
   include CacheStoreFormatVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
@@ -271,7 +272,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     compressed = Zlib::Deflate.deflate(val)
 
     assert_called(
-      Zlib::Deflate,
+      Zlib,
       :deflate,
       "Memcached writes should not perform duplicate compression.",
       times: 1,
