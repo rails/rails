@@ -16,18 +16,11 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreCompressionBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
   include CacheLoggingBehavior
-
-  def test_large_string_with_default_compression_settings
-    assert_uncompressed(LARGE_STRING)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_uncompressed(LARGE_OBJECT)
-  end
 
   def test_increment_preserves_expiry
     @cache = lookup_store
@@ -58,6 +51,11 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_equal size, events[0].payload[:size]
     assert_equal @cache.class.name, events[0].payload[:store]
   end
+
+  private
+    def compression_always_disabled_by_default?
+      true
+    end
 end
 
 class MemoryStorePruningTest < ActiveSupport::TestCase
