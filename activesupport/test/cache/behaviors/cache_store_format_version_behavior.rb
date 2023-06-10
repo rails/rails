@@ -15,8 +15,8 @@ module CacheStoreFormatVersionBehavior
       "\x01\x78".b,      # "\x01" + Zlib::Deflate.deflate(...)
     ],
     7.1 => [
-      "\x00\x04\x08[".b, # "\x00" + Marshal.dump(entry.pack)
-      "\x01\x78".b,      # "\x01" + Zlib::Deflate.deflate(...)
+      "\x00\x11\x01".b, # ActiveSupport::Cache::Coder#dump
+      "\x00\x11\x81".b, # ActiveSupport::Cache::Coder#dump_compressed
     ],
   }
 

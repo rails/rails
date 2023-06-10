@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
@@ -7,6 +8,7 @@ require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/string/inflections"
+require_relative "cache/coder"
 require_relative "cache/entry"
 require_relative "cache/serializer_with_fallback"
 
@@ -25,11 +27,13 @@ module ActiveSupport
       :coder,
       :compress,
       :compress_threshold,
+      :compressor,
       :expire_in,
       :expired_in,
       :expires_in,
       :namespace,
       :race_condition_ttl,
+      :serializer,
       :skip_nil,
     ]
 
@@ -249,27 +253,79 @@ module ActiveSupport
       #   Sets the namespace for the cache. This option is especially useful if
       #   your application shares a cache with other applications.
       #
-      # [+:coder+]
-      #   Replaces the default serializer for cache entries. +coder+ must
-      #   respond to +dump+ and +load+. Using a custom coder disables automatic
-      #   compression.
+      # [+:serializer+]
+      #   The serializer for cached values. Must respond to +dump+ and +load+.
       #
-      #   Alternatively, you can specify <tt>coder: :message_pack</tt> to use a
-      #   preconfigured coder based on ActiveSupport::MessagePack that supports
-      #   automatic compression and includes a fallback mechanism to load old
-      #   cache entries from the default coder. However, this option requires
-      #   the +msgpack+ gem.
+      #   The default serializer depends on the cache format version (set via
+      #   +config.active_support.cache_format_version+ when using Rails). The
+      #   default serializer for each format version includes a fallback
+      #   mechanism to deserialize values from any format version. This behavior
+      #   makes it easy to migrate between format versions without invalidating
+      #   the entire cache.
+      #
+      #   You can also specify <tt>serializer: :message_pack</tt> to use a
+      #   preconfigured serializer based on ActiveSupport::MessagePack. The
+      #   +:message_pack+ serializer includes the same deserialization fallback
+      #   mechanism, allowing easy migration from (or to) the default
+      #   serializer. The +:message_pack+ serializer may improve performance,
+      #   but it requires the +msgpack+ gem.
+      #
+      # [+:compressor+]
+      #   The compressor for serialized cache values. Must respond to +deflate+
+      #   and +inflate+.
+      #
+      #   The default compressor is +Zlib+. To define a new custom compressor
+      #   that also decompresses old cache entries, you can check compressed
+      #   values for Zlib's <tt>"\x78"</tt> signature:
+      #
+      #     module MyCompressor
+      #       def self.deflate(dumped)
+      #         # compression logic... (make sure result does not start with "\x78"!)
+      #       end
+      #
+      #       def self.inflate(compressed)
+      #         if compressed.start_with?("\x78")
+      #           Zlib.inflate(compressed)
+      #         else
+      #           # decompression logic...
+      #         end
+      #       end
+      #     end
+      #
+      #     ActiveSupport::Cache.lookup_store(:redis_cache_store, compressor: MyCompressor)
+      #
+      # [+:coder+]
+      #   The coder for serializing and (optionally) compressing cache entries.
+      #   Must respond to +dump+ and +load+.
+      #
+      #   The default coder composes the serializer and compressor, and includes
+      #   some performance optimizations. If you only need to override the
+      #   serializer or compressor, you should specify the +:serializer+ or
+      #   +:compressor+ options instead.
+      #
+      #   The +:coder+ option is mutally exclusive with the +:serializer+ and
+      #   +:compressor+ options. Specifying them together will raise an
+      #   +ArgumentError+.
       #
       # Any other specified options are treated as default options for the
       # relevant cache operations, such as #read, #write, and #fetch.
       def initialize(options = nil)
-        @options = options ? normalize_options(options) : {}
+        @options = options ? validate_options(normalize_options(options)) : {}
 
         @options[:compress] = true unless @options.key?(:compress)
         @options[:compress_threshold] ||= DEFAULT_COMPRESS_LIMIT
 
-        @coder = @options.delete(:coder) { default_coder } || :passthrough
-        @coder = Cache::SerializerWithFallback[@coder] if @coder.is_a?(Symbol)
+        @coder = @options.delete(:coder) do
+          legacy_serializer = Cache.format_version < 7.1 && !@options[:serializer]
+          serializer = @options.delete(:serializer) || default_serializer
+          serializer = Cache::SerializerWithFallback[serializer] if serializer.is_a?(Symbol)
+          compressor = @options.delete(:compressor) { Zlib }
+
+          Cache::Coder.new(serializer, compressor, legacy_serializer: legacy_serializer)
+        end
+
+        @coder ||= Cache::SerializerWithFallback[:passthrough]
+
         @coder_supports_compression = @coder.respond_to?(:dump_compressed)
       end
 
@@ -686,7 +742,7 @@ module ActiveSupport
       end
 
       private
-        def default_coder
+        def default_serializer
           case Cache.format_version
           when 6.1
             ActiveSupport.deprecator.warn <<~EOM
@@ -837,6 +893,23 @@ module ActiveSupport
             alias_key = aliases.detect { |key| options.key?(key) }
             options[canonical_name] ||= options[alias_key] if alias_key
             options.except!(*aliases)
+          end
+
+          options
+        end
+
+        def validate_options(options)
+          if options.key?(:coder) && options[:serializer]
+            raise ArgumentError, "Cannot specify :serializer and :coder options together"
+          end
+
+          if options.key?(:coder) && options[:compressor]
+            raise ArgumentError, "Cannot specify :compressor and :coder options together"
+          end
+
+          if Cache.format_version < 7.1 && !options[:serializer] && options[:compressor]
+            raise ArgumentError, "Cannot specify :compressor option when using" \
+              " default serializer and cache format version is < 7.1"
           end
 
           options

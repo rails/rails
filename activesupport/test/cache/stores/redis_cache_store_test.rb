@@ -161,6 +161,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheStoreCoderBehavior
     include CacheStoreCompressionBehavior
     include CacheStoreFormatVersionBehavior
+    include CacheStoreSerializerBehavior
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
