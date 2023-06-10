@@ -343,7 +343,9 @@ module ActiveRecord
         where_clause = predicate_builder[first_clause_column, first_clause_value, operator]
 
         cursor_positions.reverse_each do |column_name, value, operator|
-          where_clause = predicate_builder[column_name, value, operator].and(where_clause)
+          where_clause = predicate_builder[column_name, value, operator == :lteq ? :lt : :gt].or(
+            predicate_builder[column_name, value, :eq].and(where_clause)
+          )
         end
 
         relation.where(where_clause)
