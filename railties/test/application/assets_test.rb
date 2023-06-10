@@ -263,7 +263,7 @@ module ApplicationTests
 
       # Checking if Uglifier is defined we can know if Sprockets was reached or not
       assert_not defined?(Uglifier)
-      get "/assets/#{asset_path}"
+      get("/assets/#{asset_path}", {}, "HTTPS" => "on")
       assert_match "alert()", last_response.body
       assert_not defined?(Uglifier)
     end
@@ -348,7 +348,7 @@ module ApplicationTests
       # Load app env
       app "production"
 
-      get "/assets/demo.js"
+      get("/assets/demo.js", {}, "HTTPS" => "on")
       assert_equal 404, last_response.status
     end
 
@@ -410,7 +410,7 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       # the debug_assets params isn't used if compile is off
-      get "/posts?debug_assets=true"
+      get("/posts?debug_assets=true", {}, "HTTPS" => "on")
       assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end

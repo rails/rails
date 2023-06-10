@@ -49,7 +49,7 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       # the debug_assets params isn't used if compile is off
-      get "/posts?debug_assets=true"
+      get("/posts?debug_assets=true", {}, "HTTPS" => "on")
       assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
@@ -62,7 +62,7 @@ module ApplicationTests
 
       class ::PostsController < ActionController::Base ; end
 
-      get "/posts?debug_assets=true"
+      get("/posts?debug_assets=true", {}, "HTTPS" => "on")
       assert_match(/<script src="\/assets\/application(\.debug|\.self)?-([0-z]+)\.js(\?body=1)?"><\/script>/, last_response.body)
     end
 

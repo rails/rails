@@ -92,7 +92,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_includes comment, "controller:users"
@@ -106,7 +106,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_match(/pid='\d+'/, comment)
@@ -119,7 +119,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_not_includes comment, "controller:users"
@@ -131,7 +131,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_equal("/*action='index',controller='users',database='storage%2Fproduction_animals.sqlite3'*/", comment)
@@ -143,7 +143,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_match(/\/\*action='index',controller='users',pid='\d+'\*\//, comment)
@@ -155,7 +155,7 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
       assert_match(/\/\*action='index',namespaced_controller='users',pid='\d+'\*\//, comment)
@@ -200,11 +200,11 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
 
       first_tags = last_response.body
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
 
       second_tags = last_response.body
 
@@ -230,11 +230,11 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action='index',controller='users',namespaced_controller='users'*/), comment
 
-      get "/namespaced/users"
+      get "/namespaced/users", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action='index',controller='users',namespaced_controller='name_spaced%2Fusers'*/), comment
     end
@@ -246,11 +246,11 @@ module ApplicationTests
 
       boot_app
 
-      get "/"
+      get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action:index,namespaced_controller:users,controller:users*/), comment
 
-      get "/namespaced/users"
+      get "/namespaced/users", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
       assert_equal %(/*action:index,namespaced_controller:name_spaced/users,controller:users*/), comment
     end

@@ -446,7 +446,7 @@ class LoadingTest < ActiveSupport::TestCase
     require "rack/test"
     extend Rack::Test::Methods
 
-    get "/omg/show"
+    get("/omg/show", {}, "HTTPS" => "on")
     assert_equal "Query cache is enabled.", last_response.body
   end
 
