@@ -396,6 +396,15 @@ $ cd actionmailer
 $ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
+#### For a Specific Line
+
+Figuring out the name is not always easy, but if you know the line number your test starts at, this option is for you:
+
+```bash
+$ cd railties
+$ bin/test test/application/asset_debugging_test.rb:69
+```
+
 #### Running Tests with a Specific Seed
 
 Test execution is randomized with a randomization seed. If you are experiencing random
