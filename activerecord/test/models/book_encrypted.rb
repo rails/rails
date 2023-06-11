@@ -10,6 +10,13 @@ class EncryptedBook < ActiveRecord::Base
   encrypts :name, deterministic: true
 end
 
+class EncryptedBookWithUniquenessValidation < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  validates :name, uniqueness: true
+  encrypts :name, deterministic: true
+end
+
 class EncryptedBookWithDowncaseName < ActiveRecord::Base
   self.table_name = "encrypted_books"
 
