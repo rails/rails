@@ -232,6 +232,11 @@ module ActionController
         @error_callback.call
       end
 
+      def respond_to?(method, include_private = false)
+        return false if method == :to_ary
+        super
+      end
+
       private
         def each_chunk(&block)
           loop do
