@@ -77,6 +77,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreCompressionBehavior
   include CacheStoreFormatVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
@@ -325,14 +326,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
       assert_equal ["custom_host"], servers(cache)
     end
-  end
-
-  def test_large_string_with_default_compression_settings
-    assert_compressed(LARGE_STRING)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_compressed(LARGE_OBJECT)
   end
 
   def test_can_load_raw_values_from_dalli_store

@@ -159,6 +159,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheStoreBehavior
     include CacheStoreVersionBehavior
     include CacheStoreCoderBehavior
+    include CacheStoreCompressionBehavior
     include CacheStoreFormatVersionBehavior
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
@@ -232,14 +233,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         assert_nil @cache.fetch("foo") { nil }
         assert_equal false, @cache.exist?("foo")
       end
-    end
-
-    def test_large_string_with_default_compression_settings
-      assert_compressed(LARGE_STRING)
-    end
-
-    def test_large_object_with_default_compression_settings
-      assert_compressed(LARGE_OBJECT)
     end
   end
 
