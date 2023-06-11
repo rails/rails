@@ -122,7 +122,7 @@ module ActiveRecord
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
-      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
       #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
@@ -212,7 +212,7 @@ module ActiveRecord
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
-      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
       #
       # [:record_timestamps]
       #   By default, automatic setting of timestamp columns is controlled by
@@ -278,7 +278,7 @@ module ActiveRecord
       #   clause entirely.
       #
       #   You can also pass an SQL string if you need more control on the return values
-      #   (for example, <tt>returning: "id, name as new_name"</tt>).
+      #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
       #
       # [:unique_by]
       #   (PostgreSQL and SQLite only) By default rows are considered to be unique
