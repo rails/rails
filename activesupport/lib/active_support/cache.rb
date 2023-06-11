@@ -238,6 +238,12 @@ module ActiveSupport
       #   with a custom one. The +coder+ must respond to +dump+ and +load+.
       #   Using a custom coder disables automatic compression.
       #
+      #   Alternatively, you can specify <tt>coder: :message_pack</tt> to use a
+      #   preconfigured coder based on ActiveSupport::MessagePack that supports
+      #   automatic compression and includes a fallback mechanism to load old
+      #   cache entries from the default coder. However, this option requires
+      #   the +msgpack+ gem.
+      #
       # Any other specified options are treated as default options for the
       # relevant cache operations, such as #read, #write, and #fetch.
       def initialize(options = nil)
@@ -246,6 +252,7 @@ module ActiveSupport
         @options[:compress_threshold] = DEFAULT_COMPRESS_LIMIT unless @options.key?(:compress_threshold)
 
         @coder = @options.delete(:coder) { default_coder } || NullCoder
+        @coder = Cache::SerializerWithFallback[@coder] if @coder.is_a?(Symbol)
         @coder_supports_compression = @coder.respond_to?(:dump_compressed)
       end
 

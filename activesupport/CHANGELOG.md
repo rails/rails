@@ -70,8 +70,7 @@
     *Jonathan Hefner*
 
 *   A new `7.1` cache format is available which includes an optimization for
-    bare string values such as view fragments. The `:message_pack` cache format
-    has also been modified to include this optimization.
+    bare string values such as view fragments.
 
     The `7.1` cache format is used by default for new apps, and existing apps
     can enable the format by setting `config.load_defaults 7.1` or by setting
@@ -84,18 +83,25 @@
     read caches from upgraded servers, leave the cache format unchanged on the
     first deploy, then enable the `7.1` cache format on a subsequent deploy.
 
+    The new `:message_pack` cache coder also includes this optimization.
+
     *Jonathan Hefner*
 
-*   `config.active_support.cache_format_version` now accepts `:message_pack` as
-    an option. `:message_pack` can reduce cache entry sizes and improve
+*   The `:coder` option for Active Support cache stores now supports a
+    `:message_pack` value:
+
+      ```ruby
+      config.cache_store = :redis_cache_store, { coder: :message_pack }
+      ```
+
+    The `:message_pack` coder can reduce cache entry sizes and improve
     performance, but requires the [`msgpack` gem](https://rubygems.org/gems/msgpack)
     (>= 1.7.0).
 
-    Cache entries written using the `6.1`, `7.0`, or `7.1` cache formats can be read
-    when using the `:message_pack` cache format. Additionally, cache entries
-    written using the `:message_pack` cache format can now be read when using
-    the `6.1`, `7.0`, or `7.1` cache formats. These behaviors makes it easy to migrate
-    between formats without invalidating the entire cache.
+    The `:message_pack` coder can read cache entries written by the default
+    coder, and the default coder can now read entries written by the
+    `:message_pack` coder. These behaviors make it easy to migrate between
+    coders without invalidating the entire cache.
 
     *Jonathan Hefner*
 

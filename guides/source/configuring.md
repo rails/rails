@@ -2326,15 +2326,11 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.active_support.cache_format_version`
 
 Specifies which serialization format to use for the cache. Possible values are
-`6.1`, `7.0`, `7.1`, and `:message_pack`.
+`6.1`, `7.0`, and `7.1`.
 
-The `6.1`, `7.0`, and `7.1` formats all use `Marshal`, but `7.0` uses a more
-efficient representation for cache entries, and `7.1` includes an additional
-optimization for bare string values such as view fragments.
-
-The `:message_pack` format uses `ActiveSupport::MessagePack`, and may further
-reduce cache entry sizes and improve performance, but requires the
-[`msgpack` gem](https://rubygems.org/gems/msgpack).
+The `6.1`, `7.0`, and `7.1` formats all use `Marshal` for the default coder, but
+`7.0` uses a more efficient representation for cache entries, and `7.1` includes
+an additional optimization for bare string values such as view fragments.
 
 All formats are backward and forward compatible, meaning cache entries written
 in one format can be read when using another format. This behavior makes it
