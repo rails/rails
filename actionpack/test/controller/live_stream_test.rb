@@ -319,6 +319,11 @@ module ActionController
         logger.info "Work complete"
         latch.count_down
       end
+
+      def buffer_do_not_respond_to_to_ary
+        response.stream.write "response.stream.respond_to? = #{response.stream.respond_to?(:to_ary)}"
+        response.stream.close
+      end
     end
 
     tests TestController
@@ -595,6 +600,11 @@ module ActionController
       @request.if_none_match = %(W/"#{ActiveSupport::Digest.hexdigest('123')}")
       get :with_stale
       assert_equal 304, response.status.to_i
+    end
+
+    def test_response_buffer_do_not_respond_to_to_ary
+      get :buffer_do_not_respond_to_to_ary
+      assert_equal "response.stream.respond_to? = false", response.body
     end
   end
 
