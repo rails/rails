@@ -10,6 +10,7 @@ require "models/ship"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
+require "models/uuid_book"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -744,6 +745,99 @@ class InsertAllTest < ActiveRecord::TestCase
       Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
     end
     assert_match "#{ActiveRecord::Base.connection.class} does not support :unique_by", error.message
+  end
+
+  def test_insert_all_with_array_of_model
+    assert_difference "Book.count", +1 do
+      Book.insert_all [
+        Book.new({ name: "Detective Stories", author_id: 1 }),
+        Book.new({ name: "Detective Stories", author_id: 1 }),
+      ]
+    end
+
+    assert_difference "Book.count", +2 do
+      Book.insert_all [
+        Book.new({ name: "Fantasy", author_id: 1 }),
+        Book.new({ name: "Mystery", author_id: 1 }),
+      ]
+    end
+  end
+
+  def test_insert_all_with_array_of_model_touch_timestamps
+    Book.insert_all!([Book.new(name: "Happy")])
+    book = Book.last
+    assert_not_nil book.created_at
+    assert_not_nil book.updated_at
+  end
+
+  def test_insert_all_with_array_of_model_does_not_implicitly_touch_timestamps_when_record_timestamps_option_is_false
+    Book.insert_all!([Book.new(name: "Happy")], record_timestamps: false)
+    book = Book.last
+    assert_nil book.created_at
+    assert_nil book.updated_at
+  end
+
+  def test_insert_all_with_array_of_model_does_not_raise_an_error_when_model_has_virtual_columns
+    skip unless supports_virtual_columns?
+
+    Book.insert_all [
+      Book.new({ name: "detective stories", upper_name: "fantasy" }),
+    ]
+    assert_equal Book.last.upper_name, "DETECTIVE STORIES"
+  end
+
+  def test_insert_all_with_array_of_model_does_not_raise_an_error_when_primary_key_type_is_not_serial
+    assert_difference "UuidBook.count", +2 do
+      UuidBook.insert_all([UuidBook.new(uuid: "550e8400-e29b-41d4-a716-446655440000", title: "uuid vol.1")])
+      UuidBook.insert_all([UuidBook.new(uuid: "fejiei99-e29b-41d4-a716-446434333001", title: "uuid vol.2")])
+    end
+  end
+
+  def test_upsert_all_with_array_of_model
+    assert_difference "Book.count", +2 do
+      Book.upsert_all([
+        Book.new({ name: "Detective Stories 1", author_id: 1 }),
+        Book.new({ name: "Detective Stories 2", author_id: 1 }),
+      ])
+    end
+  end
+
+  def test_upsert_all_with_array_of_model_updates_existing_record
+    skip unless supports_insert_on_duplicate_update?
+    book = Book.first
+    old_name = book.name
+    book.name = "New edition"
+    Book.upsert_all([book])
+    assert_not_equal old_name, book.reload.name
+  end
+
+  def test_upsert_all_with_array_of_model_does_not_touch_timestamps_when_values_do_not_change
+    skip unless supports_insert_on_duplicate_update?
+    book = Book.create!(name: "Happy")
+    created_at = book.created_at
+    updeted_at = book.updated_at
+
+    Book.upsert_all([book])
+    assert_equal created_at, book.reload.created_at
+    assert_equal updeted_at, book.reload.updated_at
+  end
+
+  def test_upsert_all_with_array_of_model_touch_updated_at_when_values_change
+    skip unless supports_insert_on_duplicate_update?
+    book = travel_to(Date.new(2016, 4, 17)) { Book.create!(name: "Happy") }
+    updeted_at = book.updated_at
+    book.name = "Sad"
+    Book.upsert_all([book])
+    assert_not_in_delta updeted_at, book.reload.updated_at, 1
+  end
+
+  def test_upsert_all_with_array_of_model_explicitly_set_timestamps_when_record_timestamps_option_is_false
+    skip unless supports_insert_on_duplicate_update?
+    book = Book.create!(name: "Happy")
+    time = Time.now.utc - 5.years
+    book.updated_at = time
+    Book.upsert_all([book], record_timestamps: false)
+    assert_in_delta time, book.reload.updated_at, 1
   end
 
   private

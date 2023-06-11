@@ -128,6 +128,7 @@ ActiveRecord::Schema.define do
     t.integer :format_record_id
     t.string :format_record_type
     t.column :name, :string
+    t.virtual :upper_name,  type: :string,  as: "UPPER(name)", stored: true if supports_virtual_columns?
     t.column :status, :integer, **default_zero
     t.column :last_read, :integer, **default_zero
     t.column :nullable_status, :integer
@@ -155,6 +156,11 @@ ActiveRecord::Schema.define do
       t.datetime :updated_at
     end
     t.date :updated_on
+  end
+
+  create_table :uuid_books, id: false, force: true do |t|
+    t.string :uuid, limit: 36, null: false, primary_key: true
+    t.string :title
   end
 
   create_table :encrypted_books, id: :integer, force: true do |t|

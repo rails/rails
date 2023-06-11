@@ -871,6 +871,9 @@ module ActiveRecord
         "INSERT #{insert.into} #{insert.values_list}"
       end
 
+      def assign_next_value_if_serial_column_is_nil!(columns, sequence_name, attributes_array) # :nodoc:
+      end
+
       def get_database_version # :nodoc:
       end
 

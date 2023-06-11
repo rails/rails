@@ -1,3 +1,16 @@
+*   Allow insert_all/upsert_all to use an array of models
+
+    Example:
+
+    ```ruby
+    Book.insert_all([
+      Book.new(title: "Rework", author: "David"),
+      Book.new(title: "Eloquent Ruby", author: "Russ")
+    ])
+    ```
+
+    *Takuya Kurimoto*
+
 *   Added PostgreSQL migration commands for enum rename, add value, and rename value.
 
     `rename_enum` and `rename_enum_value` are reversible. Due to Postgres
