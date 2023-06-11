@@ -1,0 +1,8 @@
+/test/dummy/storage/*.sqlite3
+/test/dummy/storage/*.sqlite3-*
+/test/dummy/db/*.sqlite3
+/test/dummy/db/*.sqlite3-*
+/test/dummy/log/*.log
+/test/dummy/public/packs-test
+/test/dummy/tmp/
+/tmp/
