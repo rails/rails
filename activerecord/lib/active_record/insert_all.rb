@@ -8,12 +8,18 @@ module ActiveRecord
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
     def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, model.connection, inserts.map(&:stringify_keys)
+      @model, @connection = model, model.connection
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
+
+      if inserts.first.is_a?(ActiveRecord::Base)
+        inserts = inserts.map(&:attributes)
+        delete_timestamps_from_attributes!(inserts)
+      end
+      @inserts = inserts.map(&:stringify_keys)
 
       if @inserts.empty?
         @keys = []
@@ -217,6 +223,17 @@ module ActiveRecord
 
       def timestamps_for_create
         model.all_timestamp_attributes_in_model.index_with(connection.high_precision_current_timestamp)
+      end
+
+      def delete_timestamps_from_attributes!(attributes_array)
+        all_timestamp_attributes = model.all_timestamp_attributes_in_model
+        attributes_array.each do |attributes|
+          attributes.each do |column, value|
+            if all_timestamp_attributes.include?(column) && record_timestamps?
+              attributes.delete(column)
+            end
+          end
+        end
       end
 
       class Builder # :nodoc:

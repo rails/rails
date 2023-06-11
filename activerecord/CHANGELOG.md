@@ -1,3 +1,16 @@
+*   Allow insert_all/upsert_all to use an array of models
+
+    Example:
+
+    ```ruby
+    Book.insert_all([
+      Book.new(title: "Rework", author: "David"),
+      Book.new(title: "Eloquent Ruby", author: "Russ")
+    ])
+    ```
+
+    *Takuya Kurimoto*
+
 *   Allow composite primary key to be derived from schema
 
     Booting an application with a schema that contains composite primary keys

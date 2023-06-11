@@ -746,6 +746,66 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_match "#{ActiveRecord::Base.connection.class} does not support :unique_by", error.message
   end
 
+  def test_insert_all_with_array_of_model
+    assert_difference "Book.count", +1 do
+      Book.insert_all [
+        Book.new({ name: "Rework", author_id: 1 }),
+      ]
+    end
+  end
+
+  def test_insert_all_with_array_of_model_touch_timestamps
+    Book.insert_all!([Book.new(name: 'Happy')])
+    book = Book.last
+    assert_not_nil book.created_at
+    assert_not_nil book.updated_at
+  end
+
+  def test_insert_all_with_array_of_model_does_not_implicitly_touch_timestamps_when_record_timestamps_option_is_false
+    Book.insert_all!([Book.new(name: 'Happy')], record_timestamps: false)
+    book = Book.last
+    assert_nil book.created_at
+    assert_nil book.updated_at
+  end
+
+  def test_upsert_all_with_array_of_model_updates_existing_record
+    skip unless supports_insert_on_duplicate_update?
+    book = Book.first
+    old_name = book.name
+    book.name = 'New edition'
+    Book.upsert_all([book])
+    assert_not_equal old_name, book.reload.name
+  end
+
+  def test_upsert_all_with_array_of_model_does_not_touch_timestamps_when_values_do_not_change
+    skip unless supports_insert_on_duplicate_update?
+    book = Book.create!(name: 'Happy')
+    created_at = book.created_at
+    updeted_at = book.updated_at
+
+    Book.upsert_all([book])
+    assert_equal created_at, book.reload.created_at
+    assert_equal updeted_at, book.reload.updated_at
+  end
+
+  def test_upsert_all_with_array_of_model_touch_updated_at_when_values_change
+    skip unless supports_insert_on_duplicate_update?
+    book = travel_to(Date.new(2016, 4, 17)) { Book.create!(name: 'Happy') }
+    updeted_at = book.updated_at
+    book.name = 'Sad'
+    Book.upsert_all([book])
+    assert_not_in_delta updeted_at, book.reload.updated_at, 1
+  end
+
+  def test_upsert_all_with_array_of_model_explicitly_set_timestamps_when_record_timestamps_option_is_false
+    skip unless supports_insert_on_duplicate_update?
+    book = Book.create!(name: 'Happy')
+    time = Time.now.utc - 5.years
+    book.updated_at = time
+    Book.upsert_all([book], record_timestamps: false)
+    assert_in_delta time, book.reload.updated_at, 1
+  end
+
   private
     def capture_log_output
       output = StringIO.new

@@ -102,8 +102,22 @@ module ActiveRecord
       # Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # The +attributes+ parameter is an Array of Hashes. Every Hash determines
+      # The +attributes+ parameter is an Array of Hashes or Models. Every Hash determines
       # the attributes for a single row and must have the same keys.
+      #
+      #   Example using array of models:
+      #
+      #     Book.insert_all([
+      #       Book.new(title: "Rework", author: "David"),
+      #       Book.new(title: "Eloquent Ruby", author: "Russ")
+      #     ])
+      #
+      #   Example using array of hashes:
+      #
+      #     Book.insert_all([
+      #       { title: "Rework", author: "David" },
+      #       { title: "Eloquent Ruby", author: "Russ" }
+      #     ])
       #
       # Rows are considered to be unique by every unique index on the table. Any
       # duplicate rows are skipped.
@@ -258,8 +272,22 @@ module ActiveRecord
       # it trigger Active Record callbacks or validations. Though passed values
       # go through Active Record's type casting and serialization.
       #
-      # The +attributes+ parameter is an Array of Hashes. Every Hash determines
+      # The +attributes+ parameter is an Array of Hashes or Models. Every Hash determines
       # the attributes for a single row and must have the same keys.
+      #
+      #   Example using array of models:
+      #
+      #     Book.upsert_all([
+      #       Book.new(title: "Rework", author: "David"),
+      #       Book.new(title: "Eloquent Ruby", author: "Russ")
+      #     ])
+      #
+      #   Example using array of hashes:
+      #
+      #     Book.upsert_all([
+      #       { title: "Rework", author: "David" },
+      #       { title: "Eloquent Ruby", author: "Russ" }
+      #     ])
       #
       # Returns an ActiveRecord::Result with its contents based on
       # <tt>:returning</tt> (see below).
