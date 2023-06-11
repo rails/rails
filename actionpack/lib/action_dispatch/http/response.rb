@@ -462,7 +462,6 @@ module ActionDispatch # :nodoc:
       # our last chance.
       commit! unless committed?
 
-      @headers.freeze
       @request.commit_cookie_jar! unless committed?
     end
 
