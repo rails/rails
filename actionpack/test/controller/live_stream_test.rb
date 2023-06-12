@@ -319,11 +319,6 @@ module ActionController
         logger.info "Work complete"
         latch.count_down
       end
-
-      def buffer_do_not_respond_to_to_ary
-        response.stream.write "response.stream.respond_to? = #{response.stream.respond_to?(:to_ary)}"
-        response.stream.close
-      end
     end
 
     tests TestController
@@ -603,8 +598,13 @@ module ActionController
     end
 
     def test_response_buffer_do_not_respond_to_to_ary
-      get :buffer_do_not_respond_to_to_ary
-      assert_equal "response.stream.respond_to? = false", response.body
+      get :basic_stream
+      # `response.to_a` wraps the response with RackBody.
+      # RackBody is the body we return to Rack.
+      # Therefore we want to assert directly on it.
+      # The Rack spec requires bodies that cannot be
+      # buffered to return false to `respond_to?(:to_ary)`
+      assert_not response.to_a.last.respond_to? :to_ary
     end
   end
 
