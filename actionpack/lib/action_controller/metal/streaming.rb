@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rack/chunked"
-
 module ActionController # :nodoc:
   # = Action Controller \Streaming
   #
@@ -208,6 +206,35 @@ module ActionController # :nodoc:
   # * https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response
   #
   module Streaming
+    class Body # :nodoc:
+      TERM = "\r\n"
+      TAIL = "0#{TERM}"
+
+      # Store the response body to be chunked.
+      def initialize(body)
+        @body = body
+      end
+
+      # For each element yielded by the response body, yield
+      # the element in chunked encoding.
+      def each(&block)
+        term = TERM
+        @body.each do |chunk|
+          size = chunk.bytesize
+          next if size == 0
+
+          yield [size.to_s(16), term, chunk.b, term].join
+        end
+        yield TAIL
+        yield term
+      end
+
+      # Close the response body if the response body supports it.
+      def close
+        @body.close if @body.respond_to?(:close)
+      end
+    end
+
     private
       # Set proper cache control and transfer encoding when streaming
       def _process_options(options)
@@ -226,7 +253,7 @@ module ActionController # :nodoc:
       # Call render_body if we are streaming instead of usual +render+.
       def _render_template(options)
         if options.delete(:stream)
-          Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
+          Body.new view_renderer.render_body(view_context, options)
         else
           super
         end
