@@ -120,7 +120,7 @@ class CreateBooks < ActiveRecord::Migration[7.1]
     end
 
     create_table :books do |t|
-      t.belongs_to :author
+      t.references :author
       t.datetime :published_at
       t.timestamps
     end
@@ -135,7 +135,7 @@ To setup a [bi-directional association](#bi-directional-associations) - use `bel
 
 ```ruby
 create_table :books do |t|
-  t.belongs_to :author, foreign_key: true
+  t.references :author, foreign_key: true
   # ...
 end
 ```
@@ -167,7 +167,7 @@ class CreateSuppliers < ActiveRecord::Migration[7.1]
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier
+      t.references :supplier
       t.string :account_number
       t.timestamps
     end
@@ -181,7 +181,7 @@ case, the column definition might look like this:
 
 ```ruby
 create_table :accounts do |t|
-  t.belongs_to :supplier, index: { unique: true }, foreign_key: true
+  t.references :supplier, index: { unique: true }, foreign_key: true
   # ...
 end
 ```
@@ -213,7 +213,7 @@ class CreateAuthors < ActiveRecord::Migration[7.1]
     end
 
     create_table :books do |t|
-      t.belongs_to :author
+      t.references :author
       t.datetime :published_at
       t.timestamps
     end
@@ -226,7 +226,7 @@ a foreign key constraint on the author column for the books table:
 
 ```ruby
 create_table :books do |t|
-  t.belongs_to :author, index: true, foreign_key: true
+  t.references :author, index: true, foreign_key: true
   # ...
 end
 ```
@@ -270,8 +270,8 @@ class CreateAppointments < ActiveRecord::Migration[7.1]
     end
 
     create_table :appointments do |t|
-      t.belongs_to :physician
-      t.belongs_to :patient
+      t.references :physician
+      t.references :patient
       t.datetime :appointment_date
       t.timestamps
     end
@@ -351,13 +351,13 @@ class CreateAccountHistories < ActiveRecord::Migration[7.1]
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier
+      t.references :supplier
       t.string :account_number
       t.timestamps
     end
 
     create_table :account_histories do |t|
-      t.belongs_to :account
+      t.references :account
       t.integer :credit_rating
       t.timestamps
     end
@@ -399,8 +399,8 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[7.1]
     end
 
     create_table :assemblies_parts, id: false do |t|
-      t.belongs_to :assembly
-      t.belongs_to :part
+      t.references :assembly
+      t.references :part
     end
   end
 end
