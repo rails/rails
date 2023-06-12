@@ -426,9 +426,11 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
     book = Cpk::Book.new
 
-    assert_raises(TypeError) do
+    error = assert_raises(TypeError) do
       book.id = 1
     end
+
+    assert_equal("Expected value matching [\"author_id\", \"number\"], got 1.", error.message)
   end
 
   def test_id_was_composite
