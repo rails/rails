@@ -3872,6 +3872,36 @@ config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
 
 The default is `/rails/active_storage`.
 
+#### `config.active_storage.blob_prefix`
+
+Sets a prefix for the keys of new blobs, which most services present as a folder.
+
+```ruby
+config.active_storage.blob_prefix = "active_storage"
+# New blob keys look like "active_storage/xtapjjcjiudrlk3tmwyjgpuobabd"
+```
+
+Per-attachment prefixes set with the `:prefix` option of `has_one_attached` and
+`has_many_attached` are appended to it. Existing blobs keep their keys.
+
+The default is `nil`, which stores blobs without a prefix.
+
+#### `config.active_storage.direct_upload_prefix`
+
+Sets a prefix for the keys of blobs created by direct uploads, appended to
+`config.active_storage.blob_prefix`.
+
+```ruby
+config.active_storage.blob_prefix = "active_storage"
+config.active_storage.direct_upload_prefix = "direct_uploads"
+# Directly uploaded blob keys look like "active_storage/direct_uploads/xtapjjcjiudrlk3tmwyjgpuobabd"
+```
+
+To choose the prefix per request, subclass `ActiveStorage::DirectUploadsController`
+and override `direct_upload_prefix`. See [Prefixing Direct Uploads](active_storage_overview.html#prefixing-direct-uploads).
+
+The default is `nil`.
+
 #### `config.active_storage.track_variants`
 
 Determines whether variants are recorded in the database.

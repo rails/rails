@@ -135,6 +135,35 @@ class ActiveStorage::Blob < ActiveStorage::Record
       SecureRandom.base36(length)
     end
 
+    # Generates a unique key for a new blob by joining `global_prefix` (which defaults to
+    # `config.active_storage.blob_prefix`), `prefix` and a secure token with slashes. `prefix`
+    # can be a single value or an array of segments.
+    #
+    # ```
+    # ActiveStorage.blob_prefix = "active_storage"
+    #
+    # ActiveStorage::Blob.generate_unique_key
+    # # => "active_storage/xtapjjcjiudrlk3tmwyjgpuobabd"
+    # ActiveStorage::Blob.generate_unique_key(prefix: [ "tenants", 42 ])
+    # # => "active_storage/tenants/42/xtapjjcjiudrlk3tmwyjgpuobabd"
+    # ```
+    #
+    # Empty segments and surrounding slashes are dropped, so `"/tenants/"` and `"tenants"`
+    # produce the same key. Raises ActiveStorage::InvalidKeyError when a prefix contains
+    # `.` or `..` segments.
+    #
+    # Use it to build the `key:` of blobs created outside an attachment, such as in a
+    # subclass of ActiveStorage::DirectUploadsController.
+    def generate_unique_key(prefix: nil, global_prefix: ActiveStorage.blob_prefix)
+      segments = [ global_prefix, *Array(prefix) ].flat_map { |part| part.to_s.split("/") }.compact_blank
+
+      if segments.intersect?(%w[ . .. ])
+        raise ActiveStorage::InvalidKeyError, "key prefix must not contain . or .. segments"
+      end
+
+      [ *segments, generate_unique_secure_token ].join("/")
+    end
+
     # Customize signed ID purposes for backwards compatibility.
     def combine_signed_id_purposes(purpose) # :nodoc:
       purpose.to_s
@@ -214,11 +243,26 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
   # secure-token format from \Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
+  # When `config.active_storage.blob_prefix` or an attachment's `:prefix` option is set, the token is
+  # preceded by those prefixes, like: active_storage/avatars/xtapjjcjiudrlk3tmwyjgpuobabd.
   # This key is not intended to be revealed directly to the user.
   # Always refer to blobs using the signed_id or a verified form of the key.
   def key
     # We can't wait until the record is first saved to have a key for it
-    self[:key] ||= self.class.generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
+    self[:key] ||= self.class.generate_unique_key
+  end
+
+  # Generates a key for a blob derived from this one, such as a variant or a preview image,
+  # so that it's stored under the same prefix as this blob.
+  def generate_derived_key # :nodoc:
+    if key_prefix
+      self.class.generate_unique_key(prefix: key_prefix, global_prefix: nil)
+    else
+      self.class.generate_unique_key
+    end
+  rescue ActiveStorage::InvalidKeyError
+    # A custom key can contain segments that new keys reject; don't fail to create variants of such a blob.
+    self.class.generate_unique_key
   end
 
   # Returns an ActiveStorage::Filename instance of the filename that can be
@@ -408,6 +452,10 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   private
+    def key_prefix
+      key.rpartition("/").first.presence
+    end
+
     # The extension is there for tools that cannot tell the type from the bytes (316d87e4: ImageMagick
     # needs it for an SVG with no XML declaration), but some tools choose a decoder on it alone: FFmpeg
     # runs a `.avs` file as an AviSynth script. So the uploaded extension is kept only when it denotes
