@@ -144,11 +144,40 @@ module ActiveStorage
       #
       # Any other options are passed to the `avatar_attachment` association.
       #
+      # To store the attachment's files under a particular key prefix (a "folder" in most
+      # services), pass the `:prefix` option:
+      #
+      # ```
+      # class User < ApplicationRecord
+      #   has_one_attached :avatar, prefix: "avatars"
+      # end
+      # ```
+      #
+      # `:prefix` can also be specified as a proc. It's called with the model instance, and with the
+      # attachable being attached (an uploaded file, a `Hash`, a `File`, etc.) if it accepts a second
+      # argument. It's called when the record is saved, so it can use attributes assigned after the
+      # attachment:
+      #
+      # ```
+      # class User < ApplicationRecord
+      #   belongs_to :tenant
+      #   has_one_attached :avatar, prefix: ->(user) { user.tenant_id }
+      # end
+      # ```
+      #
+      # The prefix is appended to `config.active_storage.blob_prefix`, when set. Leading and
+      # trailing slashes are ignored, and prefixes with `.` or `..` segments raise
+      # ActiveStorage::InvalidKeyError. Variants and previews are stored under the same prefix as
+      # their blob. The prefix is applied only when Active Storage builds a new blob for the
+      # attachment: blobs created by direct uploads, or attached by signed ID or as an existing
+      # `ActiveStorage::Blob`, keep the key they were created with. See ActiveStorage::DirectUploadsController
+      # for prefixing direct uploads.
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use `has_one_attached`, make sure to also update the class names in the
       # `active_storage_attachments.record_type` polymorphic type column of
       # the corresponding rows.
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, **options)
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, prefix: nil, **options)
         Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -192,7 +221,7 @@ module ActiveStorage
           :has_one_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service, analyze: analyze },
+          { dependent: dependent, service_name: service, analyze: analyze, prefix: prefix },
           self
         )
         yield reflection if block_given?
@@ -272,11 +301,40 @@ module ActiveStorage
       #
       # Any other options are passed to the `photos_attachments` association.
       #
+      # To store the attachment's files under a particular key prefix (a "folder" in most
+      # services), pass the `:prefix` option:
+      #
+      # ```
+      # class User < ApplicationRecord
+      #   has_many_attached :photos, prefix: "photos"
+      # end
+      # ```
+      #
+      # `:prefix` can also be specified as a proc. It's called with the model instance, and with the
+      # attachable being attached (an uploaded file, a `Hash`, a `File`, etc.) if it accepts a second
+      # argument. It's called when the record is saved, so it can use attributes assigned after the
+      # attachment:
+      #
+      # ```
+      # class User < ApplicationRecord
+      #   belongs_to :tenant
+      #   has_many_attached :photos, prefix: ->(user) { user.tenant_id }
+      # end
+      # ```
+      #
+      # The prefix is appended to `config.active_storage.blob_prefix`, when set. Leading and
+      # trailing slashes are ignored, and prefixes with `.` or `..` segments raise
+      # ActiveStorage::InvalidKeyError. Variants and previews are stored under the same prefix as
+      # their blob. The prefix is applied only when Active Storage builds a new blob for the
+      # attachment: blobs created by direct uploads, or attached by signed ID or as an existing
+      # `ActiveStorage::Blob`, keep the key they were created with. See ActiveStorage::DirectUploadsController
+      # for prefixing direct uploads.
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use `has_many`, make sure to also update the class names in the
       # `active_storage_attachments.record_type` polymorphic type column of
       # the corresponding rows.
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, **options)
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, prefix: nil, **options)
         Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -322,7 +380,7 @@ module ActiveStorage
           :has_many_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service, analyze: analyze },
+          { dependent: dependent, service_name: service, analyze: analyze, prefix: prefix },
           self
         )
         yield reflection if block_given?

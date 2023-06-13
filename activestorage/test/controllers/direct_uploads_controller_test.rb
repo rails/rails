@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require "active_support/core_ext/object/with"
 
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
@@ -194,7 +195,44 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     end
   end
 
+  test "creating new direct upload without prefixes" do
+    post rails_direct_uploads_url, params: { blob: direct_upload_params }
+
+    assert_match(/\A[a-z0-9]{28}\z/, direct_upload_blob.key)
+  end
+
+  test "creating new direct upload with the global and direct upload prefixes" do
+    ActiveStorage.with(blob_prefix: "active_storage", direct_upload_prefix: "direct_uploads") do
+      post rails_direct_uploads_url, params: { blob: direct_upload_params }
+    end
+
+    assert_match(%r{\Aactive_storage/direct_uploads/[a-z0-9]{28}\z}, direct_upload_blob.key)
+  end
+
+  test "creating new direct upload ignores a key from the client" do
+    post rails_direct_uploads_url, params: { blob: direct_upload_params.merge(key: "chosen/by/client") }
+
+    assert_match(/\A[a-z0-9]{28}\z/, direct_upload_blob.key)
+  end
+
+  test "creating new direct upload with a prefix chosen by a subclass" do
+    ActiveStorage.with(direct_upload_prefix: "direct_uploads") do
+      post "/prefixed_direct_uploads", params: { blob: direct_upload_params }, headers: { "X-Tenant-ID" => "42" }
+    end
+
+    assert_response :success
+    assert_match(%r{\Adirect_uploads/42/[a-z0-9]{28}\z}, direct_upload_blob.key)
+  end
+
   private
+    def direct_upload_params
+      { filename: "hello.txt", byte_size: 6, checksum: OpenSSL::Digest::MD5.base64digest("Hello"), content_type: "text/plain" }
+    end
+
+    def direct_upload_blob
+      ActiveStorage::Blob.find(response.parsed_body["id"])
+    end
+
     def set_include_root_in_json(value)
       original = ActiveRecord::Base.include_root_in_json
       ActiveRecord::Base.include_root_in_json = value

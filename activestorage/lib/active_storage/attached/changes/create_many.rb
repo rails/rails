@@ -29,6 +29,7 @@ module ActiveStorage
     end
 
     def save
+      pending_uploads.each(&:assign_prefixed_key)
       assign_associated_attachments
       reset_associated_blobs
     end

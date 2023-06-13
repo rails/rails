@@ -4477,6 +4477,34 @@ module ApplicationTests
       MESSAGE
     end
 
+    test "ActiveStorage.blob_prefix can be configured via config.active_storage.blob_prefix" do
+      add_to_config "config.active_storage.blob_prefix = 'active_storage'"
+
+      app "development"
+
+      assert_equal "active_storage", ActiveStorage.blob_prefix
+    end
+
+    test "ActiveStorage.blob_prefix is nil by default" do
+      app "development"
+
+      assert_nil ActiveStorage.blob_prefix
+    end
+
+    test "ActiveStorage.direct_upload_prefix can be configured via config.active_storage.direct_upload_prefix" do
+      add_to_config "config.active_storage.direct_upload_prefix = 'direct_uploads'"
+
+      app "development"
+
+      assert_equal "direct_uploads", ActiveStorage.direct_upload_prefix
+    end
+
+    test "ActiveStorage.direct_upload_prefix is nil by default" do
+      app "development"
+
+      assert_nil ActiveStorage.direct_upload_prefix
+    end
+
     test "ActiveStorage.analyzers default value" do
       app "development"
 
