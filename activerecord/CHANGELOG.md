@@ -1,3 +1,9 @@
+*   Add frozen string literal comment in ActiveRecord migration templates
+
+    Adds a frozen string literal comment to `create_table_migration.rb.tt` and `migration.rb.tt` templates.
+
+    *Anton Ivanov*
+
 *   Allow composite primary key to be derived from schema
 
     Booting an application with a schema that contains composite primary keys
