@@ -77,7 +77,7 @@ gem "jbuilder", require: false
 gem "web-console", require: false
 
 # Action Pack and railties
-rack_version = ENV.fetch("RACK", "~> 2.0") # Change to ~> 3 after #46594 is merged.
+rack_version = ENV.fetch("RACK", "~> 3.0")
 gem "rack", rack_version
 
 # Active Job
