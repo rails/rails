@@ -97,11 +97,32 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
+      # If you need the attachment to be stored under a particular prefix/folder you can use the
+      # +:prefix+ option. For example, in order to store all these files inside the avatars folder you
+      # may do:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_one_attached :avatar, prefix: 'avatars'
+      #   end
+      #
+      # The value could be a proc as well:
+      #   class User < ActiveRecord::Base
+      #     belongs_to :tenant
+      #     has_one_attached :avatar, prefix: -> (record, attachment) { record.tenant_id }
+      #   end
+      #
+      # You may also configure a global prefix for all blobs that will be included in
+      # addition to the per reflection prefix
+      #
+      #   Rails.application.configure do
+      #     config.active_storage.blob_prefix = 'active_storage'
+      #   end
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, prefix: nil)
         ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -143,7 +164,7 @@ module ActiveStorage
           :has_one_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, prefix: prefix },
           self
         )
         yield reflection if block_given?
@@ -195,11 +216,32 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
+      # If you need the attachment to be stored under a particular prefix/folder you can use the
+      # +:prefix+ option. For example, in order to store all these files inside the avatars folder you
+      # may do:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_many_attached :photos, prefix: 'photos'
+      #   end
+      #
+      # The value could be a proc as well:
+      #   class User < ActiveRecord::Base
+      #     belongs_to :tenant
+      #     has_many_attached :photos, prefix: -> (record, attachment) { record.tenant_id }
+      #   end
+      #
+      # You may also configure a global prefix for all blobs that will be included in
+      # addition to the per reflection prefix
+      #
+      #   Rails.application.configure do
+      #     config.active_storage.blob_prefix = 'active_storage'
+      #   end
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, prefix: nil)
         ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -243,7 +285,7 @@ module ActiveStorage
           :has_many_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, prefix: prefix },
           self
         )
         yield reflection if block_given?

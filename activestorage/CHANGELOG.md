@@ -50,4 +50,37 @@
 
     *Yogesh Khater*
 
+*   Allows for configuring a custom prefix for Blob keys.
+
+    ```ruby
+    Rails.application.configure do
+      config.active_storage.blob_prefix = 'active_storage'
+    end
+    ```
+
+    This will store Blobs in a path like active_storage/<random_key>
+
+    You may also configure an additional level of prefix on each relation.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one_attached :avatar, prefix: 'avatars'
+    end
+    ```
+
+    This will store Blobs in a path like active_storage/avatars/<random_key>
+
+    Or even generate it using information on the record:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      belongs_to :tenant
+      has_one_attached :avatar, prefix: -> (record, attachment) { record.tenant.name }
+    end
+    ```
+
+    This will store Blobs in a path like active_storage/account_1/<random_key>
+
+    *Gonzalo Rodríguez-Baltanás Díaz*
+
 Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activestorage/CHANGELOG.md) for previous changes.

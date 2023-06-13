@@ -51,6 +51,17 @@ module ActiveStorage
     end
 
     private
+      def generate_blob_id
+        prefix = record.attachment_reflections[name].prefix
+        prefix = prefix.call(record, attachable) if prefix.respond_to? :call
+
+        [
+          Rails.application.config.active_storage.blob_prefix.to_s,
+          prefix.to_s,
+          ActiveStorage::Blob.generate_unique_secure_token.to_s
+        ].reject(&:blank?).join("/")
+      end
+
       def find_or_build_attachment
         find_attachment || build_attachment
       end
@@ -72,6 +83,7 @@ module ActiveStorage
         when ActionDispatch::Http::UploadedFile
           ActiveStorage::Blob.build_after_unfurling(
             io: attachable.open,
+            key: generate_blob_id,
             filename: attachable.original_filename,
             content_type: attachable.content_type,
             record: record,
@@ -80,6 +92,7 @@ module ActiveStorage
         when Rack::Test::UploadedFile
           ActiveStorage::Blob.build_after_unfurling(
             io: attachable.respond_to?(:open) ? attachable.open : attachable,
+            key: generate_blob_id,
             filename: attachable.original_filename,
             content_type: attachable.content_type,
             record: record,
@@ -88,6 +101,7 @@ module ActiveStorage
         when Hash
           ActiveStorage::Blob.build_after_unfurling(
             **attachable.reverse_merge(
+              key: generate_blob_id,
               record: record,
               service_name: attachment_service_name
             ).symbolize_keys

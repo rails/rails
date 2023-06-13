@@ -186,7 +186,10 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # Always refer to blobs using the signed_id or a verified form of the key.
   def key
     # We can't wait until the record is first saved to have a key for it
-    self[:key] ||= self.class.generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
+    self[:key] ||= [
+      Rails.application.config.active_storage.blob_prefix.to_s,
+      self.class.generate_unique_secure_token.to_s
+    ].reject(&:blank?).join("/")
   end
 
   # Returns an ActiveStorage::Filename instance of the filename that can be
