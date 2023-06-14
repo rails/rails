@@ -685,7 +685,9 @@ module ApplicationTests
 
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
-        application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        Rails.deprecator.silence do
+          application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        end
         application.config.session_store :disabled
       end
 
@@ -705,7 +707,9 @@ module ApplicationTests
 
     test "application verifier can be used in the entire application" do
       make_basic_app do |application|
-        application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        Rails.deprecator.silence do
+          application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        end
         application.config.session_store :disabled
       end
 
@@ -823,6 +827,14 @@ module ApplicationTests
       assert_equal "old message", app.message_verifiers["salt"].verify(old_message)
     end
 
+    test "secrets is deprecated" do
+      app "development"
+
+      assert_deprecated(Rails.deprecator) do
+        Rails.application.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
+      end
+    end
+
     test "secrets.secret_key_base is used when config/secrets.yml is present" do
       app_file "config/secrets.yml", <<-YAML
         development:
@@ -830,7 +842,9 @@ module ApplicationTests
       YAML
 
       app "development"
-      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      Rails.deprecator.silence do
+        assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      end
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
