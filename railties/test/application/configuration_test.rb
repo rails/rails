@@ -728,7 +728,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_not_nil app.secrets.secret_key_base
+      assert_not_nil app.secret_key_base
       assert File.exist?(app_path("tmp/development_secret.txt"))
     end
 
@@ -834,14 +834,14 @@ module ApplicationTests
       assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
-    test "secret_key_base is copied from config to secrets when not set" do
+    test "secret_key_base is copied from config.secret_key_base when set" do
       remove_file "config/secrets.yml"
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
       RUBY
 
       app "development"
-      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secrets.secret_key_base
+      assert_equal "3b7cd727ee24e8444053437c36cc66c3", app.secret_key_base
     end
 
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
@@ -892,18 +892,14 @@ module ApplicationTests
       assert_nil app.secrets.not_defined
     end
 
-    test "config.secret_key_base over-writes a blank secrets.secret_key_base" do
+    test "config.secret_key_base over-writes a blank app.secret_key_base" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = "iaminallyoursecretkeybase"
       RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
 
       app "development"
 
-      assert_equal "iaminallyoursecretkeybase", app.secrets.secret_key_base
+      assert_equal "iaminallyoursecretkeybase", app.secret_key_base
     end
 
     test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
