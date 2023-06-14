@@ -293,15 +293,32 @@ module ActiveRecord
     end
 
     def remove_connection(name = nil)
+      ActiveRecord.deprecator.warn(<<-MSG.squish)
+        The `#remove_connection` method is deprecated in favor of `#remove_connection_pool`.
+        The new implementation will not support falling back to the parent pool if the
+        subclass has established its own unique connection. The new implementation will also
+        not support taking a `name` argument. `#remove_connection` will be removed in Rails 7.2.
+      MSG
+
       name ||= @connection_specification_name if defined?(@connection_specification_name)
       # if removing a connection that has a pool, we reset the
       # connection_specification_name so it will use the parent
       # pool.
-      if connection_handler.retrieve_connection_pool(name, role: current_role, shard: current_shard)
+      if connection_handler.retrieve_connection_pool(name)
         self.connection_specification_name = nil
       end
 
-      connection_handler.remove_connection_pool(name, role: current_role, shard: current_shard)
+      connection_handler.remove_connection_pool(name)
+    end
+
+    # Removes the connection from the pool if self.name is equivalent to
+    # the connection_specification_name. Active Record will not remove the
+    # parent pool if the subclass pool is shared. To remove the parent pool
+    # call `#remove_connection_pool` directly on the parent class.
+    def remove_connection_pool
+      if self.name == connection_specification_name
+        connection_handler.remove_connection_pool(connection_specification_name)
+      end
     end
 
     def clear_cache! # :nodoc:

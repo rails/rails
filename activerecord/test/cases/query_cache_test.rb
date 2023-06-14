@@ -469,7 +469,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_cache_is_available_when_using_a_not_connected_connection
     skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
     db_config = ActiveRecord::Base.connection_db_config
-    original_connection = ActiveRecord::Base.remove_connection
+    original_connection = ActiveRecord::Base.remove_connection_pool
 
     ActiveRecord::Base.establish_connection(db_config)
     assert_not_predicate Task, :connected?

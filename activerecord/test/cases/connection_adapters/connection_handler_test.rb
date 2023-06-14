@@ -267,6 +267,22 @@ module ActiveRecord
 
       def test_a_class_using_custom_pool_and_switching_back_to_primary
         klass2 = Class.new(Base) { def self.name; "klass2"; end }
+        base_connection = ActiveRecord::Base.connection
+
+        assert_same klass2.connection, base_connection
+
+        pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.db_config.configuration_hash)
+        assert_same klass2.connection, pool.connection
+        assert_not_same klass2.connection, ActiveRecord::Base.connection
+
+        klass2.remove_connection_pool
+
+        assert_nil klass2.connected?
+        assert_equal base_connection, ActiveRecord::Base.connection
+      end
+
+      def test_a_class_using_custom_pool_and_switching_back_to_primary_deprecated_behavior
+        klass2 = Class.new(Base) { def self.name; "klass2"; end }
 
         assert_same klass2.connection, ActiveRecord::Base.connection
 
@@ -274,7 +290,9 @@ module ActiveRecord
         assert_same klass2.connection, pool.connection
         assert_not_same klass2.connection, ActiveRecord::Base.connection
 
-        klass2.remove_connection
+        assert_deprecated(ActiveRecord.deprecator) do
+          klass2.remove_connection
+        end
 
         assert_same klass2.connection, ActiveRecord::Base.connection
       end
@@ -305,14 +323,24 @@ module ActiveRecord
         ActiveRecord::Base.connection_specification_name = "readonly"
         assert_equal "readonly", klassC.connection_specification_name
       ensure
-        ApplicationRecord.remove_connection
+        ApplicationRecord.remove_connection_pool
         Object.send :remove_const, :ApplicationRecord
         ActiveRecord::Base.connection_specification_name = "ActiveRecord::Base"
       end
 
       def test_remove_connection_should_not_remove_parent
         klass2 = Class.new(Base) { def self.name; "klass2"; end }
-        klass2.remove_connection
+        klass2.remove_connection_pool
+        assert_not_nil ActiveRecord::Base.connection
+        assert_same klass2.connection, ActiveRecord::Base.connection
+      end
+
+      def test_remove_connection_should_not_remove_parent_deprecated_behavior
+        klass2 = Class.new(Base) { def self.name; "klass2"; end }
+
+        assert_deprecated(ActiveRecord.deprecator) do
+          klass2.remove_connection
+        end
         assert_not_nil ActiveRecord::Base.connection
         assert_same klass2.connection, ActiveRecord::Base.connection
       end

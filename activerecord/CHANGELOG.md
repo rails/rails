@@ -1,3 +1,39 @@
+*   Deprecate `#remove_connection` in favor of `#remove_connection_pool`.
+
+    Rails 7.2 will remove support for `#remove_connection` in favor of `#remove_connection_pool`. This deprecation also represents a change in behavior. `#remove_connection_pool` will not accept a `name` argument as it should always be called on the class that owns the pool an application wants removed. In addition it will no longer reset a subclass with it's own connection to the parent pool.
+
+    Previous behavior:
+
+    ```ruby
+    class ActiveRecord::Base
+    end
+
+    class Post < ActiveRecord::Base
+      establish_connection :post_db
+    end
+
+    Post.remove_connection
+    => would reassign Post to `ActiveRecord::Base`  and `Post.connected?` returns `true`.
+    ```
+
+    New behavior:
+
+    ```ruby
+    class ActiveRecord::Base
+    end
+
+    class Post < ActiveRecord::Base
+      establish_connection :post_db
+    end
+
+    Post.remove_connection
+    => Removes the pool keyed on `Post` and `Post.connected?` returns `nil`.
+    ```
+
+    If the `Post` class does not have its own connection and `Post.remove_connection` is called, the behavior is unchanged. Active Record will not remove the pool belonging to `ActiveRecord::Base`. To remove the parent pool, applications should call `ActiveRecord::Base.remove_connection` directly.
+
+    *Eileen M. Uchitelle*
+
 *   Allow composite primary key to be derived from schema
 
     Booting an application with a schema that contains composite primary keys

@@ -287,7 +287,7 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
       assert NoConnection.connected?
       assert_equal "foo", NoConnection.primary_key
 
-      ActiveRecord::Base.connection_handler.remove_connection_pool("PrimaryKeyWithNoConnectionTest::NoConnection")
+      NoConnection.remove_connection_pool
       assert_nil NoConnection.connected?
 
       assert_equal "foo", NoConnection.primary_key

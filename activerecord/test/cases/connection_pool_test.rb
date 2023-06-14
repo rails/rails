@@ -536,7 +536,7 @@ module ActiveRecord
         assert_equal ActiveRecord::Base.default_shard, payloads[0][:shard]
         assert_equal :writing, payloads[0][:role]
       ensure
-        @connection_test_model_class.remove_connection
+        @connection_test_model_class.remove_connection_pool
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 
@@ -552,7 +552,7 @@ module ActiveRecord
         assert_equal :default, payloads[0][:shard]
         assert_equal :writing, payloads[0][:role]
       ensure
-        @connection_test_model_class.remove_connection
+        @connection_test_model_class.remove_connection_pool
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 

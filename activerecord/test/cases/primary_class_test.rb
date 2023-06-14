@@ -110,7 +110,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
       assert_predicate ApplicationRecord, :application_record_class?
       assert_equal ActiveRecord::Base.connection, ApplicationRecord.connection
     ensure
-      ApplicationRecord.remove_connection
+      ApplicationRecord.remove_connection_pool
       ActiveRecord.application_record_class = nil
       Object.send(:remove_const, :ApplicationRecord)
       ActiveRecord::Base.establish_connection :arunit
@@ -126,7 +126,7 @@ class PrimaryClassTest < ActiveRecord::TestCase
       assert_predicate PrimaryClassTest::PrimaryAppRecord, :abstract_class?
       assert_equal ActiveRecord::Base.connection, PrimaryClassTest::PrimaryAppRecord.connection
     ensure
-      PrimaryClassTest::PrimaryAppRecord.remove_connection
+      PrimaryClassTest::PrimaryAppRecord.remove_connection_pool
       ActiveRecord.application_record_class = nil
       ActiveRecord::Base.establish_connection :arunit
     end

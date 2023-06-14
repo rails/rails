@@ -16,7 +16,7 @@ class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
     end
 
     teardown do
-      Bird.remove_connection
+      Bird.remove_connection_pool
     end
 
     test "inspect on Model class does not raise" do
