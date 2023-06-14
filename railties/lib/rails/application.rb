@@ -468,7 +468,7 @@ module Rails
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
       if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        secrets.secret_key_base ||= generate_development_secret
+        config.secret_key_base ||= generate_development_secret
       else
         validate_secret_key_base(
           ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
@@ -643,19 +643,22 @@ module Rails
 
     private
       def generate_development_secret
-        if secrets.secret_key_base.nil?
+        if config.secret_key_base.nil?
           key_file = Rails.root.join("tmp/development_secret.txt")
 
-          if !File.exist?(key_file)
+          if File.exist?(key_file)
+            config.secret_key_base = File.binread(key_file)
+          elsif secrets.secret_key_base
+            config.secret_key_base = secrets.secret_key_base
+          else
             random_key = SecureRandom.hex(64)
             FileUtils.mkdir_p(key_file.dirname)
             File.binwrite(key_file, random_key)
+            config.secret_key_base = File.binread(key_file)
           end
-
-          secrets.secret_key_base = File.binread(key_file)
         end
 
-        secrets.secret_key_base
+        config.secret_key_base
       end
 
       def build_request(env)
