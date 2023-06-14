@@ -2167,7 +2167,7 @@ irb> Customer.connection.select_all("SELECT first_name, created_at FROM customer
 
 ### `pluck`
 
-[`pluck`][] can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
+[`pluck`][] can be used to pick the value(s) from the named column(s) in the current relation. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```irb
 irb> Book.where(out_of_print: true).pluck(:id)
