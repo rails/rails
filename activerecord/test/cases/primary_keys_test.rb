@@ -271,20 +271,26 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
+  class NoConnection < ActiveRecord::Base
+    self.abstract_class = true
+    self.primary_key = "foo"
+  end
+
   self.use_transactional_tests = false
 
   unless in_memory_db?
     def test_set_primary_key_with_no_connection
-      connection = ActiveRecord::Base.remove_connection
+      NoConnection.establish_connection :arunit
+      # execute to fully establish a connection
+      NoConnection.connection.execute("SELECT 1")
 
-      model = Class.new(ActiveRecord::Base)
-      model.primary_key = "foo"
+      assert NoConnection.connected?
+      assert_equal "foo", NoConnection.primary_key
 
-      assert_equal "foo", model.primary_key
+      ActiveRecord::Base.connection_handler.remove_connection_pool("PrimaryKeyWithNoConnectionTest::NoConnection")
+      assert_nil NoConnection.connected?
 
-      ActiveRecord::Base.establish_connection(connection)
-
-      assert_equal "foo", model.primary_key
+      assert_equal "foo", NoConnection.primary_key
     end
   end
 end
