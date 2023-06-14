@@ -371,7 +371,7 @@ GEM
       pg (>= 1.1, < 2.0)
     raabro (1.4.0)
     racc (1.6.2)
-    rack (3.0.7)
+    rack (3.0.8)
     rack-cache (1.13.0)
       rack (>= 0.4)
     rack-session (2.0.0)
