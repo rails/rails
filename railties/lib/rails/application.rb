@@ -458,7 +458,7 @@ module Rails
     # including the ones that sign and encrypt cookies.
     #
     # In development and test, this is randomly generated and stored in a
-    # temporary file in <tt>tmp/development_secret.txt</tt>.
+    # temporary file in <tt>tmp/local_secret.txt</tt>.
     #
     # You can also set <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt> to trigger the use of a randomly generated
     # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
@@ -471,7 +471,7 @@ module Rails
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
       if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        config.secret_key_base ||= generate_development_secret
+        config.secret_key_base ||= generate_local_secret
       else
         validate_secret_key_base(
           ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
@@ -645,9 +645,9 @@ module Rails
     end
 
     private
-      def generate_development_secret
+      def generate_local_secret
         if config.secret_key_base.nil?
-          key_file = Rails.root.join("tmp/development_secret.txt")
+          key_file = Rails.root.join("tmp/local_secret.txt")
 
           if File.exist?(key_file)
             config.secret_key_base = File.binread(key_file)
