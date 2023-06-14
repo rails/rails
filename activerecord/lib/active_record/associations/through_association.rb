@@ -62,9 +62,8 @@ module ActiveRecord
           if Array(association_primary_key) == reflection.klass.composite_query_constraints_list && !options[:source_type]
             join_attributes = { source_reflection.name => records }
           else
-            join_attributes = {
-              source_reflection.foreign_key => records.map(&association_primary_key.to_sym)
-            }
+            assoc_pk_values = records.map { |record| record._read_attribute(association_primary_key) }
+            join_attributes = { source_reflection.foreign_key => assoc_pk_values }
           end
 
           if options[:source_type]

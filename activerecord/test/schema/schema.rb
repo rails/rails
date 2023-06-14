@@ -267,6 +267,15 @@ ActiveRecord::Schema.define do
     t.string :status
   end
 
+  create_table :cpk_order_tags, force: true do |t|
+    t.integer :order_id
+    t.integer :tag_id
+  end
+
+  create_table :cpk_tags, force: true do |t|
+    t.string :name, null: false
+  end
+
   create_table :cpk_order_agreements, force: true do |t|
     t.integer :order_id
     t.string :signature
