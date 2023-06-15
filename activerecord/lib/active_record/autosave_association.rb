@@ -453,7 +453,7 @@ module ActiveRecord
           if autosave && record.marked_for_destruction?
             record.destroy
           elsif autosave != false
-            key = reflection.options[:primary_key] ? public_send(reflection.options[:primary_key]) : id
+            key = reflection.options[:primary_key] ? _read_attribute(reflection.options[:primary_key].to_s) : id
 
             if (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, key)
               unless reflection.through_reflection

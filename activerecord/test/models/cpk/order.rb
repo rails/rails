@@ -16,4 +16,8 @@ module Cpk
     has_many :books
     has_one :book
   end
+
+  class OrderWithPrimaryKeyAssociatedBook < Order
+    has_one :book, primary_key: :id, foreign_key: :order_id
+  end
 end

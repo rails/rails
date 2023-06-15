@@ -798,6 +798,13 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_includes order.books, cpk_books(:cpk_great_author_second_book)
   end
 
+  def test_has_one_cpk_has_one_autosave_with_id
+    book = Cpk::Book.create!(author_id: 1, number: 3, shop_id: 2)
+    order = Cpk::OrderWithPrimaryKeyAssociatedBook.create!(book: book, shop_id: 2)
+
+    assert_equal(book.order.id, order.id)
+  end
+
   def test_assign_ids_for_through_a_belongs_to
     firm = Firm.new("name" => "Apple")
     firm.developer_ids = [developers(:david).id, developers(:jamis).id]
