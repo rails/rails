@@ -34,6 +34,7 @@ require "models/pirate"
 require "models/matey"
 require "models/parrot"
 require "models/sharded"
+require "models/cpk"
 
 class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
   fixtures :citations
@@ -1711,6 +1712,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     blog_post = blog_posts.find { |post| post.id == expected_blog_post.id }
 
     assert_equal(expected_tag_ids.sort, blog_post.tags.map(&:id).sort)
+  end
+
+  test "preloading belongs_to with cpk" do
+    order = Cpk::Order.create!(shop_id: 2)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+    assert_equal order, Cpk::OrderAgreement.eager_load(:order).find_by(id: order_agreement.id).order
   end
 
   private
