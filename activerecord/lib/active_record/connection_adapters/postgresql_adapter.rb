@@ -550,6 +550,43 @@ module ActiveRecord
         internal_exec_query(query)
       end
 
+      # Rename an existing enum type to something else.
+      def rename_enum(name, options = {})
+        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+
+        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{to}").tap { reload_type_map }
+      end
+
+      # Add enum value to an existing enum type.
+      def add_enum_value(type_name, value, options = {})
+        before, after = options.values_at(:before, :after)
+        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE '#{value}'"
+
+        if before && after
+          raise ArgumentError, "Cannot have both :before and :after at the same time"
+        elsif before
+          sql << " BEFORE '#{before}'"
+        elsif after
+          sql << " AFTER '#{after}'"
+        end
+
+        execute(sql).tap { reload_type_map }
+      end
+
+      # Rename enum value on an existing enum type.
+      def rename_enum_value(type_name, options = {})
+        unless database_version >= 10_00_00 # >= 10.0
+          raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
+        end
+
+        from = options.fetch(:from) { raise ArgumentError, ":from is required" }
+        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+
+        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE '#{from}' TO '#{to}'").tap {
+          reload_type_map
+        }
+      end
+
       # Returns the configured supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
