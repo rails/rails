@@ -1,3 +1,10 @@
+*   Deprecate calling `Rails.application.secrets`.
+
+    Rails `secrets` have been deprecated in favor of `credentials`.
+    Calling `Rails.application.secrets` should show a deprecation warning.
+
+    *Petrik de Heus*
+
 *   Store `secret_key_base` in `Rails.config` for local environments.
 
     Rails `secrets` have been deprecated in favor of `credentials`.

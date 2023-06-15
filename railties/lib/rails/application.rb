@@ -435,6 +435,9 @@ module Rails
     attr_writer :config
 
     def secrets
+      Rails.deprecator.warn(<<~MSG.squish)
+        `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2.
+      MSG
       @secrets ||= begin
         secrets = ActiveSupport::OrderedOptions.new
         files = config.paths["config/secrets"].existent
@@ -648,8 +651,8 @@ module Rails
 
           if File.exist?(key_file)
             config.secret_key_base = File.binread(key_file)
-          elsif secrets.secret_key_base
-            config.secret_key_base = secrets.secret_key_base
+          elsif secrets_secret_key_base
+            config.secret_key_base = secrets_secret_key_base
           else
             random_key = SecureRandom.hex(64)
             FileUtils.mkdir_p(key_file.dirname)
@@ -659,6 +662,12 @@ module Rails
         end
 
         config.secret_key_base
+      end
+
+      def secrets_secret_key_base
+        Rails.deprecator.silence do
+          secrets.secret_key_base
+        end
       end
 
       def build_request(env)
