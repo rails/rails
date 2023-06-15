@@ -26,6 +26,7 @@ require "models/contract"
 require "models/subscription"
 require "models/book"
 require "models/branch"
+require "models/cpk"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars, :books
@@ -600,6 +601,15 @@ class InverseHasManyTests < ActiveRecord::TestCase
     children.each do |child|
       assert_predicate child.association(:human), :loaded?
     end
+  end
+
+  def test_inverse_should_be_set_on_composite_primary_key_child
+    author = Cpk::Author.new(name: "John")
+    book = author.books.build(number: 1, title: "The Rails Way")
+    Cpk::Order.new(book: book, status: "paid")
+    author.save!
+
+    assert book.association(:order).loaded?
   end
 
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
