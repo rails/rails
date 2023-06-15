@@ -1844,6 +1844,8 @@ module ActiveRecord
         #   +:inverse_of+ to avoid an extra query during validation.
         #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
+        # [:unique]
+        #   When set to +true+, the association will also have its uniqueness validated.
         # [:default]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
         #   be initialized with a particular record before validation.
@@ -1866,6 +1868,7 @@ module ActiveRecord
         #   belongs_to :comment, touch: true
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
+        #   belongs_to :user, unique: true
         #   belongs_to :account, default: -> { company.account }
         #   belongs_to :account, strict_loading: true
         def belongs_to(name, scope = nil, **options)
