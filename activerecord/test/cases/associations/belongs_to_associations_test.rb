@@ -376,6 +376,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal order_id, book.order_id
   end
 
+  def test_should_set_composite_foreign_key_on_association_when_key_changes_on_associated_record
+    book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
+    order = Cpk::Order.create!(id: [1, 2], book: book)
+
+    order.shop_id = 3
+    order.save!
+
+    assert_equal 3, book.shop_id
+  end
+
   def test_building_the_belonging_object_with_implicit_sti_base_class
     account = Account.new
     company = account.build_firm
