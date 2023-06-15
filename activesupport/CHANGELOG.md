@@ -1,3 +1,11 @@
+*   Improve error messages of `assert_changes` and `assert_no_changes`
+
+    `assert_changes` error messages now display objects with `.inspect` to make it easier
+    to differentiate nil from empty strings, strings from symbols, etc.
+    `assert_no_changes` error messages now surface the actual value.
+
+    *pcreux*
+
 *   Fix `#to_fs(:human_size)` to correctly work with negative numbers.
 
     *Earlopain*
