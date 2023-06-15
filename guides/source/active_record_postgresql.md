@@ -335,7 +335,7 @@ def up
 end
 ```
 
-NOTE: Enum values can't be dropped or renamed which also means add_enum_value is irreversible. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+NOTE: Enum values can't be dropped, which also means add_enum_value is irreversible. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
 To rename a value you can use `rename_enum_value`:
 
