@@ -1720,6 +1720,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal order, Cpk::OrderAgreement.eager_load(:order).find_by(id: order_agreement.id).order
   end
 
+  test "preloading has_many with cpk" do
+    order = Cpk::Order.create!(shop_id: 2)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+    assert_equal [order_agreement], Cpk::Order.eager_load(:order_agreements).find_by(id: order.id).order_agreements
+  end
+
+  test "preloading has_one with cpk" do
+    order = Cpk::Order.create!(shop_id: 2)
+    book = Cpk::Book.create!(order: order, author_id: 1, number: 3)
+    assert_equal book, Cpk::Order.eager_load(:book).find_by(id: order.id).book
+  end
+
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a

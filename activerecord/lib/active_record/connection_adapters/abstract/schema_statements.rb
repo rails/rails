@@ -1355,18 +1355,24 @@ module ActiveRecord
       end
 
       def distinct_relation_for_primary_key(relation) # :nodoc:
+        primary_key_columns = Array(relation.primary_key).map do |column|
+          visitor.compile(relation.table[column])
+        end
+
         values = columns_for_distinct(
-          visitor.compile(relation.table[relation.primary_key]),
+          primary_key_columns,
           relation.order_values
         )
 
         limited = relation.reselect(values).distinct!
-        limited_ids = select_rows(limited.arel, "SQL").map(&:last)
+        limited_ids = select_rows(limited.arel, "SQL").map do |results|
+          results.last(Array(relation.primary_key).length) # ignores order values for MySQL and Postgres
+        end
 
         if limited_ids.empty?
           relation.none!
         else
-          relation.where!(relation.primary_key => limited_ids)
+          relation.where!(**Array(relation.primary_key).zip(limited_ids.transpose).to_h)
         end
 
         relation.limit_value = relation.offset_value = nil
