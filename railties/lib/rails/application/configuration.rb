@@ -527,6 +527,10 @@ module Rails
         f
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      end
+
       class Custom # :nodoc:
         def initialize
           @configurations = Hash.new

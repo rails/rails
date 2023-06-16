@@ -781,6 +781,17 @@ module ApplicationTests
       end
     end
 
+    test "don't output secret_key_base when calling inspect" do
+      secret = "b3c631c314c0bbca50c1b2843150fe33"
+      add_to_config <<-RUBY
+        Rails.application.config.secret_key_base = "#{secret}"
+      RUBY
+      app "production"
+
+      assert_no_match(/#{secret}/, Rails.application.config.inspect)
+      assert_match(/\A#<Rails::Application::Configuration:0x[0-9a-f]+>\z/, Rails.application.config.inspect)
+    end
+
     test "Rails.application.key_generator supports specifying a secret base" do
       app "production"
 

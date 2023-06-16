@@ -1,3 +1,21 @@
+*   Don't show secret_key_base for `Rails.application.config#inspect`.
+
+    Before:
+
+    ```ruby
+    Rails.application.config.inspect
+    "#<Rails::Application::Configuration:0x00000001132b02a0 @root=... @secret_key_base=\"b3c631c314c0bbca50c1b2843150fe33\" ... >"
+    ```
+
+    After:
+
+    ```ruby
+    Rails.application.config.inspect
+    "#<Rails::Application::Configuration:0x00000001132b02a0>"
+    ```
+
+    *Petrik de Heus*
+
 *   Deprecate calling `Rails.application.secrets`.
 
     Rails `secrets` have been deprecated in favor of `credentials`.
