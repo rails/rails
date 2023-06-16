@@ -525,10 +525,10 @@ module ActiveRecord
                 begin
                   commit_transaction
                 rescue ActiveRecord::ConnectionFailed
-                  transaction.invalidate! unless transaction.state.completed?
+                  transaction.invalidate! unless transaction&.state&.completed?
                   raise
                 rescue Exception
-                  rollback_transaction(transaction) unless transaction.state.completed?
+                  rollback_transaction(transaction) unless transaction&.state&.completed?
                   raise
                 end
               end
