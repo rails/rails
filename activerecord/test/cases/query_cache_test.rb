@@ -193,7 +193,7 @@ class QueryCacheTest < ActiveRecord::TestCase
             t.datetime :ending
           end
         end
-        ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
+        ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_paths, ["tasks"], {}, ActiveRecord::Base)
       end
 
       ActiveRecord::Base.connection_pool.connections.each do |conn|
