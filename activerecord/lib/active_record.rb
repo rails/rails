@@ -49,6 +49,7 @@ module ActiveRecord
   autoload :Encryption
   autoload :Enum
   autoload :Explain
+  autoload :FixtureSet, "active_record/fixtures"
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
