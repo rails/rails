@@ -1,3 +1,21 @@
+*   Don't show secrets for `MessageEncryptor#inspect`.
+
+    Before:
+
+    ```ruby
+    ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm").inspect
+    "#<ActiveSupport::MessageEncryptor:0x0000000104888038 ... @secret=\"\\xAF\\bFh]LV}q\\nl\\xB2U\\xB3 ... >"
+    ```
+
+    After:
+
+    ```ruby
+    ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm").inspect
+    "#<ActiveSupport::MessageEncryptor:0x0000000104888038>"
+    ```
+
+    *Petrik de Heus*
+
 *   Don't show contents for `EncryptedConfiguration#inspect`.
 
     Before:
@@ -10,7 +28,6 @@
     ```ruby
     Rails.application.credentials.inspect
     "#<ActiveSupport::EncryptedConfiguration:0x000000010d2b38e8>"
-    ```
 
     *Petrik de Heus*
 
