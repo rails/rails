@@ -5,7 +5,7 @@ module ActionController # :nodoc:
   #
   # Allows views to be streamed back to the client as they are rendered.
   #
-  # By default, Rails renders views by first rendering the template
+  # By default, \Rails renders views by first rendering the template
   # and then the layout. The response is sent to the client after the whole
   # template is rendered, all queries are made, and the layout is processed.
   #
@@ -16,7 +16,7 @@ module ActionController # :nodoc:
   # earlier than usual.
   #
   # Several Rack middlewares may not work and you need to be careful when streaming.
-  # This is covered in more detail below, see the "Middlewares" section.
+  # This is covered in more detail below, see the Streaming@Middlewares section.
   #
   # \Streaming can be added to a given template easily, all you need to do is
   # to pass the +:stream+ option to +render+.
@@ -60,7 +60,7 @@ module ActionController # :nodoc:
   # == Communication between layout and template
   #
   # When streaming, rendering happens top-down instead of inside-out.
-  # Rails starts with the layout, and the template is rendered later,
+  # \Rails starts with the layout, and the template is rendered later,
   # when its +yield+ is reached.
   #
   # This means that, if your application currently relies on instance
@@ -153,7 +153,7 @@ module ActionController # :nodoc:
   # happens because part of the template was already rendered and streamed to
   # the client, making it impossible to render a whole exception page.
   #
-  # Currently, when an exception happens in development or production, Rails
+  # Currently, when an exception happens in development or production, \Rails
   # will automatically stream to the client:
   #
   #   "><script>window.location = "/500.html"</script></html>
@@ -181,9 +181,7 @@ module ActionController # :nodoc:
   #
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
   #
-  # Please check its documentation for more information:
-  #
-  # * https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen
+  # Please check the {documentation}[https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen] for more information.
   #
   # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # \Streaming should work out of the box on Rainbows.
@@ -193,17 +191,15 @@ module ActionController # :nodoc:
   # Phusion Passenger with NGINX, offers two streaming mechanisms out of the box.
   #
   # 1. NGINX response buffering mechanism which is dependent on the value of
-  #    `passenger_buffer_response` option (default is "off").
+  #    +passenger_buffer_response+ option (default is "off").
   # 2. Passenger buffering system which is always 'on' irrespective of the value
-  #    of `passenger_buffer_response`.
+  #    of +passenger_buffer_response+.
   #
-  # When `passenger_buffer_response` is turned "on", then streaming would be
+  # When +passenger_buffer_response+ is turned "on", then streaming would be
   # done at the NGINX level which waits until the application is done sending
   # the response back to the client.
   #
-  # Please check the documentation for more information:
-  #
-  # * https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response
+  # Please check the {documentation}[https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response] for more information.
   #
   module Streaming
     class Body # :nodoc:
