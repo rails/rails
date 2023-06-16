@@ -310,8 +310,6 @@ end
 class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
-  self.use_transactional_tests = false
-
   class Barcode < ActiveRecord::Base
   end
 
@@ -490,8 +488,6 @@ end
 
 class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
-
-  self.use_transactional_tests = false
 
   def setup
     @connection = ActiveRecord::Base.connection

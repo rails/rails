@@ -5,7 +5,6 @@ require "support/schema_dumping_helper"
 
 class CharsetCollationTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
-  self.use_transactional_tests = false
 
   setup do
     @connection = ActiveRecord::Base.connection

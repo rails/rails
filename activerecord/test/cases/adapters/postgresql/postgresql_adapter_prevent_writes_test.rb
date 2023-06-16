@@ -7,7 +7,6 @@ require "support/connection_helper"
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapterPreventWritesTest < ActiveRecord::PostgreSQLTestCase
-      self.use_transactional_tests = false
       include DdlHelper
       include ConnectionHelper
 

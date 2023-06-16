@@ -7,8 +7,6 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
   class PostgresqlVirtualColumnTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
 
-    self.use_transactional_tests = false
-
     class VirtualColumn < ActiveRecord::Base
     end
 
