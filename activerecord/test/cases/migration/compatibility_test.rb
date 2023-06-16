@@ -266,6 +266,8 @@ module ActiveRecord
 
             add_column :tests, "last_name", :string, wrong_precision: true
 
+            add_reference :tests, :more_testings, foregin_key: true
+
             change_column :tests, :some_id, :float, wrong_index: true
 
             change_table :tests do |t|

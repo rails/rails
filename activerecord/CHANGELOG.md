@@ -1,3 +1,9 @@
+*   Added `foregin_key` to the allowed validation options for managing columns and tables in migration.
+
+    The `foregin_key` option is a valid value when managing tables and columns, so it is not treated as an error
+
+    *Shodai Suzuki*
+
 *   Added PostgreSQL migration commands for enum rename, add value, and rename value.
 
     `rename_enum` and `rename_enum_value` are reversible. Due to Postgres

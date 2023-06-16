@@ -90,6 +90,11 @@ module ActiveRecord
           super
         end
 
+        def add_reference(table_name, ref_name, **options)
+          options[:_skip_validate_options] = true
+          super
+        end
+
         def add_index(table_name, column_name, **options)
           options[:name] = legacy_index_name(table_name, column_name) if options[:name].nil?
           super

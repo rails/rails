@@ -84,7 +84,8 @@ module ActiveRecord
         :comment,
         :primary_key,
         :if_exists,
-        :if_not_exists
+        :if_not_exists,
+        :foregin_key
       ]
 
       def primary_key?
