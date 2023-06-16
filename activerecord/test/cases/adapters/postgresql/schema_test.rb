@@ -713,7 +713,6 @@ end
 
 class SchemaWithDotsTest < ActiveRecord::PostgreSQLTestCase
   include PGSchemaHelper
-  self.use_transactional_tests = false
 
   setup do
     @connection = ActiveRecord::Base.connection

@@ -9,7 +9,6 @@ class PostgresqlRange < ActiveRecord::Base
 end
 
 class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
-  self.use_transactional_tests = false
   include ConnectionHelper
   include InTimeZone
 

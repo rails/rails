@@ -3,8 +3,6 @@
 require "cases/helper"
 
 class SchemaMigrationsTest < ActiveRecord::AbstractMysqlTestCase
-  self.use_transactional_tests = false
-
   def setup
     @schema_migration = ActiveRecord::Base.connection.schema_migration
   end

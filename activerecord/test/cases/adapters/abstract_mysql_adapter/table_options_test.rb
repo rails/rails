@@ -5,7 +5,6 @@ require "support/schema_dumping_helper"
 
 class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
-  self.use_transactional_tests = false
 
   def setup
     @connection = ActiveRecord::Base.connection
