@@ -1,3 +1,11 @@
+*   Change new_framework_defaults_7_1.rb to use the right config for hash_digest_class.
+
+    new_framework_defaults_7_1.rb was being generated with the instruction to change
+    the hash_digest_class using Rails.application.config.active_record.encryption.hash_digest_class
+    but the correct way to set it is using ActiveRecord::Encryption.config.hash_digest_class.
+
+    *Carlos Ribeiro*
+
 *   Don't show secret_key_base for `Rails.application.config#inspect`.
 
     Before:
