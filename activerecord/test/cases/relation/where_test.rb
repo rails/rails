@@ -463,6 +463,12 @@ module ActiveRecord
       assert_equal [treasures(:diamond)], treasures
     end
 
+    def test_where_on_association_with_scoped_relation
+      authors = Author.where(welcome_posts: Post.all)
+      assert_equal 1, authors.count
+      assert_equal authors(:david), authors.first
+    end
+
     def test_where_with_strong_parameters
       author = authors(:david)
       params = ProtectedParams.new(name: author.name)
