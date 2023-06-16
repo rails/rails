@@ -152,6 +152,11 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
   end
 
+  def test_inspect_does_not_show_secrets
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+    assert_match(/\A#<ActiveSupport::MessageEncryptor:0x[0-9a-f]+>\z/, encryptor.inspect)
+  end
+
   private
     def make_codec(**options)
       ActiveSupport::MessageEncryptor.new(@secret, **options)

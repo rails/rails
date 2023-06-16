@@ -261,6 +261,10 @@ module ActiveSupport
       deserialize_with_metadata(decrypt(verify(message)), **options)
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
+
     private
       def sign(data)
         @verifier ? @verifier.create_message(data) : data
