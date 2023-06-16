@@ -85,4 +85,13 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "raises key error when accessing config via bang method" do
     assert_raise(KeyError) { @credentials.something! }
   end
+
+  test "inspect does not show unencrypted attributes" do
+    secret = "something secret"
+    @credentials.write({ secret: secret }.to_yaml)
+    @credentials.config
+
+    assert_no_match(/#{secret}/, @credentials.inspect)
+    assert_match(/\A#<ActiveSupport::EncryptedConfiguration:0x[0-9a-f]+>\z/, @credentials.inspect)
+  end
 end
