@@ -76,6 +76,10 @@ module ActiveSupport
       @config ||= deserialize(read).deep_symbolize_keys
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
+
     private
       def deep_transform(hash)
         return hash unless hash.is_a?(Hash)

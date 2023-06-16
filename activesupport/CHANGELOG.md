@@ -1,3 +1,19 @@
+*   Don't show contents for `EncryptedConfiguration#inspect`.
+
+    Before:
+    ```ruby
+    Rails.application.credentials.inspect
+    "#<ActiveSupport::EncryptedConfiguration:0x000000010d2b38e8 ... @config={:secret=>\"something secret\"} ... @key_file_contents=\"915e4ea054e011022398dc242\" ...>"
+    ```
+
+    After:
+    ```ruby
+    Rails.application.credentials.inspect
+    "#<ActiveSupport::EncryptedConfiguration:0x000000010d2b38e8>"
+    ```
+
+    *Petrik de Heus*
+
 *   `ERB::Util.html_escape_once` always returns an `html_safe` string.
 
     This method previously maintained the `html_safe?` property of a string on the return
