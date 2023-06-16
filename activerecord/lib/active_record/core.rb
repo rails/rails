@@ -753,6 +753,7 @@ module ActiveRecord
         @strict_loading_mode = :all
 
         klass.define_attribute_methods
+        klass.generate_alias_attributes
       end
 
       def initialize_internals_callback

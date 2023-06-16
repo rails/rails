@@ -13,6 +13,7 @@ require "models/reply"
 require "models/contact"
 require "models/keyboard"
 require "models/numeric_data"
+require "models/cpk"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -28,6 +29,19 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   teardown do
     ActiveRecord::Base.send(:attribute_method_patterns).clear
     ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
+  end
+
+  test "aliasing `id` attribute allows reading the column value" do
+    topic = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
+
+    assert_equal(123_456, topic.id_value)
+  end
+
+  test "aliasing `id` attribute allows reading the column value for a CPK model" do
+    order = ::Cpk::Order.create(id: [1, 123_456])
+
+    assert_not_nil(order.id_value)
+    assert_equal(123_456, order.id_value)
   end
 
   test "attribute_for_inspect with a string" do
@@ -1128,6 +1142,79 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "read_attribute_before_type_cast with aliased attribute" do
     model = NumericData.new(new_bank_balance: "abcd")
     assert_equal "abcd", model.read_attribute_before_type_cast("new_bank_balance")
+  end
+
+  ClassWithDeprecatedAliasAttributeBehavior = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :title
+
+    def title_was
+      "overridden_title_was"
+    end
+  end
+
+  test "#alias_attribute with an overridden original method issues a deprecation" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehavior model aliases `title` and has a method called
+    `title_was` defined. Since Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+    You may want to additionally define `subject_was` to preserve the current behavior.
+    MESSAGE
+
+    obj = assert_deprecated(message, ActiveModel.deprecator) do
+      ClassWithDeprecatedAliasAttributeBehavior.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_title_was", obj.subject_was)
+  end
+
+  TitleWasOverride = Module.new do
+    def title_was
+      "overridden_title_was"
+    end
+  end
+
+  ClassWithDeprecatedAliasAttributeBehaviorFromModule = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    include TitleWasOverride
+    alias_attribute :subject, :title
+  end
+
+  test "#alias_attribute with an overridden original method from a module issues a deprecation" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehaviorFromModule model aliases `title` and has a method
+    called `title_was` defined. Since Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+    You may want to additionally define `subject_was` to preserve the current behavior.
+    MESSAGE
+
+    obj = assert_deprecated(message, ActiveModel.deprecator) do
+      ClassWithDeprecatedAliasAttributeBehaviorFromModule.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_title_was", obj.subject_was)
+  end
+
+  ClassWithDeprecatedAliasAttributeBehaviorResolved = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :title
+
+    def title_was
+      "overridden_title_was"
+    end
+
+    def subject_was
+      "overridden_subject_was"
+    end
+  end
+
+  test "#alias_attribute with an overridden original method along with an overridden alias method doesn't issue a deprecation" do
+    obj = assert_not_deprecated(ActiveModel.deprecator) do
+      ClassWithDeprecatedAliasAttributeBehaviorResolved.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_subject_was", obj.subject_was)
   end
 
   private
