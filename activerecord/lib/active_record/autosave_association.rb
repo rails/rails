@@ -482,7 +482,10 @@ module ActiveRecord
       def association_foreign_key_changed?(reflection, record, key)
         return false if reflection.through_reflection?
 
-        record._has_attribute?(reflection.foreign_key) && record._read_attribute(reflection.foreign_key) != key
+        foreign_key = Array(reflection.foreign_key)
+        return false unless foreign_key.all? { |key| record._has_attribute?(key) }
+
+        foreign_key.map { |key| record._read_attribute(key) } != Array(key)
       end
 
       def inverse_polymorphic_association_changed?(reflection, record)
