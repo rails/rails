@@ -18,13 +18,15 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_with_alphabets
-    alphabet_range = ("a".."z")
-    assert_equal "BETWEEN 'a' AND 'z'", alphabet_range.to_fs(:db)
+    assert_equal "BETWEEN 'a' AND 'z'", ("a".."z").to_fs(:db)
+    assert_equal ">= 'a'", ("a"..).to_fs(:db)
+    assert_equal "<= 'z'", (.."z").to_fs(:db)
   end
 
   def test_to_fs_with_numeric
-    number_range = (1..100)
-    assert_equal "BETWEEN '1' AND '100'", number_range.to_fs(:db)
+    assert_equal "BETWEEN '1' AND '100'", (1..100).to_fs(:db)
+    assert_equal ">= '1'", (1..).to_fs(:db)
+    assert_equal "<= '100'", (..100).to_fs(:db)
   end
 
   def test_to_fs_with_format_invalid_format
