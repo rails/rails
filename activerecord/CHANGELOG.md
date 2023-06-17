@@ -1,3 +1,10 @@
+*   Fix inconsistent update, delete and reload behaviour with `#scoping` and default scopes with and without
+    `all_queries: true`.
+
+    Fixes: #47357.
+
+    *Joshua Young*
+
 *   Introduce `ActiveRecord::Transactions::ClassMethods#set_callback`
 
      It is identical to `ActiveSupport::Callbacks::ClassMethods#set_callback`

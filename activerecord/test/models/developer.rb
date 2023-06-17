@@ -156,7 +156,7 @@ class DeveloperWithSelect < ActiveRecord::Base
   default_scope { select("name") }
 end
 
-class DeveloperwithDefaultMentorScopeNot < ActiveRecord::Base
+class DeveloperWithDefaultMentorScopeNot < ActiveRecord::Base
   self.table_name = "developers"
   default_scope -> { where(mentor_id: 1) }
 end
