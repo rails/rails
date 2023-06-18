@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :enddoc:
+
 # Make double-sure the RAILS_ENV is not set to production,
 # so fixtures aren't loaded into that environment
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
@@ -37,17 +39,15 @@ else
   end
 end
 
-# :enddoc:
-
 ActiveSupport.on_load(:action_controller_test_case) do
-  def before_setup # :nodoc:
+  def before_setup
     @routes = Rails.application.routes
     super
   end
 end
 
 ActiveSupport.on_load(:action_dispatch_integration_test) do
-  def before_setup # :nodoc:
+  def before_setup
     @routes = Rails.application.routes
     super
   end
