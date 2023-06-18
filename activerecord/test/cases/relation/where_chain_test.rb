@@ -200,5 +200,27 @@ module ActiveRecord
 
       assert_equal expected.to_a, relation.to_a
     end
+
+    def test_like_with_string_value
+      assert_equal [posts(:thinking)], Post.where.like(title: "%ThInKiNg%")
+    end
+
+    def test_like_with_array_value
+      assert_equal [posts(:welcome), posts(:thinking)], Post.where.like(title: %w(%WeLcOme% %ThInKinG%))
+    end
+
+    def test_like_not_with_string_value
+      Post.where.like.not(title: "%ThInKiNg%").tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_not_includes relation, posts(:thinking)
+      end
+    end
+
+    def test_like_with_with_unscope
+      relation = Post.where.like(title: "%ThInKiNg%").unscope(where: :title)
+      expected = Post.all
+
+      assert_equal expected.to_a, relation.to_a
+    end
   end
 end

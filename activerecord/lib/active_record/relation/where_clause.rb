@@ -92,6 +92,21 @@ module ActiveRecord
         WhereClause.new(inverted_predicates)
       end
 
+      def match
+        matched_predicates = predicates.map do |x|
+          case x
+          when Arel::Nodes::Equality
+            x.left.matches(x.right)
+          when Arel::Nodes::HomogeneousIn
+            x.left.matches_any(x.right)
+          else
+            raise ArgumentError, "Unsupported argument type: #{x.class.name}."
+          end
+        end
+
+        WhereClause.new(matched_predicates)
+      end
+
       def self.empty
         @empty ||= new([]).freeze
       end

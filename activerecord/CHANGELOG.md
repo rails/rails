@@ -1,3 +1,18 @@
+*   Support queries using the `LIKE` operator through `where.like(...)`.
+
+    ```ruby
+    User.where.like(name: "nixon")
+    #=> SELECT * FROM users WHERE name LIKE 'nixon'
+
+    User.where.like(name: %w(nixon DHH))
+    #=> SELECT * FROM users WHERE (name LIKE 'nixon' OR name LIKE 'DHH')
+
+    User.where.like.not(name: "nixon")
+    #=> SELECT * FROM users WHERE name NOT LIKE 'nixon'
+    ```
+
+    *Lazaro Nixon*
+
 *   Added PostgreSQL migration commands for enum rename, add value, and rename value.
 
     `rename_enum` and `rename_enum_value` are reversible. Due to Postgres

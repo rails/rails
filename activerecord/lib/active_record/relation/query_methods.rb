@@ -47,11 +47,35 @@ module ActiveRecord
       #    # SELECT * FROM users WHERE NOT (nullable_country = 'UK')
       #    # => []
       def not(opts, *rest)
-        where_clause = @scope.send(:build_where_clause, opts, rest)
-
+        where_clause = @scope.send(:build_where_clause, opts, *rest)
         @scope.where_clause += where_clause.invert
-
         @scope
+      end
+
+      # Returns a new relation expressing WHERE + LIKE condition according to
+      # the conditions in the arguments.
+      #
+      # #like only accepts conditions in hash format.
+      #
+      #    User.where.like(name: "Jon")
+      #    # SELECT * FROM users WHERE name LIKE 'Jon'
+      #
+      #    User.where.like(name: %w(Ko1 Nobu))
+      #    # SELECT * FROM users WHERE (name LIKE 'Ko1' OR name LIKE 'Nobu')
+      #
+      # The pattern matching is case-insensitive, so in PostgreSQL where `LIKE`
+      # is case-sensitive it uses the `ILIKE` operator instead.
+      #
+      #    User.where.like(name: "Jon")
+      #    # SELECT * FROM users WHERE name ILIKE 'Jon'
+      def like(*args)
+        if args.empty?
+          WhereLikeChain.new(@scope)
+        else
+          where_clause = @scope.send(:build_where_clause, *args)
+          @scope.where_clause += where_clause.match
+          @scope
+        end
       end
 
       # Returns a new relation with joins and where clause to identify
@@ -126,6 +150,30 @@ module ActiveRecord
           end
           reflection
         end
+    end
+
+    # +WhereLikeChain+ objects act as placeholder for queries in which +like+ does not have any parameter.
+    # In this case, +like+ can be chained to return a new relation.
+    class WhereLikeChain
+      def initialize(scope) # :nodoc:
+        @scope = scope
+      end
+
+      # Returns a new relation expressing WHERE + NOT + LIKE condition according to
+      # the conditions in the arguments. See WhereChain#like for more details.
+      #
+      # #like only accepts conditions in hash format.
+      #
+      #    User.where.like.not(name: "Jon")
+      #    # SELECT * FROM users WHERE name NOT LIKE 'Jon'
+      #
+      #    User.where.like.not(name: %w(Ko1 Nobu))
+      #    # SELECT * FROM users WHERE NOT ((name LIKE 'Ko1' OR name LIKE 'Nobu'))
+      def not(opts, *rest)
+        where_clause = @scope.send(:build_where_clause, opts, *rest)
+        @scope.where_clause += where_clause.match.invert
+        @scope
+      end
     end
 
     # A wrapper to distinguish CTE joins from other nodes.
