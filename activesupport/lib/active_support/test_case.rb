@@ -120,6 +120,25 @@ module ActiveSupport
       def parallelize_teardown(&block)
         ActiveSupport::Testing::Parallelization.run_cleanup_hook(&block)
       end
+
+      # :singleton-method: fixture_paths
+      #
+      # Returns the ActiveRecord::FixtureSet collection.
+      #
+      # In your +test_helper.rb+ you must have <tt>require "rails/test_help"</tt>.
+
+      # :singleton-method: fixture_paths=
+      #
+      # :call-seq:
+      #   fixture_paths=(fixture_paths)
+      #
+      # Sets the given path to the fixture set.
+      #
+      # Can also append multiple paths.
+      #
+      #   ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
+      #
+      # In your +test_helper.rb+ you must have <tt>require "rails/test_help"</tt>.
     end
 
     alias_method :method_name, :name
