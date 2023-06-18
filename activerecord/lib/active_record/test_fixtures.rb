@@ -17,6 +17,16 @@ module ActiveRecord
     end
 
     included do
+      ##
+      # :singleton-method: fixture_paths
+      #
+      # Returns the ActiveRecord::FixtureSet collection
+
+      ##
+      # :singleton-method: fixture_paths=
+      #
+      # :call-seq:
+      #   fixture_paths=(fixture_paths)
       class_attribute :fixture_paths, instance_writer: false, default: []
       class_attribute :fixture_table_names, default: []
       class_attribute :fixture_class_names, default: {}
@@ -42,7 +52,7 @@ module ActiveRecord
         self.fixture_class_names = fixture_class_names.merge(class_names.stringify_keys)
       end
 
-      def fixture_path
+      def fixture_path # :nodoc:
         ActiveRecord.deprecator.warn(<<~WARNING)
           TestFixtures.fixture_path is deprecated and will be removed in Rails 7.2. Use .fixture_paths instead.
           If multiple fixture paths have been configured with .fixture_paths, then .fixture_path will just return
@@ -51,7 +61,7 @@ module ActiveRecord
         fixture_paths.first
       end
 
-      def fixture_path=(path)
+      def fixture_path=(path) # :nodoc:
         ActiveRecord.deprecator.warn("TestFixtures.fixture_path= is deprecated and will be removed in Rails 7.2. Use .fixture_paths= instead.")
         self.fixture_paths = Array(path)
       end
@@ -99,7 +109,7 @@ module ActiveRecord
       end
     end
 
-    def fixture_path
+    def fixture_path # :nodoc:
       ActiveRecord.deprecator.warn(<<~WARNING)
         TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
         If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
