@@ -357,6 +357,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record_encryption.configuration" do |app|
+      ActiveRecord::Encryption.install_encrypted_attributed_declared_hook
+
       config.after_initialize do |app|
         ActiveRecord::Encryption.configure \
             primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
@@ -382,7 +384,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
         # Filtered params
         if ActiveRecord::Encryption.config.add_to_filter_parameters
-          ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
+          ActiveRecord::Encryption.install_auto_filtered_parameters(app)
         end
       end
     end
