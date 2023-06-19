@@ -9,7 +9,7 @@ module ActiveRecord
       included do
         mattr_reader :config, default: Config.new
         mattr_accessor :encrypted_attribute_declaration_listeners
-        mattr_reader :encrypted_attributes, default: Concurrent::Map.new
+        mattr_reader :encrypted_attributes, default: Concurrent::Array.new
       end
 
       class_methods do
@@ -49,20 +49,20 @@ module ActiveRecord
           end
         end
 
-        def install_encrypted_attributed_declared_hook()
+        def install_encrypted_attributed_declared_hook
           ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, encrypted_attribute_name|
-            encrypted_attributes.fetch_or_store(klass, []) << encrypted_attribute_name
+            encrypted_attributes << [klass, encrypted_attribute_name]
           end
         end
 
         def install_auto_filtered_parameters(app) # :nodoc:
-          encrypted_attributes.each do |klass, attributes|
-            attributes.each do |encrypted_attribute_name|
-              filter = [("#{klass.model_name.element}" if klass.name), encrypted_attribute_name.to_s].compact.join(".")
-              unless excluded_from_filter_parameters?(filter)
-                app.config.filter_parameters << filter unless app.config.filter_parameters.include?(filter)
-                klass.filter_attributes += [encrypted_attribute_name]
-              end
+          encrypted_attributes.each do |encrypted_attribute|
+            klass, encrypted_attribute_name = encrypted_attribute
+
+            filter = [("#{klass.model_name.element}" if klass.name), encrypted_attribute_name.to_s].compact.join(".")
+            unless excluded_from_filter_parameters?(filter)
+              app.config.filter_parameters << filter unless app.config.filter_parameters.include?(filter)
+              klass.filter_attributes += [encrypted_attribute_name]
             end
           end
         end
