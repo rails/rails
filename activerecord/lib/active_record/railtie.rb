@@ -357,30 +357,32 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record_encryption.configuration" do |app|
-      ActiveRecord::Encryption.configure \
-         primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
-         deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
-         key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
-         **config.active_record.encryption
+      config.after_initialize do |app|
+        ActiveRecord::Encryption.configure \
+            primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
+            deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
+            key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+            **config.active_record.encryption
 
-      ActiveSupport.on_load(:active_record) do
-        # Support extended queries for deterministic attributes and validations
-        if ActiveRecord::Encryption.config.extend_queries
-          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
-          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+        ActiveSupport.on_load(:active_record) do
+          # Support extended queries for deterministic attributes and validations
+          if ActiveRecord::Encryption.config.extend_queries
+            ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+            ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+          end
         end
-      end
 
-      ActiveSupport.on_load(:active_record_fixture_set) do
-        # Encrypt active record fixtures
-        if ActiveRecord::Encryption.config.encrypt_fixtures
-          ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
+        ActiveSupport.on_load(:active_record_fixture_set) do
+          # Encrypt active record fixtures
+          if ActiveRecord::Encryption.config.encrypt_fixtures
+            ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
+          end
         end
-      end
 
-      # Filtered params
-      if ActiveRecord::Encryption.config.add_to_filter_parameters
-        ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
+        # Filtered params
+        if ActiveRecord::Encryption.config.add_to_filter_parameters
+          ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
+        end
       end
     end
 

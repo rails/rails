@@ -1,3 +1,14 @@
+*   Wrap active_record_encryption.configuration on an after initialize
+
+    After PR #44873, we can now configure `hash_digest_class` that will be used on
+    ActiveRecord::Encryption. But it wasn't being feasible to change it via an
+    initializer (like `new_framework_defaults_7_1.rb`). This wasn't working
+    because the railtie `active_record_encryption.configuration` was being configured
+    before the initializer was loaded. We changed this behave to configure
+    the active_record encryption after the initialize was loaded.
+
+    *Carlos Ribeiro*
+
 *   Don't show secret_key_base for `Rails.application.config#inspect`.
 
     Before:
