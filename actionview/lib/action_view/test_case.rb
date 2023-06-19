@@ -177,9 +177,17 @@ module ActionView
       end
 
     private
+      def html_document_class
+        defined?(Nokogiri::HTML5) ? Nokogiri::HTML5::Document : Nokogiri::HTML4::Document
+      end
+
+      def html_document_fragment_class
+        defined?(Nokogiri::HTML5) ? Nokogiri::HTML5::DocumentFragment : Nokogiri::HTML4::DocumentFragment
+      end
+
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
-        Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer.to_str : @rendered).root
+        html_document_class.parse(@rendered.blank? ? @output_buffer.to_str : @rendered).root
       end
 
       module Locals

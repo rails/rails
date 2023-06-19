@@ -1,3 +1,10 @@
+*   `ActionDispatch::Assertions#html_document` uses Nokogiri's HTML5 parser if it is available.
+
+    The HTML5 parser better represents what the DOM would be in a browser. Previously this test
+    helper always used Nokogiri's HTML4 parser.
+
+    *Mike Dalessio*
+
 *   The `with_routing` helper can now be called at the class level. When called at the class level, the routes will
     be setup before each test, and reset after every test. For example:
 
