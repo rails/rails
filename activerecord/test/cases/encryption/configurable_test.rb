@@ -43,24 +43,26 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
 
   test "installing autofiltered parameters will add the encrypted attribute as a filter parameter using the dot notation" do
     application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
-    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
+    ActiveRecord::Encryption.install_encrypted_attributed_declared_hook
 
     NamedPirate = Class.new(Pirate) do
       self.table_name = "pirates"
     end
     NamedPirate.encrypts :catchphrase
+    ActiveRecord::Encryption.install_auto_filtered_parameters(application)
 
     assert_includes application.config.filter_parameters, "named_pirate.catchphrase"
   end
 
   test "installing autofiltered parameters will work with unnamed classes" do
     application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
-    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
+    ActiveRecord::Encryption.install_encrypted_attributed_declared_hook
 
     Class.new(Pirate) do
       self.table_name = "pirates"
       encrypts :catchphrase
     end
+    ActiveRecord::Encryption.install_auto_filtered_parameters(application)
 
     assert_includes application.config.filter_parameters, "catchphrase"
   end
@@ -69,12 +71,13 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
     ActiveRecord::Encryption.config.excluded_from_filter_parameters = [:catchphrase]
 
     application = OpenStruct.new(config: OpenStruct.new(filter_parameters: []))
-    ActiveRecord::Encryption.install_auto_filtered_parameters_hook(application)
+    ActiveRecord::Encryption.install_encrypted_attributed_declared_hook
 
     Class.new(Pirate) do
       self.table_name = "pirates"
       encrypts :catchphrase
     end
+    ActiveRecord::Encryption.install_auto_filtered_parameters(application)
 
     assert_equal application.config.filter_parameters, []
 
