@@ -4333,12 +4333,12 @@ module ApplicationTests
 
     test "allows initializer to set active_record_encryption.configuration" do
       app_file "config/initializers/active_record_encryption.rb", <<-RUBY
-        Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
+        Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
       RUBY
 
       app "development"
 
-      assert_equal OpenSSL::Digest::SHA256, ActiveRecord::Encryption.config.hash_digest_class
+      assert_equal OpenSSL::Digest::SHA1, ActiveRecord::Encryption.config.hash_digest_class
     end
 
     private
