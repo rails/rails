@@ -181,7 +181,8 @@ module ActionController # :nodoc:
   #
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
   #
-  # Please check the {documentation}[https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen] for more information.
+  # For more information, please check the
+  # {documentation}[https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen].
   #
   # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # \Streaming should work out of the box on Rainbows.
@@ -199,7 +200,8 @@ module ActionController # :nodoc:
   # done at the NGINX level which waits until the application is done sending
   # the response back to the client.
   #
-  # Please check the {documentation}[https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response] for more information.
+  # For more information, please check the
+  # {documentation}[https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response].
   #
   module Streaming
     class Body # :nodoc:
