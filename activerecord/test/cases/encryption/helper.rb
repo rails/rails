@@ -170,7 +170,7 @@ class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
     end
     ActiveRecord::Encryption.config.previous_schemes.clear
     ActiveRecord::Encryption.encrypted_attribute_declaration_listeners&.clear
-    ActiveRecord::Encryption.encrypted_attributes.clear
+    ActiveRecord::Encryption.encrypted_attributes_per_class.clear
   end
 
   teardown do

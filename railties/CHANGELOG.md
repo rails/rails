@@ -1,4 +1,4 @@
-*   Wrap active_record_encryption.configuration on an after initialize
+*   Support configuring the digest class in Active Record encryption via initializer.
 
     After PR #44873, we can now configure `hash_digest_class` that will be used on
     ActiveRecord::Encryption. But it wasn't being feasible to change it via an
