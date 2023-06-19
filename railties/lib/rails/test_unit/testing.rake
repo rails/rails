@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "minitest"
 require "rails/test_unit/runner"
 
 task default: :test
