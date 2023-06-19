@@ -42,7 +42,7 @@ module ActiveSupport
     #   range = (..100)            # => ..100
     #   range.to_fs(:db)           # => "<= '100'"
     #
-    # == Adding your own range formats to to_s
+    # == Adding your own range formats to to_fs
     # You can add your own formats to the Range::RANGE_FORMATS hash.
     # Use the format name as the hash key and a Proc instance.
     #
