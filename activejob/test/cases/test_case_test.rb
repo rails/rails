@@ -22,4 +22,8 @@ class ActiveJobTestCaseTest < ActiveJob::TestCase
   def test_set_test_adapter
     assert_kind_of ActiveJob::QueueAdapters::TestAdapter, queue_adapter
   end
+
+  def test_does_not_perform_enqueued_jobs_by_default
+    assert_nil queue_adapter.perform_enqueued_jobs
+  end
 end
