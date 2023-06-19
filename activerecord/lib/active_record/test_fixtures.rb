@@ -44,15 +44,15 @@ module ActiveRecord
 
       def fixture_path
         ActiveRecord.deprecator.warn(<<~WARNING)
-          TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.
-          If multiple fixture paths have been configured with #fixture_paths, then #fixture_path will just return
+          TestFixtures.fixture_path is deprecated and will be removed in Rails 7.2. Use .fixture_paths instead.
+          If multiple fixture paths have been configured with .fixture_paths, then .fixture_path will just return
           the first path.
         WARNING
         fixture_paths.first
       end
 
       def fixture_path=(path)
-        ActiveRecord.deprecator.warn("TestFixtures#fixture_path is deprecated and will be removed in Rails 7.2. Use #fixture_paths instead.")
+        ActiveRecord.deprecator.warn("TestFixtures.fixture_path= is deprecated and will be removed in Rails 7.2. Use .fixture_paths= instead.")
         self.fixture_paths = Array(path)
       end
 
