@@ -18,7 +18,7 @@ class ActionText::JobRenderTest < ActiveJob::TestCase
         perform_enqueued_jobs
       end
 
-      rendered = Nokogiri::HTML::DocumentFragment.parse(File.read(file))
+      rendered = ActionText.html_document_fragment_class.parse(File.read(file))
       assert_select rendered, "img:match('src', ?)", %r"//foo.example.com:9001/.+/racecar"
     end
   end
