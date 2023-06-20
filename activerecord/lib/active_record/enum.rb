@@ -322,6 +322,8 @@ module ActiveRecord
           raise_conflict_error(enum_name, method_name, type: "class")
         elsif klass_method && method_defined_within?(method_name, Relation)
           raise_conflict_error(enum_name, method_name, type: "class", source: Relation.name)
+        elsif klass_method && method_name.to_sym == :id
+          raise_conflict_error(enum_name, method_name)
         elsif !klass_method && dangerous_attribute_method?(method_name)
           raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
