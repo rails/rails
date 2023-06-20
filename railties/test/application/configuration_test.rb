@@ -4345,6 +4345,16 @@ module ApplicationTests
       assert_match(/Cannot assign to `load_defaults`, it is a configuration method/, error.message)
     end
 
+    test "allows initializer to set active_record_encryption.configuration" do
+      app_file "config/initializers/active_record_encryption.rb", <<-RUBY
+        Rails.application.config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
+      RUBY
+
+      app "development"
+
+      assert_equal OpenSSL::Digest::SHA1, ActiveRecord::Encryption.config.hash_digest_class
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
