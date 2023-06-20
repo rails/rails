@@ -64,7 +64,7 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
   end
 
   test "encrypts multiple attributes with different options at the same time" do
-    post = EncryptedPost.create!\
+    post = EncryptedPost.create! \
       title: title = "The Starfleet is here!",
       body: body = "<p>the Starfleet is here, we are safe now!</p>"
 
@@ -308,7 +308,37 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal book, Marshal.load(Marshal.dump(book))
   end
 
+  test "supports decrypting data encrypted non deterministically with SHA1 when digest class is SHA256" do
+    ActiveRecord::Encryption.configure \
+      primary_key: "the primary key",
+      deterministic_key: "the deterministic key",
+      key_derivation_salt: "the salt",
+      support_sha1_for_non_deterministic_encryption: true
+
+    key_provider_sha1 = build_derived_key_provider_with OpenSSL::Digest::SHA1
+    key_provider_sha256 = build_derived_key_provider_with OpenSSL::Digest::SHA256
+
+    encrypted_post_class_sha_1 = Class.new(Post) do
+      self.table_name = "posts"
+      encrypts :title, key_provider: key_provider_sha1
+    end
+    encrypted_post_class_sha_1.create! title: "Post 1", body: "The post body", type: nil
+
+    encrypted_post_class_sha_256 = Class.new(Post) do
+      self.table_name = "posts"
+      encrypts :title, key_provider: key_provider_sha256
+    end
+
+    assert_equal "Post 1", encrypted_post_class_sha_256.last.title
+  end
+
   private
+    def build_derived_key_provider_with(hash_digest_class)
+      ActiveRecord::Encryption.with_encryption_context(key_generator: ActiveRecord::Encryption::KeyGenerator.new(hash_digest_class: hash_digest_class)) do
+        ActiveRecord::Encryption::DerivedSecretKeyProvider.new(ActiveRecord::Encryption.config.primary_key)
+      end
+    end
+
     class FailingKeyProvider
       def decryption_key(message) end
 

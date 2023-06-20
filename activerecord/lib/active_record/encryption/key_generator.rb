@@ -6,6 +6,12 @@ module ActiveRecord
   module Encryption
     # Utility for generating and deriving random keys.
     class KeyGenerator
+      attr_reader :hash_digest_class
+
+      def initialize(hash_digest_class: ActiveRecord::Encryption.config.hash_digest_class)
+        @hash_digest_class = hash_digest_class
+      end
+
       # Returns a random key. The key will have a size in bytes of +:length+ (configured +Cipher+'s length by default)
       def generate_random_key(length: key_length)
         SecureRandom.random_bytes(length)
@@ -30,7 +36,7 @@ module ActiveRecord
       #
       # The generated key will be salted with the value of +ActiveRecord::Encryption.key_derivation_salt+
       def derive_key_from(password, length: key_length)
-        ActiveSupport::KeyGenerator.new(password, hash_digest_class: ActiveRecord::Encryption.config.hash_digest_class)
+        ActiveSupport::KeyGenerator.new(password, hash_digest_class: hash_digest_class)
           .generate_key(key_derivation_salt, length)
       end
 

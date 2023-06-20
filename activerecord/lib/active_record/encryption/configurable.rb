@@ -23,10 +23,13 @@ module ActiveRecord
           config.key_derivation_salt = key_derivation_salt
 
           properties.each do |name, value|
-            [:context, :config].each do |configurable_object_name|
-              configurable_object = ActiveRecord::Encryption.send(configurable_object_name)
-              configurable_object.send "#{name}=", value if configurable_object.respond_to?("#{name}=")
-            end
+            ActiveRecord::Encryption.config.send "#{name}=", value if ActiveRecord::Encryption.config.respond_to?("#{name}=")
+          end
+
+          ActiveRecord::Encryption.reset_default_context
+
+          properties.each do |name, value|
+            ActiveRecord::Encryption.context.send "#{name}=", value if ActiveRecord::Encryption.context.respond_to?("#{name}=")
           end
         end
 

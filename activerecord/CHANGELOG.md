@@ -1,3 +1,19 @@
+*   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
+
+    This adds a new Active Record encryption option to support decrypting data encrypted
+    non-deterministically with a SHA1 hash digest:
+
+    ```
+    Rails.application.config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
+    ```
+
+    The new option addresses a problem when upgrading from 7.0 to 7.1. Due to a bug in how Active Record
+    Encryption was getting initialized, the key provider used for non-deterministic encryption were using
+    SHA-1 as its digest class, instead of the one configured globally by Rails via
+    `Rails.application.config.active_support.key_generator_hash_digest_class`.
+
+    *Cadu Ribeiro and Jorge Manrubia*
+
 *   Apply scope to association subqueries. (belongs_to/has_one/has_many)
 
     Given: `has_many :welcome_posts, -> { where(title: "welcome") }`
