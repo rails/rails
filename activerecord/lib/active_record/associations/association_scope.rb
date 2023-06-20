@@ -149,7 +149,7 @@ module ActiveRecord
                 scope.includes_values |= item.includes_values
               end
 
-              scope.unscope!(*item.unscope_values)
+              scope.unscope!(*item.table_name_qualified_unscope_values)
               scope.where_clause += item.where_clause
               scope.order_values = item.order_values | scope.order_values
             end

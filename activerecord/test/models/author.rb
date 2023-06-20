@@ -97,6 +97,9 @@ class Author < ActiveRecord::Base
   has_many :special_post_comments, through: :special_posts, source: :comments
   has_many :special_posts_with_default_scope, class_name: "SpecialPostWithDefaultScope"
 
+  has_many :posts_with_where_default_scope, class_name: "PostWithWhereDefaultScope"
+  has_many :comments_on_posts_with_where_default_scope, through: :posts_with_where_default_scope, source: :comments
+
   has_many :sti_posts, class_name: "StiPost"
   has_many :sti_post_comments, through: :sti_posts, source: :comments
 
