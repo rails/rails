@@ -32,11 +32,12 @@ module ActiveRecord
       end
 
       %w(key_derivation_salt primary_key deterministic_key).each do |key|
-        silence_redefinition_of_method key
+        silence_redefinition_of_method "has_#{key}?"
         define_method("has_#{key}?") do
           instance_variable_get(:"@#{key}").presence
         end
 
+        silence_redefinition_of_method key
         define_method(key) do
           public_send("has_#{key}?") or
             raise Errors::Configuration, "Missing Active Record encryption credential: active_record_encryption.#{key}"
@@ -54,7 +55,6 @@ module ActiveRecord
           self.previous_schemes = []
           self.forced_encoding_for_deterministic_encryption = Encoding::UTF_8
           self.hash_digest_class = OpenSSL::Digest::SHA1
-          self.support_sha1_for_non_deterministic_encryption = false
 
           # TODO: Setting to false for now as the implementation is a bit experimental
           self.extend_queries = false

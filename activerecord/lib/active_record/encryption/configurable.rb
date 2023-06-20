@@ -22,6 +22,10 @@ module ActiveRecord
           config.deterministic_key = deterministic_key
           config.key_derivation_salt = key_derivation_salt
 
+          # Set the default for this property here instead of in +Config#set_defaults+ as this needs
+          # to happen *after* the keys have been set.
+          properties[:support_sha1_for_non_deterministic_encryption] = true if properties[:support_sha1_for_non_deterministic_encryption].nil?
+
           properties.each do |name, value|
             ActiveRecord::Encryption.config.send "#{name}=", value if ActiveRecord::Encryption.config.respond_to?("#{name}=")
           end
