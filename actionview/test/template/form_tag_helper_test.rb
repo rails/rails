@@ -986,7 +986,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   private
     def root_elem(rendered_content)
-      Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
+      html_document_fragment_class.parse(rendered_content).children.first # extract from nodeset
     end
 
     def with_default_enforce_utf8(value)
