@@ -8,12 +8,20 @@ module ActiveRecord
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
     def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, model.connection, inserts.map(&:stringify_keys)
+      @model, @connection = model, model.connection
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
       disallow_raw_sql!(on_duplicate)
       disallow_raw_sql!(returning)
+
+      if inserts.first.is_a?(ActiveRecord::Base)
+        inserts = inserts.map(&:attributes)
+        delete_timestamps_from_attributes!(inserts)
+        delete_virtual_columns_from_attributes!(inserts)
+        connection.assign_next_value_if_serial_column_is_nil!(model.columns, model.sequence_name, inserts)
+      end
+      @inserts = inserts.map(&:stringify_keys)
 
       if @inserts.empty?
         @keys = []
@@ -217,6 +225,26 @@ module ActiveRecord
 
       def timestamps_for_create
         model.all_timestamp_attributes_in_model.index_with(connection.high_precision_current_timestamp)
+      end
+
+      def delete_timestamps_from_attributes!(attributes_array)
+        return unless record_timestamps?
+        all_timestamp_attributes = model.all_timestamp_attributes_in_model
+        all_timestamp_attributes.each do |column|
+          attributes_array.each do |attributes|
+            attributes.delete(column)
+          end
+        end
+      end
+
+      def delete_virtual_columns_from_attributes!(attributes_array)
+        return unless connection.supports_virtual_columns?
+        virtual_columns = model.columns.filter_map { |column| column.name if column.virtual? }
+        virtual_columns.each do |column|
+          attributes_array.each do |attributes|
+            attributes.delete(column)
+          end
+        end
       end
 
       class Builder # :nodoc:

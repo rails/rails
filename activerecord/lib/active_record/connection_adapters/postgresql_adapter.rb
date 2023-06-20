@@ -639,6 +639,14 @@ module ActiveRecord
         sql
       end
 
+      def assign_next_value_if_serial_column_is_nil!(columns, sequence_name, attributes_array) # :nodoc:
+        serial_column = columns.find(&:serial?)&.name
+        return if serial_column.nil? || sequence_name.nil?
+        attributes_array.each do |attributes|
+          attributes[serial_column] = Arel::Nodes::SqlLiteral.new("nextval('#{sequence_name}')") if attributes[serial_column].nil?
+        end
+      end
+
       def check_version # :nodoc:
         if database_version < 9_03_00 # < 9.3
           raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
