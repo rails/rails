@@ -8,6 +8,7 @@ en:
   errors:
     messages:
       required: "must exist"
+      unique: "must be unique"
       taken: "has already been taken"
 
   # Active Record models configuration

@@ -1,3 +1,25 @@
+*   Add `unique` option to `belongs_to` association.
+
+    The unique option will validate the uniqueness of the association. It can be helpful in 1-1 relationships
+    to prevent duplicated records from being created by the "has one" side. ex: `Client.create!(account: existent_account)`.
+
+    Before:
+
+    ```ruby
+    class Client
+      belongs_to :account; validates_uniqueness_of(:account, allow_nil: true, message: :unique)
+    end
+    ```
+
+    Later:
+    ```ruby
+    class Client
+      belongs_to :account, unique: true
+    end
+    ```
+
+    *Lázaro Nixon*
+
 *   Added PostgreSQL migration commands for enum rename, add value, and rename value.
 
     `rename_enum` and `rename_enum_value` are reversible. Due to Postgres

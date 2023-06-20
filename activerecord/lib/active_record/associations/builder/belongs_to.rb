@@ -7,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super + [:polymorphic, :counter_cache, :optional, :default]
+      valid = super + [:polymorphic, :counter_cache, :optional, :unique, :default]
       valid += [:foreign_type] if options[:polymorphic]
       valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
       valid
@@ -120,23 +120,25 @@ module ActiveRecord::Associations::Builder # :nodoc:
         required = !reflection.options[:optional]
       end
 
+      unique = reflection.options[:unique]
+
       super
 
-      if required
-        if ActiveRecord.belongs_to_required_validates_foreign_key
-          model.validates_presence_of reflection.name, message: :required
-        else
-          condition = lambda { |record|
-            foreign_key = reflection.foreign_key
-            foreign_type = reflection.foreign_type
+      if ActiveRecord.belongs_to_required_validates_foreign_key
+        model.validates_presence_of(reflection.name, message: :required) if required
+        model.validates_uniqueness_of(reflection.name, allow_nil: true, message: :unique) if unique
+      else
+        condition = lambda do |record|
+          foreign_key  = reflection.foreign_key
+          foreign_type = reflection.foreign_type
 
-            record.read_attribute(foreign_key).nil? ||
-              record.attribute_changed?(foreign_key) ||
-              (reflection.polymorphic? && (record.read_attribute(foreign_type).nil? || record.attribute_changed?(foreign_type)))
-          }
-
-          model.validates_presence_of reflection.name, message: :required, if: condition
+          record.read_attribute(foreign_key).nil? ||
+            record.attribute_changed?(foreign_key) ||
+            (reflection.polymorphic? && (record.read_attribute(foreign_type).nil? || record.attribute_changed?(foreign_type)))
         end
+
+        model.validates_presence_of(reflection.name, message: :required, if: condition) if required
+        model.validates_uniqueness_of(reflection.name, allow_nil: true, message: :unique, if: condition) if unique
       end
     end
 
