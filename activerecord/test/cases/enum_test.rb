@@ -497,7 +497,8 @@ class EnumTest < ActiveRecord::TestCase
       :save,     # generates #save!, which conflicts with an AR method
       :proposed, # same value as an existing enum
       :public, :private, :protected, # some important methods on Module and Class
-      :name, :parent, :superclass
+      :name, :parent, :superclass,
+      :id        # conflicts with AR querying
     ]
 
     conflicts.each_with_index do |value, i|
@@ -505,6 +506,16 @@ class EnumTest < ActiveRecord::TestCase
         klass.class_eval { enum "status_#{i}" => [value] }
       end
       assert_match(/You tried to define an enum named .* on the model/, e.message)
+    end
+  end
+
+  test "can use id as a value with a prefix or suffix" do
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status_1: [:id], _prefix: true
+        enum status_2: [:id], _suffix: true
+      end
     end
   end
 
