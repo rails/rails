@@ -29,6 +29,10 @@
 		}
 	},
 
+	"containerEnv": {
+		"MYSQL_SOCK": "/run/mysqld/mysqld.sock"
+	},
+
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
