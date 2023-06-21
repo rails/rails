@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-gem "minitest" # make sure we get the gem, not stdlib
 require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"
