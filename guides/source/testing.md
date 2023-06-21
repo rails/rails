@@ -1933,13 +1933,7 @@ class BillingJobTest < ActiveJob::TestCase
 end
 ```
 
-This test is pretty simple and only asserts that the job got the work done
-as expected.
-
-By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
-your jobs are performed inline. It will also ensure that all previously performed
-and enqueued jobs are cleared before any test run so you can safely assume that
-no jobs have already been executed in the scope of each test.
+This test is pretty simple and only asserts that the job did work that was expected.
 
 ### Custom Assertions and Testing Jobs inside Other Components
 
@@ -1948,7 +1942,7 @@ Active Job ships with a bunch of custom assertions that can be used to lessen th
 It's a good practice to ensure that your jobs correctly get enqueued or performed
 wherever you invoke them (e.g. inside your controllers). This is precisely where
 the custom assertions provided by Active Job are pretty useful. For instance,
-within a model:
+within a model, you could confirm that a job was enqueued:
 
 ```ruby
 require "test_helper"
@@ -1960,9 +1954,31 @@ class ProductTest < ActiveSupport::TestCase
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
     end
+    assert_not account.reload.charged_for?(product)
   end
 end
 ```
+
+The default adapter, `:test`, does not perform jobs when they are enqueued.
+You have to tell it when you want jobs to be performed:
+
+```ruby
+require "test_helper"
+
+class ProductTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
+  test "billing job scheduling" do
+    perform_enqueued_jobs(only: BillingJob) do
+      product.charge(account)
+    end
+    assert account.reload.charged_for?(product)
+  end
+end
+```
+
+All previously performed and enqueued jobs are cleared before any test runs,
+so you can safely assume that no jobs have already been executed in the scope of each test.
 
 Testing Action Cable
 --------------------
