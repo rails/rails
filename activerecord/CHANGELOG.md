@@ -184,9 +184,9 @@
 
     *fatkodima*
 
-*   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
+*   Add support for `Array#intersects?` to `ActiveRecord::Relation`.
 
-    `Array#intersect?` is only available on Ruby 3.1 or later.
+    `Array#intersects?` is only available on Ruby 3.1 or later.
 
     This allows the Rubocop `Style/ArrayIntersect` cop to work with `ActiveRecord::Relation` objects.
 
