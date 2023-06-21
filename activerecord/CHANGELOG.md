@@ -184,7 +184,7 @@
 
     *fatkodima*
 
-*   Add support for `Array#intersects?` to `ActiveRecord::Relation`.
+*   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
     `Array#intersect?` is only available on Ruby 3.1 or later.
 
