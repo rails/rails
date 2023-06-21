@@ -1,3 +1,11 @@
+*   Introduce `ActionMailer::FormBuilder`
+
+    Use the `default_form_builder` method in mailers to set the default form builder
+    for templates rendered by that mailer. Matches the behaviour in Action Controller.
+
+    *Alex Ghiculescu*
+
+
 ## Rails 7.1.0.beta1 (September 13, 2023) ##
 
 *   Mailers are listed in alphabetical order on the mailer preview page now.
