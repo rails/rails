@@ -733,7 +733,21 @@ module ApplicationTests
       app "development"
 
       assert_not_nil app.secret_key_base
-      assert File.exist?(app_path("tmp/development_secret.txt"))
+      assert File.exist?(app_path("tmp/local_secret.txt"))
+    end
+
+    test "application will generate secret_key_base in tmp file if blank in test" do
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
+      RUBY
+
+      # For test that works even if tmp dir does not exist.
+      Dir.chdir(app_path) { FileUtils.remove_dir("tmp") }
+
+      app "test"
+
+      assert_not_nil app.secret_key_base
+      assert File.exist?(app_path("tmp/local_secret.txt"))
     end
 
     test "application will not generate secret_key_base in tmp file if blank in production" do
