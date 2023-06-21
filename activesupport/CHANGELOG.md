@@ -28,6 +28,7 @@
     ```ruby
     Rails.application.credentials.inspect
     "#<ActiveSupport::EncryptedConfiguration:0x000000010d2b38e8>"
+    ```
 
     *Petrik de Heus*
 
