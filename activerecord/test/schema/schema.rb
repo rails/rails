@@ -249,6 +249,13 @@ ActiveRecord::Schema.define do
     t.integer :shop_id
   end
 
+  create_table :cpk_chapters, primary_key: [:author_id, :number], force: true do |t|
+    t.integer :author_id
+    t.integer :number
+    t.integer :book_number
+    t.string :title
+  end
+
   create_table :cpk_authors, force: true do |t|
     t.string :name
   end

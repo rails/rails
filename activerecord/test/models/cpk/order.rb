@@ -20,4 +20,8 @@ module Cpk
   class OrderWithPrimaryKeyAssociatedBook < Order
     has_one :book, primary_key: :id, foreign_key: :order_id
   end
+
+  class OrderWithNullifiedBook < Order
+    has_one :book, query_constraints: [:shop_id, :order_id], dependent: :nullify
+  end
 end
