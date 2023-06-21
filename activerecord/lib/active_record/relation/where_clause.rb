@@ -190,10 +190,16 @@ module ActiveRecord
           predicates.reject do |node|
             if !non_attrs.empty? && node.equality? && node.left.is_a?(Arel::Predications)
               non_attrs.include?(node.left)
-            end || Arel.fetch_attribute(node) do |attr|
-              attrs.include?(attr) || columns.include?(attr.name.to_s)
-            end
+            end || if node.is_a?(Arel::Nodes::Not)
+                     node.expr.children.reject! { |x| has_attribute?(x, columns, attrs) }.empty?
+                   else
+                     has_attribute?(node, columns, attrs)
+                   end
           end
+        end
+
+        def has_attribute?(node, columns, attrs)
+          Arel.fetch_attribute(node) { |attr| attrs.include?(attr) || columns.include?(attr.name.to_s) }
         end
 
         def predicates_with_wrapped_sql_literals

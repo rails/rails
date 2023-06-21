@@ -115,6 +115,20 @@ module ActiveRecord
       assert_equal expected_where_clause, relation.where_clause
     end
 
+    def test_not_eq_with_unscope
+      relation = Post.where.not(body: "hello").unscope(where: :body)
+      expected = Post.all
+
+      assert_equal expected.to_a, relation.to_a
+    end
+
+    def test_not_eq_with_unscope_grouping
+      relation = Post.where.not(body: "hello", title: "sti me").unscope(where: :title)
+      expected = Post.where.not(body: "hello")
+
+      assert_equal expected.to_a, relation.to_a
+    end
+
     def test_chaining_multiple
       relation = Post.where.not(author_id: [1, 2]).where.not(title: "ruby on rails")
       expected_where_clause =
