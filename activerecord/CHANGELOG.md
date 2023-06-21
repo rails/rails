@@ -1,3 +1,17 @@
+*   Support queries with regular expressions on supported databases. (PostgreSQL/MySQL/SQLite)
+
+    ```ruby
+    Post.where(title: /ThInKiNg/)
+    #=> SELECT * FROM posts WHERE title REGEXP 'ThInKiNg'; --MySQL/SQLite
+    #=> SELECT * FROM posts WHERE title ~* 'ThInKiNg'; --PostgreSQL
+
+    Post.where.not(title: /ThInKiNg/)
+    #=> SELECT * FROM posts WHERE title NOT REGEXP 'ThInKiNg'; --MySQL/SQLite
+    #=> SELECT * FROM posts WHERE title !~* 'ThInKiNg'; --PostgreSQL
+    ```
+
+    *Lázaro Nixon*
+
 *   Apply scope to association subqueries. (belongs_to/has_one/has_many)
 
     Given: `has_many :welcome_posts, -> { where(title: "welcome") }`

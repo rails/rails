@@ -694,6 +694,10 @@ module ActiveRecord
         def configure_connection
           @raw_connection.busy_timeout(self.class.type_cast_config_to_integer(@config[:timeout])) if @config[:timeout]
 
+          @raw_connection.create_function("regexp", 2) do |fn, pattern, value|
+            fn.result = Regexp.new(pattern, Regexp::IGNORECASE).match?(value) ? 1 : 0
+          end
+
           raw_execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
