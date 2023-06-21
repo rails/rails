@@ -196,6 +196,17 @@ If you're a member of an organization that has codespaces enabled, you can fork 
 
 If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](https://www.docker.com) installed, you can use the [VS Code remote containers plugin](https://code.visualstudio.com/docs/remote/containers-tutorial). The plugin will read the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration in the repository and build the Docker container locally.
 
+#### Using Dev Container CLI
+
+Alternatively, with [Docker](https://www.docker.com) and [npm](https://github.com/npm/cli) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
+
+```bash
+$ npm install -g @devcontainers/cli
+$ cd rails
+$ devcontainer up --workspace-folder .
+$ devcontainer exec --workspace-folder . bash
+```
+
 #### Using rails-dev-box
 
 It's also possible to use the [rails-dev-box](https://github.com/rails/rails-dev-box) to get a development environment ready. However, the rails-dev-box uses Vagrant and Virtual Box which will not work on Macs with Apple silicon.
