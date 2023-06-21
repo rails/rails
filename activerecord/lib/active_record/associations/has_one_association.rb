@@ -121,7 +121,9 @@ module ActiveRecord
         end
 
         def nullify_owner_attributes(record)
-          record[reflection.foreign_key] = nil
+          Array(reflection.foreign_key).each do |foreign_key_column|
+            record[foreign_key_column] = nil unless foreign_key_column.in?(Array(record.class.primary_key))
+          end
         end
 
         def transaction_if(value, &block)

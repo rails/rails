@@ -145,6 +145,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate developer, :persisted?
   end
 
+  def test_nullification_on_cpk_association
+    book = Cpk::Book.create!(author_id: 1, number: 2)
+    other_book = Cpk::Book.create!(author_id: 3, number: 4)
+    order = Cpk::OrderWithNullifiedBook.create!(book: book)
+
+    order.book = other_book
+
+    assert_nil book.order_id
+    assert_nil book.shop_id
+  end
+
+  def test_nullification_on_cpk_association_with_pk_column
+    chapter = Cpk::Chapter.create!(author_id: 1, number: 2)
+    other_chapter = Cpk::Chapter.create!(author_id: 1, number: 4)
+    book = Cpk::NullifiedBook.create!(chapter: chapter, number: 1, author_id: 1)
+
+    book.chapter = other_chapter
+
+    assert_nil chapter.book_number
+    assert_not_nil chapter.author_id
+  end
+
   def test_natural_assignment_to_nil_after_destroy
     firm = companies(:rails_core)
     old_account_id = firm.account.id
