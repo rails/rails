@@ -262,7 +262,9 @@ module ApplicationTests
       RUBY
 
       with_unhealthy_database do
-        require "#{app_path}/config/environment"
+        silence_warnings do
+          require "#{app_path}/config/environment"
+        end
 
         assert_not_nil ActiveRecord::Base.connection_pool.schema_cache
 
