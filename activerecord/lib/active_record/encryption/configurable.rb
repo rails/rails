@@ -54,21 +54,6 @@ module ActiveRecord
             block.call(klass, name)
           end
         end
-
-        def install_auto_filtered_parameters_hook(app) # :nodoc:
-          ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, encrypted_attribute_name|
-            filter = [("#{klass.model_name.element}" if klass.name), encrypted_attribute_name.to_s].compact.join(".")
-            unless excluded_from_filter_parameters?(filter)
-              app.config.filter_parameters << filter unless app.config.filter_parameters.include?(filter)
-              klass.filter_attributes += [encrypted_attribute_name]
-            end
-          end
-        end
-
-        private
-          def excluded_from_filter_parameters?(filter_parameter)
-            ActiveRecord::Encryption.config.excluded_from_filter_parameters.find { |excluded_filter| excluded_filter.to_s == filter_parameter }
-          end
       end
     end
   end
