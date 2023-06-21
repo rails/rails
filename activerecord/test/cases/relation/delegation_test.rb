@@ -9,7 +9,7 @@ require "models/developer"
 module ActiveRecord
   module DelegationTests
     ARRAY_DELEGATES = [
-      :+, :-, :|, :&, :[], :shuffle, :intersects?,
+      :+, :-, :|, :&, :[], :shuffle, :intersect?,
       :all?, :collect, :compact, :detect, :each, :each_cons, :each_with_index,
       :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
       :map, :none?, :one?, :partition, :reject, :reverse, :rotate,
@@ -44,6 +44,15 @@ module ActiveRecord
       Comment.all
     end
   end
+
+  class DelegationRecordsTest < ActiveRecord::TestCase
+    include DelegationTests
+
+    def target
+      Comment.all.records
+    end
+  end
+
 
   class QueryingMethodsDelegationTest < ActiveRecord::TestCase
     QUERYING_METHODS =
