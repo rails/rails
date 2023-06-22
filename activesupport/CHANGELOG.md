@@ -1,3 +1,8 @@
+*   Fix `EncryptedConfiguration` returning incorrect values for some `Hash`
+    methods
+
+    *Hartley McGuire*
+
 *   Fix ActionCable Redis configuration with sentinels
 
     *Dmitriy Ivliev*
