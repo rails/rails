@@ -986,10 +986,10 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_restore_composite_id_after_rollback
-    book = Cpk::Book.create!(author_id: 1, number: 2)
+    book = Cpk::Book.create!(id: [1, 2])
 
     Cpk::Book.transaction do
-      book.update!(author_id: 42, number: 42)
+      book.update!(id: [42, 42])
       raise ActiveRecord::Rollback
     end
 
@@ -999,8 +999,8 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_rollback_on_composite_key_model
-    Cpk::Book.create!(author_id: 1, number: 3, title: "Charlotte's Web")
-    book_two_unpersisted = Cpk::Book.new(author_id: 1, number: 3)
+    Cpk::Book.create!(id: [1, 3], title: "Charlotte's Web")
+    book_two_unpersisted = Cpk::Book.new(id: [1, 3])
 
     assert_raise(ActiveRecord::RecordNotUnique) do
       Cpk::Book.transaction do

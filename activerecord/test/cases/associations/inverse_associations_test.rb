@@ -605,7 +605,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_inverse_should_be_set_on_composite_primary_key_child
     author = Cpk::Author.new(name: "John")
-    book = author.books.build(number: 1, title: "The Rails Way")
+    book = author.books.build(id: [nil, 1], title: "The Rails Way")
     Cpk::Order.new(book: book, status: "paid")
     author.save!
 
