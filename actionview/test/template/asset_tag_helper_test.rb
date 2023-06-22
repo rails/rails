@@ -642,6 +642,23 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_should_not_set_preload_links_if_opted_out_at_invokation
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", preload_links_header: false)
+      javascript_include_tag("http://example.com/all.js", preload_links_header: false)
+      assert_nil @response.headers["Link"]
+    end
+  end
+
+  def test_should_set_preload_links_if_opted_in_at_invokation
+    with_preload_links_header(false) do
+      stylesheet_link_tag("http://example.com/style.css", preload_links_header: true)
+      javascript_include_tag("http://example.com/all.js", preload_links_header: true)
+      expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
+      assert_equal expected, @response.headers["Link"]
+    end
+  end
+
   def test_should_generate_links_under_the_max_size
     with_preload_links_header do
       100.times do |i|

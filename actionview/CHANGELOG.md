@@ -1,3 +1,15 @@
+*   Allow opting in/out of `Link preload` headers when calling `stylesheet_link_tag` or `javascript_include_tag`
+
+    ```ruby
+    # will exclude header, even if setting is enabled:
+    javascript_include_tag("http://example.com/all.js", preload_links_header: false)
+
+    # will include header, even if setting is disabled:
+    stylesheet_link_tag("http://example.com/all.js", preload_links_header: true)
+    ```
+
+    *Alex Ghiculescu*
+
 *   Stop generating `Link preload` headers once it has reached 1KB.
 
     Some proxies have trouble handling large headers, but more importantly preload links
