@@ -76,7 +76,7 @@ module ActiveSupport
       end
 
       def options
-        @options ||= ActiveSupport::InheritableOptions.new(deep_transform(config))
+        @options ||= deep_transform(config)
       end
 
       def deserialize(config)
