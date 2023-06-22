@@ -642,6 +642,18 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_s_default_is_deprecated
+    time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
+
+    Time::DATE_FORMATS[:default] = "%Y/%m/%d"
+
+    assert_deprecated do
+      assert_equal "2005/02/21", time.to_s
+    end
+  ensure
+    Time::DATE_FORMATS.delete(:default)
+  end
+
   def test_to_fs
     time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
     assert_equal time.to_s,                         time.to_fs(:doesnt_exist)

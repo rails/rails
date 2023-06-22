@@ -1,3 +1,7 @@
+*   Fix `to_s` with no arguments not respecting custom `:default` formats
+
+    *Hartley McGuire*
+
 *   Fix `ActiveSupport::Inflector.humanize(nil)` raising ``NoMethodError: undefined method `end_with?' for nil:NilClass``.
 
     *James Robinson*

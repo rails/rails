@@ -133,6 +133,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31 19:00:00 -0500", @twz.to_s
   end
 
+  def test_to_s_default_is_deprecated
+    Time::DATE_FORMATS[:default] = "%Y/%m/%d"
+
+    assert_deprecated do
+      assert_equal "1999/12/31", @twz.to_s
+    end
+  ensure
+    Time::DATE_FORMATS.delete(:default)
+  end
+
   def test_to_fs
     assert_equal "1999-12-31 19:00:00 -0500", @twz.to_fs
   end
