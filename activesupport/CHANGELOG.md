@@ -1,3 +1,8 @@
+*   Fix `EncryptedConfiguration` returning incorrect values for some `Hash`
+    methods
+
+    *Hartley McGuire*
+
 *   Don't show secrets for `MessageEncryptor#inspect`.
 
     Before:
