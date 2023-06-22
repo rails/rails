@@ -45,6 +45,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_not @credentials.something.bad
     assert_equal "bar", @credentials.dig(:something, :nested, :foo)
     assert_equal "bar", @credentials.something.nested.foo
+    assert_equal [:something], @credentials.keys
     assert_equal [:good, :bad, :nested], @credentials.something.keys
     assert_equal ({ good: true, bad: false, nested: { foo: "bar" } }), @credentials.something
   end
