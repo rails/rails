@@ -7,7 +7,7 @@ module ActionView # :nodoc:
     # = Action View Raw Output \Helpers
     module OutputSafetyHelper
       # This method outputs without escaping a string. Since escaping tags is
-      # now default, this can be used when you don't want Rails to automatically
+      # now default, this can be used when you don't want \Rails to automatically
       # escape tags. This is not recommended if the data is coming from the user's
       # input.
       #

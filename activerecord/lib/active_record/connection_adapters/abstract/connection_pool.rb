@@ -93,7 +93,7 @@ module ActiveRecord
     # While a thread has a connection checked out from the pool using one of the
     # above three methods, that connection will automatically be the one used
     # by ActiveRecord queries executing on that thread. It is not required to
-    # explicitly pass the checked out connection to Rails models or queries, for
+    # explicitly pass the checked out connection to \Rails models or queries, for
     # example.
     #
     # == Options

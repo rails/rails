@@ -163,7 +163,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
-  # secure-token format from Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
+  # secure-token format from \Rails in lower case. So it'll look like: xtapjjcjiudrlk3tmwyjgpuobabd.
   # This key is not intended to be revealed directly to the user.
   # Always refer to blobs using the signed_id or a verified form of the key.
   def key

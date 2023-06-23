@@ -43,7 +43,7 @@ module ActionView
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
       #
       # If the server supports HTTP Early Hints, and the +defer+ option is not
-      # enabled, Rails will push a <tt>103 Early Hints</tt> response that links
+      # enabled, \Rails will push a <tt>103 Early Hints</tt> response that links
       # to the assets.
       #
       # ==== Options
@@ -152,7 +152,7 @@ module ActionView
       # set <tt>extname: false</tt> in the options.
       # You can modify the link attributes by passing a hash as the last argument.
       #
-      # If the server supports HTTP Early Hints, Rails will push a <tt>103 Early
+      # If the server supports HTTP Early Hints, \Rails will push a <tt>103 Early
       # Hints</tt> response that links to the assets.
       #
       # ==== Options

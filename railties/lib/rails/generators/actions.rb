@@ -162,7 +162,7 @@ module Rails
         end
       end
 
-      # Adds configuration code to a Rails runtime environment.
+      # Adds configuration code to a \Rails runtime environment.
       #
       # By default, adds code inside the +Application+ class in
       # +config/application.rb+ so that it applies to all environments.
@@ -349,7 +349,7 @@ module Rails
       # ==== Options
       #
       # [+:env+]
-      #   The Rails environment in which to run the task. Defaults to
+      #   The \Rails environment in which to run the task. Defaults to
       #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
       #
       # [+:abort_on_failure+]
@@ -365,7 +365,7 @@ module Rails
         execute_command :rake, command, options
       end
 
-      # Runs the specified Rails command.
+      # Runs the specified \Rails command.
       #
       #   rails_command "db:migrate"
       #   rails_command "db:migrate", env: "production"
@@ -376,7 +376,7 @@ module Rails
       # ==== Options
       #
       # [+:env+]
-      #   The Rails environment in which to run the command. Defaults to
+      #   The \Rails environment in which to run the command. Defaults to
       #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
       #
       # [+:abort_on_failure+]
@@ -402,7 +402,7 @@ module Rails
         end
       end
 
-      # Make an entry in Rails routing file <tt>config/routes.rb</tt>
+      # Make an entry in \Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
       #   route "root 'admin#index'", namespace: :admin

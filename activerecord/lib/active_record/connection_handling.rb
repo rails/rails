@@ -39,7 +39,7 @@ module ActiveRecord
     #   )
     #
     # In case {ActiveRecord::Base.configurations}[rdoc-ref:Core.configurations]
-    # is set (Rails automatically loads the contents of config/database.yml into it),
+    # is set (\Rails automatically loads the contents of config/database.yml into it),
     # a symbol can also be given as argument, representing a key in the
     # configuration hash:
     #

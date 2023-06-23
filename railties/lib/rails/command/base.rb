@@ -25,7 +25,7 @@ module Rails
           false
         end
 
-        # Returns true when the app is a Rails engine.
+        # Returns true when the app is a \Rails engine.
         def engine?
           defined?(ENGINE_ROOT)
         end

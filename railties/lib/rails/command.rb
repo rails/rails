@@ -104,7 +104,7 @@ module Rails
         namespaces[(lookups & namespaces.keys).first]
       end
 
-      # Returns the root of the Rails engine or app running the command.
+      # Returns the root of the \Rails engine or app running the command.
       def root
         if defined?(ENGINE_ROOT)
           Pathname.new(ENGINE_ROOT)

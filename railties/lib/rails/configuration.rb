@@ -7,11 +7,11 @@ require "rails/rack"
 
 module Rails
   module Configuration
-    # MiddlewareStackProxy is a proxy for the Rails middleware stack that allows
+    # MiddlewareStackProxy is a proxy for the \Rails middleware stack that allows
     # you to configure middlewares in your application. It works basically as a
     # command recorder, saving each command to be applied after initialization
     # over the default middleware stack, so you can add, swap, or remove any
-    # middleware in Rails.
+    # middleware in \Rails.
     #
     # You can add your own middlewares by using the +config.middleware.use+ method:
     #

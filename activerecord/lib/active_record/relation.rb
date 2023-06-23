@@ -205,7 +205,7 @@ module ActiveRecord
     # * It relies on exception handling to handle control flow, which may be marginally slower.
     # * The primary key may auto-increment on each create, even if it fails. This can accelerate
     #   the problem of running out of integers, if the underlying table is still stuck on a primary
-    #   key of type int (note: All Rails apps since 5.1+ have defaulted to bigint, which is not liable
+    #   key of type int (note: All \Rails apps since 5.1+ have defaulted to bigint, which is not liable
     #   to this problem).
     #
     # This method will return a record if all given attributes are covered by unique constraints
@@ -331,7 +331,7 @@ module ActiveRecord
     #    # => "products/query-1850ab3d302391b85b8693e941286659"
     #
     # If ActiveRecord::Base.collection_cache_versioning is turned off, as it was
-    # in Rails 6.0 and earlier, the cache key will also include a version.
+    # in \Rails 6.0 and earlier, the cache key will also include a version.
     #
     #    ActiveRecord::Base.collection_cache_versioning = false
     #    Product.where("name like ?", "%Cosmic Encounter%").cache_key

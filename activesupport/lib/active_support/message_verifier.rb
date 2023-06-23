@@ -13,7 +13,7 @@ module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
   # signed to prevent tampering.
   #
-  # In a Rails application, you can use +Rails.application.message_verifier+
+  # In a \Rails application, you can use +Rails.application.message_verifier+
   # to manage unique instances of verifiers for each use case.
   # {Learn more}[link:classes/Rails/Application.html#method-i-message_verifier].
   #

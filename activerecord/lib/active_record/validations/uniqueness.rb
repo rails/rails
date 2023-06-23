@@ -265,7 +265,7 @@ module ActiveRecord
       # When the database catches such a duplicate insertion,
       # {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] will raise an ActiveRecord::StatementInvalid
       # exception. You can either choose to let this error propagate (which
-      # will result in the default Rails exception page being shown), or you
+      # will result in the default \Rails exception page being shown), or you
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as

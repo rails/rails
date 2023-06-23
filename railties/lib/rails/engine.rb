@@ -9,7 +9,7 @@ require "pathname"
 require "thread"
 
 module Rails
-  # +Rails::Engine+ allows you to wrap a specific Rails application or subset of
+  # +Rails::Engine+ allows you to wrap a specific \Rails application or subset of
   # functionality and share it with other applications or within a larger packaged application.
   # Every Rails::Application is just an engine, which allows for simple
   # feature and application sharing.
@@ -237,7 +237,7 @@ module Rails
   #
   # To make this behavior consistent with other parts of the framework,
   # isolated engines also have an effect on ActiveModel::Naming. In a
-  # normal Rails app, when you use a namespaced model such as
+  # normal \Rails app, when you use a namespaced model such as
   # +Namespace::Article+, ActiveModel::Naming will generate
   # names with the prefix "namespace". In an isolated engine, the prefix will
   # be omitted in URL helpers and form fields, for convenience.
@@ -450,7 +450,7 @@ module Rails
       self
     end
 
-    # Load Rails runner and invoke the registered hooks.
+    # Load \Rails runner and invoke the registered hooks.
     # Check Rails::Railtie.runner for more info.
     def load_runner(app = self)
       run_runner_blocks(app)
@@ -465,7 +465,7 @@ module Rails
       self
     end
 
-    # Load Rails generators and invoke the registered hooks.
+    # Load \Rails generators and invoke the registered hooks.
     # Check Rails::Railtie.generators for more info.
     def load_generators(app = self)
       require "rails/generators"

@@ -365,9 +365,9 @@ module ActiveRecord
   # Migrations of that kind should raise an ActiveRecord::IrreversibleMigration
   # exception in their +down+ method.
   #
-  # == Running migrations from within Rails
+  # == Running migrations from within \Rails
   #
-  # The Rails package has several tools to help create and apply migrations.
+  # The \Rails package has several tools to help create and apply migrations.
   #
   # To generate a new migration, you can use
   #   bin/rails generate migration MyNewMigration
@@ -488,7 +488,7 @@ module ActiveRecord
   #
   # == Timestamped Migrations
   #
-  # By default, Rails generates migrations that look like:
+  # By default, \Rails generates migrations that look like:
   #
   #    20080717013526_your_migration_name.rb
   #
@@ -1161,7 +1161,7 @@ module ActiveRecord
   # A migration context requires the path to the migrations is set
   # in the +migrations_paths+ parameter. Optionally a +schema_migration+
   # class can be provided. Multiple database applications will instantiate
-  # a +SchemaMigration+ object per database. From the Rake tasks, Rails will
+  # a +SchemaMigration+ object per database. From the Rake tasks, \Rails will
   # handle this for you.
   class MigrationContext
     attr_reader :migrations_paths, :schema_migration, :internal_metadata

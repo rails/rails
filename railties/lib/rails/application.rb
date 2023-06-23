@@ -231,7 +231,7 @@ module Rails
       end
     end
 
-    # Convenience for loading config/foo.yml for the current Rails env.
+    # Convenience for loading config/foo.yml for the current \Rails env.
     #
     # Examples:
     #
@@ -293,7 +293,7 @@ module Rails
       end
     end
 
-    # Stores some of the Rails initial environment parameters which
+    # Stores some of the \Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= super.merge(

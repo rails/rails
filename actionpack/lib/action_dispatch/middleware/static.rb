@@ -8,7 +8,7 @@ module ActionDispatch
   # This middleware serves static files from disk, if available.
   # If no file is found, it hands off to the main app.
   #
-  # In Rails apps, this middleware is configured to serve assets from
+  # In \Rails apps, this middleware is configured to serve assets from
   # the +public/+ directory.
   #
   # Only GET and HEAD requests are served. POST and other HTTP methods

@@ -72,7 +72,7 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
-      # With the <tt>scope</tt> option, you can define a custom scope for Rails
+      # With the <tt>scope</tt> option, you can define a custom scope for \Rails
       # to look up the translation.
       #
       # For example you can define the following in your locale (e.g. en.yml).
@@ -217,7 +217,7 @@ module ActionView
       # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
       #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
       #   select will not be shown (like when you set <tt>discard_xxx: true</tt>. Defaults to the order defined in
-      #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
+      #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with \Rails).
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
       #   dates.
       # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.

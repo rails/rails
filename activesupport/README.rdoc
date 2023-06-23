@@ -1,9 +1,9 @@
-= Active Support -- Utility classes and Ruby extensions from Rails
+= Active Support -- Utility classes and Ruby extensions from \Rails
 
 Active Support is a collection of utility classes and standard library
-extensions that were found useful for the Rails framework. These additions
+extensions that were found useful for the \Rails framework. These additions
 reside in this package so they can be loaded as needed in Ruby projects
-outside of Rails.
+outside of \Rails.
 
 You can read more about the extensions in the {Active Support Core Extensions}[https://guides.rubyonrails.org/active_support_core_extensions.html] guide.
 

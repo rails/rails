@@ -96,7 +96,7 @@ module ActionView
       # ==== Examples
       #
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
-      # and newer RESTful routes. Current Rails style favors RESTful routes whenever possible, so base
+      # and newer RESTful routes. Current \Rails style favors RESTful routes whenever possible, so base
       # your application on resources and use
       #
       #   link_to "Profile", profile_path(@profile)
@@ -173,9 +173,9 @@ module ActionView
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
       #
-      # ==== Deprecated: Rails UJS Attributes
+      # ==== Deprecated: \Rails UJS Attributes
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
+      # Prior to \Rails 7, \Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following \Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
       # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
@@ -201,7 +201,7 @@ module ActionView
       # * <tt>:disable_with</tt> - Value of this parameter will be used as the
       #   name for a disabled version of the link.
       #
-      # ===== Rails UJS Examples
+      # ===== \Rails UJS Examples
       #
       #   link_to "Remove Profile", profile_path(@profile), method: :delete
       #   # => <a href="/profiles/1" rel="nofollow" data-method="delete">Remove Profile</a>
@@ -305,9 +305,9 @@ module ActionView
       #   #      <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"  autocomplete="off"/>
       #   #    </form>"
       #
-      # ==== Deprecated: Rails UJS Attributes
+      # ==== Deprecated: \Rails UJS Attributes
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following Rails 7,
+      # Prior to \Rails 7, \Rails shipped with a JavaScript library called <tt>@rails/ujs</tt> on by default. Following \Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
       # * <tt>:remote</tt> -  If set to true, will allow <tt>@rails/ujs</tt> to control the
@@ -323,7 +323,7 @@ module ActionView
       #   used as the value for a disabled version of the submit
       #   button when the form is submitted.
       #
-      # ===== Rails UJS Examples
+      # ===== \Rails UJS Examples
       #
       #   <%= button_to "Create", { action: "create" }, remote: true, form: { "data-type" => "json" } %>
       #   # => "<form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
@@ -499,7 +499,7 @@ module ActionView
       # * <tt>:reply_to</tt> - Preset the +Reply-To+ field of the email.
       #
       # ==== Obfuscation
-      # Prior to Rails 4.0, +mail_to+ provided options for encoding the address
+      # Prior to \Rails 4.0, +mail_to+ provided options for encoding the address
       # in order to hinder email harvesters.  To take advantage of these options,
       # install the +actionview-encoded_mail_to+ gem.
       #

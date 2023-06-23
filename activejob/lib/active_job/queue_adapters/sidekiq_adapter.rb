@@ -9,7 +9,7 @@ module ActiveJob
     #
     # Simple, efficient background processing for Ruby. Sidekiq uses threads to
     # handle many jobs at the same time in the same process. It does not
-    # require Rails but will integrate tightly with it to make background
+    # require \Rails but will integrate tightly with it to make background
     # processing dead simple.
     #
     # Read more about Sidekiq {here}[http://sidekiq.org].
