@@ -38,7 +38,13 @@ module ActiveSupport
           unless options.empty?
             value = value.as_json(options.dup)
           end
-          stringify jsonify value
+          json = stringify(jsonify(value))
+          if Encoding.escape_html_entities_in_json
+            json.gsub! ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
+          else
+            json.gsub! ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
+          end
+          json
         end
 
         private
@@ -56,28 +62,9 @@ module ActiveSupport
           ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u
           ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
 
-          # This class wraps all the strings we see and does the extra escaping
-          class EscapedString < String # :nodoc:
-            def to_json(*)
-              if Encoding.escape_html_entities_in_json
-                s = super
-                s.gsub! ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
-                s
-              else
-                s = super
-                s.gsub! ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
-                s
-              end
-            end
-
-            def to_s
-              self
-            end
-          end
-
           # Mark these as private so we don't leak encoding-specific constructs
           private_constant :ESCAPED_CHARS, :ESCAPE_REGEX_WITH_HTML_ENTITIES,
-            :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, :EscapedString
+            :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES
 
           # Convert an object into a "JSON-ready" representation composed of
           # primitives like Hash, Array, String, Numeric,
@@ -95,7 +82,7 @@ module ActiveSupport
           def jsonify(value)
             case value
             when String
-              EscapedString.new(value)
+              value
             when Numeric, NilClass, TrueClass, FalseClass
               value.as_json
             when Hash
