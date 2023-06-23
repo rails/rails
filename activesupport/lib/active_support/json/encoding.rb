@@ -35,7 +35,10 @@ module ActiveSupport
 
         # Encode the given object into a JSON string
         def encode(value)
-          stringify jsonify value.as_json(options.dup)
+          unless options.empty?
+            value = value.as_json(options.dup)
+          end
+          stringify jsonify value
         end
 
         private
