@@ -16,6 +16,7 @@ module AbstractController
   autoload :Collector
   autoload :DoubleRenderError, "abstract_controller/rendering"
   autoload :Helpers
+  autoload :IgnoreActionMethods, "abstract_controller/base"
   autoload :Logger
   autoload :Rendering
   autoload :Translation

@@ -7,6 +7,9 @@ require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/module/attr_internal"
 
 module AbstractController
+  module IgnoreActionMethods
+  end
+
   # Raised when a non-existing controller action is triggered.
   class ActionNotFound < StandardError
     attr_reader :controller, :action # :nodoc:
@@ -81,26 +84,20 @@ module AbstractController
       end
 
       # A list of method names that should be considered actions. This
-      # includes all public instance methods on a controller, less
-      # any internal methods (see internal_methods), adding back in
-      # any methods that are internal, but still exist on the class
-      # itself.
+      # includes all public instance methods on a controller and its parents
+      # up to the nearest abstract class.
       #
       # ==== Returns
       # * <tt>Set</tt> - A set of all methods that should be considered actions.
       def action_methods
-        @action_methods ||= begin
-          # All public instance methods of this class, including ancestors
-          methods = (public_instance_methods(true) -
-            # Except for public instance methods of Base and its ancestors
-            internal_methods +
-            # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false))
-
-          methods.map!(&:to_s)
-
-          methods.to_set
-        end
+        @action_methods ||=
+          ancestors.take_while do |a|
+            !a.is_a?(Class) || !a.abstract?
+          end.reject do |a|
+            a.is_a?(AbstractController::IgnoreActionMethods)
+          end.flat_map do |a|
+            a.instance_methods(false)
+          end.map!(&:to_s).to_set
       end
 
       # action_methods are cached and there is sometimes a need to refresh

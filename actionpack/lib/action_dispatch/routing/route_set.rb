@@ -7,6 +7,7 @@ require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/array/extract_options"
 require "action_controller/metal/exceptions"
 require "action_dispatch/routing/endpoint"
+require "abstract_controller"
 
 module ActionDispatch
   module Routing
@@ -578,6 +579,8 @@ module ActionDispatch
             include path_helpers
             extend path_helpers
           end
+
+          extend AbstractController::IgnoreActionMethods
 
           # plus a singleton class method called _routes ...
           included do
