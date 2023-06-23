@@ -7,9 +7,9 @@ module ActiveSupport
     # = Memory \Cache \Store
     #
     # A cache store implementation which stores everything into memory in the
-    # same process. If you're running multiple Ruby on Rails server processes
+    # same process. If you're running multiple Ruby on \Rails server processes
     # (which is the case if you're using Phusion Passenger or puma clustered mode),
-    # then this means that Rails server process instances won't be able
+    # then this means that \Rails server process instances won't be able
     # to share cache data with each other and this may not be the most
     # appropriate cache in that scenario.
     #

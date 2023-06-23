@@ -11,11 +11,11 @@ module ActiveRecord
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used with Rails commands provided by Active Record.
+    # The tasks defined here are used with \Rails commands provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
-    # config values are set by Rails already, so it's necessary to do it only if you
-    # want to change the defaults or when you want to use Active Record outside of Rails
+    # config values are set by \Rails already, so it's necessary to do it only if you
+    # want to change the defaults or when you want to use Active Record outside of \Rails
     # (in such case after configuring the database tasks, you can also use the rake tasks
     # defined in Active Record).
     #
@@ -29,7 +29,7 @@ module ActiveRecord
     # * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
     # * +root+: a path to the root of the application.
     #
-    # Example usage of DatabaseTasks outside Rails could look as such:
+    # Example usage of DatabaseTasks outside \Rails could look as such:
     #
     #   include ActiveRecord::Tasks
     #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')

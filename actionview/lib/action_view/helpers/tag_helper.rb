@@ -261,7 +261,7 @@ module ActionView
       #
       # === Legacy syntax
       #
-      # The following format is for legacy syntax support. It will be deprecated in future versions of Rails.
+      # The following format is for legacy syntax support. It will be deprecated in future versions of \Rails.
       #
       #   tag(name, options = nil, open = false, escape = true)
       #

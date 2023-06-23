@@ -32,7 +32,7 @@ module ActionController # :nodoc:
     #
     # What that says is, "if the client wants HTML or JS in response to this action, just respond as we
     # would have before, but if the client wants XML, return them the list of people in XML format."
-    # (Rails determines the desired response format from the HTTP Accept header submitted by the client.)
+    # (\Rails determines the desired response format from the HTTP Accept header submitted by the client.)
     #
     # Supposing you have an action that adds a new person, optionally creating their company
     # (by name) if it does not already exist, without web-services, it might look like this:
@@ -98,7 +98,7 @@ module ActionController # :nodoc:
     #
     # Note that you can define your own XML parameter parser which would allow you to describe multiple entities
     # in a single request (i.e., by wrapping them all in a single root node), but if you just go with the flow
-    # and accept Rails' defaults, life will be much easier.
+    # and accept \Rails' defaults, life will be much easier.
     #
     # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
     # +config/initializers/mime_types.rb+ as follows.

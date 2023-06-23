@@ -522,9 +522,9 @@ module ActionView
       #   submit_tag "Edit", class: "edit_button"
       #   # => <input class="edit_button" data-disable-with="Edit" name="commit" type="submit" value="Edit" />
       #
-      # ==== Deprecated: Rails UJS attributes
+      # ==== Deprecated: \Rails UJS attributes
       #
-      # Prior to Rails 7, Rails shipped with the JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # Prior to \Rails 7, \Rails shipped with the JavaScript library called @rails/ujs on by default. Following \Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
       # * <tt>confirm: 'question?'</tt> - If present the unobtrusive JavaScript
@@ -582,9 +582,9 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
-      # ==== Deprecated: Rails UJS attributes
+      # ==== Deprecated: \Rails UJS attributes
       #
-      # Prior to Rails 7, Rails shipped with a JavaScript library called @rails/ujs on by default. Following Rails 7,
+      # Prior to \Rails 7, \Rails shipped with a JavaScript library called @rails/ujs on by default. Following \Rails 7,
       # this library is no longer on by default. This library integrated with the following options:
       #
       # * <tt>confirm: 'question?'</tt> - If present, the

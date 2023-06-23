@@ -8,8 +8,8 @@ module ActiveRecord
     included do
       ##
       # :singleton-method:
-      # Set the secret used for the signed id verifier instance when using Active Record outside of Rails.
-      # Within Rails, this is automatically set using the Rails application key generator.
+      # Set the secret used for the signed id verifier instance when using Active Record outside of \Rails.
+      # Within \Rails, this is automatically set using the \Rails application key generator.
       class_attribute :signed_id_verifier_secret, instance_writer: false
     end
 
@@ -66,7 +66,7 @@ module ActiveRecord
       end
 
       # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
-      # with the class-level +signed_id_verifier_secret+, which within Rails comes from the
+      # with the class-level +signed_id_verifier_secret+, which within \Rails comes from the
       # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
       def signed_id_verifier
         @signed_id_verifier ||= begin

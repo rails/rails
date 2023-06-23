@@ -47,10 +47,10 @@ are bundled together in [Action Pack](files/actionpack/README.rdoc).
 In addition to that, \Rails also comes with:
 
 - [Action Mailer](files/actionmailer/README.rdoc), a library to generate and send emails
-- [Action Mailbox](files/actionmailbox/README.md), a library to receive emails within a Rails application
+- [Action Mailbox](files/actionmailbox/README.md), a library to receive emails within a \Rails application
 - [Active Job](files/activejob/README.md), a framework for declaring jobs and making them run on a variety of queuing backends
-- [Action Cable](files/actioncable/README.md), a framework to integrate WebSockets with a Rails application
-- [Active Storage](files/activestorage/README.md), a library to attach cloud and local files to Rails applications
+- [Action Cable](files/actioncable/README.md), a framework to integrate WebSockets with a \Rails application
+- [Active Storage](files/activestorage/README.md), a library to attach cloud and local files to \Rails applications
 - [Action Text](files/actiontext/README.md), a library to handle rich text content
 - [Active Support](files/activesupport/README.rdoc), a collection of utility classes and standard library extensions that are useful for \Rails, and may also be used independently outside \Rails
 

@@ -127,7 +127,7 @@ module ActiveSupport
         # Defaults to 3 (equivalent to millisecond precision)
         attr_accessor :time_precision
 
-        # Sets the encoder used by Rails to encode Ruby objects into JSON strings
+        # Sets the encoder used by \Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
         attr_accessor :json_encoder
       end

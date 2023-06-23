@@ -39,7 +39,7 @@ module ActiveSupport
   #
   # but this class is intended for use cases where strings or symbols are the
   # expected keys and it is convenient to understand both as the same. For
-  # example the +params+ hash in Ruby on Rails.
+  # example the +params+ hash in Ruby on \Rails.
   #
   # Note that core extensions define <tt>Hash#with_indifferent_access</tt>:
   #
@@ -47,7 +47,7 @@ module ActiveSupport
   #
   # which may be handy.
   #
-  # To access this class outside of Rails, require the core extension with:
+  # To access this class outside of \Rails, require the core extension with:
   #
   #   require "active_support/core_ext/hash/indifferent_access"
   #

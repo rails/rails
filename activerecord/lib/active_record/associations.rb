@@ -1205,7 +1205,7 @@ module ActiveRecord
       # specific association types. When no option is given, the behavior is to do nothing
       # with the associated records when destroying a record.
       #
-      # Note that <tt>:dependent</tt> is implemented using Rails' callback
+      # Note that <tt>:dependent</tt> is implemented using \Rails' callback
       # system, which works by processing callbacks in order. Therefore, other
       # callbacks declared either before or after the <tt>:dependent</tt> option
       # can affect what it does.
@@ -1418,7 +1418,7 @@ module ActiveRecord
         # [:dependent]
         #   Controls what happens to the associated objects when
         #   their owner is destroyed. Note that these are implemented as
-        #   callbacks, and Rails executes callbacks in order. Therefore, other
+        #   callbacks, and \Rails executes callbacks in order. Therefore, other
         #   similar callbacks may affect the <tt>:dependent</tt> behavior, and the
         #   <tt>:dependent</tt> behavior may affect other callbacks.
         #

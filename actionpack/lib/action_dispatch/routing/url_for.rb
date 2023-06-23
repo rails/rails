@@ -39,7 +39,7 @@ module ActionDispatch
     #   # => "/users/new?message=Welcome%21"
     #
     # Notice the <tt>only_path: true</tt> part. This is because UrlFor has no
-    # information about the website hostname that your Rails app is serving. So if you
+    # information about the website hostname that your \Rails app is serving. So if you
     # want to include the hostname as well, then you must also pass the <tt>:host</tt>
     # argument:
     #

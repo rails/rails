@@ -12,7 +12,7 @@
 # documentation for more details on what's required of previewers.
 #
 # To choose the previewer for a blob, Active Storage calls +accept?+ on each registered previewer in order. It uses the
-# first previewer for which +accept?+ returns true when given the blob. In a Rails application, add or remove previewers
+# first previewer for which +accept?+ returns true when given the blob. In a \Rails application, add or remove previewers
 # by manipulating +Rails.application.config.active_storage.previewers+ in an initializer:
 #
 #   Rails.application.config.active_storage.previewers
@@ -22,13 +22,13 @@
 #   Rails.application.config.active_storage.previewers << DOCXPreviewer
 #   # => [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer, DOCXPreviewer ]
 #
-# Outside of a Rails application, modify +ActiveStorage.previewers+ instead.
+# Outside of a \Rails application, modify +ActiveStorage.previewers+ instead.
 #
 # The built-in previewers rely on third-party system libraries. Specifically, the built-in video previewer requires
 # {FFmpeg}[https://www.ffmpeg.org]. Two PDF previewers are provided: one requires {Poppler}[https://poppler.freedesktop.org],
 # and the other requires {muPDF}[https://mupdf.com] (version 1.8 or newer). To preview PDFs, install either Poppler or muPDF.
 #
-# These libraries are not provided by Rails. You must install them yourself to use the built-in previewers. Before you
+# These libraries are not provided by \Rails. You must install them yourself to use the built-in previewers. Before you
 # install and use third-party software, make sure you understand the licensing implications of doing so.
 class ActiveStorage::Preview
   class UnprocessedError < StandardError; end

@@ -267,7 +267,7 @@ module ActionMailer
   # the delivery agents. Your class should make any needed modifications directly to the passed
   # in +Mail::Message+ instance.
   #
-  # = Default Hash
+  # = Default \Hash
   #
   # Action Mailer provides some intelligent defaults for your emails, these are usually specified in a
   # default method inside the class definition:
@@ -316,7 +316,7 @@ module ActionMailer
   #
   #    config.action_mailer.default_options = { from: "no-reply@example.org" }
   #
-  # = Callbacks
+  # = \Callbacks
   #
   # You can specify callbacks using <tt>before_action</tt> and <tt>after_action</tt> for configuring your messages,
   # and using <tt>before_deliver</tt> and <tt>after_deliver</tt> for wrapping the delivery process.
@@ -783,7 +783,7 @@ module ActionMailer
     # the most used headers in an email message, these are:
     #
     # * +:subject+ - The subject of the message, if this is omitted, Action Mailer will
-    #   ask the Rails I18n class for a translated +:subject+ in the scope of
+    #   ask the \Rails I18n class for a translated +:subject+ in the scope of
     #   <tt>[mailer_scope, action_name]</tt> or if this is missing, will translate the
     #   humanized version of the +action_name+
     # * +:to+ - Who the message is destined for, can be a string of addresses, or an array
@@ -929,7 +929,7 @@ module ActionMailer
         end
       end
 
-      # Translates the +subject+ using Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
+      # Translates the +subject+ using \Rails I18n class under <tt>[mailer_scope, action_name]</tt> scope.
       # If it does not find a translation for the +subject+ under the specified scope it will default to a
       # humanized version of the <tt>action_name</tt>.
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.

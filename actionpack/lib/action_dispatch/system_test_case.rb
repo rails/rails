@@ -107,7 +107,7 @@ module ActionDispatch
   #   end
   #
   # Because +ActionDispatch::SystemTestCase+ is a shim between Capybara
-  # and Rails, any driver that is supported by Capybara is supported by system
+  # and \Rails, any driver that is supported by Capybara is supported by system
   # tests as long as you include the required gems and files.
   class SystemTestCase < ActiveSupport::TestCase
     include Capybara::DSL
