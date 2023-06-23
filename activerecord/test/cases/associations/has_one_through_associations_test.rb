@@ -22,6 +22,7 @@ require "models/customer"
 require "models/carrier"
 require "models/shop_account"
 require "models/customer_carrier"
+require "models/cpk"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -444,5 +445,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal other_carrier, account_carrier
   ensure
     CustomerCarrier.current_customer = nil
+  end
+
+  def test_loading_cpk_association_with_unpersisted_owner
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.new(number: 2, author_id: 1, order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal(order_agreement, book.order_agreement)
   end
 end

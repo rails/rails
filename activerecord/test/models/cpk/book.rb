@@ -20,4 +20,9 @@ module Cpk
   class NullifiedBook < Book
     has_one :chapter, query_constraints: [:author_id, :book_number], dependent: :nullify
   end
+
+  class BookWithOrderAgreements < Book
+    has_many :order_agreements, through: :order
+    has_one :order_agreement, through: :order, source: :order_agreements
+  end
 end

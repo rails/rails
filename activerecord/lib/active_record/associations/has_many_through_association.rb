@@ -113,7 +113,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          !(through_reflection.belongs_to? && owner[through_reflection.foreign_key].blank?)
+          !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner[foreign_key_column].blank? })
         end
 
         def update_through_counter?(method)

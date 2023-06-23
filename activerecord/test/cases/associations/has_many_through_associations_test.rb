@@ -1631,6 +1631,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal(expected_blog_post_ids.sort, blog_post_ids.sort)
   end
 
+  def test_loading_cpk_association_with_unpersisted_owner
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.new(number: 2, author_id: 1, order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal([order_agreement], book.order_agreements.to_a)
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
