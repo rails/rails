@@ -9,8 +9,16 @@ module Arel # :nodoc: all
         super(left, right)
         @case_sensitive = case_sensitive
       end
+
+      def invert
+        Arel::Nodes::NotRegexp.new(left, right, case_sensitive)
+      end
     end
 
-    class NotRegexp < Regexp; end
+    class NotRegexp < Regexp
+      def invert
+        Arel::Nodes::Regexp.new(left, right, case_sensitive)
+      end
+    end
   end
 end

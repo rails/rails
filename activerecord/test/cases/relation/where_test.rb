@@ -502,5 +502,16 @@ module ActiveRecord
       Comment.create!(label: :default, post: post, body: "Nice weather today")
       assert_equal [post], Post.joins(:comments).where(comments: { label: :default, body: "Nice weather today" }).to_a
     end
+
+    def test_where_with_regexp
+      assert_equal [posts(:thinking)], Post.where(title: /ThInKiNg/)
+    end
+
+    def test_where_not_with_regexp
+      Post.where.not(title: /ThInKiNg/).tap do |relation|
+        assert_includes     relation, posts(:welcome)
+        assert_not_includes relation, posts(:thinking)
+      end
+    end
   end
 end
