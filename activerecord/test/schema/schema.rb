@@ -838,6 +838,22 @@ ActiveRecord::Schema.define do
     end
   end
 
+  if ActiveRecord::TestCase.current_adapter?(:PostgreSQLAdapter)
+    create_table :geometric_data, force: true do |t|
+      t.string :identifier, null: false
+      t.point :point_col
+      t.line :line_col
+      t.lseg :lseg_col
+      t.box :box_col
+      t.path :path_col
+      t.polygon :polygon_col
+      t.circle :circle_col
+      t.datetime :created_at, null: false
+      t.datetime :updated_at, null: false
+      t.index ["identifier"], name: "index_geometric_data_on_identifier", unique: true
+    end
+  end
+
   create_table :orders, force: true do |t|
     t.string  :name
     t.integer :billing_customer_id
