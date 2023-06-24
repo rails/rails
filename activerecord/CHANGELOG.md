@@ -1,3 +1,18 @@
+*   Add `chronologically` and `reverse_chronologically` scopes to `ActiveRecord::Base`.
+
+    ```ruby
+    Author.chronologically
+    #=> SELECT * FROM authors ORDER BY authors.id ASC
+
+    Author.reverse_chronologically
+    #=> SELECT * FROM authors ORDER BY authors.id DESC
+    ```
+
+    It uses the same logic as `first` and `last`, the order is defined
+    based on `implicit_order_column || query_constraints_list || primary_key`.
+
+    *Lázaro Nixon*
+
 *   Apply scope to association subqueries. (belongs_to/has_one/has_many)
 
     Given: `has_many :welcome_posts, -> { where(title: "welcome") }`

@@ -330,6 +330,7 @@ module ActiveRecord # :nodoc:
     include SignedId
     include Suppressor
     include Normalization
+    include DefaultScopes
     include Marshalling::Methods
   end
 

@@ -1389,6 +1389,20 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Developer.all, developers
   end
 
+  def test_chronologicaly
+    relation = Developer.chronologically
+    expected = Developer.order(id: :asc)
+
+    assert_equal expected.to_a, relation.to_a
+  end
+
+  def test_reverse_chronologically
+    relation = Developer.reverse_chronologically
+    expected = Developer.order(id: :desc)
+
+    assert_equal expected.to_a, relation.to_a
+  end
+
   def test_all_with_conditions
     assert_equal Developer.all.merge!(order: "id desc").to_a, Developer.order("id desc").to_a
   end
