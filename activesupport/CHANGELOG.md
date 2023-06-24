@@ -1,3 +1,7 @@
+*   Rename `Range#overlaps?` to `#overlap?` and add alias for backwards compatibility
+
+    *Christian Schmidt*
+
 *   Fix `EncryptedConfiguration` returning incorrect values for some `Hash`
     methods
 

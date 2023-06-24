@@ -41,28 +41,33 @@ class RangeTest < ActiveSupport::TestCase
     assert_instance_of Range, DateTime.new..DateTime::Infinity.new
   end
 
-  def test_overlaps_last_inclusive
-    assert((1..5).overlaps?(5..10))
+  def test_overlap_last_inclusive
+    assert((1..5).overlap?(5..10))
   end
 
-  def test_overlaps_last_exclusive
-    assert_not (1...5).overlaps?(5..10)
+  def test_overlap_last_exclusive
+    assert_not (1...5).overlap?(5..10)
   end
 
-  def test_overlaps_first_inclusive
-    assert((5..10).overlaps?(1..5))
+  def test_overlap_first_inclusive
+    assert((5..10).overlap?(1..5))
   end
 
-  def test_overlaps_first_exclusive
-    assert_not (5..10).overlaps?(1...5)
+  def test_overlap_first_exclusive
+    assert_not (5..10).overlap?(1...5)
   end
 
-  def test_overlaps_with_beginless_range
-    assert((1..5).overlaps?(..10))
+  def test_overlap_with_beginless_range
+    assert((1..5).overlap?(..10))
   end
 
-  def test_overlaps_with_two_beginless_ranges
-    assert((..5).overlaps?(..10))
+  def test_overlap_with_two_beginless_ranges
+    assert((..5).overlap?(..10))
+  end
+
+  def test_overlaps_alias
+    assert (1..5).overlaps?(5..10)
+    assert_not (1...5).overlaps?(6..10)
   end
 
   def test_should_include_identical_inclusive
@@ -168,16 +173,16 @@ class RangeTest < ActiveSupport::TestCase
     assert range.method(:include?) != range.method(:cover?)
   end
 
-  def test_overlaps_on_time
+  def test_overlap_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 00)..Time.utc(2005, 12, 10, 18, 00)
-    assert time_range_1.overlaps?(time_range_2)
+    assert time_range_1.overlap?(time_range_2)
   end
 
-  def test_no_overlaps_on_time
+  def test_no_overlap_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
-    assert_not time_range_1.overlaps?(time_range_2)
+    assert_not time_range_1.overlap?(time_range_2)
   end
 
   def test_each_on_time_with_zone
