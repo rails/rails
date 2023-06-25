@@ -1,3 +1,16 @@
+*   The new method `config.autoload_lib(ignore:)` provides a simple way to
+    autoload from `lib`:
+
+    ```ruby
+    # config/application.rb
+    config.autoload_lib(ignore: %w(assets tasks))
+    ```
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
 *   Don't show secret_key_base for `Rails.application.config#inspect`.
 
     Before:

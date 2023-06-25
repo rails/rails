@@ -2139,6 +2139,76 @@ module ApplicationTests
       end
     end
 
+    test "config.autoload_lib adds lib to the autoload and eager load paths (array ignore)" do
+      app_file "lib/x.rb", "X = true"
+      app_file "lib/tasks/x.rb", "Tasks::X = true"
+      app_file "lib/generators/x.rb", "Generators::X = true"
+
+      add_to_config "config.autoload_lib(ignore: %w(tasks generators))"
+
+      app "development"
+
+      Rails.application.config.tap do |config|
+        assert_includes config.autoload_paths, "#{app_path}/lib"
+        assert_includes config.eager_load_paths, "#{app_path}/lib"
+      end
+
+      assert X
+      assert_raises(NameError) { Tasks }
+      assert_raises(NameError) { Generators }
+    end
+
+    test "config.autoload_lib adds lib to the autoload and eager load paths (empty array ignore)" do
+      app_file "lib/x.rb", "X = true"
+      app_file "lib/tasks/x.rb", "Tasks::X = true"
+
+      add_to_config "config.autoload_lib(ignore: [])"
+
+      app "development"
+
+      Rails.application.config.tap do |config|
+        assert_includes config.autoload_paths, "#{app_path}/lib"
+        assert_includes config.eager_load_paths, "#{app_path}/lib"
+      end
+
+      assert X
+      assert Tasks::X
+    end
+
+    test "config.autoload_lib adds lib to the autoload and eager load paths (scalar ignore)" do
+      app_file "lib/x.rb", "X = true"
+      app_file "lib/tasks/x.rb", "Tasks::X = true"
+
+      add_to_config "config.autoload_lib(ignore: 'tasks')"
+
+      app "development"
+
+      Rails.application.config.tap do |config|
+        assert_includes config.autoload_paths, "#{app_path}/lib"
+        assert_includes config.eager_load_paths, "#{app_path}/lib"
+      end
+
+      assert X
+      assert_raises(NameError) { Tasks }
+    end
+
+    test "config.autoload_lib adds lib to the autoload and eager load paths (nil ignore)" do
+      app_file "lib/x.rb", "X = true"
+      app_file "lib/tasks/x.rb", "Tasks::X = true"
+
+      add_to_config "config.autoload_lib(ignore: nil)"
+
+      app "development"
+
+      Rails.application.config.tap do |config|
+        assert_includes config.autoload_paths, "#{app_path}/lib"
+        assert_includes config.eager_load_paths, "#{app_path}/lib"
+      end
+
+      assert X
+      assert Tasks::X
+    end
+
     test "load_database_yaml returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
       app "development"
