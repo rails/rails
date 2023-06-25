@@ -126,7 +126,7 @@ config.autoload_lib(ignore: %w(assets tasks generators))
 # config/application.rb
 module MyApp
   class Application < Rails::Application
-    lib = Rails.root.join("lib")
+    lib = root.join("lib")
 
     config.autoload_paths << lib
     config.eager_load_paths << lib
