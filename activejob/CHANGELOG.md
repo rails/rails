@@ -37,7 +37,7 @@
 
     This can greatly reduce the number of round-trips to the queue datastore.
     For queue adapters that do not implement the new `enqueue_all` method, we
-    fall back to enqueuing jobs indvidually. The Sidekiq adapter implements
+    fall back to enqueuing jobs individually. The Sidekiq adapter implements
     `enqueue_all` with `push_bulk`.
 
     This method does not use the existing `enqueue.active_job` event, but adds a
