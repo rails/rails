@@ -5,7 +5,6 @@ module ActionView
     module Tags # :nodoc:
       class Base # :nodoc:
         include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
-        include FormOptionsHelper
 
         attr_reader :object
 
