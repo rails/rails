@@ -1,3 +1,18 @@
+*   Fix unscope with multiple not conditions
+
+    Before:
+    ```ruby
+    Post.where.not(body: "hello", title: "sti me").unscope(where: :title)
+    #=> SELECT * FROM posts WHERE NOT (body = 'hello' AND title = 'sti me')
+    ```
+    Later:
+    ```ruby
+    Post.where.not(body: "hello", title: "sti me").unscope(where: :title)
+    #=> SELECT * FROM posts WHERE NOT (body = 'hello')
+    ```
+
+    *Lázaro Nixon*
+
 *   Apply scope to association subqueries. (belongs_to/has_one/has_many)
 
     Given: `has_many :welcome_posts, -> { where(title: "welcome") }`
