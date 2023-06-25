@@ -23,10 +23,23 @@ module ActiveRecord
         end
       end
 
+      def support_sha1_for_non_deterministic_encryption=(value)
+        if value && has_primary_key?
+          sha1_key_generator = ActiveRecord::Encryption::KeyGenerator.new(hash_digest_class: OpenSSL::Digest::SHA1)
+          sha1_key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(primary_key, key_generator: sha1_key_generator)
+          add_previous_scheme key_provider: sha1_key_provider
+        end
+      end
+
       %w(key_derivation_salt primary_key deterministic_key).each do |key|
+        silence_redefinition_of_method "has_#{key}?"
+        define_method("has_#{key}?") do
+          instance_variable_get(:"@#{key}").presence
+        end
+
         silence_redefinition_of_method key
         define_method(key) do
-          instance_variable_get(:"@#{key}").presence or
+          public_send("has_#{key}?") or
             raise Errors::Configuration, "Missing Active Record encryption credential: active_record_encryption.#{key}"
         end
       end
