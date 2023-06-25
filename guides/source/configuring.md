@@ -213,6 +213,18 @@ Accepts an array of paths from which Rails will autoload constants that won't be
 
 Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
 
+#### `config.autoload_lib(ignore:)`
+
+This method adds `lib` to `config.autoload_paths` and `config.eager_load_paths`.
+
+Normally, the `lib` directory has subdirectories that should not be autoloaded or eager loaded. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example,
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks generators))
+```
+
+Please, see more details in the [autoloading guide](autoloading_and_reloading_constants.html).
+
 #### `config.beginning_of_week`
 
 Sets the default beginning of week for the

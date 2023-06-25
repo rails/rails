@@ -101,6 +101,47 @@ WARNING: You cannot autoload code in the autoload paths while the application bo
 
 The autoload paths are managed by the `Rails.autoloaders.main` autoloader.
 
+config.autoload_lib(ignore:)
+----------------------------
+
+By default, the `lib` directory does not belong to the autoload paths of applications or engines.
+
+The configuration method `config.autoload_lib` adds the `lib` directory to `config.autoload_paths` and `config.eager_load_paths`. It has to be invoked from `config/application.rb` or `config/environments/*.rb`, and it is not available for engines.
+
+Normally, `lib` has subdirectories that should not be managed by the autoloaders. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example:
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks))
+```
+
+Why? While `assets` and `tasks` share the `lib` directory with regular code, their contents are not meant to be autoloaded or eager loaded. `Assets` and `Tasks` are not Ruby namespaces there. Same with generators if you have any:
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks generators))
+```
+
+`config.autoload_lib` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
+
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    lib = Rails.root.join("lib")
+
+    config.autoload_paths << lib
+    config.eager_load_paths << lib
+
+    Rails.autoloaders.main.ignore(
+      lib.join("assets"),
+      lib.join("tasks"),
+      lib.join("generators")
+    )
+
+    ...
+  end
+end
+```
+
 config.autoload_once_paths
 --------------------------
 
