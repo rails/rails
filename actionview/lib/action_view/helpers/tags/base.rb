@@ -35,22 +35,24 @@ module ActionView
 
         private
           def value
+            return unless object
+
             if @allow_method_names_outside_object
-              object.public_send @method_name if object && object.respond_to?(@method_name)
+              object.public_send @method_name if object.respond_to?(@method_name)
             else
-              object.public_send @method_name if object
+              object.public_send @method_name
             end
           end
 
           def value_before_type_cast
-            unless object.nil?
-              method_before_type_cast = @method_name + "_before_type_cast"
+            return unless object
 
-              if value_came_from_user? && object.respond_to?(method_before_type_cast)
-                object.public_send(method_before_type_cast)
-              else
-                value
-              end
+            method_before_type_cast = @method_name + "_before_type_cast"
+
+            if value_came_from_user? && object.respond_to?(method_before_type_cast)
+              object.public_send(method_before_type_cast)
+            else
+              value
             end
           end
 
