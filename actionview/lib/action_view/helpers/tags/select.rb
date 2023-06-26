@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "action_view/helpers/tags/select_renderer"
-
 module ActionView
   module Helpers
     module Tags # :nodoc:

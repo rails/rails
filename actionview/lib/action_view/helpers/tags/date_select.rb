@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/time/calculations"
-require "action_view/helpers/tags/select_renderer"
 
 module ActionView
   module Helpers
