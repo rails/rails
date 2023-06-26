@@ -45,6 +45,12 @@ module ActiveSupport
       end,
 
       silence: ->(message, callstack, deprecator) { },
+
+      report: ->(message, callstack, deprecator) do
+        error = DeprecationException.new(message)
+        error.set_backtrace(callstack.map(&:to_s))
+        ActiveSupport.error_reporter.report(error)
+      end
     }
 
     # Behavior module allows to determine how to display deprecation messages.
@@ -55,6 +61,7 @@ module ActiveSupport
     # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
     # [+log+]     Log all deprecation warnings to +Rails.logger+.
     # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
+    # [+report+]  Use +ActiveSupport::ErrorReporter+ to report deprecations.
     # [+silence+] Do nothing. On \Rails, set <tt>config.active_support.report_deprecations = false</tt> to disable all behaviors.
     #
     # Setting behaviors only affects deprecations that happen after boot time.
@@ -82,6 +89,7 @@ module ActiveSupport
       # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
       # [+log+]     Log all deprecation warnings to +Rails.logger+.
       # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
+      # [+report+]  Use +ActiveSupport::ErrorReporter+ to report deprecations.
       # [+silence+] Do nothing.
       #
       # Setting behaviors only affects deprecations that happen after boot time.
