@@ -7,6 +7,9 @@ module ActiveRecord
   # table has fields named <tt>created_at/created_on</tt> or
   # <tt>updated_at/updated_on</tt>.
   #
+  # Additionally, <tt>deleted_at/deleted_on</tt> will be timestamped instead of
+  # actually deleted on destroy operations.
+  #
   # Timestamping can be turned off by setting:
   #
   #   config.active_record.record_timestamps = false
@@ -45,6 +48,7 @@ module ActiveRecord
 
     included do
       class_attribute :record_timestamps, default: true
+      class_attribute :soft_delete, default: true
     end
 
     def initialize_dup(other) # :nodoc:
@@ -69,6 +73,11 @@ module ActiveRecord
           (timestamp_attributes_for_update & column_names).freeze
       end
 
+      def timestamp_attributes_for_delete_in_model
+        @timestamp_attributes_for_delete_in_model ||=
+          (timestamp_attributes_for_delete & column_names).freeze
+      end
+
       def all_timestamp_attributes_in_model
         @all_timestamp_attributes_in_model ||=
           (timestamp_attributes_for_create_in_model + timestamp_attributes_for_update_in_model).freeze
@@ -82,6 +91,7 @@ module ActiveRecord
         def reload_schema_from_cache(recursive = true)
           @timestamp_attributes_for_create_in_model = nil
           @timestamp_attributes_for_update_in_model = nil
+          @timestamp_attributes_for_delete_in_model = nil
           @all_timestamp_attributes_in_model = nil
           super
         end
@@ -93,6 +103,10 @@ module ActiveRecord
 
         def timestamp_attributes_for_update
           ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
+        end
+
+        def timestamp_attributes_for_delete
+          ["deleted_at", "deleted_on"].map! { |name| attribute_aliases[name] || name }
         end
     end
 
@@ -142,12 +156,20 @@ module ActiveRecord
       record_timestamps && (!partial_updates? || has_changes_to_save?)
     end
 
+    def should_soft_delete?
+      soft_delete && timestamp_attributes_for_delete_in_model.any?
+    end
+
     def timestamp_attributes_for_create_in_model
       self.class.timestamp_attributes_for_create_in_model
     end
 
     def timestamp_attributes_for_update_in_model
       self.class.timestamp_attributes_for_update_in_model
+    end
+
+    def timestamp_attributes_for_delete_in_model
+      self.class.timestamp_attributes_for_delete_in_model
     end
 
     def all_timestamp_attributes_in_model

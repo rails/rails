@@ -27,7 +27,7 @@ require "models/default"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
-    :posts, :minivans, :clothing_items, :cpk_books
+    :posts, :comments, :minivans, :clothing_items, :cpk_books
 
   def test_populates_non_primary_key_autoincremented_column
     topic = TitlePrimaryKeyTopic.create!(title: "title pk topic")
@@ -819,6 +819,12 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal topic, topic.destroy!, "topic.destroy! did not return self"
     assert topic.frozen?, "topic not frozen after destroy!"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
+  def test_destroy_with_soft_delete
+    comment = CommentWithSoftDelete.find(14)
+    assert_equal comment, comment.destroy, "comment.destroy did not return self"
+    assert comment.soft_deleted?, "comment not soft deleted"
   end
 
   def test_find_raises_record_not_found_exception

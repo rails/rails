@@ -1,3 +1,23 @@
+*   Timestamp `deleted_at` on destroy instead of actually deleting the record.
+
+    If suppliers table has a field named deleted_at:
+
+    ```ruby
+    supplier.destroy
+    #=> UPDATE "suppliers" SET "deleted_at" = ? WHERE "suppliers"."id" = ?
+
+    supplier.delete
+    #=> DELETE FROM "suppliers" WHERE "suppliers"."id" = ?
+    ```
+
+    Soft deletion can be turned off by setting:
+
+    ```ruby
+    config.active_record.soft_delete = false
+    ```
+
+    *Lázaro Nixon*
+
 *   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
 
     This adds a new Active Record encryption option to support decrypting data encrypted

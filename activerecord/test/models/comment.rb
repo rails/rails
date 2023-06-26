@@ -44,6 +44,8 @@ class Comment < ActiveRecord::Base
 
   scope :oops_comments, -> { extending OopsExtension }
 
+  self.soft_delete = false
+
   # Should not be called if extending modules that having the method exists on an association.
   def self.greeting
     raise
@@ -100,4 +102,8 @@ class CommentWithAfterCreateUpdate < Comment
   after_create do
     update(body: "bar")
   end
+end
+
+class CommentWithSoftDelete < Comment
+  self.soft_delete = true
 end

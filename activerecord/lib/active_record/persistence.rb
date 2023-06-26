@@ -677,6 +677,11 @@ module ActiveRecord
       @destroyed
     end
 
+    # Returns true if this object has been soft deleted, otherwise returns false.
+    def soft_deleted?
+      timestamp_attributes_for_delete_in_model.any? { |attr| self[attr] }
+    end
+
     # Returns true if the record is persisted, i.e. it's not a new record and it was
     # not destroyed, otherwise returns false.
     def persisted?
@@ -1182,11 +1187,19 @@ module ActiveRecord
     end
 
     def destroy_row
-      _delete_row
+      if should_soft_delete?
+        _soft_delete_row
+      else
+        _delete_row
+      end
     end
 
     def _delete_row
       self.class._delete_record(_query_constraints_hash)
+    end
+
+    def _soft_delete_row
+      soft_deleted? ? 0 : _touch_row(timestamp_attributes_for_delete_in_model, nil)
     end
 
     def _touch_row(attribute_names, time)

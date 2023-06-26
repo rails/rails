@@ -71,3 +71,9 @@ recursive_association_comment:
   body: afrase
   type: Comment
   company: 15
+
+comment_with_soft_delete:
+  id: 14
+  post_id: 12
+  body: Comment with soft delete
+  type: CommentWithSoftDelete

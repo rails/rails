@@ -86,3 +86,10 @@ other_by_mary:
   body: hello
   type: Post
   tags_count: 1
+
+soft_delete_comments:
+  id: 12
+  author_id: 1
+  title: soft delete comments
+  body: hello
+  type: Post
