@@ -956,6 +956,16 @@ class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
   end
 end
 
+class FixtureWithSetModelClassPrevailsOverNamingConventionTest < ActiveRecord::TestCase
+  def test_model_class_in_fixture_file_is_respected
+    Object.const_set(:OtherPost, Class.new(ActiveRecord::Base))
+    other_posts = create_fixtures("other_posts").first
+    assert_kind_of Post, other_posts["second_welcome"].find
+  ensure
+    Object.send(:remove_const, :OtherPost)
+  end
+end
+
 class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
