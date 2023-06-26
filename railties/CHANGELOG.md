@@ -1,3 +1,14 @@
+*   Add `DATABASE` option to `railties:install:migrations`
+
+    This allows you to specify which database the migrations should be copied to
+    when running `rails railties:install:migrations`.
+
+    ```bash
+    $ rails railties:install:migrations DATABASE=animals
+    ```
+
+    *Matthew Hirst*
+
 *   The new method `config.autoload_lib(ignore:)` provides a simple way to
     autoload from `lib`:
 

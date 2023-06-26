@@ -10,7 +10,7 @@ module RailtiesTest
     include Rack::Test::Methods
 
     def setup
-      build_app
+      build_app({ multi_db: true })
 
       @plugin = engine "bukkits" do |plugin|
         plugin.write "lib/bukkits.rb", <<-RUBY
@@ -32,8 +32,15 @@ module RailtiesTest
       require "#{app_path}/config/environment"
     end
 
-    def migrations
-      migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
+    def migrations(database = nil)
+      migration_path = if database
+        config = ActiveRecord::Base.configurations.configs_for(name: database)
+        config.migrations_paths
+      else
+        ActiveRecord::Migrator.migrations_paths.first
+      end
+
+      migration_root = File.expand_path(migration_path, app_path)
       sm = ActiveRecord::SchemaMigration::NullSchemaMigration.new
       im = ActiveRecord::InternalMetadata::NullInternalMetadata.new
       ActiveRecord::MigrationContext.new(migration_root, sm, im).migrations
@@ -113,6 +120,57 @@ module RailtiesTest
         assert_no_match(/\d+_create_users/, output.join("\n"))
 
         bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/.match?(o) })
+        assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
+      end
+    end
+
+    test "copying migrations to specific database" do
+      @plugin.write "db/migrate/1_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration::Current
+        end
+      RUBY
+
+      @plugin.write "db/migrate/2_add_last_name_to_users.rb", <<-RUBY
+        class AddLastNameToUsers < ActiveRecord::Migration::Current
+        end
+      RUBY
+
+      @plugin.write "db/migrate/3_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration::Current
+        end
+      RUBY
+
+      app_file "db/animals_migrate/1_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration::Current
+          def up
+          end
+        end
+      RUBY
+
+      restrict_frameworks
+      boot_rails
+
+      Dir.chdir(app_path) do
+        output = `bundle exec rake bukkits:install:migrations DATABASE=animals`
+
+        ["CreateUsers", "AddLastNameToUsers", "CreateSessions"].each do |migration_name|
+          assert migrations("animals").detect { |migration| migration.name == migration_name }
+        end
+        assert_match(/Copied migration \d+_create_users\.bukkits\.rb from bukkits/, output)
+        assert_match(/Copied migration \d+_add_last_name_to_users\.bukkits\.rb from bukkits/, output)
+        assert_match(/NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/, output)
+
+        migrations_count = Dir["#{app_path}/db/animals_migrate/*.rb"].length
+
+        assert_equal migrations("animals").length, migrations_count
+
+        output = `bundle exec rake railties:install:migrations DATABASE=animals`.split("\n")
+
+        assert_equal migrations_count, Dir["#{app_path}/db/animals_migrate/*.rb"].length
+
+        assert_no_match(/\d+_create_users/, output.join("\n"))
+
+        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/ =~ o })
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
       end
     end

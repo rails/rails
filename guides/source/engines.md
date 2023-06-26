@@ -699,6 +699,18 @@ If you have multiple engines that need migrations copied over, use
 $ bin/rails railties:install:migrations
 ```
 
+You can specify a custom path in the source engine for the migrations by specifying MIGRATIONS_PATH.
+
+```bash
+$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blourgh
+```
+
+If you have multiple databases you can also specify the target database by specifying DATABASE.
+
+```bash
+$ bin/rails railties:install:migrations DATABASE=animals
+```
+
 This command, when run for the first time, will copy over all the migrations
 from the engine. When run the next time, it will only copy over migrations that
 haven't been copied over already. The first run for this command will output
