@@ -283,13 +283,11 @@ module ActiveRecord
     #
     # === Creating forms with nested attributes
     #
-    # Use ActionView::Helpers::FormHelper#fields_for to create form elements
-    # for updating or destroying nested attributes.
+    # Use ActionView::Helpers::FormHelper#fields_for to create form elements for
+    # nested attributes.
     #
-    # === Testing
-    #
-    # If you are using ActionView::Helpers::FormHelper#fields_for, your integration
-    # tests should replicate the HTML structure it provides. For example;
+    # Integration test params should reflect the structure of the form. For
+    # example:
     #
     #   post members_path, params: {
     #     member: {
