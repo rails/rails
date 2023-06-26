@@ -333,6 +333,16 @@ module ActiveRecord
       super
     end
 
+    # Similar to ActiveRecord::Relation#preload, but on a single, already loaded record.
+    # Instead of,
+    # User.preload(:address, friends: [:address, :followers]).find(1)
+    # you may do:
+    # user = User.find(1)
+    # user.preload(:address, friends: [:address, :followers])
+    def preload(associations)
+      ActiveRecord::Associations::Preloader.new(records: [self], associations: associations).call
+    end
+
     private
       def init_internals
         super

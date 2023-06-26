@@ -378,6 +378,23 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_empty(blog_post.reload.tags)
     assert_not_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id), :exists?
   end
+
+  def test_record_preload
+    ship = Ship.create!(name: "The good ship Dollypop")
+    ship.parts.create!(name: "Mast").tap do |part|
+      part.trinkets.create!(name: "Necklace")
+    end
+    ship.parts.create!(name: "Head").tap do |part|
+      part.trinkets.create!(name: "Golden Handle")
+    end
+
+    ship.reload
+
+    ship.preload(parts: [:trinkets])
+    assert_no_queries do
+      ship.parts.each(&:trinkets)
+    end
+  end
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase

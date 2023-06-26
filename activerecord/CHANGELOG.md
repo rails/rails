@@ -32,6 +32,23 @@
 
     *Lázaro Nixon*
 
+*   Introduced ActiveRecord::Base#preload
+
+    Similar to .preload on a relation, but on a single, already loaded record.
+
+    ```ruby
+    # Instead of:
+    User.preload(:address, friends: [:address, :followers]).find(1)
+    # you may now use:
+    user = User.find(1)
+    user.preload(:address, friends: [:address, :followers])
+    ```
+
+    This API might be useful if you are looking to preload
+    relations on a record that has already been loaded.
+
+    *Kir Shatrov*
+
 *   Added PostgreSQL migration commands for enum rename, add value, and rename value.
 
     `rename_enum` and `rename_enum_value` are reversible. Due to Postgres
