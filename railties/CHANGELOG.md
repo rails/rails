@@ -1,3 +1,11 @@
+*   Add `config.action_dispatch.debug_exception_log_level` to configure the log
+    level used by `ActionDispatch::DebugExceptions`.
+
+    The default is `:fatal`, but with `load_defaults "7.1"` the default will be
+    `:error`.
+
+    *Hartley McGuire*
+
 *   The new method `config.autoload_lib(ignore:)` provides a simple way to
     autoload from `lib`:
 
