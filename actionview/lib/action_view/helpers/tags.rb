@@ -30,6 +30,7 @@ module ActionView
         autoload :RangeField
         autoload :SearchField
         autoload :Select
+        autoload :SelectRenderer
         autoload :TelField
         autoload :TextArea
         autoload :TextField

@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/time/calculations"
+require "action_view/helpers/tags/select_renderer"
 
 module ActionView
   module Helpers
     module Tags # :nodoc:
       class DateSelect < Base # :nodoc:
+        include SelectRenderer
+
         def initialize(object_name, method_name, template_object, options, html_options)
           @html_options = html_options
 

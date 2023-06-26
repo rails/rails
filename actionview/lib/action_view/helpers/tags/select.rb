@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
+require "action_view/helpers/tags/select_renderer"
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
       class Select < Base # :nodoc:
+        include SelectRenderer
+        include FormOptionsHelper
+
         def initialize(object_name, method_name, template_object, choices, options, html_options)
           @choices = block_given? ? template_object.capture { yield || "" } : choices
           @choices = @choices.to_a if @choices.is_a?(Range)
