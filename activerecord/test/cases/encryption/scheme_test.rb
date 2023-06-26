@@ -4,7 +4,7 @@ require "cases/encryption/helper"
 require "models/book"
 
 class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
-  test "validates config options when declaring encrypted attributes" do
+  test "validates config options when using encrypted attributes" do
     assert_invalid_declaration deterministic: false, ignore_case: true
     assert_invalid_declaration key: "1234", key_provider: ActiveRecord::Encryption::DerivedSecretKeyProvider.new("my secret")
 
@@ -37,6 +37,6 @@ class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
     def declare_encrypts_with(options)
       Class.new(Book) do
         encrypts :name, **options
-      end
+      end.type_for_attribute(:name)
     end
 end
