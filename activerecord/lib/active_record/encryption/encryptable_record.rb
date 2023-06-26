@@ -44,11 +44,9 @@ module ActiveRecord
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
-          scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, \
-              ignore_case: ignore_case, previous: previous, **context_properties
 
           names.each do |name|
-            encrypt_attribute name, scheme
+            encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, ignore_case: ignore_case, previous: previous, **context_properties
           end
         end
 
@@ -67,9 +65,9 @@ module ActiveRecord
         private
           def scheme_for(key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
             ActiveRecord::Encryption::Scheme.new(key_provider: key_provider, key: key, deterministic: deterministic,
-                                                 downcase: downcase, ignore_case: ignore_case, **context_properties).tap do |scheme|
+              downcase: downcase, ignore_case: ignore_case, **context_properties).tap do |scheme|
               scheme.previous_schemes = global_previous_schemes_for(scheme) +
-                Array.wrap(previous).collect { |scheme_config| ActiveRecord::Encryption::Scheme.new(**scheme_config) }
+              Array.wrap(previous).collect { |scheme_config| ActiveRecord::Encryption::Scheme.new(**scheme_config) }
             end
           end
 
@@ -79,15 +77,17 @@ module ActiveRecord
             end
           end
 
-          def encrypt_attribute(name, attribute_scheme)
+          def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, downcase: false, ignore_case: false, previous: [], **context_properties)
             encrypted_attributes << name.to_sym
 
             attribute name do |cast_type|
-              ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: attribute_scheme, cast_type: cast_type,
-                                                                    default: columns_hash[name.to_s]&.default)
+              scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, downcase: downcase, \
+                ignore_case: ignore_case, previous: previous, **context_properties
+              ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: scheme, cast_type: cast_type,
+                default: columns_hash[name.to_s]&.default)
             end
 
-            preserve_original_encrypted(name) if attribute_scheme.ignore_case?
+            preserve_original_encrypted(name) if ignore_case
             ActiveRecord::Encryption.encrypted_attribute_was_declared(self, name)
           end
 
