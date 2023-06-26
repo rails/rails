@@ -15,13 +15,6 @@ module ActionCable
     # * {before_unsubscribe}[rdoc-ref:ClassMethods#before_unsubscribe]
     # * {after_unsubscribe}[rdoc-ref:ClassMethods#after_unsubscribe] (aliased as
     #   {on_unsubscribe}[rdoc-ref:ClassMethods#on_unsubscribe])
-    #
-    # NOTE: the <tt>after_subscribe</tt> callback is triggered whenever
-    # the <tt>subscribed</tt> method is called, even if subscription was rejected
-    # with the <tt>reject</tt> method.
-    # To trigger <tt>after_subscribe</tt> only on successful subscriptions,
-    # use <tt>after_subscribe :my_method_name, unless: :subscription_rejected?</tt>
-    #
     module Callbacks
       extend  ActiveSupport::Concern
       include ActiveSupport::Callbacks
@@ -36,6 +29,15 @@ module ActionCable
           set_callback(:subscribe, :before, *methods, &block)
         end
 
+        # This callback will be triggered after the Base#subscribed method is
+        # called, even if the subscription was rejected with the Base#reject
+        # method.
+        #
+        # To trigger the callback only on successful subscriptions, use the
+        # Base#subscription_rejected? method:
+        #
+        #   after_subscribe :my_method, unless: :subscription_rejected?
+        #
         def after_subscribe(*methods, &block)
           set_callback(:subscribe, :after, *methods, &block)
         end
