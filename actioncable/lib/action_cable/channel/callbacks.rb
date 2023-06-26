@@ -6,13 +6,15 @@ module ActionCable
   module Channel
     # = Action Cable \Channel \Callbacks
     #
-    # Action Cable Channel provides hooks during the life cycle of a channel subscription.
-    # Callbacks allow triggering logic during this cycle. Available callbacks are:
+    # Action Cable Channel provides callback hooks that are invoked during the
+    # life cycle of a channel:
     #
-    # * <tt>before_subscribe</tt>
-    # * <tt>after_subscribe</tt> (also aliased as: <tt>on_subscribe</tt>)
-    # * <tt>before_unsubscribe</tt>
-    # * <tt>after_unsubscribe</tt> (also aliased as: <tt>on_unsubscribe</tt>)
+    # * {before_subscribe}[rdoc-ref:ClassMethods#before_subscribe]
+    # * {after_subscribe}[rdoc-ref:ClassMethods#after_subscribe] (aliased as
+    #   {on_subscribe}[rdoc-ref:ClassMethods#on_subscribe])
+    # * {before_unsubscribe}[rdoc-ref:ClassMethods#before_unsubscribe]
+    # * {after_unsubscribe}[rdoc-ref:ClassMethods#after_unsubscribe] (aliased as
+    #   {on_unsubscribe}[rdoc-ref:ClassMethods#on_unsubscribe])
     #
     # NOTE: the <tt>after_subscribe</tt> callback is triggered whenever
     # the <tt>subscribed</tt> method is called, even if subscription was rejected
