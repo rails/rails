@@ -1,3 +1,8 @@
+## Rails 7.0.5.1 (June 26, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.0.5 (May 24, 2023) ##
 
 *   Fix `ActionText::Attachable#as_json`.
