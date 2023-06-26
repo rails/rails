@@ -5,6 +5,8 @@ module ActionView
     module Tags # :nodoc:
       extend ActiveSupport::Autoload
 
+      autoload :SelectRenderer
+
       eager_autoload do
         autoload :Base
         autoload :Translator
@@ -30,7 +32,6 @@ module ActionView
         autoload :RangeField
         autoload :SearchField
         autoload :Select
-        autoload :SelectRenderer
         autoload :TelField
         autoload :TextArea
         autoload :TextField
