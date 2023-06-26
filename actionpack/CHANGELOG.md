@@ -1,3 +1,10 @@
+## Rails 7.0.5.1 (June 26, 2023) ##
+
+*   Raise an exception if illegal characters are provide to redirect_to
+    [CVE-2023-28362]
+
+    *Zack Deveau*
+
 ## Rails 7.0.5 (May 24, 2023) ##
 
 *   Do not return CSP headers for 304 Not Modified responses.
