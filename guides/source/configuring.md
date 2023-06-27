@@ -168,6 +168,8 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH` always.
+
 #### `config.after_initialize`
 
 Takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in `config/initializers`. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
