@@ -2622,6 +2622,36 @@ module ApplicationTests
       assert_equal :default, Rails.configuration.debug_exception_response_format
     end
 
+    test "debug_exception_log_level is :fatal by default for upgraded apps" do
+      make_basic_app
+
+      class ::OmgController < ActionController::Base
+        def index
+          render plain: request.env["action_dispatch.debug_exception_log_level"]
+        end
+      end
+
+      get "/"
+
+      assert_equal "4", last_response.body
+    end
+
+    test "debug_exception_log_level is :error for new apps" do
+      make_basic_app do |app|
+        app.config.load_defaults "7.1"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render plain: request.env["action_dispatch.debug_exception_log_level"]
+        end
+      end
+
+      get "/"
+
+      assert_equal "3", last_response.body
+    end
+
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
       app "development"
 

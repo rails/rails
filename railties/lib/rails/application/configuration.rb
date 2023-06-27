@@ -297,6 +297,7 @@ module Rails
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
+            action_dispatch.debug_exception_log_level = :error
           end
 
           if respond_to?(:active_job)

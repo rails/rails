@@ -145,16 +145,18 @@ module ActionDispatch
         message << "  "
         message.concat(trace)
 
-        log_array(logger, message)
+        log_array(logger, message, request)
       end
 
-      def log_array(logger, lines)
+      def log_array(logger, lines, request)
         return if lines.empty?
 
+        level = request.get_header("action_dispatch.debug_exception_log_level")
+
         if logger.formatter && logger.formatter.respond_to?(:tags_text)
-          logger.fatal lines.join("\n#{logger.formatter.tags_text}")
+          logger.add(level, lines.join("\n#{logger.formatter.tags_text}"))
         else
-          logger.fatal lines.join("\n")
+          logger.add(level, lines.join("\n"))
         end
       end
 
