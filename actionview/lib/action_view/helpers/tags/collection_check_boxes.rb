@@ -7,6 +7,7 @@ module ActionView
     module Tags # :nodoc:
       class CollectionCheckBoxes < Base # :nodoc:
         include CollectionHelpers
+        include FormOptionsHelper
 
         class CheckBoxBuilder < Builder # :nodoc:
           def check_box(extra_html_options = {})

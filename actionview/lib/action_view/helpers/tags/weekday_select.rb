@@ -4,6 +4,9 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class WeekdaySelect < Base # :nodoc:
+        include SelectRenderer
+        include FormOptionsHelper
+
         def initialize(object_name, method_name, template_object, options, html_options)
           @html_options = html_options
 

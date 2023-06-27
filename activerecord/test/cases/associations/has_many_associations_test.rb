@@ -388,7 +388,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -402,7 +402,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -415,7 +415,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -428,7 +428,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     speedometer.reload
 
-    assert_equal ["first", "second"], speedometer.minivans.map(&:name)
+    assert_equal ["first", "second"], speedometer.minivans.map(&:name).sort
     assert_equal ["blue", "blue"], speedometer.minivans.map(&:color)
   end
 
@@ -3113,7 +3113,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb2 = car.bulbs.create!
 
-    assert_equal [bulb.id, bulb2.id], car.bulb_ids
+    assert_equal [bulb.id, bulb2.id], car.bulb_ids.sort
     assert_no_queries { car.bulb_ids }
   end
 

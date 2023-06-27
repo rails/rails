@@ -1,3 +1,14 @@
+*   Add `:report` behavior for Deprecation
+
+    Setting `config.active_support.deprecation = :report` uses the error
+    reporter to report deprecation warnings to `ActiveSupport::ErrorReporter`.
+
+    Deprecations are reported as handled errors, with a severity of `:warning`.
+
+    Useful to report deprecations happening in production to your bug tracker.
+
+    *Étienne Barrié*
+
 *   Rename `Range#overlaps?` to `#overlap?` and add alias for backwards compatibility
 
     *Christian Schmidt*
