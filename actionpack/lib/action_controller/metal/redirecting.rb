@@ -87,7 +87,7 @@ module ActionController
 
       allow_other_host = response_options.delete(:allow_other_host) { _allow_other_host }
 
-      self.status        = _extract_redirect_to_status(options, response_options)
+      self.status = _extract_redirect_to_status(options, response_options)
 
       redirect_to_location = _compute_redirect_to_location(request, options)
       _ensure_url_is_http_header_safe(redirect_to_location)
