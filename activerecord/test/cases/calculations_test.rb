@@ -394,7 +394,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_for_a_composite_primary_key_model
     book = cpk_books(:cpk_great_author_first_book)
-    assert_equal(1, Cpk::Book.where(author_id: book.author_id, number: book.number).count)
+    assert_equal(1, Cpk::Book.where(author_id: book.author_id, id: book.id).count)
   end
 
   def test_group_by_count_for_a_composite_primary_key_model
@@ -957,13 +957,13 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_for_a_composite_primary_key
-    assert_equal Cpk::Book.all.pluck([:author_id, :number]).sort, Cpk::Book.all.ids.sort
+    assert_equal Cpk::Book.all.pluck([:author_id, :id]).sort, Cpk::Book.all.ids.sort
   end
 
   def test_ids_for_a_composite_primary_key_with_scope
     book = cpk_books(:cpk_great_author_first_book)
 
-    assert_equal [[book.author_id, book.number]], Cpk::Book.all.where(title: book.title).ids
+    assert_equal [book.id], Cpk::Book.all.where(title: book.title).ids
   end
 
   def test_ids_for_a_composite_primary_key_on_loaded_relation
@@ -972,7 +972,7 @@ class CalculationsTest < ActiveRecord::TestCase
     relation.to_a
 
     assert_predicate relation, :loaded?
-    assert_equal [[book.author_id, book.number]], relation.ids
+    assert_equal [book.id], relation.ids
   end
 
   def test_ids_with_scope

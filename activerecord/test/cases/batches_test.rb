@@ -803,11 +803,11 @@ class EachTest < ActiveRecord::TestCase
 
   test ".find_each with multiple column ordering and using composite primary key" do
     Cpk::Book.insert_all!([
-      { author_id: 1, number: 1 },
-      { author_id: 2, number: 1 },
-      { author_id: 2, number: 2 }
+      { author_id: 1, id: 1 },
+      { author_id: 2, id: 1 },
+      { author_id: 2, id: 2 }
     ])
-    books = Cpk::Book.order(author_id: :asc, number: :desc).to_a
+    books = Cpk::Book.order(author_id: :asc, id: :desc).to_a
 
     index = 0
     Cpk::Book.find_each(batch_size: 1, order: [:asc, :desc]) do |book|
@@ -819,35 +819,35 @@ class EachTest < ActiveRecord::TestCase
 
   test ".in_batches should start from the start option when using composite primary key with multiple column ordering" do
     Cpk::Book.insert_all!([
-      { author_id: 1, number: 1 },
-      { author_id: 1, number: 2 },
-      { author_id: 1, number: 3 }
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
     ])
-    second_book = Cpk::Book.order(author_id: :asc, number: :desc).second
+    second_book = Cpk::Book.order(author_id: :asc, id: :desc).second
     relation = Cpk::Book.in_batches(of: 1, start: second_book.id, order: [:asc, :desc]).first
     assert_equal second_book, relation.first
   end
 
   test ".in_batches should end at the finish option when using composite primary key with multiple column ordering" do
     Cpk::Book.insert_all!([
-      { author_id: 1, number: 1 },
-      { author_id: 1, number: 2 },
-      { author_id: 1, number: 3 }
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
     ])
-    second_book = Cpk::Book.order(author_id: :asc, number: :desc).second
+    second_book = Cpk::Book.order(author_id: :asc, id: :desc).second
     relation = Cpk::Book.in_batches(of: 1, finish: second_book.id, order: [:asc, :desc]).to_a.last
     assert_equal second_book, relation.first
   end
 
   test ".in_batches with scope and multiple column ordering and using composite primary key" do
     Cpk::Book.insert_all!([
-      { author_id: 1, number: 1 },
-      { author_id: 1, number: 2 },
-      { author_id: 1, number: 3 }
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
     ])
-    book1, book2 = Cpk::Book.order(author_id: :asc, number: :desc).first(2)
-    author_id, number = book1.id
-    relation = Cpk::Book.where("author_id >= ? AND number < ?", author_id, number).in_batches(of: 1, order: [:asc, :desc]).first
+    book1, book2 = Cpk::Book.order(author_id: :asc, id: :desc).first(2)
+    author_id, id = book1.id
+    relation = Cpk::Book.where("author_id >= ? AND id < ?", author_id, id).in_batches(of: 1, order: [:asc, :desc]).first
     assert_equal book2, relation.first
   end
 end

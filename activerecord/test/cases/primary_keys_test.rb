@@ -35,7 +35,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_read_attribute_with_composite_primary_key
-    book = Cpk::Book.new(author_id: 1, number: 2)
+    book = Cpk::Book.new(id: [1, 2])
     assert_equal [1, 2], book.read_attribute(:id)
   end
 
@@ -396,8 +396,6 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     book.save!
 
     assert_equal [1, 2], book.id
-    assert_equal 1, book.author_id
-    assert_equal 2, book.number
   ensure
     Cpk::Book.delete_all
   end
@@ -409,7 +407,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
       book.id = 1
     end
 
-    assert_equal("Expected value matching [\"author_id\", \"number\"], got 1.", error.message)
+    assert_equal("Expected value matching [\"author_id\", \"id\"], got 1.", error.message)
   end
 
   def test_id_was_composite
@@ -467,7 +465,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_model_with_a_composite_primary_key
-    assert_equal(["author_id", "number"], Cpk::Book.primary_key)
+    assert_equal(["author_id", "id"], Cpk::Book.primary_key)
     assert_equal(["shop_id", "id"], Cpk::Order.primary_key)
   end
 
@@ -476,11 +474,11 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_values_present_for_a_composite_pk_model
-    assert_predicate Cpk::Book.new(author_id: 1, number: 1), :primary_key_values_present?
+    assert_predicate Cpk::Book.new(id: [1, 1]), :primary_key_values_present?
 
     assert_not_predicate Cpk::Book.new, :primary_key_values_present?
     assert_not_predicate Cpk::Book.new(author_id: 1), :primary_key_values_present?
-    assert_not_predicate Cpk::Book.new(number: 1), :primary_key_values_present?
+    assert_not_predicate Cpk::Book.new(id: [nil, 1]), :primary_key_values_present?
     assert_not_predicate Cpk::Book.new(title: "Book A"), :primary_key_values_present?
     assert_not_predicate Cpk::Book.new(author_id: 1, title: "Book A"), :primary_key_values_present?
   end
