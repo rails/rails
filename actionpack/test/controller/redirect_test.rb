@@ -453,7 +453,6 @@ class RedirectTest < ActionController::TestCase
 
     assert_equal msg, error.message
   end
-
 end
 
 module ModuleTest

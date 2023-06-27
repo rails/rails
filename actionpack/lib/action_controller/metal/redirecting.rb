@@ -63,7 +63,7 @@ module ActionController
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
-      self.status        = _extract_redirect_to_status(options, response_options)
+      self.status = _extract_redirect_to_status(options, response_options)
 
       redirect_to_location = _compute_redirect_to_location(request, options)
       _ensure_url_is_http_header_safe(redirect_to_location)
