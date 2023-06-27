@@ -2118,6 +2118,18 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
+    test "lib is added to $LOAD_PATH regardless of config.add_autoload_paths_to_load_path" do
+      # Like Rails::Application.add_lib_to_load_path! does.
+      lib = File.join(app_path, "lib")
+
+      add_to_config "config.autoload_paths << '#{lib}'"
+
+      app "development"
+
+      assert_not Rails.configuration.add_autoload_paths_to_load_path # precondition
+      assert_includes $LOAD_PATH, lib
+    end
+
     test "autoload paths can be set in the config file of the environment" do
       app_dir "custom_autoload_path"
       app_dir "custom_autoload_once_path"
