@@ -215,7 +215,7 @@ module ActionController
         # Attempt to comply with the set of valid token characters
         # defined for an HTTP header value in
         # https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6
-        if url.match(ILLEGAL_HEADER_VALUE_REGEX)
+        if url.match?(ILLEGAL_HEADER_VALUE_REGEX)
           msg = "The redirect URL #{url} contains one or more illegal HTTP header field character. " \
             "Set of legal characters defined in https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6"
           raise UnsafeRedirectError, msg
