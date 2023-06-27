@@ -45,7 +45,7 @@ class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
     end
   end
 
-  (FORMATS - [:passthrough, :marshal_6_1, :marshal_7_0]).each do |format|
+  (FORMATS - [:passthrough, :marshal_7_0]).each do |format|
     test "#{format.inspect} serializer preserves version with bare string" do
       entry = ActiveSupport::Cache::Entry.new("abc", version: "123")
       assert_entry entry, roundtrip(format, entry)
@@ -94,7 +94,7 @@ class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
     end
   end
 
-  [:passthrough, :marshal_6_1, :marshal_7_0].each do |format|
+  [:passthrough, :marshal_7_0].each do |format|
     test "#{format.inspect} serializer dumps bare string in a backward compatible way" do
       string = +"abc"
       string.instance_variable_set(:@baz, true)

@@ -59,7 +59,7 @@ module CacheStoreCompressionBehavior
 
       assert_uncompressed SMALL_STRING
       assert_uncompressed SMALL_OBJECT
-      assert_uncompressed LARGE_STRING
+      assert_uncompressed [LARGE_STRING]
       assert_uncompressed LARGE_OBJECT
     end
 
@@ -68,7 +68,7 @@ module CacheStoreCompressionBehavior
 
       assert_uncompressed SMALL_STRING, compress_threshold: 1.megabyte
       assert_uncompressed SMALL_OBJECT, compress_threshold: 1.megabyte
-      assert_uncompressed LARGE_STRING, compress_threshold: 1.megabyte
+      assert_uncompressed [LARGE_STRING], compress_threshold: 1.megabyte
       assert_uncompressed LARGE_OBJECT, compress_threshold: 1.megabyte
 
       @cache = lookup_store(compress: true, compress_threshold: 1.megabyte)
@@ -85,8 +85,8 @@ module CacheStoreCompressionBehavior
     end
 
     test "compression ignores incompressible data" do
-      assert_uncompressed "", compress: true, compress_threshold: 1
-      assert_uncompressed [*0..127].pack("C*"), compress: true, compress_threshold: 1
+      assert_uncompressed [""], compress: true, compress_threshold: 1
+      assert_uncompressed [[*0..127].pack("C*")], compress: true, compress_threshold: 1
     end
   end
 

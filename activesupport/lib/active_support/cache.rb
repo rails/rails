@@ -34,7 +34,7 @@ module ActiveSupport
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
-    @format_version = 6.1
+    @format_version = 7.1
 
     class << self
       attr_accessor :format_version
@@ -671,7 +671,7 @@ module ActiveSupport
         def default_coder
           case Cache.format_version
           when 6.1
-            Cache::SerializerWithFallback[:marshal_6_1]
+            raise NotImplementedError, "Rails 6.1 cache format it no longer supported, applications must transition to newer formats before upgrading Rails"
           when 7.0
             Cache::SerializerWithFallback[:marshal_7_0]
           when 7.1

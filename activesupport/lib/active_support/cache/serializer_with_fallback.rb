@@ -33,8 +33,6 @@ module ActiveSupport
             MessagePackWithFallback._load(dumped)
           when Marshal71WithFallback.dumped?(dumped)
             Marshal71WithFallback._load(dumped)
-          when Marshal61WithFallback.dumped?(dumped)
-            Marshal61WithFallback._load(dumped)
           else
             Cache::Store.logger&.warn("Unrecognized payload prefix #{dumped.byteslice(0).inspect}; deserializing as nil")
             nil
@@ -129,29 +127,6 @@ module ActiveSupport
           end
         end
 
-        module Marshal61WithFallback
-          include SerializerWithFallback
-          extend self
-
-          MARSHAL_SIGNATURE = "\x04\x08".b.freeze
-
-          def dump(entry)
-            Marshal.dump(entry)
-          end
-
-          def dump_compressed(entry, threshold)
-            Marshal.dump(entry.compressed(threshold))
-          end
-
-          def _load(dumped)
-            Marshal.load(dumped)
-          end
-
-          def dumped?(dumped)
-            dumped.start_with?(MARSHAL_SIGNATURE)
-          end
-        end
-
         module Marshal71WithFallback
           include SerializerWithFallback
           extend self
@@ -218,7 +193,6 @@ module ActiveSupport
 
         SERIALIZERS = {
           passthrough: PassthroughWithFallback,
-          marshal_6_1: Marshal61WithFallback,
           marshal_7_0: Marshal70WithFallback,
           marshal_7_1: Marshal71WithFallback,
           message_pack: MessagePackWithFallback,
