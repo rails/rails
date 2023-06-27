@@ -19,22 +19,22 @@ desc "Release all gems to rubygems and create a tag"
 task release: "all:release"
 
 desc "Run all tests by default"
-task default: %w(test test:isolated)
+task default: %w[test test:isolated]
 
-%w(test test:isolated package gem).each do |task_name|
+%w[test test:isolated package gem].each do |task_name|
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
     FRAMEWORKS.each do |project|
       system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
     end
-    fail("Errors in #{errors.join(', ')}") unless errors.empty?
+    fail("Errors in #{errors.join(", ")}") unless errors.empty?
   end
 end
 
 desc "Smoke-test all projects"
 task :smoke do
-  (FRAMEWORKS - %w(activerecord)).each do |project|
+  (FRAMEWORKS - %w[activerecord]).each do |project|
     system %(cd #{project} && #{$0} test:isolated --trace)
   end
   system %(cd activerecord && #{$0} sqlite3:isolated_test --trace)
@@ -65,7 +65,7 @@ task update_versions: "all:update_versions"
 desc "Publishes docs, run this AFTER a new stable tag has been pushed"
 task :publish_docs do
   Net::HTTP.new("api.rubyonrails.org", 8080).start do |http|
-    request  = Net::HTTP::Post.new("/rails-master-hook")
+    request = Net::HTTP::Post.new("/rails-master-hook")
     response = http.request(request)
     puts response.body
   end

@@ -15,8 +15,7 @@ module EpubPacker # :nodoc:
 
     FileUtils.rm_f(epub_file_name)
 
-    Zip::OutputStream.open(epub_file_name) {
-      |epub|
+    Zip::OutputStream.open(epub_file_name) { |epub|
       create_epub(epub, epub_file_name)
     }
 
@@ -36,7 +35,7 @@ module EpubPacker # :nodoc:
 
   def write_entries(entries, path, zipfile)
     entries.each do |e|
-      zipfile_path = path == "" ? e : File.join(path, e)
+      zipfile_path = (path == "") ? e : File.join(path, e)
       disk_file_path = File.join(@output_dir, zipfile_path)
 
       if File.directory? disk_file_path
