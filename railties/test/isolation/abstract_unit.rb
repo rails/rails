@@ -19,6 +19,10 @@ require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
 require "minitest/retry"
 
+# OpenSSL 3.0 has disabled some cryptographic functions used by Webpack 4 (which
+# Webpacker is locked to). This configuration is necessary to re enable them
+ENV["NODE_OPTIONS"] = "--openssl-legacy-provider"
+
 if ENV["BUILDKITE"]
   Minitest::Retry.use!(verbose: false, retry_count: 1)
 end
