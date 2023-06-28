@@ -23,6 +23,8 @@ end
 
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
+class ::MySanitizerVendor < ::Rails::HTML::Sanitizer; end
+
 class MyLogRecorder < Logger
   def initialize
     @io = StringIO.new
@@ -4479,6 +4481,27 @@ module ApplicationTests
       app "development"
 
       assert_equal OpenSSL::Digest::SHA1, ActiveRecord::Encryption.config.hash_digest_class
+    end
+
+    test "sanitizer_vendor is set to best supported vendor in new apps" do
+      app "development"
+
+      assert_equal Rails::HTML::Sanitizer.best_supported_vendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "sanitizer_vendor is set to HTML4 in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal Rails::HTML4::Sanitizer, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "sanitizer_vendor is set to a specific vendor" do
+      add_to_config "config.action_view.sanitizer_vendor = ::MySanitizerVendor"
+      app "development"
+
+      assert_equal ::MySanitizerVendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
     end
 
     private
