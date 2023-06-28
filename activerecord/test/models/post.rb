@@ -218,7 +218,6 @@ class AbstractStiPost < Post
 end
 
 class SubStiPost < StiPost
-  self.table_name = Post.table_name
 end
 
 class SubAbstractStiPost < AbstractStiPost; end

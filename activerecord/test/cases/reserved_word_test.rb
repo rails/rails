@@ -18,7 +18,6 @@ class ReservedWordTest < ActiveRecord::TestCase
   end
 
   class Values < ActiveRecord::Base
-    Values.table_name = "values"
   end
 
   class Distinct < ActiveRecord::Base

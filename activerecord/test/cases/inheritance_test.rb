@@ -570,7 +570,6 @@ end
 
 class InheritanceAttributeTest < ActiveRecord::TestCase
   class Company < ActiveRecord::Base
-    self.table_name = "companies"
     attribute :type, :string, default: "InheritanceAttributeTest::Startup"
   end
 
@@ -616,7 +615,6 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   ActiveRecord::Type.register :omg_sti, OmgStiType
 
   class Company < ActiveRecord::Base
-    self.table_name = "companies"
     attribute :type, :omg_sti
   end
 
@@ -624,7 +622,6 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   class Empire < Company; end
 
   class Sponsor < ActiveRecord::Base
-    self.table_name = "sponsors"
     attribute :sponsorable_type, :omg_sti
 
     belongs_to :sponsorable, polymorphic: true

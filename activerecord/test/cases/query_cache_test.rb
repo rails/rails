@@ -683,8 +683,6 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   class JsonObj < ActiveRecord::Base
-    self.table_name = "json_objs"
-
     attribute :payload, :json
   end
 

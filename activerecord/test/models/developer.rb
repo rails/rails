@@ -267,8 +267,6 @@ class PoorDeveloperCalledJamis < ActiveRecord::Base
 end
 
 class InheritedPoorDeveloperCalledJamis < DeveloperCalledJamis
-  self.table_name = "developers"
-
   default_scope -> { where(salary: 50000) }
 end
 
@@ -287,8 +285,6 @@ module SalaryDefaultScope
 end
 
 class ModuleIncludedPoorDeveloperCalledJamis < DeveloperCalledJamis
-  self.table_name = "developers"
-
   include SalaryDefaultScope
 end
 

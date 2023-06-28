@@ -5,8 +5,6 @@ class UnencryptedBook < ActiveRecord::Base
 end
 
 class EncryptedBook < ActiveRecord::Base
-  self.table_name = "encrypted_books"
-
   encrypts :name, deterministic: true
 end
 

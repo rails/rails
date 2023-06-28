@@ -256,6 +256,14 @@ module ActiveRecord
       #     self.table_name = "project"
       #   end
       def table_name=(value)
+        ActiveRecord::Base.logger.warn(
+          "Unnecessary `self.table_name=` invocation, the table name for " \
+          "#{self} can be derived from the model name."
+        ) if name.present? && (value == compute_table_name)
+        set_table_name(value)
+      end
+
+      def set_table_name(value) # :nodoc:
         value = value && value.to_s
 
         if defined?(@table_name)
@@ -277,13 +285,15 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name # :nodoc:
-        self.table_name = if abstract_class?
+        computed_table_name = if abstract_class?
           superclass == Base ? nil : superclass.table_name
         elsif superclass.abstract_class?
           superclass.table_name || compute_table_name
         else
           compute_table_name
         end
+
+        set_table_name(computed_table_name)
       end
 
       def full_table_name_prefix # :nodoc:

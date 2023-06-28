@@ -524,6 +524,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "posts", PostRecord.table_name
   end
 
+  def test_unnecessary_table_name_assignment_warns
+    message = /Unnecessary `self.table_name=` invocation, the table name for Topic can be derived from the model name./
+    assert_logged(message) do
+      Topic.table_name = "topics"
+    end
+  end
+
   def test_null_fields
     assert_nil Topic.find(1).parent_id
     assert_nil Topic.create("title" => "Hey you").parent_id
@@ -1952,4 +1959,20 @@ class BasicsTest < ActiveRecord::TestCase
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
+
+  private
+    def assert_logged(message)
+      old_logger = ActiveRecord::Base.logger
+      log = StringIO.new
+      ActiveRecord::Base.logger = Logger.new(log)
+
+      begin
+        yield
+
+        log.rewind
+        assert_match message, log.read
+      ensure
+        ActiveRecord::Base.logger = old_logger
+      end
+    end
 end

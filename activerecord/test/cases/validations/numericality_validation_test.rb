@@ -6,6 +6,9 @@ require "models/numeric_data"
 class NumericalityValidationTest < ActiveRecord::TestCase
   def setup
     @model_class = NumericData.dup
+    def @model_class.model_name
+      @model_name ||= ActiveModel::Name.new(self, nil, "NumericData")
+    end
   end
 
   attr_reader :model_class

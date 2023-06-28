@@ -1,3 +1,10 @@
+*   Warn on an unnecessary `self.table_name =` configuration
+
+    This commit adds a warning when `self.table_name =` is explicitly configured to the same
+    value as would have been derived by convention and asks to remove the unnecessary config.
+
+    *Nikita Vasilevsky*
+
 *   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
 
     This adds a new Active Record encryption option to support decrypting data encrypted

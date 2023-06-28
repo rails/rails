@@ -150,14 +150,10 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
     end
 
     class EncryptedAuthor1 < Author
-      self.table_name = "authors"
-
       encrypts :name, encryptor: TestEncryptor.new("1" => "2")
     end
 
     class EncryptedAuthor2 < Author
-      self.table_name = "authors"
-
       encrypts :name, encryptor: TestEncryptor.new("2" => "3"), previous: { encryptor: TestEncryptor.new("1" => "2") }
     end
 

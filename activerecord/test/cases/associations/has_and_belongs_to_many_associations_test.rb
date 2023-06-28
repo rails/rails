@@ -79,7 +79,6 @@ class DeveloperWithSymbolsForKeys < ActiveRecord::Base
 end
 
 class SubDeveloper < Developer
-  self.table_name = "developers"
   has_and_belongs_to_many :special_projects,
     join_table: "developers_projects",
     foreign_key: "project_id",

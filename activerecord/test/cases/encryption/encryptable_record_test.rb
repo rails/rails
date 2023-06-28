@@ -363,8 +363,6 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     end
 
     class BookThatWillFailToEncryptName < UnencryptedBook
-      self.table_name = "encrypted_books"
-
       encrypts :name, key_provider: FailingKeyProvider.new
     end
 end
