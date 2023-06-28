@@ -1,3 +1,10 @@
+*   `perform_enqueued_jobs` is now compatible with all Active Job adapters
+
+    This means that methods that depend on it, like Action Mailer's `assert_emails`,
+    will work correctly even if the test adapter is not used.
+
+    *Alex Ghiculescu*
+
 *   Allow queue adapters to provide a custom name by implementing `queue_adapter_name`
 
     *Sander Verdonschot*

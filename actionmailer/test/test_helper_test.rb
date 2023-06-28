@@ -623,3 +623,17 @@ class AnotherTestHelperMailerTest < ActionMailer::TestCase
     assert_equal "a value", @test_var
   end
 end
+
+class AdapterIsNotTestAdapterTest < ActionMailer::TestCase
+  def queue_adapter_for_test
+    ActiveJob::QueueAdapters::InlineAdapter.new
+  end
+
+  def test_can_send_email_using_any_active_job_adapter
+    assert_nothing_raised do
+      assert_emails 1 do
+        TestHelperMailer.test.deliver_now
+      end
+    end
+  end
+end
