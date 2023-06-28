@@ -285,7 +285,7 @@ module ActiveRecord
         if new_record || custom_validation_context?
           association && association.target
         elsif autosave
-          association.target.find_all(&:changed_for_autosave?)
+          association.target.find_all(&:changed_for_autosave?).presence || association.target.find_all(&:has_changes_to_validate?)
         else
           association.target.find_all(&:new_record?)
         end

@@ -123,7 +123,7 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix "_previously_changed?", "_changed?", parameters: "**options"
+      attribute_method_suffix "_previously_changed?", "_changed?", "_raw_changed?", parameters: "**options"
       attribute_method_suffix "_change", "_will_change!", "_was", parameters: false
       attribute_method_suffix "_previous_change", "_previously_was", parameters: false
       attribute_method_affix prefix: "restore_", suffix: "!", parameters: false
@@ -177,6 +177,11 @@ module ActiveModel
     # Dispatch target for <tt>*_changed?</tt> attribute methods.
     def attribute_changed?(attr_name, **options)
       mutations_from_database.changed?(attr_name.to_s, **options)
+    end
+
+    # Dispatch target for <tt>*_raw_changed?</tt> attribute methods.
+    def attribute_raw_changed?(attr_name) # :nodoc:
+      mutations_from_database.raw_changed?(attr_name.to_s)
     end
 
     # Dispatch target for <tt>*_was</tt> attribute methods.

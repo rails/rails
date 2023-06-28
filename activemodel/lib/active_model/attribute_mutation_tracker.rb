@@ -41,10 +41,18 @@ module ActiveModel
       attr_names.any? { |attr| changed?(attr) }
     end
 
+    def any_raw_changes?
+      attr_names.any? { |attr| raw_changed?(attr) }
+    end
+
     def changed?(attr_name, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN)
       attribute_changed?(attr_name) &&
         (OPTION_NOT_GIVEN == from || original_value(attr_name) == type_cast(attr_name, from)) &&
         (OPTION_NOT_GIVEN == to || fetch_value(attr_name) == type_cast(attr_name, to))
+    end
+
+    def raw_changed?(attr_name)
+      attributes[attr_name].raw_changed?
     end
 
     def changed_in_place?(attr_name)

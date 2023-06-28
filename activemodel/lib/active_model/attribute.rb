@@ -67,6 +67,10 @@ module ActiveModel
       changed_from_assignment? || changed_in_place?
     end
 
+    def raw_changed?
+      value_before_type_cast != value
+    end
+
     def changed_in_place?
       has_been_read? && type.changed_in_place?(original_value_for_database, value)
     end

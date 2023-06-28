@@ -135,6 +135,11 @@ module ActiveRecord
         mutations_from_database.any_changes?
       end
 
+      # Returns an boolean if has records that will be changed for persistence or changed raw values that didn't persist
+      def has_changes_to_validate?
+        mutations_from_database.any_changes? || mutations_from_database.any_raw_changes?
+      end
+
       # Returns a hash containing all the changes that will be persisted during
       # the next save.
       def changes_to_save
