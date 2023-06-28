@@ -276,6 +276,7 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
+            active_record.commit_transaction_on_non_local_return = true
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter

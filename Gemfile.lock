@@ -74,6 +74,7 @@ PATH
     activerecord (7.1.0.alpha)
       activemodel (= 7.1.0.alpha)
       activesupport (= 7.1.0.alpha)
+      timeout (>= 0.4.0)
     activestorage (7.1.0.alpha)
       actionpack (= 7.1.0.alpha)
       activejob (= 7.1.0.alpha)
@@ -334,7 +335,7 @@ GEM
     mysql2 (0.5.4)
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
-    net-imap (0.3.4)
+    net-imap (0.3.6)
       date
       net-protocol
     net-pop (0.1.2)
@@ -511,7 +512,7 @@ GEM
     terser (1.1.13)
       execjs (>= 0.3.0, < 3)
     thor (1.2.2)
-    timeout (0.3.2)
+    timeout (0.4.0)
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
     turbo-rails (1.3.2)
