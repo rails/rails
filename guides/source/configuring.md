@@ -228,6 +228,12 @@ config.autoload_lib(ignore: %w(assets tasks generators))
 
 Please, see more details in the [autoloading guide](autoloading_and_reloading_constants.html).
 
+#### `config.autoload_lib_once(ignore:)`
+
+The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead.
+
+By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
+
 #### `config.beginning_of_week`
 
 Sets the default beginning of week for the
