@@ -81,6 +81,30 @@ class DurationTest < ActiveSupport::TestCase
     assert_in_delta 1.0, 365.days.in_years
   end
 
+  def test_in_time_duration
+    assert_equal "-25:01:01.00", (-1.day - 1.hour - 1.minute - 1.second).in_time_duration
+    assert_equal "00:00:00.00", 0.seconds.in_time_duration
+    assert_equal "00:00:00.66", 0.66.seconds.in_time_duration
+    assert_equal "00:00:00.67", 0.666.seconds.in_time_duration
+    assert_equal "00:00:00.12", 0.123.seconds.in_time_duration
+    assert_equal "00:00:00.00", (1.second - 1.second).in_time_duration
+    assert_equal "00:00:01.00", 1.second.in_time_duration
+    assert_equal "00:01:01.00", (1.minute + 1.second).in_time_duration
+    assert_equal "00:00:59.00", (1.minute - 1.second).in_time_duration
+    assert_equal "00:01:00.00", 1.minute.in_time_duration
+    assert_equal "00:01:59.00", (2.minutes - 1.second).in_time_duration
+    assert_equal "00:59:59.00", (1.hour - 1.second).in_time_duration
+    assert_equal "01:00:00.00", 1.hour.in_time_duration
+    assert_equal "01:59:59.00", (2.hours - 1.second).in_time_duration
+    assert_equal "23:59:59.00", (1.day - 1.second).in_time_duration
+    assert_equal "24:00:00.00", 1.day.in_time_duration
+    assert_equal "25:01:01.00", (1.day + 1.hour + 1.minute + 1.second).in_time_duration
+    assert_equal "36:00:00.00", 1.5.days.in_time_duration
+    assert_equal "01:30:00.00", 1.5.hours.in_time_duration
+    assert_equal "00:01:30.00", 1.5.minutes.in_time_duration
+    assert_equal "00:00:01.50", 1.5.seconds.in_time_duration
+  end
+
   def test_eql
     assert 1.minute.eql?(1.minute)
     assert 1.minute.eql?(60.seconds)

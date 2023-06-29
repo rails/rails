@@ -1,3 +1,11 @@
+*   Introduce `ActiveSupport::Duration#in_time_duration`
+
+    ```ruby
+    1.5.hours.in_time_duration => "00:01:30.00"
+    ```
+
+    *Steve Polito*
+
 *   Rename `Range#overlaps?` to `#overlap?` and add alias for backwards compatibility
 
     *Christian Schmidt*

@@ -417,6 +417,19 @@ module ActiveSupport
       in_seconds / SECONDS_PER_YEAR.to_f
     end
 
+    # Returns the duration as a string in the format "HH:MM:SS.milliseconds"
+    #
+    #   1.5.hours.in_time_duration => "00:01:30.00"
+    def in_time_duration
+      prefix       = "-" if value.negative?
+      hours        = in_hours.abs.to_i.to_s.rjust(2, "0")
+      minutes      = ((in_seconds.abs / SECONDS_PER_MINUTE) % SECONDS_PER_MINUTE).to_i.to_s.rjust(2, "0")
+      seconds      = (in_seconds.abs % SECONDS_PER_MINUTE).to_i.to_s.rjust(2, "0")
+      milliseconds = (value.abs % 1).round(2).to_s.delete_prefix("0.").ljust(2, "0")
+
+      "#{prefix}#{hours}:#{minutes}:#{seconds}.#{milliseconds}"
+    end
+
     # Returns +true+ if +other+ is also a Duration instance, which has the
     # same parts as this one.
     def eql?(other)
