@@ -1,3 +1,8 @@
+*   Avoid escaping paths when editing credentials.
+
+    *Jonathan Hefner*
+
+
 ## Rails 7.0.5.1 (June 26, 2023) ##
 
 *   No changes.

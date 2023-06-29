@@ -1,3 +1,15 @@
+*   Fix autosave associations with validations added on `:base` of the associated objects.
+
+    *fatkodima*
+
+*   Fix result with anonymous PostgreSQL columns of different type from json.
+
+    *Oleksandr Avoiants*
+
+*   Preserve timestamp when setting an `ActiveSupport::TimeWithZone` value to `timestamptz` attribute.
+
+    *fatkodima*
+
 *   Fix where on association with has_one/has_many polymorphic relations.
 
     Before:
@@ -17,6 +29,22 @@
 *   Fix decrementing counter caches on optimistically locked record deletion
 
     *fatkodima*
+
+*   Ensure binary-destined values have binary encoding during type cast.
+
+    *Matthew Draper*
+
+*   Preserve existing column default functions when altering table in SQLite.
+
+    *fatkodima*
+
+*   Remove table alias added when using `where.missing` or `where.associated`.
+
+    *fatkodima*
+
+*   Fix `Enumerable#in_order_of` to only flatten first level to preserve nesting.
+
+    *Miha Rekar*
 
 
 ## Rails 7.0.5.1 (June 26, 2023) ##

@@ -3,9 +3,14 @@
 
     *Hartley McGuire*
 
-*   Fix ActionCable Redis configuration with sentinels
+*   Fix arguments being destructed `Enumerable#many?` with block.
 
-    *Dmitriy Ivliev*
+    *Andrew Novoselac*
+
+*   Fix humanize for strings ending with id.
+
+    *fatkodima*
+
 
 ## Rails 7.0.5.1 (June 26, 2023) ##
 

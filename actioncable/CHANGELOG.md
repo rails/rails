@@ -1,3 +1,8 @@
+*   Fix Action Cable Redis configuration with sentinels.
+
+    *Dmitriy Ivliev*
+
+
 ## Rails 7.0.5.1 (June 26, 2023) ##
 
 *   No changes.

@@ -7,6 +7,7 @@
 
     *Haroon Ahmed*
 
+
 ## Rails 7.0.5.1 (June 26, 2023) ##
 
 *   No changes.
@@ -71,10 +72,10 @@
 ## Rails 7.0.2.3 (March 08, 2022) ##
 
 *   Added image transformation validation via configurable allow-list.
-    
+
     Variant now offers a configurable allow-list for
     transformation methods in addition to a configurable deny-list for arguments.
-    
+
     [CVE-2022-21831]
 
 
