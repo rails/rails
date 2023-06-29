@@ -484,39 +484,6 @@ module ActiveRecord
 
     cattr_accessor :all_loaded_fixtures, default: {}
 
-    class ClassCache # :nodoc:
-      def initialize(class_names, config)
-        @class_names = class_names.stringify_keys
-        @config      = config
-
-        # Remove string values that aren't constants or subclasses of AR
-        @class_names.delete_if do |klass_name, klass|
-          !insert_class(@class_names, klass_name, klass)
-        end
-      end
-
-      def [](fs_name)
-        @class_names.fetch(fs_name) do
-          klass = default_fixture_model(fs_name, @config).safe_constantize
-          insert_class(@class_names, fs_name, klass)
-        end
-      end
-
-      private
-        def insert_class(class_names, name, klass)
-          # We only want to deal with AR objects.
-          if klass && klass < ActiveRecord::Base
-            class_names[name] = klass
-          else
-            class_names[name] = nil
-          end
-        end
-
-        def default_fixture_model(fs_name, config)
-          ActiveRecord::FixtureSet.default_fixture_model_name(fs_name, config)
-        end
-    end
-
     class << self
       def default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
         config.pluralize_table_names ?
@@ -571,7 +538,7 @@ module ActiveRecord
 
       def create_fixtures(fixtures_directories, fixture_set_names, class_names = {}, config = ActiveRecord::Base, &block)
         fixture_set_names = Array(fixture_set_names).map(&:to_s)
-        class_names = ClassCache.new class_names, config
+        class_names.stringify_keys!
 
         # FIXME: Apparently JK uses this.
         connection = block_given? ? block : lambda { ActiveRecord::Base.connection }
@@ -693,7 +660,6 @@ module ActiveRecord
       @config   = config
 
       self.model_class = class_name
-
       @fixtures = read_fixture_files(path)
 
       @table_name = model_class&.table_name || self.class.default_fixture_table_name(name, config)
@@ -766,12 +732,18 @@ module ActiveRecord
         yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
             self.model_class ||= fh.model_class if fh.model_class
+            self.model_class ||= default_fixture_model_class
             self.ignored_fixtures ||= fh.ignored_fixtures
             fh.each do |fixture_name, row|
               fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
             end
           end
         end
+      end
+
+      def default_fixture_model_class
+        klass = ActiveRecord::FixtureSet.default_fixture_model_name(@name, @config).safe_constantize
+        klass if klass && klass < ActiveRecord::Base
       end
   end
 

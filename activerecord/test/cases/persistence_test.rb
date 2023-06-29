@@ -1536,7 +1536,7 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
   def test_query_constraints_list_equals_to_composite_primary_key
     assert_equal(["shop_id", "id"], Cpk::Order.query_constraints_list)
-    assert_equal(["author_id", "number"], Cpk::Book.query_constraints_list)
+    assert_equal(["author_id", "id"], Cpk::Book.query_constraints_list)
   end
 
   def test_child_keeps_parents_query_constraints
@@ -1548,7 +1548,7 @@ class QueryConstraintsTest < ActiveRecord::TestCase
   end
 
   def test_child_keeps_parents_query_contraints_derived_from_composite_pk
-    assert_equal(["author_id", "number"], Cpk::BestSeller.query_constraints_list)
+    assert_equal(["author_id", "id"], Cpk::BestSeller.query_constraints_list)
   end
 
   def assert_uses_query_constraints_on_reload(object, columns)

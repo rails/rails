@@ -71,6 +71,8 @@ module Rails
       def inherited(base)
         super
         Rails.app_class = base
+        # lib has to be added to $LOAD_PATH unconditionally, even if it's in the
+        # autoload paths and config.add_autoload_paths_to_load_path is false.
         add_lib_to_load_path!(find_root(base.called_from))
         ActiveSupport.run_load_hooks(:before_configuration, base)
       end
@@ -303,6 +305,7 @@ module Rails
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.log_rescued_responses" => config.action_dispatch.log_rescued_responses,
+          "action_dispatch.debug_exception_log_level" => ActiveSupport::Logger.const_get(config.action_dispatch.debug_exception_log_level.to_s.upcase),
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
           "action_dispatch.key_generator" => key_generator,
@@ -385,7 +388,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def self.add_lib_to_load_path!(root) # :nodoc:
-      path = File.join root, "lib"
+      path = File.join(root, "lib")
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end

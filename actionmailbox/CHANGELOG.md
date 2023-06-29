@@ -1,3 +1,7 @@
+*   Added `bounce_now_with` to send the bounce email without going through a mailer queue.
+
+    *Ronan Limon Duparcmeur*
+
 *   Support configured primary key types in generated migrations.
 
     *Nishiki Liu*

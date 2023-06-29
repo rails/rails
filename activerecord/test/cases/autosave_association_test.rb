@@ -489,7 +489,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
 
   test "composite primary key autosave" do
     assert_nothing_raised do
-      Cpk::Order.create!(id: [1, 2], book: Cpk::Book.new(title: "Book", author_id: 3, number: 4))
+      Cpk::Order.create!(id: [1, 2], book: Cpk::Book.new(title: "Book", id: [3, 4]))
     end
   end
 end
@@ -783,23 +783,23 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_assign_ids_with_cpk_for_two_models
-    books = [cpk_books(:cpk_great_author_first_book).id, cpk_books(:cpk_great_author_second_book).id]
+    book_ids = [cpk_books(:cpk_great_author_first_book).id, cpk_books(:cpk_great_author_second_book).id]
     order = cpk_orders(:cpk_groceries_order_1)
 
     assert_empty order.books
 
-    order.book_ids = books
+    order.book_ids = book_ids
     order.save
     order.reload
 
-    assert_equal books, order.book_ids
+    assert_equal book_ids, order.book_ids
     assert_equal 2, order.books.length
     assert_includes order.books, cpk_books(:cpk_great_author_first_book)
     assert_includes order.books, cpk_books(:cpk_great_author_second_book)
   end
 
   def test_has_one_cpk_has_one_autosave_with_id
-    book = Cpk::Book.create!(author_id: 1, number: 3, shop_id: 2)
+    book = Cpk::Book.create!(id: [1, 3], shop_id: 2)
     order = Cpk::OrderWithPrimaryKeyAssociatedBook.create!(book: book, shop_id: 2)
 
     assert_equal(book.order.id, order.id)
@@ -1069,7 +1069,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
   # belongs_to for CPK
   def test_autosave_cpk_association_should_destroy_parent_association_when_marked_for_destruction
-    book = Cpk::Book.new(title: "Book", author_id: 1, number: 2)
+    book = Cpk::Book.new(title: "Book", id: [1, 2])
     Cpk::Order.create!(id: [3, 4], book: book)
 
     book.order.mark_for_destruction

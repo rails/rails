@@ -1728,7 +1728,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   test "preloading has_one with cpk" do
     order = Cpk::Order.create!(shop_id: 2)
-    book = Cpk::Book.create!(order: order, author_id: 1, number: 3)
+    book = Cpk::Book.create!(order: order, id: [1, 3])
     assert_equal book, Cpk::Order.eager_load(:book).find_by(id: order.id).book
   end
 

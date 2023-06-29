@@ -158,11 +158,11 @@ class CoreTest < ActiveRecord::TestCase
   def test_composite_pk_models_added_to_a_set
     library = Set.new
     # with primary key present
-    library << Cpk::Book.new(author_id: 1, number: 2)
+    library << Cpk::Book.new(id: [1, 2])
 
     # duplicate
-    library << Cpk::Book.new(author_id: 1, number: 3)
-    library << Cpk::Book.new(author_id: 1, number: 3)
+    library << Cpk::Book.new(id: [1, 3])
+    library << Cpk::Book.new(id: [1, 3])
 
     # without primary key being set
     library << Cpk::Book.new(title: "Book A")
@@ -172,9 +172,9 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_composite_pk_models_equality
-    assert Cpk::Book.new(author_id: 1, number: 2) == Cpk::Book.new(author_id: 1, number: 2)
+    assert Cpk::Book.new(id: [1, 2]) == Cpk::Book.new(id: [1, 2])
 
-    assert_not Cpk::Book.new(author_id: 1, number: 2) == Cpk::Book.new(author_id: 1, number: 3)
+    assert_not Cpk::Book.new(id: [1, 2]) == Cpk::Book.new(id: [1, 3])
     assert_not Cpk::Book.new == Cpk::Book.new
     assert_not Cpk::Book.new(title: "Book A") == Cpk::Book.new(title: "Book B")
     assert_not Cpk::Book.new(author_id: 1) == Cpk::Book.new(author_id: 1)
@@ -182,9 +182,9 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_composite_pk_models_hash
-    assert_equal Cpk::Book.new(author_id: 1, number: 2).hash, Cpk::Book.new(author_id: 1, number: 2).hash
+    assert_equal Cpk::Book.new(id: [1, 2]).hash, Cpk::Book.new(id: [1, 2]).hash
 
-    assert_not_equal Cpk::Book.new(author_id: 1, number: 2).hash, Cpk::Book.new(author_id: 1, number: 3).hash
+    assert_not_equal Cpk::Book.new(id: [1, 2]).hash, Cpk::Book.new(id: [1, 3]).hash
     assert_not_equal Cpk::Book.new.hash, Cpk::Book.new.hash
     assert_not_equal Cpk::Book.new(title: "Book A").hash, Cpk::Book.new(title: "Book B").hash
     assert_not_equal Cpk::Book.new(author_id: 1).hash, Cpk::Book.new(author_id: 1).hash

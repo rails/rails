@@ -61,6 +61,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 7.1
 
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
+- [`config.action_dispatch.debug_exception_log_level`](#config-action-dispatch-debug-exception-log-level): `:error`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
@@ -167,6 +168,8 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH` always.
+
 #### `config.after_initialize`
 
 Takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in `config/initializers`. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
@@ -224,6 +227,12 @@ config.autoload_lib(ignore: %w(assets tasks generators))
 ```
 
 Please, see more details in the [autoloading guide](autoloading_and_reloading_constants.html).
+
+#### `config.autoload_lib_once(ignore:)`
+
+The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead.
+
+By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
 
 #### `config.beginning_of_week`
 
@@ -1688,6 +1697,18 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
 | 7.0                   | `:json`              |
+
+#### `config.action_dispatch.debug_exception_log_level`
+
+Configure the log level used by the DebugExceptions middleware when logging
+uncaught exceptions during requests
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:fatal`             |
+| 7.1                   | `:error`             |
 
 #### `config.action_dispatch.default_headers`
 

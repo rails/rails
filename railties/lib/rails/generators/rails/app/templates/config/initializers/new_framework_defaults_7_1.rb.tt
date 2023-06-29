@@ -190,3 +190,7 @@
 # In previous versions of Rails, Action View always used `Rails::HTML4::Sanitizer`.
 #
 # Rails.application.config.action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+
+# Configure the log level used by the DebugExceptions middleware when logging
+# uncaught exceptions during requests
+# Rails.application.config.action_dispatch.debug_exception_log_level = :error

@@ -7,6 +7,7 @@ module ActionView
     module Tags # :nodoc:
       class CollectionRadioButtons < Base # :nodoc:
         include CollectionHelpers
+        include FormOptionsHelper
 
         class RadioButtonBuilder < Builder # :nodoc:
           def radio_button(extra_html_options = {})

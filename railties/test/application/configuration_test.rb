@@ -2118,6 +2118,18 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
+    test "lib is added to $LOAD_PATH regardless of config.add_autoload_paths_to_load_path" do
+      # Like Rails::Application.add_lib_to_load_path! does.
+      lib = File.join(app_path, "lib")
+
+      add_to_config "config.autoload_paths << '#{lib}'"
+
+      app "development"
+
+      assert_not Rails.configuration.add_autoload_paths_to_load_path # precondition
+      assert_includes $LOAD_PATH, lib
+    end
+
     test "autoload paths can be set in the config file of the environment" do
       app_dir "custom_autoload_path"
       app_dir "custom_autoload_once_path"
@@ -2139,74 +2151,76 @@ module ApplicationTests
       end
     end
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (array ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
-      app_file "lib/generators/x.rb", "Generators::X = true"
+    [%w(autoload_lib autoload_paths), %w(autoload_lib_once autoload_once_paths)].each do |method_name, paths|
+      test "config.#{method_name} adds lib to the expected paths (array ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
+        app_file "lib/generators/x.rb", "Generators::X = true"
 
-      add_to_config "config.autoload_lib(ignore: %w(tasks generators))"
+        add_to_config "config.#{method_name}(ignore: %w(tasks generators))"
 
-      app "development"
+        app "development"
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
+
+        assert X
+        assert_raises(NameError) { Tasks }
+        assert_raises(NameError) { Generators }
       end
 
-      assert X
-      assert_raises(NameError) { Tasks }
-      assert_raises(NameError) { Generators }
-    end
+      test "config.#{method_name} adds lib to the expected paths (empty array ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (empty array ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
+        add_to_config "config.#{method_name}(ignore: [])"
 
-      add_to_config "config.autoload_lib(ignore: [])"
+        app "development"
 
-      app "development"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        assert X
+        assert Tasks::X
       end
 
-      assert X
-      assert Tasks::X
-    end
+      test "config.#{method_name} adds lib to the expected paths (scalar ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (scalar ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
+        add_to_config "config.#{method_name}(ignore: 'tasks')"
 
-      add_to_config "config.autoload_lib(ignore: 'tasks')"
+        app "development"
 
-      app "development"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        assert X
+        assert_raises(NameError) { Tasks }
       end
 
-      assert X
-      assert_raises(NameError) { Tasks }
-    end
+      test "config.#{method_name} adds lib to the expected paths (nil ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (nil ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
+        add_to_config "config.#{method_name}(ignore: nil)"
 
-      add_to_config "config.autoload_lib(ignore: nil)"
+        app "development"
 
-      app "development"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        assert X
+        assert Tasks::X
       end
-
-      assert X
-      assert Tasks::X
     end
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
@@ -2620,6 +2634,36 @@ module ApplicationTests
       app "development"
 
       assert_equal :default, Rails.configuration.debug_exception_response_format
+    end
+
+    test "debug_exception_log_level is :fatal by default for upgraded apps" do
+      make_basic_app
+
+      class ::OmgController < ActionController::Base
+        def index
+          render plain: request.env["action_dispatch.debug_exception_log_level"]
+        end
+      end
+
+      get "/"
+
+      assert_equal "4", last_response.body
+    end
+
+    test "debug_exception_log_level is :error for new apps" do
+      make_basic_app do |app|
+        app.config.load_defaults "7.1"
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render plain: request.env["action_dispatch.debug_exception_log_level"]
+        end
+      end
+
+      get "/"
+
+      assert_equal "3", last_response.body
     end
 
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
@@ -4202,6 +4246,18 @@ module ApplicationTests
       assert_equal \
         ActiveSupport::Cache::NullStore.new.instance_variable_get(:@coder),
         Rails.cache.instance_variable_get(:@coder)
+    end
+
+    test "ActiveSupport::Cache.format_version 6.1 is deprecated" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal 6.1, ActiveSupport::Cache.format_version
+
+      assert_deprecated(ActiveSupport.deprecator) do
+        ActiveSupport::Cache::Store.new
+      end
     end
 
     test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do

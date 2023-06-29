@@ -2059,6 +2059,20 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 end
 
+class AdapterIsNotTestAdapterTest < ActiveJob::TestCase
+  def queue_adapter_for_test
+    ActiveJob::QueueAdapters::InlineAdapter.new
+  end
+
+  def test_perform_enqueued_jobs_just_yields
+    JobBuffer.clear
+    perform_enqueued_jobs do
+      HelloJob.perform_later("kevin")
+    end
+    assert_equal(1, JobBuffer.values.size)
+  end
+end
+
 class OverrideQueueAdapterTest < ActiveJob::TestCase
   class CustomQueueAdapter < ActiveJob::QueueAdapters::TestAdapter; end
 

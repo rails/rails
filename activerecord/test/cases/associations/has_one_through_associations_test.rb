@@ -449,7 +449,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_loading_cpk_association_with_unpersisted_owner
     order = Cpk::Order.create!(shop_id: 1)
-    book = Cpk::BookWithOrderAgreements.new(number: 2, author_id: 1, order: order)
+    book = Cpk::BookWithOrderAgreements.new(id: [1, 2], order: order)
     order_agreement = Cpk::OrderAgreement.create!(order: order)
 
     assert_equal(order_agreement, book.order_agreement)
