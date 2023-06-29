@@ -17,6 +17,7 @@ module ActiveRecord
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
         :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_keys?,
+        :supports_nulls_not_distinct?,
         to: :@conn, private: true
 
       private
@@ -110,6 +111,7 @@ module ActiveRecord
           sql << "USING #{index.using}" if supports_index_using? && index.using
           sql << "(#{quoted_columns(index)})"
           sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
+          sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
           sql.join(" ")

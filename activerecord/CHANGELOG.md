@@ -1,4 +1,12 @@
-*   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
+* Fully support `NULLS [NOT] DISTINCT` for PostgreSQL 15+ indexes
+
+  Previous work was done to allow the index to be created in a migration, but it was not
+  supported in schema.rb. Additionally, the matching for `NULLS [NOT] DISTINCT` was not
+  in the correct order, which could have resulted in inconsistent schema detection.
+
+  *Gregory Jones*
+
+* Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
 
     This adds a new Active Record encryption option to support decrypting data encrypted
     non-deterministically with a SHA1 hash digest:
