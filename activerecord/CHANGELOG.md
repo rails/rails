@@ -1,3 +1,29 @@
+*   Add option to merge association scopes to subqueries.
+
+    It removes a breaking change introduced by #48487. Conditions that were not applied in
+    previous versions would be applied giving people different results.
+
+    Set the option on an association:
+
+    ```ruby
+    class Author < ApplicationRecord
+      has_many :welcome_posts, -> { where(title: "welcome") } , class_name: "Post"
+      has_many :welcome_posts_scoped, -> { where(title: "Welcome") }, class_name: "Post", apply_on_subqueries: true
+    end
+    ```
+
+    Then the association scope will be merged into the subquery.
+
+    ```ruby
+    Author.where(welcome_posts: Post.all)
+    #=> SELECT (...) WHERE "authors"."id" IN (SELECT "posts"."author_id" FROM "posts")
+
+    Author.where(welcome_posts_scoped: Post.all)
+    #=> SELECT (...) WHERE "authors"."id" IN (SELECT "posts"."author_id" FROM "posts" WHERE "posts"."title" = 'welcome')
+    ```
+
+    *Lázaro Nixon*
+
 *   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
 
     This adds a new Active Record encryption option to support decrypting data encrypted

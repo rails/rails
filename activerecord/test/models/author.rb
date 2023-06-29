@@ -77,6 +77,7 @@ class Author < ActiveRecord::Base
 
   has_many :thinking_posts, -> { where(title: "So I was thinking") }, dependent: :delete_all, class_name: "Post"
   has_many :welcome_posts, -> { where(title: "Welcome to the weblog") }, class_name: "Post"
+  has_many :welcome_posts_scoped, -> { where(title: "Welcome to the weblog") }, class_name: "Post", apply_on_subqueries: true
 
   has_many :welcome_posts_with_one_comment,
            -> { where(title: "Welcome to the weblog").where(comments_count: 1) },

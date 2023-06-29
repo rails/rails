@@ -26,6 +26,7 @@ module ActiveRecord
           case value
           when Relation
             relation = value
+            relation = relation.merge(scope) if merge_scope?
             relation = relation.select(primary_key) if select_clause?
             relation = relation.where(primary_type => polymorphic_name) if polymorphic_clause?
             relation
@@ -48,12 +49,20 @@ module ActiveRecord
           associated_table.polymorphic_name_association
         end
 
+        def scope
+          associated_table.scope
+        end
+
         def select_clause?
           value.select_values.empty?
         end
 
         def polymorphic_clause?
           primary_type && !value.where_values_hash.has_key?(primary_type)
+        end
+
+        def merge_scope?
+          associated_table.apply_on_subqueries? && scope
         end
 
         def convert_to_id(value)

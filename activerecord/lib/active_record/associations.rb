@@ -1502,6 +1502,9 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:apply_on_subqueries]
+        #   When set to +true+ and a relation is used as a where parameter, the association scope will be merged
+        #   into the generated subquery, so you don't need to repeat those conditions on the relation.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1681,6 +1684,9 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:apply_on_subqueries]
+        #   When set to +true+ and a relation is used as a where parameter, the association scope will be merged
+        #   into the generated subquery, so you don't need to repeat those conditions on the relation.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1853,6 +1859,9 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:apply_on_subqueries]
+        #   When set to +true+ and a relation is used as a where parameter, the association scope will be merged
+        #   into the generated subquery, so you don't need to repeat those conditions on the relation.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"

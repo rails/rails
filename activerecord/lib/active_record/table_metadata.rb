@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :join_primary_key, :join_primary_type, :join_foreign_key, :join_foreign_type, to: :reflection
+    delegate :join_primary_key, :join_primary_type, :join_foreign_key, :join_foreign_type, :scope, to: :reflection
 
     def initialize(klass, arel_table, reflection = nil)
       @klass = klass
@@ -69,6 +69,10 @@ module ActiveRecord
 
     def through_association?
       reflection&.through_reflection?
+    end
+
+    def apply_on_subqueries?
+      reflection&.apply_on_subqueries?
     end
 
     def reflect_on_aggregation(aggregation_name)

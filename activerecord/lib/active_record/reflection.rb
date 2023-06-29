@@ -328,6 +328,10 @@ module ActiveRecord
         message << " named `:#{name}` cannot be lazily loaded."
       end
 
+      def apply_on_subqueries?
+        options[:apply_on_subqueries] || false
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self
