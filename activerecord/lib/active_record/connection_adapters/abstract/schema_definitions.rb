@@ -8,6 +8,7 @@ module ActiveRecord
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
       attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
 
       def initialize(
         table, name,
@@ -58,8 +59,7 @@ module ActiveRecord
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
           (valid.nil? || self.valid == valid) &&
-          (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
-          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
+          (include.nil? || Array(self.include) == Array(include).map(&:to_s))
       end
 
       private
