@@ -67,7 +67,7 @@ module ActiveSupport
             :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES
 
           # Convert an object into a "JSON-ready" representation composed of
-          # primitives like Hash, Array, String, Numeric,
+          # primitives like Hash, Array, String, Symbol, Numeric,
           # and +true+/+false+/+nil+.
           # Recursively calls #as_json to the object to recursively build a
           # fully JSON-ready object.
@@ -81,14 +81,15 @@ module ActiveSupport
           # calls.
           def jsonify(value)
             case value
-            when String
+            when String, Integer, Symbol, nil, true, false
               value
-            when Numeric, NilClass, TrueClass, FalseClass
+            when Numeric
               value.as_json
             when Hash
               result = {}
               value.each do |k, v|
-                result[jsonify(k)] = jsonify(v)
+                k = k.to_s unless Symbol === k || String === k
+                result[k] = jsonify(v)
               end
               result
             when Array
