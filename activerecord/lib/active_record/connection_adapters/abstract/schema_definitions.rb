@@ -58,8 +58,8 @@ module ActiveRecord
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
           (valid.nil? || self.valid == valid) &&
-          (include.nil? || Array(self.include) == Array(include).map(&:to_s) &&
-          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct))
+          (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
+          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
       private
