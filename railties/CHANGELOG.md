@@ -1,3 +1,14 @@
+*   The new `config.autoload_lib_once` is similar to `config.autoload_lib`,
+    except that it adds `lib` to `config.autoload_once_paths` instead.
+
+    By calling `config.autoload_lib_once`, classes and modules in `lib` can be
+    autoloaded, even from application initializers, but won't be reloaded.
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
 *   Add `config.action_dispatch.debug_exception_log_level` to configure the log
     level used by `ActionDispatch::DebugExceptions`.
 
