@@ -875,6 +875,13 @@ module ActiveRecord
           super
         end
 
+        def add_index_options(table_name, column_name, **options) # :nodoc:
+          if (where = options[:where]) && table_exists?(table_name) && column_exists?(table_name, where)
+            options[:where] = quote_column_name(where)
+          end
+          super
+        end
+
         def quoted_include_columns_for_index(column_names) # :nodoc:
           return quote_column_name(column_names) if column_names.is_a?(Symbol)
 
