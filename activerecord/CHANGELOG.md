@@ -1,3 +1,5 @@
+## Rails 7.0.6 (June 29, 2023) ##
+
 *   Fix autosave associations with validations added on `:base` of the associated objects.
 
     *fatkodima*

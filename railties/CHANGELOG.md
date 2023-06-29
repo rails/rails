@@ -1,3 +1,5 @@
+## Rails 7.0.6 (June 29, 2023) ##
+
 *   Avoid escaping paths when editing credentials.
 
     *Jonathan Hefner*

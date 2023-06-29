@@ -1,3 +1,5 @@
+## Rails 7.0.6 (June 29, 2023) ##
+
 *   Fix error Active Job passed class with `permitted?`.
 
     *Alex Baldwin*

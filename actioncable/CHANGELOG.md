@@ -1,3 +1,5 @@
+## Rails 7.0.6 (June 29, 2023) ##
+
 *   Fix Action Cable Redis configuration with sentinels.
 
     *Dmitriy Ivliev*

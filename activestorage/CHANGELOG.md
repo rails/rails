@@ -1,3 +1,5 @@
+## Rails 7.0.6 (June 29, 2023) ##
+
 *   Fix retrieving rotation value from FFmpeg on version 5.0+.
 
     In FFmpeg version 5.0+ the rotation value has been removed from tags.

@@ -1,3 +1,5 @@
+## Rails 7.0.6 (June 29, 2023) ##
+
 *   Fix `EncryptedConfiguration` returning incorrect values for some `Hash`
     methods
 
