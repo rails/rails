@@ -796,13 +796,13 @@ class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_nulls_not_distinct_is_dumped
-    if supports_nulls_not_distinct?
-      @connection.execute "CREATE INDEX trains_name ON trains USING btree(name) NULLS NOT DISTINCT"
+    skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
 
-      output = dump_table_schema "trains"
+    @connection.execute "CREATE INDEX trains_name ON trains USING btree(name) NULLS NOT DISTINCT"
 
-      assert_match(/nulls_not_distinct: true/, output)
-    end
+    output = dump_table_schema "trains"
+
+    assert_match(/nulls_not_distinct: true/, output)
   end
 
   def test_nulls_distinct_is_dumped
