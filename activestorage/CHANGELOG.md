@@ -1,3 +1,10 @@
+*   Fix variants not included when eager loading multiple records containing a single attachment
+
+    When using the `with_attached_#{name}` scope for a `has_one_attached` relation,
+    attachment variants were not eagerly loaded.
+
+    *Russell Porter*
+
 *   Allow an ActiveStorage attachment to be removed via a form post
 
     Attachments can already be removed by updating the attachment to be nil such as:
