@@ -4246,6 +4246,18 @@ module ApplicationTests
         Rails.cache.instance_variable_get(:@coder)
     end
 
+    test "ActiveSupport::Cache.format_version 6.1 is deprecated" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal 6.1, ActiveSupport::Cache.format_version
+
+      assert_deprecated(ActiveSupport.deprecator) do
+        ActiveSupport::Cache::Store.new
+      end
+    end
+
     test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "7.0"'
