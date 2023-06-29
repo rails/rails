@@ -1,13 +1,12 @@
-<<<<<<< HEAD
-*   Allow escaping of literal colon characters in `sanitize_sql_*` methods when named bind variables are used
+* Fully support `NULLS [NOT] DISTINCT` for PostgreSQL 15+ indexes
 
-    *Justin Bull*
+  Previous work was done to allow the index to be created in a migration, but it was not
+  supported in schema.rb. Additionally, the matching for `NULLS [NOT] DISTINCT` was not
+  in the correct order, which could have resulted in inconsistent schema detection.
 
-*   Fix `#previously_new_record?` to return true for destroyed records.
+  *Gregory Jones*
 
-    Before, if a record was created and then destroyed, `#previously_new_record?` would return true.
-    Now, any UPDATE or DELETE to a record is considered a change, and will result in `#previously_new_record?`
-    returning false.
+* Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
 
     *Adrianna Chang*
 
