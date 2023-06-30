@@ -1130,6 +1130,32 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "abcd", model.read_attribute_before_type_cast("new_bank_balance")
   end
 
+  test "reading attributes with aliases" do
+    topic = Topic.new(title: "Hello")
+    expected_attributes = topic.attributes.merge("heading" => "Hello")
+    assert_equal expected_attributes, topic.attributes_with_aliases
+  end
+
+  test "reading attributes replaced by aliases" do
+    topic = Topic.new(title: "Hello")
+    expected_attributes = topic.attributes.except("title").merge("heading" => "Hello")
+    assert_equal expected_attributes, topic.attributes_with_aliases(replace: true)
+  end
+
+  test "reading attribute names with aliases" do
+    model = @target.new
+    expected_names = @target.column_names + @target.attribute_aliases.keys
+    assert_equal expected_names, @target.attribute_names_with_aliases
+    assert_equal expected_names, model.attribute_names_with_aliases
+  end
+
+  test "reading attribute names replaced by aliases" do
+    model = @target.new
+    expected_names = @target.column_names - @target.attribute_aliases.values + @target.attribute_aliases.keys
+    assert_equal expected_names, @target.attribute_names_with_aliases(replace: true)
+    assert_equal expected_names, model.attribute_names_with_aliases(replace: true)
+  end
+
   private
     def new_topic_like_ar_class(&block)
       klass = Class.new(ActiveRecord::Base) do

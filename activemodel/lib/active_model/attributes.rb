@@ -75,6 +75,16 @@ module ActiveModel
         attribute_types.keys
       end
 
+      def attribute_names_with_aliases(replace: false)
+        attrs = attribute_names.map(&:clone)
+        attribute_aliases.each do |k, v|
+          next unless (i = attrs.find_index(v))
+
+          attrs[replace ? i : attrs.length] = k
+        end
+        attrs
+      end
+
       private
         def define_method_attribute=(name, owner:)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
@@ -132,6 +142,18 @@ module ActiveModel
     #   person.attribute_names # => ["name", "age"]
     def attribute_names
       @attributes.keys
+    end
+
+    def attributes_with_aliases(replace: false)
+      attrs = attributes.clone
+      attribute_aliases.each do |k, v|
+        attrs[k] = replace ? attrs.delete(v) : send(v)
+      end
+      attrs
+    end
+
+    def attribute_names_with_aliases(replace: false)
+      attributes_with_aliases(replace: replace).keys
     end
 
     def freeze # :nodoc:

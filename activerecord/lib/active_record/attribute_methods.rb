@@ -163,6 +163,16 @@ module ActiveRecord
         end.freeze
       end
 
+      def attribute_names_with_aliases(replace: false)
+        attrs = attribute_names.map(&:clone)
+        attribute_aliases.each do |k, v|
+          next unless (i = attrs.find_index(v))
+
+          attrs[replace ? i : attrs.length] = k
+        end
+        attrs
+      end
+
       # Returns true if the given attribute exists, otherwise false.
       #
       #   class Person < ActiveRecord::Base
@@ -268,6 +278,18 @@ module ActiveRecord
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
     def attributes
       @attributes.to_hash
+    end
+
+    def attributes_with_aliases(replace: false)
+      attrs = attributes.clone
+      attribute_aliases.each do |k, v|
+        attrs[k] = replace ? attrs.delete(v) : send(v)
+      end
+      attrs
+    end
+
+    def attribute_names_with_aliases(replace: false)
+      attributes_with_aliases(replace: replace).keys
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the

@@ -41,6 +41,10 @@ module ActiveModel
       end
     end
 
+    class ModelWithAliasAttribute < ModelWithGeneratedAttributeMethods
+      alias_attribute :alias_foo, :foo
+    end
+
     test "models that proxy attributes do not conflict with models with generated methods" do
       ModelWithGeneratedAttributeMethods.new
 
@@ -174,6 +178,37 @@ module ActiveModel
       assert_raise(ArgumentError) do
         ModelForAttributesTest.attribute :foo, :unknown
       end
+    end
+
+    test "reading attributes with aliases" do
+      model = ModelWithAliasAttribute.new
+      model.foo = "foo"
+      expected_attributes = { "foo" => "foo", "alias_foo" => "foo" }
+      assert_equal expected_attributes, model.attributes_with_aliases
+    end
+
+    test "reading attributes replaced by aliases" do
+      model = ModelWithAliasAttribute.new
+      model.foo = "foo"
+      expected_attributes = { "alias_foo" => "foo" }
+      assert_equal expected_attributes, model.attributes_with_aliases(replace: true)
+    end
+
+    test "reading attribute names with aliases" do
+      names = [
+        "foo",
+        "alias_foo"
+      ]
+      assert_equal names, ModelWithAliasAttribute.attribute_names_with_aliases
+      assert_equal names, ModelWithAliasAttribute.new.attribute_names_with_aliases
+    end
+
+    test "reading attribute names replaced by aliases" do
+      names = [
+        "alias_foo"
+      ]
+      assert_equal names, ModelWithAliasAttribute.attribute_names_with_aliases(replace: true)
+      assert_equal names, ModelWithAliasAttribute.new.attribute_names_with_aliases(replace: true)
     end
   end
 end
