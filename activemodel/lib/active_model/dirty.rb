@@ -117,6 +117,9 @@ module ActiveModel
   #   person.name_change # => ["Bill", "Bill"]
   #   person.name << 'y'
   #   person.name_change # => ["Bill", "Billy"]
+  #
+  # Methods can be invoked as +name_changed?+ or by passing an argument to the
+  # generic method <tt>attribute_changed?("name")</tt>.
   module Dirty
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
