@@ -80,7 +80,7 @@ module Rails
         console.level = Rails.logger.level
 
         unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
-          Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+          Rails.logger = ActiveSupport::BroadcastLogger.new(Rails.logger, console)
         end
       end
 
