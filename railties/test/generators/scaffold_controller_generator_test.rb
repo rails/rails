@@ -41,6 +41,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
 
       assert_instance_method :update, content do |m|
         assert_match(/@user\.update\(user_params\)/, m)
+        assert_match(/status: :see_other/, m)
       end
 
       assert_instance_method :destroy, content do |m|
