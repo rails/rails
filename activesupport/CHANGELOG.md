@@ -1,3 +1,8 @@
+*   Improve error message when EventedFileUpdateChecker is used without a
+    compatible version of the Listen gem
+
+    *Hartley McGuire*
+
 ## Rails 7.0.6 (June 29, 2023) ##
 
 *   Fix `EncryptedConfiguration` returning incorrect values for some `Hash`
