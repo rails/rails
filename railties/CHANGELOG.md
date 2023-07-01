@@ -1,5 +1,12 @@
-## Rails 7.0.6 (June 29, 2023) ##
+*   Update default scaffold templates to set 303 (See Other) as status code
+    on redirect for the update action for XHR requests other than GET or POST
+    to avoid issues (e.g browsers trying to follow the redirect using the
+    original request method resulting in double PATCH/PUT)
 
+    *Guillermo Iguaran*
+
+
+## Rails 7.0.6 (June 29, 2023) ##
 *   Avoid escaping paths when editing credentials.
 
     *Jonathan Hefner*
