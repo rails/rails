@@ -73,10 +73,10 @@ to reverse, you can use `reversible`:
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration[7.0]
   def change
-    reversible do |dir|
+    reversible do |direction|
       change_table :products do |t|
-        dir.up   { t.change :price, :string }
-        dir.down { t.change :price, :integer }
+        direction.up   { t.change :price, :string }
+        direction.down { t.change :price, :integer }
       end
     end
   end
@@ -686,7 +686,7 @@ class ExampleMigration < ActiveRecord::Migration[7.0]
           FROM distributors;
         SQL
       end
-      dir.down do
+      direction.down do
         execute <<-SQL
           DROP VIEW distributors_view;
         SQL
@@ -798,7 +798,7 @@ class DontUseDistributorsViewMigration < ActiveRecord::Migration[7.0]
             FROM distributors;
           SQL
         end
-        dir.down do
+        direction.down do
           execute <<-SQL
             DROP VIEW distributors_view;
           SQL
