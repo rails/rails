@@ -1502,6 +1502,13 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:index_errors]
+        #   Allows differentiation of multiple validation errors from the association records, by including
+        #   an index in the error attribute name, e.g. `roles[2].level`.
+        #   When set to +true+, the index is based on association order, i.e. database order, with yet to be
+        #   persisted new records placed at the end.
+        #   When set to +:nested_attributes_order+, the index is based on the record order received by
+        #   nested attributes setter, when accepts_nested_attributes_for is used.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1514,6 +1521,7 @@ module ActiveRecord
         #   has_many :subscribers, through: :subscriptions, source: :user
         #   has_many :subscribers, through: :subscriptions, disable_joins: true
         #   has_many :comments, strict_loading: true
+        #   has_many :comments, index_errors: :nested_attributes_order
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
           Reflection.add_reflection self, name, reflection

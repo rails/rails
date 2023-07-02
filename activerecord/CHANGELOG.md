@@ -1,4 +1,14 @@
-*   Don't show secrets for Active Record's `Cipher::Aes256Gcm#inspect`.
+* Fix `index_errors` having incorrect index in association validation errors.
+
+    *lulalala*
+
+* Add `index_errors: :nested_attributes_order` mode.
+
+    This indexes the association validation errors based on the order received by nested attributes setter, and respects the `reject_if` configuration. This enables API to provide enough information to the frontend to map the validation errors back to their respective form fields.
+
+    *lulalala*
+
+* Don't show secrets for Active Record's `Cipher::Aes256Gcm#inspect`.
 
     Before:
 
@@ -16,7 +26,7 @@
 
     *Petrik de Heus*
 
-*   Bring back the historical behavior of committing transaction on non-local return.
+* Bring back the historical behavior of committing transaction on non-local return.
 
     ```ruby
     Model.transaction do
@@ -47,13 +57,13 @@
 
     *Jean Boussier*
 
-*   Deprecate `name` argument on `#remove_connection`.
+* Deprecate `name` argument on `#remove_connection`.
 
     The `name` argument is deprecated on `#remove_connection` without replacement. `#remove_connection` should be called directly on the class that established the connection.
 
     *Eileen M. Uchitelle*
 
-*   Fix has_one through singular building with inverse.
+* Fix has_one through singular building with inverse.
 
     Allows building of records from an association with a has_one through a
     singular association with inverse. For belongs_to through associations,
@@ -62,13 +72,13 @@
 
     *Gannon McGibbon*
 
-*   Disable database prepared statements when query logs are enabled
+* Disable database prepared statements when query logs are enabled
 
     Prepared Statements and Query Logs are incompatible features due to query logs making every query unique.
 
     *zzak, Jean Boussier*
 
-*   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
+* Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
 
     This adds a new Active Record encryption option to support decrypting data encrypted
     non-deterministically with a SHA1 hash digest:
@@ -84,7 +94,7 @@
 
     *Cadu Ribeiro and Jorge Manrubia*
 
-*   Added PostgreSQL migration commands for enum rename, add value, and rename value.
+* Added PostgreSQL migration commands for enum rename, add value, and rename value.
 
     `rename_enum` and `rename_enum_value` are reversible. Due to Postgres
     limitation, `add_enum_value` is not reversible since you cannot delete enum
@@ -106,7 +116,7 @@
 
     *Ray Faddis*
 
-*   Allow composite primary key to be derived from schema
+* Allow composite primary key to be derived from schema
 
     Booting an application with a schema that contains composite primary keys
     will not issue warning and won't `nil`ify the `ActiveRecord::Base#primary_key` value anymore.
@@ -124,14 +134,14 @@
 
     *Nikita Vasilevsky*
 
-*   Include the `connection_pool` with exceptions raised from an adapter.
+* Include the `connection_pool` with exceptions raised from an adapter.
 
     The `connection_pool` provides added context such as the connection used
     that led to the exception as well as which role and shard.
 
     *Luan Vieira*
 
-*   Support multiple column ordering for `find_each`, `find_in_batches` and `in_batches`.
+* Support multiple column ordering for `find_each`, `find_in_batches` and `in_batches`.
 
     When find_each/find_in_batches/in_batches are performed on a table with composite primary keys, ascending or descending order can be selected for each key.
 
@@ -143,7 +153,7 @@
 
     *Takuya Kurimoto*
 
-*   Fix where on association with has_one/has_many polymorphic relations.
+* Fix where on association with has_one/has_many polymorphic relations.
 
     Before:
     ```ruby
@@ -159,7 +169,7 @@
 
     *Lázaro Nixon*
 
-*   Assign auto populated columns on Active Record record creation.
+* Assign auto populated columns on Active Record record creation.
 
     Changes record creation logic to allow for the `auto_increment` column to be assigned
     immediately after creation regardless of it's relation to the model's primary key.
@@ -169,7 +179,7 @@
 
     *Nikita Vasilevsky*
 
-*   Use the first key in the `shards` hash from `connected_to` for the `default_shard`.
+* Use the first key in the `shards` hash from `connected_to` for the `default_shard`.
 
     Some applications may not want to use `:default` as a shard name in their connection model. Unfortunately Active Record expects there to be a `:default` shard because it must assume a shard to get the right connection from the pool manager. Rather than force applications to manually set this, `connects_to` can infer the default shard name from the hash of shards and will now assume that the first shard is your default.
 
@@ -191,15 +201,15 @@
 
     *Eileen M. Uchitelle*
 
-*   Fix mutation detection for serialized attributes backed by binary columns.
+* Fix mutation detection for serialized attributes backed by binary columns.
 
     *Jean Boussier*
 
-*   Add `ActiveRecord.disconnect_all!` method to immediately close all connections from all pools.
+* Add `ActiveRecord.disconnect_all!` method to immediately close all connections from all pools.
 
     *Jean Boussier*
 
-*   Discard connections which may have been left in a transaction.
+* Discard connections which may have been left in a transaction.
 
     There are cases where, due to an error, `within_new_transaction` may unexpectedly leave a connection in an open transaction. In these cases the connection may be reused, and the following may occur:
     - Writes appear to fail when they actually succeed.
@@ -216,7 +226,7 @@
 
     *Nick Dower*
 
-*   Active Record query cache now evicts least recently used entries
+* Active Record query cache now evicts least recently used entries
 
     By default it only keeps the `100` most recently used queries.
 
@@ -238,13 +248,13 @@
 
     *Jean Boussier*
 
-*   Deprecate `check_pending!` in favor of `check_pending_migrations!`.
+* Deprecate `check_pending!` in favor of `check_pending_migrations!`.
 
     `check_pending!` will only check for pending migrations on the current database connection or the one passed in. This has been deprecated in favor of `check_pending_migrations!` which will find all pending migrations for the database configurations in a given environment.
 
     *Eileen M. Uchitelle*
 
-*   Make `increment_counter`/`decrement_counter` accept an amount argument
+* Make `increment_counter`/`decrement_counter` accept an amount argument
 
     ```ruby
     Post.increment_counter(:comments_count, 5, by: 3)
@@ -252,7 +262,7 @@
 
     *fatkodima*
 
-*   Add support for `Array#intersect?` to `ActiveRecord::Relation`.
+* Add support for `Array#intersect?` to `ActiveRecord::Relation`.
 
     `Array#intersect?` is only available on Ruby 3.1 or later.
 
@@ -260,11 +270,11 @@
 
     *John Harry Kelly*
 
-*   The deferrable foreign key can be passed to `t.references`.
+* The deferrable foreign key can be passed to `t.references`.
 
     *Hiroyuki Ishii*
 
-*   Deprecate `deferrable: true` option of `add_foreign_key`.
+* Deprecate `deferrable: true` option of `add_foreign_key`.
 
     `deferrable: true` is deprecated in favor of `deferrable: :immediate`, and
     will be removed in Rails 7.2.
@@ -275,14 +285,14 @@
 
     *Hiroyuki Ishii*
 
-*   `AbstractAdapter#execute` and `#exec_query` now clear the query cache
+* `AbstractAdapter#execute` and `#exec_query` now clear the query cache
 
     If you need to perform a read only SQL query without clearing the query
     cache, use `AbstractAdapter#select_all`.
 
     *Jean Boussier*
 
-*   Make `.joins` / `.left_outer_joins` work with CTEs.
+* Make `.joins` / `.left_outer_joins` work with CTEs.
 
     For example:
 
@@ -295,14 +305,14 @@
 
     *Vladimir Dementyev*
 
-*   Add a load hook for `ActiveRecord::ConnectionAdapters::Mysql2Adapter`
+* Add a load hook for `ActiveRecord::ConnectionAdapters::Mysql2Adapter`
     (named `active_record_mysql2adapter`) to allow for overriding aspects of the
     `ActiveRecord::ConnectionAdapters::Mysql2Adapter` class. This makes `Mysql2Adapter`
     consistent with `PostgreSQLAdapter` and `SQLite3Adapter` that already have load hooks.
 
     *fatkodima*
 
-*   Introduce adapter for Trilogy database client
+* Introduce adapter for Trilogy database client
 
     Trilogy is a MySQL-compatible database client. Rails applications can use Trilogy
     by configuring their `config/database.yml`:
@@ -322,7 +332,7 @@
 
     *Adrianna Chang*
 
-*   `after_commit` callbacks defined on models now execute in the correct order.
+* `after_commit` callbacks defined on models now execute in the correct order.
 
     ```ruby
     class User < ActiveRecord::Base
@@ -341,7 +351,7 @@
 
     *Alex Ghiculescu*
 
-*   Infer `foreign_key` when `inverse_of` is present on `has_one` and `has_many` associations.
+* Infer `foreign_key` when `inverse_of` is present on `has_one` and `has_many` associations.
 
     ```ruby
     has_many :citations, foreign_key: "book1_id", inverse_of: :book
@@ -357,7 +367,7 @@
 
     *Daniel Whitney*
 
-*   Limit max length of auto generated index names
+* Limit max length of auto generated index names
 
     Auto generated index names are now limited to 62 bytes, which fits within
     the default index name length limits for MySQL, Postgres and SQLite.
@@ -378,13 +388,13 @@
 
     *Mike Coutermarsh*
 
-*   Introduce a more stable and optimized Marshal serializer for Active Record models.
+* Introduce a more stable and optimized Marshal serializer for Active Record models.
 
     Can be enabled with `config.active_record.marshalling_format_version = 7.1`.
 
     *Jean Boussier*
 
-*   Allow specifying where clauses with column-tuple syntax.
+* Allow specifying where clauses with column-tuple syntax.
 
     Querying through `#where` now accepts a new tuple-syntax which accepts, as
     a key, an array of columns and, as a value, an array of corresponding tuples.
@@ -407,7 +417,7 @@
 
     *Paarth Madan*
 
-*   Allow warning codes to be ignore when reporting SQL warnings.
+* Allow warning codes to be ignore when reporting SQL warnings.
 
     Active Record config that can ignore warning codes
 
@@ -422,7 +432,7 @@
 
     *Nick Borromeo*
 
-*   Introduce `:active_record_fixtures` lazy load hook.
+* Introduce `:active_record_fixtures` lazy load hook.
 
     Hooks defined with this name will be run whenever `TestFixtures` is included
     in a class.
@@ -440,7 +450,7 @@
 
     *Andrew Novoselac*
 
-*   Introduce `TestFixtures#fixture_paths`.
+* Introduce `TestFixtures#fixture_paths`.
 
     Multiple fixture paths can now be specified using the `#fixture_paths` accessor.
     Apps will continue to have `test/fixtures` as their one fixture path by default,
@@ -455,7 +465,7 @@
 
     *Andrew Novoselac*
 
-*   Adds support for deferrable exclude constraints in PostgreSQL.
+* Adds support for deferrable exclude constraints in PostgreSQL.
 
     By default, exclude constraints in PostgreSQL are checked after each statement.
     This works for most use cases, but becomes a major limitation when replacing
@@ -478,14 +488,14 @@
 
     *Hiroyuki Ishii*
 
-*   Respect `foreign_type` option to `delegated_type` for `{role}_class` method.
+* Respect `foreign_type` option to `delegated_type` for `{role}_class` method.
 
     Usage of `delegated_type` with non-conventional `{role}_type` column names can now be specified with `foreign_type` option.
     This option is the same as `foreign_type` as forwarded to the underlying `belongs_to` association that `delegated_type` wraps.
 
     *Jason Karns*
 
-*   Add support for unique constraints (PostgreSQL-only).
+* Add support for unique constraints (PostgreSQL-only).
 
     ```ruby
     add_unique_key :sections, [:position], deferrable: :deferred, name: "unique_section_position"
@@ -541,23 +551,23 @@
 
     *Hiroyuki Ishii*
 
-*   Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
+* Remove deprecated `Tasks::DatabaseTasks.schema_file_type`.
 
     *Rafael Mendonça França*
 
-*   Remove deprecated `config.active_record.partial_writes`.
+* Remove deprecated `config.active_record.partial_writes`.
 
     *Rafael Mendonça França*
 
-*   Remove deprecated `ActiveRecord::Base` config accessors.
+* Remove deprecated `ActiveRecord::Base` config accessors.
 
     *Rafael Mendonça França*
 
-*   Remove the `:include_replicas` argument from `configs_for`. Use `:include_hidden` argument instead.
+* Remove the `:include_replicas` argument from `configs_for`. Use `:include_hidden` argument instead.
 
     *Eileen M. Uchitelle*
 
-*   Allow applications to lookup a config via a custom hash key.
+* Allow applications to lookup a config via a custom hash key.
 
     If you have registered a custom config or want to find configs where the hash matches a specific key, now you can pass `config_key` to `configs_for`. For example if you have a `db_config` with the key `vitess` you can look up a database configuration hash by  matching that key.
 
@@ -568,7 +578,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Allow applications to register a custom database configuration handler.
+* Allow applications to register a custom database configuration handler.
 
     Adds a mechanism for registering a custom handler for cases where you want database configurations to respond to custom methods. This is useful for non-Rails database adapters or tools like Vitess that you may want to configure differently from a standard `HashConfig` or `UrlConfig`.
 
@@ -612,7 +622,7 @@
 
     *Eileen M. Uchitelle and John Crepezzi*
 
-*   `ActiveRecord::Base.serialize` no longer uses YAML by default.
+* `ActiveRecord::Base.serialize` no longer uses YAML by default.
 
     YAML isn't particularly performant and can lead to security issues
     if not used carefully.
@@ -632,7 +642,7 @@
 
     *Jean Boussier*
 
-*   `ActiveRecord::Base.serialize` signature changed.
+* `ActiveRecord::Base.serialize` signature changed.
 
     Rather than a single positional argument that accepts two possible
     types of values, `serialize` now accepts two distinct keyword arguments.
@@ -653,7 +663,7 @@
 
     *Jean Boussier*
 
-*   YAML columns use `YAML.safe_dump` is available.
+* YAML columns use `YAML.safe_dump` is available.
 
     As of `psych 5.1.0`, `YAML.safe_dump` can now apply the same permitted
     types restrictions than `YAML.safe_load`.
@@ -664,7 +674,7 @@
 
     *Jean Boussier*
 
-*   `ActiveRecord::QueryLogs` better handle broken encoding.
+* `ActiveRecord::QueryLogs` better handle broken encoding.
 
     It's not uncommon when building queries with BLOB fields to contain
     binary data. Unless the call carefully encode the string in ASCII-8BIT
@@ -675,7 +685,7 @@
 
     *Jean Boussier*
 
-*   Fix a bug where `ActiveRecord::Generators::ModelGenerator` would not respect create_table_migration template overrides.
+* Fix a bug where `ActiveRecord::Generators::ModelGenerator` would not respect create_table_migration template overrides.
 
     ```
     rails g model create_books title:string content:text
@@ -688,7 +698,7 @@
 
     *Spencer Neste*
 
-*   `ActiveRecord::Relation#explain` now accepts options.
+* `ActiveRecord::Relation#explain` now accepts options.
 
     For databases and adapters which support them (currently PostgreSQL
     and MySQL), options can be passed to `explain` to provide more
@@ -700,19 +710,19 @@
 
     *Reid Lynch*
 
-*   Multiple `Arel::Nodes::SqlLiteral` nodes can now be added together to
+* Multiple `Arel::Nodes::SqlLiteral` nodes can now be added together to
     form `Arel::Nodes::Fragments` nodes. This allows joining several pieces
     of SQL.
 
     *Matthew Draper*, *Ole Friis*
 
-*   `ActiveRecord::Base#signed_id` raises if called on a new record.
+* `ActiveRecord::Base#signed_id` raises if called on a new record.
 
     Previously it would return an ID that was not usable, since it was based on `id = nil`.
 
     *Alex Ghiculescu*
 
-*   Allow SQL warnings to be reported.
+* Allow SQL warnings to be reported.
 
     Active Record configs can be set to enable SQL warning reporting.
 
@@ -731,7 +741,7 @@
 
     *Adrianna Chang*, *Paarth Madan*
 
-*   Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`
+* Add `#regroup` query method as a short-hand for `.unscope(:group).group(fields)`
 
     Example:
 
@@ -742,14 +752,14 @@
 
     *Danielius Visockas*
 
-*   PostgreSQL adapter method `enable_extension` now allows parameter to be `[schema_name.]<extension_name>`
+* PostgreSQL adapter method `enable_extension` now allows parameter to be `[schema_name.]<extension_name>`
     if the extension must be installed on another schema.
 
     Example: `enable_extension('heroku_ext.hstore')`
 
     *Leonardo Luarte*
 
-*   Add `:include` option to `add_index`.
+* Add `:include` option to `add_index`.
 
     Add support for including non-key columns in indexes for PostgreSQL
     with the `INCLUDE` parameter.
@@ -766,12 +776,12 @@
 
     *Steve Abrams*
 
-*   `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
+* `ActiveRecord::Relation`’s `#any?`, `#none?`, and `#one?` methods take an optional pattern
     argument, more closely matching their `Enumerable` equivalents.
 
     *George Claghorn*
 
-*   Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
+* Add `ActiveRecord::Base::normalizes` to declare attribute normalizations.
 
     A normalization is applied when the attribute is assigned or updated, and
     the normalized value will be persisted to the database.  The normalization
@@ -797,7 +807,7 @@
 
     *Jonathan Hefner*
 
-*   Hide changes to before_committed! callback behaviour behind flag.
+* Hide changes to before_committed! callback behaviour behind flag.
 
     In #46525, behavior around before_committed! callbacks was changed so that callbacks
     would run on every enrolled record in a transaction, not just the first copy of a record.
@@ -806,7 +816,7 @@
 
     *Adrianna Chang*
 
-*   The `namespaced_controller` Query Log tag now matches the `controller` format
+* The `namespaced_controller` Query Log tag now matches the `controller` format
 
     For example, a request processed by `NameSpaced::UsersController` will now log as:
 
@@ -817,7 +827,7 @@
 
     *Alex Ghiculescu*
 
-*   Return only unique ids from ActiveRecord::Calculations#ids
+* Return only unique ids from ActiveRecord::Calculations#ids
 
     Updated ActiveRecord::Calculations#ids to only return the unique ids of the base model
     when using eager_load, preload and includes.
@@ -833,7 +843,7 @@
 
     *Joshua Young*
 
-*   Stop using `LOWER()` for case-insensitive queries on `citext` columns
+* Stop using `LOWER()` for case-insensitive queries on `citext` columns
 
     Previously, `LOWER()` was added for e.g. uniqueness validations with
     `case_sensitive: false`.
@@ -842,18 +852,18 @@
 
     *Phil Pirozhkov*
 
-*   Extract `#sync_timezone_changes` method in AbstractMysqlAdapter to enable subclasses
+* Extract `#sync_timezone_changes` method in AbstractMysqlAdapter to enable subclasses
     to sync database timezone changes without overriding `#raw_execute`.
 
     *Adrianna Chang*, *Paarth Madan*
 
-*   Do not write additional new lines when dumping sql migration versions
+* Do not write additional new lines when dumping sql migration versions
 
     This change updates the `insert_versions_sql` function so that the database insert string containing the current database migration versions does not end with two additional new lines.
 
     *Misha Schwartz*
 
-*   Fix `composed_of` value freezing and duplication.
+* Fix `composed_of` value freezing and duplication.
 
     Previously composite values exhibited two confusing behaviors:
 
@@ -866,18 +876,18 @@
 
     *Greg Navis*
 
-*   Fix redundant updates to the column insensitivity cache
+* Fix redundant updates to the column insensitivity cache
 
     Fixed redundant queries checking column capability for insensitive
     comparison.
 
     *Phil Pirozhkov*
 
-*   Allow disabling methods generated by `ActiveRecord.enum`.
+* Allow disabling methods generated by `ActiveRecord.enum`.
 
     *Alfred Dominic*
 
-*   Avoid validating `belongs_to` association if it has not changed.
+* Avoid validating `belongs_to` association if it has not changed.
 
     Previously, when updating a record, Active Record will perform an extra query to check for the presence of
     `belongs_to` associations (if the presence is configured to be mandatory), even if that attribute hasn't changed.
@@ -895,18 +905,18 @@
 
     *fatkodima*
 
-*   `has_one` and `belongs_to` associations now define a `reset_association` method
+* `has_one` and `belongs_to` associations now define a `reset_association` method
     on the owner model (where `association` is the name of the association). This
     method unloads the cached associate record, if any, and causes the next access
     to query it from the database.
 
     *George Claghorn*
 
-*   Allow per attribute setting of YAML permitted classes (safe load) and unsafe load.
+* Allow per attribute setting of YAML permitted classes (safe load) and unsafe load.
 
     *Carlos Palhares*
 
-*   Add a build persistence method
+* Add a build persistence method
 
     Provides a wrapper for `new`, to provide feature parity with `create`s
     ability to create multiple records from an array of hashes, using the
@@ -914,7 +924,7 @@
 
     *Sean Denny*
 
-*   Raise on assignment to readonly attributes
+* Raise on assignment to readonly attributes
 
     ```ruby
     class Post < ActiveRecord::Base
@@ -937,7 +947,7 @@
 
     *Alex Ghiculescu*, *Hartley McGuire*
 
-*   Allow unscoping of preload and eager_load associations
+* Allow unscoping of preload and eager_load associations
 
     Added the ability to unscope preload and eager_load associations just like
     includes, joins, etc. See ActiveRecord::QueryMethods::VALID_UNSCOPING_VALUES
@@ -949,7 +959,7 @@
 
     *David Morehouse*
 
-*   Add automatic filtering of encrypted attributes on inspect
+* Add automatic filtering of encrypted attributes on inspect
 
     This feature is enabled by default but can be disabled with
 
@@ -959,7 +969,7 @@
 
     *Hartley McGuire*
 
-*   Clear locking column on #dup
+* Clear locking column on #dup
 
     This change fixes not to duplicate locking_column like id and timestamps.
 
@@ -972,7 +982,7 @@
 
     *Shouichi Kamiya*, *Seonggi Yang*, *Ryohei UEDA*
 
-*   Invalidate transaction as early as possible
+* Invalidate transaction as early as possible
 
     After rescuing a `TransactionRollbackError` exception Rails invalidates transactions earlier in the flow
     allowing the framework to skip issuing the `ROLLBACK` statement in more cases.
@@ -981,7 +991,7 @@
 
     *Nikita Vasilevsky*
 
-*   Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
+* Allow configuring columns list to be used in SQL queries issued by an `ActiveRecord::Base` object
 
     It is now possible to configure columns list that will be used to build an SQL query clauses when
     updating, deleting or reloading an `ActiveRecord::Base` object
@@ -996,7 +1006,7 @@
 
     *Nikita Vasilevsky*
 
-*   Adds `validate` to foreign keys and check constraints in schema.rb
+* Adds `validate` to foreign keys and check constraints in schema.rb
 
     Previously, `schema.rb` would not record if `validate: false` had been used when adding a foreign key or check
     constraint, so restoring a database from the schema could result in foreign keys or check constraints being
@@ -1004,19 +1014,19 @@
 
     *Tommy Graves*
 
-*   Adapter `#execute` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
+* Adapter `#execute` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
     retried, up to the database's configured `connection_retries` value, upon encountering connection-related errors.
 
     *Adrianna Chang*
 
-*   Only trigger `after_commit :destroy` callbacks when a database row is deleted.
+* Only trigger `after_commit :destroy` callbacks when a database row is deleted.
 
     This prevents `after_commit :destroy` callbacks from being triggered again
     when `destroy` is called multiple times on the same record.
 
     *Ben Sheldon*
 
-*   Fix `ciphertext_for` for yet-to-be-encrypted values.
+* Fix `ciphertext_for` for yet-to-be-encrypted values.
 
     Previously, `ciphertext_for` returned the cleartext of values that had not
     yet been encrypted, such as with an unpersisted record:
@@ -1050,11 +1060,11 @@
 
     *Jonathan Hefner*
 
-*   Fix a bug where using groups and counts with long table names would return incorrect results.
+* Fix a bug where using groups and counts with long table names would return incorrect results.
 
     *Shota Toguchi*, *Yusaku Ono*
 
-*   Fix encryption of column default values.
+* Fix encryption of column default values.
 
     Previously, encrypted attributes that used column default values appeared to
     be encrypted on create, but were not:
@@ -1087,17 +1097,17 @@
 
     *Jonathan Hefner*
 
-*   Deprecate delegation from `Base` to `connection_handler`.
+* Deprecate delegation from `Base` to `connection_handler`.
 
     Calling `Base.clear_all_connections!`, `Base.clear_active_connections!`, `Base.clear_reloadable_connections!` and `Base.flush_idle_connections!` is deprecated. Please call these methods on the connection handler directly. In future Rails versions, the delegation from `Base` to the `connection_handler` will be removed.
 
     *Eileen M. Uchitelle*
 
-*   Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
+* Allow ActiveRecord::QueryMethods#reselect to receive hash values, similar to ActiveRecord::QueryMethods#select
 
     *Sampat Badhe*
 
-*   Validate options when managing columns and tables in migrations.
+* Validate options when managing columns and tables in migrations.
 
     If an invalid option is passed to a migration method like `create_table` and `add_column`, an error will be raised
     instead of the option being silently ignored. Validation of the options will only be applied for new migrations
@@ -1105,13 +1115,13 @@
 
     *Guo Xiang Tan*, *George Wambold*
 
-*   Update query log tags to use the [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/) format by default. See [#46179](https://github.com/rails/rails/issues/46179)
+* Update query log tags to use the [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/) format by default. See [#46179](https://github.com/rails/rails/issues/46179)
 
     To opt out of SQLCommenter-formatted query log tags, set `config.active_record.query_log_tags_format = :legacy`. By default, this is set to `:sqlcommenter`.
 
     *Modulitos* and *Iheanyi*
 
-*   Allow any ERB in the database.yml when creating rake tasks.
+* Allow any ERB in the database.yml when creating rake tasks.
 
     Any ERB can be used in `database.yml` even if it accesses environment
     configurations.
@@ -1120,14 +1130,14 @@
 
     *Eike Send*
 
-*   Add table to error for duplicate column definitions.
+* Add table to error for duplicate column definitions.
 
     If a migration defines duplicate columns for a table, the error message
     shows which table it concerns.
 
     *Petrik de Heus*
 
-*   Fix erroneous nil default precision on virtual datetime columns.
+* Fix erroneous nil default precision on virtual datetime columns.
 
     Prior to this change, virtual datetime columns did not have the same
     default precision as regular datetime columns, resulting in the following
@@ -1141,18 +1151,18 @@
 
     *Sam Bostock*
 
-*   Use connection from `#with_raw_connection` in `#quote_string`.
+* Use connection from `#with_raw_connection` in `#quote_string`.
 
     This ensures that the string quoting is wrapped in the reconnect and retry logic
     that `#with_raw_connection` offers.
 
     *Adrianna Chang*
 
-*   Add `expires_in` option to `signed_id`.
+* Add `expires_in` option to `signed_id`.
 
     *Shouichi Kamiya*
 
-*   Allow applications to set retry deadline for query retries.
+* Allow applications to set retry deadline for query retries.
 
     Building on the work done in #44576 and #44591, we extend the logic that automatically
     reconnects database connections to take into account a timeout limit. We won't retry
@@ -1162,11 +1172,11 @@
 
     *Adrianna Chang*
 
-*   Fix a case where the query cache can return wrong values. See #46044
+* Fix a case where the query cache can return wrong values. See #46044
 
     *Aaron Patterson*
 
-*   Support MySQL's ssl-mode option for MySQLDatabaseTasks.
+* Support MySQL's ssl-mode option for MySQLDatabaseTasks.
 
     Verifying the identity of the database server requires setting the ssl-mode
     option to VERIFY_CA or VERIFY_IDENTITY. This option was previously ignored
@@ -1174,13 +1184,13 @@
 
     *Petrik de Heus*
 
-*   Move `ActiveRecord::InternalMetadata` to an independent object.
+* Move `ActiveRecord::InternalMetadata` to an independent object.
 
     `ActiveRecord::InternalMetadata` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
 
     *Eileen M. Uchitelle*
 
-*   Deprecate quoting `ActiveSupport::Duration` as an integer
+* Deprecate quoting `ActiveSupport::Duration` as an integer
 
     Using ActiveSupport::Duration as an interpolated bind parameter in a SQL
     string template is deprecated. To avoid this warning, you should explicitly
@@ -1196,7 +1206,7 @@
 
     *Aram Greenman*
 
-*   Allow `QueryMethods#in_order_of` to order by a string column name.
+* Allow `QueryMethods#in_order_of` to order by a string column name.
 
     ```ruby
     Post.in_order_of("id", [4,2,3,1]).to_a
@@ -1205,19 +1215,19 @@
 
     *Igor Kasyanchuk*
 
-*   Move `ActiveRecord::SchemaMigration` to an independent object.
+* Move `ActiveRecord::SchemaMigration` to an independent object.
 
     `ActiveRecord::SchemaMigration` no longer inherits from `ActiveRecord::Base` and is now an independent object that should be instantiated with a `connection`. This class is private and should not be used by applications directly. If you want to interact with the schema migrations table, please access it on the connection directly, for example: `ActiveRecord::Base.connection.schema_migration`.
 
     *Eileen M. Uchitelle*
 
-*   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
+* Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
 
     Following on #45924 `all_connection_pools` is now deprecated. `connection_pool_list` will either take an explicit role or applications can opt into the new behavior by passing `:all`.
 
     *Eileen M. Uchitelle*
 
-*   Fix connection handler methods to operate on all pools.
+* Fix connection handler methods to operate on all pools.
 
     `active_connections?`, `clear_active_connections!`, `clear_reloadable_connections!`, `clear_all_connections!`, and `flush_idle_connections!` now operate on all pools by default. Previously they would default to using the `current_role` or `:writing` role unless specified.
 
