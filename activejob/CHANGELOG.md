@@ -1,3 +1,16 @@
+*   All tests now respect the `active_job.queue_adapter` config
+
+    Previously if you had set `config.active_job.queue_adapter` in your `config/application.rb`
+    or `config/environments/test.rb` file, the adapter you selected was previously not used consistently
+    across all tests. In some tests your adapter would be used, but other tests would use the `TestAdapter`.
+
+    In Rails 7.1, all tests will respect the `queue_adapter` config if provided. If no config is provided,
+    the `TestAdapter` will continue to be used.
+
+    See [#48585](https://github.com/rails/rails/pull/48585) for more details.
+
+    *Alex Ghiculescu*
+
 *   Clarify the backoff strategy for the recommended `:wait` option when retrying jobs
 
     `wait: :exponentially_longer` is waiting polynomially longer, so it is now recommended to use `wait: :polynomially_longer` to keep the same behavior.

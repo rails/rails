@@ -24,6 +24,8 @@ class InstrumentationTest < ActiveSupport::TestCase
   end
 
   test "retry emits an enqueue retry event" do
+    skip if adapter_is?(:inline, :sneakers)
+
     events = subscribed("enqueue_retry.active_job") do
       perform_enqueued_jobs { RetryJob.perform_later("DefaultsError", 2) }
     end
@@ -31,6 +33,8 @@ class InstrumentationTest < ActiveSupport::TestCase
   end
 
   test "retry exhaustion emits a retry_stopped event" do
+    skip if adapter_is?(:inline, :sneakers)
+
     events = subscribed("retry_stopped.active_job") do
       perform_enqueued_jobs { RetryJob.perform_later("CustomCatchError", 6) }
     end

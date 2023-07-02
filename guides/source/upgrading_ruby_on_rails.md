@@ -242,6 +242,17 @@ See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-differe
 `AbstractController::Translation.raise_on_missing_translations` has been removed. This was a private API, if you were
 relying on it you should migrate to `config.i18n.raise_on_missing_translations` or to a custom exception handler.
 
+### All tests now respect the `active_job.queue_adapter` config
+
+If you have set `config.active_job.queue_adapter` in your `config/application.rb` or `config/environments/test.rb` file,
+the adapter you selected was previously not used consistently across all tests. In some tests your adapter would be
+used, but other tests would use the `TestAdapter`.
+
+In Rails 7.1, all tests will respect the `queue_adapter` config if provided. This may cause test errors, if you had
+set the `queue_adapter` config to something other than `:test`, but written tests in a way that was dependent on the `TestAdapter`.
+
+If no config is provided, the `TestAdapter` will continue to be used.
+
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
 

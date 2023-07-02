@@ -37,10 +37,10 @@ module ActiveJob
     ActiveJob::Base.include(TestQueueAdapter)
 
     def before_setup # :nodoc:
-      test_adapter = queue_adapter_for_test
-
       queue_adapter_changed_jobs.each do |klass|
-        klass.enable_test_adapter(test_adapter)
+        if (test_adapter = test_adapter_should_be(klass))
+          klass.enable_test_adapter(test_adapter)
+        end
       end
 
       clear_enqueued_jobs
@@ -56,15 +56,14 @@ module ActiveJob
 
     # Specifies the queue adapter to use with all Active Job test helpers.
     #
-    # Returns an instance of the queue adapter and defaults to
-    # ActiveJob::QueueAdapters::TestAdapter.
+    # The default adapter in tests is ActiveJob::QueueAdapters::TestAdapter.
+    # Implement this method in a test class to override this.
     #
     # Note: The adapter provided by this method must provide some additional
     # methods from those expected of a standard ActiveJob::QueueAdapter
-    # in order to be used with the active job test helpers. Refer to
+    # in order to be used with the Active Job test helpers. Refer to
     # ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
-      ActiveJob::QueueAdapters::TestAdapter.new
     end
 
     # Asserts that the number of enqueued jobs matches the given number.
@@ -121,6 +120,8 @@ module ActiveJob
     #     end
     #   end
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_enqueued_jobs")
+
       if block_given?
         original_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -183,6 +184,8 @@ module ActiveJob
     #
     #   assert_enqueued_jobs 0, &block
     def assert_no_enqueued_jobs(only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_no_enqueued_jobs")
+
       assert_enqueued_jobs 0, only: only, except: except, queue: queue, &block
     end
 
@@ -273,6 +276,8 @@ module ActiveJob
     #       end
     #     end
     def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_performed_jobs")
+
       if block_given?
         original_count = performed_jobs.size
 
@@ -341,6 +346,8 @@ module ActiveJob
     #
     #   assert_performed_jobs 0, &block
     def assert_no_performed_jobs(only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_no_performed_jobs")
+
       assert_performed_jobs 0, only: only, except: except, queue: queue, &block
     end
 
@@ -397,6 +404,8 @@ module ActiveJob
     #     end
     #   end
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      require_active_job_test_adapter!("assert_enqueued_with")
+
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
@@ -499,6 +508,8 @@ module ActiveJob
     #     end
     #   end
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      require_active_job_test_adapter!("assert_performed_with")
+
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
@@ -606,7 +617,10 @@ module ActiveJob
     # If an adapter other than the test adapter is in use, this method just yields.
     # See queue_adapter_for_test for more information.
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
-      return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
+      unless block_given?
+        require_active_job_test_adapter!("perform_enqueued_jobs (without a block)")
+        return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at)
+      end
 
       return _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block) unless using_test_adapter?
 
@@ -648,6 +662,22 @@ module ActiveJob
     end
 
     private
+      def test_adapter_should_be(klass)
+        if (override_in_test_class = queue_adapter_for_test)
+          return override_in_test_class
+        end
+
+        if klass._queue_adapter.nil?
+          ActiveJob::QueueAdapters::TestAdapter.new
+        end
+      end
+
+      def require_active_job_test_adapter!(method)
+        unless using_test_adapter?
+          raise ArgumentError.new("#{method} requires the Active Job test adapter, you're using #{queue_adapter.class.name}.")
+        end
+      end
+
       def using_test_adapter?
         queue_adapter.is_a?(ActiveJob::QueueAdapters::TestAdapter)
       end
