@@ -193,7 +193,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_nulls_not_distinct
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_nulls_not_distinct/).first.strip
-    if ActiveRecord::Base.connection.supports_nulls_not_distinct?
+    if supports_nulls_not_distinct?
       assert_equal 't.index ["firm_id"], name: "company_nulls_not_distinct", nulls_not_distinct: true', index_definition
     else
       assert_equal 't.index ["firm_id"], name: "company_nulls_not_distinct"', index_definition
