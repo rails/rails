@@ -1,3 +1,10 @@
+*   Don't double-encode nested `field_id` and `field_name` index values
+
+    Pass `index: @options` as a default keyword argument to `field_id` and
+    `field_name` view helper methods.
+
+    *Sean Doyle*
+
 *   Allow opting in/out of `Link preload` headers when calling `stylesheet_link_tag` or `javascript_include_tag`
 
     ```ruby

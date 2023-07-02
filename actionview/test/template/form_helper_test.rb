@@ -1894,6 +1894,57 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, @rendered
   end
 
+  def test_form_for_with_nested_attributes_field_id
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |form|
+      form.fields_for(:comments) do |comment_form|
+        concat comment_form.field_id :relevances_attributes
+      end
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post_comments_attributes_0_relevances_attributes"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_nested_attributes_field_name
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |form|
+      form.fields_for(:comments) do |comment_form|
+        concat comment_form.field_name :relevances_attributes
+      end
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post[comments_attributes][0][relevances_attributes]"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_nested_attributes_field_name_multiple
+    post, comment, tag = Post.new, Comment.new, Tag.new
+    comment.relevances = [tag]
+    post.comments = [comment]
+    form_for(post) do |form|
+      form.fields_for(:comments) do |comment_form|
+        concat comment_form.field_name :relevances_attributes, multiple: true
+      end
+    end
+
+    expected = whole_form("/posts", "new_post", "new_post") do
+      "post[comments_attributes][0][relevances_attributes][]"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
   def test_form_for_with_collection_radio_buttons
     post = Post.new
     def post.active; false; end

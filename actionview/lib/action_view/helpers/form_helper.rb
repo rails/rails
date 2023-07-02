@@ -1767,7 +1767,7 @@ module ActionView
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
       # case).
-      def field_id(method, *suffixes, namespace: @options[:namespace], index: @index)
+      def field_id(method, *suffixes, namespace: @options[:namespace], index: @options[:index])
         @template.field_id(@object_name, method, *suffixes, namespace: namespace, index: index)
       end
 
@@ -1787,7 +1787,7 @@ module ActionView
       #     <%# => <input type="text" name="post[tag][]">
       #   <% end %>
       #
-      def field_name(method, *methods, multiple: false, index: @index)
+      def field_name(method, *methods, multiple: false, index: @options[:index])
         object_name = @options.fetch(:as) { @object_name }
 
         @template.field_name(object_name, method, *methods, index: index, multiple: multiple)
