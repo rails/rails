@@ -1,3 +1,10 @@
+*   Update default scaffold templates to set 303 (See Other) as status code
+    on redirect for the update action for XHR requests other than GET or POST
+    to avoid issues (e.g browsers trying to follow the redirect using the
+    original request method resulting in double PATCH/PUT)
+
+    *Guillermo Iguaran*
+
 *   The new `config.autoload_lib_once` is similar to `config.autoload_lib`,
     except that it adds `lib` to `config.autoload_once_paths` instead.
 

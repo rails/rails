@@ -1,3 +1,8 @@
+*   Improve error message when EventedFileUpdateChecker is used without a
+    compatible version of the Listen gem
+
+    *Hartley McGuire*
+
 *   Add `:report` behavior for Deprecation
 
     Setting `config.active_support.deprecation = :report` uses the error

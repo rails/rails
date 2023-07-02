@@ -117,6 +117,9 @@ module ActiveModel
   #   person.name_change # => ["Bill", "Bill"]
   #   person.name << 'y'
   #   person.name_change # => ["Bill", "Billy"]
+  #
+  # Methods can be invoked as +name_changed?+ or by passing an argument to the
+  # generic method <tt>attribute_changed?("name")</tt>.
   module Dirty
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
@@ -134,8 +137,8 @@ module ActiveModel
       #   person = Person.new
       #   person.name = 'Britanny'
       #   person.save
-      #   person.name_previously_changed?  # => true
-      #   person.name_previously_changed?(from: nil, to: 'Britanny')  # => true
+      #   person.name_previously_changed? # => true
+      #   person.name_previously_changed?(from: nil, to: 'Britanny') # => true
 
       ##
       # :method: *_changed?
@@ -146,7 +149,7 @@ module ActiveModel
       #
       #   person = Person.new
       #   person.name = 'Andrew'
-      #   person.name_changed?  # => true
+      #   person.name_changed? # => true
 
       ##
       # :method: *_change
@@ -157,7 +160,7 @@ module ActiveModel
       #
       #   person = Person.new
       #   person.name = 'Nick'
-      #   person.name_change  # => [nil, 'Nick']
+      #   person.name_change # => [nil, 'Nick']
 
       ##
       # :method: *_will_change!
@@ -173,7 +176,7 @@ module ActiveModel
       #
       #   person = Person.new('Sandy')
       #   person.name_will_change!
-      #   person.name_change ['Sandy', 'Sandy']
+      #   person.name_change # => ['Sandy', 'Sandy']
 
       ##
       # :method: *_was
@@ -184,7 +187,7 @@ module ActiveModel
       #
       #   person = Person.new(name: 'Steph')
       #   person.name = 'Stephanie'
-      #   person.name_change  # => ['Steph', 'Stephanie']
+      #   person.name_change # => ['Steph', 'Stephanie']
 
       ##
       # :method: *_previous_change
@@ -196,7 +199,7 @@ module ActiveModel
       #   person = Person.new
       #   person.name = 'Emmanuel'
       #   person.save
-      #   person.name_previous_change  # => [nil, 'Emmanuel']
+      #   person.name_previous_change # => [nil, 'Emmanuel']
 
       ##
       # :method: *_previously_was
