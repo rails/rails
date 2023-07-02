@@ -1,3 +1,13 @@
+*   Fix `index_errors` having incorrect index in association validation errors.
+
+    *lulalala*
+
+*   Add `index_errors: :nested_attributes_order` mode.
+
+    This indexes the association validation errors based on the order received by nested attributes setter, and respects the `reject_if` configuration. This enables API to provide enough information to the frontend to map the validation errors back to their respective form fields.
+
+    *lulalala*
+
 *   Association option `query_constraints` is deprecated in favor of `foreign_key`.
 
     *Nikita Vasilevsky*

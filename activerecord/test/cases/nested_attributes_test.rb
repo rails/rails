@@ -868,6 +868,21 @@ module NestedAttributesOnACollectionAssociationTests
     end
   end
 
+  def test_assigning_nested_attributes_target
+    params = @alternate_params[association_getter].values
+    @pirate.public_send(association_setter, params)
+    @pirate.save
+    assert_equal [@child_1, @child_2], @pirate.association(@association_name).nested_attributes_target
+  end
+
+  def test_assigning_nested_attributes_target_with_nil_placeholder_for_rejected_item
+    params = @alternate_params[association_getter].values
+    params.insert(1, {})
+    @pirate.public_send(association_setter, params)
+    @pirate.save
+    assert_equal [@child_1, nil, @child_2], @pirate.association(@association_name).nested_attributes_target
+  end
+
   private
     def association_setter
       @association_setter ||= "#{@association_name}_attributes=".to_sym
@@ -1121,6 +1136,51 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
 
     assert_not_predicate part, :valid?
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
+  end
+end
+
+class TestIndexErrorsWithNestedAttributesOnlyMode < ActiveRecord::TestCase
+  def setup
+    tuning_peg_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "tuning_pegs"
+      def self.name; "TuningPeg"; end
+
+      validates_numericality_of :pitch
+    end
+
+    @guitar_class = Class.new(ActiveRecord::Base) do
+      has_many :tuning_pegs, index_errors: :nested_attributes_order, anonymous_class: tuning_peg_class
+      accepts_nested_attributes_for :tuning_pegs, reject_if: lambda { |attrs| attrs[:pitch]&.odd? }
+
+      def self.name; "Guitar"; end
+    end
+  end
+
+  test "index in nested_attributes_order order" do
+    guitar = @guitar_class.create!
+    guitar.tuning_pegs.create!(pitch: 1)
+    peg2 = guitar.tuning_pegs.create!(pitch: 2)
+
+    assert_predicate guitar, :valid?
+
+    guitar.update(tuning_pegs_attributes: [{ id: peg2.id, pitch: nil }])
+
+    assert_not_predicate guitar, :valid?
+    assert_equal [:"tuning_pegs[0].pitch"], guitar.errors.messages.keys
+  end
+
+  test "index unaffected by reject_if" do
+    guitar = @guitar_class.create!
+
+    guitar.update(
+      tuning_pegs_attributes: [
+        { pitch: 1 },
+        { pitch: nil },
+      ]
+    )
+
+    assert_not_predicate guitar, :valid?
+    assert_equal [:"tuning_pegs[1].pitch"], guitar.errors.messages.keys
   end
 end
 
