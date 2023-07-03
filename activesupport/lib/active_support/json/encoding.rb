@@ -39,33 +39,21 @@ module ActiveSupport
             value = value.as_json(options.dup)
           end
           json = stringify(jsonify(value))
+
+          # Rails does more escaping than the JSON gem natively does (we
+          # escape \u2028 and \u2029 and optionally >, <, & to work around
+          # certain browser problems).
           if Encoding.escape_html_entities_in_json
-            json.gsub! ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
-          else
-            json.gsub! ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
+            json.gsub!(">", '\u003e')
+            json.gsub!("<", '\u003c')
+            json.gsub!("&", '\u0026')
           end
+          json.gsub!("\u2028", '\u2028')
+          json.gsub!("\u2029", '\u2029')
           json
         end
 
         private
-          # Rails does more escaping than the JSON gem natively does (we
-          # escape \u2028 and \u2029 and optionally >, <, & to work around
-          # certain browser problems).
-          ESCAPED_CHARS = {
-            "\u2028" => '\u2028',
-            "\u2029" => '\u2029',
-            ">"      => '\u003e',
-            "<"      => '\u003c',
-            "&"      => '\u0026',
-            }
-
-          ESCAPE_REGEX_WITH_HTML_ENTITIES = /[\u2028\u2029><&]/u
-          ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = /[\u2028\u2029]/u
-
-          # Mark these as private so we don't leak encoding-specific constructs
-          private_constant :ESCAPED_CHARS, :ESCAPE_REGEX_WITH_HTML_ENTITIES,
-            :ESCAPE_REGEX_WITHOUT_HTML_ENTITIES
-
           # Convert an object into a "JSON-ready" representation composed of
           # primitives like Hash, Array, String, Symbol, Numeric,
           # and +true+/+false+/+nil+.

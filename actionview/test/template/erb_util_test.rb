@@ -13,9 +13,15 @@ class ErbUtilTest < ActiveSupport::TestCase
     end
   end
 
-  ERB::Util::JSON_ESCAPE.each do |given, expected|
+  {
+    "&" => '\u0026',
+    ">" => '\u003e',
+    "<" => '\u003c',
+    "\u2028" => '\u2028',
+    "\u2029" => '\u2029'
+  }.each do |given, expected|
     define_method "test_json_escape_#{expected.gsub(/\W/, '')}" do
-      assert_equal ERB::Util::JSON_ESCAPE[given], json_escape(given)
+      assert_equal expected, json_escape(given)
     end
   end
 
