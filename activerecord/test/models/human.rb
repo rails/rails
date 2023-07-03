@@ -27,6 +27,7 @@ class Human < ActiveRecord::Base
   has_one :confused_face, class_name: "Face", inverse_of: :cnffused_human
   has_many :secret_interests, class_name: "Interest", inverse_of: :secret_human
   has_one :mixed_case_monkey
+  has_many :skills, inverse_of: :human
 
   attribute :add_callback_called, :boolean, default: false
 
