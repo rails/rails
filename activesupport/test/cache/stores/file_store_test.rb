@@ -10,7 +10,13 @@ class FileStoreTest < ActiveSupport::TestCase
 
   def lookup_store(options = {})
     cache_dir = options.delete(:cache_dir) { @cache_dir }
-    ActiveSupport::Cache.lookup_store(:file_store, cache_dir, options)
+    if ActiveSupport.cache_format_version == 6.1
+      assert_deprecated(ActiveSupport.deprecator) do
+        ActiveSupport::Cache.lookup_store(:file_store, cache_dir, options)
+      end
+    else
+      ActiveSupport::Cache.lookup_store(:file_store, cache_dir, options)
+    end
   end
 
   def setup

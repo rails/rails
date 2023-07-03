@@ -10,7 +10,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 
   def lookup_store(options = {})
-    ActiveSupport::Cache.lookup_store(:memory_store, options)
+    if ActiveSupport.cache_format_version == 6.1
+      assert_deprecated(ActiveSupport.deprecator) do
+        ActiveSupport::Cache.lookup_store(:memory_store, options)
+      end
+    else
+      ActiveSupport::Cache.lookup_store(:memory_store, options)
+    end
   end
 
   include CacheStoreBehavior

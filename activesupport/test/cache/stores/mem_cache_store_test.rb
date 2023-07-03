@@ -45,7 +45,16 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def lookup_store(*addresses, **options)
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false, socket_timeout: 60 }.merge(options))
+    cache = nil
+
+    if ActiveSupport.cache_format_version == 6.1
+      assert_deprecated(ActiveSupport.deprecator) do
+        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false, socket_timeout: 60 }.merge(options))
+      end
+    else
+      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false, socket_timeout: 60 }.merge(options))
+    end
+
     (@_stores ||= []) << cache
     cache
   end

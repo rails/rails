@@ -146,7 +146,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
+      if ActiveSupport.cache_format_version == 6.1
+        assert_deprecated(ActiveSupport.deprecator) do
+          ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
+        end
+      else
+        ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
+      end
     end
 
     teardown do
