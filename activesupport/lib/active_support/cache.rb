@@ -449,12 +449,6 @@ module ActiveSupport
       #       token
       #     end
       #
-      # Only some options can be set dynamically:
-      #
-      #   - +:expires_in+
-      #   - +:expires_at+
-      #   - +:version+
-      #
       def fetch(name, options = nil, &block)
         if block_given?
           options = merged_options(options)
