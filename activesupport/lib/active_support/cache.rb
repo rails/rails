@@ -653,7 +653,8 @@ module ActiveSupport
         end
       end
 
-      # Deletes an entry in the cache. Returns +true+ if an entry is deleted.
+      # Deletes an entry in the cache. Returns +true+ if an entry is deleted
+      # and +false+ otherwise.
       #
       # Options are passed to the underlying cache implementation.
       def delete(name, options = nil)
