@@ -1800,8 +1800,8 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_dispatch.debug_exception_log_level`
 
-Configure the log level used by the DebugExceptions middleware when logging
-uncaught exceptions during requests
+Configures the log level used by the [`ActionDispatch::DebugExceptions`][]
+middleware when logging uncaught exceptions during requests.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1809,6 +1809,8 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:fatal`             |
 | 7.1                   | `:error`             |
+
+[`ActionDispatch::DebugExceptions`]: https://api.rubyonrails.org/classes/ActionDispatch/DebugExceptions.html
 
 #### `config.action_dispatch.default_headers`
 
