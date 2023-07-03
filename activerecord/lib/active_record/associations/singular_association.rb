@@ -56,7 +56,13 @@ module ActiveRecord
         def _create_record(attributes, raise_error = false, &block)
           reflection.klass.transaction do
             record = build(attributes, &block)
-            saved = record.save
+            # Returns an ActiveModel::Errors object if validation has already run
+            errors = record.instance_variable_get(:@errors)
+            saved = if errors
+                      errors.empty? && record.save(validate: false)
+                    else
+                      record.save
+                    end
             replace_keys(record, force: true)
             raise RecordInvalid.new(record) if !saved && raise_error
             record

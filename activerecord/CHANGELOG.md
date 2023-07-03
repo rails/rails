@@ -1,3 +1,7 @@
+*   Add a new option `existing` to `has_one` to run validations before deleting an existing associated object.
+
+    *Takumi Shotoku*
+
 *   Disable database prepared statements when query logs are enabled
 
     Prepared Statements and Query Logs are incompatible features due to query logs making every query unique.

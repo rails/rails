@@ -958,6 +958,21 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  class ContentWithExistingValidation < ActiveRecord::Base
+    self.table_name = "content"
+    has_one :content_position, dependent: :destroy, foreign_key: :content_id, class_name: SpecialContentPosition.name, existing: :replace_after_validation
+  end
+
+  test "uniqueness validator prevents from replacing the old record if dependent: :destroy and existing: :replace_after_validation is set" do
+    content = ContentWithExistingValidation.create!
+    content.create_content_position!
+
+    # expect the uniqueness validator to run only once
+    assert_queries(1) do
+      assert_raise(ActiveRecord::RecordInvalid) { content.create_content_position! }
+    end
+  end
+
   test "composite primary key malformed association" do
     error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
       order = Cpk::BrokenOrder.new(id: [1, 2], book: Cpk::Book.new(title: "Some book"))

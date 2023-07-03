@@ -1681,6 +1681,12 @@ module ActiveRecord
         # [:ensuring_owner_was]
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
+        # [:existing]
+        #   Controls behavior when there are existing associated object.
+        #
+        #   * <tt>nil</tt> Delete an existing associated object before saving a new one (default).
+        #     Be careful to run validations after an existing record is deleted.
+        #   * <tt>:replace_after_validation</tt> If the new object is valid, delete an existing associated object and save the new one.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
