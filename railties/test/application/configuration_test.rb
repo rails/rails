@@ -23,7 +23,13 @@ end
 
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
-class ::MySanitizerVendor < ::Rails::HTML::Sanitizer; end
+class ::MySafeListSanitizer < Rails::HTML4::SafeListSanitizer; end
+
+class ::MySanitizerVendor < ::Rails::HTML::Sanitizer
+  def self.safe_list_sanitizer
+    ::MySafeListSanitizer
+  end
+end
 
 class MyLogRecorder < Logger
   def initialize
@@ -4502,6 +4508,36 @@ module ApplicationTests
       app "development"
 
       assert_equal ::MySanitizerVendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "Action Text uses the best supported safe list sanitizer in new apps" do
+      app "development"
+
+      assert_kind_of(
+        Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
+    end
+
+    test "Action Text uses the HTML4 safe list sanitizer in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_kind_of(
+        Rails::HTML4::Sanitizer.safe_list_sanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
+    end
+
+    test "Action Text uses the specified vendor's safe list sanitizer" do
+      add_to_config "config.action_text.sanitizer_vendor = ::MySanitizerVendor"
+      app "development"
+
+      assert_kind_of(
+        ::MySafeListSanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
     end
 
     private
