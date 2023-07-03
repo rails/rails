@@ -98,6 +98,10 @@ module ActiveStorage::Blob::Representable
     variable? || previewable?
   end
 
+  def preprocessed(transformations) # :nodoc:
+    ActiveStorage::TransformJob.perform_later(self, transformations)
+  end
+
   private
     def default_variant_transformations
       { format: default_variant_format }

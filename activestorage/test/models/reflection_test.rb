@@ -14,7 +14,7 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :local, reflection.options[:service_name]
 
     reflection = User.reflect_on_attachment(:avatar_with_variants)
-    assert_instance_of Hash, reflection.variants
+    assert_instance_of Hash, reflection.named_variants
   end
 
   test "reflection on a singular attachment with the same name as an attachment on another model" do
@@ -33,14 +33,14 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :local, reflection.options[:service_name]
 
     reflection = User.reflect_on_attachment(:highlights_with_variants)
-    assert_instance_of Hash, reflection.variants
+    assert_instance_of Hash, reflection.named_variants
   end
 
   test "reflecting on all attachments" do
     reflections = User.reflect_on_all_attachments.sort_by(&:name)
     assert_equal [ User ], reflections.collect(&:active_record).uniq
-    assert_equal %i[ avatar avatar_with_variants cover_photo highlights highlights_with_variants intro_video name_pronunciation_audio vlogs ], reflections.collect(&:name)
-    assert_equal %i[ has_one_attached has_one_attached has_one_attached has_many_attached has_many_attached has_one_attached has_one_attached has_many_attached ], reflections.collect(&:macro)
-    assert_equal [ :purge_later, :purge_later, false, :purge_later, :purge_later, :purge_later, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
+    assert_equal %i[ avatar avatar_with_conditional_preprocessed avatar_with_preprocessed avatar_with_variants cover_photo highlights highlights_with_conditional_preprocessed highlights_with_preprocessed highlights_with_variants intro_video name_pronunciation_audio vlogs ], reflections.collect(&:name)
+    assert_equal %i[ has_one_attached has_one_attached has_one_attached has_one_attached has_one_attached has_many_attached has_many_attached has_many_attached has_many_attached has_one_attached has_one_attached has_many_attached ], reflections.collect(&:macro)
+    assert_equal [ :purge_later, :purge_later, :purge_later, :purge_later, false, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
   end
 end
