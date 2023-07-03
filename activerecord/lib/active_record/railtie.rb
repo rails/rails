@@ -396,6 +396,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
             db_host:      ->(context) { context[:connection].pool.db_config.host },
             database:     ->(context) { context[:connection].pool.db_config.database }
           )
+          ActiveRecord.disable_prepared_statements = true
 
           if app.config.active_record.query_log_tags.present?
             ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags

@@ -1,3 +1,9 @@
+*   Disable database prepared statements when query logs are enabled
+
+    Prepared Statements and Query Logs are incompatible features due to query logs making every query unique.
+
+    *zzak, Jean Boussier*
+
 *   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
 
     This adds a new Active Record encryption option to support decrypting data encrypted
