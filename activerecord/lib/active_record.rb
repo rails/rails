@@ -174,6 +174,9 @@ module ActiveRecord
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
 
+  singleton_class.attr_accessor :disable_prepared_statements
+  self.disable_prepared_statements = false
+
   # Lazily load the schema cache. This option will load the schema cache
   # when a connection is established rather than on boot. If set,
   # +config.active_record.use_schema_cache_dump+ will be set to false.

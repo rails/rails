@@ -160,7 +160,7 @@ module ActiveRecord
         @statements = build_statement_pool
         self.lock_thread = nil
 
-        @prepared_statements = self.class.type_cast_config_to_boolean(
+        @prepared_statements = !ActiveRecord.disable_prepared_statements && self.class.type_cast_config_to_boolean(
           @config.fetch(:prepared_statements) { default_prepared_statements }
         )
 

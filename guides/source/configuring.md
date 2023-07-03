@@ -1345,6 +1345,8 @@ The default value depends on the `config.load_defaults` target version:
 Specifies whether or not to enable adapter-level query comments. Defaults to
 `false`.
 
+NOTE: When this is set to `true` database prepared statements will be automatically disabled.
+
 #### `config.active_record.query_log_tags`
 
 Define an `Array` specifying the key/value tags to be inserted in an SQL
