@@ -4532,6 +4532,21 @@ module ApplicationTests
       )
     end
 
+    test "dom testing uses the HTML5 parser in new apps if it is supported" do
+      app "development"
+      expected = defined?(Nokogiri::HTML5) ? :html5 : :html4
+
+      assert_equal(expected, Rails.application.config.dom_testing_default_html_version)
+    end
+
+    test "dom testing uses the HTML4 parser in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal(:html4, Rails.application.config.dom_testing_default_html_version)
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
