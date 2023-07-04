@@ -319,6 +319,10 @@ module Rails
             if respond_to?(:action_view)
               action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
             end
+
+            if respond_to?(:action_text)
+              action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+            end
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
