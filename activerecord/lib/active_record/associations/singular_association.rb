@@ -59,10 +59,10 @@ module ActiveRecord
             # Returns an ActiveModel::Errors object if validation has already run
             errors = record.instance_variable_get(:@errors)
             saved = if errors
-                      errors.empty? && record.save(validate: false)
-                    else
-                      record.save
-                    end
+              errors.empty? && record.save(validate: false)
+            else
+              record.save
+            end
             replace_keys(record, force: true)
             raise RecordInvalid.new(record) if !saved && raise_error
             record
