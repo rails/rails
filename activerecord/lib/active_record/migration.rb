@@ -596,7 +596,7 @@ module ActiveRecord
     # This class is used to verify that all migrations have been run before
     # loading a web page if <tt>config.active_record.migration_error</tt> is set to +:page_load+.
     class CheckPending
-      def initialize(app, file_watcher: ActiveSupport::FileUpdateChecker)
+      def initialize(app, *_args, file_watcher: ActiveSupport::FileUpdateChecker)
         @app = app
         @needs_check = true
         @mutex = Mutex.new
