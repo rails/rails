@@ -1650,6 +1650,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate(book.association(:order_agreements), :stale_target?)
   end
 
+  def test_cpk_association_build_through_singular
+    order = Cpk::OrderWithSingularBookChapters.create!(id: [1, 2])
+    book = order.create_book!(id: [3, 4])
+    chapter = order.chapters.build
+
+    assert_equal(chapter.book, book)
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
