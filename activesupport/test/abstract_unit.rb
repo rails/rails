@@ -29,6 +29,8 @@ ActiveSupport.deprecator.silence do
   ActiveSupport.to_time_preserves_timezone = ENV.fetch("PRESERVE_TIMEZONES", "1") == "1"
 end
 
+ActiveSupport::Cache.format_version = 7.1
+
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
