@@ -59,6 +59,12 @@ module ActiveSupport
         BARE_STRING_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(BARE_STRING_EXPIRES_AT_TEMPLATE).bytesize}l<"
         BARE_STRING_VERSION_INDEX = [0].pack(BARE_STRING_VERSION_LENGTH_TEMPLATE).bytesize
 
+        def marshal_load(payload)
+          Marshal.load(payload)
+        rescue ArgumentError => error
+          raise Cache::DeserializationError, error.message
+        end
+
         def try_dump_bare_string(entry)
           value = entry.value
           return if !value.instance_of?(String)
@@ -144,9 +150,8 @@ module ActiveSupport
             Marshal.dump(entry.compressed(threshold))
           end
 
-          def _load(dumped)
-            Marshal.load(dumped)
-          end
+          alias_method :_load, :marshal_load
+          public :_load
 
           def dumped?(dumped)
             dumped.start_with?(MARSHAL_SIGNATURE)
@@ -184,7 +189,7 @@ module ActiveSupport
           def _load(marked)
             dumped = marked.byteslice(1..-1)
             dumped = decompress(dumped) if marked.start_with?(MARK_COMPRESSED)
-            try_load_bare_string(dumped) || Cache::Entry.unpack(Marshal.load(dumped))
+            try_load_bare_string(dumped) || Cache::Entry.unpack(marshal_load(dumped))
           end
 
           def dumped?(dumped)

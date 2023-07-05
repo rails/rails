@@ -61,6 +61,20 @@ module CacheStoreFormatVersionBehavior
 
         assert_operator serialized, :start_with?, compressed_signature
       end
+
+      test "Marshal undefined class/module deserialization error with #{format_version} format" do
+        key = "marshal-#{rand}"
+        self.class.const_set(:Foo, Class.new)
+        @store = with_format(format_version) { lookup_store }
+        @store.write(key, self.class::Foo.new)
+        assert_instance_of self.class::Foo, @store.read(key)
+
+        self.class.send(:remove_const, :Foo)
+        assert_nil @store.read(key)
+        assert_equal false, @store.exist?(key)
+      ensure
+        self.class.send(:remove_const, :Foo) rescue nil
+      end
     end
 
     FORMAT_VERSIONS.product(FORMAT_VERSIONS) do |read_version, write_version|
