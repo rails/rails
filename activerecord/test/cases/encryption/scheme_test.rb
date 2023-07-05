@@ -26,14 +26,6 @@ class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
       end
     end
 
-    def declare_and_use_class(**options)
-      encrypted_book_class = Class.new(Book) do
-        encrypts :name, **options
-      end
-
-      encrypted_book_class.create! name: "Some name"
-    end
-
     def declare_encrypts_with(options)
       Class.new(Book) do
         encrypts :name, **options
