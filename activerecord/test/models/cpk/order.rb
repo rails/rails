@@ -24,4 +24,8 @@ module Cpk
   class OrderWithNullifiedBook < Order
     has_one :book, query_constraints: [:shop_id, :order_id], dependent: :nullify
   end
+
+  class OrderWithSingularBookChapters < Order
+    has_many :chapters, through: :book
+  end
 end
