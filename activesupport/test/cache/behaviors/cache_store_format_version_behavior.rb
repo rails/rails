@@ -10,7 +10,7 @@ module CacheStoreFormatVersionBehavior
   included do
     test "format version affects default coder" do
       coders = FORMAT_VERSIONS.map do |format_version|
-        ActiveSupport::Cache.with(format_version: format_version) do
+        with_format(format_version) do
           lookup_store.instance_variable_get(:@coder)
         end
       end
@@ -19,7 +19,7 @@ module CacheStoreFormatVersionBehavior
     end
 
     test "invalid format version raises" do
-      ActiveSupport::Cache.with(format_version: 0) do
+      with_format(0) do
         assert_raises do
           lookup_store
         end
@@ -30,11 +30,11 @@ module CacheStoreFormatVersionBehavior
       test "format version #{read_version.inspect} can read #{write_version.inspect} entries" do
         key = SecureRandom.uuid
 
-        ActiveSupport::Cache.with(format_version: write_version) do
+        with_format(write_version) do
           lookup_store.write(key, "value for #{key}")
         end
 
-        ActiveSupport::Cache.with(format_version: read_version) do
+        with_format(read_version) do
           assert_equal "value for #{key}", lookup_store.read(key)
         end
       end
@@ -42,14 +42,21 @@ module CacheStoreFormatVersionBehavior
       test "format version #{read_version.inspect} can read #{write_version.inspect} entries with compression" do
         key = SecureRandom.uuid
 
-        ActiveSupport::Cache.with(format_version: write_version) do
+        with_format(write_version) do
           lookup_store(compress_threshold: 1).write(key, key * 10)
         end
 
-        ActiveSupport::Cache.with(format_version: read_version) do
+        with_format(read_version) do
           assert_equal key * 10, lookup_store.read(key)
         end
       end
     end
   end
+
+  private
+    def with_format(format_version, &block)
+      ActiveSupport.deprecator.silence do
+        ActiveSupport::Cache.with(format_version: format_version, &block)
+      end
+    end
 end
