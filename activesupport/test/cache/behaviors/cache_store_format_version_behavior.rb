@@ -5,7 +5,22 @@ require "active_support/core_ext/object/with"
 module CacheStoreFormatVersionBehavior
   extend ActiveSupport::Concern
 
-  FORMAT_VERSIONS = [6.1, 7.0, 7.1]
+  FORMAT_VERSION_SIGNATURES = {
+    6.1 => [
+      "\x04\x08o".b, # Marshal.dump(entry)
+      "\x04\x08o".b, # Marshal.dump(entry.compressed(...))
+    ],
+    7.0 => [
+      "\x00\x04\x08[".b, # "\x00" + Marshal.dump(entry.pack)
+      "\x01\x78".b,      # "\x01" + Zlib::Deflate.deflate(...)
+    ],
+    7.1 => [
+      "\x00\x04\x08[".b, # "\x00" + Marshal.dump(entry.pack)
+      "\x01\x78".b,      # "\x01" + Zlib::Deflate.deflate(...)
+    ],
+  }
+
+  FORMAT_VERSIONS = FORMAT_VERSION_SIGNATURES.keys
 
   included do
     test "format version affects default coder" do
@@ -23,6 +38,28 @@ module CacheStoreFormatVersionBehavior
         assert_raises do
           lookup_store
         end
+      end
+    end
+
+    FORMAT_VERSION_SIGNATURES.each do |format_version, (uncompressed_signature, compressed_signature)|
+      test "format version #{format_version.inspect} uses correct signature for uncompressed entries" do
+        serialized = with_format(format_version) do
+          lookup_store.send(:serialize_entry, ActiveSupport::Cache::Entry.new(["value"] * 100))
+        end
+
+        skip if !serialized.is_a?(String)
+
+        assert_operator serialized, :start_with?, uncompressed_signature
+      end
+
+      test "format version #{format_version.inspect} uses correct signature for compressed entries" do
+        serialized = with_format(format_version) do
+          lookup_store.send(:serialize_entry, ActiveSupport::Cache::Entry.new(["value"] * 100), compress_threshold: 1)
+        end
+
+        skip if !serialized.is_a?(String)
+
+        assert_operator serialized, :start_with?, compressed_signature
       end
     end
 
