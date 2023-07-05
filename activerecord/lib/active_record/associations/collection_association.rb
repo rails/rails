@@ -87,6 +87,7 @@ module ActiveRecord
       def reset
         super
         @target = []
+        @target_index_map = nil
         @replaced_or_added_targets = Set.new
         @association_ids = nil
       end
@@ -260,7 +261,7 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            loaded? ? target.include?(record) : scope.exists?(record.id)
+            loaded? ? !!index_in_target(record) : scope.exists?(record.id)
           end
         else
           false
@@ -270,6 +271,7 @@ module ActiveRecord
       def load_target
         if find_target?
           @target = merge_target_lists(find_target, target)
+          @target_index_map = nil
         end
 
         loaded!
@@ -398,6 +400,7 @@ module ActiveRecord
           delete_records(existing_records, method) if existing_records.any?
           @target -= records
           @association_ids = nil
+          @target_index_map = nil
 
           records.each { |record| callback(:after_remove, record) }
         end
@@ -414,6 +417,7 @@ module ActiveRecord
 
           unless concat(difference(new_target, target))
             @target = original_target
+            @target_index_map = nil
             raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
                                   "new records could not be saved."
           end
@@ -450,7 +454,7 @@ module ActiveRecord
 
         def replace_on_target(record, skip_callbacks, replace:, inversing: false)
           if replace && (!record.new_record? || @replaced_or_added_targets.include?(record))
-            index = @target.index(record)
+            index = index_in_target(record)
           end
 
           catch(:abort) do
@@ -464,7 +468,7 @@ module ActiveRecord
           yield(record) if block_given?
 
           if !index && @replaced_or_added_targets.include?(record)
-            index = @target.index(record)
+            index = index_in_target(record)
           end
 
           @replaced_or_added_targets << record if inversing || index || record.new_record?
@@ -473,6 +477,7 @@ module ActiveRecord
             target[index] = record
           elsif @_was_loaded || !loaded?
             @association_ids = nil
+            @target_index_map[record] = target.length if @target_index_map
             target << record
           end
 
@@ -504,9 +509,9 @@ module ActiveRecord
             assoc.reader.any? { |source|
               target_reflection = source.send(reflection.source_reflection.name)
               target_reflection.respond_to?(:include?) ? target_reflection.include?(record) : target_reflection == record
-            } || target.include?(record)
+            } || !!index_in_target(record)
           else
-            target.include?(record)
+            !!index_in_target(record)
           end
         end
 
@@ -523,6 +528,11 @@ module ActiveRecord
           else
             load_target.select { |r| ids.include?(r.id.to_s) }
           end
+        end
+
+        def index_in_target(record)
+          @target_index_map ||= @target.each_with_index.to_h
+          @target_index_map[record]
         end
     end
   end
