@@ -1222,7 +1222,7 @@ module ActionView
       # * Creates standard HTML attributes for the tag.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
+      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: false</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
       # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
@@ -2521,7 +2521,7 @@ module ActionView
       # * Creates standard HTML attributes for the tag.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: true</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
+      # * <tt>:include_hidden</tt> - When <tt>multiple: true</tt> and <tt>include_hidden: false</tt>, the field will be prefixed with an <tt><input type="hidden"></tt> field with an empty value to support submitting an empty collection of files.
       # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
