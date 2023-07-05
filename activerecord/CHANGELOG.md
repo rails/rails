@@ -1,3 +1,12 @@
+*   Fix has_one through singular building with inverse.
+
+    Allows building of records from an association with a has_one through a
+    singular association with inverse. For belongs_to through associations,
+    linking the foreign key to the primary key model isn't needed.
+    For has_one, we cannot build records due to the association not being mutable.
+
+    *Gannon McGibbon*
+
 *   Disable database prepared statements when query logs are enabled
 
     Prepared Statements and Query Logs are incompatible features due to query logs making every query unique.
