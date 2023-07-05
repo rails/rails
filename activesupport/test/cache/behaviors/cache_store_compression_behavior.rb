@@ -1,11 +1,32 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/numeric/bytes"
+require "active_support/core_ext/object/with"
 
 module CacheStoreCompressionBehavior
   extend ActiveSupport::Concern
 
   included do
+    test "compression works with cache format version 6.1 (using Marshal61WithFallback)" do
+      @cache = with_format(6.1) { lookup_store(compress: true) }
+      assert_compression true
+    end
+
+    test "compression works with cache format version 7.0 (using Marshal70WithFallback)" do
+      @cache = with_format(7.0) { lookup_store(compress: true) }
+      assert_compression true
+    end
+
+    test "compression works with cache format version 7.1 (using Marshal71WithFallback)" do
+      @cache = with_format(7.1) { lookup_store(compress: true) }
+      assert_compression true
+    end
+
+    test "compression is disabled with custom coder" do
+      @cache = with_format(7.1) { lookup_store(coder: Marshal) }
+      assert_compression false
+    end
+
     test "compression by default" do
       @cache = lookup_store
       assert_compression !compression_always_disabled_by_default?
@@ -61,6 +82,12 @@ module CacheStoreCompressionBehavior
 
     SMALL_OBJECT = { data: SMALL_STRING }
     LARGE_OBJECT = { data: LARGE_STRING }
+
+    def with_format(format_version, &block)
+      ActiveSupport.deprecator.silence do
+        ActiveSupport::Cache.with(format_version: format_version, &block)
+      end
+    end
 
     def assert_compress(value, **options)
       assert_operator compute_entry_size_reduction(value, **options), :>, 0
