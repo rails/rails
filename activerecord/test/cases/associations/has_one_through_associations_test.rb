@@ -454,4 +454,15 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(order_agreement, book.order_agreement)
   end
+
+  def test_cpk_stale_target
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    Cpk::OrderAgreement.create!(order: order)
+
+    book.order_agreement
+    book.order = Cpk::Order.new
+
+    assert_predicate(book.association(:order_agreement), :stale_target?)
+  end
 end
