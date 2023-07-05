@@ -30,6 +30,12 @@ class MultifetchCacheTest < ActiveRecordTestCase
 
   setup do
     Topic.update_all(updated_at: Time.now)
+    @cache_store_was = ActionView::PartialRenderer.collection_cache
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
+  end
+
+  teardown do
+    ActionView::PartialRenderer.collection_cache = @cache_store_was
   end
 
   def test_only_preloading_for_records_that_miss_the_cache
@@ -76,5 +82,20 @@ class MultifetchCacheTest < ActiveRecordTestCase
     assert_equal 2, second_req.length
     assert_equal first_req.first, second_req.first
     assert_includes second_req.last, %(WHERE "replies"."topic_id" IN (?, ?, ?))
+  end
+
+  class InspectableStore < ActiveSupport::Cache::MemoryStore
+    attr_reader :data
+  end
+
+  def test_fragments_are_stored_as_bare_strings
+    cache = ActionView::PartialRenderer.collection_cache = InspectableStore.new
+    Topic.update_all(title: "title")
+    get :cached_true
+
+    assert_not_predicate cache.data, :empty?
+    cache.data.each_value do |entry|
+      assert_equal String, entry.value.class
+    end
   end
 end
