@@ -254,7 +254,7 @@ module ActiveSupport
         @options[:compress] = true unless @options.key?(:compress)
         @options[:compress_threshold] ||= DEFAULT_COMPRESS_LIMIT
 
-        @coder = @options.delete(:coder) { default_coder } || NullCoder
+        @coder = @options.delete(:coder) { default_coder } || :passthrough
         @coder = Cache::SerializerWithFallback[@coder] if @coder.is_a?(Symbol)
         @coder_supports_compression = @coder.respond_to?(:dump_compressed)
       end
@@ -984,22 +984,6 @@ module ActiveSupport
       def expires_at=(expires_at)
         @options.delete(:expires_in)
         @options[:expires_at] = expires_at
-      end
-    end
-
-    module NullCoder # :nodoc:
-      extend self
-
-      def dump(entry)
-        entry
-      end
-
-      def dump_compressed(entry, threshold)
-        entry.compressed(threshold)
-      end
-
-      def load(payload)
-        payload
       end
     end
 
