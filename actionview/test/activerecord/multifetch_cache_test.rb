@@ -22,6 +22,13 @@ class MultifetchCacheTest < ActiveRecordTestCase
     controller = ActionController::Base.new
     controller.perform_caching = true
     @view.controller = controller
+
+    @cache_store_was = ActionView::PartialRenderer.collection_cache
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new
+  end
+
+  teardown do
+    ActionView::PartialRenderer.collection_cache = @cache_store_was
   end
 
   def test_only_preloading_for_records_that_miss_the_cache
@@ -33,5 +40,19 @@ class MultifetchCacheTest < ActiveRecordTestCase
 
     assert_not @topics.detect { |topic| topic.id == topics(:rails).id }.replies.loaded?
     assert     @topics.detect { |topic| topic.id != topics(:rails).id }.replies.loaded?
+  end
+
+  class InspectableStore < ActiveSupport::Cache::MemoryStore
+    attr_reader :data
+  end
+
+  def test_fragments_are_stored_as_bare_strings
+    cache = ActionView::PartialRenderer.collection_cache = InspectableStore.new
+    @view.render partial: "test/partial", collection: [topics(:rails)], cached: true
+
+    assert_not_predicate cache.data, :empty?
+    cache.data.each_value do |entry|
+      assert_equal String, entry.value.class
+    end
   end
 end

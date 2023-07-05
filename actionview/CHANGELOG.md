@@ -1,3 +1,9 @@
+*   Fix `render collection: @records, cache: true` to cache fragments as bare strings
+
+    Previously it would incorrectly cache them as Action View buffers.
+
+    *Jean Boussier*
+
 *   Don't double-encode nested `field_id` and `field_name` index values
 
     Pass `index: @options` as a default keyword argument to `field_id` and
