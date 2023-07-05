@@ -250,8 +250,9 @@ module ActiveSupport
       # relevant cache operations, such as #read, #write, and #fetch.
       def initialize(options = nil)
         @options = options ? normalize_options(options) : {}
+
         @options[:compress] = true unless @options.key?(:compress)
-        @options[:compress_threshold] = DEFAULT_COMPRESS_LIMIT unless @options.key?(:compress_threshold)
+        @options[:compress_threshold] ||= DEFAULT_COMPRESS_LIMIT
 
         @coder = @options.delete(:coder) { default_coder } || NullCoder
         @coder = Cache::SerializerWithFallback[@coder] if @coder.is_a?(Symbol)
@@ -723,7 +724,7 @@ module ActiveSupport
         def serialize_entry(entry, **options)
           options = merged_options(options)
           if @coder_supports_compression && options[:compress]
-            @coder.dump_compressed(entry, options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT)
+            @coder.dump_compressed(entry, options[:compress_threshold])
           else
             @coder.dump(entry)
           end
