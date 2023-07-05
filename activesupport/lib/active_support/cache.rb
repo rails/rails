@@ -231,12 +231,14 @@ module ActiveSupport
       #
       # ==== Options
       #
-      # * +:namespace+ - Sets the namespace for the cache. This option is
-      #   especially useful if your application shares a cache with other
-      #   applications.
-      # * +:coder+ - Replaces the default cache entry serialization mechanism
-      #   with a custom one. The +coder+ must respond to +dump+ and +load+.
-      #   Using a custom coder disables automatic compression.
+      # [+:namespace+]
+      #   Sets the namespace for the cache. This option is especially useful if
+      #   your application shares a cache with other applications.
+      #
+      # [+:coder+]
+      #   Replaces the default serializer for cache entries. +coder+ must
+      #   respond to +dump+ and +load+. Using a custom coder disables automatic
+      #   compression.
       #
       #   Alternatively, you can specify <tt>coder: :message_pack</tt> to use a
       #   preconfigured coder based on ActiveSupport::MessagePack that supports
