@@ -2,7 +2,6 @@
 
 require "cases/encryption/helper"
 require "models/author_encrypted"
-require "models/book"
 
 class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::EncryptionTestCase
   test "can decrypt encrypted_value encrypted with a different encryption scheme" do
