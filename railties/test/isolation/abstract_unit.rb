@@ -517,6 +517,56 @@ module TestHelpers
       end
       database_name
     end
+
+    def use_mysql2(multi_db: false)
+      database_name = "railties_#{Process.pid}"
+      if multi_db
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: mysql2
+            pool: 5
+            username: root
+          <% if ENV['MYSQL_HOST'] %>
+            host: <%= ENV['MYSQL_HOST'] %>
+          <% end %>
+          <% if ENV['MYSQL_SOCK'] %>
+            socket: "<%= ENV['MYSQL_SOCK'] %>"
+          <% end %>
+          development:
+            primary:
+              <<: *default
+              database: #{database_name}_test
+            animals:
+              <<: *default
+              database: #{database_name}_animals_test
+              migrations_paths: db/animals_migrate
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: mysql2
+            pool: 5
+            username: root
+          <% if ENV['MYSQL_HOST'] %>
+            host: <%= ENV['MYSQL_HOST'] %>
+          <% end %>
+          <% if ENV['MYSQL_SOCK'] %>
+            socket: "<%= ENV['MYSQL_SOCK'] %>"
+          <% end %>
+          development:
+            <<: *default
+            database: #{database_name}_development
+          test:
+            <<: *default
+            database: #{database_name}_test
+          YAML
+        end
+      end
+      database_name
+    end
   end
 
   module Reload

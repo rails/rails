@@ -187,11 +187,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       ActiveRecord::Base.stub(:connection, @connection) do
-        assert_called_with(
-          ActiveRecord::Base,
-          :establish_connection,
-          [adapter: "mysql2", database: nil]
-        ) do
+        assert_called(ActiveRecord::Base, :establish_connection, times: 2) do
           ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
         end
       end
