@@ -30,7 +30,7 @@ module ActiveRecord
   #
   #   ActiveRecord::Base.time_zone_aware_types = [:datetime]
   #
-  # You can also add database specific timezone aware types. For example, for PostgreSQL:
+  # You can also add database-specific timezone aware types. For example, for PostgreSQL:
   #
   #   ActiveRecord::Base.time_zone_aware_types += [:tsrange, :tstzrange]
   #
