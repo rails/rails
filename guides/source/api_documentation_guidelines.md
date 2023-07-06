@@ -23,14 +23,14 @@ in the rails root directory, run `bundle install` and execute:
 $ bundle exec rake rdoc
 ```
 
-Resulting HTML files can be found in the ./doc/rdoc directory.
+Resulting HTML files can be found in the `./doc/rdoc` directory.
 
-NOTE: Please consult the RDoc [Markup Reference][RDoc Markup] for help with the syntax.
+NOTE: Please consult the [RDoc Markup Reference][] for help with the syntax.
 
 Links
 -----
 
-Rails API documentation are not meant to be viewed on GitHub and therefore links should use the RDoc [`link`][RDoc Links] markup relative to the current API.
+Rails API documentation are not meant to be viewed on GitHub and therefore links should use the [RDoc link markup][] markup relative to the current API.
 
 This is due to differences between GitHub Markdown and the generated RDoc that is published at [api.rubyonrails.org](https://api.rubyonrails.org) and [edgeapi.rubyonrails.org](https://edgeapi.rubyonrails.org).
 
@@ -38,13 +38,13 @@ For example, we use `[link:classes/ActiveRecord/Base.html]` to create a link to 
 
 This is preferred over absolute URLs such as `[https://api.rubyonrails.org/classes/ActiveRecord/Base.html]`, which would take the reader outside their current documentation version (e.g. edgeapi.rubyonrails.org).
 
-[RDoc Markup]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html
-[RDoc Links]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html#class-RDoc::MarkupReference-label-Links
+[RDoc Markup Reference]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html
+[RDoc link markup]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html#class-RDoc::MarkupReference-label-Links
 
 Wording
 -------
 
-Write simple, declarative sentences. Brevity is a plus: get to the point.
+Write simple, declarative sentences. Brevity is a plus. Get to the point.
 
 Write in present tense: "Returns a hash that...", rather than "Returned a hash that..." or "Will return a hash that...".
 
@@ -110,7 +110,7 @@ Example Code
 
 Choose meaningful examples that depict and cover the basics as well as interesting points or gotchas.
 
-Use two spaces to indent chunks of code--that is, for markup purposes, two spaces with respect to the left margin. The examples themselves should use [Rails coding conventions](contributing_to_ruby_on_rails.html#follow-the-coding-conventions).
+For proper rendering, indent code by two spaces from the left margin. The examples themselves should use [Rails coding conventions](contributing_to_ruby_on_rails.html#follow-the-coding-conventions).
 
 Short docs do not need an explicit "Examples" label to introduce snippets; they just follow paragraphs:
 
@@ -177,7 +177,7 @@ For example,
 
 ### IRB
 
-When documenting the behavior for IRB, Ruby's interactive REPL, always prefix commands with `irb>` and the output should be prefixed with `=>`.
+When documenting the behavior for IRB, Ruby's interactive REPL, always prefix commands with `irb>`. The output should be prefixed with `=>`.
 
 For example,
 
@@ -189,7 +189,7 @@ For example,
 
 ### Bash / Command-line
 
-For command-line examples, always prefix the command with `$`, the output doesn't have to be prefixed with anything.
+For command-line examples, always prefix the command with `$`. The output doesn't have to be prefixed with anything.
 
 ```ruby
 # Run the following command:
@@ -200,11 +200,11 @@ For command-line examples, always prefix the command with `$`, the output doesn'
 Booleans
 --------
 
-In predicates and flags prefer documenting boolean semantics over exact values.
+For predicates and flags, prefer documenting boolean semantics over exact values.
 
 When "true" or "false" are used as defined in Ruby use regular font. The
 singletons `true` and `false` need fixed-width font. Please avoid terms like
-"truthy", Ruby defines what is true and false in the language, and thus those
+"truthy". Ruby defines what is true and false in the language, and thus those
 words have a technical meaning and need no substitutes.
 
 As a rule of thumb, do not document singletons unless absolutely necessary. That
@@ -231,7 +231,7 @@ An example with a predicate:
 # +collection.size.zero?+. If the collection has not been loaded,
 # it is equivalent to +!collection.exists?+. If the collection has
 # not already been loaded and you are going to fetch the records
-# anyway it is better to check +collection.length.zero?+.
+# anyway, it is better to check +collection.length.zero?+.
 def empty?
   if loaded?
     size.zero?
@@ -242,18 +242,13 @@ end
 ```
 
 The API is careful not to commit to any particular value, the method has
-predicate semantics, that's enough.
+predicate semantics, which is sufficient.
 
 File Names
 ----------
 
 As a rule of thumb, use filenames relative to the application root:
-
-```
-config/routes.rb            # YES
-routes.rb                   # NO
-RAILS_ROOT/config/routes.rb # NO
-```
+`config/routes.rb` instead of `routes.rb` or `RAILS_ROOT/config/routes.rb`.
 
 Fonts
 -----
@@ -262,12 +257,12 @@ Fonts
 
 Use fixed-width fonts for:
 
-* Constants, in particular class and module names.
-* Method names.
-* Literals like `nil`, `false`, `true`, `self`.
-* Symbols.
-* Method parameters.
-* File names.
+* Constants, in particular class and module names
+* Method names
+* Literals like `nil`, `false`, `true`, `self`
+* Symbols
+* Method parameters
+* File names
 
 ```ruby
 class Array
@@ -281,7 +276,7 @@ end
 
 WARNING: Using `+...+` for fixed-width font only works with simple content like
 ordinary classes, modules, method names, symbols, paths (with forward slashes),
-etc. Please use `<tt>...</tt>` for everything else.
+etc. Use `<tt>...</tt>` for everything else.
 
 You can quickly test the RDoc output with the following command:
 
