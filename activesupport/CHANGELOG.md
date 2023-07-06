@@ -1,3 +1,21 @@
+*   Don't show secrets for `ActiveSupport::KeyGenerator#inspect`.
+
+    Before:
+
+    ```ruby
+    ActiveSupport::KeyGenerator.new(secret).inspect
+    "#<ActiveSupport::KeyGenerator:0x0000000104888038 ... @secret=\"\\xAF\\bFh]LV}q\\nl\\xB2U\\xB3 ... >"
+    ```
+
+    After:
+
+    ```ruby
+    ActiveSupport::KeyGenerator::Aes256Gcm(secret).inspect
+    "#<ActiveSupport::KeyGenerator:0x0000000104888038>"
+    ```
+
+    *Petrik de Heus*
+
 *   Improve error message when EventedFileUpdateChecker is used without a
     compatible version of the Listen gem
 

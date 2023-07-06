@@ -41,6 +41,10 @@ module ActiveSupport
     def generate_key(salt, key_size = 64)
       OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, @hash_digest_class.new)
     end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
   end
 
   # = Caching Key Generator
