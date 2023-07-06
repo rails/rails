@@ -1,3 +1,13 @@
+*   Make `ActiveRecord::Encryption::Encryptor` agnostic of the serialization format used for encrypted data.
+
+    Previously, the encryptor instance only allowed an encrypted value serialized as a `String` to be passed to the message serializer.
+
+    Now, the encryptor lets the configured `message_serializer` decide which types of serialized encrypted values are supported. A custom serialiser is therefore allowed to serialize `ActiveRecord::Encryption::Message` objects using a type other than `String`.
+
+    The default `ActiveRecord::Encryption::MessageSerializer` already ensures that only `String` objects are passed for deserialization.
+
+    *Maxime Réty*
+
 *   Fix `encrypted_attribute?` to take into account context properties passed to `encrypts`.
 
     *Maxime Réty*

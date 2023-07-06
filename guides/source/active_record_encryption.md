@@ -145,7 +145,7 @@ To encrypt Action Text fixtures, you should place them in `fixtures/action_text/
 
 ### Supported Types
 
-`active_record.encryption` will serialize values using the underlying type before encrypting them, but *they must be serializable as strings*. Structured types like `serialized` are supported out of the box.
+`active_record.encryption` will serialize values using the underlying type before encrypting them, but, unless using a custom `message_serializer`, *they must be serializable as strings*. Structured types like `serialized` are supported out of the box.
 
 If you need to support a custom type, the recommended way is using a [serialized attribute](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html). The declaration of the serialized attribute should go **before** the encryption declaration:
 
