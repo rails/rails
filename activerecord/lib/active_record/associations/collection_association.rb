@@ -79,7 +79,7 @@ module ActiveRecord
       def reset
         super
         @target = []
-        @replaced_or_added_targets = Set.new
+        @replaced_or_added_targets = Set.new.compare_by_identity
         @association_ids = nil
       end
 
