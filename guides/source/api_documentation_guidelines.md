@@ -401,29 +401,23 @@ user-facing API documentation.)
 Regarding the Rails Stack
 -------------------------
 
-When documenting parts of Rails API, it's important to remember all of the
-pieces that go into the Rails stack.
+When documenting parts of Rails' API, it's important to be mindful of the entire
+Rails stack. Behavior of the method or class you're documenting may change
+depending on context.
 
-This means that behavior may change depending on the scope or context of the
-method or class you're trying to document.
-
-In various places there is different behavior when you take the entire stack
-into account, one such example is
-`ActionView::Helpers::AssetTagHelper#image_tag`:
+One such example is `ActionView::Helpers::AssetTagHelper#image_tag`:
 
 ```ruby
 # image_tag("icon.png")
 #   # => <img src="/assets/icon.png" />
 ```
 
-Although the default behavior for `#image_tag` is to always return
-`/images/icon.png`, we take into account the full Rails stack (including the
-Asset Pipeline) we may see the result seen above.
+In isolation, `image_tag` would return `/images/icon.png`. However, when we take
+into account the full Rails stack, including the Asset Pipeline, we may see the
+above result.
 
-We're only concerned with the behavior experienced when using the full default
-Rails stack.
-
-In this case, we want to document the behavior of the _framework_, and not just
-this specific method.
+We want to document the behavior of the _framework_, not just isolated methods.
+Our concern is the behavior that the user experiences when using the full
+default Rails stack.
 
 If you have a question on how the Rails team handles certain API, don't hesitate to open a ticket or send a patch to the [issue tracker](https://github.com/rails/rails/issues).
