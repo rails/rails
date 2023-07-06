@@ -72,14 +72,16 @@ Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite databa
 
 Prefer wordings that avoid "you"s and "your"s. For example, instead of
 
-```markdown
-If you need to use `return` statements in your callbacks, it is recommended that you explicitly define them as methods.
+```ruby
+# If you need to use +return+ statements in your callbacks, it is
+# recommended that you explicitly define them as methods.
 ```
 
 use this style:
 
-```markdown
-If `return` is needed, it is recommended to explicitly define a method.
+```ruby
+# If +return+ is needed, it is recommended to explicitly define a
+# method.
 ```
 
 That said, when using pronouns in reference to a hypothetical person, such as "a
@@ -212,8 +214,9 @@ in the implementation.
 
 For example:
 
-```markdown
-`config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default
+```ruby
+# +config.action_mailer.perform_deliveries+ specifies whether mail
+# will actually be delivered and is true by default
 ```
 
 the user does not need to know which is the actual default value of the flag,
