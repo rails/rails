@@ -30,6 +30,10 @@ module ActiveSupport
       expires_in: [:expire_in, :expired_in]
     }.freeze
 
+    # Raised by coders when the cache entry can't be deserialized.
+    # This error is treated as a cache miss.
+    DeserializationError = Class.new(StandardError)
+
     module Strategy
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
@@ -732,6 +736,8 @@ module ActiveSupport
 
         def deserialize_entry(payload)
           payload.nil? ? nil : @coder.load(payload)
+        rescue DeserializationError
+          nil
         end
 
         # Reads multiple entries from the cache implementation. Subclasses MAY
