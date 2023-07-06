@@ -1,3 +1,13 @@
+*   Add ability to specify resulting key names for `as_json` `:methods` option
+
+    ```ruby
+    user.as_json(methods: [:permalink, { unique_id: :nick }])
+    # => { "id" => 1, "name" => "Konata Izumi", "age" => 16, "nick" => "kozumi",
+    #      "permalink" => "1-konata-izumi", "unique_id" => "kozumi" }
+    ```
+
+    *fatkodima*
+
 *   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt compatibility.
 
     The previous password length validation only considered the character count, which may not
