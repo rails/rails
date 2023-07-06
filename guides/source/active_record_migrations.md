@@ -354,7 +354,7 @@ which creates a `products` table with a column called `name`.
 By default, `create_table` will create a primary key called `id`. You can change
 the name of the primary key with the `:primary_key` option  or, if you don't
 want a primary key at all, you can pass the option `id: false`. If you need to
-pass database specific options you can place an SQL fragment in the `:options`
+pass database-specific options you can place an SQL fragment in the `:options`
 option. For example:
 
 ```ruby
