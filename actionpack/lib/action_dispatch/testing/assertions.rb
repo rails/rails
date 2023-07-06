@@ -15,10 +15,8 @@ module ActionDispatch
     def html_document
       @html_document ||= if @response.media_type&.end_with?("xml")
         Nokogiri::XML::Document.parse(@response.body)
-      elsif defined?(Nokogiri::HTML5)
-        Nokogiri::HTML5::Document.parse(@response.body)
       else
-        Nokogiri::HTML4::Document.parse(@response.body)
+        Rails::Dom::Testing.html_document.parse(@response.body)
       end
     end
   end
