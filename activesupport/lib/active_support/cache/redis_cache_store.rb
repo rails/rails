@@ -104,7 +104,6 @@ module ActiveSupport
           end
       end
 
-      attr_reader :redis_options
       attr_reader :max_key_bytesize
       attr_reader :redis
 
