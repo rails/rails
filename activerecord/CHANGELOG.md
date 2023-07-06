@@ -1,3 +1,9 @@
+*   Deprecate `name` argument on `#remove_connection`.
+
+    The `name` argument is deprecated on `#remove_connection` without replacement. `#remove_connection` should be called directly on the class that established the connection.
+
+    *Eileen M. Uchitelle*
+
 *   Fix has_one through singular building with inverse.
 
     Allows building of records from an association with a has_one through a
