@@ -100,6 +100,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate member_detail_with_two_associations.member, :new_record?
   end
 
+  def test_building_works_with_has_one_through_belongs_to
+    new_member = Member.create!(name: "Joe")
+    new_member.create_current_membership!
+    new_club = new_member.build_club
+
+    assert_equal(new_member.club, new_club)
+  end
+
   def test_creating_multiple_associations_creates_through_record
     member_type = MemberType.create!
     member = Member.create!

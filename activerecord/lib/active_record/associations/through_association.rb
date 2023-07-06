@@ -114,12 +114,14 @@ module ActiveRecord
         end
 
         def build_record(attributes)
-          inverse = source_reflection.inverse_of
-          target = through_association.target
+          if source_reflection.collection?
+            inverse = source_reflection.inverse_of
+            target = through_association.target
 
-          if inverse && target && !target.is_a?(Array)
-            Array(target.id).zip(Array(inverse.foreign_key)).map do |primary_key_value, foreign_key_column|
-              attributes[foreign_key_column] = primary_key_value
+            if inverse && target && !target.is_a?(Array)
+              Array(target.id).zip(Array(inverse.foreign_key)).map do |primary_key_value, foreign_key_column|
+                attributes[foreign_key_column] = primary_key_value
+              end
             end
           end
 
