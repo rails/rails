@@ -340,7 +340,7 @@ An alternative approach, when you want to provide additional detail and examples
 #     encryptor.decrypt_and_verify(message) # => nil
 ```
 
-[#encrypt_and_sign]: https://edgeapi.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html#method-i-encrypt_and_sign
+[#encrypt_and_sign]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html#method-i-encrypt_and_sign
 
 Dynamically Generated Methods
 -----------------------------
