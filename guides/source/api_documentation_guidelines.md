@@ -181,7 +181,7 @@ When documenting the behavior for IRB, Ruby's interactive REPL, always prefix co
 
 For example,
 
-```irb
+```ruby
 # Find the customer with primary key (id) 10.
 #   irb> customer = Customer.find(10)
 #   # => #<Customer id: 10, first_name: "Ryan">
@@ -191,7 +191,7 @@ For example,
 
 For command-line examples, always prefix the command with `$`, the output doesn't have to be prefixed with anything.
 
-```bash
+```ruby
 # Run the following command:
 #   $ bin/rails new zomg
 #   ...
