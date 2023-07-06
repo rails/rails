@@ -963,7 +963,7 @@ module Arel
         _(manager.where_sql).must_be_like %{ WHERE "users"."id" = 10 AND "users"."id" = 11}
       end
 
-      it "handles database specific statements" do
+      it "handles database-specific statements" do
         old_visitor = Table.engine.connection.visitor
         Table.engine.connection.visitor = Visitors::PostgreSQL.new Table.engine.connection
         table   = Table.new :users
