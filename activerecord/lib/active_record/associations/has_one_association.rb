@@ -61,13 +61,6 @@ module ActiveRecord
 
           return target unless load_target || record
 
-          if target.present? && target.persisted? && owner.persisted?
-            raise RecordNotSaved.new(
-              "Failed to save the new associated #{reflection.name}.",
-              record
-            )
-          end
-
           assigning_another_record = target != record
           if assigning_another_record || record.has_changes_to_save?
             save &&= owner.persisted?
@@ -89,6 +82,21 @@ module ActiveRecord
           end
 
           self.target = record
+        end
+
+        def create_new_record(record, save = true)
+          raise_on_type_mismatch!(record) if record
+
+          return target unless load_target || record
+
+          if target.present? && target.persisted? && owner.persisted?
+            raise RecordNotSaved.new(
+              "Failed to save the new associated #{reflection.name}.",
+              record
+            )
+          end
+
+          set_new_record(record)
         end
 
         # The reason that the save param for replace is false, if for create (not just build),
