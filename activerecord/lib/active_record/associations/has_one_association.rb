@@ -106,6 +106,13 @@ module ActiveRecord
               target.destroy
             end
           else
+            if target.persisted?
+              raise RecordNotSaved.new(
+                "Failed to remove existing associated #{reflection.name}. "\
+                "Please set options[:dependent] to :delete or :destroy to override.",
+                target
+              )
+            end
             nullify_owner_attributes(target)
             remove_inverse_instance(target)
 
