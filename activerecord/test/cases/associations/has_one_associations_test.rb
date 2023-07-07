@@ -582,8 +582,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
-    assert_equal "Failed to save the new associated ship.", error.message
-    assert_equal new_ship, error.record
+    assert_equal "Failed to remove the existing associated ship. " \
+                 "The record failed to save after its foreign key was set to nil.", error.message
+    assert_equal pirate.ship, error.record
+    assert_not_equal new_ship, error.record
   end
 
   def test_replacement_failure_due_to_new_record_should_raise_error
