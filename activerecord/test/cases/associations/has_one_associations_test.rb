@@ -533,17 +533,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_account.firm_name, "Account"
   end
 
-  def test_create_association_replaces_existing_without_dependent_option
+  def test_create_association_replacement_failure_without_dependent_option
     pirate = pirates(:blackbeard)
     orig_ship = pirate.ship
 
     assert_equal ships(:black_pearl), orig_ship
-    new_ship = pirate.create_ship
-    assert_not_equal ships(:black_pearl), new_ship
-    assert_equal new_ship, pirate.ship
-    assert_predicate new_ship, :new_record?
-    assert_nil orig_ship.pirate_id
-    assert_not orig_ship.changed? # check it was saved
+
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
+      pirate.create_ship
+    end
+
+    assert_equal "Failed to save the new associated ship.", error.message
+    assert_nil pirate.ship
   end
 
   def test_create_association_replaces_existing_with_dependent_option
@@ -955,6 +956,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_no_difference -> { ContentPosition.count } do
       content.create_content_position!
+    end
+  end
+
+  class SuperSpecialContentPosition < ActiveRecord::Base
+    self.table_name = "content_positions"
+    belongs_to :content, class_name: name + "::SuperSpecialContentPosition"
+    validates :content_id, presence: true, uniqueness: true
+  end
+
+  class SuperSpecialContent < ActiveRecord::Base
+    self.table_name = "content"
+    has_one :content_position, foreign_key: :content_id, class_name: SuperSpecialContentPosition.name
+  end
+
+  test "raises if record already exists" do
+    content = SuperSpecialContent.create!
+    content.create_content_position!
+
+    assert_no_difference -> { ContentPosition.count } do
+      assert_raises ActiveRecord::RecordNotSaved do
+        content.create_content_position!
+      end
     end
   end
 
