@@ -1578,7 +1578,7 @@ These helpers can then be explicitly required as needed and included as needed
 
 ```ruby
 require "test_helper"
-require "test_helpers/multiple_assertions"
+require "helpers/multiple_assertions"
 
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
@@ -1593,7 +1593,7 @@ or they can continue to be included directly into the relevant parent classes
 
 ```ruby
 # test/test_helper.rb
-require "test_helpers/sign_in_helper"
+require "helpers/sign_in_helper"
 
 class ActionDispatch::IntegrationTest
   include SignInHelper
