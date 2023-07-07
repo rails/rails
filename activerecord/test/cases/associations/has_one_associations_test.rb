@@ -533,7 +533,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_account.firm_name, "Account"
   end
 
-  def test_create_association_replacement_failure_without_dependent_option
+  def test_create_association_wont_replace_existing
     pirate = pirates(:blackbeard)
     orig_ship = pirate.ship
 
@@ -544,7 +544,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal "Failed to save the new associated ship.", error.message
-    assert_nil pirate.ship
+    assert_equal pirate.ship, orig_ship
   end
 
   def test_create_association_replaces_existing_with_dependent_option
@@ -573,17 +573,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_replacement_failure_due_to_existing_record_should_raise_error
     pirate = pirates(:blackbeard)
     pirate.ship.name = nil
+    new_ship = ships(:interceptor)
 
     assert_not_predicate pirate.ship, :valid?
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      pirate.ship = ships(:interceptor)
+      pirate.ship = new_ship
     end
 
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
-    assert_equal "Failed to remove the existing associated ship. " \
-                 "The record failed to save after its foreign key was set to nil.", error.message
-    assert_equal pirate.ship, error.record
+    assert_equal "Failed to save the new associated ship.", error.message
+    assert_equal new_ship, error.record
   end
 
   def test_replacement_failure_due_to_new_record_should_raise_error

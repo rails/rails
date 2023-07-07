@@ -61,6 +61,13 @@ module ActiveRecord
 
           return target unless load_target || record
 
+          if target.present? && target.persisted? && owner.persisted?
+            raise RecordNotSaved.new(
+              "Failed to save the new associated #{reflection.name}.",
+              record
+            )
+          end
+
           assigning_another_record = target != record
           if assigning_another_record || record.has_changes_to_save?
             save &&= owner.persisted?
@@ -105,26 +112,18 @@ module ActiveRecord
             if target.persisted?
               target.destroy
             end
-          when :nullify
+          else
             nullify_owner_attributes(target)
             remove_inverse_instance(target)
-          else
-            if target.persisted? && owner.persisted?
+
+            if method.nil? && target.persisted? && owner.persisted? && !target.save
+              set_owner_attributes(target)
               raise RecordNotSaved.new(
-                "Failed to remove existing associated #{reflection.name}. "\
-                "Please set options[:dependent] to :delete or :destroy to override.",
+                "Failed to remove the existing associated #{reflection.name}. " \
+                "The record failed to save after its foreign key was set to nil.",
                 target
               )
             end
-          end
-
-          if method.nil? && target.persisted? && owner.persisted? && !target.save
-            set_owner_attributes(target)
-            raise RecordNotSaved.new(
-              "Failed to remove the existing associated #{reflection.name}. " \
-              "The record failed to save after its foreign key was set to nil.",
-              target
-            )
           end
         end
 
