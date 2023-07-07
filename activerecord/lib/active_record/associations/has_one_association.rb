@@ -84,7 +84,7 @@ module ActiveRecord
           self.target = record
         end
 
-        def create_new_record(record, save = true)
+        def create_new_record(record)
           raise_on_type_mismatch!(record) if record
 
           return target unless load_target || record
