@@ -118,6 +118,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm = companies(:rails_core)
     old_account_id = firm.account.id
     firm.account = Account.new(credit_limit: 5)
+    firm.save
     # account is dependent with nullify, therefore its firm_id should be nil
     assert_nil Account.find(old_account_id).firm_id
   end
@@ -616,6 +617,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     bulb = car.create_bulb
     assert_equal car.id, bulb.car_id
 
+    car.bulb.destroy!
+
     bulb = car.create_bulb car_id: car.id + 1
     assert_equal car.id, bulb.car_id
   end
@@ -957,7 +960,9 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     content.create_content_position!
 
     assert_no_difference -> { ContentPosition.count } do
-      content.create_content_position!
+      assert_raises ActiveRecord::RecordNotSaved do
+        content.create_content_position!
+      end
     end
   end
 
