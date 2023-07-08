@@ -232,6 +232,9 @@ class ExecutorTest < ActiveSupport::TestCase
 
     executor.register_hook(hook)
 
+    # Warm-up to trigger any pending autoloads
+    executor.wrap { }
+
     before = RubyVM.stat(:class_serial)
     executor.wrap { }
     executor.wrap { }
