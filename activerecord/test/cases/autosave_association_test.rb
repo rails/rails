@@ -451,7 +451,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
 
   def test_store_association_with_a_polymorphic_relationship
     num_tagging = Tagging.count
-    tags(:misc).create_tagging(taggable: posts(:thinking))
+    tags(:misc).build_tagging(taggable: posts(:thinking)).save
     assert_equal num_tagging + 1, Tagging.count
   end
 

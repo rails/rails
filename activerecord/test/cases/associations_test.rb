@@ -578,7 +578,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
   def test_target_merging_recognizes_updated_in_memory_records
     member = members(:blarpy_winkup)
-    membership = member.create_membership!(favorite: false)
+    membership = member.build_membership(favorite: false)
 
     assert_empty member.favorite_memberships
 
