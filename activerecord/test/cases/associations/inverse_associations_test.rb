@@ -338,7 +338,8 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_child
     human = Human.first
-    face = human.create_face(description: "haunted")
+    face = human.build_face(description: "haunted")
+    face.save
     assert_not_nil face.human
     assert_equal human.name, face.human.name, "Name of human should be the same before changes to parent instance"
     human.name = "Bongo"
@@ -349,7 +350,8 @@ class InverseHasOneTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_newly_created_child_via_bang_method
     human = Human.first
-    face = human.create_face!(description: "haunted")
+    face = human.build_face(description: "haunted")
+    face.save
     assert_not_nil face.human
     assert_equal human.name, face.human.name, "Name of human should be the same before changes to parent instance"
     human.name = "Bongo"
