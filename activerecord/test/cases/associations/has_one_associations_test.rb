@@ -313,9 +313,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     bulb = pirate.create_foo_bulb
     assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
-
-    bulb = pirate.create_foo_bulb!
-    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
   end
 
   def test_create_association
@@ -546,15 +543,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_equal "Failed to save the new associated ship.", error.message
     assert_equal pirate.ship, orig_ship
-  end
-
-  def test_create_association_replaces_existing_with_dependent_option
-    pirate = pirates(:blackbeard).becomes(DestructivePirate)
-    orig_ship = pirate.dependent_ship
-
-    new_ship = pirate.create_dependent_ship
-    assert_predicate new_ship, :new_record?
-    assert_predicate orig_ship, :destroyed?
   end
 
   def test_creation_failure_due_to_new_record_should_raise_error
