@@ -14,9 +14,16 @@ class EmptyController < ActionController::Base
 end
 
 class SimpleController < ActionController::Base
+  def status
+    head :ok
+  end
+
   def hello
     self.response_body = "hello"
   end
+end
+
+class ChildController < SimpleController
 end
 
 class NonEmptyController < ActionController::Base
@@ -112,10 +119,16 @@ class ControllerInstanceTests < ActiveSupport::TestCase
     assert_predicate @empty, :performed?
   end
 
-  def test_action_methods
+  def test_empty_controller_action_methods
     @empty_controllers.each do |c|
       assert_equal Set.new, c.class.action_methods, "#{c.controller_path} should be empty!"
     end
+  end
+
+  def test_action_methods_with_inherited_shadowed_internal_method
+    assert_includes ActionController::Base.instance_methods, :status
+    assert_equal Set.new(["status", "hello"]), SimpleController.action_methods
+    assert_equal Set.new(["status", "hello"]), ChildController.action_methods
   end
 
   def test_temporary_anonymous_controllers
