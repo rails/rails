@@ -86,8 +86,8 @@ module Rails
       #   "rails:test_unit", "test_unit:controller", "test_unit"
       #
       # Notice that "rails:generators:test_unit" could be loaded as well, what
-      # Rails looks for is the first and last parts of the namespace. This is what
-      # allows any test framework to hook into Rails as long as it provides any
+      # \Rails looks for is the first and last parts of the namespace. This is what
+      # allows any test framework to hook into \Rails as long as it provides any
       # of the hooks above.
       #
       # ==== Options
@@ -325,7 +325,7 @@ module Rails
           @namespaced_path ||= namespace_dirs.join("/")
         end
 
-        # Use Rails default banner.
+        # Use \Rails default banner.
         def self.banner # :doc:
           "bin/rails generate #{namespace.delete_prefix("rails:")} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
         end

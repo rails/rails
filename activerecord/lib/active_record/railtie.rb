@@ -357,11 +357,17 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record_encryption.configuration" do |app|
-      ActiveRecord::Encryption.configure \
-         primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
-         deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
-         key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
-         **config.active_record.encryption
+      auto_filtered_parameters = ActiveRecord::Encryption::AutoFilteredParameters.new(app)
+
+      config.after_initialize do |app|
+        ActiveRecord::Encryption.configure \
+          primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
+          deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
+          key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+          **config.active_record.encryption
+
+        auto_filtered_parameters.enable if ActiveRecord::Encryption.config.add_to_filter_parameters
+      end
 
       ActiveSupport.on_load(:active_record) do
         # Support extended queries for deterministic attributes and validations
@@ -377,11 +383,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
         end
       end
-
-      # Filtered params
-      if ActiveRecord::Encryption.config.add_to_filter_parameters
-        ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
-      end
     end
 
     initializer "active_record.query_log_tags_config" do |app|
@@ -395,6 +396,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
             db_host:      ->(context) { context[:connection].pool.db_config.host },
             database:     ->(context) { context[:connection].pool.db_config.database }
           )
+          ActiveRecord.disable_prepared_statements = true
 
           if app.config.active_record.query_log_tags.present?
             ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags

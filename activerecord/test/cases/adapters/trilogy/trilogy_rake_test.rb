@@ -4,14 +4,14 @@ require "cases/helper"
 require "active_record/tasks/database_tasks"
 
 module ActiveRecord
-  class MysqlDBCreateTest < ActiveRecord::TestCase
+  class TrilogyDBCreateTest < ActiveRecord::TestCase
     def setup
       @connection = Class.new do
         def create_database(*); end
         def error_number(_); end
       end.new
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "my-app-db"
       }
       $stdout, @original_stdout = StringIO.new, $stdout
@@ -26,7 +26,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [adapter: "mysql2", database: nil])
+      mock.expect(:call, nil, [adapter: "trilogy", database: nil])
       mock.expect(:call, nil, [db_config])
 
       ActiveRecord::Base.stub(:connection, @connection) do
@@ -97,9 +97,9 @@ module ActiveRecord
 
   class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
     def setup
-      @error         = Mysql2::Error.new("Invalid permissions")
+      @error         = Trilogy::BaseError.new("Invalid permissions")
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "my-app-db",
         "username" => "pat",
         "password" => "wossname"
@@ -114,7 +114,7 @@ module ActiveRecord
 
     def test_raises_error
       ActiveRecord::Base.stub(:establish_connection, -> * { raise @error }) do
-        assert_raises(Mysql2::Error, "Invalid permissions") do
+        assert_raises(Trilogy::BaseError, "Invalid permissions") do
           ActiveRecord::Tasks::DatabaseTasks.create @configuration
         end
       end
@@ -125,7 +125,7 @@ module ActiveRecord
     def setup
       @connection    = Class.new { def drop_database(name); end }.new
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "my-app-db"
       }
       $stdout, @original_stdout = StringIO.new, $stdout
@@ -178,7 +178,7 @@ module ActiveRecord
     def setup
       @connection    = Class.new { def recreate_database(*); end }.new
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "test-db"
       }
     end
@@ -187,11 +187,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       ActiveRecord::Base.stub(:connection, @connection) do
-        assert_called_with(
-          ActiveRecord::Base,
-          :establish_connection,
-          [adapter: "mysql2", database: nil]
-        ) do
+        assert_called(ActiveRecord::Base, :establish_connection, times: 2) do
           ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
         end
       end
@@ -230,7 +226,7 @@ module ActiveRecord
     def setup
       @connection    = Class.new { def charset; end }.new
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "my-app-db"
       }
     end
@@ -248,7 +244,7 @@ module ActiveRecord
     def setup
       @connection    = Class.new { def collation; end }.new
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "my-app-db"
       }
     end
@@ -265,7 +261,7 @@ module ActiveRecord
   class MySQLStructureDumpTest < ActiveRecord::TestCase
     def setup
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "test-db"
       }
     end
@@ -309,7 +305,7 @@ module ActiveRecord
       expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
-        with_structure_dump_flags({ mysql2: ["--noop"] }) do
+        with_structure_dump_flags({ trilogy: ["--noop"] }) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
         end
       end
@@ -387,7 +383,7 @@ module ActiveRecord
   class MySQLStructureLoadTest < ActiveRecord::TestCase
     def setup
       @configuration = {
-        "adapter"  => "mysql2",
+        "adapter"  => "trilogy",
         "database" => "test-db"
       }
     end
@@ -419,7 +415,7 @@ module ActiveRecord
       expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
-        with_structure_load_flags({ mysql2: ["--noop"] }) do
+        with_structure_load_flags({ trilogy: ["--noop"] }) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
         end
       end

@@ -61,7 +61,9 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 7.1
 
 - [`config.action_controller.allow_deprecated_parameters_hash_equality`](#config-action-controller-allow-deprecated-parameters-hash-equality): `false`
+- [`config.action_dispatch.debug_exception_log_level`](#config-action-dispatch-debug-exception-log-level): `:error`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_text.sanitizer_vendor`](#config-action-text-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.action_view.sanitizer_vendor`](#config-action-view-sanitizer-vendor): `Rails::HTML::Sanitizer.best_supported_vendor`
 - [`config.active_job.use_big_decimal_serializer`](#config-active-job-use-big-decimal-serializer): `true`
 - [`config.active_record.allow_deprecated_singular_associations_name`](#config-active-record-allow-deprecated-singular-associations-name): `false`
@@ -69,6 +71,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.belongs_to_required_validates_foreign_key`](#config-active-record-belongs-to-required-validates-foreign-key): `false`
 - [`config.active_record.default_column_serializer`](#config-active-record-default-column-serializer): `nil`
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
+- [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
 - [`config.active_record.marshalling_format_version`](#config-active-record-marshalling-format-version): `7.1`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
@@ -166,6 +169,8 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `true`               |
 | 7.1                   | `false`              |
 
+The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH` always.
+
 #### `config.after_initialize`
 
 Takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in `config/initializers`. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
@@ -211,6 +216,24 @@ Accepts an array of paths from which Rails will autoload constants that won't be
 #### `config.autoload_paths`
 
 Accepts an array of paths from which Rails will autoload constants. Default is an empty array. Since [Rails 6](upgrading_ruby_on_rails.html#autoloading), it is not recommended to adjust this. See [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoload-paths).
+
+#### `config.autoload_lib(ignore:)`
+
+This method adds `lib` to `config.autoload_paths` and `config.eager_load_paths`.
+
+Normally, the `lib` directory has subdirectories that should not be autoloaded or eager loaded. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example,
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks generators))
+```
+
+Please, see more details in the [autoloading guide](autoloading_and_reloading_constants.html).
+
+#### `config.autoload_lib_once(ignore:)`
+
+The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead.
+
+By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
 
 #### `config.beginning_of_week`
 
@@ -1323,6 +1346,8 @@ The default value depends on the `config.load_defaults` target version:
 Specifies whether or not to enable adapter-level query comments. Defaults to
 `false`.
 
+NOTE: When this is set to `true` database prepared statements will be automatically disabled.
+
 #### `config.active_record.query_log_tags`
 
 Define an `Array` specifying the key/value tags to be inserted in an SQL
@@ -1499,6 +1524,18 @@ database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
  | (original)            | `OpenSSL::Digest::SHA1`   |
  | 7.1                   | `OpenSSL::Digest::SHA256` |
 
+#### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
+
+Enables support for decrypting existing data encrypted using a SHA-1 digest class. When `false`,
+it will only support the digest configured in `config.active_record.encryption.hash_digest_class`.
+
+ The default value depends on the `config.load_defaults` target version:
+
+ | Starting with version | The default value is |
+ |-----------------------|----------------------|
+ | (original)            | `true`               |
+ | 7.1                   | `false`              |
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
@@ -1663,6 +1700,18 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
 | 7.0                   | `:json`              |
+
+#### `config.action_dispatch.debug_exception_log_level`
+
+Configure the log level used by the DebugExceptions middleware when logging
+uncaught exceptions during requests
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:fatal`             |
+| 7.1                   | `:error`             |
 
 #### `config.action_dispatch.default_headers`
 
@@ -2772,6 +2821,17 @@ has no effect if Sprockets is not used. The default value is `true`.
 #### `config.action_text.attachment_tag_name`
 
 Accepts a string for the HTML tag used to wrap attachments. Defaults to `"action-text-attachment"`.
+
+#### `config.action_text.sanitizer_vendor`
+
+Configures the HTML sanitizer used by Action Text by setting `ActionText::ContentHelper.sanitizer` to an instance of the class returned from the vendor's `.safe_list_sanitizer` method. The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is                 | Which parses markup as |
+|-----------------------|--------------------------------------|------------------------|
+| (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
+| 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
+
+NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to use `Rails::HTML4::Sanitizer`.
 
 ### Configuring a Database
 

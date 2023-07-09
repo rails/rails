@@ -605,7 +605,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_inverse_should_be_set_on_composite_primary_key_child
     author = Cpk::Author.new(name: "John")
-    book = author.books.build(number: 1, title: "The Rails Way")
+    book = author.books.build(id: [nil, 1], title: "The Rails Way")
     Cpk::Order.new(book: book, status: "paid")
     author.save!
 
@@ -793,10 +793,30 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     end
   end
 
-  def test_with_hash_many_inversing_does_not_add_duplicate_associated_objects
+  def test_with_has_many_inversing_does_not_add_duplicate_associated_objects
     with_has_many_inversing(Interest) do
       human = Human.new
       interest = Interest.new(human: human)
+      human.interests << interest
+      assert_equal 1, human.interests.size
+    end
+  end
+
+  def test_with_has_many_inversing_does_not_add_unsaved_duplicate_records_when_collection_is_loaded
+    with_has_many_inversing(Interest) do
+      human = Human.create!
+      human.interests.load
+      interest = Interest.new(human: human)
+      human.interests << interest
+      assert_equal 1, human.interests.size
+    end
+  end
+
+  def test_with_has_many_inversing_does_not_add_saved_duplicate_records_when_collection_is_loaded
+    with_has_many_inversing(Interest) do
+      human = Human.create!
+      human.interests.load
+      interest = Interest.create!(human: human)
       human.interests << interest
       assert_equal 1, human.interests.size
     end

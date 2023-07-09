@@ -11,11 +11,11 @@ module ActiveRecord
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used with Rails commands provided by Active Record.
+    # The tasks defined here are used with \Rails commands provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
-    # config values are set by Rails already, so it's necessary to do it only if you
-    # want to change the defaults or when you want to use Active Record outside of Rails
+    # config values are set by \Rails already, so it's necessary to do it only if you
+    # want to change the defaults or when you want to use Active Record outside of \Rails
     # (in such case after configuring the database tasks, you can also use the rake tasks
     # defined in Active Record).
     #
@@ -29,7 +29,7 @@ module ActiveRecord
     # * +seed_loader+: an object which will load seeds, it needs to respond to the +load_seed+ method.
     # * +root+: a path to the root of the application.
     #
-    # Example usage of DatabaseTasks outside Rails could look as such:
+    # Example usage of DatabaseTasks outside \Rails could look as such:
     #
     #   include ActiveRecord::Tasks
     #   DatabaseTasks.database_configuration = YAML.load_file('my_database_config.yml')
@@ -387,7 +387,7 @@ module ActiveRecord
 
         check_schema_file(file) if file
 
-        with_temporary_pool(db_config) do
+        with_temporary_pool(db_config, clobber: true) do
           if schema_up_to_date?(db_config, format, file)
             truncate_tables(db_config)
           else
@@ -485,19 +485,19 @@ module ActiveRecord
         FileUtils.rm_f filename, verbose: false
       end
 
-      def with_temporary_connection_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, &block) # :nodoc:
+      def with_temporary_connection_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, clobber: false, &block) # :nodoc:
         if name
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
-          with_temporary_connection(db_config, &block)
+          with_temporary_connection(db_config, clobber: clobber, &block)
         else
           ActiveRecord::Base.configurations.configs_for(env_name: env, name: name).each do |db_config|
-            with_temporary_connection(db_config, &block)
+            with_temporary_connection(db_config, clobber: clobber, &block)
           end
         end
       end
 
-      def with_temporary_connection(db_config) # :nodoc:
-        with_temporary_pool(db_config) do |pool|
+      def with_temporary_connection(db_config, clobber: false) # :nodoc:
+        with_temporary_pool(db_config, clobber: clobber) do |pool|
           yield pool.connection
         end
       end
@@ -511,13 +511,13 @@ module ActiveRecord
       end
 
       private
-        def with_temporary_pool(db_config)
+        def with_temporary_pool(db_config, clobber: false)
           original_db_config = migration_class.connection_db_config
-          pool = migration_class.establish_connection(db_config)
+          pool = migration_class.connection_handler.establish_connection(db_config, clobber: clobber)
 
           yield pool
         ensure
-          migration_class.establish_connection(original_db_config)
+          migration_class.connection_handler.establish_connection(original_db_config, clobber: clobber)
         end
 
         def configs_for(**options)

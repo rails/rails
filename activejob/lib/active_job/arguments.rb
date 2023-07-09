@@ -90,7 +90,7 @@ module ActiveJob
           result = serialize_hash(argument)
           result[aj_hash_key] = symbol_keys
           result
-        when -> (arg) { arg.respond_to?(:permitted?) }
+        when -> (arg) { arg.respond_to?(:permitted?) && arg.respond_to?(:to_h) }
           serialize_indifferent_hash(argument.to_h)
         else
           if BigDecimal === argument && !ActiveJob.use_big_decimal_serializer

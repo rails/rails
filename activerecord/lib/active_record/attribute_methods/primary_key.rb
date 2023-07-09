@@ -41,9 +41,9 @@ module ActiveRecord
       # Queries the primary key column's value.
       def id?
         if self.class.composite_primary_key?
-          @primary_key.all? { |col| query_attribute(col) }
+          @primary_key.all? { |col| _query_attribute(col) }
         else
-          query_attribute(@primary_key)
+          _query_attribute(@primary_key)
         end
       end
 

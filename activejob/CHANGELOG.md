@@ -1,3 +1,10 @@
+*   `perform_enqueued_jobs` is now compatible with all Active Job adapters
+
+    This means that methods that depend on it, like Action Mailer's `assert_emails`,
+    will work correctly even if the test adapter is not used.
+
+    *Alex Ghiculescu*
+
 *   Allow queue adapters to provide a custom name by implementing `queue_adapter_name`
 
     *Sander Verdonschot*
@@ -37,7 +44,7 @@
 
     This can greatly reduce the number of round-trips to the queue datastore.
     For queue adapters that do not implement the new `enqueue_all` method, we
-    fall back to enqueuing jobs indvidually. The Sidekiq adapter implements
+    fall back to enqueuing jobs individually. The Sidekiq adapter implements
     `enqueue_all` with `push_bulk`.
 
     This method does not use the existing `enqueue.active_job` event, but adds a

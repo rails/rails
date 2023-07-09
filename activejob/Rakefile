@@ -36,8 +36,9 @@ namespace :test do
     Rake::TestTask.new(adapter => "test:env:#{adapter}") do |t|
       t.description = "Run adapter tests for #{adapter}"
       t.libs << "test"
-      t.test_files = FileList["test/cases/**/*_test.rb"].reject {
-        |x| x.include?("delayed_job") && adapter != "delayed_job"
+      t.test_files = FileList["test/cases/**/*_test.rb"].reject { |x|
+        (x.include?("delayed_job") && adapter != "delayed_job") ||
+          (x.include?("async") && adapter != "async")
       }
       t.verbose = true
       t.warning = true
@@ -46,8 +47,9 @@ namespace :test do
 
     namespace :isolated do
       task adapter => "test:env:#{adapter}" do
-        Dir.glob("#{__dir__}/test/cases/**/*_test.rb").reject {
-          |x| x.include?("delayed_job") && adapter != "delayed_job"
+        Dir.glob("#{__dir__}/test/cases/**/*_test.rb").reject { |x|
+          (x.include?("delayed_job") && adapter != "delayed_job") ||
+            (x.include?("async") && adapter != "async")
         }.all? do |file|
           sh(Gem.ruby, "-w", "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
         end || raise("Failures")

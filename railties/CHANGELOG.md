@@ -1,3 +1,53 @@
+*   Update default scaffold templates to set 303 (See Other) as status code
+    on redirect for the update action for XHR requests other than GET or POST
+    to avoid issues (e.g browsers trying to follow the redirect using the
+    original request method resulting in double PATCH/PUT)
+
+    *Guillermo Iguaran*
+
+*   The new `config.autoload_lib_once` is similar to `config.autoload_lib`,
+    except that it adds `lib` to `config.autoload_once_paths` instead.
+
+    By calling `config.autoload_lib_once`, classes and modules in `lib` can be
+    autoloaded, even from application initializers, but won't be reloaded.
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
+*   Add `config.action_dispatch.debug_exception_log_level` to configure the log
+    level used by `ActionDispatch::DebugExceptions`.
+
+    The default is `:fatal`, but with `load_defaults "7.1"` the default will be
+    `:error`.
+
+    *Hartley McGuire*
+
+*   Add `DATABASE` option to `railties:install:migrations`
+
+    This allows you to specify which database the migrations should be copied to
+    when running `rails railties:install:migrations`.
+
+    ```bash
+    $ rails railties:install:migrations DATABASE=animals
+    ```
+
+    *Matthew Hirst*
+
+*   The new method `config.autoload_lib(ignore:)` provides a simple way to
+    autoload from `lib`:
+
+    ```ruby
+    # config/application.rb
+    config.autoload_lib(ignore: %w(assets tasks))
+    ```
+
+    Please, see further details in the [autoloading
+    guide](https://guides.rubyonrails.org/v7.1/autoloading_and_reloading_constants.html).
+
+    *Xavier Noria*
+
 *   Don't show secret_key_base for `Rails.application.config#inspect`.
 
     Before:

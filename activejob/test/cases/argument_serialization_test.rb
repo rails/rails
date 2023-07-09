@@ -16,6 +16,11 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   class ClassArgument; end
 
+  class MyClassWithPermitted
+    def self.permitted?
+    end
+  end
+
   setup do
     @person = Person.find("5")
   end
@@ -110,6 +115,11 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       { "a" => 1, "_aj_hash_with_indifferent_access" => true },
       ActiveJob::Arguments.serialize([parameters]).first
     )
+  end
+
+  # Regression test to #48561
+  test "serialize a class with permitted? defined" do
+    assert_arguments_unchanged MyClassWithPermitted
   end
 
   test "serialize a hash" do

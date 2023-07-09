@@ -1,3 +1,23 @@
+*   Improve error message when EventedFileUpdateChecker is used without a
+    compatible version of the Listen gem
+
+    *Hartley McGuire*
+
+*   Add `:report` behavior for Deprecation
+
+    Setting `config.active_support.deprecation = :report` uses the error
+    reporter to report deprecation warnings to `ActiveSupport::ErrorReporter`.
+
+    Deprecations are reported as handled errors, with a severity of `:warning`.
+
+    Useful to report deprecations happening in production to your bug tracker.
+
+    *Étienne Barrié*
+
+*   Rename `Range#overlaps?` to `#overlap?` and add alias for backwards compatibility
+
+    *Christian Schmidt*
+
 *   Fix `EncryptedConfiguration` returning incorrect values for some `Hash`
     methods
 
@@ -77,7 +97,7 @@
     (>= 1.7.0).
 
     The Message Pack format can provide improved performance and smaller payload
-    sizes. It also supports roundtripping some Ruby types that are not supported
+    sizes. It also supports round-tripping some Ruby types that are not supported
     by JSON. For example:
 
       ```ruby

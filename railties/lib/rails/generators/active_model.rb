@@ -2,7 +2,7 @@
 
 module Rails
   module Generators
-    # ActiveModel is a class to be implemented by each ORM to allow Rails to
+    # ActiveModel is a class to be implemented by each ORM to allow \Rails to
     # generate customized controller code.
     #
     # The API has the same methods as ActiveRecord, but each method returns a

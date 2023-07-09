@@ -1,20 +1,39 @@
-*   Apply scope to association subqueries. (belongs_to/has_one/has_many)
+*   Deprecate `name` argument on `#remove_connection`.
 
-    Given: `has_many :welcome_posts, -> { where(title: "welcome") }`
+    The `name` argument is deprecated on `#remove_connection` without replacement. `#remove_connection` should be called directly on the class that established the connection.
 
-    Before:
-    ```ruby
-    Author.where(welcome_posts: Post.all)
-    #=> SELECT (...) WHERE "authors"."id" IN (SELECT "posts"."author_id" FROM "posts")
+    *Eileen M. Uchitelle*
+
+*   Fix has_one through singular building with inverse.
+
+    Allows building of records from an association with a has_one through a
+    singular association with inverse. For belongs_to through associations,
+    linking the foreign key to the primary key model isn't needed.
+    For has_one, we cannot build records due to the association not being mutable.
+
+    *Gannon McGibbon*
+
+*   Disable database prepared statements when query logs are enabled
+
+    Prepared Statements and Query Logs are incompatible features due to query logs making every query unique.
+
+    *zzak, Jean Boussier*
+
+*   Support decrypting data encrypted non-deterministically with a SHA1 hash digest.
+
+    This adds a new Active Record encryption option to support decrypting data encrypted
+    non-deterministically with a SHA1 hash digest:
+
+    ```
+    Rails.application.config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
     ```
 
-    Later:
-    ```ruby
-    Author.where(welcome_posts: Post.all)
-    #=> SELECT (...) WHERE "authors"."id" IN (SELECT "posts"."author_id" FROM "posts" WHERE "posts"."title" = 'welcome')
-    ```
+    The new option addresses a problem when upgrading from 7.0 to 7.1. Due to a bug in how Active Record
+    Encryption was getting initialized, the key provider used for non-deterministic encryption were using
+    SHA-1 as its digest class, instead of the one configured globally by Rails via
+    `Rails.application.config.active_support.key_generator_hash_digest_class`.
 
-    *Lázaro Nixon*
+    *Cadu Ribeiro and Jorge Manrubia*
 
 *   Added PostgreSQL migration commands for enum rename, add value, and rename value.
 

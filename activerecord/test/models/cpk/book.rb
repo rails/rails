@@ -7,7 +7,7 @@ module Cpk
     belongs_to :order, autosave: true, query_constraints: [:shop_id, :order_id]
     belongs_to :author, class_name: "Cpk::Author"
 
-    has_many :chapters, query_constraints: [:author_id, :book_number]
+    has_many :chapters, query_constraints: [:author_id, :book_id]
   end
 
   class BestSeller < Book
@@ -18,6 +18,11 @@ module Cpk
   end
 
   class NullifiedBook < Book
-    has_one :chapter, query_constraints: [:author_id, :book_number], dependent: :nullify
+    has_one :chapter, query_constraints: [:author_id, :book_id], dependent: :nullify
+  end
+
+  class BookWithOrderAgreements < Book
+    has_many :order_agreements, through: :order
+    has_one :order_agreement, through: :order, source: :order_agreements
   end
 end

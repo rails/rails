@@ -46,7 +46,7 @@ module Rails
 
     delegate :initialize!, :initialized?, to: :application
 
-    # The Configuration instance used to configure the Rails environment
+    # The Configuration instance used to configure the \Rails environment
     def configuration
       application.config
     end
@@ -55,7 +55,7 @@ module Rails
       @backtrace_cleaner ||= Rails::BacktraceCleaner.new
     end
 
-    # Returns a Pathname object of the current Rails project,
+    # Returns a Pathname object of the current \Rails project,
     # otherwise it returns +nil+ if there is no project:
     #
     #   Rails.root
@@ -64,7 +64,7 @@ module Rails
       application && application.config.root
     end
 
-    # Returns the current Rails environment.
+    # Returns the current \Rails environment.
     #
     #   Rails.env # => "development"
     #   Rails.env.development? # => true
@@ -73,14 +73,14 @@ module Rails
       @_env ||= ActiveSupport::EnvironmentInquirer.new(ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development")
     end
 
-    # Sets the Rails environment.
+    # Sets the \Rails environment.
     #
     #   Rails.env = "staging" # => "staging"
     def env=(environment)
       @_env = ActiveSupport::EnvironmentInquirer.new(environment)
     end
 
-    # Returns the ActiveSupport::ErrorReporter of the current Rails project,
+    # Returns the ActiveSupport::ErrorReporter of the current \Rails project,
     # otherwise it returns +nil+ if there is no project.
     #
     #   Rails.error.handle(IOError) do
@@ -91,9 +91,9 @@ module Rails
       ActiveSupport.error_reporter
     end
 
-    # Returns all Rails groups for loading based on:
+    # Returns all \Rails groups for loading based on:
     #
-    # * The Rails environment;
+    # * The \Rails environment;
     # * The environment variable RAILS_GROUPS;
     # * The optional envs given as argument and the hash with group dependencies;
     #
@@ -112,7 +112,7 @@ module Rails
     end
 
     # Returns a Pathname object of the public folder of the current
-    # Rails project, otherwise it returns +nil+ if there is no project:
+    # \Rails project, otherwise it returns +nil+ if there is no project:
     #
     #   Rails.public_path
     #     # => #<Pathname:/Users/someuser/some/path/project/public>

@@ -34,7 +34,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # PATCH/PUT <%= route_url %>/1
   def update
     if @<%= orm_instance.update("#{singular_table_name}_params") %>
-      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully updated.") %>
+      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully updated.") %>, status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end

@@ -280,8 +280,8 @@ class LoggingTest < ActiveSupport::TestCase
   def test_retry_stopped_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6
-      assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a CustomCatchError.*, which reoccurred on \d+ attempts\./, @logger.messages)
     end
+    assert_match(/Stopped retrying RetryJob \(Job ID: .*?\) due to a CustomCatchError.*, which reoccurred on \d+ attempts\./, @logger.messages)
   end
 
   def test_retry_stopped_logging_without_block

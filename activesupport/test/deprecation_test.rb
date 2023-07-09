@@ -273,6 +273,17 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
+  test ":report_error behavior" do
+    @deprecator = ActiveSupport::Deprecation.new("horizon", "MyGem::Custom")
+    @deprecator.behavior = :report
+    report = assert_error_reported(ActiveSupport::DeprecationException) do
+      @deprecator.warn
+    end
+    assert_equal true, report.handled
+    assert_equal :warning, report.severity
+    assert_equal "application", report.source
+  end
+
   test "invalid behavior" do
     e = assert_raises(ArgumentError) do
       @deprecator.behavior = :invalid

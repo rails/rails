@@ -604,7 +604,7 @@ end
 
 namespace :railties do
   namespace :install do
-    # desc "Copy missing migrations from Railties (e.g. engines). You can specify Railties to use with FROM=railtie1,railtie2"
+    # desc "Copy missing migrations from Railties (e.g. engines). You can specify Railties to use with FROM=railtie1,railtie2 and database to copy to with DATABASE=database."
     task migrations: :'db:load_config' do
       to_load = ENV["FROM"].blank? ? :all : ENV["FROM"].split(",").map(&:strip)
       railties = {}
@@ -628,7 +628,16 @@ namespace :railties do
         puts "Copied migration #{migration.basename} from #{name}"
       end
 
-      ActiveRecord::Migration.copy(ActiveRecord::Tasks::DatabaseTasks.migrations_paths.first, railties,
+      if ENV["DATABASE"].present? && ENV["DATABASE"] != "primary"
+        config = ActiveRecord::Base.configurations.configs_for(name: ENV["DATABASE"])
+        raise "Invalid DATABASE provided" if config.blank?
+        destination = config.migrations_paths
+        raise "#{ENV["DATABASE"]} does not have a custom migration path" if destination.blank?
+      else
+        destination = ActiveRecord::Tasks::DatabaseTasks.migrations_paths.first
+      end
+
+      ActiveRecord::Migration.copy(destination, railties,
                                     on_skip: on_skip, on_copy: on_copy)
     end
   end

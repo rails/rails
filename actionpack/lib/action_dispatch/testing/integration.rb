@@ -635,7 +635,7 @@ module ActionDispatch
   # +response_parser+ defines how the response body should be parsed through
   # +parsed_body+.
   #
-  # Consult the Rails Testing Guide for more.
+  # Consult the {Rails Testing Guide}[https://guides.rubyonrails.org/testing.html] for more.
 
   class IntegrationTest < ActiveSupport::TestCase
     include TestProcess::FixtureFile

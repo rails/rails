@@ -5,6 +5,37 @@ require "active_support/core_ext/module/attribute_accessors"
 module ActiveRecord
   module AttributeMethods
     # = Active Record Attribute Methods \Dirty
+    #
+    # Provides a way to track changes in your Active Record models. It adds all
+    # methods from ActiveModel::Dirty and adds database specific methods.
+    #
+    # A newly created +Person+ object is unchanged:
+    #
+    #   class Person < ActiveRecord::Base
+    #   end
+    #
+    #   person = Person.create(name: "Alisson")
+    #   person.changed? # => false
+    #
+    # Change the name:
+    #
+    #   person.name = 'Alice'
+    #   person.name_in_database          # => "Allison"
+    #   person.will_save_change_to_name? # => true
+    #   person.name_change_to_be_saved   # => ["Allison", "Alice"]
+    #   person.changes_to_save           # => {"name"=>["Allison", "Alice"]}
+    #
+    # Save the changes:
+    #
+    #   person.save
+    #   person.name_in_database        # => "Alice"
+    #   person.saved_change_to_name?   # => true
+    #   person.saved_change_to_name    # => ["Allison", "Alice"]
+    #   person.name_before_last_change # => "Allison"
+    #
+    # Similar to ActiveModel::Dirty, methods can be invoked as
+    # +saved_change_to_name?+ or by passing an argument to the generic method
+    # <tt>saved_change_to_attribute?("name")</tt>.
     module Dirty
       extend ActiveSupport::Concern
 

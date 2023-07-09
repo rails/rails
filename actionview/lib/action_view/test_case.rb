@@ -287,6 +287,7 @@ module ActionView
           super
         end
       end
+      ruby2_keywords(:method_missing)
 
       def respond_to_missing?(name, include_private = false)
         begin

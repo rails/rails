@@ -456,6 +456,19 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/puke/, output.rewind && output.read)
   end
 
+  test "logs at configured log level" do
+    @app = DevelopmentApp
+    output = StringIO.new
+    logger = Logger.new(output)
+    logger.level = Logger::WARN
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => logger, "action_dispatch.debug_exception_log_level" => Logger::INFO }
+    assert_no_match(/puke/, output.rewind && output.read)
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => logger, "action_dispatch.debug_exception_log_level" => Logger::ERROR }
+    assert_match(/puke/, output.rewind && output.read)
+  end
+
   test "logs only what is necessary" do
     @app = DevelopmentApp
     io = StringIO.new

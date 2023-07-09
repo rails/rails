@@ -101,6 +101,47 @@ WARNING: You cannot autoload code in the autoload paths while the application bo
 
 The autoload paths are managed by the `Rails.autoloaders.main` autoloader.
 
+config.autoload_lib(ignore:)
+----------------------------
+
+By default, the `lib` directory does not belong to the autoload paths of applications or engines.
+
+The configuration method `config.autoload_lib` adds the `lib` directory to `config.autoload_paths` and `config.eager_load_paths`. It has to be invoked from `config/application.rb` or `config/environments/*.rb`, and it is not available for engines.
+
+Normally, `lib` has subdirectories that should not be managed by the autoloaders. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example:
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks))
+```
+
+Why? While `assets` and `tasks` share the `lib` directory with regular code, their contents are not meant to be autoloaded or eager loaded. `Assets` and `Tasks` are not Ruby namespaces there. Same with generators if you have any:
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks generators))
+```
+
+`config.autoload_lib` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
+
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    lib = root.join("lib")
+
+    config.autoload_paths << lib
+    config.eager_load_paths << lib
+
+    Rails.autoloaders.main.ignore(
+      lib.join("assets"),
+      lib.join("tasks"),
+      lib.join("generators")
+    )
+
+    ...
+  end
+end
+```
+
 config.autoload_once_paths
 --------------------------
 
@@ -156,6 +197,35 @@ INFO: Technically, you can autoload classes and modules managed by the `once` au
 
 The autoload once paths are managed by `Rails.autoloaders.once`.
 
+config.autoload_lib_once(ignore:)
+---------------------------------
+
+The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead. It has to be invoked from `config/application.rb` or `config/environments/*.rb`, and it is not available for engines.
+
+By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
+
+`config.autoload_lib_once` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
+
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    lib = root.join("lib")
+
+    config.autoload_once_paths << lib
+    config.eager_load_paths << lib
+
+    Rails.autoloaders.once.ignore(
+      lib.join("assets"),
+      lib.join("tasks"),
+      lib.join("generators")
+    )
+
+    ...
+  end
+end
+```
+
 $LOAD_PATH{#load_path}
 ----------
 
@@ -167,6 +237,7 @@ config.add_autoload_paths_to_load_path = false
 
 That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, leading to lower memory usage.
 
+The `lib` directory is not affected by this flag, it is added to `$LOAD_PATH` always.
 
 Reloading
 ---------

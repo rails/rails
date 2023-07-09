@@ -21,7 +21,7 @@ module ActiveSupport
   #   bc.add_silencer { |line| /puma|rubygems/.match?(line) } # skip any lines from puma or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup
   #
-  # To reconfigure an existing BacktraceCleaner (like the default one in Rails)
+  # To reconfigure an existing BacktraceCleaner (like the default one in \Rails)
   # and show as much data as possible, you can always call
   # BacktraceCleaner#remove_silencers!, which will restore the
   # backtrace to a pristine state. If you need to reconfigure an existing

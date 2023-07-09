@@ -39,7 +39,7 @@ module ActiveRecord
     #   )
     #
     # In case {ActiveRecord::Base.configurations}[rdoc-ref:Core.configurations]
-    # is set (Rails automatically loads the contents of config/database.yml into it),
+    # is set (\Rails automatically loads the contents of config/database.yml into it),
     # a symbol can also be given as argument, representing a key in the
     # configuration hash:
     #
@@ -293,6 +293,14 @@ module ActiveRecord
     end
 
     def remove_connection(name = nil)
+      if name
+        ActiveRecord.deprecator.warn(<<-MSG.squish)
+          The name argument for `#remove_connection` is deprecated without replacement
+          and will be removed in Rails 7.2. `#remove_connection` should always be called
+          on the connection class directly, which makes the name argument obsolete.
+        MSG
+      end
+
       name ||= @connection_specification_name if defined?(@connection_specification_name)
       # if removing a connection that has a pool, we reset the
       # connection_specification_name so it will use the parent

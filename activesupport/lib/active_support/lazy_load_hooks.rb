@@ -3,7 +3,7 @@
 module ActiveSupport
   # = Lazy Load Hooks
   #
-  # LazyLoadHooks allows Rails to lazily load a lot of components and thus
+  # LazyLoadHooks allows \Rails to lazily load a lot of components and thus
   # making the app boot faster. Because of this feature now there is no need to
   # require +ActiveRecord::Base+ at boot time purely to apply
   # configuration. Instead a hook is registered that applies configuration once
@@ -49,7 +49,7 @@ module ActiveSupport
       end
     end
 
-    # Declares a block that will be executed when a Rails component is fully
+    # Declares a block that will be executed when a \Rails component is fully
     # loaded. If the component has already loaded, the block is executed
     # immediately.
     #

@@ -10,6 +10,7 @@ module ApplicationTests
 
     def setup
       build_app(multi_db: true)
+      add_to_config "config.active_record.sqlite3_production_warning = false"
       rails("generate", "scaffold", "Pet", "name:string", "--database=animals")
       app_file "app/models/user.rb", <<-RUBY
         class User < ActiveRecord::Base
@@ -78,8 +79,20 @@ module ApplicationTests
       assert_includes ActiveRecord.query_transformers, ActiveRecord::QueryLogs
     end
 
+    test "disables prepared statements when enabled" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+
+      boot_app
+
+      assert_predicate ActiveRecord, :disable_prepared_statements
+    end
+
     test "controller and job tags are defined by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.connection.prepared_statements
+        ActiveRecord::Base.connection.execute("SELECT 1")
+      RUBY
 
       boot_app
 

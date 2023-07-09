@@ -564,6 +564,20 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 0.5...Float::INFINITY, record.float_range
   end
 
+  def test_empty_string_range_values
+    record = PostgresqlRange.create!(
+      int4_range: "",
+      int8_range: "",
+      float_range: ""
+    )
+
+    record = PostgresqlRange.find(record.id)
+
+    assert_nil record.int4_range
+    assert_nil record.int8_range
+    assert_nil record.float_range
+  end
+
   private
     def assert_equal_round_trip(range, attribute, value)
       round_trip(range, attribute, value)

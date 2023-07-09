@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "listen"
+gem "listen", "~> 3.5"
 require "listen"
 
 require "set"

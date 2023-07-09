@@ -14,6 +14,8 @@ class YamlSerializationTest < ActiveRecord::TestCase
       topic = Topic.new(written_on: DateTime.now)
       assert_nothing_raised { topic.to_yaml }
     end
+  ensure
+    Topic.reset_column_information
   end
 
   def test_roundtrip

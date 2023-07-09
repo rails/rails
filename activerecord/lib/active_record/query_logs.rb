@@ -9,13 +9,13 @@ module ActiveRecord
   # Automatically append comments to SQL queries with runtime information tags. This can be used to trace troublesome
   # SQL statements back to the application code that generated these statements.
   #
-  # Query logs can be enabled via Rails configuration in <tt>config/application.rb</tt> or an initializer:
+  # Query logs can be enabled via \Rails configuration in <tt>config/application.rb</tt> or an initializer:
   #
   #     config.active_record.query_log_tags_enabled = true
   #
   # By default the name of the application, the name and action of the controller, or the name of the job are logged.
   # The default format is {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/].
-  # The tags shown in a query comment can be configured via Rails configuration:
+  # The tags shown in a query comment can be configured via \Rails configuration:
   #
   #     config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
   #
@@ -38,7 +38,7 @@ module ActiveRecord
   # * +job+
   #
   # New comment tags can be defined by adding them in a +Hash+ to the tags +Array+. Tags can have dynamic content by
-  # setting a +Proc+ or lambda value in the +Hash+, and can reference any value stored by Rails in the +context+ object.
+  # setting a +Proc+ or lambda value in the +Hash+, and can reference any value stored by \Rails in the +context+ object.
   # ActiveSupport::CurrentAttributes can be used to store application values. Tags with +nil+ values are
   # omitted from the query comment.
   #

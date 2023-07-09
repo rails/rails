@@ -1107,6 +1107,11 @@ module ActiveRecord
         super
       end
 
+      def pretty_print(pp) # :nodoc:
+        load_target if find_from_target?
+        super
+      end
+
       delegate_methods = [
         QueryMethods,
         SpawnMethods,

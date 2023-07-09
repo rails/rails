@@ -328,7 +328,13 @@ module ActiveRecord
       primary_key_array = Array(primary_key)
 
       if loaded?
-        result = records.pluck(*primary_key_array)
+        result = records.map do |record|
+          if primary_key_array.one?
+            record._read_attribute(primary_key_array.first)
+          else
+            primary_key_array.map { |column| record._read_attribute(column) }
+          end
+        end
         return @async ? Promise::Complete.new(result) : result
       end
 

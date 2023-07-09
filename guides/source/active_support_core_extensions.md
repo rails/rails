@@ -3198,19 +3198,19 @@ Active Support extends these methods so that the argument may be another range i
 
 NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
 
-### `overlaps?`
+### `overlap?`
 
-The method [`Range#overlaps?`][Range#overlaps?] says whether any two given ranges have non-void intersection:
+The method [`Range#overlap?`][Range#overlap?] says whether any two given ranges have non-void intersection:
 
 ```ruby
-(1..10).overlaps?(7..11)  # => true
-(1..10).overlaps?(0..7)   # => true
-(1..10).overlaps?(11..27) # => false
+(1..10).overlap?(7..11)  # => true
+(1..10).overlap?(0..7)   # => true
+(1..10).overlap?(11..27) # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/range/overlaps.rb`.
+NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 
-[Range#overlaps?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
+[Range#overlap?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
 
 Extensions to `Date`
 --------------------
