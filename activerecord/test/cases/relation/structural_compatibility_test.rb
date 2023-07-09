@@ -26,6 +26,11 @@ module ActiveRecord
       right = Post.order("id desc").where(id: [2, 3])
 
       assert_not left.structurally_compatible?(right)
+
+      left = Post.joins(:author).where("id = 1")
+      right = Post.where(id: [2, 3])
+
+      assert_not left.structurally_compatible?(right)
     end
 
     def test_incompatible_unscope

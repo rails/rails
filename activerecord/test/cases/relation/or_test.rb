@@ -174,6 +174,14 @@ module ActiveRecord
         Post.left_outer_joins(:author).left_outer_joins(:author).or(Post.left_outer_joins(:author))
         Post.from("posts").or(Post.from("posts"))
       end
+
+      assert_raises ArgumentError do
+        Post.where(id: 1).or(Post.joins(:author))
+      end
+
+      assert_raises ArgumentError do
+        Post.joins(:author).or(Post.where(id: 1))
+      end
     end
   end
 

@@ -2027,11 +2027,8 @@ module ActiveRecord
         values = other.values
         STRUCTURAL_VALUE_METHODS.reject do |method|
           v1, v2 = @values[method], values[method]
-          if v1.is_a?(Array)
-            next true unless v2.is_a?(Array)
-            v1 = v1.uniq
-            v2 = v2.uniq
-          end
+          v1 = v1.uniq if v1.is_a?(Array)
+          v2 = v2.uniq if v2.is_a?(Array)
           v1 == v2
         end
       end
