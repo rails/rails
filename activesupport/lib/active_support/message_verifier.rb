@@ -301,6 +301,10 @@ module ActiveSupport
       deserialize_with_metadata(decode(extract_encoded(message)), **options)
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
+
     private
       def sign_encoded(encoded)
         digest = generate_digest(encoded)
