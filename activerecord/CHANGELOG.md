@@ -1,3 +1,34 @@
+*   Bring back the historical behavior of committing transaction on non-local return.
+
+    ```ruby
+    Model.transaction do
+      model.save
+      return
+      other_model.save # not executed
+    end
+    ```
+
+    Historically only raised errors would trigger a rollback, but in Ruby `2.3`, the `timeout` library
+    started using `throw` to interrupt execution which had the adverse effect of committing open transactions.
+
+    To solve this, in Active Record 6.1 the behavior was changed to instead rollback the transaction as it was safer
+    than to potentially commit an incomplete transaction.
+
+    Using `return`, `break` or `throw` inside a `transaction` block was essentially deprecated from Rails 6.1 onwards.
+
+    However with the release of `timeout 0.4.0`, `Timeout.timeout` now raises an error again, and Active Record is able
+    to return to its original, less surprising, behavior.
+
+    This historical behavior can now be opt-ed in via:
+
+    ```
+    Rails.application.config.active_record.commit_transaction_on_non_local_return = true
+    ```
+
+    And is the default for new applications created in Rails 7.1.
+
+    *Jean Boussier*
+
 *   Deprecate `name` argument on `#remove_connection`.
 
     The `name` argument is deprecated on `#remove_connection` without replacement. `#remove_connection` should be called directly on the class that established the connection.
