@@ -688,7 +688,7 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
     attribute :payload, :json
   end
 
-  class HashWithFixedHash < Hash
+  class ObjectFixedHash < Struct.new(:a, :b)
     # this isn't very realistic, but it is the worst case and therefore a good
     # case to test
     def hash
@@ -709,12 +709,12 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_handles_mutated_binds
-    JsonObj.create(payload: { a: 1 })
+    JsonObj.create(payload: ObjectFixedHash.new({ a: 1 }))
 
-    search = HashWithFixedHash[a: 1]
+    search = ObjectFixedHash.new({ a: 1 })
     JsonObj.where(payload: search).first # populate the cache
 
-    search.merge!(b: 2)
+    search.b = 2
     assert_nil JsonObj.where(payload: search).first, "cache returned a false positive"
   end
 
