@@ -547,8 +547,9 @@ for more information and alternative configuration methods.
 
 #### `config.server_timing`
 
-When `true`, adds the [ServerTiming middleware](#actiondispatch-servertiming)
-to the middleware stack
+When `true`, adds the [`ServerTiming` middleware](#actiondispatch-servertiming)
+to the middleware stack. Defaults to `false`, but is set to `true` in the
+default generated `config/environments/development.rb` file.
 
 #### `config.session_options`
 
@@ -768,8 +769,12 @@ Rails.application.config.host_authorization = {
 
 #### `ActionDispatch::ServerTiming`
 
-Adds metrics to the `Server-Timing` header to be viewed in the dev tools of a
-browser.
+Adds the [`Server-Timing`][] header to the response, which includes performance
+metrics from the server. This data can be viewed by inspecting the response in
+the Network panel of the browser's Developer Tools. Most browsers provide a
+Timing tab that visualizes the data.
+
+[`Server-Timing`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing
 
 #### `ActionDispatch::SSL`
 
