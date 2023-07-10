@@ -28,7 +28,7 @@ module ActiveRecord
         end
 
         def cleanup_view_runtime
-          if logger && logger.info? && ActiveRecord::Base.connected?
+          if logger && logger.info?
             db_rt_before_render = ActiveRecord::LogSubscriber.reset_runtime
             self.db_runtime = (db_runtime || 0) + db_rt_before_render
             runtime = super
@@ -42,9 +42,8 @@ module ActiveRecord
 
         def append_info_to_payload(payload)
           super
-          if ActiveRecord::Base.connected?
-            payload[:db_runtime] = (db_runtime || 0) + ActiveRecord::LogSubscriber.reset_runtime
-          end
+
+          payload[:db_runtime] = (db_runtime || 0) + ActiveRecord::LogSubscriber.reset_runtime
         end
     end
   end
