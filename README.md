@@ -1,5 +1,7 @@
 # Welcome to Rails
 
+forked from [rails/rails](https://github.com/rails/rails)
+
 ## What's Rails?
 
 Rails is a web-application framework that includes everything needed to
