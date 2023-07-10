@@ -65,4 +65,6 @@ module ActiveModel
     #--
     # Implemented by ActiveModel::Access#values_at.
   end
+
+  ActiveSupport.run_load_hooks(:active_model, Model)
 end
