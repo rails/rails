@@ -536,6 +536,27 @@ module ActiveRecord
       coder["active_record_yaml_version"] = 2
     end
 
+    ##
+    # :method: slice
+    #
+    # :call-seq: slice(*methods)
+    #
+    # Returns a hash of the given methods with their names as keys and returned
+    # values as values.
+    #
+    #--
+    # Implemented by ActiveModel::Access#slice.
+
+    ##
+    # :method: values_at
+    #
+    # :call-seq: values_at(*methods)
+    #
+    # Returns an array of the values returned by the given methods.
+    #
+    #--
+    # Implemented by ActiveModel::Access#values_at.
+
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+
     # is of the same type and +self+ has an ID and it is equal to +comparison_object.id+.
     #
@@ -700,27 +721,6 @@ module ActiveRecord
         end
       end
     end
-
-    ##
-    # :method: values_at
-    #
-    # :call-seq: values_at(*methods)
-    #
-    # Returns an array of the values returned by the given methods.
-    #
-    #--
-    # Implemented by ActiveModel::Access#values_at.
-
-    ##
-    # :method: slice
-    #
-    # :call-seq: slice(*methods)
-    #
-    # Returns a hash of the given methods with their names as keys and returned
-    # values as values.
-    #
-    #--
-    # Implemented by ActiveModel::Access#slice.
 
     private
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
