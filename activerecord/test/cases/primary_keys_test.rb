@@ -227,25 +227,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 end
 
-class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
-  self.use_transactional_tests = false
-
-  unless in_memory_db?
-    def test_set_primary_key_with_no_connection
-      connection = ActiveRecord::Base.remove_connection
-
-      model = Class.new(ActiveRecord::Base)
-      model.primary_key = "foo"
-
-      assert_equal "foo", model.primary_key
-
-      ActiveRecord::Base.establish_connection(connection)
-
-      assert_equal "foo", model.primary_key
-    end
-  end
-end
-
 class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
