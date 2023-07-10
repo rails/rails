@@ -1456,5 +1456,6 @@ The security landscape shifts and it is important to keep up to date, because mi
 
 * Subscribe to the Rails security [mailing list](https://discuss.rubyonrails.org/c/security-announcements/9).
 * [Brakeman - Rails Security Scanner](https://brakemanscanner.org/) - To perform static security analysis for Rails applications.
+* [Bearer - Security & Privacy Scanner](https://github.com/Bearer/bearer) - To perform static code security and privacy analysis for Rails applications covering both Ruby and JavaScript code.
 * [Mozilla's Web Security Guidelines](https://infosec.mozilla.org/guidelines/web_security.html) - Recommendations on topics covering Content Security Policy, HTTP headers, Cookies, TLS configuration, etc.
 * A [good security blog](https://owasp.org/) including the [Cross-Site scripting Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md).
