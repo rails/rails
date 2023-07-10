@@ -55,6 +55,10 @@ module ActiveRecord
         coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
       end
 
+      def immutable_value(value) # :nodoc:
+        deserialize(serialize(value))
+      end
+
       private
         def default_value?(value)
           value == coder.load(nil)
