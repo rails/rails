@@ -32,13 +32,13 @@ module ActiveStorage
       @primary, @mirrors = primary, mirrors
     end
 
-    # Upload the +io+ to the +key+ specified to all services. If a +checksum+ is provided, all services will
+    # Upload the +io+ to the +key+ specified to all services. The upload to the primary service is done synchronously
+    # whereas the upload to the mirrors is done asynchronously. If a +checksum+ is provided, all services will
     # ensure a match when the upload has completed or raise an ActiveStorage::IntegrityError.
     def upload(key, io, checksum: nil, **options)
-      each_service.collect do |service|
-        io.rewind
-        service.upload key, io, checksum: checksum, **options
-      end
+      io.rewind
+      primary.upload key, io, checksum: checksum, **options
+      mirror_later key, checksum: checksum
     end
 
     # Delete the file at the +key+ on all services.
@@ -51,6 +51,9 @@ module ActiveStorage
       perform_across_services :delete_prefixed, prefix
     end
 
+    def mirror_later(key, checksum:) # :nodoc:
+      ActiveStorage::MirrorJob.perform_later key, checksum: checksum
+    end
 
     # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
     def mirror(key, checksum:)
