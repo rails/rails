@@ -598,8 +598,8 @@ module ActiveJob
     # If the +:at+ option is specified, then only run jobs enqueued to run
     # immediately or before the given time
     #
-    # If an adapter other than the test adapter is in use, this method just yields.
-    # See queue_adapter_for_test for more information.
+    # If queue_adapter_for_test is overridden to return a different adapter,
+    # +perform_enqueued_jobs+ will merely execute the block.
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
       return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
 
