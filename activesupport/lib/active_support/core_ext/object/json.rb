@@ -29,7 +29,7 @@ require "active_support/core_ext/date/conversions"
 # It should be noted that when using ::JSON.{generate,dump} directly, ActiveSupport's encoder is
 # bypassed completely. This means that as_json won't be invoked and the JSON gem will simply
 # ignore any options it does not natively understand. This also means that ::JSON.{generate,dump}
-# should give exactly the same results with or without active support.
+# should give exactly the same results with or without Active Support.
 
 module ActiveSupport
   module ToJsonWithActiveSupportEncoder # :nodoc:

@@ -61,7 +61,7 @@ module ActiveJob
     #
     # Note: The adapter provided by this method must provide some additional
     # methods from those expected of a standard ActiveJob::QueueAdapter
-    # in order to be used with the active job test helpers. Refer to
+    # in order to be used with the Active Job test helpers. Refer to
     # ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
       ActiveJob::QueueAdapters::TestAdapter.new
