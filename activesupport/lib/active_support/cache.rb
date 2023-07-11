@@ -598,7 +598,8 @@ module ActiveSupport
         end
       end
 
-      # Deletes multiple entries in the cache.
+      # Deletes multiple entries in the cache. Returns the number of deleted
+      # entries.
       #
       # Options are passed to the underlying cache implementation.
       def delete_multi(names, options = nil)

@@ -170,6 +170,10 @@
 # In previous versions of Rails, they ran in the inverse order.
 # Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true
 
+# Whether a `transaction` block is committed or rolled back when exited via `return`, `break` or `throw`.
+#
+# Rails.application.config.active_record.commit_transaction_on_non_local_return = true
+
 # ** Please read carefully, this must be configured in config/application.rb **
 # Change the format of the cache entry.
 # Changing this default means that all new cache entries added to the cache
