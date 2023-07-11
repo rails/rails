@@ -2074,20 +2074,21 @@ NOTE: The `assert_emails` method is not tied to a particular deliver method and 
 Testing Jobs
 ------------
 
-Since your custom jobs can be queued at different levels inside your application,
-you'll need to test both the jobs themselves (their behavior when they get enqueued)
-and that other entities correctly enqueue them.
+Jobs can be tested in isolation (focusing on the job's behavior) and in context
+(focusing on the calling code's behavior).
 
-### A Basic Test Case
+### Testing Jobs in Isolation
 
-By default, when you generate a job, an associated test will be generated as well
-under the `test/jobs` directory. Here's an example test with a billing job:
+When you generate a job, an associated test file will also be generated in the
+`test/jobs` directory.
+
+Here is an example test for a billing job:
 
 ```ruby
 require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
-  test "that account is charged" do
+  test "account is charged" do
     perform_enqueued_jobs do
       BillingJob.perform_later(account, product)
     end
@@ -2096,52 +2097,48 @@ class BillingJobTest < ActiveJob::TestCase
 end
 ```
 
-This test is pretty simple and only asserts that the job did work that was expected. You can also use `perform_now` to run the job inline, but if you have retries configured, any exceptions raised by the job will be silently ignored, whereas `perform_enqueued_jobs` will fail the test and print the exception information.
+The default queue adapter for tests will not perform jobs until
+[`perform_enqueued_jobs`][] is called. Additionally, it will clear all jobs
+before each test is run so that tests do not interfere with each other.
 
-### Custom Assertions and Testing Jobs inside Other Components
+The test uses `perform_enqueued_jobs` and [`perform_later`][] instead of
+[`perform_now`][] so that if retries are configured, retry failures are caught
+by the test instead of being re-enqueued and ignored.
 
-Active Job ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActiveJob::TestHelper`](https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html).
+[`perform_enqueued_jobs`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html#method-i-perform_enqueued_jobs
+[`perform_later`]: https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
+[`perform_now`]: https://api.rubyonrails.org/classes/ActiveJob/Execution/ClassMethods.html#method-i-perform_now
 
-It's a good practice to ensure that your jobs correctly get enqueued or performed
-wherever you invoke them (e.g. inside your controllers). This is precisely where
-the custom assertions provided by Active Job are pretty useful. For instance,
-within a model, you could confirm that a job was enqueued:
+### Testing Jobs in Context
+
+It's good practice to test that jobs are correctly enqueued, for example, by a
+controller action. The [`ActiveJob::TestHelper`][] module provides several
+methods that can help with this, such as [`assert_enqueued_with`][].
+
+Here is an example that tests an account model method:
 
 ```ruby
 require "test_helper"
 
-class ProductTest < ActiveSupport::TestCase
+class AccountTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test "billing job scheduling" do
+  test "#charge_for enqueues billing job" do
     assert_enqueued_with(job: BillingJob) do
-      product.charge(account)
+      account.charge_for(product)
     end
+
     assert_not account.reload.charged_for?(product)
-  end
-end
-```
 
-The default adapter, `:test`, does not perform jobs when they are enqueued.
-You have to tell it when you want jobs to be performed:
+    perform_enqueued_jobs
 
-```ruby
-require "test_helper"
-
-class ProductTest < ActiveSupport::TestCase
-  include ActiveJob::TestHelper
-
-  test "billing job scheduling" do
-    perform_enqueued_jobs(only: BillingJob) do
-      product.charge(account)
-    end
     assert account.reload.charged_for?(product)
   end
 end
 ```
 
-All previously performed and enqueued jobs are cleared before any test runs,
-so you can safely assume that no jobs have already been executed in the scope of each test.
+[`ActiveJob::TestHelper`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html
+[`assert_enqueued_with`]: https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html#method-i-assert_enqueued_with
 
 ### Testing that Exceptions are Raised
 
