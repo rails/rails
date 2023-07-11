@@ -500,7 +500,7 @@ Transaction Callbacks
 
 ### Dealing With Consistency
 
-There are two additional callbacks that are triggered by the completion of a database transaction: [`after_commit`][] and [`after_rollback`][]. These callbacks are very similar to the `after_save` callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your active record models need to interact with external systems which are not part of the database transaction.
+There are two additional callbacks that are triggered by the completion of a database transaction: [`after_commit`][] and [`after_rollback`][]. These callbacks are very similar to the `after_save` callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your Active Record models need to interact with external systems which are not part of the database transaction.
 
 Consider, for example, the previous example where the `PictureFile` model needs to delete a file after the corresponding record is destroyed. If anything raises an exception after the `after_destroy` callback is called and the transaction rolls back, the file will have been deleted and the model will be left in an inconsistent state. For example, suppose that `picture_file_2` in the code below is not valid and the `save!` method raises an error.
 

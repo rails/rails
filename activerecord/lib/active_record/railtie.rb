@@ -401,7 +401,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
 
       ActiveSupport.on_load(:active_record_fixture_set) do
-        # Encrypt active record fixtures
+        # Encrypt Active Record fixtures
         if ActiveRecord::Encryption.config.encrypt_fixtures
           ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
         end
