@@ -5,6 +5,7 @@ class Owner < ActiveRecord::Base
   has_many :pets, -> { order "pets.name desc" }
   has_many :toys, through: :pets
   has_many :persons, through: :pets
+  has_one :treaty
 
   belongs_to :last_pet, class_name: "Pet"
   scope :including_last_pet, -> {
@@ -21,6 +22,7 @@ class Owner < ActiveRecord::Base
   after_commit :execute_blocks
 
   accepts_nested_attributes_for :pets, allow_destroy: true
+  accepts_nested_attributes_for :treaty
 
   def blocks
     @blocks ||= []

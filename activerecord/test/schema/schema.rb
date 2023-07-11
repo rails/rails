@@ -1324,6 +1324,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :treaties, force: true, id: false do |t|
+    t.belongs_to :owner
     t.string :treaty_id, primary_key: true
     t.string :name
   end

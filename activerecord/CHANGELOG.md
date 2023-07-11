@@ -1,3 +1,29 @@
+*   Allow `accepts_nested_attributes_for` to accept associated record attributes
+    with custom primary keys
+
+    ```ruby
+    class Owner < ApplicationRecord
+      has_many :pets
+      accepts_nested_attributes_for :pets
+    end
+
+    class Pet < ApplicationRecord
+      self.primary_key = :pet_id # custom primary key name
+      belongs_to :owner
+    end
+    ```
+
+    Before:
+
+    ```ruby
+    owner.update(pets_attributes: { id: 2, name: "parrot" }) # works
+    owner.update(pets_attributes: { pet_id: 2, name: "parrot" }) # does not work
+    ```
+
+    After - both variants are working
+
+    *fatkodima*
+
 *   Fix incrementation of in memory counter caches when associations overlap
 
     When two associations had a similarly named counter cache column, Active Record
