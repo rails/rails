@@ -595,8 +595,9 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    # If the +:at+ option is specified, then only run jobs enqueued to run
-    # immediately or before the given time
+    # If the +:at+ option is specified, then only jobs that have been enqueued
+    # to run at or before the given time will be performed. This includes jobs
+    # that have been enqueued without a time.
     #
     # If queue_adapter_for_test is overridden to return a different adapter,
     # +perform_enqueued_jobs+ will merely execute the block.
