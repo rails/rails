@@ -54,15 +54,10 @@ module ActiveJob
       queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
-    # Specifies the queue adapter to use with all Active Job test helpers.
-    #
-    # Returns an instance of the queue adapter and defaults to
-    # ActiveJob::QueueAdapters::TestAdapter.
-    #
-    # Note: The adapter provided by this method must provide some additional
-    # methods from those expected of a standard ActiveJob::QueueAdapter
-    # in order to be used with the Active Job test helpers. Refer to
-    # ActiveJob::QueueAdapters::TestAdapter.
+    # Returns a queue adapter instance to use with all Active Job test helpers.
+    # By default, returns an instance of ActiveJob::QueueAdapters::TestAdapter.
+    # Override this method to specify a different adapter. The adapter must
+    # implement the same interface as ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
       ActiveJob::QueueAdapters::TestAdapter.new
     end
