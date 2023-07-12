@@ -650,7 +650,7 @@ module ActiveSupport
           @mutex     = Mutex.new
         end
 
-        def compile(type)
+        def compile(type = nil)
           if type.nil?
             @all_callbacks || @mutex.synchronize do
               final_sequence = CallbackSequence.new
