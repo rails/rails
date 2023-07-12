@@ -156,6 +156,19 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal 0.0, GenericEnumerable.new([]).sum(0.0), Float
   end
 
+  def test_lazy_sums
+    nums = [1, 2, 3]
+    called = 0
+
+    sum = nums.lazy.map do |num|
+      called += 1
+      num
+    end.sum
+
+    assert_equal nums.sum, sum
+    assert_equal nums.size, called
+  end
+
   def test_range_sums
     assert_equal 20, (1..4).sum { |i| i * 2 }
     assert_equal 10, (1..4).sum

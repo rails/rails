@@ -76,19 +76,24 @@ module Enumerable
       _original_sum_with_required_identity(identity, &block)
     elsif block_given?
       map(&block).sum
-    # we check `first(1) == []` to check if we have an
-    # empty Enumerable; checking `empty?` would return
-    # true for `[nil]`, which we want to deprecate to
-    # keep consistent with Ruby
-    elsif first.is_a?(Numeric) || first(1) == [] || first.respond_to?(:coerce)
-      identity ||= 0
-      _original_sum_with_required_identity(identity, &block)
     else
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
-        Sum of non-numeric elements requires an initial argument.
-      MSG
-      inject(:+) || 0
+      first = true
+
+      reduce(nil) do |sum, value|
+        if first
+          first = false
+
+          unless value.is_a?(Numeric) || value.respond_to?(:coerce)
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
+              Sum of non-numeric elements requires an initial argument.
+            MSG
+          end
+          value
+        else
+          sum + value
+        end
+      end || 0
     end
   end
 
