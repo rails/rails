@@ -685,23 +685,23 @@ actions automatically. Below are some of the actions that `change` supports:
 * [`add_index`][]
 * [`add_reference`][]
 * [`add_timestamps`][]
-* [`change_column_comment`][] (must supply a `:from` and `:to` option)
-* [`change_column_default`][] (must supply a `:from` and `:to` option)
+* [`change_column_comment`][] (must supply `:from` and `:to` options)
+* [`change_column_default`][] (must supply `:from` and `:to` options)
 * [`change_column_null`][]
-* [`change_table_comment`][] (must supply a `:from` and `:to` option)
+* [`change_table_comment`][] (must supply `:from` and `:to` options)
 * [`create_join_table`][]
 * [`create_table`][]
 * `disable_extension`
 * [`drop_join_table`][]
-* [`drop_table`][] (must supply a block)
+* [`drop_table`][] (must supply table creation options and block)
 * `enable_extension`
-* [`remove_check_constraint`][] (must supply a constraint expression)
+* [`remove_check_constraint`][] (must supply original constraint expression)
 * [`remove_column`][] (must supply original type and column options)
 * [`remove_columns`][] (must supply original type and column options)
-* [`remove_foreign_key`][] (must supply a second table)
-* [`remove_index`][]
-* [`remove_reference`][]
-* [`remove_timestamps`][]
+* [`remove_foreign_key`][] (must supply other table and original options)
+* [`remove_index`][] (must supply columns and original options)
+* [`remove_reference`][] (must supply original options)
+* [`remove_timestamps`][] (must supply original options)
 * [`rename_column`][]
 * [`rename_index`][]
 * [`rename_table`][]
