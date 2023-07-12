@@ -696,8 +696,8 @@ actions automatically. Below are some of the actions that `change` supports:
 * [`drop_table`][] (must supply a block)
 * `enable_extension`
 * [`remove_check_constraint`][] (must supply a constraint expression)
-* [`remove_column`][] (must supply a type)
-* [`remove_columns`][] (must supply a `:type` option)
+* [`remove_column`][] (must supply original type and column options)
+* [`remove_columns`][] (must supply original type and column options)
 * [`remove_foreign_key`][] (must supply a second table)
 * [`remove_index`][]
 * [`remove_reference`][]
@@ -708,14 +708,6 @@ actions automatically. Below are some of the actions that `change` supports:
 
 [`change_table`][] is also reversible, as long as the block only calls
 reversible operations like the ones listed above.
-
-`remove_column` is reversible if you supply the column type as the third
-argument. Provide the original column options too, otherwise Rails can't
-recreate the column exactly when rolling back:
-
-```ruby
-remove_column :posts, :slug, :string, null: false, default: ''
-```
 
 If you're going to need to use any other methods, you should use `reversible`
 or write the `up` and `down` methods instead of using the `change` method.
