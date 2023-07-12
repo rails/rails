@@ -758,16 +758,15 @@ class ExampleMigration < ActiveRecord::Migration[7.2]
       end
     end
 
-    add_column :users, :home_page_url, :string
-    rename_column :users, :email, :email_address
+    add_column :users, :address, :string
   end
 end
 ```
 
 Using `reversible` will ensure that the instructions are executed in the right
 order too. If the previous example migration is reverted, the `down` block will
-be run after the `home_page_url` column is removed and `email_address` column is renamed and right before the table
-`distributors` is dropped.
+be run after the `users.address` column is removed and before the `distributors`
+table is dropped.
 
 [`reversible`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-reversible
 
@@ -800,13 +799,11 @@ class ExampleMigration < ActiveRecord::Migration[7.2]
       FROM distributors;
     SQL
 
-    add_column :users, :home_page_url, :string
-    rename_column :users, :email, :email_address
+    add_column :users, :address, :string
   end
 
   def down
-    rename_column :users, :email_address, :email
-    remove_column :users, :home_page_url
+    remove_column :users, :address
 
     execute <<-SQL
       DROP VIEW distributors_view;
