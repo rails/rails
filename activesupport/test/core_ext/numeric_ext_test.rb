@@ -427,8 +427,9 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
     assert_equal "1000010.0", BigDecimal("1000010").to_s
     assert_equal "1000010.0", BigDecimal("1000010").to_fs
-    assert_equal "10000 10.0", BigDecimal("1000010").to_s("5F")
-    assert_equal "10000 10.0", BigDecimal("1000010").to_fs("5F")
+
+    assert_equal "0.10000 1", BigDecimal("0.100001").to_s("5F")
+    assert_equal "0.10000 1", BigDecimal("0.100001").to_fs("5F")
 
     assert_raises TypeError do
       1.to_s({})

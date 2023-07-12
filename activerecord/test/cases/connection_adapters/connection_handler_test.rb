@@ -291,6 +291,8 @@ module ActiveRecord
         assert_deprecated(ActiveRecord.deprecator) do
           ActiveRecord::Base.remove_connection("klass2")
         end
+      ensure
+        ActiveRecord::Base.establish_connection :arunit
       end
 
       class ApplicationRecord < ActiveRecord::Base

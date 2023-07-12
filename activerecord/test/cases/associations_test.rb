@@ -79,6 +79,16 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal "Deck", ship.parts[0].name
   end
 
+  def test_loading_cpk_association_when_persisted_and_in_memory_differ
+    order = Cpk::Order.create!(id: [1, 2], status: "paid")
+    book = order.books.create!(id: [3, 4], title: "Book")
+
+    Cpk::Book.find(book.id).update_columns(title: "A different title")
+    order.books.load
+
+    assert_equal [3, 4], book.id
+  end
+
   def test_include_with_order_works
     assert_nothing_raised { Account.all.merge!(order: "id", includes: :firm).first }
     assert_nothing_raised { Account.all.merge!(order: :id, includes: :firm).first }
