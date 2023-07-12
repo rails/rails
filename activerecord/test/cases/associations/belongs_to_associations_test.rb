@@ -1795,10 +1795,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       book.save!
     end
 
-    # TODO: Improve this message
-    assert_equal(<<~MESSAGE.chomp, error.message)
-      Association Cpk::BrokenBookWithNonCpkOrder#order primary key  doesn't match with foreign key ["shop_id", "order_id"]. Please specify query_constraints.
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenBookWithNonCpkOrder#order primary key ["id"]
+      doesn't match with foreign key ["shop_id", "order_id"]. Please specify query_constraints.
     MESSAGE
+  end
+
+  test "association with query constraints assigns id on replacement" do
+    book = Cpk::NonCpkBook.create!(id: 1, author_id: 2, non_cpk_order: Cpk::NonCpkOrder.new)
+    other_order = Cpk::NonCpkOrder.create!
+    book.non_cpk_order = other_order
+
+    assert_equal(other_order.id, book.order_id)
   end
 end
 

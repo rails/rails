@@ -3,7 +3,6 @@
 module Cpk
   class Book < ActiveRecord::Base
     self.table_name = :cpk_books
-
     belongs_to :order, autosave: true, query_constraints: [:shop_id, :order_id]
     belongs_to :author, class_name: "Cpk::Author"
 
@@ -23,6 +22,8 @@ module Cpk
 
   class NonCpkBook < Book
     self.primary_key = :id
+
+    belongs_to :non_cpk_order, query_constraints: [:order_id]
   end
 
   class NullifiedBook < Book
