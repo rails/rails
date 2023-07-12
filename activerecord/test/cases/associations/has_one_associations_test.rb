@@ -966,7 +966,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(<<~MESSAGE.squish, error.message)
       Association Cpk::BrokenOrder#book primary key ["shop_id", "id"]
-      doesn't match with foreign key broken_order_id. Please specify query_constraints.
+      doesn't match with foreign key broken_order_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
   end
 
@@ -978,7 +978,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(<<~MESSAGE.squish, error.message)
       Association Cpk::BrokenOrderWithNonCpkBooks#book primary key [\"shop_id\", \"id\"]
-      doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints.
+      doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
   end
 end
