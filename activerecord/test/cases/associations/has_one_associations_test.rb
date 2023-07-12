@@ -958,7 +958,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test "composite primary key malformed association" do
+  test "composite primary key malformed association class" do
     error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
       order = Cpk::BrokenOrder.new(id: [1, 2], book: Cpk::Book.new(title: "Some book"))
       order.save!
@@ -967,6 +967,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal(<<~MESSAGE.squish, error.message)
       Association Cpk::BrokenOrder#book primary key ["shop_id", "id"]
       doesn't match with foreign key broken_order_id. Please specify query_constraints.
+    MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrderWithNonCpkBooks.new(id: [1, 2], book: Cpk::NonCpkBook.new(title: "Some book"))
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrderWithNonCpkBooks#book primary key [\"shop_id\", \"id\"]
+      doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints.
     MESSAGE
   end
 end

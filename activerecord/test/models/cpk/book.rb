@@ -17,6 +17,14 @@ module Cpk
     belongs_to :order
   end
 
+  class BrokenBookWithNonCpkOrder < Book
+    belongs_to :order, class_name: "Cpk::NonCpkOrder", query_constraints: [:shop_id, :order_id]
+  end
+
+  class NonCpkBook < Book
+    self.primary_key = :id
+  end
+
   class NullifiedBook < Book
     has_one :chapter, query_constraints: [:author_id, :book_id], dependent: :nullify
   end
