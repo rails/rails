@@ -121,8 +121,12 @@ module ActiveModel
       def assert_valid_value(_)
       end
 
-      def immutable_value(value) # :nodoc:
-        value
+      def serialized? # :nodoc:
+        false
+      end
+
+      def mutable? # :nodoc:
+        false
       end
 
       private

@@ -4,10 +4,6 @@ module ActiveModel
   module Type
     module Helpers # :nodoc: all
       module Mutable
-        def immutable_value(value)
-          value.deep_dup.freeze
-        end
-
         def cast(value)
           deserialize(serialize(value))
         end
@@ -17,6 +13,10 @@ module ActiveModel
         # cast value.
         def changed_in_place?(raw_old_value, new_value)
           raw_old_value != serialize(new_value)
+        end
+
+        def mutable? # :nodoc:
+          true
         end
       end
     end

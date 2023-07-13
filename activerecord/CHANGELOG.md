@@ -1,3 +1,13 @@
+*   Fix support for Active Record instances being uses in queries.
+
+    As of `7.0.5`, query arguments were deep duped to avoid mutations impacting
+    the query cache, but this had the adverse effect to clearing the primary key when
+    the query argument contained an `ActiveRecord::Base` instance.
+
+    This broke the `noticed` gem.
+
+    *Jean Boussier*
+
 ## Rails 7.0.6 (June 29, 2023) ##
 
 *   Fix autosave associations with validations added on `:base` of the associated objects.
