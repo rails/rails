@@ -1,3 +1,10 @@
+*   Fix incrementation of in memory counter caches when associations overlap
+
+    When two associations had a similarly named counter cache column, Active Record
+    could sometime increment the wrong one.
+
+    *Jacopo Beschi*, *Jean Boussier*
+
 *   Don't show secrets for Active Record's `Cipher::Aes256Gcm#inspect`.
 
     Before:
