@@ -5,7 +5,7 @@ module ActiveModel
     module Helpers # :nodoc: all
       module Mutable
         def immutable_value(value)
-          value.deep_dup
+          value.isolated_copy
         end
 
         def cast(value)
