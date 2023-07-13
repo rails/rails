@@ -138,7 +138,7 @@ module ActiveRecord
 
           foreign_keys_string = foreign_keys_stream.string
           stream.puts if foreign_keys_string.length > 0
-          
+
           stream.print foreign_keys_string
         end
       end
