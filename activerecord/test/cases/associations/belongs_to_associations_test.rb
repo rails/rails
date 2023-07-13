@@ -1777,7 +1777,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord.belongs_to_required_validates_foreign_key = original_value
   end
 
-  test "composite primary key malformed association" do
+  test "composite primary key malformed association class" do
     error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
       book = Cpk::BrokenBook.new(title: "Some book", order: Cpk::Order.new(id: [1, 2]))
       book.save!
@@ -1785,8 +1785,28 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(<<~MESSAGE.squish, error.message)
       Association Cpk::BrokenBook#order primary key ["shop_id", "id"]
-      doesn't match with foreign key order_id. Please specify query_constraints.
+      doesn't match with foreign key order_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      book = Cpk::BrokenBookWithNonCpkOrder.new(title: "Some book", order: Cpk::NonCpkOrder.new(id: 1))
+      book.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenBookWithNonCpkOrder#order primary key ["id"]
+      doesn't match with foreign key ["shop_id", "order_id"]. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "association with query constraints assigns id on replacement" do
+    book = Cpk::NonCpkBook.create!(id: 1, author_id: 2, non_cpk_order: Cpk::NonCpkOrder.new)
+    other_order = Cpk::NonCpkOrder.create!
+    book.non_cpk_order = other_order
+
+    assert_equal(other_order.id, book.order_id)
   end
 end
 

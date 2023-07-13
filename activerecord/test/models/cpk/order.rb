@@ -17,6 +17,15 @@ module Cpk
     has_one :book
   end
 
+  class BrokenOrderWithNonCpkBooks < Order
+    has_many :books, class_name: "Cpk::NonCpkBook"
+    has_one :book, class_name: "Cpk::NonCpkBook"
+  end
+
+  class NonCpkOrder < Order
+    self.primary_key = :id
+  end
+
   class OrderWithPrimaryKeyAssociatedBook < Order
     has_one :book, primary_key: :id, foreign_key: :order_id
   end
