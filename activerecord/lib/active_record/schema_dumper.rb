@@ -122,7 +122,7 @@ module ActiveRecord
       def tables(stream)
         sorted_tables = @connection.tables.sort
 
-        not_ignored_tables = sorted_tables.reject{|table_name| ignored?(table_name) }
+        not_ignored_tables = sorted_tables.reject { |table_name| ignored?(table_name) }
 
         not_ignored_tables.each_with_index do |table_name, index|
           table(table_name, stream)
@@ -131,7 +131,7 @@ module ActiveRecord
 
         # dump foreign keys at the end to make sure all dependent tables exist.
         if @connection.supports_foreign_keys?
-          foreign_keys_stream = StringIO.new 
+          foreign_keys_stream = StringIO.new
           not_ignored_tables.each do |tbl|
             foreign_keys(tbl, foreign_keys_stream)
           end
