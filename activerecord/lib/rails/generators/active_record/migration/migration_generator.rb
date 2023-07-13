@@ -39,6 +39,9 @@ module ActiveRecord
           when /^create_(.+)/
             @table_name = normalize_table_name($1)
             @migration_template = "create_table_migration.rb"
+          when /^drop_(.+)/
+            @table_name = normalize_table_name($1)
+            @migration_template = "drop_table_migration.rb"
           end
         end
 
