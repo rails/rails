@@ -35,6 +35,12 @@ CREATE TABLE 'projects' (
   'name' TEXT DEFAULT NULL
 );
 
+CREATE TABLE 'projects_with_public_id_column' (
+  'id' INTEGER PRIMARY KEY NOT NULL,
+  'name' TEXT DEFAULT NULL,
+  'public_id' TEXT NOT NULL
+);
+
 CREATE TABLE 'developers_projects' (
   'developer_id' INTEGER NOT NULL,
   'project_id' INTEGER NOT NULL,

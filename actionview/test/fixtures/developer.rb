@@ -6,6 +6,6 @@ class Developer < ActiveRecord::Base
   has_many :topics, through: :replies
   accepts_nested_attributes_for :projects
 
-  has_and_belongs_to_many :projects_with_public_id_column, class_name: "Project"
-  accepts_nested_attributes_for :projects_with_public_id_column, public_id_column: :name
+  has_and_belongs_to_many :projects_with_public_id_column
+  accepts_nested_attributes_for :projects_with_public_id_column, public_id_column: :public_id
 end
