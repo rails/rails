@@ -17,7 +17,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for a complete reference of all available helpers.
+NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Action View Helpers API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for a complete reference of all available helpers.
 
 Dealing with Basic Forms
 ------------------------
