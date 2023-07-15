@@ -525,10 +525,8 @@ module ActiveRecord
               end
             end
           end
-        rescue Exception
+        ensure
           @connection.throw_away! unless transaction&.state&.completed?
-
-          raise
         end
       end
 

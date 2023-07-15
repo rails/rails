@@ -1,3 +1,10 @@
+*   Discard connections which may have been left in a transaction due to a thread being killed.
+
+    If a thread is killed while in a transaction, it is possible for the connection to be reused while unexpectedly left in that transaction.
+
+    Connections are now discarded in this case.
+
+    *Nick Dower*
 *   Fix incrementation of in memory counter caches when associations overlap
 
     When two associations had a similarly named counter cache column, Active Record
