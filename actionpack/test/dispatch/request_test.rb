@@ -693,6 +693,14 @@ class RequestProtocol < BaseRequestTest
     assert_predicate request, :xhr?
   end
 
+  test "turbo frame request" do
+    request = stub_request
+    assert_not_predicate request, :turbo_frame?
+
+    request = stub_request "Turbo-Frame" => "Frame-Name"
+    assert_predicate request, :turbo_frame?
+  end
+
   test "reports ssl" do
     assert_not_predicate stub_request, :ssl?
     assert_predicate stub_request("HTTPS" => "on"), :ssl?

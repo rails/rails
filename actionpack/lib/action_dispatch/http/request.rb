@@ -295,6 +295,12 @@ module ActionDispatch
     end
     alias :xhr? :xml_http_request?
 
+    # Returns true if the request's "Turbo-Frame" header contains
+    # "Frame-Name" (case-insensitive).
+    def turbo_frame?
+      get_header("Turbo-Frame").present?
+    end
+
     # Returns the IP address of client as a +String+.
     def ip
       @ip ||= super
