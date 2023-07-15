@@ -1,39 +1,4 @@
-*   Deprecate `read_attribute(:id)` returning the primary key if the primary key is not `:id`.
-
-    Starting in Rails 7.2, `read_attribute(:id)` will return the value of the id column, regardless of the model's
-    primary key. To retrieve the value of the primary key, use `#id` instead. `read_attribute(:id)` for composite
-    primary key models will now return the value of the id column.
-
-    *Adrianna Chang*
-
-*   Fix `change_table` setting datetime precision for 6.1 Migrations
-
-    *Hartley McGuire*
-
-*   Fix change_column setting datetime precision for 6.1 Migrations
-
-    *Hartley McGuire*
-
-*   Add `ActiveRecord::Base#id_value` alias to access the raw value of a record's id column.
-
-    This alias is only provided for models that declare an `:id` column.
-
-    *Adrianna Chang*
-
-*   Fix previous change tracking for `ActiveRecord::Store` when using a column with JSON structured database type
-
-    Before, the methods to access the changes made during the last save `#saved_change_to_key?`, `#saved_change_to_key`, and `#key_before_last_save` did not work if the store was defined as a `store_accessor` on a column with a JSON structured database type
-
-    *Robert DiMartino*
-
-*   Fully support `NULLS [NOT] DISTINCT` for PostgreSQL 15+ indexes.
-
-    Previous work was done to allow the index to be created in a migration, but it was not
-    supported in schema.rb. Additionally, the matching for `NULLS [NOT] DISTINCT` was not
-    in the correct order, which could have resulted in inconsistent schema detection.
-
-    *Gregory Jones*
-
+<<<<<<< HEAD
 *   Allow escaping of literal colon characters in `sanitize_sql_*` methods when named bind variables are used
 
     *Justin Bull*
