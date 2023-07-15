@@ -4,7 +4,7 @@ require "thread"
 require "delegate"
 
 module ActionView
-  # = Action View Template
+  # = Action View \Template
   class Template
     extend ActiveSupport::Autoload
 
