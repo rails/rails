@@ -132,6 +132,32 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_not defined?(::ApplicationController)
   end
 
+  test "does basic sanitization" do
+    html = "<div onclick='action()'>safe<script>unsafe</script></div>"
+    rendered = content_from_html(html).to_rendered_html_with_layout
+
+    assert_not_includes rendered, "<script>"
+    assert_not_includes rendered, "action"
+  end
+
+  test "does custom tag sanitization" do
+    old_tags = ActionText::ContentHelper.allowed_tags
+    old_attrs = ActionText::ContentHelper.allowed_attributes
+    ActionText::ContentHelper.allowed_tags = ["div"] # not 'span'
+    ActionText::ContentHelper.allowed_attributes = ["size"] # not 'class'
+
+    html = "<div size='large' class='high'>safe<span>unsafe</span></div>"
+    rendered = content_from_html(html).to_rendered_html_with_layout
+
+    assert_includes rendered, "<div"
+    assert_not_includes rendered, "<span"
+    assert_includes rendered, "large"
+    assert_not_includes rendered, "high"
+  ensure
+    ActionText::ContentHelper.allowed_tags = old_tags
+    ActionText::ContentHelper.allowed_attributes = old_attrs
+  end
+
   test "renders with layout when in a new thread" do
     html = "<h1>Hello world</h1>"
     rendered = nil

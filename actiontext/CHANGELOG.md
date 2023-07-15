@@ -9,6 +9,12 @@
     fall back to `Rails::HTML4::Sanitizer`. Previous configurations default to
     `Rails::HTML4::Sanitizer`.
 
+    As a result of this change, the defaults for `ActionText::ContentHelper.allowed_tags` and
+    `.allowed_attributes` are applied at runtime, so the value of these attributes is now 'nil'
+    unless set by the application. You may call `sanitizer_allowed_tags` or
+    `sanitizer_allowed_attributes` to inspect the tags and attributes being allowed by the
+    sanitizer.
+
     *Mike Dalessio*
 
 *   Attachables now can override default attachment missing template.
