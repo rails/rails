@@ -1,4 +1,8 @@
-*   `ActionDispatch::Assertions#html_document` uses Nokogiri's HTML5 parser if it is available.
+* Adds `ActionDispatch::Request#turbo_frame?` for easy detection of Turbo Frames requests.
+
+  *Ahmed Khattab*
+
+* `ActionDispatch::Assertions#html_document` uses Nokogiri's HTML5 parser if it is available.
 
     The HTML5 parser better represents what the DOM would be in a browser. Previously this test
     helper always used Nokogiri's HTML4 parser.
