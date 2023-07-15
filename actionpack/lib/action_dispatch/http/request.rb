@@ -295,8 +295,7 @@ module ActionDispatch
     end
     alias :xhr? :xml_http_request?
 
-    # Returns true if the request's "Turbo-Frame" header contains
-    # "Frame-Name" (case-insensitive).
+    # Returns true if the request's "Turbo-Frame" header is present
     def turbo_frame?
       get_header("Turbo-Frame").present?
     end
