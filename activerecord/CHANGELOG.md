@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *   Allow escaping of literal colon characters in `sanitize_sql_*` methods when named bind variables are used
 
     *Justin Bull*

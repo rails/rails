@@ -143,6 +143,35 @@ class TransactionTest < ActiveRecord::TestCase
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
+
+    def test_connection_removed_from_pool_when_thread_killed_in_begin_after_successfully_beginning_a_transaction
+      queue = Queue.new
+      connection = nil
+      thread = Thread.new do
+        connection = Topic.connection
+
+        # Disable lazy transactions so that we will begin a transaction before attempting to write.
+        connection.disable_lazy_transactions!
+
+        # Update begin_db_transaction to block.
+        connection.class_eval do
+          alias :real_begin_db_transaction :begin_db_transaction
+          define_method(:begin_db_transaction) do |*_args|
+            queue.push nil
+            sleep
+          end
+        end
+
+        ActiveRecord::Base.transaction { }
+      end
+      queue.pop
+      thread.kill
+      thread.join
+      assert_not connection.active?
+      assert_not Topic.connection_pool.connections.include?(connection)
+    ensure
+      ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+    end
   end
 
   def test_rollback_dirty_changes_multiple_saves
