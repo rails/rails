@@ -680,6 +680,21 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal comment.body, comment.children.first.parent.body
   end
 
+  def test_inverse_works_when_the_association_self_references_the_same_object_and_uses_non_id_foreign_key
+    post = Post.create!(token: "A-123", title: "My Post", body: "Post Body")
+    parent = UnconventionalComment.create!(uuid: "d6d98b88", post: post, label: :default, body: "New Parent Comment")
+    UnconventionalComment.create!(comment_uuid: parent.uuid, post: post, label: :child, body: "New Child Comment")
+
+    assert_equal parent.object_id, parent.children.first.parent.object_id
+  end
+
+  def test_inverse_works_with_scoped_association_and_non_id_foreign_key
+    post = Post.create!(token: "A-123", title: "My Post", body: "Post Body")
+    Comment.create!(post: post, label: :default, body: "New Comment")
+
+    assert_equal post.object_id, post.comments.first.post.object_id
+  end
+
   def test_changing_the_association_id_makes_the_inversed_association_target_stale
     post1 = Post.first
     post2 = Post.second

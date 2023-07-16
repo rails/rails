@@ -378,10 +378,16 @@ module ActiveRecord
 
         def matches_foreign_key?(record)
           if foreign_key_for?(record)
-            record.read_attribute(reflection.foreign_key) == owner.id ||
-              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.id)
+            record.read_attribute(reflection.foreign_key) == owner.read_attribute(reflection.association_primary_key) ||
+              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.read_attribute(reflection.association_primary_key))
           else
-            owner.read_attribute(reflection.foreign_key) == record.id
+            record_primary_key = if reflection.polymorphic?
+              record.id
+            else
+              record.read_attribute(reflection.association_primary_key)
+            end
+
+            owner.read_attribute(reflection.foreign_key) == record_primary_key
           end
         end
     end
