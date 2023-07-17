@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def deterministic?
-        @deterministic
+        !!@deterministic
       end
 
       def fixed?
@@ -63,6 +63,10 @@ module ActiveRecord
         else
           block.call
         end
+      end
+
+      def compatible_with?(other_scheme)
+        deterministic? == other_scheme.deterministic?
       end
 
       private
