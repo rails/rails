@@ -286,7 +286,7 @@ module ActiveRecord
           association && association.target
         elsif autosave
           association.target.find_all do |record|
-            !autosave_visited(record, forr) && record.changed_for_autosave?
+            !autosave_visited(record, forr) && record.changed_for_autosave?(forr)
           end
         else
           association.target.find_all(&:new_record?)
@@ -303,7 +303,7 @@ module ActiveRecord
         self.class._reflections.values.any? do |reflection|
           if reflection.options[:autosave]
             association = association_instance_get(reflection.name)
-            association && Array.wrap(association.target).any? { |r| r.changed_for_autosave?(forr) }
+            association && Array.wrap(association.target).any? { |r| !autosave_visited(r, forr) && r.changed_for_autosave?(forr) }
           end
         end
       ensure
@@ -323,7 +323,7 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        if record && !autosave_visited(record, :valid) && (record.changed_for_autosave? || custom_validation_context?)
+        if record && !autosave_visited(record, :valid) && (record.changed_for_autosave?(:valid) || custom_validation_context?)
           association_valid?(reflection, record)
         end
       end
@@ -522,7 +522,7 @@ module ActiveRecord
             foreign_key.each { |key| self[key] = nil }
             record.destroy
           elsif autosave != false
-            if !autosave_visited(record, :save) && (record.new_record? || (autosave && record.changed_for_autosave?))
+            if !autosave_visited(record, :save) && (record.new_record? || (autosave && record.changed_for_autosave?(:save)))
               saved = record.save(validate: !autosave)
             end
             if association.updated?
