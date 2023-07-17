@@ -171,23 +171,35 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.define_attribute_methods" do |app|
+      # For resiliency, it is critical that a Rails application should be
+      # able to boot without depending on the database (or any other service)
+      # being responsive.
+      #
+      # Otherwise a bad deploy adding a lot of load on the database may require to
+      # entirely shutdown the application so the database can recover before a fixed
+      # version can be deployed again.
+      #
+      # This is why this initializer tries hard not to query the database, and if it
+      # does, it makes sure to any possible database error.
+      check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
-          if app.config.eager_load
+          # In development and test we shouldn't eagerly define attribute methods because
+          # db:test:prepare will trigger later and might change the schema.
+          if app.config.eager_load && !Rails.env.local?
             begin
               descendants.each do |model|
-                # If the schema cache was loaded from a dump, we can use it without connecting
-                if schema_reflection = model.connection_pool.schema_reflection
-                  # TODO: this is dirty, can we find a better way?
-                  schema_reflection = schema_reflection.bind(nil)
-                elsif model.connected?
-                  # If there's no connection yet, we avoid connecting.
-                  schema_reflection = model.connection.schema_reflection
-                end
-
-                # If the schema cache doesn't have the columns
-                # hash for the model cached, `define_attribute_methods` would trigger a query.
-                if schema_reflection && schema_reflection.columns_hash?(model.table_name)
+                # If the schema cache doesn't have the columns for this model,
+                # we avoid calling `define_attribute_methods` as it would trigger a query.
+                #
+                # However if we're already connected to the database, it's too late so we might
+                # as well eagerly define the attributes and hope the database timeout is strict enough.
+                #
+                # Additionally if `check_schema_cache_dump_version` is enabled, we have to connect to the
+                # database anyway to load the schema cache dump, so we might as well do it during boot to
+                # save memory in pre-forking setups and avoid slowness during the first requests post deploy.
+                schema_reflection = model.connection_pool.schema_reflection
+                if check_schema_cache_dump_version || schema_reflection.cached?(model.table_name) || model.connected?
                   model.define_attribute_methods
                 end
               end

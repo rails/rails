@@ -18,10 +18,6 @@ module ActiveRecord
         @cache_path = cache_path
       end
 
-      def bind(connection)
-        BoundSchemaReflection.new(self, connection)
-      end
-
       def set_schema_cache(cache)
         @cache = cache
       end
@@ -88,6 +84,18 @@ module ActiveRecord
         cache(connection).clear_data_source_cache!(connection, name)
       end
 
+      def cached?(table_name)
+        if @cache.nil?
+          # If `check_schema_cache_dump_version` is enabled we can't load
+          # the schema cache dump without connecting to the database.
+          unless self.class.check_schema_cache_dump_version
+            @cache = load_cache(nil)
+          end
+        end
+
+        @cache&.cached?(table_name)
+      end
+
       def dump_to(connection, filename)
         fresh_cache = empty_cache
         fresh_cache.add_all(connection)
@@ -150,6 +158,10 @@ module ActiveRecord
 
       def load!
         @schema_reflection.load!(@connection)
+      end
+
+      def cached?(table_name)
+        @schema_reflection.cached?(table_name)
       end
 
       def primary_keys(table_name)
@@ -286,6 +298,10 @@ module ActiveRecord
         unless coder["deduplicated"]
           derive_columns_hash_and_deduplicate_values
         end
+      end
+
+      def cached?(table_name)
+        @columns.key?(table_name)
       end
 
       def primary_keys(connection, table_name)
