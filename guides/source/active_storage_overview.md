@@ -424,11 +424,11 @@ user.avatar.attached?
 ```
 
 In some cases you might want to override a default service for a specific attachment.
-You can configure specific services per attachment using the `service` option:
+You can configure specific services per attachment using the `service` option with the name of your service:
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :avatar, service: :s3
+  has_one_attached :avatar, service: :google
 end
 ```
 
