@@ -242,7 +242,6 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       run_routes_command([ "--expanded" ])
     end
 
-    # rubocop:disable Layout/TrailingWhitespace
     assert_equal <<~MESSAGE, output
       --[ Route 1 ]--------------
       Prefix            | cart

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Style/RedundantBegin
-
 require "rails"
 
 %w(
@@ -16,8 +14,6 @@ require "rails"
   action_text/engine
   rails/test_unit/railtie
 ).each do |railtie|
-  begin
-    require railtie
-  rescue LoadError
-  end
+  require railtie
+rescue LoadError
 end
