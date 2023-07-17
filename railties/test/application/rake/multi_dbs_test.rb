@@ -67,8 +67,8 @@ module ApplicationTests
       def db_migrate_and_schema_cache_dump
         Dir.chdir(app_path) do
           generate_models_for_animals
-          rails "db:migrate"
-          rails "db:schema:cache:dump"
+          rails "db:migrate", "--trace"
+          rails "db:schema:cache:dump", "--trace"
           assert File.exist?("db/schema_cache.yml")
           assert File.exist?("db/animals_schema_cache.yml")
         end
@@ -780,17 +780,17 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         db_migrate_and_schema_cache_dump
 
-        cache_size_a = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip }
-        cache_tables_a = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip }
-        cache_size_b = lambda { rails("runner", "p AnimalsBase.connection.schema_cache.size").strip }
-        cache_tables_b = lambda { rails("runner", "p AnimalsBase.connection.schema_cache.columns('dogs')").strip }
+        cache_size_a = rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip
+        assert_equal "12", cache_size_a
 
-        assert_equal "12", cache_size_a[]
-        assert_includes cache_tables_a[], "title", "expected cache_tables_a to include a title entry"
+        cache_tables_a = rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip
+        assert_includes cache_tables_a, "title", "expected cache_tables_a to include a title entry"
 
-        # Will be 0 because it's not loaded by the railtie
-        assert_equal "0", cache_size_b[]
-        assert_includes cache_tables_b[], "name", "expected cache_tables_b to include a name entry"
+        cache_size_b = rails("runner", "p AnimalsBase.connection.schema_cache.size", stderr: true).strip
+        assert_equal "0", cache_size_b
+
+        cache_tables_b = rails("runner", "p AnimalsBase.connection.schema_cache.columns('dogs')").strip
+        assert_includes cache_tables_b, "name", "expected cache_tables_b to include a name entry"
       end
 
       test "db:schema:cache:clear works on all databases" do

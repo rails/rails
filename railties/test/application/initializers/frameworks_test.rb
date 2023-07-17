@@ -266,14 +266,14 @@ module ApplicationTests
           require "#{app_path}/config/environment"
         end
 
-        assert_not_nil ActiveRecord::Base.connection_pool.schema_cache
+        assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
         assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.connection.execute("SELECT 1")
         end
 
         assert_raises ActiveRecord::ConnectionNotEstablished do
-          ActiveRecord::Base.connection_pool.schema_cache.columns("posts")
+          ActiveRecord::Base.connection.schema_reflection.columns("posts")
         end
       end
     end
@@ -288,7 +288,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+      assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
     end
 
     test "does not expire schema cache dump if check_schema_cache_dump_version is false and the database unhealthy" do
@@ -303,7 +303,7 @@ module ApplicationTests
       with_unhealthy_database do
         require "#{app_path}/config/environment"
 
-        assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+        assert ActiveRecord::Base.connection_pool.schema_reflection.data_sources(:__unused__, "posts")
         assert_raises ActiveRecord::ConnectionNotEstablished do
           ActiveRecord::Base.connection.execute("SELECT 1")
         end
