@@ -23,7 +23,7 @@ class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::Encryp
   end
 
   test "uniqueness validations work when using old encryption schemes" do
-    ActiveRecord::Encryption.config.previous = [ { downcase: true } ]
+    ActiveRecord::Encryption.config.previous = [ { downcase: true, deterministic: true } ]
 
     OldEncryptionBook = Class.new(UnencryptedBook) do
       self.table_name = "encrypted_books"

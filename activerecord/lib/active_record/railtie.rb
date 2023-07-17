@@ -370,13 +370,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
           **config.active_record.encryption
 
         auto_filtered_parameters.enable if ActiveRecord::Encryption.config.add_to_filter_parameters
-      end
 
-      ActiveSupport.on_load(:active_record) do
-        # Support extended queries for deterministic attributes and validations
-        if ActiveRecord::Encryption.config.extend_queries
-          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
-          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+        ActiveSupport.on_load(:active_record) do
+          # Support extended queries for deterministic attributes and validations
+          if ActiveRecord::Encryption.config.extend_queries
+            ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+            ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+          end
         end
       end
 
