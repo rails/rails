@@ -359,9 +359,8 @@ module ActiveRecord
       connection = self.class.connection
       ensure_finalize = !connection.transaction_open?
 
-
       connection.transaction do
-        if connection.instance_variable_get(:@autosave_tracker).nil?
+        if !connection.instance_variable_defined?(:@autosave_tracker)
           connection.instance_variable_set(:@autosave_tracker, {
             "#{self.class}##{self.object_id}_save" => true,
             "#{self.class}##{self.object_id}_valid" => true

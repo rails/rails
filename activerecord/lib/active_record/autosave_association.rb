@@ -311,6 +311,8 @@ module ActiveRecord
       end
 
       def autosave_visited(record, forr)
+        return false if !self.class.connection.instance_variable_defined?(:@autosave_tracker)
+        
         if tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
           result = tracker["#{record.class}##{record.object_id}_#{forr}"]
           tracker["#{record.class}##{record.object_id}_#{forr}"] = true
