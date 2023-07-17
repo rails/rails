@@ -72,6 +72,16 @@ class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
       end
     end
 
+    test "#{format.inspect} serializer handles non-ASCII-only bare string" do
+      entry = ActiveSupport::Cache::Entry.new("ümlaut")
+      assert_entry entry, roundtrip(format, entry)
+    end
+
+    test "#{format.inspect} serializer handles non-ASCII-only version with bare string" do
+      entry = ActiveSupport::Cache::Entry.new("abc", version: "ümlaut")
+      assert_entry entry, roundtrip(format, entry)
+    end
+
     test "#{format.inspect} serializer dumps bare string with reduced overhead when possible" do
       string = "abc"
       options = { version: "123", expires_in: 123 }
