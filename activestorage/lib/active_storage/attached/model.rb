@@ -246,7 +246,7 @@ module ActiveStorage
       @attachment_changes ||= {}
     end
 
-    def changed_for_autosave? # :nodoc:
+    def changed_for_autosave?(forr = nil) # :nodoc:
       super || attachment_changes.any?
     end
 
