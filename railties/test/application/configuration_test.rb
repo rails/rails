@@ -406,30 +406,21 @@ module ApplicationTests
       assert_not_includes Post.instance_methods, :title
     end
 
-    test "does not eager load attribute methods in production when the schema cache is empty" do
+    test "does not eager load attribute methods in production when the schema cache is empty and the database not connected" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-        ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :title
-          end
         end
       RUBY
 
       add_to_config <<-RUBY
         config.enable_reloading = false
         config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
       RUBY
 
       app "production"
 
-      assert_not_includes Post.instance_methods, :title
+      assert_not_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
     test "eager loads attribute methods in production when the schema cache is populated" do
