@@ -7,34 +7,34 @@ require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/delegation"
 
 module Rails
-  # <tt>Rails::Railtie</tt> is the core of the Rails framework and provides
-  # several hooks to extend Rails and/or modify the initialization process.
+  # +Rails::Railtie+ is the core of the \Rails framework and provides
+  # several hooks to extend \Rails and/or modify the initialization process.
   #
-  # Every major component of Rails (Action Mailer, Action Controller, Active
+  # Every major component of \Rails (Action Mailer, Action Controller, Active
   # Record, etc.) implements a railtie. Each of them is responsible for their
-  # own initialization. This makes Rails itself absent of any component hooks,
-  # allowing other components to be used in place of any of the Rails defaults.
+  # own initialization. This makes \Rails itself absent of any component hooks,
+  # allowing other components to be used in place of any of the \Rails defaults.
   #
-  # Developing a Rails extension does _not_ require implementing a railtie, but
-  # if you need to interact with the Rails framework during or after boot, then
+  # Developing a \Rails extension does _not_ require implementing a railtie, but
+  # if you need to interact with the \Rails framework during or after boot, then
   # a railtie is needed.
   #
   # For example, an extension doing any of the following would need a railtie:
   #
   # * creating initializers
-  # * configuring a Rails framework for the application, like setting a generator
+  # * configuring a \Rails framework for the application, like setting a generator
   # * adding <tt>config.*</tt> keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding Rake tasks
   #
   # == Creating a Railtie
   #
-  # To extend Rails using a railtie, create a subclass of <tt>Rails::Railtie</tt>.
-  # This class must be loaded during the Rails boot process, and is conventionally
-  # called <tt>MyNamespace::Railtie</tt>.
+  # To extend \Rails using a railtie, create a subclass of +Rails::Railtie+.
+  # This class must be loaded during the \Rails boot process, and is conventionally
+  # called +MyNamespace::Railtie+.
   #
   # The following example demonstrates an extension which can be used with or
-  # without Rails.
+  # without \Rails.
   #
   #   # lib/my_gem/railtie.rb
   #   module MyGem
@@ -47,7 +47,7 @@ module Rails
   #
   # == Initializers
   #
-  # To add an initialization step to the Rails boot process from your railtie, just
+  # To add an initialization step to the \Rails boot process from your railtie, just
   # define the initialization code with the +initializer+ macro:
   #
   #   class MyRailtie < Rails::Railtie
@@ -87,7 +87,7 @@ module Rails
   #
   # == Loading Rake Tasks and Generators
   #
-  # If your railtie has Rake tasks, you can tell Rails to load them through the method
+  # If your railtie has Rake tasks, you can tell \Rails to load them through the method
   # +rake_tasks+:
   #
   #   class MyRailtie < Rails::Railtie
@@ -96,7 +96,7 @@ module Rails
   #     end
   #   end
   #
-  # By default, Rails loads generators from your load path. However, if you want to place
+  # By default, \Rails loads generators from your load path. However, if you want to place
   # your generators at a different location, you can specify in your railtie a block which
   # will load them during normal generators lookup:
   #
@@ -109,13 +109,13 @@ module Rails
   # Since filenames on the load path are shared across gems, be sure that files you load
   # through a railtie have unique names.
   #
-  # == Run another program when the Rails server starts
+  # == Run another program when the \Rails server starts
   #
-  # In development, it's very usual to have to run another process next to the Rails Server. In example
+  # In development, it's very usual to have to run another process next to the \Rails Server. In example
   # you might want to start the Webpack or React server. Or maybe you need to run your job scheduler process
   # like Sidekiq. This is usually done by opening a new shell and running the program from here.
   #
-  # Rails allow you to specify a +server+ block which will get called when a Rails server starts.
+  # \Rails allow you to specify a +server+ block which will get called when a \Rails server starts.
   # This way, your users don't need to remember to have to open a new shell and run another program, making
   # this less confusing for everyone.
   # It can be used like this:

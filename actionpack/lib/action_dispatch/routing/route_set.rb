@@ -38,16 +38,16 @@ module ActionDispatch
           end
         end
 
-      private
-        def controller(req)
-          req.controller_class
-        rescue NameError => e
-          raise ActionController::RoutingError, e.message, e.backtrace
-        end
+        private
+          def controller(req)
+            req.controller_class
+          rescue NameError => e
+            raise ActionController::RoutingError, e.message, e.backtrace
+          end
 
-        def dispatch(controller, action, req, res)
-          controller.dispatch(action, req, res)
-        end
+          def dispatch(controller, action, req, res)
+            controller.dispatch(action, req, res)
+          end
       end
 
       class StaticDispatcher < Dispatcher
@@ -282,7 +282,7 @@ module ActionDispatch
 
               if args.size < path_params_size
                 path_params -= controller_options.keys
-                path_params -= result.keys
+                path_params -= (result[:path_params] || {}).merge(result).keys
               else
                 path_params = path_params.dup
               end
@@ -375,6 +375,7 @@ module ActionDispatch
         @disable_clear_and_finalize = false
         @finalized                  = false
         @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
+        @default_env                = nil
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -404,6 +405,25 @@ module ActionDispatch
         request_class.new env
       end
       private :make_request
+
+      def default_env
+        if default_url_options != @default_env&.[]("action_dispatch.routes.default_url_options")
+          url_options = default_url_options.dup.freeze
+          uri = URI(ActionDispatch::Http::URL.full_url_for(host: "example.org", **url_options))
+
+          @default_env = {
+            "action_dispatch.routes" => self,
+            "action_dispatch.routes.default_url_options" => url_options,
+            "HTTPS" => uri.scheme == "https" ? "on" : "off",
+            "rack.url_scheme" => uri.scheme,
+            "HTTP_HOST" => uri.port == uri.default_port ? uri.host : "#{uri.host}:#{uri.port}",
+            "SCRIPT_NAME" => uri.path.chomp("/"),
+            "rack.input" => "",
+          }.freeze
+        end
+
+        @default_env
+      end
 
       def draw(&block)
         clear! unless @disable_clear_and_finalize
@@ -574,6 +594,20 @@ module ActionDispatch
           end
 
           private :_generate_paths_by_default
+
+          # If the module is included more than once (for example, in a subclass
+          # of an ancestor that includes the module), ensure that the `_routes`
+          # singleton and instance methods return the desired route set by
+          # including a new copy of the module (recursively if necessary). Note
+          # that this method is called for each inclusion, whereas the above
+          # `included` block is run only for the initial inclusion of each copy.
+          def self.included(base)
+            super
+            if !base._routes.equal?(@_proxy._routes)
+              @dup_for_reinclude ||= self.dup
+              base.include @dup_for_reinclude
+            end
+          end
         end
       end
 
@@ -850,7 +884,7 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Journey::Router::Utils.normalize_path(path) unless %r{://}.match?(path)
+        path = Journey::Router::Utils.normalize_path(path) unless path&.include?("://")
         extras = environment[:extras] || {}
 
         begin

@@ -16,7 +16,9 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit
+    t.string :status
     t.integer "a" * max_identifier_length
+    t.datetime :updated_at
   end
 
   create_table :admin_accounts, force: true do |t|
@@ -123,6 +125,8 @@ ActiveRecord::Schema.define do
     default_zero = { default: 0 }
     t.references :author
     t.string :format
+    t.integer :format_record_id
+    t.string :format_record_type
     t.column :name, :string
     t.column :status, :integer, **default_zero
     t.column :last_read, :integer, **default_zero
@@ -168,6 +172,9 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
   end
 
+  create_table :hardbacks, force: true do |t|
+  end
+
   create_table :booleans, force: true do |t|
     t.boolean :value
     t.boolean :has_fun, null: false, default: false
@@ -189,6 +196,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :cars, force: true do |t|
+    t.belongs_to :person
     t.string  :name
     t.integer :engines_count
     t.integer :wheels_count, default: 0, null: false
@@ -203,7 +211,7 @@ ActiveRecord::Schema.define do
   create_table :carriers, force: true
 
   create_table :carts, force: true, primary_key: [:shop_id, :id] do |t|
-    if current_adapter?(:Mysql2Adapter)
+    if ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       t.bigint :id, index: true, auto_increment: true, null: false
     else
       t.bigint :id, index: true, null: false
@@ -237,12 +245,95 @@ ActiveRecord::Schema.define do
     t.references :citation
   end
 
+  create_table :cpk_books, primary_key: [:author_id, :id], force: true do |t|
+    t.integer :author_id
+    t.integer :id
+    t.string :title
+    t.integer :revision
+    t.integer :order_id
+    t.integer :shop_id
+  end
+
+  create_table :cpk_chapters, primary_key: [:author_id, :id], force: true do |t|
+    t.integer :author_id
+    t.integer :id
+    t.integer :book_id
+    t.string :title
+  end
+
+  create_table :cpk_authors, force: true do |t|
+    t.string :name
+  end
+
+  create_table :cpk_reviews, force: true do |t|
+    t.integer :author_id
+    t.integer :number
+    t.integer :rating
+    t.string :comment
+  end
+
+  # not a composite primary key on the db level to get autoincrement behavior for `id` column
+  # composite primary key is configured on the model level
+  create_table :cpk_orders, force: true do |t|
+    t.integer :shop_id
+    t.string :status
+  end
+
+  create_table :cpk_order_tags, force: true do |t|
+    t.integer :order_id
+    t.integer :tag_id
+  end
+
+  create_table :cpk_tags, force: true do |t|
+    t.string :name, null: false
+  end
+
+  create_table :cpk_order_agreements, force: true do |t|
+    t.integer :order_id
+    t.string :signature
+
+    t.index :order_id
+  end
+
+  create_table :paragraphs, force: true do |t|
+    t.references :book
+  end
+
   create_table :clothing_items, force: true do |t|
     t.string :clothing_type
     t.string :color
+    t.string :type
+    t.string :size
     t.text :description
 
     t.index [:clothing_type, :color], unique: true
+  end
+
+  create_table :sharded_blogs, force: true do |t|
+    t.string :name
+  end
+
+  create_table :sharded_blog_posts, force: true do |t|
+    t.string :title
+    t.integer :blog_id
+    t.integer :revision
+  end
+
+  create_table :sharded_comments, force: true do |t|
+    t.string :body
+    t.integer :blog_post_id
+    t.integer :blog_id
+  end
+
+  create_table :sharded_tags, force: true do |t|
+    t.string :name
+    t.integer :blog_id
+  end
+
+  create_table :sharded_blog_posts_tags, force: true do |t|
+    t.integer :blog_id
+    t.integer :blog_post_id
+    t.integer :tag_id
   end
 
   create_table :clubs, force: true do |t|
@@ -266,7 +357,7 @@ ActiveRecord::Schema.define do
     t.integer :post_id, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
       t.string  :body, null: false, limit: 4000
     else
       t.text    :body, null: false
@@ -290,8 +381,14 @@ ActiveRecord::Schema.define do
     t.integer :company
   end
 
+  create_table :comment_overlapping_counter_caches, force: true do |t|
+    t.integer :user_comments_count_id
+    t.integer :post_comments_count_id
+    t.references :commentable, polymorphic: true, index: false
+  end
+
   create_table :companies, force: true do |t|
-    t.string  :type
+    t.string :type
     t.references :firm, index: false
     t.string  :firm_name
     t.string  :name
@@ -299,6 +396,7 @@ ActiveRecord::Schema.define do
     t.bigint :rating, default: 1
     t.integer :account_id
     t.string :description, default: ""
+    t.integer :status, default: 0
     t.index [:name, :rating], order: :desc
     t.index [:name, :description], length: 10
     t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
@@ -470,8 +568,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :entries, force: true do |t|
-    t.string  :entryable_type, null: false
-    t.integer :entryable_id, null: false
+    t.string   :entryable_type, null: false
+    t.integer  :entryable_id, null: false
+    t.integer  :account_id, null: false
+    t.datetime :updated_at
   end
 
   create_table :essays, force: true do |t|
@@ -681,7 +781,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :messages, force: true do |t|
-    t.string :subject
+    t.string   :subject
+    t.datetime :updated_at
   end
 
   create_table :minivans, force: true, id: false do |t|
@@ -735,7 +836,7 @@ ActiveRecord::Schema.define do
     t.float   :temperature
     t.decimal :decimal_number_big_precision, precision: 20
     # Oracle/SQLServer supports precision up to 38
-    if current_adapter?(:OracleAdapter, :SQLServerAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, precision: 38, scale: 0
     else
       t.decimal :atoms_in_universe, precision: 55, scale: 0
@@ -848,6 +949,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
     t.timestamp :born_at
+    t.integer :cars_count, default: 0
     t.timestamps null: false
   end
 
@@ -879,7 +981,7 @@ ActiveRecord::Schema.define do
     t.string :title, null: false
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
       t.string  :body, null: false, limit: 4000
     else
       t.text    :body, null: false
@@ -897,6 +999,10 @@ ActiveRecord::Schema.define do
   create_table :postesques, force: true do |t|
     t.string :author_name
     t.string :author_id
+  end
+
+  create_table :post_comments_counts, force: true do |t|
+    t.integer :comments_count, default: 0
   end
 
   create_table :serialized_posts, force: true do |t|
@@ -1116,13 +1222,14 @@ ActiveRecord::Schema.define do
     t.date     :last_read
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
-    if current_adapter?(:OracleAdapter)
+    if ActiveRecord::TestCase.current_adapter?(:OracleAdapter)
       t.string   :content, limit: 4000
       t.string   :important, limit: 4000
     else
       t.text     :content
       t.text     :important
     end
+    t.blob     :binary_content
     t.boolean  :approved, default: true
     t.integer  :replies_count, default: 0
     t.integer  :unique_replies_count, default: 0
@@ -1291,6 +1398,11 @@ ActiveRecord::Schema.define do
     t.integer :hotel_id
   end
 
+  create_table :recipients, force: true do |t|
+    t.integer  :message_id
+    t.string   :email_address
+  end
+
   create_table :records, force: true do |t|
   end
 
@@ -1331,6 +1443,10 @@ ActiveRecord::Schema.define do
     t.timestamps null: true
   end
 
+  create_table :user_comments_counts, force: true do |t|
+    t.integer :comments_count, default: 0
+  end
+
   create_table :test_with_keyword_column_name, force: true do |t|
     t.string :desc
   end
@@ -1348,7 +1464,7 @@ end
 
 Course.connection.create_table :courses, force: true do |t|
   t.column :name, :string, null: false
-  t.column :college_id, :integer
+  t.column :college_id, :integer, index: true
 end
 
 College.connection.create_table :colleges, force: true do |t|

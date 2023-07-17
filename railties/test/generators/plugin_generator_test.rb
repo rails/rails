@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "plugin_helpers"
 require "generators/generators_test_helper"
 require "rails/generators/rails/plugin/plugin_generator"
 require "generators/shared_generator_tests"
@@ -22,6 +23,7 @@ DEFAULT_PLUGIN_FILES = %w(
 )
 
 class PluginGeneratorTest < Rails::Generators::TestCase
+  include PluginHelpers
   include GeneratorsTestHelper
   destination File.join(destination_root, "bukkits")
   arguments [destination_root]
@@ -120,10 +122,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_in_full_mode_with_almost_of_all_skip_options
-    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage"]
+    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage", "--skip-active-job"]
     assert_file "bin/rails" do |content|
       assert_no_match(/\s+require\s+["']rails\/all["']/, content)
     end
+    assert_file "bin/rails", /#\s+require\s+["']active_job\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_storage\/engine["']/
     assert_file "bin/rails", /#\s+require\s+["']action_mailer\/railtie["']/
@@ -180,12 +183,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
-    FileUtils.cd(Rails.root)
+    FileUtils.cd(fixtures_root)
     assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
   def test_ensure_that_test_dummy_can_be_generated_from_a_template
-    FileUtils.cd(Rails.root)
+    FileUtils.cd(fixtures_root)
     run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test"])
     assert_directory "spec/dummy"
     assert_no_directory "test"
@@ -274,17 +277,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "app/jobs"
   end
 
-  def test_template_from_dir_pwd
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
-  end
-
   def test_ensure_that_migration_tasks_work_with_mountable_option
     run_generator [destination_root, "--mountable"]
-    FileUtils.cd destination_root
-    quietly { system "bundle install" }
-    output = `bin/rails db:migrate 2>&1`
-    assert $?.success?, "Command failed: #{output}"
+    prepare_plugin(destination_root)
+
+    in_plugin_context(destination_root) do
+      quietly { system "bundle install" }
+      output = `bin/rails db:migrate 2>&1`
+      assert $?.success?, "Command failed: #{output}"
+    end
   end
 
   def test_creating_engine_in_full_mode
@@ -367,7 +368,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
-      assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
+      assert_match(/ActionDispatch::IntegrationTest\.fixture_paths = ActiveSupport::TestCase\.fixture_pat/, content)
       assert_no_match(/Rails::TestUnitReporter\.executable = "bin\/test"/, content)
     end
     assert_no_file "bin/test"
@@ -553,10 +554,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dummy_application_loads_plugin
+  def test_plugin_passes_generated_test
     run_generator
+    prepare_plugin(destination_root)
 
-    assert_file "test/dummy/config/application.rb", /^require "bukkits"/
+    in_plugin_context(destination_root) do
+      output = `bin/test 2>&1`
+      assert $?.success?, "Command failed: #{output}"
+    end
   end
 
   def test_dummy_application_sets_include_all_helpers_to_false_for_mountable
@@ -613,6 +618,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/README.md"
     assert_no_file "test/dummy/config/master.key"
     assert_no_file "test/dummy/config/credentials.yml.enc"
+    assert_no_file "test/dummy/Dockerfile"
+    assert_no_file "test/dummy/.dockerignore"
     assert_no_directory "test/dummy/lib/tasks"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
@@ -768,6 +775,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "MIT-LICENSE" do |contents|
       assert_match name, contents
+    end
+  end
+
+  def test_no_year_in_license_file
+    year = Date.today.year
+
+    run_generator
+    assert_file "MIT-LICENSE" do |contents|
+      assert_no_match(/#{year}/, contents)
     end
   end
 

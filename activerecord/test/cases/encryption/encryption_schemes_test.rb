@@ -2,7 +2,6 @@
 
 require "cases/encryption/helper"
 require "models/author_encrypted"
-require "models/book"
 
 class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::EncryptionTestCase
   test "can decrypt encrypted_value encrypted with a different encryption scheme" do
@@ -179,6 +178,6 @@ class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::Encryption
         self.table_name = "authors"
 
         encrypts :name
-      end
+      end.tap { |klass| klass.type_for_attribute(:name) }
     end
 end

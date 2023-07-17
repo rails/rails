@@ -8,11 +8,15 @@ module Rails
     module Helpers
       module Editor
         private
+          def editor
+            ENV["VISUAL"].to_s.empty? ? ENV["EDITOR"] : ENV["VISUAL"]
+          end
+
           def display_hint_if_system_editor_not_specified
-            if ENV["EDITOR"].to_s.empty?
-              say "No $EDITOR to open file in. Assign one like this:"
+            if editor.to_s.empty?
+              say "No $VISUAL or $EDITOR to open file in. Assign one like this:"
               say ""
-              say %(EDITOR="mate --wait" #{executable(current_subcommand)})
+              say %(VISUAL="mate --wait" #{executable(current_subcommand)})
               say ""
               say "For editors that fork and exit immediately, it's important to pass a wait flag;"
               say "otherwise, the file will be saved immediately with no chance to edit."
@@ -22,7 +26,7 @@ module Rails
           end
 
           def system_editor(file_path)
-            system(*Shellwords.split(ENV["EDITOR"]), file_path.to_s)
+            system(*Shellwords.split(editor), file_path.to_s)
           end
 
           def using_system_editor

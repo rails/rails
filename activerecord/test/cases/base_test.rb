@@ -28,6 +28,7 @@ require "models/car"
 require "models/bulb"
 require "models/pet"
 require "models/owner"
+require "models/cpk"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
@@ -66,6 +67,28 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
+class ReadonlyTitleAbstractPost < ActiveRecord::Base
+  self.abstract_class = true
+
+  attr_readonly :title
+end
+
+class ReadonlyTitlePostWithAbstractParent < ReadonlyTitleAbstractPost
+  self.table_name = "posts"
+end
+
+previous_value, ActiveRecord.raise_on_assign_to_attr_readonly = ActiveRecord.raise_on_assign_to_attr_readonly, false
+
+class NonRaisingPost < Post
+  attr_readonly :title
+end
+
+ActiveRecord.raise_on_assign_to_attr_readonly = previous_value
+
+class ReadonlyAuthorPost < Post
+  attr_readonly :author_id
+end
+
 class Weird < ActiveRecord::Base; end
 
 class LintTest < ActiveRecord::TestCase
@@ -79,7 +102,9 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts,
+    :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories,
+    :posts, :cpk_books
 
   def test_generated_association_methods_module_name
     mod = Post.send(:generated_association_methods)
@@ -118,6 +143,7 @@ class BasicsTest < ActiveRecord::TestCase
     badchar   = {
       "SQLite3Adapter"    => '"',
       "Mysql2Adapter"     => "`",
+      "TrilogyAdapter"    => "`",
       "PostgreSQLAdapter" => '"',
       "OracleAdapter"     => '"',
     }.fetch(classname) {
@@ -691,16 +717,166 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ "title", "comments_count" ]), ReadonlyTitlePost.readonly_attributes
+    assert_equal [ "title" ], ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(title: "cannot change this", body: "changeable")
-    post.reload
     assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
 
-    post.update(title: "try to change", body: "changed")
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.title = "changed via assignment"
+    end
+    post.body = "changed via assignment"
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assignment", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.write_attribute(:title, "changed via write_attribute")
+    end
+    post.write_attribute(:body, "changed via write_attribute")
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via write_attribute", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    end
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post.update(title: "changed via update", body: "changed via update")
+    end
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post[:title] = "changed via []="
+    end
+    post[:body] = "changed via []="
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via []=", post.body
+
+    post.save!
+
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via []=", post.body
+  end
+
+  def test_readonly_attributes_on_a_new_record
+    assert_equal [ "title" ], ReadonlyTitlePost.readonly_attributes
+
+    post = ReadonlyTitlePost.new(title: "can change this until you save", body: "changeable")
+    assert_equal "can change this until you save", post.title
+    assert_equal "changeable", post.body
+
+    post.title = "changed via assignment"
+    post.body = "changed via assignment"
+    assert_equal "changed via assignment", post.title
+    assert_equal "changed via assignment", post.body
+
+    post.write_attribute(:title, "changed via write_attribute")
+    post.write_attribute(:body, "changed via write_attribute")
+    assert_equal "changed via write_attribute", post.title
+    assert_equal "changed via write_attribute", post.body
+
+    post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    assert_equal "changed via assign_attributes", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    post[:title] = "changed via []="
+    post[:body] = "changed via []="
+    assert_equal "changed via []=", post.title
+    assert_equal "changed via []=", post.body
+
+    post.save!
+
+    post = Post.find(post.id)
+    assert_equal "changed via []=", post.title
+    assert_equal "changed via []=", post.body
+  end
+
+  def test_readonly_attributes_in_abstract_class_descendant
+    assert_equal [ "title" ], ReadonlyTitlePostWithAbstractParent.readonly_attributes
+
+    assert_nothing_raised do
+      ReadonlyTitlePostWithAbstractParent.new(title: "can change this until you save")
+    end
+  end
+
+  def test_readonly_attributes_when_configured_to_not_raise
+    assert_equal [ "title" ], NonRaisingPost.readonly_attributes
+
+    post = NonRaisingPost.create(title: "cannot change this", body: "changeable")
+    assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
+
+    post = Post.find(post.id)
+    assert_equal "cannot change this", post.title
+    assert_equal "changeable", post.body
+
+    post.title = "changed via assignment"
+    post.body = "changed via assignment"
+    post.save!
     post.reload
     assert_equal "cannot change this", post.title
-    assert_equal "changed", post.body
+    assert_equal "changed via assignment", post.body
+
+    post.write_attribute(:title, "changed via write_attribute")
+    post.write_attribute(:body, "changed via write_attribute")
+    post.save!
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via write_attribute", post.body
+
+    post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+    post.save!
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via assign_attributes", post.body
+
+    post.update(title: "changed via update", body: "changed via update")
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via update", post.body
+
+    post[:title] = "changed via []="
+    post[:body] = "changed via []="
+    post.save!
+    post.reload
+    assert_equal "cannot change this", post.title
+    assert_equal "changed via []=", post.body
+  end
+
+  def test_readonly_attributes_on_belongs_to_association
+    assert_equal [ "author_id" ], ReadonlyAuthorPost.readonly_attributes
+
+    author1 = Author.create!(name: "Alex")
+    author2 = Author.create!(name: "Not Alex")
+
+    post_with_reload = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    post_with_reload.reload
+    post_with_reload.update(title: "Hello", body: "world")
+    assert_equal author1, post_with_reload.author
+
+    post_with_reload2 = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    post_with_reload2.reload
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post_with_reload2.update(author: author2)
+    end
+
+    post_without_reload = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    post_without_reload.update(title: "Hello", body: "world")
+    assert_equal author1, post_without_reload.author
+
+    post_without_reload2 = ReadonlyAuthorPost.create!(author: author1, title: "Hi", body: "there")
+    assert_raises(ActiveRecord::ReadonlyAttributeError) do
+      post_without_reload2.update(author: author2)
+    end
   end
 
   def test_unicode_column_name
@@ -709,7 +885,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "たこ焼き仮面", weird.なまえ
   end
 
-  unless current_adapter?(:PostgreSQLAdapter)
+  unless current_adapter?(:PostgreSQLAdapter) || current_adapter?(:TrilogyAdapter)
     def test_respect_internal_encoding
       old_default_internal = Encoding.default_internal
       silence_warnings { Encoding.default_internal = "EUC-JP" }
@@ -830,6 +1006,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("c", duped_topic.title)
   end
 
+  def test_dup_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    new_book = book.dup
+
+    assert_equal "The first book", new_book.title
+    assert_equal([nil, nil], new_book.id)
+  end
+
   DeveloperSalary = Struct.new(:amount)
   def test_dup_with_aggregate_of_same_name_as_attribute
     developer_with_aggregate = Class.new(ActiveRecord::Base) do
@@ -847,9 +1031,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_predicate dup, :persisted?
 
     # test if the attributes have been duped
-    original_amount = dup.salary.amount
-    dev.salary.amount = 1
-    assert_equal original_amount, dup.salary.amount
+    salary = DeveloperSalary.new(42)
+    dup.salary = salary
+    salary.amount = 1
+    assert_equal 42, dup.salary.amount
 
     assert dup.save
     assert_predicate dup, :persisted?
@@ -933,7 +1118,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal company, Company.find(company.id)
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :SQLite3Adapter)
+  if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
     def test_default_char_types
       default = Default.new
 
@@ -941,7 +1126,7 @@ class BasicsTest < ActiveRecord::TestCase
       assert_equal "a varchar field", default.char2
 
       # Mysql text type can't have default value
-      unless current_adapter?(:Mysql2Adapter)
+      unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         assert_equal "a text field", default.char3
       end
     end
@@ -1378,7 +1563,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attribute_names
-    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "metadata"]
+    expected = ["id", "type", "firm_id", "firm_name", "name", "client_of", "rating", "account_id", "description", "status", "metadata"]
     assert_equal expected, Company.attribute_names
   end
 

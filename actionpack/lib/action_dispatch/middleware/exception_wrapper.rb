@@ -174,6 +174,29 @@ module ActionDispatch
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
+    def show?(request)
+      # We're treating `nil` as "unset", and we want the default setting to be
+      # `:all`. This logic should be extracted to `env_config` and calculated
+      # once.
+      config = request.get_header("action_dispatch.show_exceptions")
+
+      # Include true and false for backwards compatibility.
+      case config
+      when :none
+        false
+      when :rescuable
+        rescue_response?
+      when true
+        ActionDispatch.deprecator.warn("Setting action_dispatch.show_exceptions to true is deprecated. Set to :all instead.")
+        true
+      when false
+        ActionDispatch.deprecator.warn("Setting action_dispatch.show_exceptions to false is deprecated. Set to :none instead.")
+        false
+      else
+        true
+      end
+    end
+
     def rescue_response?
       @@rescue_responses.key?(exception.class.name)
     end
@@ -186,10 +209,7 @@ module ActionDispatch
 
     def error_highlight_available?
       # ErrorHighlight.spot with backtrace_location keyword is available since error_highlight 0.4.0
-      unless defined?(@@error_highlight_available)
-        @@error_highlight_available = defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
-      end
-      @@error_highlight_available
+      defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
     end
 
     def trace_to_show
@@ -228,7 +248,12 @@ module ActionDispatch
         end
 
         def spot(exc)
-          location = super
+          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location)
+            location = @template.spot(__getobj__)
+          else
+            location = super
+          end
+
           if location
             @template.translate_location(__getobj__, location)
           end
@@ -240,11 +265,9 @@ module ActionDispatch
       def build_backtrace
         built_methods = {}
 
-        ActionView::ViewPaths.all_view_paths.each do |path_set|
-          path_set.each do |resolver|
-            resolver.built_templates.each do |template|
-              built_methods[template.method_name] = template
-            end
+        ActionView::PathRegistry.all_resolvers.each do |resolver|
+          resolver.built_templates.each do |template|
+            built_methods[template.method_name] = template
           end
         end
 

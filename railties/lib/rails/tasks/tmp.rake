@@ -11,32 +11,32 @@ namespace :tmp do
 
   tmp_dirs.each { |d| directory d }
 
-  desc "Creates tmp directories for cache, sockets, and pids"
+  desc "Create tmp directories for cache, sockets, and pids"
   task create: tmp_dirs
 
   namespace :cache do
-    # desc "Clears all files and directories in tmp/cache"
+    # desc "Clear all files and directories in tmp/cache"
     task :clear do
       rm_rf Dir["tmp/cache/[^.]*"], verbose: false
     end
   end
 
   namespace :sockets do
-    # desc "Clears all files in tmp/sockets"
+    # desc "Clear all files in tmp/sockets"
     task :clear do
       rm Dir["tmp/sockets/[^.]*"], verbose: false
     end
   end
 
   namespace :pids do
-    # desc "Clears all files in tmp/pids"
+    # desc "Clear all files in tmp/pids"
     task :clear do
       rm Dir["tmp/pids/[^.]*"], verbose: false
     end
   end
 
   namespace :screenshots do
-    # desc "Clears all files in tmp/screenshots"
+    # desc "Clear all files in tmp/screenshots"
     task :clear do
       rm Dir["tmp/screenshots/[^.]*"], verbose: false
     end

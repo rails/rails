@@ -155,7 +155,7 @@ This is the most common kind of discrepancy you may find, it has to do with acro
 
 The classic autoloader is able to autoload `VAT` because its input is the name of the missing constant, `VAT`, invokes `underscore` on it, which yields `vat`, and looks for a file called `vat.rb`. It works.
 
-The input of the new autoloader is the file system. Give the file `vat.rb`, Zeitwerk invokes `camelize` on `vat`, which yields `Vat`, and expects the file to define the constant `Vat`. That is what the error message says.
+The input of the new autoloader is the file system. Given the file `vat.rb`, Zeitwerk invokes `camelize` on `vat`, which yields `Vat`, and expects the file to define the constant `Vat`. That is what the error message says.
 
 Fixing this is easy, you only need to tell the inflector about this acronym:
 
@@ -326,7 +326,7 @@ If your application decorates classes or modules from an engine, chances are it 
 
 ```ruby
 config.to_prepare do
-  Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").each do |override|
+  Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").sort.each do |override|
     require_dependency override
   end
 end
@@ -338,7 +338,7 @@ That has to be updated: You need to tell the `main` autoloader to ignore the dir
 overrides = "#{Rails.root}/app/overrides"
 Rails.autoloaders.main.ignore(overrides)
 config.to_prepare do
-  Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+  Dir.glob("#{overrides}/**/*_override.rb").sort.each do |override|
     load override
   end
 end

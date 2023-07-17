@@ -22,6 +22,14 @@ class MessageEncryptorsTest < ActiveSupport::TestCase
     assert_equal "message", roundtrip("message", coordinator["salt"])
   end
 
+  test "supports arbitrary secret generator kwargs when using #rotate block" do
+    secret_generator = ->(salt, secret_length:, foo:, bar: nil) { foo[bar] * secret_length }
+    coordinator = ActiveSupport::MessageEncryptors.new(&secret_generator)
+    coordinator.rotate { { foo: "foo", bar: 0 } }
+
+    assert_equal "message", roundtrip("message", coordinator["salt"])
+  end
+
   test "supports separate secrets for encryption and signing" do
     secret_generator = proc { |*args, **kwargs| [SECRET_GENERATOR.call(*args, **kwargs), "signing secret"] }
     coordinator = ActiveSupport::MessageEncryptors.new(&secret_generator)
@@ -40,7 +48,7 @@ class MessageEncryptorsTest < ActiveSupport::TestCase
 
     def roundtrip(message, encryptor, decryptor = encryptor)
       decryptor.decrypt_and_verify(encryptor.encrypt_and_sign(message))
-    rescue ActiveSupport::MessageVerifier::InvalidSignature
+    rescue ActiveSupport::MessageEncryptor::InvalidMessage
       nil
     end
 end

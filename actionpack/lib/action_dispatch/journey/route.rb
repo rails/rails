@@ -5,7 +5,7 @@ module ActionDispatch
   module Journey
     class Route
       attr_reader :app, :path, :defaults, :name, :precedence, :constraints,
-                  :internal, :scope_options, :ast
+                  :internal, :scope_options, :ast, :source_location
 
       alias :conditions :constraints
 
@@ -53,7 +53,7 @@ module ActionDispatch
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, request_method_match: nil, precedence: 0, scope_options: {}, internal: false)
+      def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, request_method_match: nil, precedence: 0, scope_options: {}, internal: false, source_location: nil)
         @name        = name
         @app         = app
         @path        = path
@@ -69,6 +69,7 @@ module ActionDispatch
         @path_formatter    = @path.build_formatter
         @scope_options     = scope_options
         @internal          = internal
+        @source_location   = source_location
 
         @ast = @path.ast.root
         @path.ast.route = self

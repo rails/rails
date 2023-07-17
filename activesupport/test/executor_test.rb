@@ -226,7 +226,7 @@ class ExecutorTest < ActiveSupport::TestCase
   end
 
   def test_class_serial_is_unaffected
-    skip if !defined?(RubyVM)
+    skip if !defined?(RubyVM) || !RubyVM.stat.has_key?(:class_serial)
 
     hook = Class.new do
       define_method(:run) do

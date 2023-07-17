@@ -7,9 +7,9 @@ module ActiveSupport
     module Assertions
       UNTRACKED = Object.new # :nodoc:
 
-      # Asserts that an expression is not truthy. Passes if <tt>object</tt> is
-      # +nil+ or +false+. "Truthy" means "considered true in a conditional"
-      # like <tt>if foo</tt>.
+      # Asserts that an expression is not truthy. Passes if +object+ is +nil+ or
+      # +false+. "Truthy" means "considered true in a conditional" like <tt>if
+      # foo</tt>.
       #
       #   assert_not nil    # => true
       #   assert_not false  # => true
@@ -22,6 +22,21 @@ module ActiveSupport
         message ||= "Expected #{mu_pp(object)} to be nil or false"
         assert !object, message
       end
+
+      # Asserts that a block raises one of +exp+. This is an enhancement of the
+      # standard Minitest assertion method with the ability to test error
+      # messages.
+      #
+      #   assert_raises(ArgumentError, match: /incorrect param/i) do
+      #     perform_service(param: 'exception')
+      #   end
+      #
+      def assert_raises(*exp, match: nil, &block)
+        error = super(*exp, &block)
+        assert_match(match, error.message) if match
+        error
+      end
+      alias :assert_raise :assert_raises
 
       # Assertion that the block should not raise an exception.
       #
@@ -50,7 +65,7 @@ module ActiveSupport
       #   end
       #
       # An arbitrary positive or negative difference can be specified.
-      # The default is <tt>1</tt>.
+      # The default is +1+.
       #
       #   assert_difference 'Article.count', -1 do
       #     post :delete, params: { id: ... }
@@ -102,9 +117,10 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_difference", &block)
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
-          error  = "#{code.inspect} didn't change by #{diff}"
+          actual = exp.call
+          error  = "#{code.inspect} didn't change by #{diff}, but by #{actual - before_value}"
           error  = "#{message}.\n#{error}" if message
-          assert_equal(before_value + diff, exp.call, error)
+          assert_equal(before_value + diff, actual, error)
         end
 
         retval

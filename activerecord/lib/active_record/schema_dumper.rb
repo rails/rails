@@ -34,6 +34,12 @@ module ActiveRecord
     # should not be dumped to db/schema.rb.
     cattr_accessor :excl_ignore_pattern, default: /^excl_rails_[0-9a-f]{10}$/
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching unique constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :unique_ignore_pattern, default: /^uniq_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
@@ -65,6 +71,11 @@ module ActiveRecord
         @connection = connection
         @version = connection.migration_context.current_version rescue nil
         @options = options
+        @ignore_tables = [
+          ActiveRecord::Base.schema_migrations_table_name,
+          ActiveRecord::Base.internal_metadata_table_name,
+          self.class.ignore_tables
+        ].flatten
       end
 
       # turns 20170404131909 into "2017_04_04_131909"
@@ -177,6 +188,7 @@ module ActiveRecord
           indexes_in_create(table, tbl)
           check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
           exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
+          unique_keys_in_create(table, tbl) if @connection.supports_unique_keys?
 
           tbl.puts "  end"
           tbl.puts
@@ -212,6 +224,12 @@ module ActiveRecord
             indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
           end
 
+          if @connection.supports_unique_keys? && (unique_keys = @connection.unique_keys(table)).any?
+            unique_key_names = unique_keys.collect(&:name)
+
+            indexes = indexes.reject { |index| unique_key_names.include?(index.name) }
+          end
+
           index_statements = indexes.map do |index|
             "    t.index #{index_parts(index).join(', ')}"
           end
@@ -230,6 +248,7 @@ module ActiveRecord
         index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
+        index_parts << "include: #{index.include.inspect}" if index.include
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts
@@ -306,13 +325,17 @@ module ActiveRecord
       end
 
       def remove_prefix_and_suffix(table)
+        # This method appears at the top when profiling active_record test cases run.
+        # Avoid costly calculation when there are no prefix and suffix.
+        return table if @options[:table_name_prefix].blank? && @options[:table_name_suffix].blank?
+
         prefix = Regexp.escape(@options[:table_name_prefix].to_s)
         suffix = Regexp.escape(@options[:table_name_suffix].to_s)
         table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
       end
 
       def ignored?(table_name)
-        [ActiveRecord::Base.schema_migrations_table_name, ActiveRecord::Base.internal_metadata_table_name, ignore_tables].flatten.any? do |ignored|
+        @ignore_tables.any? do |ignored|
           ignored === remove_prefix_and_suffix(table_name)
         end
       end

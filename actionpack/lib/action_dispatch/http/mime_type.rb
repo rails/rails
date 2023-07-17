@@ -11,6 +11,7 @@ module Mime
     def initialize
       @mimes = []
       @symbols = []
+      @symbols_set = Set.new
     end
 
     def each(&block)
@@ -19,16 +20,24 @@ module Mime
 
     def <<(type)
       @mimes << type
-      @symbols << type.to_sym
+      sym_type = type.to_sym
+      @symbols << sym_type
+      @symbols_set << sym_type
     end
 
     def delete_if
       @mimes.delete_if do |x|
         if yield x
-          @symbols.delete(x.to_sym)
+          sym_type = x.to_sym
+          @symbols.delete(sym_type)
+          @symbols_set.delete(sym_type)
           true
         end
       end
+    end
+
+    def valid_symbols?(symbols) # :nodoc
+      symbols.all? { |s| @symbols_set.include?(s) }
     end
   end
 
@@ -40,6 +49,14 @@ module Mime
     def [](type)
       return type if type.is_a?(Type)
       Type.lookup_by_extension(type)
+    end
+
+    def symbols
+      SET.symbols
+    end
+
+    def valid_symbols?(symbols) # :nodoc:
+      SET.valid_symbols?(symbols)
     end
 
     def fetch(type, &block)
@@ -135,14 +152,18 @@ module Mime
 
     class << self
       TRAILING_STAR_REGEXP = /^(text|application)\/\*/
-      PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
+      # all media-type parameters need to be before the q-parameter
+      # https://www.rfc-editor.org/rfc/rfc7231#section-5.3.2
+      PARAMETER_SEPARATOR_REGEXP = /\s*;\s*q="?/
+      ACCEPT_HEADER_REGEXP = /[^,\s"](?:[^,"]|"[^"]*")*/
 
       def register_callback(&block)
         @register_callbacks << block
       end
 
       def lookup(string)
-        LOOKUP[string] || Type.new(string)
+        # fallback to the media-type without parameters if it was not found
+        LOOKUP[string] || LOOKUP[string.split(";", 2)[0].rstrip] || Type.new(string)
       end
 
       def lookup_by_extension(extension)
@@ -171,12 +192,14 @@ module Mime
 
       def parse(accept_header)
         if !accept_header.include?(",")
-          accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
-          return [] unless accept_header
-          parse_trailing_star(accept_header) || [Mime::Type.lookup(accept_header)].compact
+          if (index = accept_header.index(PARAMETER_SEPARATOR_REGEXP))
+            accept_header = accept_header[0, index]
+          end
+          return [] if accept_header.blank?
+          parse_trailing_star(accept_header) || Array(Mime::Type.lookup(accept_header))
         else
           list, index = [], 0
-          accept_header.split(",").each do |header|
+          accept_header.scan(ACCEPT_HEADER_REGEXP).each do |header|
             params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
 
             next unless params
@@ -199,10 +222,10 @@ module Mime
       end
 
       # For an input of <tt>'text'</tt>, returns <tt>[Mime[:json], Mime[:xml], Mime[:ics],
-      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]</tt>.
+      # Mime[:html], Mime[:css], Mime[:csv], Mime[:js], Mime[:yaml], Mime[:text]]</tt>.
       #
       # For an input of <tt>'application'</tt>, returns <tt>[Mime[:html], Mime[:js],
-      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]</tt>.
+      # Mime[:xml], Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]]</tt>.
       def parse_data_with_trailing_star(type)
         Mime::SET.select { |m| m.match?(type) }
       end
@@ -225,7 +248,7 @@ module Mime
     attr_reader :hash
 
     MIME_NAME = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}"
-    MIME_PARAMETER_VALUE = "#{Regexp.escape('"')}?#{MIME_NAME}#{Regexp.escape('"')}?"
+    MIME_PARAMETER_VALUE = "(?:#{MIME_NAME}|\"[^\"\r\\\\]*\")"
     MIME_PARAMETER = "\s*;\s*#{MIME_NAME}(?:=#{MIME_PARAMETER_VALUE})?"
     MIME_REGEXP = /\A(?:\*\/\*|#{MIME_NAME}\/(?:\*|#{MIME_NAME})(?>#{MIME_PARAMETER})*\s*)\z/
 
@@ -291,7 +314,7 @@ module Mime
     end
 
     def html?
-      (symbol == :html) || /html/.match?(@string)
+      (symbol == :html) || @string.include?("html")
     end
 
     def all?; false; end

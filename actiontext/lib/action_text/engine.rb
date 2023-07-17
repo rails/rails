@@ -19,6 +19,10 @@ module ActionText
       #{root}/app/models
     )
 
+    initializer "action_text.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:action_text] = ActionText.deprecator
+    end
+
     initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do
         include ActionText::Attribute
@@ -77,6 +81,12 @@ module ActionText
 
     initializer "action_text.configure" do |app|
       ActionText::Attachment.tag_name = app.config.action_text.attachment_tag_name
+    end
+
+    initializer "action_text.sanitizer_vendor" do |app|
+      if klass = app.config.action_text.delete(:sanitizer_vendor)
+        ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+      end
     end
   end
 end

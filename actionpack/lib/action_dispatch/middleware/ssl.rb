@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionDispatch
+  # = Action Dispatch \SSL
+  #
   # This middleware is added to the stack when <tt>config.force_ssl = true</tt>, and is passed
   # the options set in +config.ssl_options+. It does three jobs to enforce secure HTTP
   # requests:
@@ -113,7 +115,9 @@ module ActionDispatch
 
       def flag_cookies_as_secure!(headers)
         if cookies = headers["Set-Cookie"]
-          cookies = cookies.split("\n")
+          if cookies.is_a?(String)
+            cookies = cookies.split("\n")
+          end
 
           headers["Set-Cookie"] = cookies.map { |cookie|
             if !/;\s*secure\s*(;|$)/i.match?(cookie)
@@ -127,7 +131,7 @@ module ActionDispatch
 
       def redirect_to_https(request)
         [ @redirect.fetch(:status, redirection_status(request)),
-          { "Content-Type" => "text/html",
+          { "Content-Type" => "text/html; charset=utf-8",
             "Location" => https_location_for(request) },
           (@redirect[:body] || []) ]
       end

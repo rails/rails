@@ -64,6 +64,11 @@ Rails.application.configure do
   config.active_record.verbose_query_logs = true
 
   <%- end -%>
+  <%- unless options[:skip_active_job] -%>
+  # Highlight code that enqueued background job in logs.
+  config.active_job.verbose_enqueue_logs = true
+
+  <%- end -%>
   <%- unless skip_sprockets? -%>
   # Suppress logger output for asset requests.
   config.assets.quiet = true

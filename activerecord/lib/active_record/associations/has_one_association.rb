@@ -33,8 +33,13 @@ module ActiveRecord
             target.destroy
             throw(:abort) unless target.destroyed?
           when :destroy_async
-            primary_key_column = target.class.primary_key.to_sym
-            id = target.public_send(primary_key_column)
+            if target.class.query_constraints_list
+              primary_key_column = target.class.query_constraints_list.map(&:to_sym)
+              id = primary_key_column.map { |col| target.public_send(col) }
+            else
+              primary_key_column = target.class.primary_key.to_sym
+              id = target.public_send(primary_key_column)
+            end
 
             enqueue_destroy_association(
               owner_model_name: owner.class.to_s,
@@ -87,6 +92,10 @@ module ActiveRecord
           replace(record, false)
         end
 
+        def replace_keys(record, force: false)
+          # Has one association doesn't have foreign keys to replace.
+        end
+
         def remove_target!(method)
           case method
           when :delete
@@ -112,7 +121,9 @@ module ActiveRecord
         end
 
         def nullify_owner_attributes(record)
-          record[reflection.foreign_key] = nil
+          Array(reflection.foreign_key).each do |foreign_key_column|
+            record[foreign_key_column] = nil unless foreign_key_column.in?(Array(record.class.primary_key))
+          end
         end
 
         def transaction_if(value, &block)

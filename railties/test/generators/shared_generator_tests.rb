@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require "shellwords"
+require "env_helpers"
 
 #
 # Tests, setup, and teardown common to the application and plugin generator suites.
 #
 module SharedGeneratorTests
+  include EnvHelpers
+
   def setup
     Rails.application = TestApp::Application
     super
@@ -92,6 +95,42 @@ module SharedGeneratorTests
     assert_file "bin/rails", /#!\/usr\/bin\/env/
   end
 
+  def test_template_from_absolute_path
+    assert_match "It works from file!", run_generator([destination_root, "-m", "#{fixtures_root}/lib/template.rb"])
+  end
+
+  def test_template_from_relative_path
+    FileUtils.cd(fixtures_root)
+    assert_match "It works from file!", run_generator([destination_root, "-m", "lib/template.rb"])
+  end
+
+  def test_template_with_env_var_in_path
+    switch_env "FIXTURES_ROOT", fixtures_root do
+      assert_match "It works from file!", run_generator([destination_root, "-m", "$FIXTURES_ROOT/lib/template.rb"])
+    end
+  end
+
+  def test_template_with_curly_brace_env_var_in_path
+    switch_env "FIXTURES_ROOT", fixtures_root do
+      assert_match "It works from file!", run_generator([destination_root, "-m", "${FIXTURES_ROOT}/lib/template.rb"])
+    end
+  end
+
+  def test_template_with_windows_env_var_in_path
+    switch_env "FIXTURES_ROOT", fixtures_root do
+      assert_match "It works from file!", run_generator([destination_root, "-m", "%FIXTURES_ROOT%/lib/template.rb"])
+    end
+  end
+
+  def test_template_with_special_characters_in_path
+    Dir.mktmpdir do |dir|
+      template_path = "#{dir}/company's $99 template  (original).rb"
+      FileUtils.cp "#{fixtures_root}/lib/template.rb", template_path
+
+      assert_match "It works from file!", run_generator([destination_root, "-m", template_path])
+    end
+  end
+
   def test_template_raises_an_error_with_invalid_path
     quietly do
       content = capture(:stderr) { run_generator([destination_root, "-m", "non/existent/path"]) }
@@ -174,22 +213,6 @@ module SharedGeneratorTests
     end
   end
 
-  def test_gitignore_when_sqlite3
-    run_generator
-
-    assert_file ".gitignore" do |content|
-      assert_match(/sqlite3/, content)
-    end
-  end
-
-  def test_gitignore_when_non_sqlite3_db
-    run_generator([destination_root, "-d", "mysql"])
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/sqlite/i, content)
-    end
-  end
-
   def test_generator_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_no_directory "#{application_path}/db/"
@@ -201,9 +224,6 @@ module SharedGeneratorTests
     end
     assert_file "#{application_path}/bin/setup" do |setup_content|
       assert_no_match(/db:prepare/, setup_content)
-    end
-    assert_file ".gitignore" do |content|
-      assert_no_match(/sqlite/i, content)
     end
   end
 
@@ -225,10 +245,6 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/storage.yml"
     assert_directory "#{application_path}/storage"
     assert_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_if_skip_active_storage_is_given
@@ -249,12 +265,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_does_not_generate_active_storage_contents_if_skip_active_record_is_given
@@ -275,12 +285,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/storage"
-    assert_no_directory "#{application_path}/tmp/storage"
-
-    assert_file ".gitignore" do |content|
-      assert_no_match(/\/storage\//, content)
-    end
   end
 
   def test_generator_if_skip_action_mailer_is_given
@@ -369,6 +373,10 @@ module SharedGeneratorTests
   end
 
   private
+    def fixtures_root
+      File.expand_path("../fixtures", __dir__)
+    end
+
     def run_generator_instance
       @bundle_commands = []
       @bundle_command_stub ||= -> (command, *) { @bundle_commands << command }
@@ -401,9 +409,11 @@ module SharedGeneratorTests
 
       assert_file File.expand_path("Gemfile", project_path) do |gemfile|
         assert_equal "install", @bundle_commands[0]
+        assert_match "lock --add-platform", @bundle_commands[1]
+
         assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[0]
 
-        assert_match %r"^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}", @bundle_commands[1]
+        assert_match %r"^exec rails (?:plugin )?new #{Regexp.escape Shellwords.join(expected_args)}", @bundle_commands[2]
         assert_equal gemfile[rails_gem_pattern], bundle_command_rails_gems[1]
       end
     end

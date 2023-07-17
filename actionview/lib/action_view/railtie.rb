@@ -46,6 +46,12 @@ module ActionView
       ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = prepend_content_exfiltration_prevention
     end
 
+    initializer "action_view.sanitizer_vendor" do |app|
+      if klass = app.config.action_view.delete(:sanitizer_vendor)
+        ActionView::Helpers::SanitizeHelper.sanitizer_vendor = klass
+      end
+    end
+
     config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
@@ -73,7 +79,7 @@ module ActionView
       end
     end
 
-    initializer "action_view.deprecator" do |app|
+    initializer "action_view.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_view] = ActionView.deprecator
     end
 
@@ -107,7 +113,14 @@ module ActionView
       end
 
       unless enable_caching
-        app.executor.register_hook ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
+        view_reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: app.config.file_watcher)
+
+        app.reloaders << view_reloader
+        view_reloader.execute
+        app.reloader.to_run do
+          require_unload_lock!
+          view_reloader.execute
+        end
       end
     end
 

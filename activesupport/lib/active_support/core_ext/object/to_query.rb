@@ -72,8 +72,6 @@ class Hash
   #
   # The string pairs "key=value" that conform the query string
   # are sorted lexicographically in ascending order.
-  #
-  # This method is also aliased as +to_param+.
   def to_query(namespace = nil)
     query = filter_map do |key, value|
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?

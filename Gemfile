@@ -10,11 +10,11 @@ else
 end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 11.1"
+gem "rake", ">= 13"
 
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
-gem "capybara", ">= 3.26"
+gem "capybara", ">= 3.38"
 gem "selenium-webdriver", ">= 4.0.0"
 
 gem "rack-cache", "~> 1.2"
@@ -24,6 +24,7 @@ gem "jsbundling-rails"
 gem "cssbundling-rails"
 gem "importmap-rails"
 gem "tailwindcss-rails"
+gem "dartsass-rails"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -36,16 +37,25 @@ gem "terser", ">= 1.1.4", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
+# Workaround until Ruby ships with cgi version 0.3.6 or higher.
+gem "cgi", ">= 0.3.6", require: false
+
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
+  gem "rubocop-md", require: false
+end
+
+group :mdl do
+  gem "mdl", require: false
 end
 
 group :doc do
-  gem "sdoc", ">= 2.4.0"
+  gem "sdoc", ">= 2.6.0"
+  gem "rdoc", "~> 6.5"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
@@ -58,12 +68,17 @@ gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 gem "rexml", require: false
+gem "msgpack", ">= 1.7.0", require: false
 
 # for railties
 gem "bootsnap", ">= 1.4.4", require: false
 gem "webrick", require: false
 gem "jbuilder", require: false
 gem "web-console", require: false
+
+# Action Pack and railties
+rack_version = ENV.fetch("RACK", "~> 3.0")
+gem "rack", rack_version
 
 # Active Job
 group :job do
@@ -76,7 +91,6 @@ group :job do
   gem "sneakers", require: false
   gem "backburner", require: false
   gem "delayed_job_active_record", require: false
-  gem "sequel", require: false
 end
 
 # Action Cable
@@ -105,12 +119,6 @@ gem "webmock"
 
 group :ujs do
   gem "webdrivers"
-end
-
-# Action View
-group :view do
-  gem "blade", require: false, platforms: [:ruby]
-  gem "sprockets-export", require: false
 end
 
 # Add your own local bundler stuff.
@@ -142,6 +150,7 @@ platforms :ruby, :windows do
   group :db do
     gem "pg", "~> 1.3"
     gem "mysql2", "~> 0.5"
+    gem "trilogy", github: "github/trilogy", branch: "main", glob: "contrib/ruby/*.gemspec"
   end
 end
 

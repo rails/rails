@@ -36,6 +36,8 @@ module ActiveRecord
     config.active_record.query_log_tags = [ :application ]
     config.active_record.query_log_tags_format = :legacy
     config.active_record.cache_query_log_tags = false
+    config.active_record.raise_on_assign_to_attr_readonly = false
+    config.active_record.belongs_to_required_validates_foreign_key = true
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -73,7 +75,7 @@ module ActiveRecord
       require "active_record/base"
     end
 
-    initializer "active_record.deprecator" do |app|
+    initializer "active_record.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_record] = ActiveRecord.deprecator
     end
 
@@ -105,7 +107,7 @@ module ActiveRecord
       end
     end
 
-    initializer "Check for cache versioning support" do
+    initializer "active_record.cache_versioning_support" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
           if app.config.active_record.cache_versioning && Rails.cache
@@ -143,7 +145,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
               schema_cache_path: db_config.schema_cache_path
             )
 
-            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(filename)
             next if cache.nil?
 
             if check_schema_cache_dump_version
@@ -155,14 +157,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
               end
               next if current_version.nil?
 
-              if cache.version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
+              if cache.schema_version != current_version
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.schema_version}."
                 next
               end
             end
 
             Rails.logger.info("Using schema cache file #{filename}")
-            connection_pool.set_schema_cache(cache)
+            connection_pool.schema_reflection.set_schema_cache(cache)
           end
         end
       end
@@ -175,14 +177,17 @@ To keep using the current cache store, you can turn off cache versioning entirel
             begin
               descendants.each do |model|
                 # If the schema cache was loaded from a dump, we can use it without connecting
-                schema_cache = model.connection_pool.schema_cache
-
-                # If there's no connection yet, we avoid connecting.
-                schema_cache ||= model.connected? && model.connection.schema_cache
+                if schema_reflection = model.connection_pool.schema_reflection
+                  # TODO: this is dirty, can we find a better way?
+                  schema_reflection = schema_reflection.bind(nil)
+                elsif model.connected?
+                  # If there's no connection yet, we avoid connecting.
+                  schema_reflection = model.connection.schema_reflection
+                end
 
                 # If the schema cache doesn't have the columns
                 # hash for the model cached, `define_attribute_methods` would trigger a query.
-                if schema_cache && schema_cache.columns_hash?(model.table_name)
+                if schema_reflection && schema_reflection.columns_hash?(model.table_name)
                   model.define_attribute_methods
                 end
               end
@@ -355,11 +360,17 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record_encryption.configuration" do |app|
-      ActiveRecord::Encryption.configure \
-         primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
-         deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
-         key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
-         **config.active_record.encryption
+      auto_filtered_parameters = ActiveRecord::Encryption::AutoFilteredParameters.new(app)
+
+      config.after_initialize do |app|
+        ActiveRecord::Encryption.configure \
+          primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
+          deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
+          key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+          **config.active_record.encryption
+
+        auto_filtered_parameters.enable if ActiveRecord::Encryption.config.add_to_filter_parameters
+      end
 
       ActiveSupport.on_load(:active_record) do
         # Support extended queries for deterministic attributes and validations
@@ -375,13 +386,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveRecord::Fixture.prepend ActiveRecord::Encryption::EncryptedFixtures
         end
       end
-
-      # Filtered params
-      ActiveSupport.on_load(:action_controller, run_once: true) do
-        if ActiveRecord::Encryption.config.add_to_filter_parameters
-          ActiveRecord::Encryption.install_auto_filtered_parameters_hook(app)
-        end
-      end
     end
 
     initializer "active_record.query_log_tags_config" do |app|
@@ -391,10 +395,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveRecord::QueryLogs.taggings.merge!(
             application:  Rails.application.class.name.split("::").first,
             pid:          -> { Process.pid.to_s },
-            socket:       -> { ActiveRecord::Base.connection_db_config.socket },
-            db_host:      -> { ActiveRecord::Base.connection_db_config.host },
-            database:     -> { ActiveRecord::Base.connection_db_config.database }
+            socket:       ->(context) { context[:connection].pool.db_config.socket },
+            db_host:      ->(context) { context[:connection].pool.db_config.host },
+            database:     ->(context) { context[:connection].pool.db_config.database }
           )
+          ActiveRecord.disable_prepared_statements = true
 
           if app.config.active_record.query_log_tags.present?
             ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags
@@ -421,6 +426,15 @@ To keep using the current cache store, you can turn off cache versioning entirel
               value.current_scope = nil
             end
           end
+        end
+      end
+    end
+
+    initializer "active_record.message_pack" do
+      ActiveSupport.on_load(:message_pack) do
+        ActiveSupport.on_load(:active_record) do
+          require "active_record/message_pack"
+          ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
         end
       end
     end

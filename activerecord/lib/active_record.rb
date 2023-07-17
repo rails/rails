@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -34,6 +34,7 @@ require "active_record/deprecator"
 require "active_model/attribute_set"
 require "active_record/errors"
 
+# :include: activerecord/README.rdoc
 module ActiveRecord
   extend ActiveSupport::Autoload
 
@@ -48,20 +49,22 @@ module ActiveRecord
   autoload :Encryption
   autoload :Enum
   autoload :Explain
+  autoload :FixtureSet, "active_record/fixtures"
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
   autoload :LogSubscriber
+  autoload :Marshalling
   autoload :Migration
   autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
+  autoload :Normalization
   autoload :Persistence
   autoload :QueryCache
-  autoload :Querying
-  autoload :QueryConstraints
   autoload :QueryLogs
+  autoload :Querying
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -96,10 +99,9 @@ module ActiveRecord
     autoload :AutosaveAssociation
     autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
-    autoload :Promise
     autoload :FutureResult
     autoload :LegacyYamlAdapter
-    autoload :NullRelation
+    autoload :Promise
     autoload :Relation
     autoload :Result
     autoload :StatementCache
@@ -107,17 +109,18 @@ module ActiveRecord
     autoload :Type
 
     autoload_under "relation" do
-      autoload :QueryMethods
-      autoload :FinderMethods
-      autoload :Calculations
-      autoload :PredicateBuilder
-      autoload :SpawnMethods
       autoload :Batches
+      autoload :Calculations
       autoload :Delegation
+      autoload :FinderMethods
+      autoload :PredicateBuilder
+      autoload :QueryMethods
+      autoload :SpawnMethods
     end
   end
 
   module Coders
+    autoload :ColumnSerializer, "active_record/coders/column_serializer"
     autoload :JSON, "active_record/coders/json"
     autoload :YAMLColumn, "active_record/coders/yaml_column"
   end
@@ -171,6 +174,9 @@ module ActiveRecord
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
 
+  singleton_class.attr_accessor :disable_prepared_statements
+  self.disable_prepared_statements = false
+
   # Lazily load the schema cache. This option will load the schema cache
   # when a connection is established rather than on boot. If set,
   # +config.active_record.use_schema_cache_dump+ will be set to false.
@@ -196,6 +202,39 @@ module ActiveRecord
   end
 
   self.default_timezone = :utc
+
+  # The action to take when database query produces warning.
+  # Must be one of :ignore, :log, :raise, :report, or a custom proc.
+  # The default is :ignore.
+  singleton_class.attr_reader :db_warnings_action
+
+  def self.db_warnings_action=(action)
+    @db_warnings_action =
+      case action
+      when :ignore
+        nil
+      when :log
+        ->(warning) do
+          warning_message = "[#{warning.class}] #{warning.message}"
+          warning_message += " (#{warning.code})" if warning.code
+          ActiveRecord::Base.logger.warn(warning_message)
+        end
+      when :raise
+        ->(warning) { raise warning }
+      when :report
+        ->(warning) { Rails.error.report(warning, handled: true) }
+      when Proc
+        action
+      else
+        raise ArgumentError, "db_warnings_action must be one of :ignore, :log, :raise, :report, or a custom proc."
+      end
+  end
+
+  self.db_warnings_action = :ignore
+
+  # Specify allowlist of database warnings.
+  singleton_class.attr_accessor :db_warnings_ignore
+  self.db_warnings_ignore = []
 
   singleton_class.attr_accessor :writing_role
   self.writing_role = :writing
@@ -268,6 +307,21 @@ module ActiveRecord
 
   singleton_class.attr_accessor :maintain_test_schema
   self.maintain_test_schema = nil
+
+  singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
+  self.raise_on_assign_to_attr_readonly = false
+
+  singleton_class.attr_accessor :belongs_to_required_validates_foreign_key
+  self.belongs_to_required_validates_foreign_key = true
+
+  singleton_class.attr_accessor :before_committed_on_all_records
+  self.before_committed_on_all_records = false
+
+  singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
+  self.run_after_transaction_callbacks_in_order_defined = false
+
+  singleton_class.attr_accessor :commit_transaction_on_non_local_return
+  self.commit_transaction_on_non_local_return = false
 
   ##
   # :singleton-method:
@@ -380,10 +434,26 @@ module ActiveRecord
 
   ##
   # :singleton-method:
+  # Application configurable boolean that denotes whether or not to raise
+  # an exception when the PostgreSQLAdapter is provided with an integer that
+  # is wider than signed 64bit representation
+  singleton_class.attr_accessor :raise_int_wider_than_64bit
+  self.raise_int_wider_than_64bit = true
+
+  ##
+  # :singleton-method:
   # Application configurable array that provides additional permitted classes
   # to Psych safe_load in the YAML Coder
   singleton_class.attr_accessor :yaml_column_permitted_classes
   self.yaml_column_permitted_classes = [Symbol]
+
+  def self.marshalling_format_version
+    Marshalling.format_version
+  end
+
+  def self.marshalling_format_version=(value)
+    Marshalling.format_version = value
+  end
 
   def self.eager_load!
     super
@@ -393,6 +463,11 @@ module ActiveRecord
     ActiveRecord::AttributeMethods.eager_load!
     ActiveRecord::ConnectionAdapters.eager_load!
     ActiveRecord::Encryption.eager_load!
+  end
+
+  # Explicitly closes all database connections in all pools.
+  def self.disconnect_all!
+    ConnectionAdapters::PoolConfig.disconnect_all!
   end
 end
 

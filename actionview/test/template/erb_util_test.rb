@@ -103,9 +103,9 @@ class ErbUtilTest < ActiveSupport::TestCase
     assert_equal " &#X27; &#x27; &#x03BB; &#X03bb; &quot; &#39; &lt; &gt; ", html_escape_once(" &#X27; &#x27; &#x03BB; &#X03bb; \" ' < > ")
   end
 
-  def test_html_escape_once_returns_unsafe_strings_when_passed_unsafe_strings
+  def test_html_escape_once_returns_safe_strings_when_passed_unsafe_strings
     value = html_escape_once("1 < 2 &amp; 3")
-    assert_not_predicate value, :html_safe?
+    assert_predicate value, :html_safe?
   end
 
   def test_html_escape_once_returns_safe_strings_when_passed_safe_strings

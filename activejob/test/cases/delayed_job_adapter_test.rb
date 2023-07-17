@@ -30,4 +30,17 @@ class DelayedJobAdapterTest < ActiveSupport::TestCase
     assert_equal "HelloJob [#{job_id}] from DelayedJob(default) with arguments: #{arguments}",
                  job_wrapper.display_name
   end
+
+  test "shows name for invalid job class" do
+    job_id = SecureRandom.uuid
+
+    job_wrapper = ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper.new(
+      "job_class" => "NotExistingJob",
+      "queue_name" => "default",
+      "job_id" => job_id,
+      "arguments" => { "some" => { "job" => "arguments" } }
+    )
+
+    assert_equal "NotExistingJob [#{job_id}] from DelayedJob(default)", job_wrapper.display_name
+  end
 end

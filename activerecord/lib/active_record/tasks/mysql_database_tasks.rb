@@ -28,6 +28,7 @@ module ActiveRecord
       def purge
         establish_connection(configuration_hash_without_database)
         connection.recreate_database(db_config.database, creation_options)
+        establish_connection
       end
 
       def charset

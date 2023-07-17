@@ -207,7 +207,7 @@ module ActiveRecord
 
       def test_type_cast_date
         date = Date.today
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           expected = date
         else
           expected = @conn.quoted_date(date)
@@ -217,7 +217,7 @@ module ActiveRecord
 
       def test_type_cast_time
         time = Time.now
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           expected = time
         else
           expected = @conn.quoted_date(time)

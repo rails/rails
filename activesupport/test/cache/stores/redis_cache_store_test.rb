@@ -110,9 +110,25 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_same @cache.redis, redis_instance
     end
 
+    test "validate pool arguments" do
+      assert_raises TypeError do
+        build(url: REDIS_URL, pool: { size: [] })
+      end
+
+      assert_raises TypeError do
+        build(url: REDIS_URL, pool: { timeout: [] })
+      end
+
+      build(url: REDIS_URL, pool: { size: "12", timeout: "1.5" })
+    end
+
+    test "instantiating the store doesn't connect to Redis" do
+      build(url: "redis://localhost:1")
+    end
+
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(**kwargs.merge(pool: false)).tap(&:redis)
+        ActiveSupport::Cache::RedisCacheStore.new(pool: false, **kwargs).tap(&:redis)
       end
   end
 
@@ -143,9 +159,12 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheStoreBehavior
     include CacheStoreVersionBehavior
     include CacheStoreCoderBehavior
+    include CacheStoreCompressionBehavior
+    include CacheStoreFormatVersionBehavior
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
+    include CacheLoggingBehavior
     include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget
@@ -161,12 +180,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
           key * 2
         end
-      end
-    end
-
-    def test_fetch_multi_without_names
-      assert_not_called(@cache.redis, :mget) do
-        @cache.fetch_multi() { }
       end
     end
 
@@ -220,51 +233,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         assert_nil @cache.fetch("foo") { nil }
         assert_equal false, @cache.exist?("foo")
       end
-    end
-
-    def test_large_string_with_default_compression_settings
-      assert_compressed(LARGE_STRING)
-    end
-
-    def test_large_object_with_default_compression_settings
-      assert_compressed(LARGE_OBJECT)
-    end
-  end
-
-  class OptimizedRedisCacheStoreCommonBehaviorTest < RedisCacheStoreCommonBehaviorTest
-    def before_setup
-      @previous_format = ActiveSupport::Cache.format_version
-      ActiveSupport::Cache.format_version = 7.0
-      super
-    end
-
-    def test_forward_compatibility
-      previous_format = ActiveSupport::Cache.format_version
-      ActiveSupport::Cache.format_version = 6.1
-      @old_store = lookup_store
-      ActiveSupport::Cache.format_version = previous_format
-
-      key = SecureRandom.uuid
-      value = SecureRandom.alphanumeric
-      @old_store.write(key, value)
-      assert_equal value, @cache.read(key)
-    end
-
-    def test_backward_compatibility
-      previous_format = ActiveSupport::Cache.format_version
-      ActiveSupport::Cache.format_version = 6.1
-      @old_store = lookup_store
-      ActiveSupport::Cache.format_version = previous_format
-
-      key = SecureRandom.uuid
-      value = SecureRandom.alphanumeric
-      @cache.write(key, value)
-      assert_equal value, @old_store.read(key)
-    end
-
-    def after_teardown
-      super
-      ActiveSupport::Cache.format_version = @previous_format
     end
   end
 

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = Active Support \Error Reporter
+  #
   # +ActiveSupport::ErrorReporter+ is a common interface for error reporting services.
   #
   # To rescue and report any unhandled error, you can use the #handle method:
@@ -127,12 +129,12 @@ module ActiveSupport
 
     # Unregister an error subscriber. Accepts either a subscriber or a class.
     #
-    #  subscriber = MyErrorSubscriber.new
-    #  Rails.error.subscribe(subscriber)
+    #   subscriber = MyErrorSubscriber.new
+    #   Rails.error.subscribe(subscriber)
     #
-    #  Rails.error.unsubscribe(subscriber)
-    #  # or
-    #  Rails.error.unsubscribe(MyErrorSubscriber)
+    #   Rails.error.unsubscribe(subscriber)
+    #   # or
+    #   Rails.error.unsubscribe(MyErrorSubscriber)
     def unsubscribe(subscriber)
       @subscribers.delete_if { |s| subscriber === s }
     end

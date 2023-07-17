@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "ipaddr"
+require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
@@ -10,9 +11,9 @@ require "rails/source_annotation_extractor"
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
+      attr_accessor :allow_concurrency, :asset_host, :assume_ssl, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
-                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
+                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
                     :log_tags, :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
@@ -34,10 +35,6 @@ module Rails
         @filter_redirect                         = []
         @helpers_paths                           = []
         if Rails.env.development?
-          if defined?(RubyVM) && RubyVM.respond_to?(:keep_script_lines=)
-            RubyVM.keep_script_lines = true
-          end
-
           @hosts = ActionDispatch::HostAuthorization::ALLOWED_HOSTS_IN_DEVELOPMENT +
             ENV["RAILS_DEVELOPMENT_HOSTS"].to_s.split(",").map(&:strip)
         else
@@ -47,6 +44,7 @@ module Rails
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
+        @assume_ssl                              = false
         @force_ssl                               = false
         @ssl_options                             = {}
         @session_store                           = nil
@@ -76,9 +74,7 @@ module Rails
         @content_security_policy_nonce_directives = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
-        @credentials                             = ActiveSupport::OrderedOptions.new
-        @credentials.content_path                = default_credentials_content_path
-        @credentials.key_path                    = default_credentials_key_path
+        @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @permissions_policy                      = nil
@@ -101,7 +97,7 @@ module Rails
         #    configure the default value.
         # 5. Add a commented out section in the `new_framework_defaults` to
         #    configure the default value again.
-        # 6. Update the guide in `configuration.md`.
+        # 6. Update the guide in `configuring.md`.
 
         # To remove configurable deprecated behavior, follow these steps:
         # 1. Update or remove the entry in the guides.
@@ -174,8 +170,6 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge
-
-            active_storage.replace_on_assign_to_many = true
           end
 
           if respond_to?(:active_record)
@@ -231,7 +225,6 @@ module Rails
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
-            action_dispatch.return_only_request_media_type_on_content_type = false
             action_dispatch.cookies_serializer = :json
           end
 
@@ -243,12 +236,9 @@ module Rails
           if respond_to?(:active_support)
             active_support.hash_digest_class = OpenSSL::Digest::SHA256
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
-            active_support.remove_deprecated_time_with_zone_name = true
             active_support.cache_format_version = 7.0
-            active_support.use_rfc4122_namespaced_uuids = true
             active_support.executor_around_test_case = true
             active_support.isolation_level = :thread
-            active_support.disable_to_s_conversion = true
           end
 
           if respond_to?(:action_mailer)
@@ -278,16 +268,26 @@ module Rails
           load_defaults "7.0"
 
           self.add_autoload_paths_to_load_path = false
+          self.precompile_filter_parameters = true
 
-          if Rails.env.development? || Rails.env.test?
+          if Rails.env.local?
             self.log_file_size = 100 * 1024 * 1024
           end
 
           if respond_to?(:active_record)
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
+            active_record.commit_transaction_on_non_local_return = true
             active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
+            active_record.raise_on_assign_to_attr_readonly = true
+            active_record.belongs_to_required_validates_foreign_key = false
+            active_record.before_committed_on_all_records = true
+            active_record.default_column_serializer = nil
+            active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
+            active_record.encryption.support_sha1_for_non_deterministic_encryption = false
+            active_record.marshalling_format_version = 7.1
+            active_record.run_after_transaction_callbacks_in_order_defined = true
           end
 
           if respond_to?(:action_dispatch)
@@ -298,6 +298,7 @@ module Rails
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
             }
+            action_dispatch.debug_exception_log_level = :error
           end
 
           if respond_to?(:active_job)
@@ -305,13 +306,24 @@ module Rails
           end
 
           if respond_to?(:active_support)
-            active_support.default_message_encryptor_serializer = :json
-            active_support.default_message_verifier_serializer = :json
+            active_support.cache_format_version = 7.1
+            active_support.message_serializer = :json_allow_marshal
+            active_support.use_message_serializer_for_metadata = true
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
           if respond_to?(:action_controller)
             action_controller.allow_deprecated_parameters_hash_equality = false
+          end
+
+          if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
+            if respond_to?(:action_view)
+              action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+            end
+
+            if respond_to?(:action_text)
+              action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
+            end
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -339,12 +351,12 @@ module Rails
       private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
 
       def enable_dependency_loading
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading
       end
 
       def enable_dependency_loading=(value)
-        ActiveSupport::Deprecation.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
+        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
         @enable_dependency_loading = value
       end
 
@@ -417,8 +429,14 @@ module Rails
           if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |env, config|
               if config.is_a?(Hash) && config.values.all?(Hash)
-                config.map do |name, sub_config|
-                  sub_config.reverse_merge!(shared)
+                if shared.is_a?(Hash) && shared.values.all?(Hash)
+                  config.map do |name, sub_config|
+                    sub_config.reverse_merge!(shared[name])
+                  end
+                else
+                  config.map do |name, sub_config|
+                    sub_config.reverse_merge!(shared)
+                  end
                 end
               else
                 config.reverse_merge!(shared)
@@ -437,6 +455,30 @@ module Rails
         config
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
+      end
+
+      def autoload_lib(ignore:)
+        lib = root.join("lib")
+
+        # Set as a string to have the same type as default autoload paths, for
+        # consistency.
+        autoload_paths << lib.to_s
+        eager_load_paths << lib.to_s
+
+        ignored_abspaths = Array.wrap(ignore).map { lib.join(_1) }
+        Rails.autoloaders.main.ignore(ignored_abspaths)
+      end
+
+      def autoload_lib_once(ignore:)
+        lib = root.join("lib")
+
+        # Set as a string to have the same type as default autoload paths, for
+        # consistency.
+        autoload_once_paths << lib.to_s
+        eager_load_paths << lib.to_s
+
+        ignored_abspaths = Array.wrap(ignore).map { lib.join(_1) }
+        Rails.autoloaders.once.ignore(ignored_abspaths)
       end
 
       def colorize_logging
@@ -517,6 +559,10 @@ module Rails
         f
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      end
+
       class Custom # :nodoc:
         def initialize
           @configurations = Hash.new
@@ -538,24 +584,14 @@ module Rails
       end
 
       private
-        def default_credentials_content_path
-          if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.yml.enc")
-          else
-            root.join("config", "credentials.yml.enc")
-          end
-        end
+        def credentials_defaults
+          content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
+          content_path = root.join("config/credentials.yml.enc") if !content_path.exist?
 
-        def default_credentials_key_path
-          if credentials_available_for_current_env?
-            root.join("config", "credentials", "#{Rails.env}.key")
-          else
-            root.join("config", "master.key")
-          end
-        end
+          key_path = root.join("config/credentials/#{Rails.env}.key")
+          key_path = root.join("config/master.key") if !key_path.exist?
 
-        def credentials_available_for_current_env?
-          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
+          { content_path: content_path, key_path: key_path }
         end
     end
   end

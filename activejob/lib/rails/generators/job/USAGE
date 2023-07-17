@@ -5,7 +5,7 @@ Description:
 Examples:
     `bin/rails generate job checkout`
 
-      Creates the the following files:
+      Creates the following files:
 
         Job:   app/jobs/checkout_job.rb
         Test:  test/jobs/checkout_job_test.rb

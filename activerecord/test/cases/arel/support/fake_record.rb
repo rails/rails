@@ -86,6 +86,10 @@ module FakeRecord
         "'#{thing.to_s.gsub("'", "\\\\'")}'"
       end
     end
+
+    def cast_bound_value(thing)
+      thing
+    end
   end
 
   class ConnectionPool

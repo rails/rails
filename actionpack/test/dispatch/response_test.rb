@@ -10,6 +10,12 @@ class ResponseTest < ActiveSupport::TestCase
     @response.request = ActionDispatch::Request.empty
   end
 
+  def test_illegal_state_error_is_deprecated
+    assert_deprecated(ActionDispatch.deprecator) do
+      ActionDispatch::IllegalStateError
+    end
+  end
+
   def test_can_wait_until_commit
     t = Thread.new {
       @response.await_commit
@@ -84,8 +90,8 @@ class ResponseTest < ActiveSupport::TestCase
     # the response can be built.
     status, headers, body = @response.to_a
     assert_equal 200, status
-    assert_equal({
-      "Content-Type" => "text/html; charset=utf-8"
+    assert_headers({
+      "content-type" => "text/html; charset=utf-8"
     }, headers)
 
     parts = []
@@ -122,9 +128,8 @@ class ResponseTest < ActiveSupport::TestCase
 
     status, headers, body = @response.to_a
     assert_equal 200, status
-    assert_equal({
-      "Content-Type" => "text/html; charset=utf-8"
-    }, headers)
+
+    assert_headers({ "content-type" => "text/html; charset=utf-8" }, headers)
 
     parts = []
     body.each { |part| parts << part }
@@ -147,8 +152,8 @@ class ResponseTest < ActiveSupport::TestCase
 
     status, headers, _ = @response.to_a
     assert_equal 200, status
-    assert_equal({
-      "Content-Type" => "text/html; charset=utf-8"
+    assert_headers({
+      "content-type" => "text/html; charset=utf-8"
     }, headers)
   end
 
@@ -227,10 +232,12 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal "OK", @response.message
   end
 
+  include CookieAssertions
+
   test "cookies" do
     @response.set_cookie("user_name", value: "david", path: "/")
     _status, headers, _body = @response.to_a
-    assert_equal "user_name=david; path=/", headers["Set-Cookie"]
+    assert_set_cookie_header "user_name=david; path=/", headers["Set-Cookie"]
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
@@ -238,7 +245,7 @@ class ResponseTest < ActiveSupport::TestCase
     @response.set_cookie("user_name", value: "david", path: "/")
     @response.set_cookie("login", value: "foo&bar", path: "/", expires: Time.utc(2005, 10, 10, 5))
     _status, headers, _body = @response.to_a
-    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", headers["Set-Cookie"]
+    assert_set_cookie_header "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT", headers["Set-Cookie"]
     assert_equal({ "login" => "foo&bar", "user_name" => "david" }, @response.cookies)
   end
 
@@ -380,22 +387,24 @@ class ResponseTest < ActiveSupport::TestCase
     assert @response.respond_to?(:method_missing, true)
   end
 
+  include HeadersAssertions
+
   test "can be explicitly destructured into status, headers and an enumerable body" do
     response = ActionDispatch::Response.new(404, { "Content-Type" => "text/plain" }, ["Not Found"])
     response.request = ActionDispatch::Request.empty
     status, headers, body = *response
 
     assert_equal 404, status
-    assert_equal({ "Content-Type" => "text/plain" }, headers)
+    assert_headers({ "content-type" => "text/plain" }, headers)
     assert_equal ["Not Found"], body.each.to_a
   end
 
   test "[response.to_a].flatten does not recurse infinitely" do
     Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
       status, headers, body = [@response.to_a].flatten
-      assert_equal @response.status, status
-      assert_equal @response.headers, headers
-      assert_equal @response.body, body.each.to_a.join
+      assert_equal status, 200
+      assert_equal headers, @response.headers
+      assert_nil body
     end
   end
 
@@ -405,10 +414,10 @@ class ResponseTest < ActiveSupport::TestCase
     env = Rack::MockRequest.env_for("/")
 
     _status, headers, _body = app.call(env)
-    assert_nil headers["Content-Length"]
+    assert_not_header "content-length", headers
 
     _status, headers, _body = Rack::ContentLength.new(app).call(env)
-    assert_equal "5", headers["Content-Length"]
+    assert_header "content-length", "5", headers
   end
 end
 
@@ -420,14 +429,12 @@ class ResponseHeadersTest < ActiveSupport::TestCase
 
   test "has_header?" do
     assert @response.has_header? "Foo"
-    assert_not @response.has_header? "foo"
-    assert_not @response.has_header? nil
+    assert @response.has_header? "foo"
   end
 
   test "get_header" do
     assert_equal "1", @response.get_header("Foo")
-    assert_nil @response.get_header("foo")
-    assert_nil @response.get_header(nil)
+    assert_equal "1", @response.get_header("foo")
   end
 
   test "set_header" do
@@ -441,23 +448,20 @@ class ResponseHeadersTest < ActiveSupport::TestCase
   end
 
   test "delete_header" do
-    assert_nil @response.delete_header(nil)
-
-    assert_nil @response.delete_header("foo")
-    assert @response.has_header?("Foo")
-
     assert_equal "1", @response.delete_header("Foo")
     assert_not @response.has_header?("Foo")
   end
 
+  include HeadersAssertions
+
   test "add_header" do
     # Add a value to an existing header
-    assert_equal "1,2", @response.add_header("Foo", "2")
-    assert_equal "1,2", @response.get_header("Foo")
+    assert_header_value "1,2", @response.add_header("Foo", "2")
+    assert_header_value "1,2", @response.get_header("Foo")
 
     # Add nil to an existing header
-    assert_equal "1,2", @response.add_header("Foo", nil)
-    assert_equal "1,2", @response.get_header("Foo")
+    assert_header_value "1,2", @response.add_header("Foo", nil)
+    assert_header_value "1,2", @response.get_header("Foo")
 
     # Add nil to a nonexistent header
     assert_nil @response.add_header("Bar", nil)
@@ -465,9 +469,9 @@ class ResponseHeadersTest < ActiveSupport::TestCase
     assert_nil @response.get_header("Bar")
 
     # Add a value to a nonexistent header
-    assert_equal "1", @response.add_header("Bar", "1")
+    assert_header_value "1", @response.add_header("Bar", "1")
     assert @response.has_header?("Bar")
-    assert_equal "1", @response.get_header("Bar")
+    assert_header_value "1", @response.get_header("Bar")
   end
 end
 

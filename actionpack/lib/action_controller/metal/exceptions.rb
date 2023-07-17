@@ -92,5 +92,13 @@ module ActionController
   end
 
   class MissingExactTemplate < UnknownFormat # :nodoc:
+    attr_reader :controller, :action_name
+
+    def initialize(message, controller, action_name)
+      @controller  = controller
+      @action_name = action_name
+
+      super(message)
+    end
   end
 end

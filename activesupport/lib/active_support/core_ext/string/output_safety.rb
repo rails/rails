@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "erb"
-require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/erb/util"
 require "active_support/multibyte/unicode"
 
@@ -21,7 +19,7 @@ module ActiveSupport # :nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete delete_prefix delete_suffix
-      downcase lstrip next reverse rstrip scrub slice squeeze strip
+      downcase lstrip next reverse rstrip scrub squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
     )
 
@@ -43,12 +41,25 @@ module ActiveSupport # :nodoc:
 
         return unless new_string
 
-        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
-        new_safe_buffer.instance_variable_set :@html_safe, true
-        new_safe_buffer
+        string_into_safe_buffer(new_string, true)
       else
         to_str[*args]
       end
+    end
+    alias_method :slice, :[]
+
+    def slice!(*args)
+      new_string = super
+
+      return new_string if !html_safe? || new_string.nil?
+
+      string_into_safe_buffer(new_string, true)
+    end
+
+    def chr
+      return super unless html_safe?
+
+      string_into_safe_buffer(super, true)
     end
 
     def safe_concat(value)
@@ -66,7 +77,10 @@ module ActiveSupport # :nodoc:
       @html_safe = other.html_safe?
     end
 
-    def clone_empty
+    def clone_empty # :nodoc:
+      ActiveSupport.deprecator.warn <<~EOM
+        ActiveSupport::SafeBuffer#clone_empty is deprecated and will be removed in Rails 7.2.
+      EOM
       self[0, 0]
     end
 
@@ -77,6 +91,10 @@ module ActiveSupport # :nodoc:
       self
     end
     alias << concat
+
+    def bytesplice(*args, value)
+      super(*args, implicit_html_escape_interpolated_argument(value))
+    end
 
     def insert(index, value)
       super(index, implicit_html_escape_interpolated_argument(value))
@@ -90,11 +108,11 @@ module ActiveSupport # :nodoc:
       super(implicit_html_escape_interpolated_argument(value))
     end
 
-    def []=(*args)
-      if args.length == 3
-        super(args[0], args[1], implicit_html_escape_interpolated_argument(args[2]))
+    def []=(arg1, arg2, arg3 = nil)
+      if arg3
+        super(arg1, arg2, implicit_html_escape_interpolated_argument(arg3))
       else
-        super(args[0], implicit_html_escape_interpolated_argument(args[1]))
+        super(arg1, implicit_html_escape_interpolated_argument(arg2))
       end
     end
 
@@ -102,7 +120,7 @@ module ActiveSupport # :nodoc:
       dup.concat(other)
     end
 
-    def *(*)
+    def *(_)
       new_string = super
       new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
@@ -187,22 +205,7 @@ module ActiveSupport # :nodoc:
         if !html_safe? || arg.html_safe?
           arg
         else
-          arg_string = begin
-            arg.to_str
-          rescue NoMethodError => error
-            if error.name == :to_str
-              str = arg.to_s
-              ActiveSupport.deprecator.warn <<~MSG.squish
-                Implicit conversion of #{arg.class} into String by ActiveSupport::SafeBuffer
-                is deprecated and will be removed in Rails 7.1.
-                You must explicitly cast it to a String.
-              MSG
-              str
-            else
-              raise
-            end
-          end
-          CGI.escapeHTML(arg_string)
+          CGI.escapeHTML(arg.to_str)
         end
       end
 
@@ -210,6 +213,12 @@ module ActiveSupport # :nodoc:
         block.binding.eval("proc { |m| $~ = m }").call(match_data)
       rescue ArgumentError
         # Can't create binding from C level Proc
+      end
+
+      def string_into_safe_buffer(new_string, is_html_safe)
+        new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
+        new_safe_buffer.instance_variable_set :@html_safe, is_html_safe
+        new_safe_buffer
       end
   end
 end

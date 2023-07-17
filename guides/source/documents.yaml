@@ -287,6 +287,15 @@
         application.
       work_in_progress: true
     -
+      name: Rails Application Templates
+      url: rails_application_templates.html
+      description: >
+        Application templates are simple Ruby files containing DSL for adding
+        gems, initializers, etc. to your freshly created Rails project or an
+        existing Rails project.
+      work_in_progress: true
+
+    -
       name: Threading and Code Execution in Rails
       url: threading_and_code_execution.html
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
@@ -306,6 +315,9 @@
       name: Guides Guidelines
       url: ruby_on_rails_guides_guidelines.html
       description: This guide documents the Ruby on Rails guides guidelines.
+    - name: Installing Rails Core Development Dependencies
+      url: development_dependencies_install.html
+      description: This guide covers how to set up an environment for Ruby on Rails core development.
 -
   name: Policies
   documents:

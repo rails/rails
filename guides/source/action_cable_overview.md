@@ -155,10 +155,9 @@ module ApplicationCable
     rescue_from StandardError, with: :report_error
 
     private
-
-    def report_error(e)
-      SomeExternalBugtrackingService.notify(e)
-    end
+      def report_error(e)
+        SomeExternalBugtrackingService.notify(e)
+      end
   end
 end
 ```
@@ -179,11 +178,10 @@ module ApplicationCable
     around_command :set_current_account
 
     private
-
-    def set_current_account
-      # Now all channels could use Current.account
-      Current.set(account: user.account) { yield }
-    end
+      def set_current_account(&block)
+        # Now all channels could use Current.account
+        Current.set(account: user.account, &block)
+      end
   end
 end
 ```
@@ -250,10 +248,9 @@ class ChatChannel < ApplicationCable::Channel
   rescue_from 'MyError', with: :deliver_error_message
 
   private
-
-  def deliver_error_message(e)
-    broadcast_to(...)
-  end
+    def deliver_error_message(e)
+      broadcast_to(...)
+    end
 end
 ```
 
@@ -278,14 +275,13 @@ class ChatChannel < ApplicationCable::Channel
   after_subscribe :track_subscription
 
   private
+    def send_welcome_message
+      broadcast_to(...)
+    end
 
-  def send_welcome_message
-    broadcast_to(...)
-  end
-  
-  def track_subscription
-    # ...
-  end
+    def track_subscription
+      # ...
+    end
 end
 ```
 
@@ -389,11 +385,11 @@ ActionCable.server.broadcast("chat_Best Room", { body: "This Room is Best Room."
 If you have a stream that is related to a model, then the broadcasting name
 can be generated from the channel and model. For example, the following code
 uses [`stream_for`][] to subscribe to a broadcasting like
-`comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
+`posts:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`, where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is
 the GlobalID of the Post model.
 
 ```ruby
-class CommentsChannel < ApplicationCable::Channel
+class PostsChannel < ApplicationCable::Channel
   def subscribed
     post = Post.find(params[:id])
     stream_for post
@@ -404,7 +400,7 @@ end
 You can then broadcast to this channel by calling [`broadcast_to`][]:
 
 ```ruby
-CommentsChannel.broadcast_to(@post, @comment)
+PostsChannel.broadcast_to(@post, @comment)
 ```
 
 [`broadcast`]: https://api.rubyonrails.org/classes/ActionCable/Server/Broadcasting.html#method-i-broadcast
@@ -655,28 +651,28 @@ consumer.subscriptions.create("AppearanceChannel", {
 #### Client-Server Interaction
 
 1. **Client** connects to the **Server** via `createConsumer()`. (`consumer.js`). The
-**Server** identifies this connection by `current_user`.
+  **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via
-`consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
+  `consumer.subscriptions.create({ channel: "AppearanceChannel" })`. (`appearance_channel.js`)
 
 3. **Server** recognizes a new subscription has been initiated for the
-appearance channel and runs its `subscribed` callback, calling the `appear`
-method on `current_user`. (`appearance_channel.rb`)
+  appearance channel and runs its `subscribed` callback, calling the `appear`
+  method on `current_user`. (`appearance_channel.rb`)
 
 4. **Client** recognizes that a subscription has been established and calls
-`connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
-`appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
-data hash of `{ appearing_on: this.appearingOn }`. This is
-possible because the server-side channel instance automatically exposes all
-public methods declared on the class (minus the callbacks), so that these can be
-reached as remote procedure calls via a subscription's `perform` method.
+  `connected` (`appearance_channel.js`), which in turn calls `install` and `appear`.
+  `appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
+  data hash of `{ appearing_on: this.appearingOn }`. This is
+  possible because the server-side channel instance automatically exposes all
+  public methods declared on the class (minus the callbacks), so that these can be
+  reached as remote procedure calls via a subscription's `perform` method.
 
 5. **Server** receives the request for the `appear` action on the appearance
-channel for the connection identified by `current_user`
-(`appearance_channel.rb`). **Server** retrieves the data with the
-`:appearing_on` key from the data hash and sets it as the value for the `:on`
-key being passed to `current_user.appear`.
+  channel for the connection identified by `current_user`
+  (`appearance_channel.rb`). **Server** retrieves the data with the
+  `:appearing_on` key from the data hash and sets it as the value for the `:on`
+  key being passed to `current_user.appear`.
 
 ### Example 2: Receiving New Web Notifications
 
@@ -876,6 +872,10 @@ For a full list of all configuration options, see the
 
 ## Running Standalone Cable Servers
 
+Action Cable can either run as part of your Rails application, or as
+a standalone server. In development, running as part of your Rails app
+is generally fine, but in production you should run it as a standalone.
+
 ### In App
 
 Action Cable can run alongside your Rails application. For example, to
@@ -890,7 +890,7 @@ end
 ```
 
 You can use `ActionCable.createConsumer()` to connect to the cable
-server if `action_cable_meta_tag` is invoked in the layout. Otherwise, A path is
+server if [`action_cable_meta_tag`][] is invoked in the layout. Otherwise, a path is
 specified as first argument to `createConsumer` (e.g. `ActionCable.createConsumer("/websocket")`).
 
 For every instance of your server you create, and for every worker your server
@@ -898,6 +898,7 @@ spawns, you will also have a new instance of Action Cable, but the Redis or
 PostgreSQL adapter keeps messages synced across connections.
 
 [`config.action_cable.mount_path`]: configuring.html#config-action-cable-mount-path
+[`action_cable_meta_tag`]: https://api.rubyonrails.org/classes/ActionCable/Helpers/ActionCableHelper.html#method-i-action_cable_meta_tag
 
 ### Standalone
 
@@ -913,14 +914,24 @@ Rails.application.eager_load!
 run ActionCable.server
 ```
 
-Then you start the server using a binstub in `bin/cable` ala:
+Then to start the server:
 
 ```
-#!/bin/bash
 bundle exec puma -p 28080 cable/config.ru
 ```
 
-The above will start a cable server on port 28080.
+This starts a cable server on port 28080. To tell Rails to use this
+server, update your config:
+
+```ruby
+# config/environments/development.rb
+Rails.application.configure do
+  config.action_cable.mount_path = nil
+  config.action_cable.url = "ws://localhost:28080" # use wss:// in production
+end
+```
+
+Finally, ensure you have [configured the consumer correctly](#consumer-configuration).
 
 ### Notes
 

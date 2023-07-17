@@ -17,7 +17,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Rails API documentation](https://api.rubyonrails.org/) for a complete reference.
+NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Rails API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers.html) for a complete reference of all available helpers.
 
 Dealing with Basic Forms
 ------------------------
@@ -366,8 +366,6 @@ Rails works around this issue by emulating other methods over POST through a com
   <button type="submit" name="button">Update</button>
 </form>
 ```
-
-IMPORTANT: In Rails 6.0 and 5.2, all forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide.
 
 [formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
 [button-name]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-name
@@ -736,7 +734,7 @@ by defining a `LabellingFormBuilder` class similar to the following:
 
 ```ruby
 class LabellingFormBuilder < ActionView::Helpers::FormBuilder
-  def text_field(attribute, options={})
+  def text_field(attribute, options = {})
     label(attribute) + super
   end
 end
@@ -746,7 +744,7 @@ If you reuse this frequently you could define a `labeled_form_with` helper that 
 
 ```ruby
 def labeled_form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
-  options.merge! builder: LabellingFormBuilder
+  options[:builder] = LabellingFormBuilder
   form_with model: model, scope: scope, url: url, format: format, **options, &block
 end
 ```
@@ -777,7 +775,7 @@ The two basic structures are arrays and hashes. Hashes mirror the syntax used fo
 the `params` hash will contain
 
 ```ruby
-{'person' => {'name' => 'Henry'}}
+{ 'person' => { 'name' => 'Henry' } }
 ```
 
 and `params[:person][:name]` will retrieve the submitted value in the controller.
@@ -791,7 +789,7 @@ Hashes can be nested as many levels as required, for example:
 will result in the `params` hash being
 
 ```ruby
-{'person' => {'address' => {'city' => 'New York'}}}
+{ 'person' => { 'address' => { 'city' => 'New York' } } }
 ```
 
 Normally Rails ignores duplicate parameter names. If the parameter name ends with an empty set of square brackets `[]` then they will be accumulated in an array. If you wanted users to be able to input multiple phone numbers, you could place this in the form:
@@ -870,10 +868,10 @@ Which will result in a `params` hash that looks like:
 ```
 
 All of the form inputs map to the `"person"` hash because we called `fields_for`
-on the `person_form` form builder. By specifying an `:index` option, we mapped
-the address inputs to `person[address][#{address.id}][city]` instead of
-`person[address][city]`. Thus we are able to determine which Address records
-should be modified when processing the `params` hash.
+on the `person_form` form builder. Also, by specifying `index: address.id`, we
+rendered the `name` attribute of each city input as `person[address][#{address.id}][city]`
+instead of `person[address][city]`. Thus we are able to determine which Address
+records should be modified when processing the `params` hash.
 
 You can pass other numbers or strings of significance via the `:index` option.
 You can even pass `nil`, which will produce an array parameter.
@@ -1077,7 +1075,7 @@ It is often useful to ignore sets of fields that the user has not filled in. You
 ```ruby
 class Person < ApplicationRecord
   has_many :addresses
-  accepts_nested_attributes_for :addresses, reject_if: lambda {|attributes| attributes['kind'].blank?}
+  accepts_nested_attributes_for :addresses, reject_if: lambda { |attributes| attributes['kind'].blank? }
 end
 ```
 

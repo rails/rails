@@ -6,7 +6,7 @@ module ActiveModel
   module Validations
     module ClassMethods
       # This method is a shortcut to all default validators and any custom
-      # validator classes ending in 'Validator'. Note that Rails default
+      # validator classes ending in 'Validator'. Note that \Rails default
       # validators can be overridden inside specific classes by creating
       # custom validator classes in their place such as PresenceValidator.
       #
@@ -96,7 +96,7 @@ module ActiveModel
       # Example:
       #
       #   validates :password, presence: true, confirmation: true, if: :password_required?
-      #   validates :token, length: {is: 24}, strict: TokenLengthException
+      #   validates :token, length: { is: 24 }, strict: TokenLengthException
       #
       #
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
@@ -130,7 +130,7 @@ module ActiveModel
       # This method is used to define validations that cannot be corrected by end
       # users and are considered exceptional. So each validator defined with bang
       # or <tt>:strict</tt> option set to <tt>true</tt> will always raise
-      # <tt>ActiveModel::StrictValidationFailed</tt> instead of adding error
+      # ActiveModel::StrictValidationFailed instead of adding error
       # when validation fails. See <tt>validates</tt> for more information about
       # the validation itself.
       #
@@ -144,7 +144,7 @@ module ActiveModel
       #   person = Person.new
       #   person.name = ''
       #   person.valid?
-      #   # => ActiveModel::StrictValidationFailed: Name can't be blank
+      #   # => ActiveModel::StrictValidationFailed: Name can’t be blank
       def validates!(*attributes)
         options = attributes.extract_options!
         options[:strict] = true

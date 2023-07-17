@@ -1,6 +1,167 @@
+*   Don't double-encode nested `field_id` and `field_name` index values
+
+    Pass `index: @options` as a default keyword argument to `field_id` and
+    `field_name` view helper methods.
+
+    *Sean Doyle*
+
+*   Allow opting in/out of `Link preload` headers when calling `stylesheet_link_tag` or `javascript_include_tag`
+
+    ```ruby
+    # will exclude header, even if setting is enabled:
+    javascript_include_tag("http://example.com/all.js", preload_links_header: false)
+
+    # will include header, even if setting is disabled:
+    stylesheet_link_tag("http://example.com/all.js", preload_links_header: true)
+    ```
+
+    *Alex Ghiculescu*
+
+*   Stop generating `Link preload` headers once it has reached 1KB.
+
+    Some proxies have trouble handling large headers, but more importantly preload links
+    have diminishing returns so it's preferable not to go overboard with them.
+
+    If tighter control is needed, it's recommended to disable automatic generation of preloads
+    and to generate them manually from the controller or from a middleware.
+
+    *Jean Boussier*
+
+*   `simple_format` helper now handles a `:sanitize_options` - any extra options you want appending to the sanitize.
+
+    Before:
+    ```ruby
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>")
+      # => "<p><a href=\"http://example.com\">Continue</a></p>"
+    ```
+
+    After:
+    ```ruby
+      simple_format("<a target=\"_blank\" href=\"http://example.com\">Continue</a>", {}, { sanitize_options: { attributes: %w[target href] } })
+      # => "<p><a target=\"_blank\" href=\"http://example.com\">Continue</a></p>"
+    ```
+
+    *Andrei Andriichuk*
+
+*   Add support for HTML5 standards-compliant sanitizers, and default to `Rails::HTML5::Sanitizer`
+    in the Rails 7.1 configuration if it is supported.
+
+    Action View's HTML sanitizers can be configured by setting
+    `config.action_view.sanitizer_vendor`. Supported values are `Rails::HTML4::Sanitizer` or
+    `Rails::HTML5::Sanitizer`.
+
+    The Rails 7.1 configuration will set this to `Rails::HTML5::Sanitizer` when it is supported, and
+    fall back to `Rails::HTML4::Sanitizer`. Previous configurations default to
+    `Rails::HTML4::Sanitizer`.
+
+    *Mike Dalessio*
+
+*   Add support for the HTML picture tag. It supports passing a String, an Array or a Block.
+    Supports passing properties directly to the img tag via the `:image` key.
+    Since the picture tag requires an img tag, the last element you provide will be used for the img tag.
+    For complete control over the picture tag, a block can be passed, which will populate the contents of the tag accordingly.
+
+    Can be used like this for a single source:
+    ```erb
+    <%= picture_tag("picture.webp") %>
+    ```
+    which will generate the following:
+    ```html
+    <picture>
+        <img src="/images/picture.webp" />
+    </picture>
+    ```
+
+    For multiple sources:
+    ```erb
+    <%= picture_tag("picture.webp", "picture.png", :class => "mt-2", :image => { alt: "Image", class: "responsive-img" }) %>
+    ```
+    will generate:
+    ```html
+    <picture class="mt-2">
+        <source srcset="/images/picture.webp" />
+        <source srcset="/images/picture.png" />
+        <img alt="Image" class="responsive-img" src="/images/picture.png" />
+    </picture>
+    ```
+
+    Full control via a block:
+    ```erb
+    <%= picture_tag(:class => "my-class") do %>
+        <%= tag(:source, :srcset => image_path("picture.webp")) %>
+        <%= tag(:source, :srcset => image_path("picture.png")) %>
+        <%= image_tag("picture.png", :alt => "Image") %>
+    <% end %>
+    ```
+    will generate:
+    ```html
+    <picture class="my-class">
+        <source srcset="/images/picture.webp" />
+        <source srcset="/images/picture.png" />
+        <img alt="Image" src="/images/picture.png" />
+    </picture>
+    ```
+
+    *Juan Pablo Balarini*
+
+*   Remove deprecated support to passing instance variables as locals to partials.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated constant `ActionView::Path`.
+
+    *Rafael Mendonça França*
+
+*   Guard `token_list` calls from escaping HTML too often
+
+    *Sean Doyle*
+
+*   `select` can now be called with a single hash containing options and some HTML options
+
+    Previously this would not work as expected:
+
+    ```erb
+    <%= select :post, :author, authors, required: true %>
+    ```
+
+    Instead you needed to do this:
+
+    ```erb
+    <%= select :post, :author, authors, {}, required: true %>
+    ```
+
+    Now, either form is accepted, for the following HTML attributes: `required`, `multiple`, `size`.
+
+    *Alex Ghiculescu*
+
+*   Datetime form helpers (`time_field`, `date_field`, `datetime_field`, `week_field`, `month_field`) now accept an instance of Time/Date/DateTime as `:value` option.
+
+    Before:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current.strftime("%Y-%m-%dT%T") %>
+    ```
+
+    After:
+    ```erb
+    <%= form.datetime_field :written_at, value: Time.current %>
+    ```
+
+    *Andrey Samsonov*
+
+*   Choices of `select` can optionally contain html attributes as the last element
+    of the child arrays when using grouped/nested collections
+
+    ```erb
+    <%= form.select :foo, [["North America", [["United States","US"],["Canada","CA"]], { disabled: "disabled" }]] %>
+    # => <select><optgroup label="North America" disabled="disabled"><option value="US">United States</option><option value="CA">Canada</option></optgroup></select>
+    ```
+
+    *Chris Gunther*
+
 *   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument
 
-    This is to make the API more consistent with the `FormHelper` variants. You can now provide `checked` as a positional or keyword argument:
+    This is to make the API more consistent with the `FormHelper` variants. You can now
+    provide `checked` as a positional or keyword argument:
 
     ```erb
     = check_box_tag "admin", "1", false

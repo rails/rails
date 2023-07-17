@@ -4,8 +4,6 @@ require "cases/helper"
 require "cases/migration/helper"
 
 class MultiDbMigratorTest < ActiveRecord::TestCase
-  self.use_transactional_tests = false
-
   # Use this class to sense if migrations have gone
   # up or down.
   class Sensor < ActiveRecord::Migration::Current
@@ -194,6 +192,17 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
 
     migrator_b.forward
     assert_equal(3, migrator_b.current_version)
+  end
+
+  def test_internal_metadata_stores_environment
+    current_env     = ActiveRecord::Base.connection.pool.db_config.env_name
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration_b, @internal_metadata_b)
+
+    migrator.up
+    assert_equal current_env, @internal_metadata_b[:environment]
+  ensure
+    migrator.down if migrator
   end
 
   private

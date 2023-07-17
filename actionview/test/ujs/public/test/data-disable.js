@@ -1,3 +1,5 @@
+import $ from 'jquery'
+
 QUnit.module('data-disable', {
   beforeEach: function() {
     $('#qunit-fixture').append($('<form />', {
@@ -226,12 +228,13 @@ QUnit.test('a[data-remote][data-disable] re-enables when `ajax:error` event is t
     .bindNative('ajax:send', function() {
       assert.disabledState(link, 'Click me')
     })
+    .bindNative('ajax:complete', function() {
+      setTimeout(function() {
+        assert.enabledState(link, 'Click me')
+        done()
+      }, 30)
+    })
     .triggerNative('click')
-
-  setTimeout(function() {
-    assert.enabledState(link, 'Click me')
-    done()
-  }, 30)
 })
 
 QUnit.test('form[data-remote] input|button|textarea[data-disable] does not disable when `ajax:beforeSend` event is cancelled', function(assert) {
@@ -355,12 +358,13 @@ QUnit.test('button[data-remote][data-disable] re-enables when `ajax:error` event
     .bindNative('ajax:send', function() {
       assert.disabledState(button, 'Click me')
     })
+    .bindNative('ajax:complete', function() {
+      setTimeout(function() {
+        assert.enabledState(button, 'Click me')
+        done()
+      }, 30)
+    })
     .triggerNative('click')
-
-  setTimeout(function() {
-    assert.enabledState(button, 'Click me')
-    done()
-  }, 30)
 })
 
 QUnit.test('do not enable elements for XHR redirects', function(assert) {

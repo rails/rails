@@ -168,7 +168,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     only_david = Author.where("#{author_id} IN (?)", david)
 
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \('1'\)\)\z/) do
         assert_equal [david], only_david.merge(only_david)
       end

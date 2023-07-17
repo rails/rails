@@ -699,6 +699,18 @@ If you have multiple engines that need migrations copied over, use
 $ bin/rails railties:install:migrations
 ```
 
+You can specify a custom path in the source engine for the migrations by specifying MIGRATIONS_PATH.
+
+```bash
+$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blourgh
+```
+
+If you have multiple databases you can also specify the target database by specifying DATABASE.
+
+```bash
+$ bin/rails railties:install:migrations DATABASE=animals
+```
+
 This command, when run for the first time, will copy over all the migrations
 from the engine. When run the next time, it will only copy over migrations that
 haven't been copied over already. The first run for this command will output
@@ -1090,7 +1102,7 @@ module MyApp
     Rails.autoloaders.main.ignore(overrides)
 
     config.to_prepare do
-      Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+      Dir.glob("#{overrides}/**/*_override.rb").sort.each do |override|
         load override
       end
     end
@@ -1488,11 +1500,18 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionText::Content`                | `action_text_content`                |
 | `ActionText::Record`                 | `action_text_record`                 |
 | `ActionText::RichText`               | `action_text_rich_text`              |
+| `ActionText::EncryptedRichText`      | `action_text_encrypted_rich_text`    |
 | `ActionView::Base`                   | `action_view`                        |
 | `ActionView::TestCase`               | `action_view_test_case`              |
 | `ActiveJob::Base`                    | `active_job`                         |
 | `ActiveJob::TestCase`                | `active_job_test_case`               |
+| `ActiveModel::Model`                 | `active_model`                       |
 | `ActiveRecord::Base`                 | `active_record`                      |
+| `ActiveRecord::TestFixtures`         | `active_record_fixtures`             |
+| `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter`    | `active_record_postgresqladapter`    |
+| `ActiveRecord::ConnectionAdapters::Mysql2Adapter`        | `active_record_mysql2adapter`        |
+| `ActiveRecord::ConnectionAdapters::TrilogyAdapter`       | `active_record_trilogyadapter`       |
+| `ActiveRecord::ConnectionAdapters::SQLite3Adapter`       | `active_record_sqlite3adapter`       |
 | `ActiveStorage::Attachment`          | `active_storage_attachment`          |
 | `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
 | `ActiveStorage::Blob`                | `active_storage_blob`                |

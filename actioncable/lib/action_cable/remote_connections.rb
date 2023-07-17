@@ -3,6 +3,8 @@
 require "active_support/core_ext/module/redefine_method"
 
 module ActionCable
+  # = Action Cable Remote Connections
+  #
   # If you need to disconnect a given connection, you can go through the
   # RemoteConnections. You can find the connections you're looking for by
   # searching for the identifier declared on the connection. For example:
@@ -21,7 +23,7 @@ module ActionCable
   # it uses the internal channel that all of these servers are subscribed to.
   #
   # By default, server sends a "disconnect" message with "reconnect" flag set to true.
-  # You can override it by specifying the `reconnect` option:
+  # You can override it by specifying the +reconnect+ option:
   #
   #   ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect(reconnect: false)
   class RemoteConnections
@@ -36,6 +38,8 @@ module ActionCable
     end
 
     private
+      # = Action Cable Remote \Connection
+      #
       # Represents a single remote connection found via <tt>ActionCable.server.remote_connections.where(*)</tt>.
       # Exists solely for the purpose of calling #disconnect on that connection.
       class RemoteConnection

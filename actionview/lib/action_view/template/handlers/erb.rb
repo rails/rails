@@ -24,6 +24,8 @@ module ActionView
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
+        LocationParsingError = Class.new(StandardError) # :nodoc:
+
         def self.call(template, source)
           new.call(template, source)
         end
@@ -52,6 +54,8 @@ module ActionView
           spot[:script_lines] = source.lines
 
           spot
+        rescue NotImplementedError, LocationParsingError
+          nil
         end
 
         def call(template, source)
@@ -110,15 +114,23 @@ module ActionView
             tok_name, str = *tok
             case tok_name
             when :TEXT
-              raise unless compiled.scan(str)
+              loop do
+                break if compiled.match?(str)
+                compiled.getch
+              end
+              raise LocationParsingError unless compiled.scan(str)
             when :CODE
-              raise "We went too far" if compiled.pos > error_column
+              if compiled.pos > error_column
+                raise LocationParsingError, "We went too far"
+              end
 
               if compiled.pos + str.bytesize >= error_column
                 offset = error_column - compiled.pos
                 return passed_tokens.map(&:last).join.bytesize + offset
               else
-                raise unless compiled.scan(str)
+                unless compiled.scan(str)
+                  raise LocationParsingError, "Couldn't find code snippet"
+                end
               end
             when :OPEN
               next_tok = source_tokens.first.last
@@ -133,7 +145,7 @@ module ActionView
                 compiled.getch
               end
             else
-              raise NotImplemented, tok.first
+              raise LocationParsingError, "Not implemented: #{tok.first}"
             end
 
             passed_tokens << tok

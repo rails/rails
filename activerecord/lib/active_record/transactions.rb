@@ -15,7 +15,7 @@ module ActiveRecord
 
     attr_accessor :_new_record_before_last_commit # :nodoc:
 
-    # = Active Record Transactions
+    # = Active Record \Transactions
     #
     # \Transactions are protective blocks where SQL statements are only permanent
     # if they can all succeed as one atomic action. The classic example is a
@@ -100,7 +100,8 @@ module ActiveRecord
     # catch those in your application code.
     #
     # One exception is the ActiveRecord::Rollback exception, which will trigger
-    # a ROLLBACK when raised, but not be re-raised by the transaction block.
+    # a ROLLBACK when raised, but not be re-raised by the transaction block. Any
+    # other exception will be re-raised.
     #
     # *Warning*: one should not catch ActiveRecord::StatementInvalid exceptions
     # inside a transaction block. ActiveRecord::StatementInvalid exceptions indicate that an
@@ -229,31 +230,31 @@ module ActiveRecord
       #   after_commit :do_bar_baz, on: [:update, :destroy]
       #
       def after_commit(*args, &block)
-        set_options_for_callbacks!(args)
+        set_options_for_callbacks!(args, prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
       def after_save_commit(*args, &block)
-        set_options_for_callbacks!(args, on: [ :create, :update ])
+        set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
       def after_create_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :create)
+        set_options_for_callbacks!(args, on: :create, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
       def after_update_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :update)
+        set_options_for_callbacks!(args, on: :update, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
       def after_destroy_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :destroy)
+        set_options_for_callbacks!(args, on: :destroy, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
@@ -261,11 +262,19 @@ module ActiveRecord
       #
       # Please check the documentation of #after_commit for options.
       def after_rollback(*args, &block)
-        set_options_for_callbacks!(args)
+        set_options_for_callbacks!(args, prepend_option)
         set_callback(:rollback, :after, *args, &block)
       end
 
       private
+        def prepend_option
+          if ActiveRecord.run_after_transaction_callbacks_in_order_defined
+            { prepend: true }
+          else
+            {}
+          end
+        end
+
         def set_options_for_callbacks!(args, enforced_options = {})
           options = args.extract_options!.merge!(enforced_options)
           args << options
@@ -379,6 +388,13 @@ module ActiveRecord
     private
       attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
 
+      def init_internals
+        super
+        @_start_transaction_state = nil
+        @_committed_already_called = nil
+        @_new_record_before_last_commit = nil
+      end
+
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
         @_start_transaction_state ||= {
@@ -420,8 +436,16 @@ module ActiveRecord
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
-            if @attributes.fetch_value(@primary_key) != restore_state[:id]
-              @attributes.write_from_user(@primary_key, restore_state[:id])
+            if self.class.composite_primary_key?
+              if restore_state[:id] != @primary_key.map { |col| @attributes.fetch_value(col) }
+                @primary_key.zip(restore_state[:id]).each do |col, val|
+                  @attributes.write_from_user(col, val)
+                end
+              end
+            else
+              if @attributes.fetch_value(@primary_key) != restore_state[:id]
+                @attributes.write_from_user(@primary_key, restore_state[:id])
+              end
             end
             freeze if restore_state[:frozen?]
           end

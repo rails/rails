@@ -5,6 +5,7 @@ require "active_support/multibyte/chars"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
+    # = Active Record Connection Adapters \Quoting
     module Quoting
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
@@ -50,8 +51,23 @@ module ActiveRecord
       # Quote a value to be used as a bound parameter of unknown type. For example,
       # MySQL might perform dangerous castings when comparing a string to a number,
       # so this method will cast numbers to string.
+      #
+      # Deprecated: Consider `Arel.sql("... ? ...", value)` or
+      # +sanitize_sql+ instead.
       def quote_bound_value(value)
-        quote(value)
+        ActiveRecord.deprecator.warn(<<~MSG.squish)
+          #quote_bound_value is deprecated and will be removed in Rails 7.2.
+          Consider Arel.sql(".. ? ..", value) or #sanitize_sql instead.
+        MSG
+
+        quote(cast_bound_value(value))
+      end
+
+      # Cast a value to be used as a bound parameter of unknown type. For example,
+      # MySQL might perform dangerous castings when comparing a string to a number,
+      # so this method will cast numbers to string.
+      def cast_bound_value(value) # :nodoc:
+        value
       end
 
       # If you are having to call this function, you are likely doing something
@@ -86,7 +102,7 @@ module ActiveRecord
       # Override to return the quoted table name for assignment. Defaults to
       # table quoting.
       #
-      # This works for mysql2 where table.column can be used to
+      # This works for MySQL where table.column can be used to
       # resolve ambiguity.
       #
       # We override this in the sqlite3 and postgresql adapters to use only
@@ -149,7 +165,16 @@ module ActiveRecord
       end
 
       def sanitize_as_sql_comment(value) # :nodoc:
-        value.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
+        # Sanitize a string to appear within a SQL comment
+        # For compatibility, this also surrounding "/*+", "/*", and "*/"
+        # charcacters, possibly with single surrounding space.
+        # Then follows that by replacing any internal "*/" or "/ *" with
+        # "* /" or "/ *"
+        comment = value.to_s.dup
+        comment.gsub!(%r{\A\s*/\*\+?\s?|\s?\*/\s*\Z}, "")
+        comment.gsub!("*/", "* /")
+        comment.gsub!("/*", "/ *")
+        comment
       end
 
       def column_name_matcher # :nodoc:

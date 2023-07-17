@@ -21,7 +21,7 @@ module Rails
         request = ActionDispatch::Request.new(env)
 
         if logger.respond_to?(:tagged)
-          logger.tagged(compute_tags(request)) { call_app(request, env) }
+          logger.tagged(*compute_tags(request)) { call_app(request, env) }
         else
           call_app(request, env)
         end
@@ -34,9 +34,15 @@ module Rails
           handle.start
 
           logger.info { started_request_message(request) }
-          status, headers, body = @app.call(env)
+          status, headers, body = response = @app.call(env)
           body = ::Rack::BodyProxy.new(body, &handle.method(:finish))
-          [status, headers, body]
+
+          if response.frozen?
+            [status, headers, body]
+          else
+            response[2] = body
+            response
+          end
         rescue Exception
           handle.finish
           raise
@@ -46,11 +52,11 @@ module Rails
 
         # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
         def started_request_message(request) # :doc:
-          'Started %s "%s" for %s at %s' % [
+          sprintf('Started %s "%s" for %s at %s',
             request.raw_request_method,
             request.filtered_path,
             request.remote_ip,
-            Time.now.to_default_s ]
+            Time.now)
         end
 
         def compute_tags(request) # :doc:

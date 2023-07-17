@@ -30,11 +30,12 @@ require "models/citation"
 require "models/tree"
 require "models/node"
 require "models/club"
+require "models/cpk"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes
+           :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes, :cpk_books
 
   def test_belongs_to
     client = Client.find(3)
@@ -93,7 +94,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_with_primary_key_joins_on_correct_column
     sql = Client.joins(:firm_with_primary_key).to_sql
-    if current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_no_match(/`firm_with_primary_keys_companies`\.`id`/, sql)
       assert_match(/`firm_with_primary_keys_companies`\.`name`/, sql)
     elsif current_adapter?(:OracleAdapter)
@@ -355,6 +356,36 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.id, citibank.firm_id
   end
 
+  def test_building_the_belonging_object_for_composite_primary_key
+    cpk_book = cpk_books(:cpk_great_author_first_book)
+    order = cpk_book.build_order
+    cpk_book.save
+
+    _shop_id, id = order.id
+    assert_equal id, cpk_book.order_id
+  end
+
+  def test_belongs_to_with_inverse_association_for_composite_primary_key
+    author = Cpk::Author.new(name: "John")
+    book = author.books.build(id: [nil, 1], title: "The Rails Way")
+    order = Cpk::Order.new(book: book, status: "paid")
+    author.save!
+
+    _order_shop_id, order_id = order.id
+    assert order_id
+    assert_equal order_id, book.order_id
+  end
+
+  def test_should_set_composite_foreign_key_on_association_when_key_changes_on_associated_record
+    book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
+    order = Cpk::Order.create!(id: [1, 2], book: book)
+
+    order.shop_id = 3
+    order.save!
+
+    assert_equal 3, book.shop_id
+  end
+
   def test_building_the_belonging_object_with_implicit_sti_base_class
     account = Account.new
     company = account.build_firm
@@ -414,7 +445,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
     assert_equal "Odegy", odegy_account.firm.name
 
-    assert_equal "ODEGY", odegy_account.reload_firm.name
+    assert_queries(1) { odegy_account.reload_firm }
+
+    assert_no_queries { odegy_account.firm }
+    assert_equal "ODEGY", odegy_account.firm.name
   end
 
   def test_reload_the_belonging_object_with_query_cache
@@ -439,6 +473,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { Account.find(odegy_account_id) }
   ensure
     ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  def test_resetting_the_association
+    odegy_account = accounts(:odegy_account)
+
+    assert_equal "Odegy", odegy_account.firm.name
+    Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
+    assert_equal "Odegy", odegy_account.firm.name
+
+    assert_no_queries { odegy_account.reset_firm }
+    assert_queries(1) { odegy_account.firm }
+    assert_equal "ODEGY", odegy_account.firm.name
   end
 
   def test_natural_assignment_to_nil
@@ -1428,6 +1474,31 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.id, client.client_of
   end
 
+  def test_should_set_foreign_key_on_create_association_with_unpersisted_owner
+    tagging = Tagging.new
+    tag = tagging.create_tag
+
+    assert_not_predicate tagging, :persisted?
+    assert_predicate tag, :persisted?
+    assert_equal tag.id, tagging.tag_id
+  end
+
+  def test_should_set_foreign_key_on_save
+    client = Client.create! name: "fuu"
+    firm   = client.build_firm name: "baa"
+
+    firm.save
+    assert_equal firm.id, client.client_of
+  end
+
+  def test_should_set_foreign_key_on_save!
+    client = Client.create! name: "fuu"
+    firm   = client.build_firm name: "baa"
+
+    firm.save!
+    assert_equal firm.id, client.client_of
+  end
+
   def test_self_referential_belongs_to_with_counter_cache_assigning_nil
     comment = Comment.create! post: posts(:thinking), body: "fuu"
     comment.parent = nil
@@ -1649,6 +1720,93 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment.save!
     assert_not comment.author_changed?
     assert comment.author_previously_changed?
+  end
+
+  class ShipRequired < ActiveRecord::Base
+    self.table_name = "ships"
+    belongs_to :developer, required: true
+  end
+
+  test "runs parent presence check if parent changed or nil" do
+    david = developers(:david)
+    jamis = developers(:jamis)
+
+    ship = ShipRequired.create!(name: "Medusa", developer: david)
+    assert_equal david, ship.developer
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(developer_id: jamis.id)
+    end
+
+    ship.update_column(:developer_id, nil)
+    ship.reload
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(developer_id: david.id)
+    end
+  end
+
+  test "skips parent presence check if parent has not changed" do
+    david = developers(:david)
+    ship = ShipRequired.create!(name: "Medusa", developer: david)
+    ship.reload # unload developer association
+
+    assert_queries(1) do # UPDATE only, no SELECT to check developer presence
+      ship.update!(name: "Leviathan")
+    end
+  end
+
+  test "runs parent presence check if parent has not changed and belongs_to_required_validates_foreign_key is set" do
+    original_value = ActiveRecord.belongs_to_required_validates_foreign_key
+    ActiveRecord.belongs_to_required_validates_foreign_key = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ships"
+      def self.name; "Temp"; end
+      belongs_to :developer, required: true
+    end
+
+    david = developers(:david)
+    ship = model.create!(name: "Medusa", developer: david)
+    ship.reload # unload developer association
+
+    assert_queries(2) do # UPDATE and SELECT to check developer presence
+      ship.update!(name: "Leviathan")
+    end
+  ensure
+    ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
+
+  test "composite primary key malformed association class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      book = Cpk::BrokenBook.new(title: "Some book", order: Cpk::Order.new(id: [1, 2]))
+      book.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenBook#order primary key ["shop_id", "id"]
+      doesn't match with foreign key order_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      book = Cpk::BrokenBookWithNonCpkOrder.new(title: "Some book", order: Cpk::NonCpkOrder.new(id: 1))
+      book.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenBookWithNonCpkOrder#order primary key ["id"]
+      doesn't match with foreign key ["shop_id", "order_id"]. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "association with query constraints assigns id on replacement" do
+    book = Cpk::NonCpkBook.create!(id: 1, author_id: 2, non_cpk_order: Cpk::NonCpkOrder.new)
+    other_order = Cpk::NonCpkOrder.create!
+    book.non_cpk_order = other_order
+
+    assert_equal(other_order.id, book.order_id)
   end
 end
 

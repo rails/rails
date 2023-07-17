@@ -6,6 +6,8 @@ require "uri/common"
 
 module ActiveSupport
   module Cache
+    # = \File \Cache \Store
+    #
     # A cache store implementation which stores everything on the filesystem.
     class FileStore < Store
       attr_reader :cache_path
@@ -83,6 +85,10 @@ module ActiveSupport
             delete_entry(path, **options) if key.match(matcher)
           end
         end
+      end
+
+      def inspect # :nodoc:
+        "#<#{self.class.name} cache_path=#{@cache_path}, options=#{@options.inspect}>"
       end
 
       private

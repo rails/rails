@@ -11,7 +11,7 @@ module ActionMailer
     config.action_mailer.preview_paths = []
     config.eager_load_namespaces << ActionMailer
 
-    initializer "action_mailer.deprecator" do |app|
+    initializer "action_mailer.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_mailer] = ActionMailer.deprecator
     end
 

@@ -4,7 +4,7 @@ module Rails
   module Generators
     module Database # :nodoc:
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES = %w( mysql postgresql sqlite3 oracle sqlserver ) + JDBC_DATABASES
+      DATABASES = %w( mysql trilogy postgresql sqlite3 oracle sqlserver ) + JDBC_DATABASES
 
       def initialize(*)
         super
@@ -14,6 +14,7 @@ module Rails
       def gem_for_database(database = options[:database])
         case database
         when "mysql"          then ["mysql2", ["~> 0.5"]]
+        when "trilogy"        then ["trilogy", ["~> 2.4"]]
         when "postgresql"     then ["pg", ["~> 1.1"]]
         when "sqlite3"        then ["sqlite3", ["~> 1.4"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
@@ -35,6 +36,23 @@ module Rails
           when "sqlite3"    then opt[:database] = "jdbcsqlite3"
           end
           self.options = opt.freeze
+        end
+      end
+
+      def build_package_for_database(database = options[:database])
+        case database
+        when "mysql" then "default-libmysqlclient-dev"
+        when "postgresql" then "libpq-dev"
+        else nil
+        end
+      end
+
+      def deploy_package_for_database(database = options[:database])
+        case database
+        when "mysql" then "default-mysql-client"
+        when "postgresql" then "postgresql-client"
+        when "sqlite3" then "libsqlite3-0"
+        else nil
         end
       end
 

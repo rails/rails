@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller Form Builder
+  #
   # Override the default form builder for all views rendered by this
   # controller and any of its descendants. Accepts a subclass of
   # ActionView::Helpers::FormBuilder.

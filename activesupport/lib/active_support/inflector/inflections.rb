@@ -7,6 +7,8 @@ module ActiveSupport
   module Inflector
     extend self
 
+    # = Active Support \Inflections
+    #
     # A singleton instance of this class is yielded by Inflector.inflections,
     # which can then be used to specify additional inflection rules. If passed
     # an optional locale, rules for other languages can be specified. The

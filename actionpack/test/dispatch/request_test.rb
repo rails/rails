@@ -643,30 +643,32 @@ class RequestParamsParsing < BaseRequestTest
   end
 end
 
-class RequestRewind < BaseRequestTest
-  test "body should be rewound" do
-    data = "rewind"
-    env = {
-      "rack.input" => StringIO.new(data),
-      "CONTENT_LENGTH" => data.length,
-      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
-    }
+if Rack.release < "3"
+  class RequestRewind < BaseRequestTest
+    test "body should be rewound" do
+      data = "rewind"
+      env = {
+        "rack.input" => StringIO.new(data),
+        "CONTENT_LENGTH" => data.length,
+        "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
+      }
 
-    # Read the request body by parsing params.
-    request = stub_request(env)
-    request.request_parameters
+      # Read the request body by parsing params.
+      request = stub_request(env)
+      request.request_parameters
 
-    # Should have rewound the body.
-    assert_equal 0, request.body.pos
-  end
+      # Should have rewound the body.
+      assert_equal 0, request.body.pos
+    end
 
-  test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
-    request = stub_request(
-      "rack.input" => StringIO.new("raw"),
-      "CONTENT_LENGTH" => 3
-    )
-    assert_equal "raw", request.raw_post
-    assert_equal "raw", request.env["rack.input"].read
+    test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
+      request = stub_request(
+        "rack.input" => StringIO.new("raw"),
+        "CONTENT_LENGTH" => 3
+      )
+      assert_equal "raw", request.raw_post
+      assert_equal "raw", request.env["rack.input"].read
+    end
   end
 end
 
@@ -1039,27 +1041,6 @@ class RequestMimeType < BaseRequestTest
     assert_equal("application/xml; charset=UTF-8", request.content_type)
   end
 
-  test "content type with the old behavior" do
-    original = ActionDispatch::Request.return_only_media_type_on_content_type
-    ActionDispatch::Request.return_only_media_type_on_content_type = true
-
-    request = stub_request("CONTENT_TYPE" => "application/xml; charset=UTF-8")
-
-    assert_equal(Mime[:xml], request.content_mime_type)
-    assert_equal("application/xml", request.media_type)
-    assert_deprecated(ActionDispatch.deprecator) do
-      assert_nil(request.content_charset)
-    end
-    assert_deprecated(ActionDispatch.deprecator) do
-      assert_equal({}, request.media_type_params)
-    end
-    assert_deprecated(ActionDispatch.deprecator) do
-      assert_equal("application/xml", request.content_type)
-    end
-  ensure
-    ActionDispatch::Request.return_only_media_type_on_content_type = original
-  end
-
   test "user agent" do
     assert_equal "TestAgent", stub_request("HTTP_USER_AGENT" => "TestAgent").user_agent
   end
@@ -1129,19 +1110,21 @@ class RequestParameters < BaseRequestTest
     end
   end
 
-  test "parameters not accessible after rack parse error of invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo%81E=1")
-    assert_raises(ActionController::BadRequest) { request.parameters }
-  end
+  if Rack.release < "3"
+    test "parameters not accessible after rack parse error of invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo%81E=1")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
 
-  test "parameters containing an invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo=%81E")
-    assert_raises(ActionController::BadRequest) { request.parameters }
-  end
+    test "parameters containing an invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo=%81E")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
 
-  test "parameters containing a deeply nested invalid UTF8 character" do
-    request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
-    assert_raises(ActionController::BadRequest) { request.parameters }
+    test "parameters containing a deeply nested invalid UTF8 character" do
+      request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
+      assert_raises(ActionController::BadRequest) { request.parameters }
+    end
   end
 
   test "POST parameters containing invalid UTF8 character" do

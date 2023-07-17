@@ -152,7 +152,7 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test (where `6` is the number of line where the test is defined).
+Let us run this newly added test (where `6` is the line number where the test is defined).
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6
@@ -167,7 +167,7 @@ ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/model
 Expected true to be nil or false
 
 
-rails test test/models/article_test.rb:6
+bin/rails test test/models/article_test.rb:6
 
 
 
@@ -250,7 +250,7 @@ NameError: undefined local variable or method 'some_undefined_variable' for #<Ar
     test/models/article_test.rb:11:in 'block in <class:ArticleTest>'
 
 
-rails test test/models/article_test.rb:9
+bin/rails test test/models/article_test.rb:9
 
 
 
@@ -296,7 +296,7 @@ This test should now pass.
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
 Here's an extract of the assertions you can use with
-[`Minitest`](https://github.com/seattlerb/minitest), the default testing library
+[`Minitest`](https://github.com/minitest/minitest), the default testing library
 used by Rails. The `[msg]` parameter is an optional string message you can
 specify to make your test failure messages clearer.
 
@@ -461,6 +461,18 @@ Known extensions: rails, pride
     -c, --[no-]color                 Enable color in the output
     -p, --pride                      Pride. Show your testing pride!
 ```
+
+### Running tests in Continuous Integration (CI)
+
+To run all tests in a CI environment, there's just one command you need:
+
+```bash
+$ bin/rails test
+```
+
+If you are using [System Tests](#system-testing), `bin/rails test` will not run them, since
+they can be slow. To also run them, add an another CI step that runs `bin/rails test:system`,
+or change your first step to `bin/rails test:all`, which runs all tests including system tests.
 
 Parallel Testing
 ----------------
@@ -738,7 +750,7 @@ default. Loading involves three steps:
 2. Load the fixture data into the table
 3. Dump the fixture data into a method in case you want to access it directly
 
-TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html)).
+TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](https://www.postgresql.org/docs/current/sql-altertable.html)).
 
 #### Fixtures are Active Record Objects
 
@@ -1011,7 +1023,7 @@ that the text from the new article's title is on the articles index page.
 #### Testing for Multiple Screen Sizes
 
 If you want to test for mobile sizes on top of testing for desktop,
-you can create another class that inherits from SystemTestCase and use in your
+you can create another class that inherits from `ActionDispatch::SystemTestCase` and use it in your
 test suite. In this example a file called `mobile_system_test_case.rb` is created
 in the `/test` directory with the following configuration.
 
@@ -1030,7 +1042,6 @@ Now you can test your app using multiple different configurations.
 require "mobile_system_test_case"
 
 class PostsTest < MobileSystemTestCase
-
   test "visiting the index" do
     visit posts_url
     assert_selector "h1", text: "Posts"
@@ -1286,9 +1297,9 @@ All of request types have equivalent methods that you can use. In a typical C.R.
 
 NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
 
-### Testing XHR (AJAX) Requests
+### Testing XHR (Ajax) Requests
 
-To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
+To test Ajax requests, you can specify the `xhr: true` option to `get`, `post`,
 `patch`, `put`, and `delete` methods. For example:
 
 ```ruby
@@ -1319,7 +1330,7 @@ cookies["are_good_for_u"]     cookies[:are_good_for_u]
 
 ### Instance Variables Available
 
-You also have access to three instance variables in your functional tests, after a request is made:
+**After** a request is made, you also have access to three instance variables in your functional tests:
 
 * `@controller` - The controller processing the request
 * `@request` - The request object
@@ -1539,7 +1550,6 @@ end
 require "test_helper"
 
 class ProfileControllerTest < ActionDispatch::IntegrationTest
-
   test "should show profile" do
     # helper is now reusable from any controller test case
     sign_in_as users(:david)
@@ -1923,13 +1933,7 @@ class BillingJobTest < ActiveJob::TestCase
 end
 ```
 
-This test is pretty simple and only asserts that the job got the work done
-as expected.
-
-By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
-your jobs are performed inline. It will also ensure that all previously performed
-and enqueued jobs are cleared before any test run so you can safely assume that
-no jobs have already been executed in the scope of each test.
+This test is pretty simple and only asserts that the job did work that was expected.
 
 ### Custom Assertions and Testing Jobs inside Other Components
 
@@ -1938,7 +1942,7 @@ Active Job ships with a bunch of custom assertions that can be used to lessen th
 It's a good practice to ensure that your jobs correctly get enqueued or performed
 wherever you invoke them (e.g. inside your controllers). This is precisely where
 the custom assertions provided by Active Job are pretty useful. For instance,
-within a model:
+within a model, you could confirm that a job was enqueued:
 
 ```ruby
 require "test_helper"
@@ -1950,9 +1954,31 @@ class ProductTest < ActiveSupport::TestCase
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
     end
+    assert_not account.reload.charged_for?(product)
   end
 end
 ```
+
+The default adapter, `:test`, does not perform jobs when they are enqueued.
+You have to tell it when you want jobs to be performed:
+
+```ruby
+require "test_helper"
+
+class ProductTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
+  test "billing job scheduling" do
+    perform_enqueued_jobs(only: BillingJob) do
+      product.charge(account)
+    end
+    assert account.reload.charged_for?(product)
+  end
+end
+```
+
+All previously performed and enqueued jobs are cleared before any test runs,
+so you can safely assume that no jobs have already been executed in the scope of each test.
 
 Testing Action Cable
 --------------------
@@ -2144,18 +2170,24 @@ Additional Testing Resources
 
 Rails provides built-in helper methods that enable you to assert that your time-sensitive code works as expected.
 
-Here is an example using the [`travel_to`](https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to) helper:
+The following example uses the [`travel_to`][travel_to] helper:
 
 ```ruby
-# Lets say that a user is eligible for gifting a month after they register.
+# Given a user is eligible for gifting a month after they register.
 user = User.create(name: "Gaurish", activation_date: Date.new(2004, 10, 24))
 assert_not user.applicable_for_gifting?
+
 travel_to Date.new(2004, 11, 24) do
-  assert_equal Date.new(2004, 10, 24), user.activation_date # inside the `travel_to` block `Date.current` is mocked
+  # Inside the `travel_to` block `Date.current` is stubbed
+  assert_equal Date.new(2004, 10, 24), user.activation_date
   assert user.applicable_for_gifting?
 end
-assert_equal Date.new(2004, 10, 24), user.activation_date # The change was visible only inside the `travel_to` block.
+
+# The change was visible only inside the `travel_to` block.
+assert_equal Date.new(2004, 10, 24), user.activation_date
 ```
 
-Please see [`ActiveSupport::Testing::TimeHelpers` API Documentation](https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html)
-for in-depth information about the available time helpers.
+Please see [`ActiveSupport::Testing::TimeHelpers`][time_helpers_api] API reference for more information about the available time helpers.
+
+[travel_to]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html#method-i-travel_to
+[time_helpers_api]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/TimeHelpers.html

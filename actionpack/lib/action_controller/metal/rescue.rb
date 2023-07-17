@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 module ActionController # :nodoc:
-  # This module is responsible for providing +rescue_from+ helpers
-  # to controllers and configuring when detailed exceptions must be
-  # shown.
+  # = Action Controller \Rescue
+  #
+  # This module is responsible for providing
+  # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]
+  # to controllers, wrapping actions to handle configured errors, and
+  # configuring when detailed exceptions must be shown.
   module Rescue
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable

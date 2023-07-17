@@ -45,7 +45,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def lookup_store(*addresses, **options)
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false }.merge(options))
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, *addresses, { namespace: @namespace, pool: false, socket_timeout: 60 }.merge(options))
     (@_stores ||= []) << cache
     cache
   end
@@ -77,12 +77,31 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
+  include CacheStoreCompressionBehavior
+  include CacheStoreFormatVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+  include CacheLoggingBehavior
   include EncodedKeyCacheBehavior
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
+
+  test "validate pool arguments" do
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { size: [] })
+    end
+
+    assert_raises TypeError do
+      ActiveSupport::Cache::MemCacheStore.new(pool: { timeout: [] })
+    end
+
+    ActiveSupport::Cache::MemCacheStore.new(pool: { size: "12", timeout: "1.5" })
+  end
+
+  test "instantiating the store doesn't connect to Memcache" do
+    ActiveSupport::Cache::MemCacheStore.new("memcached://localhost:1")
+  end
 
   # Overrides test from LocalCacheBehavior in order to stub out the cache clear
   # and replace it with a delete.
@@ -179,7 +198,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache = lookup_store(raw: true, namespace: nil)
 
     Time.stub(:now, Time.now) do
-      assert_called_with client(cache), :set, ["key_with_expires_at", "bar", 30 * 60], namespace: nil, pool: false, raw: true, compress_threshold: 1024, expires_in: 1800.0 do
+      assert_called_with client(cache), :set, ["key_with_expires_at", "bar", 30 * 60], namespace: nil, pool: false, raw: true, compress_threshold: 1024, expires_in: 1800.0, socket_timeout: 60 do
         cache.write("key_with_expires_at", "bar", expires_at: 30.minutes.from_now)
       end
     end
@@ -265,15 +284,17 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_unless_exist_expires_when_configured
     cache = lookup_store(namespace: nil)
 
-    assert_called_with client(cache), :add, ["foo", Object, 1], namespace: nil, pool: false, compress_threshold: 1024, expires_in: 1, unless_exist: true do
+    assert_called_with client(cache), :add, ["foo", Object, 1], namespace: nil, pool: false, compress_threshold: 1024, expires_in: 1, socket_timeout: 60, unless_exist: true do
       cache.write("foo", "bar", expires_in: 1, unless_exist: true)
     end
   end
 
   def test_uses_provided_dalli_client_if_present
-    cache = lookup_store(Dalli::Client.new("custom_host"))
-
-    assert_equal ["custom_host"], servers(cache)
+    assert_deprecated(ActiveSupport.deprecator) do
+      host = "custom_host"
+      cache = lookup_store(Dalli::Client.new(host))
+      assert_equal [host], servers(cache)
+    end
   end
 
   def test_forwards_string_addresses_if_present
@@ -305,14 +326,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
       assert_equal ["custom_host"], servers(cache)
     end
-  end
-
-  def test_large_string_with_default_compression_settings
-    assert_compressed(LARGE_STRING)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_compressed(LARGE_OBJECT)
   end
 
   def test_can_load_raw_values_from_dalli_store
@@ -428,37 +441,4 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         ENV["MEMCACHE_SERVERS"] = original_value
       end
     end
-end
-
-class OptimizedMemCacheStoreTest < MemCacheStoreTest
-  def setup
-    @previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 7.0
-    super
-  end
-
-  def teardown
-    super
-    ActiveSupport::Cache.format_version = @previous_format
-  end
-
-  def test_forward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @old_store.write("foo", "bar")
-    assert_equal "bar", @cache.read("foo")
-  end
-
-  def test_backward_compatibility
-    previous_format = ActiveSupport::Cache.format_version
-    ActiveSupport::Cache.format_version = 6.1
-    @old_store = lookup_store
-    ActiveSupport::Cache.format_version = previous_format
-
-    @cache.write("foo", "bar")
-    assert_equal "bar", @old_store.read("foo")
-  end
 end

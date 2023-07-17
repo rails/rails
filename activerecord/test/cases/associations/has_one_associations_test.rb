@@ -7,6 +7,7 @@ require "models/project"
 require "models/company"
 require "models/ship"
 require "models/pirate"
+require "models/person"
 require "models/car"
 require "models/bulb"
 require "models/author"
@@ -18,6 +19,9 @@ require "models/department"
 require "models/club"
 require "models/membership"
 require "models/parrot"
+require "models/cpk"
+require "models/user"
+require "models/content"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -139,6 +143,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ship.destroy
     assert_not_predicate ship, :persisted?
     assert_not_predicate developer, :persisted?
+  end
+
+  def test_nullification_on_cpk_association
+    book = Cpk::Book.create!(id: [1, 2])
+    other_book = Cpk::Book.create!(id: [3, 4])
+    order = Cpk::OrderWithNullifiedBook.create!(book: book)
+
+    order.book = other_book
+
+    assert_nil book.order_id
+    assert_nil book.shop_id
   end
 
   def test_natural_assignment_to_nil_after_destroy
@@ -364,7 +379,9 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     Account.where(id: odegy.account.id).update_all(credit_limit: 80)
     assert_equal 53, odegy.account.credit_limit
 
-    assert_equal 80, odegy.reload_account.credit_limit
+    assert_queries(1) { odegy.reload_account }
+    assert_no_queries { odegy.account }
+    assert_equal 80, odegy.account.credit_limit
   end
 
   def test_reload_association_with_query_cache
@@ -388,6 +405,19 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { Company.find(odegy_id) }
   ensure
     ActiveRecord::Base.connection.disable_query_cache!
+  end
+
+  def test_reset_association
+    odegy = companies(:odegy)
+
+    assert_equal 53, odegy.account.credit_limit
+    Account.where(id: odegy.account.id).update_all(credit_limit: 80)
+    assert_equal 53, odegy.account.credit_limit
+
+    assert_no_queries { odegy.reset_account }
+
+    assert_queries(1) { odegy.account }
+    assert_equal 80, odegy.account.credit_limit
   end
 
   def test_build
@@ -886,5 +916,69 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       car.build_special_bulb
       car.build_special_bulb
     end
+  end
+
+  class InvalidPost < Post
+    validate :always_fail
+
+    def always_fail
+      errors.add(:base, "Oops")
+    end
+  end
+
+  test "preserve old record if new one is invalid" do
+    author = Author.create!(id: 33, name: "Hank Moody")
+    author.create_post!(id: 1234, title: "Some title", body: "Some content")
+
+    assert_no_difference -> { Post.count } do
+      assert_raises ActiveRecord::RecordNotSaved do
+        author.post = InvalidPost.new(title: "Some title", body: "Some content")
+      end
+      author.save!
+    end
+  end
+
+  class SpecialContentPosition < ActiveRecord::Base
+    self.table_name = "content_positions"
+    belongs_to :content, class_name: name + "::SpecialContentPosition"
+    validates :content_id, presence: true, uniqueness: true
+  end
+
+  class SpecialContent < ActiveRecord::Base
+    self.table_name = "content"
+    has_one :content_position, dependent: :destroy, foreign_key: :content_id, class_name: SpecialContentPosition.name
+  end
+
+  test "uniqueness validator doesn't prevent from replacing the old record if dependent: :destroy is set" do
+    content = SpecialContent.create!
+    content.create_content_position!
+
+    assert_no_difference -> { ContentPosition.count } do
+      content.create_content_position!
+    end
+  end
+
+  test "composite primary key malformed association class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrder.new(id: [1, 2], book: Cpk::Book.new(title: "Some book"))
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrder#book primary key ["shop_id", "id"]
+      doesn't match with foreign key broken_order_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrderWithNonCpkBooks.new(id: [1, 2], book: Cpk::NonCpkBook.new(title: "Some book"))
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+      Association Cpk::BrokenOrderWithNonCpkBooks#book primary key [\"shop_id\", \"id\"]
+      doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
   end
 end

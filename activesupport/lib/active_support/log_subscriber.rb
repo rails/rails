@@ -6,7 +6,9 @@ require "active_support/subscriber"
 require "active_support/deprecation/proxy_wrappers"
 
 module ActiveSupport
-  # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
+  # = Active Support Log \Subscriber
+  #
+  # +ActiveSupport::LogSubscriber+ is an object set to consume
   # ActiveSupport::Notifications with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based
   # on its given namespace.
@@ -16,29 +18,23 @@ module ActiveSupport
   #
   #   module ActiveRecord
   #     class LogSubscriber < ActiveSupport::LogSubscriber
+  #       attach_to :active_record
+  #
   #       def sql(event)
   #         info "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
   #       end
   #     end
   #   end
   #
-  # And it's finally registered as:
+  # ActiveRecord::LogSubscriber.logger must be set as well, but it is assigned
+  # automatically in a \Rails environment.
   #
-  #   ActiveRecord::LogSubscriber.attach_to :active_record
-  #
-  # Since we need to know all instance methods before attaching the log
-  # subscriber, the line above should be called after your
-  # <tt>ActiveRecord::LogSubscriber</tt> definition.
-  #
-  # A logger also needs to be set with <tt>ActiveRecord::LogSubscriber.logger=</tt>.
-  # This is assigned automatically in a Rails environment.
-  #
-  # After configured, whenever a <tt>"sql.active_record"</tt> notification is published,
-  # it will properly dispatch the event
-  # (<tt>ActiveSupport::Notifications::Event</tt>) to the sql method.
+  # After configured, whenever a <tt>"sql.active_record"</tt> notification is
+  # published, it will properly dispatch the event
+  # (ActiveSupport::Notifications::Event) to the +sql+ method.
   #
   # Being an ActiveSupport::Notifications consumer,
-  # <tt>ActiveSupport::LogSubscriber</tt> exposes a simple interface to check if
+  # +ActiveSupport::LogSubscriber+ exposes a simple interface to check if
   # instrumented code raises an exception. It is common to log a different
   # message in case of an error, and this can be achieved by extending
   # the previous example:
@@ -60,9 +56,10 @@ module ActiveSupport
   #     end
   #   end
   #
-  # Log subscriber also has some helpers to deal with logging and automatically
-  # flushes all logs when the request finishes
-  # (via <tt>action_dispatch.callback</tt> notification) in a Rails environment.
+  # +ActiveSupport::LogSubscriber+ also has some helpers to deal with
+  # logging. For example, ActiveSupport::LogSubscriber.flush_all! will ensure
+  # that all logs are flushed, and it is called in Rails::Rack::Logger after a
+  # request finishes.
   class LogSubscriber < Subscriber
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.", ActiveSupport.deprecator)
@@ -181,7 +178,7 @@ module ActiveSupport
       if options.is_a?(TrueClass) || options.is_a?(FalseClass)
         ActiveSupport.deprecator.warn(<<~MSG.squish)
           Bolding log text with a positional boolean is deprecated and will be removed
-          in Rails 7.2. Use an option hash instead (eg. `color(:red, "my text", bold: true)`).
+          in Rails 7.2. Use an option hash instead (eg. `color("my text", :red, bold: true)`).
         MSG
         options = { bold: options }
       end

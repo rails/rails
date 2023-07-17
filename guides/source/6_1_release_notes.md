@@ -300,7 +300,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
     ```ruby
     User.where.not(name: "Jon", role: "admin")
-    # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+    # SELECT * FROM users WHERE NOT (name = 'Jon' AND role = 'admin')
     ```
 
 *   To use the new per-database connection handling applications must change

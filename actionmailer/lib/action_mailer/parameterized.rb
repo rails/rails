@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionMailer
+  # = Action Mailer \Parameterized
+  #
   # Provides the option to parameterize mailers in order to share instance variable
   # setup, processing, and common headers.
   #
@@ -88,7 +90,11 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
-      attr_accessor :params
+      attr_writer :params
+
+      def params
+        @params ||= {}
+      end
     end
 
     module ClassMethods

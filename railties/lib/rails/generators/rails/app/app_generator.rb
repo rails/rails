@@ -21,8 +21,8 @@ module Rails
         RUBY
       end
 
-      def method_missing(meth, *args, &block)
-        @generator.send(meth, *args, &block)
+      def method_missing(...)
+        @generator.send(...)
       end
   end
 
@@ -54,6 +54,10 @@ module Rails
       template "ruby-version", ".ruby-version"
     end
 
+    def node_version
+      template "node-version", ".node-version"
+    end
+
     def gemfile
       template "Gemfile"
     end
@@ -68,6 +72,14 @@ module Rails
 
     def gitattributes
       template "gitattributes", ".gitattributes"
+    end
+
+    def dockerfiles
+      template "Dockerfile"
+      template "dockerignore", ".dockerignore"
+
+      template "docker-entrypoint", "bin/docker-entrypoint"
+      chmod "bin/docker-entrypoint", 0755 & ~File.umask, verbose: false
     end
 
     def version_control
@@ -179,13 +191,15 @@ module Rails
       return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/credentials/credentials_generator"
-      Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file
+      Rails::Generators::CredentialsGenerator.new([], quiet: true).add_credentials_file
     end
 
     def credentials_diff_enroll
-      return if options[:skip_decrypted_diffs] || options[:skip_git] || options[:dummy_app] || options[:pretend]
+      return if options[:skip_decrypted_diffs] || options[:dummy_app] || options[:pretend]
 
-      rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      @generator.shell.mute do
+        rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+      end
     end
 
     def database_yml
@@ -268,11 +282,9 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: nil, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: nil, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
-      def initialize(*args)
-        super
-
-        imply_options({
-          **OPTION_IMPLICATIONS,
+      OPTION_IMPLICATIONS = # :nodoc:
+        AppBase::OPTION_IMPLICATIONS.merge(
+          skip_git: [:skip_decrypted_diffs],
           minimal: [
             :skip_action_cable,
             :skip_action_mailbox,
@@ -291,7 +303,24 @@ module Rails
             :skip_asset_pipeline,
             :skip_javascript,
           ],
-        }, meta_options: [:minimal])
+        ) do |option, implications, more_implications|
+          implications + more_implications
+        end
+
+      META_OPTIONS = [:minimal] # :nodoc:
+
+      def self.apply_rails_template(template, destination) # :nodoc:
+        generator = new([destination], { template: template }, { destination_root: destination })
+        generator.set_default_accessors!
+        generator.apply_rails_template
+        generator.run_bundle
+        generator.run_after_bundle_callbacks
+      end
+
+      def initialize(*args)
+        super
+
+        imply_options(OPTION_IMPLICATIONS, meta_options: META_OPTIONS)
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
@@ -308,6 +337,7 @@ module Rails
       def create_root_files
         build(:readme)
         build(:rakefile)
+        build(:node_version) if using_node?
         build(:ruby_version)
         build(:configru)
 
@@ -339,6 +369,11 @@ module Rails
         end
       end
       remove_task :update_active_storage
+
+      def create_dockerfiles
+        return if options[:skip_docker] || options[:dummy_app]
+        build(:dockerfiles)
+      end
 
       def create_config_files
         build(:config)
@@ -406,7 +441,7 @@ module Rails
       end
 
       def create_storage_files
-        build(:storage) unless skip_active_storage?
+        build(:storage)
       end
 
       def delete_app_assets_if_api_option
@@ -510,7 +545,8 @@ module Rails
         build(:leftovers)
       end
 
-      public_task :apply_rails_template, :run_bundle
+      public_task :apply_rails_template
+      public_task :run_bundle
       public_task :generate_bundler_binstub
       public_task :run_javascript
       public_task :run_hotwire

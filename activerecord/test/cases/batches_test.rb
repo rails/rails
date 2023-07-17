@@ -4,9 +4,10 @@ require "cases/helper"
 require "models/comment"
 require "models/post"
 require "models/subscriber"
+require "models/cpk"
 
 class EachTest < ActiveRecord::TestCase
-  fixtures :posts, :subscribers
+  fixtures :posts, :subscribers, :cpk_orders
 
   def setup
     @posts = Post.order("id asc")
@@ -92,9 +93,14 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_warn_if_order_scope_is_set
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
+
     assert_called(ActiveRecord::Base.logger, :warn) do
       Post.order("title").find_each { |post| post }
     end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
   end
 
   def test_logger_not_required
@@ -763,5 +769,85 @@ class EachTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  test ".find_each iterates over composite primary key" do
+    orders = Cpk::Order.order(*Cpk::Order.primary_key).to_a
+
+    index = 0
+    Cpk::Order.find_each(batch_size: 1) do |order|
+      assert_equal orders[index], order
+      index += 1
+    end
+    assert_equal orders.size, index
+  end
+
+  test ".in_batches should start from the start option when using composite primary key" do
+    order = Cpk::Order.second
+    relation = Cpk::Order.in_batches(of: 1, start: order.id).first
+    assert_equal order, relation.first
+  end
+
+  test ".in_batches should end at the finish option when using composite primary key" do
+    order = Cpk::Order.second_to_last
+    relation = Cpk::Order.in_batches(of: 1, finish: order.id).reverse_each.first
+    assert_equal order, relation.last
+  end
+
+  test ".in_batches with scope and using composite primary key" do
+    order1, order2 = Cpk::Order.first(2)
+    shop_id, id = order1.id
+    relation = Cpk::Order.where("shop_id > ? OR shop_id = ? AND id > ?", shop_id, shop_id, id).in_batches(of: 1).first
+    assert_equal order2, relation.first
+  end
+
+  test ".find_each with multiple column ordering and using composite primary key" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 2, id: 1 },
+      { author_id: 2, id: 2 }
+    ])
+    books = Cpk::Book.order(author_id: :asc, id: :desc).to_a
+
+    index = 0
+    Cpk::Book.find_each(batch_size: 1, order: [:asc, :desc]) do |book|
+      assert_equal books[index], book
+      index += 1
+    end
+    assert_equal books.size, index
+  end
+
+  test ".in_batches should start from the start option when using composite primary key with multiple column ordering" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
+    ])
+    second_book = Cpk::Book.order(author_id: :asc, id: :desc).second
+    relation = Cpk::Book.in_batches(of: 1, start: second_book.id, order: [:asc, :desc]).first
+    assert_equal second_book, relation.first
+  end
+
+  test ".in_batches should end at the finish option when using composite primary key with multiple column ordering" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
+    ])
+    second_book = Cpk::Book.order(author_id: :asc, id: :desc).second
+    relation = Cpk::Book.in_batches(of: 1, finish: second_book.id, order: [:asc, :desc]).to_a.last
+    assert_equal second_book, relation.first
+  end
+
+  test ".in_batches with scope and multiple column ordering and using composite primary key" do
+    Cpk::Book.insert_all!([
+      { author_id: 1, id: 1 },
+      { author_id: 1, id: 2 },
+      { author_id: 1, id: 3 }
+    ])
+    book1, book2 = Cpk::Book.order(author_id: :asc, id: :desc).first(2)
+    author_id, id = book1.id
+    relation = Cpk::Book.where("author_id >= ? AND id < ?", author_id, id).in_batches(of: 1, order: [:asc, :desc]).first
+    assert_equal book2, relation.first
   end
 end

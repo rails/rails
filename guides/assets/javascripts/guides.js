@@ -23,10 +23,7 @@
     for(var i = 0; i < array.length; i++) callback(array[i]);
   }
 
-  // Viewable on local
-  if (window.location.protocol === "file:") Turbolinks.supported = false;
-
-  document.addEventListener("turbolinks:load", function() {
+  document.addEventListener("turbo:load", function() {
     var guidesMenu = document.getElementById("guidesMenu");
     var guides     = document.getElementById("guides");
 
@@ -47,16 +44,32 @@
       }
     });
 
+    var backToTop = createElement("a", "back-to-top");
+    backToTop.setAttribute("href", "#");
+
+    document.body.appendChild(backToTop);
+
+    backToTop.addEventListener("click", function(e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    var toggleBackToTop = function() {
+      if (window.scrollY > 300) {
+        backToTop.classList.add("show");
+      } else {
+        backToTop.classList.remove("show");
+      }
+    }
+
+    document.addEventListener("scroll", toggleBackToTop);
+
     var guidesIndexItem   = document.querySelector("select.guides-index-item");
     var currentGuidePath  = window.location.pathname;
     guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1) || 'index.html';
 
     guidesIndexItem.addEventListener("change", function(e) {
-      if (Turbolinks.supported) {
-        Turbolinks.visit(e.target.value);
-      } else {
-        window.location = e.target.value;
-      }
+      Turbo.visit(e.target.value);
     });
 
     var moreInfoButton = document.querySelector(".more-info-button");

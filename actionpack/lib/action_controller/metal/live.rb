@@ -5,6 +5,8 @@ require "delegate"
 require "active_support/json"
 
 module ActionController
+  # = Action Controller \Live
+  #
   # Mix this module into your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
   #
@@ -34,6 +36,21 @@ module ActionController
   # The final caveat is that your actions are executed in a separate thread than
   # the main thread. Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
+  #
+  # Note that \Rails includes +Rack::ETag+ by default, which will buffer your
+  # response. As a result, streaming responses may not work properly with Rack
+  # 2.2.x, and you may need to implement workarounds in your application.
+  # You can either set the +ETag+ or +Last-Modified+ response headers or remove
+  # +Rack::ETag+ from the middleware stack to address this issue.
+  #
+  # Here's an example of how you can set the +Last-Modified+ header if your Rack
+  # version is 2.2.x:
+  #
+  #   def stream
+  #     response.headers["Content-Type"] = "text/event-stream"
+  #     response.headers["Last-Modified"] = Time.now.httpdate # Add this line if your Rack version is 2.2.x
+  #     ...
+  #   end
   module Live
     extend ActiveSupport::Concern
 
@@ -49,6 +66,8 @@ module ActionController
       end
     end
 
+    # = Action Controller \Live Server Sent Events
+    #
     # This class provides the ability to write an SSE (Server Sent Event)
     # to an IO stream. The class is initialized with a stream and can be used
     # to either write a JSON string or an object which can be converted to JSON.
@@ -147,6 +166,11 @@ module ActionController
         @aborted = false
         @ignore_disconnect = false
       end
+
+      # ActionDispatch::Response delegates #to_ary to the internal ActionDispatch::Response::Buffer,
+      # defining #to_ary is an indicator that the response body can be buffered and/or cached by
+      # Rack middlewares, this is not the case for Live responses so we undefine it for this Buffer subclass.
+      undef_method :to_ary
 
       def write(string)
         unless @response.committed?
@@ -321,7 +345,7 @@ module ActionController
     def send_stream(filename:, disposition: "attachment", type: nil)
       response.headers["Content-Type"] =
         (type.is_a?(Symbol) ? Mime[type].to_s : type) ||
-        Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete(".")) ||
+        Mime::Type.lookup_by_extension(File.extname(filename).downcase.delete("."))&.to_s ||
         "application/octet-stream"
 
       response.headers["Content-Disposition"] =

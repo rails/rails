@@ -22,10 +22,11 @@ module ActiveRecord
       end
 
       def test_bad_connection
-        assert_raise ActiveRecord::NoDatabaseError do
+        error = assert_raise ActiveRecord::NoDatabaseError do
           connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
           connection.drop_table "ex", if_exists: true
         end
+        assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
       end
 
       def test_database_exists_returns_false_when_the_database_does_not_exist
@@ -114,6 +115,7 @@ module ActiveRecord
                                   timeout: "usa").connect!
         end
         assert_match("TypeError", exception.message)
+        assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, exception.connection_pool
       end
 
       # connection is OK with a nil timeout
@@ -561,6 +563,27 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
+      def test_auto_increment_preserved_on_table_changes
+        connection = Barcode.connection
+        connection.create_table :barcodes, force: true do |t|
+          t.string :code
+        end
+
+        pk_column = connection.columns("barcodes").find { |col| col.name == "id" }
+        sql = connection.exec_query("SELECT sql FROM sqlite_master WHERE tbl_name='barcodes'").rows.first.first
+
+        assert(pk_column.auto_increment?)
+        assert(sql.match?("PRIMARY KEY AUTOINCREMENT"))
+
+        connection.change_column(:barcodes, :code, :integer)
+
+        pk_column = connection.columns("barcodes").find { |col| col.name == "id" }
+        sql = connection.exec_query("SELECT sql FROM sqlite_master WHERE tbl_name='barcodes'").rows.first.first
+
+        assert(pk_column.auto_increment?)
+        assert(sql.match?("PRIMARY KEY AUTOINCREMENT"))
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end
@@ -585,9 +608,10 @@ module ActiveRecord
           assert_called(statement, :columns, returns: []) do
             assert_called(statement, :close) do
               ::SQLite3::Statement.stub(:new, statement) do
-                assert_raises ActiveRecord::StatementInvalid do
+                error = assert_raises ActiveRecord::StatementInvalid do
                   @conn.exec_query "select * from statement_test"
                 end
+                assert_equal @conn.pool, error.connection_pool
               end
             end
           end
@@ -630,6 +654,7 @@ module ActiveRecord
           conn.execute("CREATE TABLE test(id integer)")
         end
         assert_match("SQLite3::ReadOnlyException", exception.message)
+        assert_equal conn.pool, exception.connection_pool
       end
 
       def test_strict_strings_by_default
@@ -648,6 +673,7 @@ module ActiveRecord
             conn.add_index :testings, :non_existent2
           end
           assert_match(/no such column: non_existent2/, error.message)
+          assert_equal conn.pool, error.connection_pool
         end
       end
 
@@ -659,6 +685,7 @@ module ActiveRecord
           conn.add_index :testings, :non_existent
         end
         assert_match(/no such column: non_existent/, error.message)
+        assert_equal conn.pool, error.connection_pool
 
         with_strict_strings_by_default do
           conn = Base.sqlite3_connection(database: ":memory:", adapter: "sqlite3", strict: true)
@@ -668,6 +695,7 @@ module ActiveRecord
             conn.add_index :testings, :non_existent2
           end
           assert_match(/no such column: non_existent2/, error.message)
+          assert_equal conn.pool, error.connection_pool
         end
       end
 
@@ -686,6 +714,42 @@ module ActiveRecord
           assert_nothing_raised do
             conn.add_index :testings, :non_existent
           end
+        end
+      end
+
+      def test_rowid_column
+        with_example_table "id_uppercase INTEGER PRIMARY KEY" do
+          assert @conn.columns("ex").index_by(&:name)["id_uppercase"].rowid
+        end
+      end
+
+      def test_lowercase_rowid_column
+        with_example_table "id_lowercase integer PRIMARY KEY" do
+          assert @conn.columns("ex").index_by(&:name)["id_lowercase"].rowid
+        end
+      end
+
+      def test_non_integer_column_returns_false_for_rowid
+        with_example_table "id_int_short int PRIMARY KEY" do
+          assert_not @conn.columns("ex").index_by(&:name)["id_int_short"].rowid
+        end
+      end
+
+      def test_mixed_case_integer_colum_returns_true_for_rowid
+        with_example_table "id_mixed_case InTeGeR PRIMARY KEY" do
+          assert @conn.columns("ex").index_by(&:name)["id_mixed_case"].rowid
+        end
+      end
+
+      def test_rowid_column_with_autoincrement_returns_true_for_rowid
+        with_example_table "id_autoincrement integer PRIMARY KEY AUTOINCREMENT" do
+          assert @conn.columns("ex").index_by(&:name)["id_autoincrement"].rowid
+        end
+      end
+
+      def test_integer_cpk_column_returns_false_for_rowid
+        with_example_table("id integer, shop_id integer, PRIMARY KEY (shop_id, id)", "cpk_table") do
+          assert_not @conn.columns("cpk_table").any?(&:rowid)
         end
       end
 

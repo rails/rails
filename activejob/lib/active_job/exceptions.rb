@@ -100,9 +100,10 @@ module ActiveJob
       end
     end
 
-    # Reschedules the job to be re-executed. This is useful in combination
-    # with the +rescue_from+ option. When you rescue an exception from your job
-    # you can ask Active Job to retry performing your job.
+    # Reschedules the job to be re-executed. This is useful in combination with
+    # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from].
+    # When you rescue an exception from your job you can ask Active Job to retry
+    # performing your job.
     #
     # ==== Options
     # * <tt>:wait</tt> - Enqueues the job with the specified delay in seconds

@@ -53,7 +53,7 @@ module ActiveRecord
       end
 
       def to_h
-        { key_provider: @key_provider_param, key: @key, deterministic: @deterministic, downcase: @downcase, ignore_case: @ignore_case,
+        { key_provider: @key_provider_param, deterministic: @deterministic, downcase: @downcase, ignore_case: @ignore_case,
           previous_schemes: @previous_schemes_param, **@context_properties }.compact
       end
 

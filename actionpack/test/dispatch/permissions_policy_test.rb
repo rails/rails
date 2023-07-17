@@ -102,7 +102,7 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     def call(env)
       env["action_dispatch.permissions_policy"] = POLICY
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
@@ -194,7 +194,7 @@ class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationT
 
     def call(env)
       env["action_dispatch.permissions_policy"] = POLICY
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end

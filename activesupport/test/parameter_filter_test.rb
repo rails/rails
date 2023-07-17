@@ -121,4 +121,28 @@ class ParameterFilterTest < ActiveSupport::TestCase
       assert_equal after_filter, parameter_filter.filter(before_filter)
     end
   end
+
+  test "precompile_filters" do
+    patterns = [/A.a/, /b.B/i, "ccC", :ddD]
+    keys = ["Aaa", "Bbb", "Ccc", "Ddd"]
+    deep_patterns = [/A\.a/, /b\.B/i, "c.C", :"d.D"]
+    deep_keys = ["A.a", "B.b", "C.c", "D.d"]
+    procs = [proc { }, proc { }]
+
+    precompiled = ActiveSupport::ParameterFilter.precompile_filters([*patterns, *deep_patterns, *procs])
+
+    assert_equal 2, precompiled.grep(Regexp).length
+    assert_equal 2 + procs.length, precompiled.length
+
+    regexp = precompiled.find { |filter| filter.to_s.include?(patterns.first.to_s) }
+    keys.each { |key| assert_match regexp, key }
+    assert_no_match regexp, keys.first.swapcase
+
+    deep_regexp = precompiled.find { |filter| filter.to_s.include?(deep_patterns.first.to_s) }
+    deep_keys.each { |deep_key| assert_match deep_regexp, deep_key }
+    assert_no_match deep_regexp, deep_keys.first.swapcase
+
+    assert_not_equal regexp, deep_regexp
+    assert_equal procs, precompiled & procs
+  end
 end

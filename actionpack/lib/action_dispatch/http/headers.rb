@@ -2,6 +2,8 @@
 
 module ActionDispatch
   module Http
+    # = Action Dispatch HTTP \Headers
+    #
     # Provides access to the request's HTTP headers from the environment.
     #
     #   env     = { "CONTENT_TYPE" => "text/plain", "HTTP_USER_AGENT" => "curl/7.43.0" }
@@ -65,7 +67,7 @@ module ActionDispatch
         @req.set_header env_name(key), value
       end
 
-      # Add a value to a multivalued header like Vary or Accept-Encoding.
+      # Add a value to a multivalued header like +Vary+ or +Accept-Encoding+.
       def add(key, value)
         @req.add_header env_name(key), value
       end

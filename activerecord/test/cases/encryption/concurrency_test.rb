@@ -13,7 +13,8 @@ class ActiveRecord::Encryption::ConcurrencyTest < ActiveRecord::EncryptionTestCa
   end
 
   def thread_encrypting_and_decrypting(thread_label)
-    posts = 200.times.collect { |index| EncryptedPost.create! title: "Article #{index} (#{thread_label})", body: "Body #{index} (#{thread_label})" }
+    EncryptedPost.insert_all 100.times.collect { |index| { title: "Article #{index} (#{thread_label})", body: "Body #{index} (#{thread_label})" } }
+    posts = EncryptedPost.last(100)
 
     Thread.new do
       posts.each.with_index do |article, index|

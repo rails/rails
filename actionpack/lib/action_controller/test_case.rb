@@ -127,6 +127,9 @@ module ActionController
       fetch_header("PATH_INFO") do |k|
         set_header k, generated_path
       end
+      fetch_header("ORIGINAL_FULLPATH") do |k|
+        set_header k, fullpath
+      end
       path_parameters[:controller] = controller_path
       path_parameters[:action] = action
 
@@ -229,15 +232,17 @@ module ActionController
       end
   end
 
+  # = Action Controller Test Case
+  #
   # Superclass for ActionController functional tests. Functional tests allow you to
   # test a single controller action per test method.
   #
   # == Use integration style controller tests over functional style controller tests.
   #
-  # Rails discourages the use of functional tests in favor of integration tests
+  # \Rails discourages the use of functional tests in favor of integration tests
   # (use ActionDispatch::IntegrationTest).
   #
-  # New Rails applications no longer generate functional style controller tests and they should
+  # New \Rails applications no longer generate functional style controller tests and they should
   # only be used for backward compatibility. Integration style controller tests perform actual
   # requests, whereas functional style controller tests merely simulate a request. Besides,
   # integration tests are as fast as functional tests and provide lot of helpers such as +as+,
@@ -472,7 +477,7 @@ module ActionController
       #
       # It's not recommended to make more than one request in the same test. Instance
       # variables that are set in one request will not persist to the next request,
-      # but it's not guaranteed that all Rails internal state will be reset. Prefer
+      # but it's not guaranteed that all \Rails internal state will be reset. Prefer
       # ActionDispatch::IntegrationTest for making multiple requests in the same test.
       #
       # Note that the request method is not verified.

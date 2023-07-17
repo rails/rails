@@ -3,11 +3,9 @@
 require "isolation/abstract_unit"
 require "console_helpers"
 require "rails/command"
-require "rails/commands/server/server_command"
 
 module ApplicationTests
   class ServerTest < ActiveSupport::TestCase
-    include ActiveSupport::Testing::Isolation
     include ConsoleHelpers
 
     def setup

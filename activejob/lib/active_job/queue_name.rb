@@ -19,8 +19,7 @@ module ActiveJob
       #   end
       #
       # Can be given a block that will evaluate in the context of the job
-      # allowing +self.arguments+ to be accessed so that a dynamic queue name
-      # can be applied:
+      # so that a dynamic queue name can be applied:
       #
       #   class PublishToFeedJob < ApplicationJob
       #     queue_as do

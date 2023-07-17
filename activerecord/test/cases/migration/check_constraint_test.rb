@@ -23,11 +23,21 @@ if ActiveRecord::Base.connection.supports_check_constraints?
             t.integer :price
             t.integer :quantity
           end
+
+          if current_adapter?(:Mysql2Adapter)
+            @connection.create_table "constraint_test", force: true do |t|
+              t.json :options, default: nil
+            end
+          end
         end
 
         teardown do
           @connection.drop_table "trades", if_exists: true rescue nil
           @connection.drop_table "purchases", if_exists: true rescue nil
+
+          if current_adapter?(:Mysql2Adapter)
+            @connection.drop_table "constraint_test", if_exists: true rescue nil
+          end
         end
 
         def test_check_constraints
@@ -38,10 +48,32 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_equal "products", constraint.table_name
           assert_equal "products_price_check", constraint.name
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             assert_equal "`price` > `discounted_price`", constraint.expression
           else
             assert_equal "price > discounted_price", constraint.expression
+          end
+
+          if current_adapter?(:Mysql2Adapter)
+            begin
+              @connection.add_check_constraint(:constraint_test, <<~SQL,
+                json_contains('
+                  {
+                    "a": 1,
+                    "b": 2,
+                    "c": {
+                      "d": 4
+                    }
+                  }
+                ', options)
+              SQL
+              name: "non_empty_test_array")
+
+              constraint = @connection.check_constraints("constraint_test").find { |c| c.name == "non_empty_test_array" }
+              assert_includes constraint.expression, "json_contains"
+            ensure
+              @connection.remove_check_constraint(:constraint_test, name: "non_empty_test_array", if_exists: true)
+            end
           end
 
           if current_adapter?(:PostgreSQLAdapter)
@@ -84,7 +116,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_equal "trades", constraint.table_name
           assert_equal "chk_rails_2189e9f96c", constraint.name
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             assert_equal "`quantity` > 0", constraint.expression
           else
             assert_equal "quantity > 0", constraint.expression
@@ -214,7 +246,7 @@ if ActiveRecord::Base.connection.supports_check_constraints?
           assert_equal "trades", constraint.table_name
           assert_equal "price_check", constraint.name
 
-          if current_adapter?(:Mysql2Adapter)
+          if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             assert_equal "`price` > 0", constraint.expression
           else
             assert_equal "price > 0", constraint.expression

@@ -43,6 +43,10 @@ module ActiveRecord
       assert_match(/An association named `:cars` does not exist on the model `Post`\./, e.message)
     end
 
+    def test_associated_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
     def test_missing_with_association
       assert posts(:authorless).author.blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
@@ -66,6 +70,12 @@ module ActiveRecord
     def test_missing_with_multiple_association
       assert posts(:authorless).comments.empty?
       assert_equal [posts(:authorless)], Post.where.missing(:author, :comments).to_a
+    end
+
+    def test_missing_merged_with_scope_on_association
+      # This query does not make much logical sense, but it is testing
+      # that the generated SQL query is valid.
+      assert_equal Author.find(1).posts.count, Post.where.missing(:author).merge(Author.where(id: 1)).count
     end
 
     def test_not_inverts_where_clause
@@ -180,6 +190,13 @@ module ActiveRecord
     def test_rewhere_with_infinite_range
       relation = Post.where(comments_count: -Float::INFINITY..Float::INFINITY).rewhere(comments_count: 3..5)
       expected = Post.where(comments_count: 3..5)
+
+      assert_equal expected.to_a, relation.to_a
+    end
+
+    def test_rewhere_with_nil
+      relation = Post.where(comments_count: 16).rewhere(nil)
+      expected = Post.all
 
       assert_equal expected.to_a, relation.to_a
     end

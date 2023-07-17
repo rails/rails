@@ -276,11 +276,11 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_to_time_preserves_timezone_is_deprecated
     current_preserve_tz = ActiveSupport.to_time_preserves_timezone
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       ActiveSupport.to_time_preserves_timezone
     end
 
-    assert_not_deprecated do
+    assert_not_deprecated(ActiveSupport.deprecator) do
       ActiveSupport.to_time_preserves_timezone = true
     end
 

@@ -23,10 +23,8 @@ At this time the following features are supported:
 
 * Multiple writer databases and a replica for each
 * Automatic connection switching for the model you're working with
-* Automatic swapping between the writer and replica depending on the HTTP verb
-and recent writes
-* Rails tasks for creating, dropping, migrating, and interacting with the multiple
-databases
+* Automatic swapping between the writer and replica depending on the HTTP verb and recent writes
+* Rails tasks for creating, dropping, migrating, and interacting with the multiple databases
 
 The following features are not (yet) supported:
 
@@ -131,7 +129,7 @@ should share a connection with.
 
 ```ruby
 class PrimaryApplicationRecord < ActiveRecord::Base
-  self.primary_abstract_class = true
+  primary_abstract_class
 end
 ```
 
@@ -165,33 +163,33 @@ You can run `bin/rails -T` to see all the commands you're able to run. You shoul
 
 ```bash
 $ bin/rails -T
-rails db:create                          # Creates the database from DATABASE_URL or config/database.yml for the ...
-rails db:create:animals                  # Create animals database for current environment
-rails db:create:primary                  # Create primary database for current environment
-rails db:drop                            # Drops the database from DATABASE_URL or config/database.yml for the cu...
-rails db:drop:animals                    # Drop animals database for current environment
-rails db:drop:primary                    # Drop primary database for current environment
-rails db:migrate                         # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
-rails db:migrate:animals                 # Migrate animals database for current environment
-rails db:migrate:primary                 # Migrate primary database for current environment
-rails db:migrate:status                  # Display status of migrations
-rails db:migrate:status:animals          # Display status of migrations for animals database
-rails db:migrate:status:primary          # Display status of migrations for primary database
-rails db:reset                           # Drops and recreates all databases from their schema for the current environment and loads the seeds
-rails db:reset:animals                   # Drops and recreates the animals database from its schema for the current environment and loads the seeds
-rails db:reset:primary                   # Drops and recreates the primary database from its schema for the current environment and loads the seeds
-rails db:rollback                        # Rolls the schema back to the previous version (specify steps w/ STEP=n)
-rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
-rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
-rails db:schema:dump                     # Creates a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:dump:animals             # Creates a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:dump:primary             # Creates a db/schema.rb file that is portable against any DB supported  ...
-rails db:schema:load                     # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:load:animals             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:schema:load:primary             # Loads a database schema file (either db/schema.rb or db/structure.sql  ...
-rails db:setup                           # Creates all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
-rails db:setup:animals                   # Creates the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
-rails db:setup:primary                   # Creates the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
+bin/rails db:create                          # Create the database from DATABASE_URL or config/database.yml for the ...
+bin/rails db:create:animals                  # Create animals database for current environment
+bin/rails db:create:primary                  # Create primary database for current environment
+bin/rails db:drop                            # Drop the database from DATABASE_URL or config/database.yml for the cu...
+bin/rails db:drop:animals                    # Drop animals database for current environment
+bin/rails db:drop:primary                    # Drop primary database for current environment
+bin/rails db:migrate                         # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
+bin/rails db:migrate:animals                 # Migrate animals database for current environment
+bin/rails db:migrate:primary                 # Migrate primary database for current environment
+bin/rails db:migrate:status                  # Display status of migrations
+bin/rails db:migrate:status:animals          # Display status of migrations for animals database
+bin/rails db:migrate:status:primary          # Display status of migrations for primary database
+bin/rails db:reset                           # Drop and recreates all databases from their schema for the current environment and loads the seeds
+bin/rails db:reset:animals                   # Drop and recreates the animals database from its schema for the current environment and loads the seeds
+bin/rails db:reset:primary                   # Drop and recreates the primary database from its schema for the current environment and loads the seeds
+bin/rails db:rollback                        # Roll the schema back to the previous version (specify steps w/ STEP=n)
+bin/rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
+bin/rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
+bin/rails db:schema:dump                     # Create a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:dump:animals             # Create a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:dump:primary             # Create a db/schema.rb file that is portable against any DB supported  ...
+bin/rails db:schema:load                     # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:load:animals             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:schema:load:primary             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
+bin/rails db:setup                           # Create all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
+bin/rails db:setup:animals                   # Create the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
+bin/rails db:setup:primary                   # Create the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
 ```
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.
@@ -258,7 +256,7 @@ class Dog < AnimalsRecord
 end
 ```
 
-Note: Since Rails doesn't know which database is the replica for your writer you will need to
+NOTE: Since Rails doesn't know which database is the replica for your writer you will need to
 add this to the abstract class after you're done.
 
 Rails will only generate the new class once. It will not be overwritten by new scaffolds
@@ -290,7 +288,7 @@ from the replica unless there was a recent write.
 To activate the automatic connection switching middleware you can run the automatic swapping
 generator:
 
-```
+```bash
 $ bin/rails g active_record:multi_db
 ```
 
@@ -319,8 +317,27 @@ parameters it's based on. Let's say you want to use a cookie instead of a sessio
 decide when to swap connections. You can write your own class:
 
 ```ruby
-class MyCookieResolver
-  # code for your cookie class
+class MyCookieResolver << ActiveRecord::Middleware::DatabaseSelector::Resolver
+  def self.call(request)
+    new(request.cookies)
+  end
+
+  def initialize(cookies)
+    @cookies = cookies
+  end
+
+  attr_reader :cookies
+
+  def last_write_timestamp
+    self.class.convert_timestamp_to_time(cookies[:last_write])
+  end
+
+  def update_last_write_timestamp
+    cookies[:last_write] = self.class.convert_time_to_timestamp(Time.now)
+  end
+
+  def save(response)
+  end
 end
 ```
 
@@ -409,17 +426,21 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
+You are not required to use `default` as the first shard name. Rails will assume the first
+shard name in the `connects_to` hash is the "default" connection. This connection is used
+internally to load type data and other information where the schema is the same across shards.
+
 Then models can swap connections manually via the `connected_to` API. If
 using sharding, both a `role` and a `shard` must be passed:
 
 ```ruby
 ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
-  @id = Person.create! # Creates a record in shard default
+  @id = Person.create! # Creates a record in shard named ":default"
 end
 
 ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
   Person.find(@id) # Can't find record, doesn't exist because it was created
-                   # in the default shard
+                   # in the shard named ":default".
 end
 ```
 
@@ -452,7 +473,7 @@ code from mistakenly switching between tenants.
 The same generator as the database selector can be used to generate the file for
 automatic shard swapping:
 
-```
+```bash
 $ bin/rails g active_record:multi_db
 ```
 
@@ -562,14 +583,14 @@ SELECT "yards".* FROM "yards" WHERE "yards"."home_id" = ? [["home_id", 1]]
 
 There are some important things to be aware of with this option:
 
-1) There may be performance implications since now two or more queries will be performed (depending
-on the association) rather than a join. If the select for `humans` returned a high number of IDs
-the select for `treats` may send too many IDs.
-2) Since we are no longer performing joins, a query with an order or limit is now sorted in-memory since
-order from one table cannot be applied to another table.
-3) This setting must be added to all associations where you want joining to be disabled.
-Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
-Rails already needs to know what SQL should be generated.
+1. There may be performance implications since now two or more queries will be performed (depending
+   on the association) rather than a join. If the select for `humans` returned a high number of IDs
+   the select for `treats` may send too many IDs.
+2. Since we are no longer performing joins, a query with an order or limit is now sorted in-memory since
+   order from one table cannot be applied to another table.
+3. This setting must be added to all associations where you want joining to be disabled.
+   Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
+   Rails already needs to know what SQL should be generated.
 
 ### Schema Caching
 

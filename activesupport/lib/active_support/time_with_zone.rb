@@ -8,6 +8,8 @@ require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
+  # = Active Support \Time With Zone
+  #
   # A Time-like class that can represent a time in any time zone. Necessary
   # because standard Ruby Time instances are limited to UTC and the
   # system's <tt>ENV['TZ']</tt> zone.
@@ -40,18 +42,6 @@ module ActiveSupport
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
   class TimeWithZone
-    # Report class name as 'Time' to thwart type checking.
-    def self.name
-      ActiveSupport.deprecator.warn(<<~EOM)
-        ActiveSupport::TimeWithZone.name has been deprecated and
-        from Rails 7.1 will use the default Ruby implementation.
-        You can set `config.active_support.remove_deprecated_time_with_zone_name = true`
-        to enable the new behavior now.
-      EOM
-
-      "Time"
-    end
-
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
     PRECISIONS[0] = "%FT%T"
 
@@ -78,7 +68,7 @@ module ActiveSupport
     alias_method :getutc, :utc
     alias_method :gmtime, :utc
 
-    # Returns the underlying <tt>TZInfo::TimezonePeriod</tt>.
+    # Returns the underlying +TZInfo::TimezonePeriod+.
     def period
       @period ||= time_zone.period_for_utc(@utc)
     end
@@ -206,28 +196,9 @@ module ActiveSupport
     end
     alias_method :rfc822, :rfc2822
 
-    NOT_SET = Object.new # :nodoc:
-
     # Returns a string of the object's date and time.
-    def to_s(format = NOT_SET)
-      if format == :db
-        ActiveSupport.deprecator.warn(
-          "TimeWithZone#to_s(:db) is deprecated. Please use TimeWithZone#to_fs(:db) instead."
-        )
-        utc.to_fs(format)
-      elsif formatter = ::Time::DATE_FORMATS[format]
-        ActiveSupport.deprecator.warn(
-          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
-        )
-        formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
-      elsif format == NOT_SET
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
-      else
-        ActiveSupport.deprecator.warn(
-          "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."
-        )
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
-      end
+    def to_s
+      "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
     end
 
     # Returns a string of the object's date and time.
@@ -237,7 +208,7 @@ module ActiveSupport
     # Accepts an optional <tt>format</tt>:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
     # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_fs(:db).
-    # * Any key in <tt>Time::DATE_FORMATS</tt> can be used. See active_support/core_ext/time/conversions.rb.
+    # * Any key in +Time::DATE_FORMATS+ can be used. See active_support/core_ext/time/conversions.rb.
     def to_fs(format = :default)
       if format == :db
         utc.to_fs(format)
@@ -566,8 +537,8 @@ module ActiveSupport
 
     # Send the missing method to +time+ instance, and wrap result in a new
     # TimeWithZone with the existing +time_zone+.
-    def method_missing(sym, *args, &block)
-      wrap_with_time_zone time.__send__(sym, *args, &block)
+    def method_missing(...)
+      wrap_with_time_zone time.__send__(...)
     rescue NoMethodError => e
       raise e, e.message.sub(time.inspect, inspect).sub("Time", "ActiveSupport::TimeWithZone"), e.backtrace
     end

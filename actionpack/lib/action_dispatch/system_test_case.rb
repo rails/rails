@@ -51,7 +51,7 @@ module ActionDispatch
   #     driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
   #   end
   #
-  # By default, <tt>ActionDispatch::SystemTestCase</tt> is driven by the
+  # By default, +ActionDispatch::SystemTestCase+ is driven by the
   # Selenium driver, with the Chrome browser, and a browser size of 1400x1400.
   #
   # Changing the driver configuration options is easy. Let's say you want to use
@@ -106,8 +106,8 @@ module ActionDispatch
   #     end
   #   end
   #
-  # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara
-  # and Rails, any driver that is supported by Capybara is supported by system
+  # Because +ActionDispatch::SystemTestCase+ is a shim between Capybara
+  # and \Rails, any driver that is supported by Capybara is supported by system
   # tests as long as you include the required gems and files.
   class SystemTestCase < ActiveSupport::TestCase
     include Capybara::DSL

@@ -63,6 +63,11 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecators.each { |deprecator| assert_equal [callback], deprecator.disallowed_behavior }
   end
 
+  test "#disallowed_warnings= applies to each deprecator" do
+    @deprecators.disallowed_warnings = :all
+    @deprecators.each { |deprecator| assert_equal :all, deprecator.disallowed_warnings }
+  end
+
   test "#silence silences each deprecator" do
     @deprecators.each { |deprecator| assert_not_silencing(deprecator) }
 

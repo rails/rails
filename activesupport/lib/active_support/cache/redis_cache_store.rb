@@ -10,12 +10,13 @@ rescue LoadError
 end
 
 require "connection_pool"
+require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
 module ActiveSupport
   module Cache
-    # Redis cache store.
+    # = Redis \Cache \Store
     #
     # Deployment note: Take care to use a *dedicated Redis cache* rather
     # than pointing this at your existing Redis server. It won't cope well
@@ -103,8 +104,8 @@ module ActiveSupport
           end
       end
 
-      attr_reader :redis_options
       attr_reader :max_key_bytesize
+      attr_reader :redis
 
       # Creates a new Redis cache store.
       #
@@ -140,34 +141,27 @@ module ActiveSupport
       #   cache.fetch('bar', skip_nil: true) { nil }
       #   cache.exist?('foo') # => true
       #   cache.exist?('bar') # => false
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, skip_nil: false, **redis_options)
-        @redis_options = redis_options
+      def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+        base_options = redis_options.extract!(
+          :coder, :compress, :compress_threshold,
+          :namespace, :expires_in, :race_condition_ttl, :skip_nil,
+        )
+
+        if pool_options = self.class.send(:retrieve_pool_options, redis_options)
+          @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+        else
+          @redis = self.class.build_redis(**redis_options)
+        end
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
         @supports_pipelining = true
 
-        super namespace: namespace,
-          compress: compress, compress_threshold: compress_threshold,
-          expires_in: expires_in, race_condition_ttl: race_condition_ttl,
-          coder: coder, skip_nil: skip_nil
-      end
-
-      def redis
-        @redis ||= begin
-          pool_options = self.class.send(:retrieve_pool_options, redis_options)
-
-          if pool_options.any?
-            ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
-          else
-            self.class.build_redis(**redis_options)
-          end
-        end
+        super(base_options)
       end
 
       def inspect
-        instance = @redis || @redis_options
-        "#<#{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
+        "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
       end
 
       # Cache Store API implementation.
@@ -175,8 +169,10 @@ module ActiveSupport
       # Read multiple values at once. Returns a hash of requested keys ->
       # fetched values.
       def read_multi(*names)
+        return {} if names.empty?
+
         options = names.extract_options!
-        instrument(:read_multi, names, options) do |payload|
+        instrument_multi(:read_multi, names, options) do |payload|
           read_multi_entries(names, **options).tap do |results|
             payload[:hits] = results.keys
           end

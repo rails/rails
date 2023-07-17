@@ -51,7 +51,7 @@ module ActionDispatch
 
         headers = {
           "Location" => uri.to_s,
-          "Content-Type" => "text/html",
+          "Content-Type" => "text/html; charset=#{ActionDispatch::Response.default_charset}",
           "Content-Length" => body.length.to_s
         }
 
@@ -68,7 +68,7 @@ module ActionDispatch
 
       private
         def relative_path?(path)
-          path && !path.empty? && path[0] != "/"
+          path && !path.empty? && !path.start_with?("/")
         end
 
         def escape(params)

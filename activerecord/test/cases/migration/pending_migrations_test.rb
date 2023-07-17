@@ -5,8 +5,8 @@ require "active_support/core_ext/hash/deep_merge"
 
 module ActiveRecord
   class Migration
-    if current_adapter?(:SQLite3Adapter) && !in_memory_db?
-      class PendingMigrationsTest < ActiveRecord::TestCase
+    class PendingMigrationsTest < ActiveRecord::TestCase
+      if current_adapter?(:SQLite3Adapter) && !in_memory_db?
         self.use_transactional_tests = false
 
         setup do
@@ -41,7 +41,12 @@ module ActiveRecord
 
         def test_errors_if_pending
           create_migration "01", "create_foo"
-          assert_pending_migrations
+          assert_pending_migrations("01_create_foo.rb")
+        end
+
+        def test_errors_if_pending_with_deprecated_method
+          create_migration "01", "create_foo"
+          assert_deprecated_check_pending("01_create_foo.rb")
         end
 
         def test_checks_if_supported
@@ -62,25 +67,20 @@ module ActiveRecord
 
           # It understands the new migration created at 01
           create_migration "01", "create_foo"
-          assert_pending_migrations
+          assert_pending_migrations("01_create_foo.rb")
         end
 
         def test_with_multiple_database
-          create_migration "01", "create_bar", database: :secondary
-          assert_pending_migrations
+          create_migration "01", "create_bar", database: :primary
+          create_migration "02", "create_foo", database: :secondary
+          assert_pending_migrations("01_create_bar.rb", "02_create_foo.rb")
 
           ActiveRecord::Base.establish_connection(:secondary)
           quietly { run_migrations }
 
           ActiveRecord::Base.establish_connection(:primary)
+          quietly { run_migrations }
 
-          assert_no_pending_migrations
-
-          # Now check exclusion if database_tasks is set to false for the db_config
-          create_migration "02", "create_foo", database: :secondary
-          assert_pending_migrations
-
-          ActiveRecord::Base.configurations = base_config(secondary: { database_tasks: false })
           assert_no_pending_migrations
         end
 
@@ -92,11 +92,38 @@ module ActiveRecord
         end
 
         private
-          def assert_pending_migrations
-            # Do twice to test that the error continues to be raised.
+          def assert_deprecated_check_pending(*expected_migrations)
             2.times do
               assert_raises ActiveRecord::PendingMigrationError do
+                assert_deprecated(ActiveRecord.deprecator) do
+                  ActiveRecord::Migration.check_pending!
+                end
+              end
+
+              error = assert_raises ActiveRecord::PendingMigrationError do
                 CheckPending.new(proc { flunk }).call({})
+              end
+
+              assert_includes error.message, "Migrations are pending."
+              expected_migrations.each do |migration|
+                assert_includes error.message, migration
+              end
+            end
+          end
+
+          def assert_pending_migrations(*expected_migrations)
+            2.times do
+              assert_raises ActiveRecord::PendingMigrationError do
+                ActiveRecord::Migration.check_all_pending!
+              end
+
+              error = assert_raises ActiveRecord::PendingMigrationError do
+                CheckPending.new(proc { flunk }).call({})
+              end
+
+              assert_includes error.message, "Migrations are pending."
+              expected_migrations.each do |migration|
+                assert_includes error.message, migration
               end
             end
           end
@@ -105,8 +132,11 @@ module ActiveRecord
             app = Minitest::Mock.new
             check_pending = CheckPending.new(app)
 
-            # Do twice to also test the cached result.
             2.times do
+              assert_nothing_raised do
+                ActiveRecord::Migration.check_all_pending!
+              end
+
               app.expect :call, nil, [{}]
               check_pending.call({})
               app.verify

@@ -37,6 +37,7 @@ module ActiveRecord
 
                 parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
                 parts << "using: #{exclusion_constraint.using.inspect}" if exclusion_constraint.using
+                parts << "deferrable: #{exclusion_constraint.deferrable.inspect}" if exclusion_constraint.deferrable
 
                 if exclusion_constraint.export_name_on_schema_dump?
                   parts << "name: #{exclusion_constraint.name.inspect}"
@@ -46,6 +47,26 @@ module ActiveRecord
               end
 
               stream.puts add_exclusion_constraint_statements.sort.join("\n")
+            end
+          end
+
+          def unique_keys_in_create(table, stream)
+            if (unique_keys = @connection.unique_keys(table)).any?
+              add_unique_key_statements = unique_keys.map do |unique_key|
+                parts = [
+                  "t.unique_key #{unique_key.column.inspect}"
+                ]
+
+                parts << "deferrable: #{unique_key.deferrable.inspect}" if unique_key.deferrable
+
+                if unique_key.export_name_on_schema_dump?
+                  parts << "name: #{unique_key.name.inspect}"
+                end
+
+                "    #{parts.join(', ')}"
+              end
+
+              stream.puts add_unique_key_statements.sort.join("\n")
             end
           end
 

@@ -4,7 +4,7 @@ require "thread"
 require "delegate"
 
 module ActionView
-  # = Action View Template
+  # = Action View \Template
   class Template
     extend ActiveSupport::Autoload
 
@@ -13,11 +13,11 @@ module ActionView
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
-    # encoding issues in Rails. This is because the source for
+    # encoding issues in \Rails. This is because the source for
     # templates are usually read from disk, and Ruby (like most
     # encoding-aware programming languages) assumes that the
     # String retrieved through File IO is encoded in the
-    # <tt>default_external</tt> encoding. In Rails, the default
+    # <tt>default_external</tt> encoding. In \Rails, the default
     # <tt>default_external</tt> encoding is UTF-8.
     #
     # As a result, if a user saves their template as ISO-8859-1
@@ -36,13 +36,13 @@ module ActionView
     #    to the problem.
     # 2. The user can specify the encoding using Ruby-style
     #    encoding comments in any template engine. If such
-    #    a comment is supplied, Rails will apply that encoding
+    #    a comment is supplied, \Rails will apply that encoding
     #    to the resulting compiled source returned by the
     #    template handler.
     # 3. In all cases, we transcode the resulting String to
     #    the UTF-8.
     #
-    # This means that other parts of Rails can always assume
+    # This means that other parts of \Rails can always assume
     # that templates are encoded in UTF-8, even if the original
     # source of the template was not UTF-8.
     #
@@ -53,7 +53,7 @@ module ActionView
     # === Instructions for template handlers
     #
     # The easiest thing for you to do is to simply ignore
-    # encodings. Rails will hand you the template source
+    # encodings. \Rails will hand you the template source
     # as the default_internal (generally UTF-8), raising
     # an exception for the user before sending the template
     # to you if it could not determine the original encoding.
@@ -70,7 +70,7 @@ module ActionView
     # you may indicate that you will handle encodings yourself
     # by implementing <tt>handles_encoding?</tt> on your handler.
     #
-    # If you do, Rails will not try to encode the String
+    # If you do, \Rails will not try to encode the String
     # into the default_internal, passing you the unaltered
     # bytes tagged with the assumed encoding (from
     # default_external).
@@ -109,6 +109,7 @@ module ActionView
       autoload :Handlers
       autoload :HTML
       autoload :Inline
+      autoload :Types
       autoload :Sources
       autoload :Text
       autoload :Types
@@ -119,8 +120,21 @@ module ActionView
     singleton_class.attr_accessor :frozen_string_literal
     @frozen_string_literal = false
 
+    class << self # :nodoc:
+      def mime_types_implementation=(implementation)
+        # This method isn't thread-safe, but it's not supposed
+        # to be called after initialization
+        if self::Types != implementation
+          remove_const(:Types)
+          const_set(:Types, implementation)
+        end
+      end
+    end
+
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :virtual_path
+
+    NONE = Object.new
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
@@ -139,6 +153,8 @@ module ActionView
       @format            = format
       @variant           = variant
       @compile_mutex     = Mutex.new
+      @strict_locals     = NONE
+      @type              = nil
     end
 
     # The locals this template has been or will be compiled for, or nil if this
@@ -151,11 +167,19 @@ module ActionView
       end
     end
 
+    def spot(location) # :nodoc:
+      ast = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
+      node_id = RubyVM::AbstractSyntaxTree.node_id_for_backtrace_location(location)
+      node = find_node_by_id(ast, node_id)
+
+      ErrorHighlight.spot(node)
+    end
+
     # Translate an error location returned by ErrorHighlight to the correct
     # source location inside the template.
     def translate_location(backtrace_location, spot)
       if handler.respond_to?(:translate_location)
-        handler.translate_location(spot, backtrace_location, source)
+        handler.translate_location(spot, backtrace_location, encode!) || spot
       else
         spot
       end
@@ -177,10 +201,10 @@ module ActionView
       instrument_render_template do
         compile!(view)
         if buffer
-          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)
+          view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: @strict_locals, &block)&.to_s
+          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)&.to_s
         end
       end
     rescue => e
@@ -253,23 +277,30 @@ module ActionView
     end
 
     # This method is responsible for marking a template as having strict locals
-    # and extracting any arguments declared in the format
-    # locals: (message:, label: "My Message")
+    # which means the template can only accept the locals defined in a magic
+    # comment. For example, if your template acceps the locals +title+ and
+    # +comment_count+, add the following to your template file:
+    #
+    #   <%# locals: (title: "Default title", comment_count: 0) %>
+    #
+    # Strict locals are useful for validating template arguments and for
+    # specifying defaults.
     def strict_locals!
-      self.source.sub!(STRICT_LOCALS_REGEX, "")
-      @strict_locals = $1
+      if @strict_locals == NONE
+        self.source.sub!(STRICT_LOCALS_REGEX, "")
+        @strict_locals = $1
 
-      return if @strict_locals.nil? # Magic comment not found
+        return if @strict_locals.nil? # Magic comment not found
 
-      @strict_locals = "**nil" if @strict_locals.blank?
+        @strict_locals = "**nil" if @strict_locals.blank?
+      end
+
+      @strict_locals
     end
 
+    # Returns whether a template is using strict locals.
     def strict_locals?
-      if defined?(@strict_locals)
-        @strict_locals
-      else
-        STRICT_LOCALS_REGEX === self.source
-      end
+      strict_locals!
     end
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
@@ -293,6 +324,17 @@ module ActionView
     end
 
     private
+      def find_node_by_id(node, node_id)
+        return node if node.node_id == node_id
+
+        node.children.grep(node.class).each do |child|
+          found = find_node_by_id(child, node_id)
+          return found if found
+        end
+
+        false
+      end
+
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view)
@@ -317,33 +359,23 @@ module ActionView
         end
       end
 
-      # Among other things, this method is responsible for properly setting
-      # the encoding of the compiled template.
-      #
-      # If the template engine handles encodings, we send the encoded
-      # String to the engine without further processing. This allows
-      # the template engine to support additional mechanisms for
-      # specifying the encoding. For instance, ERB supports <%# encoding: %>
-      #
-      # Otherwise, after we figure out the correct encoding, we then
-      # encode the source into <tt>Encoding.default_internal</tt>.
-      # In general, this means that templates will be UTF-8 inside of Rails,
-      # regardless of the original source encoding.
-      def compile(mod)
-        strict_locals!
+      # This method compiles the source of the template. The compilation of templates
+      # involves setting strict_locals! if applicable, encoding the template, and setting
+      # frozen string literal.
+      def compiled_source
+        set_strict_locals = strict_locals!
         source = encode!
         code = @handler.call(self, source)
 
         method_arguments =
-          if @strict_locals
-            "output_buffer, #{@strict_locals}"
+          if set_strict_locals
+            "output_buffer, #{set_strict_locals}"
           else
             "local_assigns, output_buffer"
           end
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
-        original_source = source
         source = +<<-end_src
           def #{method_name}(#{method_arguments})
             @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
@@ -364,20 +396,36 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
+        if Template.frozen_string_literal
+          "# frozen_string_literal: true\n#{source}"
+        else
+          source
+        end
+      end
+
+      # Among other things, this method is responsible for properly setting
+      # the encoding of the compiled template.
+      #
+      # If the template engine handles encodings, we send the encoded
+      # String to the engine without further processing. This allows
+      # the template engine to support additional mechanisms for
+      # specifying the encoding. For instance, ERB supports <%# encoding: %>
+      #
+      # Otherwise, after we figure out the correct encoding, we then
+      # encode the source into <tt>Encoding.default_internal</tt>.
+      # In general, this means that templates will be UTF-8 inside of Rails,
+      # regardless of the original source encoding.
+      def compile(mod)
         begin
-          if Template.frozen_string_literal
-            mod.module_eval("# frozen_string_literal: true\n#{source}", identifier, -1)
-          else
-            mod.module_eval(source, identifier, 0)
-          end
+          mod.module_eval(compiled_source, identifier, offset)
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
           # the result into the template, but missing an end parenthesis.
-          raise SyntaxErrorInTemplate.new(self, original_source)
+          raise SyntaxErrorInTemplate.new(self, encode!)
         end
 
-        return unless @strict_locals
+        return unless strict_locals?
 
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
@@ -398,6 +446,14 @@ module ActionView
         )
       end
 
+      def offset
+        if Template.frozen_string_literal
+          -1
+        else
+          0
+        end
+      end
+
       def handle_render_error(view, e)
         if e.is_a?(Template::Error)
           e.sub_template_of(self)
@@ -408,21 +464,13 @@ module ActionView
       end
 
       def locals_code
-        return "" if @strict_locals
+        return "" if strict_locals?
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
-        deprecated_locals = locals.grep(/\A@+/)
-        if deprecated_locals.any?
-          ActionView.deprecator.warn(<<~MSG)
-            Passing instance variables to `render` is deprecated.
-            In Rails 7.1, #{deprecated_locals.to_sentence} will be ignored.
-          MSG
-          locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
-        else
-          locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
-        end
+
+        locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
         # Assign for the same variable is to suppress unused variable warning
         locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }

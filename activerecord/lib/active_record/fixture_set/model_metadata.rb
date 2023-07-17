@@ -12,12 +12,22 @@ module ActiveRecord
       end
 
       def primary_key_type
-        @primary_key_type ||= @model_class && @model_class.type_for_attribute(@model_class.primary_key).type
+        @primary_key_type ||= @model_class && column_type(@model_class.primary_key)
       end
 
-      def has_primary_key_column?
-        @has_primary_key_column ||= primary_key_name &&
-          @model_class.columns.any? { |col| col.name == primary_key_name }
+      def column_type(column_name)
+        @column_type ||= {}
+        return @column_type[column_name] if @column_type.key?(column_name)
+
+        @column_type[column_name] = @model_class && @model_class.type_for_attribute(column_name).type
+      end
+
+      def has_column?(column_name)
+        column_names.include?(column_name)
+      end
+
+      def column_names
+        @column_names ||= @model_class ? @model_class.columns.map(&:name).to_set : Set.new
       end
 
       def timestamp_column_names

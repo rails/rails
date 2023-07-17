@@ -38,34 +38,34 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
   test "skip exceptions app if not showing exceptions" do
     @app = ProductionApp
     assert_raise RuntimeError do
-      get "/", env: { "action_dispatch.show_exceptions" => false }
+      get "/", env: { "action_dispatch.show_exceptions" => :none }
     end
   end
 
   test "rescue with error page" do
     @app = ProductionApp
 
-    get "/", env: { "action_dispatch.show_exceptions" => true }
+    get "/", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 500
     assert_equal "500 error fixture\n", body
 
-    get "/bad_params", env: { "action_dispatch.show_exceptions" => true }
+    get "/bad_params", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 400
     assert_equal "400 error fixture\n", body
 
-    get "/not_found", env: { "action_dispatch.show_exceptions" => true }
+    get "/not_found", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 404
     assert_equal "404 error fixture\n", body
 
-    get "/method_not_allowed", env: { "action_dispatch.show_exceptions" => true }
+    get "/method_not_allowed", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 405
     assert_equal "", body
 
-    get "/unknown_http_method", env: { "action_dispatch.show_exceptions" => true }
+    get "/unknown_http_method", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 405
     assert_equal "", body
 
-    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => :all }
     assert_response 406
     assert_equal "", body
   end
@@ -76,11 +76,11 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     begin
       @app = ProductionApp
 
-      get "/", env: { "action_dispatch.show_exceptions" => true }
+      get "/", env: { "action_dispatch.show_exceptions" => :all }
       assert_response 500
       assert_equal "500 localized error fixture\n", body
 
-      get "/not_found", env: { "action_dispatch.show_exceptions" => true }
+      get "/not_found", env: { "action_dispatch.show_exceptions" => :all }
       assert_response 404
       assert_equal "404 error fixture\n", body
     ensure
@@ -91,14 +91,14 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
   test "sets the HTTP charset parameter" do
     @app = ProductionApp
 
-    get "/", env: { "action_dispatch.show_exceptions" => true }
+    get "/", env: { "action_dispatch.show_exceptions" => :all }
     assert_equal "text/html; charset=utf-8", response.headers["Content-Type"]
   end
 
   test "show registered original exception for wrapped exceptions" do
     @app = ProductionApp
 
-    get "/not_found_original_exception", env: { "action_dispatch.show_exceptions" => true }
+    get "/not_found_original_exception", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 404
     assert_match(/404 error/, body)
   end
@@ -112,7 +112,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     end
 
     @app = ActionDispatch::ShowExceptions.new(Boomer.new, exceptions_app)
-    get "/not_found_original_exception", env: { "action_dispatch.show_exceptions" => true }
+    get "/not_found_original_exception", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 404
     assert_equal "YOU FAILED", body
   end
@@ -123,7 +123,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     end
 
     @app = ActionDispatch::ShowExceptions.new(Boomer.new, exceptions_app)
-    get "/method_not_allowed", env: { "action_dispatch.show_exceptions" => true }
+    get "/method_not_allowed", env: { "action_dispatch.show_exceptions" => :all }
     assert_response 405
     assert_equal "", body
   end
@@ -131,12 +131,12 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
   test "bad params exception is returned in the correct format" do
     @app = ProductionApp
 
-    get "/bad_params", env: { "action_dispatch.show_exceptions" => true }
+    get "/bad_params", env: { "action_dispatch.show_exceptions" => :all }
     assert_equal "text/html; charset=utf-8", response.headers["Content-Type"]
     assert_response 400
     assert_match(/400 error/, body)
 
-    get "/bad_params.json", env: { "action_dispatch.show_exceptions" => true }
+    get "/bad_params.json", env: { "action_dispatch.show_exceptions" => :all }
     assert_equal "application/json; charset=utf-8", response.headers["Content-Type"]
     assert_response 400
     assert_equal("{\"status\":400,\"error\":\"Bad Request\"}", body)

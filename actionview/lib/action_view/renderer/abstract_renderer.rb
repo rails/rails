@@ -31,7 +31,7 @@ module ActionView
 
     module ObjectRendering # :nodoc:
       PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
-        h[k] = Concurrent::Map.new
+        h.compute_if_absent(k) { Concurrent::Map.new }
       end
 
       def initialize(lookup_context, options)

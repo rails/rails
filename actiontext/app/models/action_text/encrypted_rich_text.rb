@@ -7,3 +7,5 @@ module ActionText
     encrypts :body
   end
 end
+
+ActiveSupport.run_load_hooks :action_text_encrypted_rich_text, ActionText::EncryptedRichText

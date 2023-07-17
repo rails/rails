@@ -28,6 +28,20 @@ class AssertionsTest < ActiveSupport::TestCase
     assert_equal "custom", e.message
   end
 
+  def test_assert_raises_with_match_pass
+    assert_raises(ArgumentError, match: /incorrect/i) do
+      raise ArgumentError, "Incorrect argument"
+    end
+  end
+
+  def test_assert_raises_with_match_fail
+    assert_raises(Minitest::Assertion, match: "Expected /incorrect/i to match \"Wrong argument\".") do
+      assert_raises(ArgumentError, match: /incorrect/i) do
+        raise ArgumentError, "Wrong argument"
+      end
+    end
+  end
+
   def test_assert_no_difference_pass
     assert_no_difference "@object.num" do
       # ...
@@ -40,7 +54,7 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "\"@object.num\" didn't change by 0, but by 1.\nExpected: 0\n  Actual: 1", error.message
   end
 
   def test_assert_no_difference_with_message_fail
@@ -49,7 +63,7 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0, but by 1.\nExpected: 0\n  Actual: 1", error.message
   end
 
   def test_assert_no_difference_with_multiple_expressions_pass
@@ -143,7 +157,17 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0, but by 1.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_difference_message_includes_change
+    error = assert_raises Minitest::Assertion do
+      assert_difference "@object.num", +5 do
+        @object.increment
+        @object.increment
+      end
+    end
+    assert_equal "\"@object.num\" didn't change by 5, but by 2.\nExpected: 5\n  Actual: 2", error.message
   end
 
   def test_hash_of_lambda_expressions
@@ -533,6 +557,9 @@ class ConstStubbable
   CONSTANT = 1
 end
 
+class SubclassOfConstStubbable < ConstStubbable
+end
+
 class TestConstStubbing < ActiveSupport::TestCase
   test "stubbing a constant temporarily replaces it with a new value" do
     stub_const(ConstStubbable, :CONSTANT, 2) do
@@ -551,5 +578,15 @@ class TestConstStubbing < ActiveSupport::TestCase
     end
 
     assert_equal 1, ConstStubbable::CONSTANT
+  end
+
+  test "trying to stub a constant that does not exist in the receiver raises NameError" do
+    assert_raises(NameError) do
+      stub_const(ConstStubbable, :NOT_A_CONSTANT, 1) { }
+    end
+
+    assert_raises(NameError) do
+      stub_const(SubclassOfConstStubbable, :CONSTANT, 1) { }
+    end
   end
 end

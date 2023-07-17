@@ -1,4 +1,4 @@
-(function() {
+import $ from 'jquery'
 
 QUnit.module('call-remote-callbacks', {
   beforeEach: function() {
@@ -264,5 +264,3 @@ QUnit.test('binding to ajax callbacks via .delegate() triggers handlers properly
     })
   $('form[data-remote]').triggerNative('submit')
 })
-
-})()

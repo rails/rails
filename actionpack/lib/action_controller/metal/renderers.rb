@@ -3,12 +3,12 @@
 require "set"
 
 module ActionController
-  # See <tt>Renderers.add</tt>
+  # See Renderers.add
   def self.add_renderer(key, &block)
     Renderers.add(key, &block)
   end
 
-  # See <tt>Renderers.remove</tt>
+  # See Renderers.remove
   def self.remove_renderer(key)
     Renderers.remove(key)
   end
@@ -58,7 +58,7 @@ module ActionController
     #       disposition: "attachment; filename=#{filename}.csv"
     #   end
     #
-    # Note that we used Mime[:csv] for the csv mime type as it comes with Rails.
+    # Note that we used Mime[:csv] for the csv mime type as it comes with \Rails.
     # For a custom renderer, you'll need to register a mime type with
     # <tt>Mime::Type.register</tt>.
     #
@@ -100,7 +100,7 @@ module ActionController
       #
       # Both ActionController::Base and ActionController::API
       # include ActionController::Renderers::All, making all renderers
-      # available in the controller. See <tt>Renderers::RENDERERS</tt> and <tt>Renderers.add</tt>.
+      # available in the controller. See Renderers::RENDERERS and Renderers.add.
       #
       # Since ActionController::Metal controllers cannot render, the controller
       # must include AbstractController::Rendering, ActionController::Rendering,

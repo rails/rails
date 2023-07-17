@@ -26,14 +26,14 @@ module ApplicationTests
 
     test "/rails/mailers is not accessible in production" do
       app("production")
-      get "/rails/mailers"
+      get("/rails/mailers", {}, { "HTTPS" => "on" })
       assert_equal 404, last_response.status
     end
 
     test "/rails/mailers is accessible with correct configuration" do
       add_to_config "config.action_mailer.show_previews = true"
       app("production")
-      get "/rails/mailers", {}, { "REMOTE_ADDR" => "4.2.42.42" }
+      get "/rails/mailers", {}, { "REMOTE_ADDR" => "4.2.42.42", "HTTPS" => "on" }
       assert_equal 200, last_response.status
     end
 
@@ -923,6 +923,41 @@ module ApplicationTests
       assert_match "<dd id=\"to\">to@example.org</dd>", last_response.body
       assert_match "<dd id=\"cc\">cc@example.com</dd>", last_response.body
       assert_match "<dd id=\"bcc\">bcc@example.com</dd>", last_response.body
+    end
+
+    test "mailer preview has access to rendering context" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+          def foo
+            @template = params[:template]
+            mail to: "to@example.org", cc: "cc@example.com", bcc: "bcc@example.com"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        <%= @template %>
+      RUBY
+
+      text_template "notifier/bar", <<-RUBY
+        bar
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            # This is meant to simulate how Action Text's renderer works. See #47072.
+            template = Rails::MailersController.renderer.render_to_string("notifier/bar")
+            Notifier.with(template: template).foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo?part=text%2Fplain"
+      assert_includes last_response.body, "bar"
     end
 
     private

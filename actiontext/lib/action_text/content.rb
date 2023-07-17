@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 module ActionText
+  # = Action Text \Content
+  #
+  # The +ActionText::Content+ class wraps an HTML fragment to add support for
+  # parsing, rendering and serialization. It can be used to extract links and
+  # attachments, convert the fragment to plain text, or serialize the fragment
+  # to the database.
+  #
+  # The ActionText::RichText record serializes the `body` attribute as
+  # +ActionText::Content+.
+  #
+  #   class Message < ActiveRecord::Base
+  #     has_rich_text :content
+  #   end
+  #
+  #   message = Message.create!(content: "<h1>Funny times!</h1>")
+  #   body = message.content.body # => #<ActionText::Content "<div class=\"trix-conte...">
+  #   body.to_s # => "<h1>Funny times!</h1>"
+  #   body.to_plain_text # => "Funny times!"
   class Content
     include Rendering, Serialization
 
@@ -26,10 +44,21 @@ module ActionText
       end
     end
 
+    # Extracts links from the HTML fragment:
+    #
+    #   html = '<a href="http://example.com/">Example</a>'
+    #   content = ActionText::Content.new(html)
+    #   content.links # => ["http://example.com/"]
     def links
       @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
     end
 
+    # Extracts +ActionText::Attachment+s from the HTML fragment:
+    #
+    #   attachable = ActiveStorage::Blob.first
+    #   html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+    #   content = ActionText::Content.new(html)
+    #   content.attachments # => [#<ActionText::Attachment attachable=#<ActiveStorage::Blob...
     def attachments
       @attachments ||= attachment_nodes.map do |node|
         attachment_for_node(node)
@@ -46,6 +75,12 @@ module ActionText
       @gallery_attachments ||= attachment_galleries.flat_map(&:attachments)
     end
 
+    # Extracts +ActionText::Attachable+s from the HTML fragment:
+    #
+    #   attachable = ActiveStorage::Blob.first
+    #   html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+    #   content = ActionText::Content.new(html)
+    #   content.attachables # => [attachable]
     def attachables
       @attachables ||= attachment_nodes.map do |node|
         ActionText::Attachable.from_node(node)
@@ -71,6 +106,10 @@ module ActionText
       self.class.new(content, canonicalize: false)
     end
 
+    # Returns the content as plain text with all HTML tags removed.
+    #
+    #   content = ActionText::Content.new("<h1>Funny times!</h1>")
+    #   content.to_plain_text # => "Funny times!"
     def to_plain_text
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end

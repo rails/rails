@@ -10,7 +10,7 @@ require "action_view/template"
 require "action_view/lookup_context"
 
 module ActionView # :nodoc:
-  # = Action View Base
+  # = Action View \Base
   #
   # Action View templates can be written in several ways.
   # If the template file has a <tt>.erb</tt> extension, then it uses the erubi[https://rubygems.org/gems/erubi]
@@ -82,8 +82,8 @@ module ActionView # :nodoc:
   #
   # === Template caching
   #
-  # By default, Rails will compile each template to a method in order to render it. When you alter a template,
-  # Rails will check the file's modification time and recompile it in development mode.
+  # By default, \Rails will compile each template to a method in order to render it. When you alter a template,
+  # \Rails will check the file's modification time and recompile it in development mode.
   #
   # == Builder
   #
@@ -205,7 +205,8 @@ module ActionView # :nodoc:
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
 
     def assign(new_assigns) # :nodoc:
-      @_assigns = new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+      @_assigns = new_assigns
+      new_assigns.each { |key, value| instance_variable_set("@#{key}", value) }
     end
 
     # :stopdoc:
@@ -232,9 +233,13 @@ module ActionView # :nodoc:
       @view_renderer = ActionView::Renderer.new @lookup_context
       @current_template = nil
 
-      assign(assigns)
       assign_controller(controller)
       _prepare_context
+
+      super()
+
+      # Assigns must be called last to minimize the number of shapes
+      assign(assigns)
     end
 
     def _run(method, template, locals, buffer, add_to_stack: true, has_strict_locals: false, &block)

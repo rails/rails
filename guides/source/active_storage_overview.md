@@ -53,16 +53,21 @@ WARNING: Before you install and use third-party software, make sure you understa
 
 ## Setup
 
-Active Storage uses three tables in your application’s database named
-`active_storage_blobs`, `active_storage_variant_records`
-and `active_storage_attachments`. After creating a new
-application (or upgrading your application to Rails 5.2), run
-`bin/rails active_storage:install` to generate a migration that creates these
-tables. Use `bin/rails db:migrate` to run the migration.
+```bash
+$ bin/rails active_storage:install
+$ bin/rails db:migrate
+```
 
-WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
+This sets up configuration, and creates the three tables Active Storage uses:
+`active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
 
-WARNING: If you are using UUIDs instead of integers as the primary key on your models you will need to change the column type of `active_storage_attachments.record_id` and `active_storage_variant_records.id` in the generated migration accordingly.
+| Table      | Purpose |
+| ------------------- | ----- |
+| `active_storage_blobs` | Stores data about uploaded files, such as filename and content type. |
+| `active_storage_attachments` | A polymorphic join table that [connects your models to blobs](#attaching-files-to-records). If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name. |
+| `active_storage_variant_records` | If [variant tracking](#attaching-files-to-records) is enabled, stores records for each variant that has been generated. |
+
+WARNING: If you are using UUIDs instead of integers as the primary key on your models, you should set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -113,9 +118,6 @@ To use the test service when testing, you add the following to
 config.active_storage.service = :test
 ```
 
-Continue reading for more information on the built-in service adapters (e.g.
-`Disk` and `S3`) and the configuration they require.
-
 NOTE: Configuration files that are environment-specific will take precedence:
 in production, for example, the `config/storage/production.yml` file (if existent)
 will take precedence over the `config/storage.yml` file.
@@ -138,6 +140,9 @@ azure:
   # ...
   container: your_container_name-<%= Rails.env %>
 ```
+
+Continue reading for more information on the built-in service adapters (e.g.
+`Disk` and `S3`) and the configuration they require.
 
 ### Disk Service
 
@@ -176,7 +181,9 @@ amazon:
   retry_limit: 0
   upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
+    cache_control: "private, max-age=<%= 1.day.to_i %>"
 ```
+
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
 Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
@@ -346,12 +353,12 @@ gcs: &gcs
 
 private_gcs:
   <<: *gcs
-  credentials: <%= Rails.root.join("path/to/private_keyfile.json") %>
+  credentials: <%= Rails.root.join("path/to/private_key.json") %>
   bucket: ""
 
 public_gcs:
   <<: *gcs
-  credentials: <%= Rails.root.join("path/to/public_keyfile.json") %>
+  credentials: <%= Rails.root.join("path/to/public_key.json") %>
   bucket: ""
   public: true
 ```
@@ -565,6 +572,39 @@ You can bypass the content type inference from the data by passing in
 If you don’t provide a content type and Active Storage can’t determine the
 file’s content type automatically, it defaults to application/octet-stream.
 
+### Replacing vs Adding Attachments
+
+By default in Rails, attaching files to a `has_many_attached` association will replace
+any existing attachments. To instead add new attachments while retaining existing
+ones, set `Rails.application.config.replace_on_assign_to_many` to false.
+
+Alternatively, use hidden form fields with the [`signed_id`][ActiveStorage::Blob#signed_id]
+of each attached file:
+
+```erb
+<% @message.images.each do |image| %>
+  <%= form.hidden_field :images, multiple: true, value: image.signed_id %>
+<% end %>
+
+<%= form.file_field :images, multiple: true %>
+```
+
+This has the advantage of making it possible to remove existing attachments
+selectively, e.g. by using JavaScript to remove individual hidden fields.
+
+[ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
+
+### Form Validation
+
+Attachments aren't sent to the storage service until a successful `save` on the
+associated record. This means that if a form submission fails validation, any new
+attachment(s) will be lost and must be uploaded again. Since [direct uploads](#direct-uploads)
+are stored before the form is submitted, they can be used to retain uploads when validation fails:
+
+```erb
+<%= form.hidden_field :avatar, value: @user.avatar.signed_id if @user.avatar.attached? %>
+<%= form.file_field :avatar, direct_upload: true %>
+```
 
 Removing Files
 --------------
@@ -728,7 +768,7 @@ end
 <%= image_tag account_logo_path %>
 ```
 
-And then you might want to disable the Active Storage default routes with:
+And then you should disable the Active Storage default routes with:
 
 ```ruby
 config.active_storage.draw_routes = false
@@ -820,10 +860,15 @@ image_tag file.representation(resize_to_limit: [100, 100])
 
 Will generate an `<img>` tag with the `src` pointing to the
 [`ActiveStorage::Representations::RedirectController`][]. The browser will
-make a request to that controller, which will return a `302` redirect to the
-file on the remote service (or in [proxy mode](#proxy-mode), return the file
-contents). Loading the file lazily allows features like
-[single use URLs](#public-access) to work without slowing down your initial page loads.
+make a request to that controller, which will perform the following:
+
+1. Process file and upload the processed file if necessary.
+2. Return a `302` redirect to the file either to
+  * the remote service (e.g., S3).
+  * or `ActiveStorage::Blobs::ProxyController` which will return the file contents if [proxy mode](#proxy-mode) is enabled.
+
+Loading the file lazily allows features like [single use URLs](#public-access)
+to work without slowing down your initial page loads.
 
 This works fine for most cases.
 
@@ -962,7 +1007,7 @@ directly from the client to the cloud.
     Or, if you aren't using a `FormBuilder`, add the data attribute directly:
 
     ```erb
-    <input type=file data-direct-upload-url="<%= rails_direct_uploads_url %>" />
+    <input type="file" data-direct-upload-url="<%= rails_direct_uploads_url %>" />
     ```
 
 3. Configure CORS on third-party storage services to allow direct upload requests.
@@ -1151,11 +1196,9 @@ input[type=file][data-direct-upload-url][disabled] {
 }
 ```
 
-### Integrating with Libraries or Frameworks
+### Custom drag and drop solutions
 
-If you want to use the Direct Upload feature from a JavaScript framework, or
-you want to integrate custom drag and drop solutions, you can use the
-`DirectUpload` class for this purpose. Upon receiving a file from your library
+You can use the `DirectUpload` class for this purpose. Upon receiving a file from your library
 of choice, instantiate a DirectUpload and call its create method. Create takes
 a callback to invoke when the upload completes.
 
@@ -1202,10 +1245,12 @@ const uploadFile = (file) => {
 }
 ```
 
-If you need to track the progress of the file upload, you can pass a third
-parameter to the `DirectUpload` constructor. During the upload, DirectUpload
-will call the object's `directUploadWillStoreFileWithXHR` method. You can then
-bind your own progress handler on the XHR.
+### Track the progress of the file upload
+
+When using the `DirectUpload` constructor, it is possible to include a third parameter.
+This will allow the `DirectUpload` object to invoke the `directUploadWillStoreFileWithXHR`
+method during the upload process.
+You can then attach your own progress handler to the XHR to suit your needs.
 
 ```js
 import { DirectUpload } from "@rails/activestorage"
@@ -1235,6 +1280,61 @@ class Uploader {
     // Use event.loaded and event.total to update the progress bar
   }
 }
+```
+
+### Integrating with Libraries or Frameworks
+
+Once you receive a file from the library you have selected, you need to create
+a `DirectUpload` instance and use its "create" method to initiate the upload process,
+adding any required additional headers as necessary. The "create" method also requires
+a callback function to be provided that will be triggered once the upload has finished.
+
+```js
+import { DirectUpload } from "@rails/activestorage"
+
+class Uploader {
+  constructor(file, url, token) {
+    const headers = { 'Authentication': `Bearer ${token}` }
+    // INFO: Sending headers is an optional parameter. If you choose not to send headers,
+    //       authentication will be performed using cookies or session data.
+    this.upload = new DirectUpload(this.file, this.url, this, headers)
+  }
+
+  upload(file) {
+    this.upload.create((error, blob) => {
+      if (error) {
+        // Handle the error
+      } else {
+        // Use the with blob.signed_id as a file reference in next request
+      }
+    })
+  }
+
+  directUploadWillStoreFileWithXHR(request) {
+    request.upload.addEventListener("progress",
+      event => this.directUploadDidProgress(event))
+  }
+
+  directUploadDidProgress(event) {
+    // Use event.loaded and event.total to update the progress bar
+  }
+}
+```
+
+To implement customized authentication, a new controller must be created on
+the Rails application, similar to the following:
+
+```ruby
+class DirectUploadsController < ActiveStorage::DirectUploadsController
+  skip_forgery_protection
+  before_action :authenticate!
+
+  def authenticate!
+    @token = request.headers['Authorization']&.split&.last
+
+    return head :unauthorized unless valid_token?(@token)
+  end
+end
 ```
 
 NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file that uploads, but never attaches to a record. Consider [purging unattached uploads](#purging-unattached-uploads).
@@ -1415,6 +1515,33 @@ end
 [fixtures]: testing.html#the-low-down-on-fixtures
 [`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
 
+### Configuring services
+
+You can add `config/storage/test.yml` to configure services to be used in test environment
+This is useful when the `service` option is used.
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, service: :s3
+end
+```
+
+Without `config/storage/test.yml`, the `s3` service configured in `config/storage.yml` is used - even when running tests.
+
+The default configuration would be used and files would be uploaded to the service provider configured in `config/storage.yml`.
+
+In this case, you can add `config/storage/test.yml` and use Disk service for `s3` service to prevent sending requests.
+
+```yaml
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+s3:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+```
+
 Implementing Support for Other Cloud Services
 ---------------------------------------------
 
@@ -1432,7 +1559,7 @@ There are cases where a file is uploaded but never attached to a record. This ca
 namespace :active_storage do
   desc "Purges unattached Active Storage blobs. Run regularly."
   task purge_unattached: :environment do
-    ActiveStorage::Blob.unattached.where("active_storage_blobs.created_at <= ?", 2.days.ago).find_each(&:purge_later)
+    ActiveStorage::Blob.unattached.where(created_at: ..2.days.ago).find_each(&:purge_later)
   end
 end
 ```

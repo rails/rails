@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/core_ext/object/with"
 require "active_support/encrypted_file"
 
 class EncryptedFileTest < ActiveSupport::TestCase
@@ -142,6 +143,16 @@ class EncryptedFileTest < ActiveSupport::TestCase
     assert_equal @content, @encrypted_file.read
   ensure
     FileUtils.rm_rf symlink_path
+  end
+
+  test "can read encrypted file after changing default_serializer" do
+    ActiveSupport::Messages::Codec.with(default_serializer: :marshal) do
+      encrypted_file(@content_path).write(@content)
+    end
+
+    ActiveSupport::Messages::Codec.with(default_serializer: :json) do
+      assert_equal @content, encrypted_file(@content_path).read
+    end
   end
 
   private

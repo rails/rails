@@ -61,14 +61,22 @@ module ActiveRecord
         primary_key = reflection.association_primary_key
         pk_type = klass.type_for_attribute(primary_key)
         ids = Array(ids).compact_blank
-        ids.map! { |i| pk_type.cast(i) }
+        ids.map! { |id| pk_type.cast(id) }
 
-        records = klass.where(primary_key => ids).index_by do |r|
-          r.public_send(primary_key)
+        records = if klass.composite_primary_key?
+          query_records = ids.map { |values_set| klass.where(primary_key.zip(values_set).to_h) }.inject(&:or)
+
+          query_records.index_by do |record|
+            primary_key.map { |primary_key| record._read_attribute(primary_key) }
+          end
+        else
+          klass.where(primary_key => ids).index_by do |record|
+            record._read_attribute(primary_key)
+          end
         end.values_at(*ids).compact
 
         if records.size != ids.size
-          found_ids = records.map { |record| record.public_send(primary_key) }
+          found_ids = records.map { |record| record._read_attribute(primary_key) }
           not_found_ids = ids - found_ids
           klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, primary_key, not_found_ids)
         else
@@ -79,7 +87,7 @@ module ActiveRecord
       def reset
         super
         @target = []
-        @replaced_or_added_targets = Set.new
+        @replaced_or_added_targets = Set.new.compare_by_identity
         @association_ids = nil
       end
 
@@ -119,7 +127,7 @@ module ActiveRecord
       def concat(*records)
         records = records.flatten
         if owner.new_record?
-          load_target
+          skip_strict_loading { load_target }
           concat_records(records)
         else
           transaction { concat_records(records) }
@@ -233,7 +241,7 @@ module ActiveRecord
       # and delete/add only records that have changed.
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch!(val) }
-        original_target = load_target.dup
+        original_target = skip_strict_loading { load_target }.dup
 
         if owner.new_record?
           replace_records(other_array, original_target)
@@ -324,8 +332,12 @@ module ActiveRecord
           persisted.map! do |record|
             if mem_record = memory.delete(record)
 
-              ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save).each do |name|
-                mem_record[name] = record[name]
+              ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save - mem_record.class._attr_readonly).each do |name|
+                if name == "id" && mem_record.class.composite_primary_key?
+                  mem_record.class.primary_key.zip(record[name]) { |attr, value| mem_record._write_attribute(attr, value) }
+                else
+                  mem_record._write_attribute(name, record[name])
+                end
               end
 
               mem_record

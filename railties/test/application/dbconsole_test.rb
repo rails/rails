@@ -29,7 +29,7 @@ module ApplicationTests
 
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
-          config.database = "db/development.sqlite3"
+          config.database = "storage/development.sqlite3"
         end
       RUBY
 
@@ -49,11 +49,11 @@ module ApplicationTests
 
         development:
           <<: *default
-          database: db/development.sqlite3
+          database: storage/development.sqlite3
 
         production:
           <<: *default
-          database: db/production.sqlite3
+          database: storage/production.sqlite3
       YAML
 
       primary, replica = PTY.open

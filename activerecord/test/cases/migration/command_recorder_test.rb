@@ -152,6 +152,14 @@ module ActiveRecord
         assert_equal [:drop_table, [:system_settings], nil], drop_table
       end
 
+      def test_invert_create_table_with_if_not_exists
+        @recorder.revert do
+          @recorder.record :create_table, [:system_settings, if_not_exists: true]
+        end
+        drop_table = @recorder.commands.first
+        assert_equal [:drop_table, [:system_settings, {}], nil], drop_table
+      end
+
       def test_invert_create_table_with_options_and_block
         block = Proc.new { }
         drop_table = @recorder.inverse_of :create_table, [:people_reminders, id: false], &block
@@ -161,6 +169,12 @@ module ActiveRecord
       def test_invert_drop_table
         block = Proc.new { }
         create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false], &block
+        assert_equal [:create_table, [:people_reminders, id: false], block], create_table
+      end
+
+      def test_invert_drop_table_with_if_exists
+        block = Proc.new { }
+        create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false, if_exists: true], &block
         assert_equal [:create_table, [:people_reminders, id: false], block], create_table
       end
 
@@ -457,6 +471,28 @@ module ActiveRecord
         end
       end
 
+      def test_invert_add_unique_key_constraint_with_using_index
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :add_unique_key, [:dogs, using_index: "unique_index"]
+        end
+      end
+
+      def test_invert_remove_unique_key_constraint
+        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"]
+        assert_equal [:add_unique_key, [:dogs, ["speed"], deferrable: :deferred, name: "uniq_speed"], nil], enable
+      end
+
+      def test_invert_remove_unique_key_constraint_without_options
+        enable = @recorder.inverse_of :remove_unique_key, [:dogs, ["speed"]]
+        assert_equal [:add_unique_key, [:dogs, ["speed"]], nil], enable
+      end
+
+      def test_invert_remove_unique_key_constraint_without_columns
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_unique_key, [:dogs, name: "uniq_speed"]
+        end
+      end
+
       def test_invert_create_enum
         drop = @recorder.inverse_of :create_enum, [:color, ["blue", "green"]]
         assert_equal [:drop_enum, [:color, ["blue", "green"]], nil], drop
@@ -474,6 +510,40 @@ module ActiveRecord
 
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :drop_enum, [:color, if_exists: true]
+        end
+      end
+
+      def test_invert_rename_enum
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
+        assert_equal [:rename_enum, [:breed, to: :dog_breed]], enum
+      end
+
+      def test_invert_rename_enum_without_to
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :rename_enum, [:breed]
+        end
+      end
+
+      def test_invert_add_enum_value
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :add_enum_value, [:dog_breed, :beagle]
+        end
+      end
+
+      def test_invert_rename_enum_value
+        enum_value = @recorder.inverse_of :rename_enum_value, [:dog_breed, from: :retriever, to: :beagle]
+        assert_equal [:rename_enum_value, [:dog_breed, from: :beagle, to: :retriever]], enum_value
+      end
+
+      def test_invert_rename_enum_value_without_from
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :rename_enum_value, [:dog_breed, to: :retriever]
+        end
+      end
+
+      def test_invert_rename_enum_value_without_to
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :rename_enum_value, [:dog_breed, from: :beagle]
         end
       end
     end

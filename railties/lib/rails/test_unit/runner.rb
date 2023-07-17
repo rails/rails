@@ -1,15 +1,16 @@
 # frozen_string_literal: true
 
 require "shellwords"
-require "method_source"
 require "rake/file_list"
 require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
+require "rails/test_unit/test_parser"
 
 module Rails
   module TestUnit
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
+      PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
 
       class << self
@@ -31,9 +32,9 @@ module Rails
           $VERBOSE = argv.delete_at(w_index) if w_index
         end
 
-        def rake_run(argv = [])
+        def run_from_rake(test_command, argv = [])
           # Ensure the tests run during the Rake Task action, not when the process exits
-          success = system("rails", "test", *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
+          success = system("rails", test_command, *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
           success || exit(false)
         end
 
@@ -44,7 +45,8 @@ module Rails
         end
 
         def load_tests(argv)
-          tests = list_tests(argv)
+          patterns = extract_filters(argv)
+          tests = list_tests(patterns)
           tests.to_a.each { |path| require File.expand_path(path) }
         end
 
@@ -62,7 +64,7 @@ module Rails
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.filter_map do |path|
-              next unless path_argument?(path) && !regexp_filter?(path)
+              next unless path_argument?(path)
 
               path = path.tr("\\", "/")
               case
@@ -92,21 +94,24 @@ module Rails
           end
 
           def path_argument?(arg)
-            %r"^\.*[/\\]?\w+[/\\]".match?(arg)
+            PATH_ARGUMENT_PATTERN.match?(arg)
           end
 
-          def list_tests(argv)
-            patterns = extract_filters(argv)
-
+          def list_tests(patterns)
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
             tests.exclude(default_test_exclude_glob) if patterns.empty?
             tests
           end
 
           def escape_declarative_test_filter(filter)
-            if filter.is_a?(String) && !filter.start_with?("test_")
-              filter = "test_#{filter}" unless regexp_filter?(filter)
-              filter = filter.gsub(/\s+/, "_")
+            # NOTE: This method may be applied multiple times, so any
+            # transformations MUST BE idempotent.
+            if filter.is_a?(String)
+              if regexp_filter?(filter)
+                filter = filter.gsub(/\s+/, '[\s_]+')
+              elsif !filter.start_with?("test_")
+                filter = "test_#{filter.gsub(/\s+/, "_")}"
+              end
             end
             filter
           end
@@ -168,10 +173,7 @@ module Rails
 
       private
         def definition_for(method)
-          file, start_line = method.source_location
-          end_line = method.source.count("\n") + start_line - 1
-
-          return file, start_line..end_line
+          TestParser.definition_for(method)
         end
     end
   end

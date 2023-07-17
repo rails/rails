@@ -26,6 +26,8 @@ module AbstractController
     end
   end
 
+  # = Abstract Controller \Base
+  #
   # AbstractController::Base is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
   # expected to provide their own +render+ method, since rendering means
@@ -70,7 +72,7 @@ module AbstractController
       # instance methods on that abstract class. Public instance methods of
       # a controller would normally be considered action methods, so methods
       # declared on abstract classes are being removed.
-      # (<tt>ActionController::Metal</tt> and ActionController::Base are defined as abstract)
+      # (ActionController::Metal and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
 

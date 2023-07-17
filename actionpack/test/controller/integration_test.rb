@@ -165,6 +165,24 @@ class IntegrationTestTest < ActiveSupport::TestCase
   end
 end
 
+class RackLintIntegrationTest < ActionDispatch::IntegrationTest
+  test "integration test follows rack SPEC" do
+    with_routing do |set|
+      set.draw do
+        get "/", to: ->(_) { [200, {}, [""]] }
+      end
+
+      @app = self.class.build_app(set) do |middleware|
+        middleware.unshift Rack::Lint
+      end
+
+      get "/"
+
+      assert_equal 200, status
+    end
+  end
+end
+
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
@@ -295,12 +313,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  include CookieAssertions
+
   test "response cookies are added to the cookie jar for the next request" do
     with_test_route_set do
       cookies["cookie_1"] = "sugar"
       cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
-      assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
+      assert_set_cookie_header "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
     end
   end
@@ -1080,6 +1100,10 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     def foos_wibble
       render plain: "ok"
     end
+
+    def foos_json_api
+      render plain: "ok"
+    end
   end
 
   def test_standard_json_encoding_works
@@ -1148,6 +1172,26 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   ensure
     Mime::Type.unregister :wibble
+  end
+
+  def test_registering_custom_encoder_including_parameters
+    accept_header = 'application/vnd.api+json; profile="https://jsonapi.org/profiles/ethanresnick/cursor-pagination/"; ext="https://jsonapi.org/ext/atomic"'
+    Mime::Type.register accept_header, :json_api
+
+    ActionDispatch::IntegrationTest.register_encoder(:json_api,
+      param_encoder: -> params { params })
+
+    post_to_foos as: :json_api do
+      assert_response :success
+      assert_equal "/foos_json_api", request.path
+      assert_equal "application/vnd.api+json", request.media_type
+      assert_equal accept_header, request.accepts.first.to_s
+      assert_equal :json_api, request.format.ref
+      assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.
+      assert_equal "ok", response.parsed_body
+    end
+  ensure
+    Mime::Type.unregister :json_api
   end
 
   def test_parsed_body_without_as_option

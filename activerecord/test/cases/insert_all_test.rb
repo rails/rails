@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "models/category"
 require "models/cart"
 require "models/developer"
 require "models/ship"
@@ -218,6 +219,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_finds_index_with_inverted_unique_by_columns
+    skip unless supports_insert_conflict_target?
+
+    columns = [:author_id, :name]
+    assert ActiveRecord::Base.connection.index_exists?(:books, columns)
+
+    assert_difference "Book.count", +2 do
+      Book.insert_all [{ name: "Remote", author_id: 1 }], unique_by: columns.reverse
+      Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: columns.reverse
+    end
+  end
+
   def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_provided
     skip unless supports_insert_conflict_target?
 
@@ -279,6 +292,26 @@ class InsertAllTest < ActiveRecord::TestCase
       assert_equal "Perelandra 2", book.title, "Should have updated the title"
       assert_equal "111111", book.isbn, "Should have updated the isbn"
       assert_equal 7, book.author_id, "Should not have updated the author_id"
+    end
+  end
+
+  def test_insert_all_and_upsert_all_with_sti
+    assert_difference -> { Category.count }, 2 do
+      SpecialCategory.insert_all [{ name: "First" }, { name: "Second", type: nil }]
+    end
+
+    first, second = Category.last(2)
+    assert_equal "SpecialCategory", first.type
+    assert_nil second.type
+
+    if supports_insert_on_duplicate_update?
+      SpecialCategory.upsert_all [{ id: 103, name: "First" }, { id: 104, name: "Second", type: nil }]
+
+      category3 = Category.find(103)
+      assert_equal "SpecialCategory", category3.type
+
+      category4 = Category.find(104)
+      assert_nil category4.type
     end
   end
 
@@ -410,8 +443,8 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
     Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
 
-    assert_equal Time.now.year, Book.find(101).updated_at.year
-    assert_equal Time.now.year, Book.find(101).updated_on.year
+    assert_equal Time.now.utc.year, Book.find(101).updated_at.year
+    assert_equal Time.now.utc.year, Book.find(101).updated_on.year
   end
 
   def test_upsert_all_respects_updated_at_precision_when_touched_implicitly
@@ -455,10 +488,10 @@ class InsertAllTest < ActiveRecord::TestCase
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }]
 
       ship = Ship.find(101)
-      assert_equal Time.new.year, ship.created_at.year
-      assert_equal Time.new.year, ship.created_on.year
-      assert_equal Time.new.year, ship.updated_at.year
-      assert_equal Time.new.year, ship.updated_on.year
+      assert_equal Time.new.utc.year, ship.created_at.year
+      assert_equal Time.new.utc.year, ship.created_on.year
+      assert_equal Time.new.utc.year, ship.updated_at.year
+      assert_equal Time.new.utc.year, ship.updated_on.year
     end
   end
 
@@ -497,10 +530,10 @@ class InsertAllTest < ActiveRecord::TestCase
       Ship.upsert_all [{ id: 101, name: "RSS Boaty McBoatface" }], record_timestamps: true
 
       ship = Ship.find(101)
-      assert_equal Time.now.year, ship.created_at.year
-      assert_equal Time.now.year, ship.created_on.year
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.created_at.year
+      assert_equal Time.now.utc.year, ship.created_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 
@@ -527,8 +560,8 @@ class InsertAllTest < ActiveRecord::TestCase
       ship = Ship.find(101)
       assert_equal 2016, ship.created_at.year
       assert_equal 2016, ship.created_on.year
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 
@@ -575,8 +608,8 @@ class InsertAllTest < ActiveRecord::TestCase
       ship = Ship.find(101)
       assert_nil ship.created_at
       assert_nil ship.created_on
-      assert_equal Time.now.year, ship.updated_at.year
-      assert_equal Time.now.year, ship.updated_on.year
+      assert_equal Time.now.utc.year, ship.updated_at.year
+      assert_equal Time.now.utc.year, ship.updated_on.year
     end
   end
 

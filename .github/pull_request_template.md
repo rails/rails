@@ -43,5 +43,3 @@ Before submitting the PR make sure the following are checked:
 * [ ] Commit message has a detailed description of what changed and why. If this PR fixes a related issue include it in the commit message. Ex: `[Fix #issue-number]`
 * [ ] Tests are added or updated if you fix a bug or add a feature.
 * [ ] CHANGELOG files are updated for the changed libraries if there is a behavior change or additional feature. Minor bug fixes and documentation changes should not be included.
-* [ ] CI is passing.
-

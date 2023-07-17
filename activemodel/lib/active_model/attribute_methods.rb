@@ -11,17 +11,17 @@ module ActiveModel
   #
   #   user = User.first
   #   user.pets.select(:id).first.user_id
-  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute 'user_id' for Pet
   class MissingAttributeError < NoMethodError
   end
 
-  # == Active \Model \Attribute \Methods
+  # = Active \Model \Attribute \Methods
   #
   # Provides a way to add prefixes and suffixes to your methods as
-  # well as handling the creation of <tt>ActiveRecord::Base</tt>-like
+  # well as handling the creation of ActiveRecord::Base - like
   # class methods such as +table_name+.
   #
-  # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
+  # The requirements to implement +ActiveModel::AttributeMethods+ are to:
   #
   # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
   # * Call each of its methods you want to add, such as +attribute_method_suffix+
@@ -49,18 +49,17 @@ module ActiveModel
   #     end
   #
   #     private
+  #       def attribute_contrived?(attr)
+  #         true
+  #       end
   #
-  #     def attribute_contrived?(attr)
-  #       true
-  #     end
+  #       def clear_attribute(attr)
+  #         send("#{attr}=", nil)
+  #       end
   #
-  #     def clear_attribute(attr)
-  #       send("#{attr}=", nil)
-  #     end
-  #
-  #     def reset_attribute_to_default!(attr)
-  #       send("#{attr}=", 'Default Name')
-  #     end
+  #       def reset_attribute_to_default!(attr)
+  #         send("#{attr}=", 'Default Name')
+  #       end
   #   end
   module AttributeMethods
     extend ActiveSupport::Concern
@@ -95,10 +94,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
-      #     end
+      #       def clear_attribute(attr)
+      #         send("#{attr}=", nil)
+      #       end
       #   end
       #
       #   person = Person.new
@@ -131,10 +129,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -167,10 +164,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def reset_attribute_to_default!(attr)
-      #       send("#{attr}=", 'Default Name')
-      #     end
+      #       def reset_attribute_to_default!(attr)
+      #         send("#{attr}=", 'Default Name')
+      #       end
       #   end
       #
       #   person = Person.new
@@ -194,10 +190,9 @@ module ActiveModel
       #     alias_attribute :nickname, :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -250,7 +245,7 @@ module ActiveModel
       end
 
       # Declares the attributes that should be prefixed and suffixed by
-      # <tt>ActiveModel::AttributeMethods</tt>.
+      # +ActiveModel::AttributeMethods+.
       #
       # To use, pass attribute names (as strings or symbols). Be sure to declare
       # +define_attribute_methods+ after you define any prefix, suffix, or affix
@@ -268,10 +263,9 @@ module ActiveModel
       #     define_attribute_methods :name, :age, :address
       #
       #     private
-      #
-      #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
-      #     end
+      #       def clear_attribute(attr)
+      #         send("#{attr}=", nil)
+      #       end
       #   end
       def define_attribute_methods(*attr_names)
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
@@ -280,7 +274,7 @@ module ActiveModel
       end
 
       # Declares an attribute that should be prefixed and suffixed by
-      # <tt>ActiveModel::AttributeMethods</tt>.
+      # +ActiveModel::AttributeMethods+.
       #
       # To use, pass an attribute name (as string or symbol). Be sure to declare
       # +define_attribute_method+ after you define any prefix, suffix or affix
@@ -298,10 +292,9 @@ module ActiveModel
       #     define_attribute_method :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -337,10 +330,9 @@ module ActiveModel
       #     define_attribute_method :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -358,6 +350,13 @@ module ActiveModel
       end
 
       private
+        def inherited(base) # :nodoc:
+          super
+          base.class_eval do
+            @attribute_method_patterns_cache = nil
+          end
+        end
+
         def resolve_attribute_name(name)
           attribute_aliases.fetch(super, &:itself)
         end
@@ -427,7 +426,7 @@ module ActiveModel
             @prefix = prefix
             @suffix = suffix
             @parameters = parameters.nil? ? FORWARD_PARAMETERS : parameters
-            @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
+            @regex = /\A(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})\z/
             @proxy_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
@@ -502,7 +501,7 @@ module ActiveModel
       end
 
       def missing_attribute(attr_name, stack)
-        raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
+        raise ActiveModel::MissingAttributeError, "missing attribute '#{attr_name}' for #{self.class}", stack
       end
 
       def _read_attribute(attr)

@@ -25,9 +25,9 @@ module Rails
             assert_match <<~MSG.squish, output
               Invalid value for --to option.
               Supported preconfigurations are:
-              mysql, postgresql, sqlite3, oracle,
-              sqlserver, jdbcmysql, jdbcsqlite3,
-              jdbcpostgresql, jdbc.
+              mysql, trilogy, postgresql, sqlite3,
+              oracle, sqlserver, jdbcmysql,
+              jdbcsqlite3, jdbcpostgresql, jdbc.
             MSG
           end
 
@@ -64,7 +64,7 @@ module Rails
 
             assert_file("config/database.yml") do |content|
               assert_match "adapter: sqlite3", content
-              assert_match "db/development.sqlite3", content
+              assert_match "storage/development.sqlite3", content
             end
 
             assert_file("Gemfile") do |content|

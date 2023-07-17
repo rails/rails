@@ -11,6 +11,8 @@ module ActionController # :nodoc:
   class InvalidCrossOriginRequest < ActionControllerError # :nodoc:
   end
 
+  # = Action Controller Request Forgery Protection
+  #
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
   # by including a token in the rendered HTML for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
@@ -34,10 +36,10 @@ module ActionController # :nodoc:
   #
   # Subclasses of ActionController::Base are protected by default with the
   # <tt>:exception</tt> strategy, which raises an
-  # <tt>ActionController::InvalidAuthenticityToken</tt> error on unverified requests.
+  # ActionController::InvalidAuthenticityToken error on unverified requests.
   #
   # APIs may want to disable this behavior since they are typically designed to be
-  # state-less: that is, the request API client handles the session instead of Rails.
+  # state-less: that is, the request API client handles the session instead of \Rails.
   # One way to achieve this is to use the <tt>:null_session</tt> strategy instead,
   # which allows unverified requests to be handled, but with an empty session:
   #
@@ -111,9 +113,11 @@ module ActionController # :nodoc:
       #     protect_from_forgery except: :index
       #   end
       #
-      # You can disable forgery protection on controller by skipping the verification before_action:
+      # You can disable forgery protection on a controller using skip_forgery_protection:
       #
-      #   skip_before_action :verify_authenticity_token
+      #   class BarController < ApplicationController
+      #     skip_forgery_protection
+      #   end
       #
       # Valid Options:
       #
@@ -337,6 +341,11 @@ module ActionController # :nodoc:
       end
     end
 
+    def initialize(...)
+      super
+      @marked_for_same_origin_verification = nil
+    end
+
     def reset_csrf_token(request) # :doc:
       request.env.delete(CSRF_TOKEN)
       csrf_token_storage_strategy.reset(request)
@@ -428,7 +437,7 @@ module ActionController # :nodoc:
       #
       # * Is it a GET or HEAD request? GETs should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
-      # * Does the X-CSRF-Token header match the form_authenticity_token?
+      # * Does the +X-CSRF-Token+ header match the form_authenticity_token?
       def verified_request? # :doc:
         !protect_against_forgery? || request.get? || request.head? ||
           (valid_request_origin? && any_authenticity_token_valid?)

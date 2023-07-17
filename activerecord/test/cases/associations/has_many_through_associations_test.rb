@@ -36,12 +36,16 @@ require "models/family_tree"
 require "models/section"
 require "models/seminar"
 require "models/session"
+require "models/sharded"
+require "models/cpk"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships, :organizations, :author_favorites
+           :categories_posts, :clubs, :memberships, :organizations, :author_favorites,
+           :sharded_blog_posts, :sharded_tags, :sharded_blog_posts_tags, :cpk_orders, :cpk_tags,
+           :cpk_order_tags
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -403,7 +407,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_delete_association
-    assert_queries(2) { posts(:welcome); people(:michael); }
+    assert_queries(2) { posts(:welcome); people(:michael) }
 
     assert_queries(1) do
       posts(:welcome).people.delete(people(:michael))
@@ -436,6 +440,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_empty posts(:welcome).reload.people
     assert_empty posts(:welcome).people.reload
+  end
+
+  def test_destroy_all_on_composite_primary_key_model
+    tag = cpk_tags(:cpk_tag_loyal_customer)
+
+    assert_not_empty(tag.orders.to_a)
+
+    tag.orders.destroy_all
+    assert_empty(tag.orders)
+    assert_empty(tag.orders.reload)
   end
 
   def test_destroy_all_on_association_clears_scope
@@ -1357,6 +1371,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [member], club.favorites
   end
 
+  def test_insert_records_via_has_many_through_association_with_scope_and_association_name_different_from_the_joining_table_name
+    club = Club.create!
+    member = Member.create!
+    Membership.create!(club: club, member: member)
+
+    club.custom_favorites << member
+    assert_equal [member], club.custom_favorites
+
+    club.reload
+    assert_equal [member], club.custom_favorites
+  end
+
   def test_has_many_through_unscope_default_scope
     post = Post.create!(title: "Beaches", body: "I like beaches!")
     Reader.create! person: people(:david), post: post
@@ -1567,6 +1593,69 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     fall.save!
     fall.reload
     assert_equal sections, fall.sections.sort_by(&:id)
+  end
+
+  def test_post_has_many_tags_through_association_with_composite_query_constraints
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_tag_ids = Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id).pluck(:tag_id)
+    tag_ids = []
+    sql = capture_sql do
+      tag_ids = blog_post.tags.to_a.map(&:id)
+    end.first
+
+    c = Sharded::Blog.connection
+    quoted_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_tags.blog_id"))
+    quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
+    assert_match(/.* ON.* #{quoted_tags_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)
+    assert_match(/.* WHERE #{quoted_posts_tags_blog_id} = .*/, sql)
+
+    assert_not_empty(tag_ids)
+    assert_equal(expected_tag_ids.sort, tag_ids.sort)
+  end
+
+  def test_tags_has_manu_posts_through_association_with_composite_query_constraints
+    tag = sharded_tags(:short_read_blog_one)
+    expected_blog_post_ids = Sharded::BlogPostTag.where(tag_id: tag.id, blog_id: tag.blog_id).pluck(:blog_post_id)
+    blog_post_ids = []
+    sql = capture_sql do
+      blog_post_ids = tag.blog_posts.to_a.map(&:id)
+    end.first
+
+    c = Sharded::Blog.connection
+    quoted_blog_posts_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts.blog_id"))
+    quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
+    assert_match(/.* ON.* #{quoted_blog_posts_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)
+    assert_match(/.* WHERE #{quoted_posts_tags_blog_id} = .*/, sql)
+
+    assert_not_empty(blog_post_ids)
+    assert_equal(expected_blog_post_ids.sort, blog_post_ids.sort)
+  end
+
+  def test_loading_cpk_association_with_unpersisted_owner
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.new(id: [1, 2], order: order)
+    order_agreement = Cpk::OrderAgreement.create!(order: order)
+
+    assert_equal([order_agreement], book.order_agreements.to_a)
+  end
+
+  def test_cpk_stale_target
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    Cpk::OrderAgreement.create!(order: order)
+
+    book.order_agreements.load
+    book.order = Cpk::Order.new
+
+    assert_predicate(book.association(:order_agreements), :stale_target?)
+  end
+
+  def test_cpk_association_build_through_singular
+    order = Cpk::OrderWithSingularBookChapters.create!(id: [1, 2])
+    book = order.create_book!(id: [3, 4])
+    chapter = order.chapters.build
+
+    assert_equal(chapter.book, book)
   end
 
   private

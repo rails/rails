@@ -376,7 +376,7 @@ module ApplicationTests
       end
     end
 
-    def test_more_than_one_line_filter
+    def test_more_than_one_line_filter_macro_syntax
       app_file "test/models/post_test.rb", <<-RUBY
         require "test_helper"
 
@@ -397,10 +397,83 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb:4:13").tap do |output|
-        assert_match "PostTest:FirstFilter", output
-        assert_match "PostTest:SecondFilter", output
-        assert_match "2 runs, 2 assertions", output
+      pos_cases = {
+        "first line of each test" => "test/models/post_test.rb:4:13",
+        "interior of tests" => "test/models/post_test.rb:5:14",
+        "last line of each test" => "test/models/post_test.rb:7:16"
+      }
+
+      pos_cases.each do |name, cmd|
+        output = run_test_command(cmd)
+        assert_match "PostTest:FirstFilter", output, "for #{cmd} (#{name})"
+        assert_match "PostTest:SecondFilter", output, "for #{cmd} (#{name})"
+        assert_match "2 runs, 2 assertions", output, "for #{cmd} (#{name})"
+      end
+
+      # one past the end of each test matches nothing
+      run_test_command("test/models/post_test.rb:8:17").tap do |output|
+        assert_match "0 runs, 0 assertions", output
+      end
+    end
+
+    def test_more_than_one_line_filter_test_method_syntax
+      app_file "test/models/post_test.rb", <<-RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          def test_first_filter
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          def test_second_filter
+            puts 'PostTest:SecondFilter'
+            assert true
+          end
+
+          def test_line_filter_does_not_run_this
+            assert true
+          end
+        end
+      RUBY
+
+      pos_cases = {
+        "first line of each test" => "test/models/post_test.rb:4:9",
+        "interior of tests" => "test/models/post_test.rb:5:10",
+        "last line of each test" => "test/models/post_test.rb:7:12"
+      }
+
+      pos_cases.each do |name, cmd|
+        output = run_test_command(cmd)
+        assert_match "PostTest:FirstFilter", output, "for #{cmd} (#{name})"
+        assert_match "PostTest:SecondFilter", output, "for #{cmd} (#{name})"
+        assert_match "2 runs, 2 assertions", output, "for #{cmd} (#{name})"
+      end
+
+      # one past the end of each test matches nothing
+      run_test_command("test/models/post_test.rb:8:13").tap do |output|
+        assert_match "0 runs, 0 assertions", output
+      end
+    end
+
+    def test_multiple_tests_on_same_line
+      app_file "test/models/account_test.rb", <<-RUBY
+        require "test_helper"
+
+        class AccountTest < ActiveSupport::TestCase
+          test "first" do puts :first; end; def test_second; puts :second; end
+          test "third" do
+            puts :third
+            assert false
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/account_test.rb:4").tap do |output|
+        assert_match "first", output
+        assert_match "second", output
+        assert_no_match "third", output
+        assert_match "2 runs, 0 assertions, 0 failures", output
       end
     end
 
@@ -522,7 +595,7 @@ module ApplicationTests
             assert true
           end
 
-          test "foo again" do
+          test "foo +  + again" do
             puts "hello again"
             assert true
           end
@@ -538,7 +611,7 @@ module ApplicationTests
         assert_match "1 runs, 1 assertions, 0 failures", output
       end
 
-      run_test_command("test/models/post_test.rb -n 'foo again'").tap do |output|
+      run_test_command("test/models/post_test.rb -n 'foo +  + again'").tap do |output|
         assert_match "hello again", output
         assert_match "1 runs, 1 assertions, 0 failures", output
       end
@@ -559,7 +632,7 @@ module ApplicationTests
             assert true
           end
 
-          test "greets bar" do
+          test "greets +  + bar" do
             puts "hello bar"
             assert true
           end
@@ -570,7 +643,41 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command("test/models/post_test.rb -n '/greets foo|greets bar/'").tap do |output|
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
+        assert_match "hello foo", output
+        assert_match "hello again foo", output
+        assert_match "hello bar", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
+      end
+    end
+
+    def test_declarative_style_regexp_filter_with_minitest_spec
+      app_file "test/models/post_test.rb", <<~RUBY
+        require "minitest/spec"
+
+        class PostTest < Minitest::Spec
+          it "greets foo" do
+            puts "hello foo"
+            assert true
+          end
+
+          it "greets foo again" do
+            puts "hello again foo"
+            assert true
+          end
+
+          it "greets +  + bar" do
+            puts "hello bar"
+            assert true
+          end
+
+          it "greets no one" do
+            assert false
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb -n '/greets foo|greets .  . bar/'").tap do |output|
         assert_match "hello foo", output
         assert_match "hello again foo", output
         assert_match "hello bar", output
@@ -655,27 +762,36 @@ module ApplicationTests
         end
       RUBY
 
-      output = run_test_command(file_name)
+      output = run_test_command(file_name, allow_failure: false)
 
-      assert_match(/Finished in.*2 runs, 2 assertions/m, output)
+      assert_match(/Finished in.*2 runs, 2 assertions, 0 failures, 0 errors, 0 skips/m, output)
       assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
       assert_no_match "create_table(:users)", output
+    end
+
+    def test_parallel_testing_when_schema_is_not_up_to_date
+      require "#{app_path}/config/environment"
+      Dir.chdir(app_path) do
+        use_mysql2
+
+        exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+        rails "generate", "scaffold", "User", "name:string"
+        rails "db:create"
+        rails "db:migrate"
+
+        output = rails "test"
+
+        assert_match(/Finished in.*7 runs, 11 assertions, 0 failures, 0 errors, 0 skips/m, output)
+        assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+      end
     end
 
     def test_parallelization_is_disabled_when_number_of_tests_is_below_threshold
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
-      file_name = create_parallel_processes_test_file
-
-      app_file "db/schema.rb", <<-RUBY
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :users do |t|
-            t.string :name
-          end
-        end
-      RUBY
-
-      output = run_test_command(file_name)
+      file_name = create_parallel_blank_test_file
+      output = run_test_command(file_name, allow_failure: false)
 
       assert_match %r{Running \d+ tests in a single process}, output
       assert_no_match %r{Running \d+ tests in parallel using \d+ processes}, output
@@ -687,18 +803,25 @@ module ApplicationTests
 
       exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
 
-      file_name = app_file "test/unit/parallel_test.rb", <<-RUBY
-        require "test_helper"
+      file_name = create_parallel_blank_test_file
+      output = run_test_command(file_name, allow_failure: false)
 
-        class ParallelTest < ActiveSupport::TestCase
-          def test_verify_test_order
-          end
-        end
-      RUBY
+      assert_match %r{Running \d+ tests in parallel using 5 processes}, output
+    ensure
+      ENV["PARALLEL_WORKERS"] = @old
+    end
 
-      output = run_test_command(file_name)
+    def test_parallel_is_disabled_when_PARALLEL_WORKERS_is_set_to_1
+      @old = ENV["PARALLEL_WORKERS"]
+      ENV["PARALLEL_WORKERS"] = "1"
 
-      assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes, threshold: 100)
+
+      file_name = create_parallel_blank_test_file
+      output = run_test_command(file_name, allow_failure: false)
+
+      assert_no_match %r{Running \d+ tests in a single process}, output
+      assert_no_match %r{Running \d+ tests in parallel using \d+ processes}, output
     ensure
       ENV["PARALLEL_WORKERS"] = @old
     end
@@ -734,9 +857,9 @@ module ApplicationTests
         end
       RUBY
 
-      output = run_test_command(file_name)
+      output = run_test_command(file_name, allow_failure: false)
 
-      assert_match(/Finished in.*2 runs, 2 assertions/m, output)
+      assert_match(/Finished in.*2 runs, 2 assertions, 0 failures, 0 errors, 0 skips/m, output)
       assert_no_match "create_table(:users)", output
     end
 
@@ -774,7 +897,7 @@ module ApplicationTests
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
           config.action_controller.allow_forgery_protection = true
-          config.action_dispatch.show_exceptions = false
+          config.action_dispatch.show_exceptions = :none
         end
       RUBY
 
@@ -1148,6 +1271,16 @@ module ApplicationTests
             def test_truth
               puts "#{name.camelize}Test" if #{print}
               assert #{pass}, 'wups!'
+            end
+          end
+        RUBY
+      end
+
+      def create_parallel_blank_test_file
+        app_file "test/unit/parallel_test.rb", <<-RUBY
+          require "test_helper"
+          class ParallelTest < ActiveSupport::TestCase
+            def test_verify_test_order
             end
           end
         RUBY

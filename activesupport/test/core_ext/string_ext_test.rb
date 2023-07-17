@@ -836,10 +836,9 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "Adding an object not responding to `#to_str` to a safe string is deprecated" do
     string = @string.html_safe
-    assert_deprecated("Implicit conversion of #{@to_s_object.class} into String by ActiveSupport::SafeBuffer is deprecated", ActiveSupport.deprecator) do
+    assert_raises(NoMethodError) do
       string << @to_s_object
     end
-    assert_equal "helloto_s", string
   end
 
   test "Adding an object to a safe string returns a safe string" do
@@ -1011,6 +1010,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert_equal "<b>oo", string
     assert_predicate string, :html_safe?
+
+    string = "foo".html_safe
+    string[0, 2] = "<b>".html_safe
+
+    assert_equal "<b>o", string
+    assert_predicate string, :html_safe?
   end
 
   test "Replacing index of safe with unsafe yields escaped safe" do
@@ -1019,6 +1024,42 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert_equal "&lt;b&gt;oo", string
     assert_predicate string, :html_safe?
+
+    string = "foo".html_safe
+    string[1, 1] = "<b>"
+
+    assert_equal "f&lt;b&gt;o", string
+    assert_predicate string, :html_safe?
+  end
+
+  if "".respond_to?(:bytesplice)
+    test "Bytesplicing safe into safe yields safe" do
+      string = "hello".html_safe
+      string.bytesplice(0, 0, "<b>".html_safe)
+
+      assert_equal "<b>hello", string
+      assert_predicate string, :html_safe?
+
+      string = "hello".html_safe
+      string.bytesplice(0..1, "<b>".html_safe)
+
+      assert_equal "<b>llo", string
+      assert_predicate string, :html_safe?
+    end
+
+    test "Bytesplicing unsafe into safe yields escaped safe" do
+      string = "hello".html_safe
+      string.bytesplice(1, 0, "<b>")
+
+      assert_equal "h&lt;b&gt;ello", string
+      assert_predicate string, :html_safe?
+
+      string = "hello".html_safe
+      string.bytesplice(1..2, "<b>")
+
+      assert_equal "h&lt;b&gt;lo", string
+      assert_predicate string, :html_safe?
+    end
   end
 
   test "emits normal string YAML" do

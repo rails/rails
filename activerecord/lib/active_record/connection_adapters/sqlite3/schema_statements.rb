@@ -6,7 +6,7 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").filter_map do |row|
+          internal_exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").filter_map do |row|
             # Indexes SQLite creates implicitly for internal use start with "sqlite_".
             # See https://www.sqlite.org/fileformat2.html#intschema
             next if row["name"].start_with?("sqlite_")
@@ -23,7 +23,7 @@ module ActiveRecord
 
             /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?(?:\s*\/\*.*\*\/)?\z/i =~ index_sql
 
-            columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
+            columns = internal_exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
               col["name"]
             end
 
@@ -132,12 +132,13 @@ module ActiveRecord
             super unless internal
           end
 
-          def new_column_from_field(table_name, field)
+          def new_column_from_field(table_name, field, definitions)
             default = field["dflt_value"]
 
             type_metadata = fetch_type_metadata(field["type"])
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
+            rowid = is_column_the_rowid?(field, definitions)
 
             Column.new(
               field["name"],
@@ -145,8 +146,20 @@ module ActiveRecord
               type_metadata,
               field["notnull"].to_i == 0,
               default_function,
-              collation: field["collation"]
+              collation: field["collation"],
+              auto_increment: field["auto_increment"],
+              rowid: rowid
             )
+          end
+
+          INTEGER_REGEX = /integer/i
+          # if a rowid table has a primary key that consists of a single column
+          # and the declared type of that column is "INTEGER" in any mixture of upper and lower case,
+          # then the column becomes an alias for the rowid.
+          def is_column_the_rowid?(field, column_definitions)
+            return false unless INTEGER_REGEX.match?(field["type"]) && field["pk"] == 1
+            # is the primary key a single column?
+            column_definitions.one? { |c| c["pk"] > 0 }
           end
 
           def data_source_sql(name = nil, type: nil)

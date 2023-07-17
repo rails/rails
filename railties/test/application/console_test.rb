@@ -125,6 +125,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
 
   def spawn_console(options, wait_for_prompt: true)
     pid = Process.spawn(
+      { "TERM" => "dumb" },
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
@@ -137,7 +138,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sandbox
-    options = "--sandbox -- --singleline --nocolorize"
+    options = "--sandbox -- --nocolorize"
     spawn_console(options)
 
     write_prompt "Post.count", "=> 0"
@@ -165,7 +166,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def test_environment_option_and_irb_option
-    options = "-e test -- --verbose --singleline --nocolorize"
+    options = "-e test -- --verbose --nocolorize"
     spawn_console(options)
 
     write_prompt "a = 1", "a = 1"

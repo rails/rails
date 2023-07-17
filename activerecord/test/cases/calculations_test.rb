@@ -24,11 +24,12 @@ require "models/rating"
 require "models/too_long_table_name"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
+require "models/cpk"
 
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -391,6 +392,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ 6 => 2 }, Account.group(:firm_id).distinct.order("1 DESC").limit(1).count)
   end
 
+  def test_count_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    assert_equal(1, Cpk::Book.where(author_id: book.author_id, id: book.id).count)
+  end
+
+  def test_group_by_count_for_a_composite_primary_key_model
+    book = cpk_books(:cpk_great_author_first_book)
+    expected = { book.author_id => Cpk::Book.where(author_id: book.author_id).count }
+    assert_equal(expected, Cpk::Book.where(author_id: book.author_id).group(:author_id).count)
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]
@@ -399,7 +411,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field_having_condition_from_select
-    skip unless current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
+    skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
     c = Account.select("MIN(credit_limit) AS min_credit_limit").group(:firm_id).having("min_credit_limit > 50").sum(:credit_limit)
     assert_nil       c[1]
     assert_equal 60, c[2]
@@ -525,8 +537,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 6, [1, 2, 3].sum(&:abs)
     assert_equal 15, some_companies.sum(&:id)
     assert_equal 25, some_companies.sum(10, &:id)
-    assert_deprecated(ActiveRecord.deprecator) do
-      assert_equal "LeetsoftJadedpixel", some_companies.sum(&:name)
+    assert_raises(TypeError) do
+      some_companies.sum(&:name)
     end
     assert_equal "companies: LeetsoftJadedpixel", some_companies.sum("companies: ", &:name)
   end
@@ -658,6 +670,14 @@ class CalculationsTest < ActiveRecord::TestCase
     [1, 6, 2, 9].each { |firm_id| assert_includes c.keys, firm_id }
   end
 
+  def test_should_count_field_in_joined_table_with_group_by_when_tables_share_column_names
+    assert Company.columns_hash.key?("status")
+    assert Account.columns_hash.key?("status")
+
+    counts = Company.joins(:account).group("accounts.status").count
+    assert_equal({ "active" => 2, "trial" => 2, "suspended" => 1 }, counts)
+  end
+
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
     expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 3, 7 => 1 }
     assert_equal expected, Post.joins(:comments).group(:post_id).count
@@ -666,7 +686,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_no_parameters_isnt_deprecated
-    assert_not_deprecated { Account.count }
+    assert_not_deprecated(ActiveRecord.deprecator) { Account.count }
   end
 
   def test_count_with_too_many_parameters_raises
@@ -817,9 +837,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_without_column_names
     if current_adapter?(:OracleAdapter)
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil, "active"]], Company.order(:id).limit(1).pluck
     else
-      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, ""]], Company.order(:id).limit(1).pluck
+      assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, "", "active"]], Company.order(:id).limit(1).pluck
     end
   end
 
@@ -928,8 +948,143 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
-  def test_plucks_with_ids
-    assert_equal Company.all.map(&:id).sort, Company.ids.sort
+  def test_ids
+    assert_equal Company.all.map(&:id).sort, Company.all.ids.sort
+  end
+
+  def test_ids_for_a_composite_primary_key
+    assert_equal Cpk::Book.all.map(&:id).sort, Cpk::Book.all.ids.sort
+  end
+
+  def test_pluck_for_a_composite_primary_key
+    assert_equal Cpk::Book.all.pluck([:author_id, :id]).sort, Cpk::Book.all.ids.sort
+  end
+
+  def test_ids_for_a_composite_primary_key_with_scope
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal [book.id], Cpk::Book.all.where(title: book.title).ids
+  end
+
+  def test_ids_for_a_composite_primary_key_on_loaded_relation
+    book = cpk_books(:cpk_great_author_first_book)
+    relation = Cpk::Book.where(title: book.title)
+    relation.to_a
+
+    assert_predicate relation, :loaded?
+    assert_equal [book.id], relation.ids
+  end
+
+  def test_ids_with_scope
+    scoped_ids = [1, 2]
+    assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.where(id: scoped_ids).ids.sort
+  end
+
+  def test_ids_on_relation
+    company = Company.first
+    contract = company.contracts.create!
+    assert_equal [contract.id], company.contracts.ids
+  end
+
+  def test_ids_on_loaded_relation
+    loaded_companies = Company.all.load
+    company_ids = Company.all.map(&:id)
+    assert_queries(0) do
+      assert_equal company_ids.sort, loaded_companies.ids.sort
+    end
+  end
+
+  def test_ids_on_loaded_relation_with_scope
+    scoped_ids = [1, 2]
+    loaded_companies = Company.where(id: scoped_ids).load
+    company_ids = Company.where(id: scoped_ids).map(&:id)
+    assert_queries(0) do
+      assert_equal company_ids.sort, loaded_companies.ids.sort
+    end
+  end
+
+  def test_ids_async_on_loaded_relation
+    loaded_companies = Company.all.order(:id).load
+    assert_async_equal loaded_companies.ids, loaded_companies.async_ids
+  end
+
+  def test_ids_with_contradicting_scope
+    empty_scope_ids = []
+    company_ids = Company.where(id: empty_scope_ids).map(&:id)
+    assert_predicate company_ids, :empty?
+    assert_queries(0) do
+      assert_equal company_ids, Company.where(id: empty_scope_ids).ids
+    end
+  end
+
+  def test_ids_with_join
+    company = Company.first
+    company.contracts.create!
+    assert_equal [company.id], Company.joins(:contracts).where("contracts.id" => company.contracts.first).ids
+  end
+
+  def test_ids_with_polymorphic_relation_join
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal [part.id], ShipPart.joins(:trinkets).ids
+    assert_async_equal [part.id], ShipPart.joins(:trinkets).async_ids
+  end
+
+  def test_ids_with_eager_load
+    company = Company.first
+    5.times { company.contracts.create! }
+    assert_equal Company.all.map(&:id).sort, Company.all.eager_load(:contracts).ids.sort
+  end
+
+  def test_ids_with_preload
+    company = Company.first
+    5.times { company.contracts.create! }
+    assert_equal Company.all.map(&:id).sort, Company.all.preload(:contracts).ids.sort
+  end
+
+  def test_ids_with_includes
+    company = Company.first
+    5.times { company.contracts.create! }
+    assert_equal Company.all.map(&:id).sort, Company.all.includes(:contracts).ids.sort
+  end
+
+  def test_ids_with_includes_and_non_primary_key_order
+    rating = 1
+    Company.all.each { |company| company.update!(rating: rating += 1) }
+    assert_equal Company.all.sort_by(&:rating).map(&:id), Company.includes(:comments).order(:rating).ids
+  end
+
+  def test_ids_with_includes_and_scope
+    scoped_ids = [1, 2]
+    company = Company.where(id: scoped_ids).first
+    5.times { company.contracts.create! }
+    assert_equal Company.where(id: scoped_ids).map(&:id).sort, Company.includes(:contracts).where(id: scoped_ids).ids.sort
+  end
+
+  def test_ids_with_includes_and_table_scope
+    company = Company.first
+    company.contracts.create!
+    assert_equal [company.id], Company.includes(:contracts).where("contracts.id" => company.contracts.first).ids
+  end
+
+  def test_ids_on_loaded_relation_with_includes_and_table_scope
+    company = Company.first
+    company.contracts.create!
+    loaded_companies = Company.includes(:contracts).where("contracts.id" => company.contracts.first).load
+    assert_queries(0) do
+      assert_equal [company.id], loaded_companies.ids
+    end
+  end
+
+  def test_ids_with_includes_limit_and_empty_result
+    assert_equal [], Topic.includes(:replies).limit(0).ids
+    assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").ids
+  end
+
+  def test_ids_with_includes_offset
+    assert_equal [5], Topic.includes(:replies).order(:id).offset(4).ids
+    assert_equal [], Topic.includes(:replies).order(:id).offset(5).ids
   end
 
   def test_pluck_with_includes_limit_and_empty_result
@@ -1434,6 +1589,20 @@ class CalculationsTest < ActiveRecord::TestCase
       assert_queries(2) do
         Account.all.skip_query_cache!.pluck(:credit_limit)
         Account.all.skip_query_cache!.pluck(:credit_limit)
+      end
+    end
+  end
+
+  test "#skip_query_cache! for #ids" do
+    Account.cache do
+      assert_queries(1) do
+        Account.ids
+        Account.ids
+      end
+
+      assert_queries(2) do
+        Account.all.skip_query_cache!.ids
+        Account.all.skip_query_cache!.ids
       end
     end
   end

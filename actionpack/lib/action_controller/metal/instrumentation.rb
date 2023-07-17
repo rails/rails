@@ -4,6 +4,8 @@ require "benchmark"
 require "abstract_controller/logger"
 
 module ActionController
+  # = Action Controller \Instrumentation
+  #
   # Adds instrumentation to several ends in ActionController::Base. It also provides
   # some hooks related with process_action. This allows an ORM like Active Record
   # and/or DataMapper to plug in ActionController and show related information.
@@ -15,6 +17,11 @@ module ActionController
     include AbstractController::Logger
 
     attr_internal :view_runtime
+
+    def initialize(...) # :nodoc:
+      super
+      self.view_runtime = nil
+    end
 
     def render(*)
       render_output = nil
@@ -58,7 +65,7 @@ module ActionController
           headers: request.headers,
           format: request.format.ref,
           method: request.request_method,
-          path: request.fullpath
+          path: request.filtered_path
         }
 
         ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)

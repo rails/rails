@@ -61,6 +61,27 @@ module ActiveRecord
         assert_raise(ArgumentError) { Post.with(posts_with_tags: nil).load }
         assert_raise(ArgumentError) { Post.with(posts_with_tags: [Post.where("tags_count > 0")]).load }
       end
+
+      def test_with_joins
+        relation = Post
+          .with(commented_posts: Comment.select(:post_id).distinct)
+          .joins(:commented_posts)
+
+        assert_equal POSTS_WITH_COMMENTS, relation.order(:id).pluck(:id)
+      end
+
+      def test_with_left_joins
+        relation = Post
+          .with(commented_posts: Comment.select(:post_id).distinct)
+          .left_outer_joins(:commented_posts)
+          .select("posts.*, commented_posts.post_id as has_comments")
+
+        records = relation.order(:id).to_a
+
+        # Make sure we load all records (thus, left outer join is used)
+        assert_equal Post.count, records.size
+        assert_equal POSTS_WITH_COMMENTS, records.filter_map { _1.id if _1.has_comments }
+      end
     else
       def test_common_table_expressions_are_unsupported
         assert_raises ActiveRecord::StatementInvalid do

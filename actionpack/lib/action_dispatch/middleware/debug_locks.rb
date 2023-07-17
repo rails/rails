@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionDispatch
+  # = Action Dispatch \DebugLocks
+  #
   # This middleware can be used to diagnose deadlocks in the autoload interlock.
   #
   # To use it, insert it near the top of the middleware stack, using
@@ -97,7 +99,8 @@ module ActionDispatch
           msg << "\n#{info[:backtrace].join("\n")}\n" if info[:backtrace]
         end.join("\n\n---\n\n\n")
 
-        [200, { "Content-Type" => "text/plain", "Content-Length" => str.size }, [str]]
+        [200, { "Content-Type" => "text/plain; charset=#{ActionDispatch::Response.default_charset}",
+          "Content-Length" => str.size }, [str]]
       end
 
       def blocked_by?(victim, blocker, all_threads)

@@ -2,9 +2,8 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/db/system/change/change_command"
 
-class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
+class Rails::Command::DbSystemChangeTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   setup { build_app }
@@ -26,9 +25,9 @@ class Rails::Command::Db::System::ChangeCommandTest < ActiveSupport::TestCase
     assert_match <<~MSG.squish, output
       Invalid value for --to option.
       Supported preconfigurations are:
-      mysql, postgresql, sqlite3, oracle,
-      sqlserver, jdbcmysql, jdbcsqlite3,
-      jdbcpostgresql, jdbc.
+      mysql, trilogy, postgresql, sqlite3,
+      oracle, sqlserver, jdbcmysql,
+      jdbcsqlite3, jdbcpostgresql, jdbc.
     MSG
   end
 

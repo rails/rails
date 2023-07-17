@@ -4,6 +4,8 @@ require "active_support/core_ext/object/deep_dup"
 require "active_support/core_ext/array/wrap"
 
 module ActionDispatch # :nodoc:
+  # = Action Dispatch Content Security Policy
+  #
   # Configures the HTTP
   # {Content-Security-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy]
   # response header to help protect against XSS and injection attacks.
@@ -32,7 +34,6 @@ module ActionDispatch # :nodoc:
       end
 
       def call(env)
-        request = ActionDispatch::Request.new env
         status, headers, _ = response = @app.call(env)
 
         # Returning CSP headers with a 304 Not Modified is harmful, since nonces in the new
@@ -40,6 +41,8 @@ module ActionDispatch # :nodoc:
         return response if status == 304
 
         return response if policy_present?(headers)
+
+        request = ActionDispatch::Request.new env
 
         if policy = request.content_security_policy
           nonce = request.content_security_policy_nonce
@@ -123,6 +126,7 @@ module ActionDispatch # :nodoc:
     MAPPINGS = {
       self:             "'self'",
       unsafe_eval:      "'unsafe-eval'",
+      unsafe_hashes:    "'unsafe-hashes'",
       unsafe_inline:    "'unsafe-inline'",
       none:             "'none'",
       http:             "http:",

@@ -5,7 +5,7 @@ module ActionView
     module Tags # :nodoc:
       class MonthField < DatetimeField # :nodoc:
         private
-          def format_date(value)
+          def format_datetime(value)
             value&.strftime("%Y-%m")
           end
       end

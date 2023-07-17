@@ -2,9 +2,8 @@
 
 require "cases/helper"
 
-if current_adapter?(:Mysql2Adapter)
-  class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
-    self.use_transactional_tests = false
+class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
 
     class Bird < ActiveRecord::Base
     end

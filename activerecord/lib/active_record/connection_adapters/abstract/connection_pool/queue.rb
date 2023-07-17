@@ -6,6 +6,8 @@ require "monitor"
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionPool
+      # = Active Record Connection Pool \Queue
+      #
       # Threadsafe, fair, LIFO queue.  Meant to be used by ConnectionPool
       # with which it shares a Monitor.
       class Queue

@@ -152,12 +152,12 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_default_banner_should_show_generator_namespace
     klass = Rails::Generators.find_by_namespace(:foobar)
-    assert_match(/^rails generate foobar:foobar/, klass.banner)
+    assert_match(/^bin\/rails generate foobar:foobar/, klass.banner)
   end
 
   def test_default_banner_should_not_show_rails_generator_namespace
     klass = Rails::Generators.find_by_namespace(:model)
-    assert_match(/^rails generate model/, klass.banner)
+    assert_match(/^bin\/rails generate model/, klass.banner)
   end
 
   def test_no_color_sets_proper_shell
@@ -255,8 +255,8 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_behaviour_aliases_behavior
-    assert_deprecated do
-      assert_same Rails::Generators::Testing::Behavior, Rails::Generators::Testing::Behaviour.itself
+    assert_deprecated(Rails.deprecator) do
+      assert_same Rails::Generators::Testing::Behavior, Rails::Generators::Testing::Behaviour
     end
   end
 end

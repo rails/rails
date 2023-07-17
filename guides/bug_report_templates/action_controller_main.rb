@@ -8,6 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   gem "rails", github: "rails/rails", branch: "main"
+  gem "rack", "~> 2.0"
 end
 
 require "action_controller/railtie"
@@ -15,7 +16,7 @@ require "action_controller/railtie"
 class TestApp < Rails::Application
   config.root = __dir__
   config.hosts << "example.org"
-  secrets.secret_key_base = "secret_key_base"
+  config.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)
   Rails.logger  = config.logger

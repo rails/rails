@@ -10,6 +10,10 @@ module ActionCable
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
     config.action_cable.precompile_assets = true
 
+    initializer "action_cable.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:action_cable] = ActionCable.deprecator
+    end
+
     initializer "action_cable.helpers" do
       ActiveSupport.on_load(:action_view) do
         include ActionCable::Helpers::ActionCableHelper
@@ -18,6 +22,12 @@ module ActionCable
 
     initializer "action_cable.logger" do
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
+    end
+
+    initializer "action_cable.health_check_application" do
+      ActiveSupport.on_load(:action_cable) {
+        self.health_check_application = ->(env) { Rails::HealthController.action(:show).call(env) }
+      }
     end
 
     initializer "action_cable.asset" do
@@ -36,11 +46,12 @@ module ActionCable
 
       ActiveSupport.on_load(:action_cable) do
         if (config_path = Pathname.new(app.config.paths["config/cable"].first)).exist?
-          self.cable = Rails.application.config_for(config_path).to_h.with_indifferent_access
+          self.cable = app.config_for(config_path).to_h.with_indifferent_access
         end
 
         previous_connection_class = connection_class
         self.connection_class = -> { "ApplicationCable::Connection".safe_constantize || previous_connection_class.call }
+        self.filter_parameters += app.config.filter_parameters
 
         options.each { |k, v| send("#{k}=", v) }
       end

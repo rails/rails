@@ -83,8 +83,8 @@ class DefaultStringsTest < ActiveRecord::TestCase
   end
 end
 
-if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-  class DefaultBinaryTest < ActiveRecord::TestCase
+class DefaultBinaryTest < ActiveRecord::TestCase
+  if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
     class DefaultBinary < ActiveRecord::Base; end
 
     setup do
@@ -100,7 +100,7 @@ if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
       assert_equal "varbinary_default", DefaultBinary.new.varbinary_col
     end
 
-    if current_adapter?(:Mysql2Adapter) && !ActiveRecord::Base.connection.mariadb?
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && !ActiveRecord::Base.connection.mariadb?
       def test_default_binary_string
         assert_equal "binary_default", DefaultBinary.new.binary_col
       end
@@ -116,8 +116,8 @@ if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
   end
 end
 
-if supports_text_column_with_default?
-  class DefaultTextTest < ActiveRecord::TestCase
+class DefaultTextTest < ActiveRecord::TestCase
+  if supports_text_column_with_default?
     class DefaultText < ActiveRecord::Base; end
 
     setup do
@@ -143,8 +143,8 @@ if supports_text_column_with_default?
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter)
-  class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
+class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
+  if current_adapter?(:PostgreSQLAdapter)
     include SchemaDumpingHelper
 
     test "schema dump includes default expression" do
@@ -164,8 +164,8 @@ if current_adapter?(:PostgreSQLAdapter)
   end
 end
 
-if current_adapter?(:Mysql2Adapter)
-  class MysqlDefaultExpressionTest < ActiveRecord::TestCase
+class MysqlDefaultExpressionTest < ActiveRecord::TestCase
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     include SchemaDumpingHelper
 
     if supports_default_expression?
@@ -212,8 +212,10 @@ if current_adapter?(:Mysql2Adapter)
       end
     end
   end
+end
 
-  class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
+class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     # ActiveRecord::Base#create! (and #save and other related methods) will
     # open a new transaction. When in transactional tests mode, this will
     # cause Active Record to create a new savepoint. However, since MySQL doesn't
@@ -225,13 +227,12 @@ if current_adapter?(:Mysql2Adapter)
     self.use_transactional_tests = false
 
     def using_strict(strict)
-      connection = ActiveRecord::Base.remove_connection
-      conn_hash = connection.configuration_hash
+      db_config = ActiveRecord::Base.connection_pool.db_config
+      conn_hash = db_config.configuration_hash
       ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
       yield
     ensure
-      ActiveRecord::Base.remove_connection
-      ActiveRecord::Base.establish_connection connection
+      ActiveRecord::Base.establish_connection db_config
     end
 
     # Strict mode controls how MySQL handles invalid or missing values
@@ -298,8 +299,8 @@ if current_adapter?(:Mysql2Adapter)
   end
 end
 
-if current_adapter?(:SQLite3Adapter)
-  class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
+  if current_adapter?(:SQLite3Adapter)
     include SchemaDumpingHelper
 
     test "schema dump includes default expression" do

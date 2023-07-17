@@ -1,4 +1,4 @@
-= Active Record -- Object-relational mapping in Rails
+= Active Record -- Object-relational mapping in \Rails
 
 Active Record connects classes to relational database tables to establish an
 almost zero-configuration persistence layer for applications. The library
@@ -13,29 +13,28 @@ columns. Although these mappings can be defined explicitly, it's recommended
 to follow naming conventions, especially when getting started with the
 library.
 
-You can read more about Active Record in the {Active Record Basics}[https://edgeguides.rubyonrails.org/active_record_basics.html] guide.
+You can read more about Active Record in the {Active Record Basics}[https://guides.rubyonrails.org/active_record_basics.html] guide.
 
 A short rundown of some of the major features:
 
 * Automated mapping between classes and tables, attributes and columns.
 
-   class Product < ActiveRecord::Base
-   end
+    class Product < ActiveRecord::Base
+    end
+
+  The Product class is automatically mapped to the table named "products",
+  which might look like this:
+
+    CREATE TABLE products (
+      id bigint NOT NULL auto_increment,
+      name varchar(255),
+      PRIMARY KEY  (id)
+    );
+
+  This would also define the following accessors: <tt>Product#name</tt> and
+  <tt>Product#name=(new_name)</tt>.
 
   {Learn more}[link:classes/ActiveRecord/Base.html]
-
-The Product class is automatically mapped to the table named "products",
-which might look like this:
-
-   CREATE TABLE products (
-     id bigint NOT NULL auto_increment,
-     name varchar(255),
-     PRIMARY KEY  (id)
-   );
-
-This would also define the following accessors: <tt>Product#name</tt> and
-<tt>Product#name=(new_name)</tt>.
-
 
 * Associations between objects defined by simple class methods.
 
@@ -192,7 +191,7 @@ The latest version of Active Record can be installed with RubyGems:
 
   $ gem install activerecord
 
-Source code can be downloaded as part of the Rails project on GitHub:
+Source code can be downloaded as part of the \Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/activerecord
 
@@ -210,7 +209,7 @@ API documentation is at:
 
 * https://api.rubyonrails.org
 
-Bug reports for the Ruby on Rails project can be filed here:
+Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

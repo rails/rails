@@ -89,7 +89,7 @@ class ErrorTest < ActiveModel::TestCase
 
   test "message with type as a symbol" do
     error = ActiveModel::Error.new(Person.new, :name, :blank)
-    assert_equal "can't be blank", error.message
+    assert_equal "can’t be blank", error.message
   end
 
   test "message with custom interpolation" do
@@ -178,15 +178,15 @@ class ErrorTest < ActiveModel::TestCase
 
   test "full_message returns the given message with the attribute name included" do
     error = ActiveModel::Error.new(Person.new, :name, :blank)
-    assert_equal "name can't be blank", error.full_message
+    assert_equal "name can’t be blank", error.full_message
   end
 
   test "full_message uses default format" do
-    error = ActiveModel::Error.new(Person.new, :name, message: "can't be blank")
+    error = ActiveModel::Error.new(Person.new, :name, message: "can’t be blank")
 
     # Use a locale without errors.format
     I18n.with_locale(:unknown) {
-      assert_equal "name can't be blank", error.full_message
+      assert_equal "name can’t be blank", error.full_message
     }
   end
 

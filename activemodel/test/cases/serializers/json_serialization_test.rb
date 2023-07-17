@@ -109,12 +109,12 @@ class JsonSerializationTest < ActiveModel::TestCase
 
   test "should return Hash for errors" do
     contact = Contact.new
-    contact.errors.add :name, "can't be blank"
+    contact.errors.add :name, "can’t be blank"
     contact.errors.add :name, "is too short (minimum is 2 characters)"
     contact.errors.add :age, "must be 16 or over"
 
     hash = {}
-    hash[:name] = ["can't be blank", "is too short (minimum is 2 characters)"]
+    hash[:name] = ["can’t be blank", "is too short (minimum is 2 characters)"]
     hash[:age]  = ["must be 16 or over"]
     assert_equal hash.to_json, contact.errors.to_json
   end
@@ -179,7 +179,7 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "custom as_json should be honored when generating json" do
-    def @contact.as_json(options); { name: name, created_at: created_at }; end
+    def @contact.as_json(options = nil); { name: name, created_at: created_at }; end
     json = @contact.to_json
 
     assert_match %r{"name":"Konata Izumi"}, json

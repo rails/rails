@@ -1083,7 +1083,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_render_formatted_html_erb_template_with_bad_accepts_header
-    @request.env["HTTP_ACCEPT"] = "; a=dsf"
+    @request.env["HTTP_ACCEPT"] = "; q=dsf"
     get :formatted_xml_erb
     assert_equal "<test>passed formatted HTML erb</test>", @response.body
   end
@@ -1347,7 +1347,7 @@ class RenderTest < ActionController::TestCase
     get :partial_with_form_builder_and_invalid_model
 
     assert_equal <<~HTML.strip, @response.body.strip
-      <div class="field_with_errors"><label for="post_title">Title</label> <span class="error">can&#39;t be blank</span></div>
+      <div class="field_with_errors"><label for="post_title">Title</label> <span class="error">can’t be blank</span></div>
     HTML
   ensure
     ActionView::Base.field_error_proc = old_proc if old_proc
@@ -1471,35 +1471,40 @@ class RenderTest < ActionController::TestCase
     assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
   end
 
-  def test_template_annotations
+  def with_annotations_enabled
     ActionView::Base.annotate_rendered_view_with_filenames = true
+    ActionView::LookupContext::DetailsKey.clear
+    yield
+  ensure
+    ActionView::Base.annotate_rendered_view_with_filenames = false
+    ActionView::LookupContext::DetailsKey.clear
+  end
 
-    get :greeting
+  def test_template_annotations
+    with_annotations_enabled do
+      get :greeting
+    end
 
     assert_includes @response.body, "<!-- BEGIN"
     assert_includes @response.body, "<!-- END"
     assert_includes @response.body, "test/fixtures/actionpack/test/greeting.html.erb"
     assert_includes @response.body, "This is grand!"
-  ensure
-    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 
   def test_template_annotations_do_not_render_for_non_html_format
-    ActionView::Base.annotate_rendered_view_with_filenames = true
-
-    get :render_with_explicit_template_with_locals
+    with_annotations_enabled do
+      get :render_with_explicit_template_with_locals
+    end
 
     assert_not_includes @response.body, "BEGIN"
     assert_equal @response.body.split("\n").length, 1
-  ensure
-    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 
   def test_line_offset_with_annotations_enabled
-    ActionView::Base.annotate_rendered_view_with_filenames = true
-
     exc = assert_raises ActionView::Template::Error do
-      get :render_line_offset
+      with_annotations_enabled do
+        get :render_line_offset
+      end
     end
     line = exc.backtrace.first
     assert(line =~ %r{:(\d+):})

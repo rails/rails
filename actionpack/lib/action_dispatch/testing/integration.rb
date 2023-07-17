@@ -3,7 +3,7 @@
 require "stringio"
 require "uri"
 require "rack/test"
-require "minitest"
+require "active_support/test_case"
 
 require "action_dispatch/testing/request_encoder"
 
@@ -232,7 +232,7 @@ module ActionDispatch
           method = :post
         end
 
-        if %r{://}.match?(path)
+        if path.include?("://")
           path = build_expanded_path(path) do |location|
             https! URI::HTTPS === location if location.scheme
 
@@ -258,9 +258,12 @@ module ActionDispatch
           "REQUEST_URI"    => path,
           "HTTP_HOST"      => host,
           "REMOTE_ADDR"    => remote_addr,
-          "CONTENT_TYPE"   => request_encoder.content_type,
           "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
+
+        if request_encoder.content_type
+          request_env["CONTENT_TYPE"] = request_encoder.content_type
+        end
 
         wrapped_headers = Http::Headers.from_hash({})
         wrapped_headers.merge!(headers) if headers
@@ -632,7 +635,7 @@ module ActionDispatch
   # +response_parser+ defines how the response body should be parsed through
   # +parsed_body+.
   #
-  # Consult the Rails Testing Guide for more.
+  # Consult the {Rails Testing Guide}[https://guides.rubyonrails.org/testing.html] for more.
 
   class IntegrationTest < ActiveSupport::TestCase
     include TestProcess::FixtureFile

@@ -20,7 +20,7 @@ module ActionDispatch
       #
       # You can also pass an explicit status number like <tt>assert_response(501)</tt>
       # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
-      # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list.
+      # See +Rack::Utils::SYMBOL_TO_STATUS_CODE+ for a full list.
       #
       #   # Asserts that the response was a redirection
       #   assert_response :redirect

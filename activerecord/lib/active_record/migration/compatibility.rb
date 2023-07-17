@@ -33,7 +33,36 @@ module ActiveRecord
       V7_1 = Current
 
       class V7_0 < V7_1
+        module LegacyIndexName
+          private
+            def legacy_index_name(table_name, options)
+              if Hash === options
+                if options[:column]
+                  "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+                elsif options[:name]
+                  options[:name]
+                else
+                  raise ArgumentError, "You must specify the index name"
+                end
+              else
+                legacy_index_name(table_name, index_name_options(options))
+              end
+            end
+
+            def index_name_options(column_names)
+              if expression_column_name?(column_names)
+                column_names = column_names.scan(/\w+/).join("_")
+              end
+
+              { column: column_names }
+            end
+
+            def expression_column_name?(column_name)
+              column_name.is_a?(String) && /\W/.match?(column_name)
+            end
+        end
         module TableDefinition
+          include LegacyIndexName
           def column(name, type, **options)
             options[:_skip_validate_options] = true
             super
@@ -44,16 +73,27 @@ module ActiveRecord
             super
           end
 
+          def index(column_name, **options)
+            options[:name] = legacy_index_name(name, column_name) if options[:name].nil?
+            super
+          end
+
           private
             def raise_on_if_exist_options(options)
             end
         end
+
+        include LegacyIndexName
 
         def add_column(table_name, column_name, type, **options)
           options[:_skip_validate_options] = true
           super
         end
 
+        def add_index(table_name, column_name, **options)
+          options[:name] = legacy_index_name(table_name, column_name) if options[:name].nil?
+          super
+        end
 
         def create_table(table_name, **options)
           options[:_uses_legacy_table_name] = true
@@ -81,8 +121,8 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, **options)
           options[:_skip_validate_options] = true
-          if connection.adapter_name == "Mysql2"
-            options[:collation] = :no_collation
+          if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
+            options[:collation] ||= :no_collation
           end
           super
         end
@@ -94,6 +134,13 @@ module ActiveRecord
         def disable_extension(name, **options)
           if connection.adapter_name == "PostgreSQL"
             options[:force] = :cascade
+          end
+          super
+        end
+
+        def add_foreign_key(from_table, to_table, **options)
+          if connection.adapter_name == "PostgreSQL" && options[:deferrable] == true
+            options[:deferrable] = :immediate
           end
           super
         end
@@ -254,6 +301,9 @@ module ActiveRecord
           private
             def raise_on_if_exist_options(options)
             end
+
+            def raise_on_duplicate_column(name)
+            end
         end
 
         module CommandRecorder
@@ -329,7 +379,7 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
-          if connection.adapter_name == "Mysql2"
+          if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
             super(table_name, options: "ENGINE=InnoDB", **options)
           else
             super
@@ -361,7 +411,7 @@ module ActiveRecord
             end
           end
 
-          unless connection.adapter_name == "Mysql2" && options[:id] == :bigint
+          unless ["Mysql2", "Trilogy"].include?(connection.adapter_name) && options[:id] == :bigint
             if [:integer, :bigint].include?(options[:id]) && !options.key?(:default)
               options[:default] = nil
             end

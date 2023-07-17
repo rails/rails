@@ -55,10 +55,31 @@ module ActiveRecord
   class AdapterNotFound < ActiveRecordError
   end
 
+  # Superclass for all errors raised from an Active Record adapter.
+  class AdapterError < ActiveRecordError
+    def initialize(message = nil, connection_pool: nil)
+      @connection_pool = connection_pool
+      super(message)
+    end
+
+    attr_reader :connection_pool
+  end
+
   # Raised when connection to the database could not been established (for example when
   # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
   # is given a +nil+ object).
-  class ConnectionNotEstablished < ActiveRecordError
+  class ConnectionNotEstablished < AdapterError
+    def initialize(message = nil, connection_pool: nil)
+      super(message, connection_pool: connection_pool)
+    end
+
+    def set_pool(connection_pool)
+      unless @connection_pool
+        @connection_pool = connection_pool
+      end
+
+      self
+    end
   end
 
   # Raised when a connection could not be obtained within the connection
@@ -159,9 +180,9 @@ module ActiveRecord
   # Superclass for all database execution errors.
   #
   # Wraps the underlying database error as +cause+.
-  class StatementInvalid < ActiveRecordError
-    def initialize(message = nil, sql: nil, binds: nil)
-      super(message || $!&.message)
+  class StatementInvalid < AdapterError
+    def initialize(message = nil, sql: nil, binds: nil, connection_pool: nil)
+      super(message || $!&.message, connection_pool: connection_pool)
       @sql = sql
       @binds = binds
     end
@@ -203,7 +224,8 @@ module ActiveRecord
       target_table: nil,
       primary_key: nil,
       primary_key_column: nil,
-      query_parser: nil
+      query_parser: nil,
+      connection_pool: nil
     )
       @original_message = message
       @query_parser = query_parser
@@ -226,7 +248,7 @@ module ActiveRecord
         msg << "\nOriginal message: #{message}"
       end
 
-      super(msg, sql: sql, binds: binds)
+      super(msg, sql: sql, binds: binds, connection_pool: connection_pool)
     end
 
     def set_query(sql, binds)
@@ -235,6 +257,7 @@ module ActiveRecord
           message: @original_message,
           sql: sql,
           binds: binds,
+          connection_pool: @connection_pool,
           **@query_parser.call(sql)
         ).tap do |exception|
           exception.set_backtrace backtrace
@@ -257,6 +280,19 @@ module ActiveRecord
   class RangeError < StatementInvalid
   end
 
+  # Raised when a statement produces an SQL warning.
+  class SQLWarning < AdapterError
+    attr_reader :code, :level
+    attr_accessor :sql
+
+    def initialize(message = nil, code = nil, level = nil, sql = nil, connection_pool = nil)
+      super(message, connection_pool: connection_pool)
+      @code = code
+      @level = level
+      @sql = sql
+    end
+  end
+
   # Raised when the number of placeholders in an SQL fragment passed to
   # {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where]
   # does not match the number of values supplied.
@@ -275,8 +311,8 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.create_current
     end
 
-    def initialize(message = nil)
-      super(message || "Database not found")
+    def initialize(message = nil, connection_pool: nil)
+      super(message || "Database not found", connection_pool: connection_pool)
     end
 
     class << self
@@ -440,7 +476,7 @@ module ActiveRecord
   # * You are joining an existing open transaction
   # * You are creating a nested (savepoint) transaction
   #
-  # The mysql2 and postgresql adapters support setting the transaction isolation level.
+  # The mysql2, trilogy, and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
   end
 

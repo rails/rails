@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActionController
+  # = Action Controller \Helpers
+  #
   # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
   # numbers and model objects, to name a few. These helpers are available to all templates
   # by default.

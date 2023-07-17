@@ -332,7 +332,6 @@ For example:
 
 ```ruby
 class ProductsController < ApplicationController
-
   def index
     # Run a find query
     @products = Product.all
@@ -342,7 +341,6 @@ class ProductsController < ApplicationController
     # Run the same query again
     @products = Product.all
   end
-
 end
 ```
 
@@ -536,7 +534,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
   error_handler: -> (method:, returning:, exception:) {
     # Report errors to Sentry as warnings
-    Raven.capture_exception exception, level: 'warning',
+    Sentry.capture_exception exception, level: 'warning',
       tags: { method: method, returning: returning }
   }
 }
@@ -600,7 +598,6 @@ It is the server's (i.e. our) responsibility to look for a last modified timesta
 
 ```ruby
 class ProductsController < ApplicationController
-
   def show
     @product = Product.find(params[:id])
 
@@ -640,7 +637,6 @@ If you don't have any special response processing and are using the default rend
 
 ```ruby
 class ProductsController < ApplicationController
-
   # This will automatically send back a :not_modified if the request is fresh,
   # and will render the default template (product.*) if it's stale.
 

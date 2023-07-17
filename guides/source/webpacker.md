@@ -77,7 +77,7 @@ So if you have a file called `app/javascript/packs/application.js`, Webpacker wi
 
 The default pack created for you by Webpacker will link to Rails' default JavaScript packages if they have been included in the project:
 
-```
+```javascript
 import Rails from "@rails/ujs"
 import Turbolinks from "turbolinks"
 import * as ActiveStorage from "@rails/activestorage"
@@ -140,7 +140,7 @@ document.body.appendChild(myImage);
 
 If you need to reference Webpacker static assets from a Rails view, the assets need to be explicitly required from Webpacker-bundled JavaScript files. Unlike Sprockets, Webpacker does not import your static assets by default. The default `app/javascript/packs/application.js` file has a template for importing files from a given directory, which you can uncomment for every directory you want to have static files in. The directories are relative to `app/javascript`. The template uses the directory `images`, but you can use anything in `app/javascript`:
 
-```
+```javascript
 const images = require.context("../images", true)
 const imagePath = name => images(name, true)
 ```
@@ -195,7 +195,7 @@ The [Webpacker Documentation](https://github.com/rails/webpacker) gives informat
 
 ### Deploying Webpacker
 
-Webpacker adds a `webpacker:compile` task to the `assets:precompile` rake task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
+Webpacker adds a `webpacker:compile` task to the `bin/rails assets:precompile` task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
 
 Additional Documentation
 ------------------------

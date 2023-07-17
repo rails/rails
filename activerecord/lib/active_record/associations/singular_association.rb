@@ -34,7 +34,7 @@ module ActiveRecord
 
       private
         def scope_for_create
-          super.except!(klass.primary_key)
+          super.except!(*Array(klass.primary_key))
         end
 
         def find_target
@@ -57,7 +57,7 @@ module ActiveRecord
           reflection.klass.transaction do
             record = build(attributes, &block)
             saved = record.save
-            set_new_record(record)
+            replace_keys(record, force: true)
             raise RecordInvalid.new(record) if !saved && raise_error
             record
           end

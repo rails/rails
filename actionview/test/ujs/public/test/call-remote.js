@@ -1,4 +1,4 @@
-(function() {
+import $ from 'jquery'
 
 function buildForm(attrs) {
   attrs = $.extend({ action: '/echo', 'data-remote': 'true' }, attrs)
@@ -352,5 +352,3 @@ QUnit.test('intelligently guesses crossDomain behavior when target URL consists 
 
   setTimeout(function() { done() }, 13)
 })
-
-})()

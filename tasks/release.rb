@@ -16,6 +16,8 @@ FRAMEWORKS = %w(
   railties
 )
 FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
+NPM_PACKAGES = { "actionview" => "ujs" }
+NPM_PACKAGES.default_proc = -> (_, framework) { framework }
 
 root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
@@ -121,7 +123,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
           if /[a-z]/.match?(version)
             npm_tag = " --tag pre"
           else
-            remote_package_version = `npm view @rails/#{framework}@latest version`.chomp
+            remote_package_version = `npm view @rails/#{NPM_PACKAGES[framework]}@latest version`.chomp
             local_major_version = version.split(".", 4)[0]
             remote_major_version = remote_package_version.split(".", 4)[0]
             npm_tag = remote_major_version <= local_major_version ? " --tag latest" : " --tag v#{local_major_version}"
@@ -249,8 +251,9 @@ namespace :all do
     # Permit the avatar param.
     substitute.call("app/controllers/users_controller.rb", /:admin/, ":admin, :avatar")
 
-    if ENV["EDITOR"]
-      `#{ENV["EDITOR"]} #{File.expand_path(app_name)}`
+    editor = ENV["VISUAL"] || ENV["EDITOR"]
+    if editor
+      `#{editor} #{File.expand_path(app_name)}`
     end
 
     puts "Booting a Rails server. Verify the release by:"

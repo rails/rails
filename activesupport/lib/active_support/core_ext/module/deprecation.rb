@@ -1,17 +1,12 @@
 # frozen_string_literal: true
 
 class Module
-  #   deprecate :foo
-  #   deprecate bar: 'message'
-  #   deprecate :foo, :bar, baz: 'warning!', qux: 'gone!'
+  #   deprecate :foo, deprecator: MyLib.deprecator
+  #   deprecate :foo, bar: "warning!", deprecator: MyLib.deprecator
   #
-  # You can also use custom deprecator instance:
-  #
-  #   deprecate :foo, deprecator: MyLib::Deprecator.new
-  #   deprecate :foo, bar: "warning!", deprecator: MyLib::Deprecator.new
-  #
-  # \Custom deprecators must respond to <tt>deprecation_warning(deprecated_method_name, message, caller_backtrace)</tt>
-  # method where you can implement your custom warning behavior.
+  # A deprecator is typically an instance of ActiveSupport::Deprecation, but you can also pass any object that responds
+  # to <tt>deprecation_warning(deprecated_method_name, message, caller_backtrace)</tt> where you can implement your
+  # custom warning behavior.
   #
   #   class MyLib::Deprecator
   #     def deprecation_warning(deprecated_method_name, message, caller_backtrace = nil)
@@ -19,7 +14,15 @@ class Module
   #       Kernel.warn message
   #     end
   #   end
-  def deprecate(*method_names)
-    ActiveSupport::Deprecation.deprecate_methods(self, *method_names)
+  def deprecate(*method_names, deprecator: nil, **options)
+    if deprecator.is_a?(ActiveSupport::Deprecation)
+      deprecator.deprecate_methods(self, *method_names, **options)
+    elsif deprecator
+      # we just need any instance to call deprecate_methods, but the deprecation will be emitted by deprecator
+      ActiveSupport.deprecator.deprecate_methods(self, *method_names, **options, deprecator: deprecator)
+    else
+      ActiveSupport.deprecator.warn("Module.deprecate without a deprecator is deprecated")
+      ActiveSupport::Deprecation._instance.deprecate_methods(self, *method_names, **options)
+    end
   end
 end

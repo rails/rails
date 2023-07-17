@@ -6,23 +6,23 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
-        def quote_bound_value(value)
+        def cast_bound_value(value)
           case value
           when Rational
-            quote(value.to_f.to_s)
+            value.to_f.to_s
           when Numeric
-            quote(value.to_s)
+            value.to_s
           when BigDecimal
-            quote(value.to_s("F"))
+            value.to_s("F")
           when true
-            "'1'"
+            "1"
           when false
-            "'0'"
+            "0"
           when ActiveSupport::Duration
             warn_quote_duration_deprecated
-            quote(value.to_s)
+            value.to_s
           else
-            quote(value)
+            value
           end
         end
 
@@ -54,8 +54,16 @@ module ActiveRecord
           "x'#{value.hex}'"
         end
 
+        def unquote_identifier(identifier)
+          if identifier && identifier.start_with?("`")
+            identifier[1..-2]
+          else
+            identifier
+          end
+        end
+
         # Override +type_cast+ we pass to mysql2 Date and Time objects instead
-        # of Strings since mysql2 is able to handle those classes more efficiently.
+        # of Strings since MySQL adapters are able to handle those classes more efficiently.
         def type_cast(value) # :nodoc:
           case value
           when ActiveSupport::TimeWithZone

@@ -6,6 +6,8 @@ require "active_support/core_ext/module/anonymous"
 require "action_dispatch/http/mime_type"
 
 module ActionController
+  # = Action Controller Params Wrapper
+  #
   # Wraps the parameters hash into a nested hash. This will allow clients to
   # submit requests without having to specify any root elements.
   #
@@ -68,7 +70,7 @@ module ActionController
   #     class Admin::UsersController < ApplicationController
   #     end
   #
-  # will try to check if <tt>Admin::User</tt> or +User+ model exists, and use it to
+  # will try to check if +Admin::User+ or +User+ model exists, and use it to
   # determine the wrapper key respectively. If both models don't exist,
   # it will then fallback to use +user+ as the key.
   #

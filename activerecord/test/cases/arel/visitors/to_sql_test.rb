@@ -644,6 +644,113 @@ module Arel
         end
       end
 
+      describe "Nodes::BoundSqlLiteral" do
+        it "works with positional binds" do
+          node = Nodes::BoundSqlLiteral.new("id = ?", [1], {})
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "works with named binds" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { id: 1 })
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "will only consider named binds starting with a letter" do
+          node = Nodes::BoundSqlLiteral.new("id = :0abc", [], { "0abc": 1 })
+          _(compile(node)).must_be_like %{
+            id = :0abc
+          }
+        end
+
+        it "works with array values" do
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?, ?)
+          }
+        end
+
+        it "refuses mixed binds" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id = ? AND name = :name", [1], { name: "Aaron" })
+          end
+        end
+
+        it "requires positional binds to match the placeholders" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2], {})
+          end
+
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (?, ?, ?)", [1, 2, 3, 4], {})
+          end
+        end
+
+        it "requires all named bind params to be supplied" do
+          assert_raises(Arel::BindError) do
+            Nodes::BoundSqlLiteral.new("id IN (:foo, :bar)", [], { foo: 1 })
+          end
+        end
+
+        it "ignores excess named parameters" do
+          node = Nodes::BoundSqlLiteral.new("id = :id", [], { foo: 2, id: 1, bar: 3 })
+          _(compile(node)).must_be_like %{
+            id = ?
+          }
+        end
+
+        it "quotes nested arrays" do
+          # Two cases to exercise all branches.
+          # For real adapters, quoting arrays may fail in adapter-specific ways.
+
+          inner_literal = Nodes::BoundSqlLiteral.new("? * 2", [4], {})
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, [2, 3], inner_literal]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?, ? * 2)
+          }
+
+          node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, [2, 3]]], {})
+          _(compile(node)).must_be_like %{
+            id IN (?, ?)
+          }
+        end
+
+        it "supports other bound literals as binds" do
+          node = Arel.sql("?", [1, 2, Arel.sql("?", 3)])
+          _(compile(node)).must_be_like %{
+            ?, ?, ?
+          }
+        end
+      end
+
+      describe "Table" do
+        it "should compile node names" do
+          test = Table.new(:users).alias("zomgusers")[:id].eq "3"
+          _(compile(test)).must_be_like %{
+            "zomgusers"."id" = '3'
+          }
+        end
+
+        it "should compile literal SQL"  do
+          test = Table.new Arel.sql("generate_series(4, 2)")
+          _(compile(test)).must_be_like %{ generate_series(4, 2) }
+        end
+
+        it "should compile Arel nodes"  do
+          test = Arel::Nodes::NamedFunction.new("generate_series", [4, 2])
+          _(compile(test)).must_be_like %{ generate_series(4, 2) }
+        end
+
+        it "should compile nodes with bind params" do
+          bp = Nodes::BindParam.new(1)
+          test = Arel::Nodes::NamedFunction.new("generate_series", [4, bp])
+          _(compile(test)).must_be_like %{ generate_series(4, ?) }
+        end
+      end
+
       describe "TableAlias" do
         it "should use the underlying table for checking columns" do
           test = Table.new(:users).alias("zomgusers")[:id].eq "3"
@@ -755,6 +862,19 @@ module Arel
             WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
           }
         end
+
+        it "handles Cte nodes" do
+          cte = Arel::Nodes::Cte.new("expr1", Table.new(:bar).project(Arel.star))
+          manager = Table.new(:foo).
+            project(Arel.star).
+            with(cte).
+            from(cte.to_table).
+            where(cte.to_table[:score].gt(5))
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH "expr1" AS (SELECT * FROM "bar") SELECT * FROM "expr1" WHERE "expr1"."score" > 5
+          }
+        end
       end
 
       describe "Nodes::WithRecursive" do
@@ -766,6 +886,46 @@ module Arel
           _(compile(manager.ast)).must_be_like %{
             WITH RECURSIVE expr1 AS (SELECT * FROM "bar") SELECT * FROM expr1
           }
+        end
+      end
+
+      describe "Nodes::Cte" do
+        it "handles CTEs with no MATERIALIZED modifier" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star))
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS (SELECT * FROM "bar")
+          }
+        end
+
+        it "handles CTEs with a MATERIALIZED modifier" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: true)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS MATERIALIZED (SELECT * FROM "bar")
+          }
+        end
+
+        it "handles CTEs with a NOT MATERIALIZED modifier" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: false)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS NOT MATERIALIZED (SELECT * FROM "bar")
+          }
+        end
+      end
+
+      describe "Nodes::Fragments" do
+        it "joins subexpressions" do
+          sql = Arel.sql("SELECT foo, bar") + Arel.sql(" FROM customers")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers"
+        end
+
+        it "can be built by adding SQL fragments one at a time" do
+          sql = Arel.sql("SELECT foo, bar")
+          sql += Arel.sql("FROM customers")
+          sql += Arel.sql("GROUP BY foo")
+          _(compile(sql)).must_be_like "SELECT foo, bar FROM customers GROUP BY foo"
         end
       end
     end

@@ -88,6 +88,10 @@ class StreamsTestChannel < ActionCable::Channel::Base
   def subscribed
     stream_from "test_#{params[:id] || 0}"
   end
+
+  def unsubscribed
+    stop_stream_from "test_#{params[:id] || 0}"
+  end
 end
 
 class StreamsTestChannelTest < ActionCable::Channel::TestCase
@@ -101,6 +105,13 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
     subscribe id: 42
 
     assert_has_stream "test_42"
+  end
+
+  def test_unsubscribe_from_stream
+    subscribe
+    unsubscribe
+
+    assert_no_streams
   end
 end
 

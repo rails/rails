@@ -20,6 +20,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           attr_accessor :right_reflection
         end
 
+        @table_name = nil
         def self.table_name
           # Table name needs to be resolved lazily
           # because RHS class might not have been loaded
@@ -44,11 +45,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
         def self.retrieve_connection
           left_model.retrieve_connection
         end
-
-        private
-          def self.suppress_composite_primary_key(pk)
-            pk unless pk.is_a?(Array)
-          end
       }
 
       join_model.name                = "HABTM_#{association_name.to_s.camelize}"

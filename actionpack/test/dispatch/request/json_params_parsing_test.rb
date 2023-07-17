@@ -72,7 +72,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     with_test_routing do
       output = StringIO.new
       json = "[\"person]\": {\"name\": \"David\"}}"
-      post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => ActiveSupport::Logger.new(output) }
+      post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => ActiveSupport::Logger.new(output) }
       assert_response :bad_request
       output.rewind && err = output.read
       assert err.match?(/Error occurred while parsing request parameters/)
@@ -84,7 +84,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       $stderr = StringIO.new # suppress the log
       json = "[\"person]\": {\"name\": \"David\"}}"
       exception = assert_raise(ActionDispatch::Http::Parameters::ParseError) do
-        post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => false }
+        post "/parse", params: json, headers: { "CONTENT_TYPE" => "application/json", "action_dispatch.show_exceptions" => :none }
       end
       assert_equal JSON::ParserError, exception.cause.class
       assert_equal "Error occurred while parsing request parameters", exception.message

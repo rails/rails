@@ -1,0 +1,91 @@
+# syntax = docker/dockerfile:1
+
+# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
+ARG RUBY_VERSION=<%= Gem.ruby_version %>
+FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+
+# Rails app lives here
+WORKDIR /rails
+
+# Set production environment
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_PATH="/usr/local/bundle" \
+    BUNDLE_WITHOUT="development"
+
+
+# Throw-away build stage to reduce size of final image
+FROM base as build
+
+# Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y <%= dockerfile_build_packages.join(" ") %>
+
+<% if using_node? -%>
+# Install JavaScript dependencies
+ARG NODE_VERSION=<%= node_version %>
+ARG YARN_VERSION=<%= dockerfile_yarn_version %>
+ENV PATH=/usr/local/node/bin:$PATH
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    npm install -g yarn@$YARN_VERSION && \
+    rm -rf /tmp/node-build-master
+
+<% end -%>
+# Install application gems
+COPY Gemfile Gemfile.lock ./
+RUN bundle install && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git<% if depend_on_bootsnap? -%> && \
+    bundle exec bootsnap precompile --gemfile
+<% end %>
+
+<% if using_node? -%>
+# Install node modules
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+<% end -%>
+# Copy application code
+COPY . .
+
+<% if depend_on_bootsnap? -%>
+# Precompile bootsnap code for faster boot times
+RUN bundle exec bootsnap precompile app/ lib/
+
+<% end -%>
+<% unless dockerfile_binfile_fixups.empty? -%>
+# Adjust binfiles to be executable on Linux
+<%= "RUN " + dockerfile_binfile_fixups.join(" && \\\n    ") %>
+
+<% end -%>
+<% unless options.api? || skip_asset_pipeline? -%>
+# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+
+<% end -%>
+
+# Final stage for app image
+FROM base
+
+<% unless dockerfile_deploy_packages.empty? -%>
+# Install packages needed for deployment
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y <%= dockerfile_deploy_packages.join(" ") %> && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+<% end -%>
+# Copy built artifacts: gems, application
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build /rails /rails
+
+# Run and own only the runtime files as a non-root user for security
+RUN useradd rails --create-home --shell /bin/bash && \
+    chown -R rails:rails <%= dockerfile_chown_directories.join(" ") %>
+USER rails:rails
+
+# Entrypoint prepares the database.
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+
+# Start the server by default, this can be overwritten at runtime
+EXPOSE 3000
+CMD ["./bin/rails", "server"]

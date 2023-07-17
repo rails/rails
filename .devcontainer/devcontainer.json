@@ -19,13 +19,19 @@
 		}
 	},
 
-	// Set *default* container specific settings.json values on container create.
-	"settings": {},
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"Shopify.ruby-lsp"
+			]
+		}
+	},
 
-	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": [
-		"rebornix.Ruby"
-	],
+	"containerEnv": {
+		"MYSQL_SOCK": "/run/mysqld/mysqld.sock"
+	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

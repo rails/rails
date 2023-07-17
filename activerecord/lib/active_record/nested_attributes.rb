@@ -15,7 +15,7 @@ module ActiveRecord
       class_attribute :nested_attributes_options, instance_writer: false, default: {}
     end
 
-    # = Active Record Nested Attributes
+    # = Active Record Nested \Attributes
     #
     # Nested attributes allow you to save attributes on associated records
     # through the parent. By default nested attribute updating is turned off

@@ -1,3 +1,112 @@
+*   Deprecate passing params to `assert_enqueued_email_with` via the `:args`
+    kwarg. `assert_enqueued_email_with` now supports a `:params` kwarg, so use
+    that to pass params:
+
+    ```ruby
+    # BEFORE
+    assert_enqueued_email_with MyMailer, :my_method, args: { my_param: "value" }
+
+    # AFTER
+    assert_enqueued_email_with MyMailer, :my_method, params: { my_param: "value" }
+    ```
+
+    To specify named mailer args as a Hash, wrap the Hash in an array:
+
+    ```ruby
+    assert_enqueued_email_with MyMailer, :my_method, args: [{ my_arg: "value" }]
+    # OR
+    assert_enqueued_email_with MyMailer, :my_method, args: [my_arg: "value"]
+    ```
+
+    *Jonathan Hefner*
+
+*   Accept procs for args and params in `assert_enqueued_email_with`
+
+    ```ruby
+    assert_enqueued_email_with DeliveryJob, params: -> p { p[:token] =~ /\w+/ } do
+      UserMailer.with(token: user.generate_token).email_verification.deliver_later
+    end
+    ```
+
+    *Max Chernyak*
+
+*   Added `*_deliver` callbacks to `ActionMailer::Base` that wrap mail message delivery.
+
+    Example:
+
+    ```ruby
+    class EventsMailer < ApplicationMailer
+      after_deliver do
+        User.find_by(email: message.to.first).update(email_provider_id: message.message_id, emailed_at: Time.current)
+      end
+    end
+    ```
+
+    *Ben Sheldon*
+
+*   Added `deliver_enqueued_emails` to `ActionMailer::TestHelper`. This method
+    delivers all enqueued email jobs.
+
+    Example:
+
+    ```ruby
+    def test_deliver_enqueued_emails
+      deliver_enqueued_emails do
+        ContactMailer.welcome.deliver_later
+      end
+      assert_emails 1
+    end
+    ```
+
+    *Andrew Novoselac*
+
+*   The `deliver_later_queue_name` used by the default mailer job can now be
+    configured on a per-mailer basis. Previously this was only configurable
+    for all mailers via `ActionMailer::Base`.
+
+    Example:
+
+    ```ruby
+    class EventsMailer < ApplicationMailer
+      self.deliver_later_queue_name = :throttled_mailer
+    end
+    ```
+
+    *Jeffrey Hardy*
+
+*   Email previews now include an expandable section to show all headers.
+
+    Headers like `Message-ID` for threading or email service provider specific
+    features like analytics tags or account metadata can now be viewed directly
+    in the mailer preview.
+
+    *Matt Swanson*
+
+*   Default `ActionMailer::Parameterized#params` to an empty `Hash`
+
+    *Sean Doyle*
+
+*   `assert_emails` now returns the emails that were sent.
+
+    This makes it easier to do further analysis on those emails:
+
+    ```ruby
+    def test_emails_more_thoroughly
+      email = assert_emails 1 do
+        ContactMailer.welcome.deliver_now
+      end
+      assert_email "Hi there", email.subject
+
+      emails = assert_emails 2 do
+        ContactMailer.welcome.deliver_now
+        ContactMailer.welcome.deliver_later
+      end
+      assert_email "Hi there", emails.first.subject
+    end
+    ```
+
+    *Alex Ghiculescu*
+
 *   Added ability to download `.eml` file for the email preview.
 
     *Igor Kasyanchuk*

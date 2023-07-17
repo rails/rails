@@ -4,7 +4,7 @@ require_relative "gem_version"
 
 module ActionMailer
   # Returns the currently loaded version of Action Mailer as a
-  # <tt>Gem::Version</tt>.
+  # +Gem::Version+.
   def self.version
     gem_version
   end

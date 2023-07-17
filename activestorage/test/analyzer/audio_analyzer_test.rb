@@ -12,6 +12,7 @@ class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
 
     assert_equal 0.914286, metadata[:duration]
     assert_equal 128000, metadata[:bit_rate]
+    assert_equal 44100, metadata[:sample_rate]
   end
 
   test "instrumenting analysis" do

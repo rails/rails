@@ -50,7 +50,8 @@ module ActionView::Helpers
       options = @options.stringify_keys
       add_default_name_and_id(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_")) if object
-      @template_object.rich_text_area_tag(options.delete("name"), options.fetch("value") { value }, options.except("value"))
+      html_tag = @template_object.rich_text_area_tag(options.delete("name"), options.fetch("value") { value }, options.except("value"))
+      error_wrapping(html_tag)
     end
   end
 
@@ -82,6 +83,13 @@ module ActionView::Helpers
   end
 
   class FormBuilder
+    # Wraps ActionView::Helpers::FormHelper#rich_text_area for form builders:
+    #
+    #   <%= form_with model: @message do |f| %>
+    #     <%= f.rich_text_area :content %>
+    #   <% end %>
+    #
+    # Please refer to the documentation of the base helper for details.
     def rich_text_area(method, options = {})
       @template.rich_text_area(@object_name, method, objectify_options(options))
     end

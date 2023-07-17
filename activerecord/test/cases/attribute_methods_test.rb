@@ -193,7 +193,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs, category.attributes_before_type_cast
   end
 
-  if current_adapter?(:Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     test "read attributes_before_type_cast on a boolean" do
       bool = Boolean.create!("value" => false)
       assert_equal 0, bool.reload.attributes_before_type_cast["value"]
@@ -230,10 +230,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic.content = { "one" => 1, "two" => 2 }
 
     db_attributes = Topic.instantiate(topic.attributes_for_database).attributes
-    before_type_cast_attributes = Topic.instantiate(topic.attributes_before_type_cast).attributes
-
     assert_equal topic.attributes, db_attributes
-    assert_not_equal topic.attributes, before_type_cast_attributes
   end
 
   test "read attributes after type cast on a date" do
@@ -344,6 +341,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.first
     assert_raises(ActiveModel::MissingAttributeError) { topic.update_columns(no_column_exists: "Hello!") }
     assert_raises(ActiveModel::UnknownAttributeError) { topic.update(no_column_exists: "Hello!") }
+    assert_raises(ActiveModel::MissingAttributeError) { topic[:no_column_exists] = "Hello!" }
+  end
+
+  test "write_attribute does not raise when the attribute isn't selected" do
+    topic = Topic.select(:id).first
+    assert_nothing_raised { topic[:title] = "Hello!" }
   end
 
   test "write_attribute allows writing to aliased attributes" do
@@ -372,12 +375,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:heading]
   end
 
-  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
-    computer = Computer.select("id").first
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
-    assert_raises(ActiveModel::MissingAttributeError) { computer[:no_column_exists] = "Hello!" }
-    assert_nothing_raised { computer[:developer] = "Hello!" }
+  test "read_attribute raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
+    computer = Computer.select(:id, :extendedWarranty).first
+    assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'developer' for Computer/) do
+      computer[:developer]
+    end
+    assert_nothing_raised { computer[:extendedWarranty] }
+    assert_nothing_raised { computer[:no_column_exists] }
   end
 
   test "read_attribute when false" do

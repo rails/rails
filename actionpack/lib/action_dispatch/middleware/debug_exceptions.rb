@@ -6,6 +6,8 @@ require "action_dispatch/routing/inspector"
 require "action_view"
 
 module ActionDispatch
+  # = Action Dispatch \DebugExceptions
+  #
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
@@ -24,7 +26,6 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
       if headers["X-Cascade"] == "pass"
@@ -34,11 +35,12 @@ module ActionDispatch
 
       response
     rescue Exception => exception
+      request = ActionDispatch::Request.new env
       backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
 
       invoke_interceptors(request, exception, wrapper)
-      raise exception unless request.show_exceptions?
+      raise exception unless wrapper.show?(request)
       render_exception(request, exception, wrapper)
     end
 
@@ -121,7 +123,6 @@ module ActionDispatch
           trace_to_show: wrapper.trace_to_show,
           routes_inspector: routes_inspector(wrapper),
           source_extracts: wrapper.source_extracts,
-          error_highlight_available: wrapper.error_highlight_available?
         )
       end
 
@@ -144,16 +145,18 @@ module ActionDispatch
         message << "  "
         message.concat(trace)
 
-        log_array(logger, message)
+        log_array(logger, message, request)
       end
 
-      def log_array(logger, lines)
+      def log_array(logger, lines, request)
         return if lines.empty?
 
+        level = request.get_header("action_dispatch.debug_exception_log_level")
+
         if logger.formatter && logger.formatter.respond_to?(:tags_text)
-          logger.fatal lines.join("\n#{logger.formatter.tags_text}")
+          logger.add(level, lines.join("\n#{logger.formatter.tags_text}"))
         else
-          logger.fatal lines.join("\n")
+          logger.add(level, lines.join("\n"))
         end
       end
 

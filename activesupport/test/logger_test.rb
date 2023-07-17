@@ -392,6 +392,17 @@ class LoggerTest < ActiveSupport::TestCase
     assert_includes @output.string, "THIS IS HERE"
   end
 
+  def test_log_at_only_impact_receiver
+    logger2 = Logger.new(StringIO.new)
+    assert_equal Logger::DEBUG, logger2.level
+    assert_equal Logger::DEBUG, @logger.level
+
+    @logger.log_at :error do
+      assert_equal Logger::DEBUG, logger2.level
+      assert_equal Logger::ERROR, @logger.level
+    end
+  end
+
   private
     def level_name(level)
       ::Logger::Severity.constants.find do |severity|

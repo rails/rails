@@ -196,6 +196,17 @@ If you're a member of an organization that has codespaces enabled, you can fork 
 
 If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](https://www.docker.com) installed, you can use the [VS Code remote containers plugin](https://code.visualstudio.com/docs/remote/containers-tutorial). The plugin will read the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration in the repository and build the Docker container locally.
 
+#### Using Dev Container CLI
+
+Alternatively, with [Docker](https://www.docker.com) and [npm](https://github.com/npm/cli) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
+
+```bash
+$ npm install -g @devcontainers/cli
+$ cd rails
+$ devcontainer up --workspace-folder .
+$ devcontainer exec --workspace-folder . bash
+```
+
 #### Using rails-dev-box
 
 It's also possible to use the [rails-dev-box](https://github.com/rails/rails-dev-box) to get a development environment ready. However, the rails-dev-box uses Vagrant and Virtual Box which will not work on Macs with Apple silicon.
@@ -300,7 +311,7 @@ commonly misspelled English words quickly with `misspell`. `misspell` is differe
 because it doesn't use a custom dictionary. You can run `misspell` locally against all files with:
 
 ```bash
-find . -type f | xargs ./misspell -i 'aircrafts,devels,invertions' -error
+$ find . -type f | xargs ./misspell -i 'aircrafts,devels,invertions' -error
 ```
 
 Notable `misspell` help options or flags are:
@@ -313,7 +324,7 @@ We also run [codespell](https://github.com/codespell-project/codespell) with Git
 `codespell` is written in [Python](https://www.python.org/) and you can run it with:
 
 ```bash
-codespell --ignore-words=codespell.txt
+$ codespell --ignore-words=codespell.txt
 ```
 
 ### Benchmark Your Code
@@ -396,6 +407,15 @@ $ cd actionmailer
 $ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
+#### For a Specific Line
+
+Figuring out the name is not always easy, but if you know the line number your test starts at, this option is for you:
+
+```bash
+$ cd railties
+$ bin/test test/application/asset_debugging_test.rb:69
+```
+
 #### Running Tests with a Specific Seed
 
 Test execution is randomized with a randomization seed. If you are experiencing random
@@ -437,6 +457,7 @@ For MySQL and PostgreSQL, it is sufficient to run:
 $ cd activerecord
 $ bundle exec rake db:mysql:build
 ```
+
 Or:
 
 ```bash
@@ -457,6 +478,7 @@ You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
 $ bundle exec rake test:mysql2
+$ bundle exec rake test:trilogy
 $ bundle exec rake test:postgresql
 ```
 
@@ -482,9 +504,15 @@ $ bundle exec rake TEST=test/cases/associations/has_many_associations_test.rb
 
 You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests.
 
+#### Using Debuggers with Test
+
+To use an external debugger (pry, byebug, etc), install the debugger and use it as normal.  If debugger issues occur, run tests in serial by setting `PARALLEL_WORKERS=1` or run a single test with `-n test_long_test_name`.
+
 ### Warnings
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
+
+Rails CI will raise if warnings are introduced. To implement the same behavior locally set `RAILS_STRICT_WARNINGS=1` when running the test suite.
 
 ### Updating the Documentation
 
@@ -492,7 +520,7 @@ The Ruby on Rails [guides](https://guides.rubyonrails.org/) provide a high-level
 
 If your PR adds a new feature, or changes how an existing feature behaves, check the relevant documentation, and update it or add to it as necessary.
 
-For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](https://edgeguides.rubyonrails.org/active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
+For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
 
 ### Updating the CHANGELOG
 
@@ -534,7 +562,7 @@ If your breaking change removes existing behavior, you'll first need to add a
 deprecation warning while keeping the existing behavior.
 
 As an example, let's say you want to remove a public method on
-ActiveRecord::Base. If the main branch points to the unreleased 7.0 version,
+`ActiveRecord::Base`. If the main branch points to the unreleased 7.0 version,
 Rails 7.0 will need to show a deprecation warning. This makes sure anyone
 upgrading to any Rails 7.0 version will see the deprecation warning.
 In Rails 7.1 the method can be deleted.
@@ -543,7 +571,7 @@ You could add the following deprecation warning:
 
 ```ruby
 def deprecated_method
-  ActiveSupport::Deprecation.warn(<<-MSG.squish)
+  ActiveRecord.deprecator.warn(<<-MSG.squish)
     `ActiveRecord::Base.deprecated_method` is deprecated and will be removed in Rails 7.1.
   MSG
   # Existing behavior

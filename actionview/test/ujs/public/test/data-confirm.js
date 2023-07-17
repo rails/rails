@@ -1,3 +1,5 @@
+import $ from 'jquery'
+
 QUnit.module('data-confirm', {
   beforeEach: function() {
     $('#qunit-fixture').append($('<a />', {

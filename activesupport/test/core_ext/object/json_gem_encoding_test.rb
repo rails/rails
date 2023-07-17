@@ -53,16 +53,11 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
       require_or_skip "active_support/core_ext/object/json"
 
       if exception
-        assert_raises_with_message JSON::GeneratorError, e.message do
+        assert_raises JSON::GeneratorError, match: e.message do
           JSON.generate(subject, quirks_mode: true)
         end
       else
         assert_equal expected, JSON.generate(subject, quirks_mode: true)
       end
-    end
-
-    def assert_raises_with_message(exception_class, message, &block)
-      err = assert_raises(exception_class) { block.call }
-      assert_match message, err.message
     end
 end

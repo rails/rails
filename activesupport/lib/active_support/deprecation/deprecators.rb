@@ -56,7 +56,7 @@ module ActiveSupport
       # Sets the deprecation warning behavior for all deprecators in this
       # collection.
       #
-      # See ActiveSupport::Deprecation::Behavior#behavior=.
+      # See ActiveSupport::Deprecation#behavior=.
       def behavior=(behavior)
         set_option(:behavior, behavior)
       end
@@ -64,15 +64,23 @@ module ActiveSupport
       # Sets the disallowed deprecation warning behavior for all deprecators in
       # this collection.
       #
-      # See ActiveSupport::Deprecation::Behavior#disallowed_behavior=.
+      # See ActiveSupport::Deprecation#disallowed_behavior=.
       def disallowed_behavior=(disallowed_behavior)
         set_option(:disallowed_behavior, disallowed_behavior)
+      end
+
+      # Sets the disallowed deprecation warnings for all deprecators in this
+      # collection.
+      #
+      # See ActiveSupport::Deprecation#disallowed_warnings=.
+      def disallowed_warnings=(disallowed_warnings)
+        set_option(:disallowed_warnings, disallowed_warnings)
       end
 
       # Silences all deprecators in this collection for the duration of the
       # given block.
       #
-      # See ActiveSupport::Deprecation::Reporting#silence.
+      # See ActiveSupport::Deprecation#silence.
       def silence(&block)
         each { |deprecator| deprecator.begin_silence }
         block.call

@@ -77,8 +77,8 @@ module AbstractController
       end
 
       def test_anchor_should_call_to_param
-        assert_equal("/c/a#anchor",
-          W.new.url_for(only_path: true, controller: "c", action: "a", anchor: Struct.new(:to_param).new("anchor"))
+        assert_equal("/c/a/i#anchor",
+          W.new.url_for(only_path: true, controller: "c", action: "a", id: "i", anchor: Struct.new(:to_param).new("anchor"))
         )
       end
 
@@ -180,13 +180,6 @@ module AbstractController
         )
       end
 
-      def test_protocol
-        add_host!
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https")
-        )
-      end
-
       def test_protocol_with_and_without_separators
         add_host!
         assert_equal("https://www.basecamphq.com/c/a/i",
@@ -219,6 +212,22 @@ module AbstractController
         )
         assert_equal("//www.basecamphq.com:3000/c/a/i",
           W.new.url_for(controller: "c", action: "a", id: "i", protocol: false)
+        )
+      end
+
+      def test_user_name_and_password
+        add_host!
+        assert_equal(
+          "http://david:secret@www.basecamphq.com/c/a/i",
+          W.new.url_for(user: "david", password: "secret", controller: "c", action: "a", id: "i")
+        )
+      end
+
+      def test_user_name_and_password_with_escape_codes
+        add_host!
+        assert_equal(
+          "http://openid.aol.com%2Fnextangler:one+two%3F@www.basecamphq.com/c/a/i",
+          W.new.url_for(user: "openid.aol.com/nextangler", password: "one two?", controller: "c", action: "a", id: "i")
         )
       end
 
@@ -309,6 +318,58 @@ module AbstractController
 
           assert_equal "http://www.basecamphq.com/subdir/home/sweet/home/again",
             controller.home_url(host: "www.basecamphq.com", user: "again", script_name: "/subdir")
+        end
+      end
+
+      def test_path_params_with_default_url_options
+        with_routing do |set|
+          set.draw do
+            scope ":account_id" do
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search(/:term)" => "search#search", as: :search
+            end
+            delete "signout" => "sessions#destroy", as: :signout
+          end
+
+          kls = Class.new do
+            include set.url_helpers
+            def default_url_options
+              { path_params: { account_id: "foo" } }
+            end
+          end
+
+          controller = kls.new
+
+          assert_equal("/foo/dashboard", controller.dashboard_path)
+          assert_equal("/bar/dashboard", controller.dashboard_path(account_id: "bar"))
+          assert_equal("/signout", controller.signout_path)
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar"))
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar", path_params: { account_id: "baz" }))
+          assert_equal("/foo/search/quin", controller.search_path("quin"))
+        end
+      end
+
+      def test_path_params_without_default_url_options
+        with_routing do |set|
+          set.draw do
+            scope ":account_id" do
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search(/:term)" => "search#search", as: :search
+            end
+            delete "signout" => "sessions#destroy", as: :signout
+          end
+
+          kls = Class.new { include set.url_helpers }
+          controller = kls.new
+
+          assert_raise(ActionController::UrlGenerationError) do
+            controller.dashboard_path # missing required keys :account_id
+          end
+
+          assert_equal("/bar/dashboard", controller.dashboard_path(path_params: { account_id: "bar" }))
+          assert_equal("/signout", controller.signout_path(path_params: { account_id: "bar" }))
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar", path_params: { account_id: "baz" }))
+          assert_equal("/foo/search/quin", controller.search_path("foo", "quin"))
         end
       end
 

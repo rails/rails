@@ -11,7 +11,7 @@ After reading this guide, you will know:
 
 * How to use Rails without the need for a Node.js, Yarn, or a JavaScript bundler.
 * How to create a new Rails application using import maps, esbuild, rollup, or webpack to bundle
-your JavaScript.
+  your JavaScript.
 * What Turbo is, and how to use it.
 * How to use the Turbo HTML helpers provided by Rails.
 
@@ -130,13 +130,10 @@ that you should choose a traditional bundler include:
 
 * If your code requires a transpilation step, such as JSX or TypeScript.
 * If you need to use JavaScript libraries that include CSS or otherwise rely on
-[Webpack loaders](https://webpack.js.org/loaders/).
+  [Webpack loaders](https://webpack.js.org/loaders/).
 * If you are absolutely sure that you need
-[tree-shaking](https://webpack.js.org/guides/tree-shaking/).
-* If you will install Bootstrap, Bulma, PostCSS, or Dart CSS through the
-[cssbundling-rails gem](https://github.com/rails/cssbundling-rails). All options provided by this
-gem except Tailwind will automatically install `esbuild` for you if you do not specify a different
-option in `rails new`.
+  [tree-shaking](https://webpack.js.org/guides/tree-shaking/).
+* If you will install Bootstrap, Bulma, PostCSS, or Dart CSS through the [cssbundling-rails gem](https://github.com/rails/cssbundling-rails). All options provided by this gem except Tailwind and Sass will automatically install `esbuild` for you if you do not specify a different option in `rails new`.
 
 Turbo
 -----
@@ -171,7 +168,7 @@ like this:
 ```erb
 <%= turbo_frame_tag dom_id(post) do %>
   <div>
-     <%= link_to post.title, post_path(path) %>
+     <%= link_to post.title, post_path(post) %>
   </div>
 <% end %>
 ```
@@ -241,17 +238,18 @@ With a WebSocket connection set up on the page that should receive the updates l
 Replacements for Rails/UJS Functionality
 ----------------------------------------
 
-Rails 6 shipped with a tool called UJS that allows developers to override the method of `<a>` tags
-to perform non-GET requests after a hyperlink click and to add confirmation dialogs before
-executing an action. This was the default before Rails 7, but it is now recommended to use Turbo
-instead.
+Rails 6 shipped with a tool called UJS (Unobtrusive JavaScript). UJS allows
+developers to override the HTTP request method of `<a>` tags, to add confirmation
+dialogs before executing an action, and more. UJS was the default before Rails
+7, but it is now recommended to use Turbo instead.
 
 ### Method
 
 Clicking links always results in an HTTP GET request. If your application is
 [RESTful](https://en.wikipedia.org/wiki/Representational_State_Transfer), some links are in fact
-actions that change data on the server, and should be performed with non-GET requests. This
-attribute allows marking up such links with an explicit method such as "post", "put", or "delete".
+actions that change data on the server, and should be performed with non-GET
+requests. The `data-turbo-method` attribute allows marking up such links with
+an explicit method such as "post", "put", or "delete".
 
 Turbo will scan `<a>` tags in your application for the `turbo-method` data attribute and use the
 specified method when present, overriding the default GET action.
@@ -274,19 +272,71 @@ non-GET action.
 
 ### Confirmations
 
-You can ask for an extra confirmation of the user by adding a `data-turbo-confirm` attribute on
-links and forms. The user will be presented with a JavaScript `confirm()` dialog containing the
-attribute’s text. If the user chooses to cancel, the action doesn't take place.
+You can ask for an extra confirmation from the user by adding a `data-turbo-confirm`
+attribute on links and forms. On link click or form submit, the user will be
+presented with a JavaScript `confirm()` dialog containing the attribute's text.
+If the user chooses to cancel, the action doesn't take place.
 
-Adding this attribute on links will trigger the dialog on click, and adding it on forms will
-trigger it on submit. For example:
+For example, with the `link_to` helper:
 
 ```erb
 <%= link_to "Delete post", post_path(post), data: { turbo_method: "delete", turbo_confirm: "Are you sure?" } %>
 ```
 
-This generates:
+Which generates:
 
 ```html
 <a href="..." data-turbo-confirm="Are you sure?" data-turbo-method="delete">Delete post</a>
 ```
+
+When the user clicks on the "Delete post" link, they will be presented with an
+"Are you sure?" confirmation dialog.
+
+The attribute can also be used with the `button_to` helper, however it must be
+added to the form that the `button_to` helper renders internally:
+
+```erb
+<%= button_to "Delete post", post, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } } %>
+```
+
+### Ajax Requests
+
+When making non-GET requests from JavaScript the `X-CSRF-Token` header is required.
+Without this header requests won't be accepted by Rails.
+
+NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSRF) attacks. Read more in the [security guide](security.html#cross-site-request-forgery-csrf).
+
+[Rails Request.JS](https://github.com/rails/request.js) encapsulates the logic
+of adding the request headers that are required by Rails. Just
+import the `FetchRequest` class from the package and instantiate it
+passing the request method, url, options, then call `await request.perform()`
+and do what do you need with the response.
+
+For example:
+
+```javascript
+import { FetchRequest } from '@rails/request.js'
+
+....
+
+async myMethod () {
+  const request = new FetchRequest('post', 'localhost:3000/posts', {
+    body: JSON.stringify({ name: 'Request.JS' })
+  })
+  const response = await request.perform()
+  if (response.ok) {
+    const body = await response.text
+  }
+}
+```
+
+When using another library to make Ajax calls, it is necessary to add the
+security token as a default header yourself. To get the token, have a look at
+`<meta name='csrf-token' content='THE-TOKEN'>` tag printed by
+[`csrf_meta_tags`][] in your application view. You could do something like:
+
+```javascript
+document.head.querySelector("meta[name=csrf-token]")?.content
+```
+
+[`csrf_meta_tags`]: https://api.rubyonrails.org/classes/ActionView/Helpers/CsrfHelper.html#method-i-csrf_meta_tags
