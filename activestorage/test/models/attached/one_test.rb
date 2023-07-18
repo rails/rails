@@ -760,7 +760,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating preview by variation name" do
-    @user.avatar_with_variants.attach fixture_file_upload("report.pdf")
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_variants.attach fixture_file_upload("report.pdf")
+    end
     preview = @user.avatar_with_variants.preview(:thumb).processed
 
     image = read_image(preview.send(:variant))
@@ -797,5 +799,39 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
+  end
+
+  test "transforms variants later" do
+    blob = create_blob(filename: "funky.jpg")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
+      @user.avatar_with_preprocessed.attach blob
+    end
+  end
+
+  test "transforms variants later conditionally via proc" do
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+    end
+
+    blob = create_blob(filename: "funky.jpg")
+    @user.update(name: "transform via proc")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
+      @user.avatar_with_conditional_preprocessed.attach blob
+    end
+  end
+
+  test "transforms variants later conditionally via method" do
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+    end
+
+    blob = create_blob(filename: "funky.jpg")
+    @user.update(name: "transform via method")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
+      @user.avatar_with_conditional_preprocessed.attach blob
+    end
   end
 end

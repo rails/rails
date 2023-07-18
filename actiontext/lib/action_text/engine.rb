@@ -82,5 +82,11 @@ module ActionText
     initializer "action_text.configure" do |app|
       ActionText::Attachment.tag_name = app.config.action_text.attachment_tag_name
     end
+
+    config.after_initialize do |app|
+      if klass = app.config.action_text.sanitizer_vendor
+        ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+      end
+    end
   end
 end

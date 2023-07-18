@@ -1,3 +1,8 @@
+*   Add a load hook for `ActiveModel::Model` (named `active_model`) to match the load hook for `ActiveRecord::Base` and
+    allow for overriding aspects of the `ActiveModel::Model` class.
+
+    *Lewis Buckley*
+
 *   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt compatibility.
 
     The previous password length validation only considered the character count, which may not

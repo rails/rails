@@ -10,6 +10,7 @@ rescue LoadError
 end
 
 require "connection_pool"
+require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 
@@ -103,7 +104,6 @@ module ActiveSupport
           end
       end
 
-      attr_reader :redis_options
       attr_reader :max_key_bytesize
       attr_reader :redis
 
@@ -141,7 +141,12 @@ module ActiveSupport
       #   cache.fetch('bar', skip_nil: true) { nil }
       #   cache.exist?('foo') # => true
       #   cache.exist?('bar') # => false
-      def initialize(namespace: nil, compress: true, compress_threshold: 1.kilobyte, coder: default_coder, expires_in: nil, race_condition_ttl: nil, error_handler: DEFAULT_ERROR_HANDLER, skip_nil: false, **redis_options)
+      def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
+        base_options = redis_options.extract!(
+          :coder, :compress, :compress_threshold,
+          :namespace, :expires_in, :race_condition_ttl, :skip_nil,
+        )
+
         if pool_options = self.class.send(:retrieve_pool_options, redis_options)
           @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
         else
@@ -152,10 +157,7 @@ module ActiveSupport
         @error_handler = error_handler
         @supports_pipelining = true
 
-        super namespace: namespace,
-          compress: compress, compress_threshold: compress_threshold,
-          expires_in: expires_in, race_condition_ttl: race_condition_ttl,
-          coder: coder, skip_nil: skip_nil
+        super(base_options)
       end
 
       def inspect

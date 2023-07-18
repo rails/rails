@@ -824,7 +824,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating variation by variation name" do
-    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+    end
     variant = @user.highlights_with_variants.first.variant(:thumb).processed
 
     image = read_image(variant)
@@ -881,6 +883,40 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#highlights_with_variants/, error.message)
+  end
+
+  test "transforms variants later" do
+    blob = create_blob(filename: "funky.jpg")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
+      @user.highlights_with_preprocessed.attach blob
+    end
+  end
+
+  test "transforms variants later conditionally via proc" do
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.highlights_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+    end
+
+    blob = create_blob(filename: "funky.jpg")
+    @user.update(name: "transform via proc")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
+      @user.highlights_with_conditional_preprocessed.attach blob
+    end
+  end
+
+  test "transforms variants later conditionally via method" do
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.highlights_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
+    end
+
+    blob = create_blob(filename: "funky.jpg")
+    @user.update(name: "transform via method")
+
+    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
+      @user.highlights_with_conditional_preprocessed.attach blob
+    end
   end
 
   test "successfully attaches new blobs and destroys attachments marked for destruction via nested attributes" do

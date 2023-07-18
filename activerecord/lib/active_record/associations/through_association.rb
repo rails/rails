@@ -81,7 +81,9 @@ module ActiveRecord
         # to try to properly support stale-checking for nested associations.
         def stale_state
           if through_reflection.belongs_to?
-            owner[through_reflection.foreign_key] && owner[through_reflection.foreign_key].to_s
+            Array(through_reflection.foreign_key).map do |foreign_key_column|
+              owner[foreign_key_column] && owner[foreign_key_column].to_s
+            end
           end
         end
 
@@ -112,11 +114,15 @@ module ActiveRecord
         end
 
         def build_record(attributes)
-          inverse = source_reflection.inverse_of
-          target = through_association.target
+          if source_reflection.collection?
+            inverse = source_reflection.inverse_of
+            target = through_association.target
 
-          if inverse && target && !target.is_a?(Array)
-            attributes[inverse.foreign_key] = target.id
+            if inverse && target && !target.is_a?(Array)
+              Array(target.id).zip(Array(inverse.foreign_key)).map do |primary_key_value, foreign_key_column|
+                attributes[foreign_key_column] = primary_key_value
+              end
+            end
           end
 
           super

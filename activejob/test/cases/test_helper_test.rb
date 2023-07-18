@@ -515,6 +515,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_no_enqueued_jobs_and_perform_now
+    assert_no_enqueued_jobs do
+      LoggingJob.perform_now(1, 2, 3, keyword: true)
+    end
+  end
+
   def test_assert_enqueued_with_returns
     job = assert_enqueued_with(job: LoggingJob) do
       LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3, keyword: true)

@@ -688,7 +688,7 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
     attribute :payload, :json
   end
 
-  class HashWithFixedHash < Hash
+  class ObjectFixedHash < Struct.new(:a, :b)
     # this isn't very realistic, but it is the worst case and therefore a good
     # case to test
     def hash
@@ -709,18 +709,63 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_handles_mutated_binds
-    JsonObj.create(payload: { a: 1 })
+    JsonObj.create(payload: ObjectFixedHash.new({ a: 1 }))
 
-    search = HashWithFixedHash[a: 1]
+    search = ObjectFixedHash.new({ a: 1 })
     JsonObj.where(payload: search).first # populate the cache
 
-    search.merge!(b: 2)
+    search.b = 2
     assert_nil JsonObj.where(payload: search).first, "cache returned a false positive"
   end
 
   def teardown
     ActiveRecord::Base.connection.disable_query_cache!
     ActiveRecord::Base.connection.drop_table("json_objs", if_exists: true)
+  end
+end
+
+class QuerySerializedParamTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  fixtures :topics
+
+  class YAMLObj < ActiveRecord::Base
+    self.table_name = "yaml_objs"
+
+    serialize :payload
+  end
+
+  def setup
+    @use_yaml_unsafe_load_was = ActiveRecord.use_yaml_unsafe_load
+    ActiveRecord.use_yaml_unsafe_load = true
+    ActiveRecord::Base.connection.create_table("yaml_objs", force: true) do |t|
+      t.text "payload"
+    end
+
+    ActiveRecord::Base.connection.enable_query_cache!
+  end
+
+  def teardown
+    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.connection.drop_table("yaml_objs", if_exists: true)
+
+    ActiveRecord.use_yaml_unsafe_load = @use_yaml_unsafe_load_was
+  end
+
+  def test_query_serialized_active_record
+    topic = Topic.first
+    assert_not_nil topic
+
+    obj = YAMLObj.create!(payload: { topic: topic })
+
+    # This is absolutely terrible, no-one should ever do this
+    assert_equal obj, YAMLObj.where(payload: { topic: topic }).first
+
+    relation = YAMLObj.where(payload: { topic: topic })
+    topic.title = "New Title"
+    assert_equal obj, relation.first
+
+    assert_nil YAMLObj.where(payload: { topic: topic }).first
   end
 end
 

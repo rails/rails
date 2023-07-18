@@ -6,9 +6,6 @@ require "zlib"
 require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
-require "active_record/fixture_set/file"
-require "active_record/fixture_set/render_context"
-require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
 
 module ActiveRecord
@@ -473,6 +470,10 @@ module ActiveRecord
   #
   # Any fixtures labeled "_fixture" are safely ignored.
   class FixtureSet
+    require "active_record/fixture_set/file"
+    require "active_record/fixture_set/render_context"
+    require "active_record/fixture_set/table_rows"
+
     #--
     # An instance of FixtureSet is normally stored in a single YAML file and
     # possibly in a folder with the same name.
@@ -575,7 +576,7 @@ module ActiveRecord
       #
       # Example:
       #
-      #   composite_identify("label", [:a, :b, :c]) => { a: hash_1, b: hash_2, c: hash_3 }
+      #   composite_identify("label", [:a, :b, :c]) # => { a: hash_1, b: hash_2, c: hash_3 }
       def composite_identify(label, key)
         key
           .index_with

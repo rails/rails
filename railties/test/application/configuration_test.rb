@@ -23,6 +23,14 @@ end
 
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
+class ::MySafeListSanitizer < Rails::HTML4::SafeListSanitizer; end
+
+class ::MySanitizerVendor < ::Rails::HTML::Sanitizer
+  def self.safe_list_sanitizer
+    ::MySafeListSanitizer
+  end
+end
+
 class MyLogRecorder < Logger
   def initialize
     @io = StringIO.new
@@ -398,30 +406,21 @@ module ApplicationTests
       assert_not_includes Post.instance_methods, :title
     end
 
-    test "does not eager load attribute methods in production when the schema cache is empty" do
+    test "does not eager load attribute methods in production when the schema cache is empty and the database not connected" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-        ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :title
-          end
         end
       RUBY
 
       add_to_config <<-RUBY
         config.enable_reloading = false
         config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
       RUBY
 
       app "production"
 
-      assert_not_includes Post.instance_methods, :title
+      assert_not_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
     test "eager loads attribute methods in production when the schema cache is populated" do
@@ -2151,74 +2150,76 @@ module ApplicationTests
       end
     end
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (array ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
-      app_file "lib/generators/x.rb", "Generators::X = true"
+    [%w(autoload_lib autoload_paths), %w(autoload_lib_once autoload_once_paths)].each do |method_name, paths|
+      test "config.#{method_name} adds lib to the expected paths (array ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
+        app_file "lib/generators/x.rb", "Generators::X = true"
 
-      add_to_config "config.autoload_lib(ignore: %w(tasks generators))"
+        add_to_config "config.#{method_name}(ignore: %w(tasks generators))"
 
-      app "development"
+        app "development"
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
+
+        assert X
+        assert_raises(NameError) { Tasks }
+        assert_raises(NameError) { Generators }
       end
 
-      assert X
-      assert_raises(NameError) { Tasks }
-      assert_raises(NameError) { Generators }
-    end
+      test "config.#{method_name} adds lib to the expected paths (empty array ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (empty array ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
+        add_to_config "config.#{method_name}(ignore: [])"
 
-      add_to_config "config.autoload_lib(ignore: [])"
+        app "development"
 
-      app "development"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        assert X
+        assert Tasks::X
       end
 
-      assert X
-      assert Tasks::X
-    end
+      test "config.#{method_name} adds lib to the expected paths (scalar ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (scalar ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
+        add_to_config "config.#{method_name}(ignore: 'tasks')"
 
-      add_to_config "config.autoload_lib(ignore: 'tasks')"
+        app "development"
 
-      app "development"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        assert X
+        assert_raises(NameError) { Tasks }
       end
 
-      assert X
-      assert_raises(NameError) { Tasks }
-    end
+      test "config.#{method_name} adds lib to the expected paths (nil ignore)" do
+        app_file "lib/x.rb", "X = true"
+        app_file "lib/tasks/x.rb", "Tasks::X = true"
 
-    test "config.autoload_lib adds lib to the autoload and eager load paths (nil ignore)" do
-      app_file "lib/x.rb", "X = true"
-      app_file "lib/tasks/x.rb", "Tasks::X = true"
+        add_to_config "config.#{method_name}(ignore: nil)"
 
-      add_to_config "config.autoload_lib(ignore: nil)"
+        app "development"
 
-      app "development"
+        Rails.application.config.tap do |config|
+          assert_includes config.send(paths), "#{app_path}/lib"
+          assert_includes config.eager_load_paths, "#{app_path}/lib"
+        end
 
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/lib"
-        assert_includes config.eager_load_paths, "#{app_path}/lib"
+        assert X
+        assert Tasks::X
       end
-
-      assert X
-      assert Tasks::X
     end
 
     test "load_database_yaml returns blank hash if configuration file is blank" do
@@ -4246,6 +4247,18 @@ module ApplicationTests
         Rails.cache.instance_variable_get(:@coder)
     end
 
+    test "ActiveSupport::Cache.format_version 6.1 is deprecated" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal 6.1, ActiveSupport::Cache.format_version
+
+      assert_deprecated(ActiveSupport.deprecator) do
+        ActiveSupport::Cache::Store.new
+      end
+    end
+
     test "raise_on_invalid_cache_expiration_time is false with 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "7.0"'
@@ -4465,6 +4478,57 @@ module ApplicationTests
       app "development"
 
       assert_equal OpenSSL::Digest::SHA1, ActiveRecord::Encryption.config.hash_digest_class
+    end
+
+    test "sanitizer_vendor is set to best supported vendor in new apps" do
+      app "development"
+
+      assert_equal Rails::HTML::Sanitizer.best_supported_vendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "sanitizer_vendor is set to HTML4 in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_equal Rails::HTML4::Sanitizer, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "sanitizer_vendor is set to a specific vendor" do
+      add_to_config "config.action_view.sanitizer_vendor = ::MySanitizerVendor"
+      app "development"
+
+      assert_equal ::MySanitizerVendor, ActionView::Helpers::SanitizeHelper.sanitizer_vendor
+    end
+
+    test "Action Text uses the best supported safe list sanitizer in new apps" do
+      app "development"
+
+      assert_kind_of(
+        Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
+    end
+
+    test "Action Text uses the HTML4 safe list sanitizer in upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.0"'
+      app "development"
+
+      assert_kind_of(
+        Rails::HTML4::Sanitizer.safe_list_sanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
+    end
+
+    test "Action Text uses the specified vendor's safe list sanitizer" do
+      add_to_config "config.action_text.sanitizer_vendor = ::MySanitizerVendor"
+      app "development"
+
+      assert_kind_of(
+        ::MySafeListSanitizer,
+        ActionText::ContentHelper.sanitizer,
+      )
     end
 
     private

@@ -112,6 +112,7 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
+        use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
         nopush = options["nopush"].nil? ? true : options.delete("nopush")
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
@@ -120,7 +121,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          if preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
+          if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -137,7 +138,7 @@ module ActionView
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
 
-        if preload_links_header
+        if use_preload_links_header
           send_preload_links_header(preload_links)
         end
 
@@ -192,6 +193,7 @@ module ActionView
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
+        use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
@@ -200,7 +202,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          if preload_links_header && href.present? && !href.start_with?("data:")
+          if use_preload_links_header && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -220,7 +222,7 @@ module ActionView
           tag(:link, tag_options)
         }.join("\n").html_safe
 
-        if preload_links_header
+        if use_preload_links_header
           send_preload_links_header(preload_links)
         end
 

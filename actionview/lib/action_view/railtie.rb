@@ -46,7 +46,7 @@ module ActionView
       ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = prepend_content_exfiltration_prevention
     end
 
-    initializer "action_view.sanitizer_vendor" do |app|
+    config.after_initialize do |app|
       if klass = app.config.action_view.delete(:sanitizer_vendor)
         ActionView::Helpers::SanitizeHelper.sanitizer_vendor = klass
       end

@@ -49,6 +49,7 @@ module ActiveRecord
   autoload :Encryption
   autoload :Enum
   autoload :Explain
+  autoload :FixtureSet, "active_record/fixtures"
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
@@ -172,6 +173,9 @@ module ActiveRecord
     autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
+
+  singleton_class.attr_accessor :disable_prepared_statements
+  self.disable_prepared_statements = false
 
   # Lazily load the schema cache. This option will load the schema cache
   # when a connection is established rather than on boot. If set,
@@ -315,6 +319,9 @@ module ActiveRecord
 
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
+
+  singleton_class.attr_accessor :commit_transaction_on_non_local_return
+  self.commit_transaction_on_non_local_return = false
 
   ##
   # :singleton-method:

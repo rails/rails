@@ -100,6 +100,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate member_detail_with_two_associations.member, :new_record?
   end
 
+  def test_building_works_with_has_one_through_belongs_to
+    new_member = Member.create!(name: "Joe")
+    new_member.create_current_membership!
+    new_club = new_member.build_club
+
+    assert_equal(new_member.club, new_club)
+  end
+
   def test_creating_multiple_associations_creates_through_record
     member_type = MemberType.create!
     member = Member.create!
@@ -453,5 +461,16 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     order_agreement = Cpk::OrderAgreement.create!(order: order)
 
     assert_equal(order_agreement, book.order_agreement)
+  end
+
+  def test_cpk_stale_target
+    order = Cpk::Order.create!(shop_id: 1)
+    book = Cpk::BookWithOrderAgreements.create!(id: [1, 2], order: order)
+    Cpk::OrderAgreement.create!(order: order)
+
+    book.order_agreement
+    book.order = Cpk::Order.new
+
+    assert_predicate(book.association(:order_agreement), :stale_target?)
   end
 end

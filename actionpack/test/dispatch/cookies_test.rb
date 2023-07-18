@@ -554,6 +554,17 @@ class CookiesTest < ActionController::TestCase
     assert_set_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
+  def test_delete_cookie_return_value
+    request.cookies[:user_name] = "Joe"
+    return_value = request.cookies.delete(:user_name)
+    assert_equal "Joe", return_value
+  end
+
+  def test_delete_unexisting_cookie_return_value
+    return_value = request.cookies.delete(:no_such_cookie)
+    assert_nil return_value
+  end
+
   def test_delete_unexisting_cookie
     request.cookies.clear
     get :delete_cookie

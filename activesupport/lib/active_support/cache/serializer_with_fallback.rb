@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "zlib"
 require "active_support/core_ext/kernel/reporting"
 
 module ActiveSupport
@@ -58,6 +59,12 @@ module ActiveSupport
         BARE_STRING_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(BARE_STRING_EXPIRES_AT_TEMPLATE).bytesize}l<"
         BARE_STRING_VERSION_INDEX = [0].pack(BARE_STRING_VERSION_LENGTH_TEMPLATE).bytesize
 
+        def marshal_load(payload)
+          Marshal.load(payload)
+        rescue ArgumentError => error
+          raise Cache::DeserializationError, error.message
+        end
+
         def try_dump_bare_string(entry)
           value = entry.value
           return if !value.instance_of?(String)
@@ -69,8 +76,8 @@ module ActiveSupport
           return if !signature
 
           packed = [signature, entry.expires_at || -1.0, version&.bytesize || -1].pack(BARE_STRING_TEMPLATE)
-          packed << version if version
-          packed << value
+          packed << version.b if version
+          packed << value.b
         end
 
         def try_load_bare_string(dumped)
@@ -143,9 +150,8 @@ module ActiveSupport
             Marshal.dump(entry.compressed(threshold))
           end
 
-          def _load(dumped)
-            Marshal.load(dumped)
-          end
+          alias_method :_load, :marshal_load
+          public :_load
 
           def dumped?(dumped)
             dumped.start_with?(MARSHAL_SIGNATURE)
@@ -159,12 +165,20 @@ module ActiveSupport
           MARK_UNCOMPRESSED = "\x00".b.freeze
           MARK_COMPRESSED   = "\x01".b.freeze
 
+          def dump(entry, raw = false)
+            if raw
+              super(entry)
+            else
+              MARK_UNCOMPRESSED + super(entry)
+            end
+          end
+
           def _dump(entry)
-            MARK_UNCOMPRESSED + Marshal.dump(entry.pack)
+            Marshal.dump(entry.pack)
           end
 
           def dump_compressed(entry, threshold)
-            dumped = Marshal.dump(entry.pack)
+            dumped = dump(entry, true)
             if compressed = try_compress(dumped, threshold)
               MARK_COMPRESSED + compressed
             else
@@ -175,7 +189,7 @@ module ActiveSupport
           def _load(marked)
             dumped = marked.byteslice(1..-1)
             dumped = decompress(dumped) if marked.start_with?(MARK_COMPRESSED)
-            Cache::Entry.unpack(Marshal.load(dumped))
+            try_load_bare_string(dumped) || Cache::Entry.unpack(marshal_load(dumped))
           end
 
           def dumped?(dumped)
@@ -186,7 +200,10 @@ module ActiveSupport
         module Marshal70WithFallback
           include Marshal71WithFallback
           extend self
-          alias :dump :_dump # Prevent dumping bare strings.
+
+          def try_dump_bare_string(_entry)
+            nil # Prevent dumping bare strings.
+          end
         end
 
         module MessagePackWithFallback

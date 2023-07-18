@@ -158,6 +158,23 @@ module ActiveRecord
       end
     end
 
+    unless in_memory_db?
+      def test_disable_prepared_statements
+        original_prepared_statements = ActiveRecord.disable_prepared_statements
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(prepared_statements: true))
+
+        assert_predicate ActiveRecord::Base.connection, :prepared_statements?
+
+        ActiveRecord.disable_prepared_statements = true
+        ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(prepared_statements: true))
+        assert_not_predicate ActiveRecord::Base.connection, :prepared_statements?
+      ensure
+        ActiveRecord.disable_prepared_statements = original_prepared_statements
+        ActiveRecord::Base.establish_connection :arunit
+      end
+    end
+
     def test_table_alias
       def @connection.test_table_alias_length() 10; end
       class << @connection

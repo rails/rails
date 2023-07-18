@@ -322,6 +322,14 @@ module ActiveRecord
         end
       end
 
+      def test_partial_index_on_column_named_like_keyword
+        with_example_table('id serial primary key, number integer, "primary" boolean') do
+          @connection.add_index "ex", "id", name: "partial", where: "primary" # "primary" is a keyword
+          index = @connection.indexes("ex").find { |idx| idx.name == "partial" }
+          assert_equal '"primary"', index.where
+        end
+      end
+
       def test_include_index
         with_example_table do
           @connection.add_index "ex", %w{ id }, name: "include", include: :number
