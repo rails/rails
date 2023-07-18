@@ -146,13 +146,15 @@ module StaticTests
     end
   end
 
+  JAVASCRIPT_MIME_TYPE = Rack::Mime::MIME_TYPES[".js"]
+
   def test_serves_gzip_files_when_header_set
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_gzip  file_name, response
-    assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "gzip",                   response.headers["Content-Encoding"]
+    assert_equal JAVASCRIPT_MIME_TYPE, response.headers["Content-Type"]
+    assert_equal "accept-encoding", response.headers["Vary"]
+    assert_equal "gzip", response.headers["Content-Encoding"]
 
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "Gzip")
     assert_gzip file_name, response
@@ -176,9 +178,9 @@ module StaticTests
   def test_serves_brotli_files_when_header_set
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "br")
-    assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "br",                     response.headers["Content-Encoding"]
+    assert_equal JAVASCRIPT_MIME_TYPE, response.headers["Content-Type"]
+    assert_equal "accept-encoding", response.headers["Vary"]
+    assert_equal "br", response.headers["Content-Encoding"]
 
     response = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_not_equal "br", response.headers["Content-Encoding"]
@@ -187,9 +189,9 @@ module StaticTests
   def test_serves_brotli_files_before_gzip_files
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip, deflate, sdch, br")
-    assert_equal "application/javascript", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "br",                     response.headers["Content-Encoding"]
+    assert_equal JAVASCRIPT_MIME_TYPE, response.headers["Content-Type"]
+    assert_equal "accept-encoding", response.headers["Vary"]
+    assert_equal "br", response.headers["Content-Encoding"]
   end
 
   def test_does_not_modify_path_info
