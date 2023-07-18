@@ -429,16 +429,20 @@ module ActiveRecord
         end
         attributes = attributes.with_indifferent_access
         existing_record = send(association_name)
+        association = association(association_name)
+        id = get_nested_attributes_id(attributes, association.klass)
 
-        if (options[:update_only] || !attributes["id"].blank?) && existing_record &&
-            (options[:update_only] || existing_record.id.to_s == attributes["id"].to_s)
+        if (options[:update_only] || id) && existing_record &&
+            (options[:update_only] || existing_record.id.to_s == id.to_s)
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
-        elsif attributes["id"].present?
-          raise_nested_attributes_record_not_found!(association_name, attributes["id"])
+        elsif id
+          raise_nested_attributes_record_not_found!(association_name, id)
 
         elsif !reject_new_record?(association_name, attributes)
-          assignable_attributes = attributes.except(*UNASSIGNABLE_KEYS)
+          unassignable_keys = UNASSIGNABLE_KEYS
+          unassignable_keys << association.klass.primary_key if association.klass
+          assignable_attributes = attributes.except(*unassignable_keys)
 
           if existing_record && existing_record.new_record?
             existing_record.assign_attributes(assignable_attributes)
@@ -493,21 +497,21 @@ module ActiveRecord
 
         check_record_limit!(options[:limit], attributes_collection)
 
+        association = association(association_name)
+
         if attributes_collection.is_a? Hash
           keys = attributes_collection.keys
-          attributes_collection = if keys.include?("id") || keys.include?(:id)
+          attributes_collection = if (keys & nested_attributes_possible_id_names(association.klass)).any?
             [attributes_collection]
           else
             attributes_collection.values
           end
         end
 
-        association = association(association_name)
-
         existing_records = if association.loaded?
           association.target
         else
-          attribute_ids = attributes_collection.filter_map { |a| a["id"] || a[:id] }
+          attribute_ids = attributes_collection.filter_map { |a| get_nested_attributes_id(a, association.klass) }
           attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
         end
 
@@ -516,17 +520,20 @@ module ActiveRecord
             attributes = attributes.to_h
           end
           attributes = attributes.with_indifferent_access
+          id = get_nested_attributes_id(attributes, association.klass)
 
-          if attributes["id"].blank?
+          if id.blank?
             unless reject_new_record?(association_name, attributes)
-              association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
+              unassignable_keys = UNASSIGNABLE_KEYS
+              unassignable_keys << association.klass.primary_key if association.klass
+              association.reader.build(attributes.except(*unassignable_keys))
             end
-          elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes["id"].to_s }
+          elsif existing_record = existing_records.detect { |record| record.id.to_s == id.to_s }
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
               # Take into account that the proxy_target may have changed due to callbacks
-              target_record = association.target.detect { |record| record.id.to_s == attributes["id"].to_s }
+              target_record = association.target.detect { |record| record.id.to_s == id.to_s }
               if target_record
                 existing_record = target_record
               else
@@ -536,7 +543,7 @@ module ActiveRecord
               assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
             end
           else
-            raise_nested_attributes_record_not_found!(association_name, attributes["id"])
+            raise_nested_attributes_record_not_found!(association_name, id)
           end
         end
       end
@@ -563,6 +570,19 @@ module ActiveRecord
             raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
           end
         end
+      end
+
+      def get_nested_attributes_id(attributes, klass)
+        primary_key = nested_attributes_possible_id_names(klass).find do |name|
+          attributes[name].present?
+        end
+        attributes[primary_key] if primary_key
+      end
+
+      def nested_attributes_possible_id_names(klass)
+        id_names = ["id", :id]
+        id_names.push(klass.primary_key, klass.primary_key.to_sym) if klass
+        id_names
       end
 
       # Updates a record with the +attributes+ or marks it for destruction if
@@ -610,9 +630,9 @@ module ActiveRecord
       end
 
       def raise_nested_attributes_record_not_found!(association_name, record_id)
-        model = self.class._reflect_on_association(association_name).klass.name
-        raise RecordNotFound.new("Couldn't find #{model} with ID=#{record_id} for #{self.class.name} with ID=#{id}",
-                                 model, "id", record_id)
+        model = self.class._reflect_on_association(association_name).klass
+        raise RecordNotFound.new("Couldn't find #{model.name} with #{model.primary_key.upcase}=#{record_id} for #{self.class.name} with ID=#{id}",
+                                 model.name, model.primary_key, record_id)
       end
   end
 end

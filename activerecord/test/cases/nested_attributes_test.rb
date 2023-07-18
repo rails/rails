@@ -10,6 +10,7 @@ require "models/parrot"
 require "models/treasure"
 require "models/human"
 require "models/interest"
+require "models/treaty"
 require "models/owner"
 require "models/pet"
 require "models/entry"
@@ -962,24 +963,32 @@ class TestNestedAttributesLimitProc < ActiveRecord::TestCase
 end
 
 class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
-  fixtures :owners, :pets
+  fixtures :owners, :pets, :treaties
 
   def setup
     Owner.accepts_nested_attributes_for :pets, allow_destroy: true
 
     @owner = owners(:ashley)
     @pet1, @pet2 = pets(:chew), pets(:mochi)
+  end
 
-    @params = {
+  def test_should_update_existing_records_with_non_standard_primary_key
+    @owner.update(
       pets_attributes: {
         "0" => { id: @pet1.id, name: "Foo" },
         "1" => { id: @pet2.id, name: "Bar" }
       }
-    }
+    )
+    assert_equal ["Foo", "Bar"], @owner.pets.map(&:name)
   end
 
-  def test_should_update_existing_records_with_non_standard_primary_key
-    @owner.update(@params)
+  def test_should_update_existing_records_with_non_standard_primary_key_as_attributes_key
+    @owner.update(
+      pets_attributes: {
+        "0" => { pet_id: @pet1.id, name: "Foo" },
+        "1" => { pet_id: @pet2.id, name: "Bar" }
+      }
+    )
     assert_equal ["Foo", "Bar"], @owner.pets.map(&:name)
   end
 
@@ -992,6 +1001,12 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
                                                 _destroy: true } } }
     @owner.update(attributes)
     assert_equal "John", Pet.after_destroy_output
+  end
+
+  def test_should_update_existing_has_one_record_with_non_standard_primary_key_as_attributes_key
+    treaty = treaties(:peace)
+    @owner.update(treaty_attributes: { treaty_id: treaty.id, name: "Changed" })
+    assert_equal "Changed", treaty.reload.name
   end
 end
 
