@@ -424,7 +424,7 @@ class CookiesTest < ActionController::TestCase
     error = assert_raise ArgumentError do
       get :authenticate
     end
-    assert_match "Invalid SameSite value: :funky", error.message
+    assert_match(/Invalid :?Same_?Site value: :funky/i, error.message)
   end
 
   def test_setting_cookie_with_same_site_strict

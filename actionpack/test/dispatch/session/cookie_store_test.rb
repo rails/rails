@@ -392,21 +392,21 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   test "default same_site derives SameSite from env" do
     with_test_route_set do
       get "/set_session_value"
-      assert_match %r/SameSite=Lax/, headers["Set-Cookie"]
+      assert_set_cookie_attributes("_myapp_session", "SameSite=Lax")
     end
   end
 
   test "explicit same_site sets SameSite" do
     with_test_route_set(same_site: :strict) do
       get "/set_session_value"
-      assert_match %r/SameSite=Strict/, headers["Set-Cookie"]
+      assert_set_cookie_attributes("_myapp_session", "SameSite=Strict")
     end
   end
 
   test "explicit nil same_site omits SameSite" do
     with_test_route_set(same_site: nil) do
       get "/set_session_value"
-      assert_no_match %r/SameSite=/, headers["Set-Cookie"]
+      assert_not_set_cookie_attributes("_myapp_session", "SameSite")
     end
   end
 
