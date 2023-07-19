@@ -180,7 +180,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       # version can be deployed again.
       #
       # This is why this initializer tries hard not to query the database, and if it
-      # does, it makes sure to any possible database error.
+      # does, it makes sure to rescue any possible database error.
       check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
