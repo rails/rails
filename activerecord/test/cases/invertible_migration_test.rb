@@ -226,6 +226,20 @@ module ActiveRecord
       end
     end
 
+    class RevertingMigration < SilentMigration
+      attr_writer :test
+      def change
+        @test.yield reverting?
+      end
+    end
+
+    class MigratingMigration < SilentMigration
+      attr_writer :test
+      def change
+        @test.yield migrating?
+      end
+    end
+
     self.use_transactional_tests = false
 
     setup do
@@ -545,6 +559,30 @@ module ActiveRecord
       assert_equal 0, horse2.oldie # created after migrations
 
       Horse.reset_column_information
+    end
+
+    def test_reverting
+      received = nil
+      migration = RevertingMigration.new
+      migration.test = ->(reverting) {
+        received = reverting
+      }
+      migration.migrate :up
+      assert_equal false, received
+      migration.migrate :down
+      assert_equal true, received
+    end
+
+    def test_migrating
+      received = nil
+      migration = MigratingMigration.new
+      migration.test = ->(migrating) {
+        received = migrating
+      }
+      migration.migrate :up
+      assert_equal true, received
+      migration.migrate :down
+      assert_equal false, received
     end
   end
 end
