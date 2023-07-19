@@ -487,7 +487,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/get_with_params", params: { foo: "bar" }
 
-      assert_empty request.env["rack.input"].string
+      input = request.env["rack.input"]
+      assert(input.nil? || input.read == "")
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
