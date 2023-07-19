@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+gem "listen", "~> 3.5"
+require "listen"
+
 require "set"
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
-require "listen"
 require "active_support/fork_tracker"
 
 module ActiveSupport
