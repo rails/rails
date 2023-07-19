@@ -128,7 +128,7 @@ module ActiveRecord
         end
       end
 
-      def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
+      def establish_connection(config, owner_name: Base, role: Base.current_role, shard: Base.current_shard, clobber: false)
         owner_name = determine_owner_name(owner_name, config)
 
         pool_config = resolve_pool_config(config, owner_name, role, shard)
@@ -142,7 +142,7 @@ module ActiveRecord
         # configuration.
         existing_pool_config = pool_manager.get_pool_config(role, shard)
 
-        if existing_pool_config && existing_pool_config.db_config == db_config
+        if !clobber && existing_pool_config && existing_pool_config.db_config == db_config
           # Update the pool_config's connection class if it differs. This is used
           # for ensuring that ActiveRecord::Base and the primary_abstract_class use
           # the same pool. Without this granular swapping will not work correctly.

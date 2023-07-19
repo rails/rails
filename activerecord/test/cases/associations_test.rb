@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pp"
 require "cases/helper"
 require "models/computer"
 require "models/developer"
@@ -76,6 +77,16 @@ class AssociationsTest < ActiveRecord::TestCase
     part.mark_for_destruction
     ShipPart.find(part.id).update_columns(name: "Deck")
     assert_equal "Deck", ship.parts[0].name
+  end
+
+  def test_loading_cpk_association_when_persisted_and_in_memory_differ
+    order = Cpk::Order.create!(id: [1, 2], status: "paid")
+    book = order.books.create!(id: [3, 4], title: "Book")
+
+    Cpk::Book.find(book.id).update_columns(title: "A different title")
+    order.books.load
+
+    assert_equal [3, 4], book.id
   end
 
   def test_include_with_order_works
@@ -448,6 +459,15 @@ class AssociationProxyTest < ActiveRecord::TestCase
     andreas = Developer.new name: "Andreas", log: "new developer added"
     assert_not_predicate andreas.audit_logs, :loaded?
     assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
+    assert_predicate andreas.audit_logs, :loaded?
+  end
+
+  def test_pretty_print_does_not_reload_a_not_yet_loaded_target
+    andreas = Developer.new(log: "new developer added")
+    assert_not_predicate andreas.audit_logs, :loaded?
+    out = StringIO.new
+    PP.pp(andreas.audit_logs, out)
+    assert_match(/message: "new developer added"/, out.string)
     assert_predicate andreas.audit_logs, :loaded?
   end
 

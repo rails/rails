@@ -275,8 +275,11 @@ module ActiveRecord
       # Hence this method.
       def inverse_which_updates_counter_cache
         unless @inverse_which_updates_counter_cache_defined
-          @inverse_which_updates_counter_cache = klass.reflect_on_all_associations(:belongs_to).find do |inverse|
-            inverse.counter_cache_column == counter_cache_column
+          if counter_cache_column
+            inverse_candidates = inverse_of ? [inverse_of] : klass.reflect_on_all_associations(:belongs_to)
+            @inverse_which_updates_counter_cache = inverse_candidates.find do |inverse|
+              inverse.counter_cache_column == counter_cache_column && (inverse.polymorphic? || inverse.klass == active_record)
+            end
           end
           @inverse_which_updates_counter_cache_defined = true
         end
@@ -542,7 +545,7 @@ module ActiveRecord
       def check_validity!
         check_validity_of_inverse!
 
-        if !polymorphic? && klass.composite_primary_key?
+        if !polymorphic? && (klass.composite_primary_key? || active_record.composite_primary_key?)
           if (has_one? || collection?) && Array(active_record_primary_key).length != Array(foreign_key).length
             raise CompositePrimaryKeyMismatchError.new(self)
           elsif belongs_to? && Array(association_primary_key).length != Array(foreign_key).length
@@ -805,7 +808,7 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if options[:query_constraints]
-          (klass || self.klass).query_constraints_list
+          (klass || self.klass).composite_query_constraints_list
         elsif primary_key = options[:primary_key]
           @association_primary_key ||= -primary_key.to_s
         else

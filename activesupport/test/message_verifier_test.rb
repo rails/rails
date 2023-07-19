@@ -109,6 +109,10 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal "Secret should not be nil.", exception.message
   end
 
+  test "inspect does not show secrets" do
+    assert_match(/\A#<ActiveSupport::MessageVerifier:0x[0-9a-f]+>\z/, @verifier.inspect)
+  end
+
   private
     def make_codec(**options)
       ActiveSupport::MessageVerifier.new(@secret, **options)

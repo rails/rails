@@ -320,6 +320,9 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
+  singleton_class.attr_accessor :commit_transaction_on_non_local_return
+  self.commit_transaction_on_non_local_return = false
+
   ##
   # :singleton-method:
   # Specify a threshold for the size of query result sets. If the number of

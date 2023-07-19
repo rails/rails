@@ -17,6 +17,11 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by(&:id)
+    @commit_transaction_on_non_local_return_was = ActiveRecord.commit_transaction_on_non_local_return
+  end
+
+  def teardown
+    ActiveRecord.commit_transaction_on_non_local_return = @commit_transaction_on_non_local_return_was
   end
 
   def test_rollback_dirty_changes
@@ -270,7 +275,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       transaction_with_shallow_return
     end
     assert committed
@@ -285,7 +290,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_deprecation_on_ruby_timeout_outside_inner_transaction
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_not_deprecated(ActiveRecord.deprecator) do
       catch do |timeout|
         Topic.transaction do
           Topic.transaction(requires_new: true) do
@@ -312,7 +317,9 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    transaction_with_return
+    assert_deprecated(ActiveRecord.deprecator) do
+      transaction_with_return
+    end
     assert_not committed
 
     assert_not_predicate Topic.find(1), :approved?
@@ -325,24 +332,76 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_rollback_on_ruby_timeout
-    catch do |timeout|
-      Topic.transaction do
-        @first.approved = true
-        @first.save!
+    assert_deprecated(ActiveRecord.deprecator) do
+      catch do |timeout|
+        Topic.transaction do
+          @first.approved = true
+          @first.save!
 
-        throw timeout
+          throw timeout
+        end
       end
     end
 
     assert_not_predicate Topic.find(1), :approved?
   end
 
-  def test_early_return_from_transaction
-    assert_not_deprecated(ActiveRecord.deprecator) do
-      @first.with_lock do
-        break
+  def test_break_from_transaction_7_1_behavior
+    ActiveRecord.commit_transaction_on_non_local_return = true
+
+    @first.transaction do
+      assert_not_predicate @first, :approved?
+      @first.update!(approved: true)
+
+      break if true
+
+      # dead code
+      assert_predicate @first, :approved?
+      @first.update!(approved: false)
+    end
+
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should have been approved"
+  end
+
+  def test_thow_from_transaction_7_1_behavior
+    ActiveRecord.commit_transaction_on_non_local_return = true
+
+    catch(:not_an_error) do
+      @first.transaction do
+        assert_not_predicate @first, :approved?
+        @first.update!(approved: true)
+
+        throw :not_an_error
+
+        # dead code
+        assert_predicate @first, :approved?
+        @first.update!(approved: false)
       end
     end
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should have been approved"
+  end
+
+  def _test_return_from_transaction_7_1_behavior
+    @first.transaction do
+      assert_not_predicate @first, :approved?
+      @first.update!(approved: true)
+
+      return if true
+
+      # dead code
+      assert_predicate @first, :approved?
+      @first.update!(approved: false)
+    end
+  end
+
+  def test_return_from_transaction_7_1_behavior
+    ActiveRecord.commit_transaction_on_non_local_return = true
+
+    _test_return_from_transaction_7_1_behavior
+    assert_predicate Topic.find(1), :approved?, "First should have been approved"
+    assert_predicate Topic.find(2), :approved?, "Second should have been approved"
   end
 
   def test_number_of_transactions_in_commit

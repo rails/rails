@@ -190,9 +190,9 @@ module ActiveRecord
     def initialize(reflection = nil)
       if reflection
         if reflection.has_one? || reflection.collection?
-          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.active_record_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints.")
+          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.active_record_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints, or primary_key and foreign_key values.")
         else
-          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.association_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints.")
+          super("Association #{reflection.active_record}##{reflection.name} primary key #{reflection.association_primary_key} doesn't match with foreign key #{reflection.foreign_key}. Please specify query_constraints, or primary_key and foreign_key values.")
         end
       else
         super("Association primary key doesn't match with foreign key.")

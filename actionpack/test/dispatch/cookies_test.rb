@@ -424,7 +424,7 @@ class CookiesTest < ActionController::TestCase
     error = assert_raise ArgumentError do
       get :authenticate
     end
-    assert_match "Invalid SameSite value: :funky", error.message
+    assert_match(/Invalid :?Same_?Site value: :funky/i, error.message)
   end
 
   def test_setting_cookie_with_same_site_strict
@@ -552,6 +552,17 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_path
     assert_set_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+  end
+
+  def test_delete_cookie_return_value
+    request.cookies[:user_name] = "Joe"
+    return_value = request.cookies.delete(:user_name)
+    assert_equal "Joe", return_value
+  end
+
+  def test_delete_unexisting_cookie_return_value
+    return_value = request.cookies.delete(:no_such_cookie)
+    assert_nil return_value
   end
 
   def test_delete_unexisting_cookie

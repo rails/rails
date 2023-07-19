@@ -152,6 +152,16 @@ module ActiveRecord::Encryption
   end
 end
 
+# We eager load encrypted attribute types as they are declared, so that they pick up the
+# default encryption setup for tests. Because we load those lazily when used, this prevents
+# side effects where some tests modify encryption config settings affecting others.
+#
+# Notice that we clear the declaration listeners when each test start, so this will only affect
+# the classes loaded before tests starts, not those declared during tests.
+ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_name|
+  klass.type_for_attribute(attribute_name)
+end
+
 class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
   include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
 

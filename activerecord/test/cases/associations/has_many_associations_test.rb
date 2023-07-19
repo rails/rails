@@ -43,6 +43,7 @@ require "models/interest"
 require "models/human"
 require "models/sharded"
 require "models/cpk"
+require "models/comment_overlapping_counter_cache"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -1401,6 +1402,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 2, topic.replies_count
     assert_equal 2, topic.reload.replies_count
+  end
+
+  def test_counter_cache_updates_in_memory_after_create_with_overlapping_counter_cache_columns
+    user = UserCommentsCount.create!
+    post = PostCommentsCount.create!
+
+    assert_difference "user.comments_count", +1 do
+      assert_no_difference "post.comments_count" do
+        post.comments << CommentOverlappingCounterCache.create!(user_comments_count: user)
+      end
+    end
+
+    assert_difference "user.comments_count", +1 do
+      assert_no_difference "post.comments_count" do
+        user.comments << CommentOverlappingCounterCache.create!(post_comments_count: post)
+      end
+    end
   end
 
   def test_counter_cache_updates_in_memory_after_update_with_inverse_of_enabled
@@ -3174,7 +3192,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  test "composite primary key malformed association" do
+  test "composite primary key malformed association class" do
     error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
       order = Cpk::BrokenOrder.new(id: [1, 2], books: [Cpk::Book.new(title: "Some book")])
       order.save!
@@ -3182,7 +3200,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(<<~MESSAGE.squish, error.message)
       Association Cpk::BrokenOrder#books primary key ["shop_id", "id"]
-      doesn't match with foreign key broken_order_id. Please specify query_constraints.
+      doesn't match with foreign key broken_order_id. Please specify query_constraints, or primary_key and foreign_key values.
+    MESSAGE
+  end
+
+  test "composite primary key malformed association owner class" do
+    error = assert_raises(ActiveRecord::CompositePrimaryKeyMismatchError) do
+      order = Cpk::BrokenOrderWithNonCpkBooks.new(id: [1, 2], books: [Cpk::NonCpkBook.new(title: "Some book")])
+      order.save!
+    end
+
+    assert_equal(<<~MESSAGE.squish, error.message)
+    Association Cpk::BrokenOrderWithNonCpkBooks#books primary key [\"shop_id\", \"id\"]
+    doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
   end
 

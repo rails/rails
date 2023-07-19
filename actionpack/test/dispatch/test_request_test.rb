@@ -14,13 +14,11 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "/", env.delete("PATH_INFO")
     assert_equal "", env.delete("SCRIPT_NAME")
     assert_equal "", env.delete("QUERY_STRING")
-    assert_equal "0", env.delete("CONTENT_LENGTH")
 
     assert_equal "test.host", env.delete("HTTP_HOST")
     assert_equal "0.0.0.0", env.delete("REMOTE_ADDR")
     assert_equal "Rails Testing", env.delete("HTTP_USER_AGENT")
 
-    assert_equal "", env.delete("rack.input").string
     assert_kind_of StringIO, env.delete("rack.errors")
   end
 

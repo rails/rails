@@ -1,3 +1,86 @@
+*   Specify callback in `has_secure_token`
+
+    ```ruby
+    class User < ApplicationRecord
+      has_secure_token on: :initialize
+    end
+
+    User.new.token # => "abc123...."
+    ```
+
+    *Sean Doyle*
+
+*   Fix incrementation of in memory counter caches when associations overlap
+
+    When two associations had a similarly named counter cache column, Active Record
+    could sometime increment the wrong one.
+
+    *Jacopo Beschi*, *Jean Boussier*
+
+*   Don't show secrets for Active Record's `Cipher::Aes256Gcm#inspect`.
+
+    Before:
+
+    ```ruby
+    ActiveRecord::Encryption::Cipher::Aes256Gcm.new(secret).inspect
+    "#<ActiveRecord::Encryption::Cipher::Aes256Gcm:0x0000000104888038 ... @secret=\"\\xAF\\bFh]LV}q\\nl\\xB2U\\xB3 ... >"
+    ```
+
+    After:
+
+    ```ruby
+    ActiveRecord::Encryption::Cipher::Aes256Gcm(secret).inspect
+    "#<ActiveRecord::Encryption::Cipher::Aes256Gcm:0x0000000104888038>"
+    ```
+
+    *Petrik de Heus*
+
+*   Bring back the historical behavior of committing transaction on non-local return.
+
+    ```ruby
+    Model.transaction do
+      model.save
+      return
+      other_model.save # not executed
+    end
+    ```
+
+    Historically only raised errors would trigger a rollback, but in Ruby `2.3`, the `timeout` library
+    started using `throw` to interrupt execution which had the adverse effect of committing open transactions.
+
+    To solve this, in Active Record 6.1 the behavior was changed to instead rollback the transaction as it was safer
+    than to potentially commit an incomplete transaction.
+
+    Using `return`, `break` or `throw` inside a `transaction` block was essentially deprecated from Rails 6.1 onwards.
+
+    However with the release of `timeout 0.4.0`, `Timeout.timeout` now raises an error again, and Active Record is able
+    to return to its original, less surprising, behavior.
+
+    This historical behavior can now be opt-ed in via:
+
+    ```
+    Rails.application.config.active_record.commit_transaction_on_non_local_return = true
+    ```
+
+    And is the default for new applications created in Rails 7.1.
+
+    *Jean Boussier*
+
+*   Deprecate `name` argument on `#remove_connection`.
+
+    The `name` argument is deprecated on `#remove_connection` without replacement. `#remove_connection` should be called directly on the class that established the connection.
+
+    *Eileen M. Uchitelle*
+
+*   Fix has_one through singular building with inverse.
+
+    Allows building of records from an association with a has_one through a
+    singular association with inverse. For belongs_to through associations,
+    linking the foreign key to the primary key model isn't needed.
+    For has_one, we cannot build records due to the association not being mutable.
+
+    *Gannon McGibbon*
+
 *   Disable database prepared statements when query logs are enabled
 
     Prepared Statements and Query Logs are incompatible features due to query logs making every query unique.

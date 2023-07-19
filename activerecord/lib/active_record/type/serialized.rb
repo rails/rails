@@ -55,6 +55,10 @@ module ActiveRecord
         coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
       end
 
+      def serialized? # :nodoc:
+        true
+      end
+
       private
         def default_value?(value)
           value == coder.load(nil)

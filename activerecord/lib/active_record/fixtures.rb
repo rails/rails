@@ -576,7 +576,7 @@ module ActiveRecord
       #
       # Example:
       #
-      #   composite_identify("label", [:a, :b, :c]) => { a: hash_1, b: hash_2, c: hash_3 }
+      #   composite_identify("label", [:a, :b, :c]) # => { a: hash_1, b: hash_2, c: hash_3 }
       def composite_identify(label, key)
         key
           .index_with
