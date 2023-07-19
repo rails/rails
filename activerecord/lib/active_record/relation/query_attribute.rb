@@ -10,7 +10,7 @@ module ActiveRecord
 
         # The query attribute value may be mutated before we actually "compile" the query.
         # To avoid that if the type uses a serializer we eagerly compute the value for database
-        if @type.serialized?
+        if @type.serialized? && !value_before_type_cast.is_a?(StatementCache::Substitute)
           value_for_database
         elsif @type.mutable? # If the type is simply mutable, we deep_dup it.
           @value_before_type_cast = @value_before_type_cast.deep_dup
