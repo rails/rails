@@ -773,8 +773,8 @@ class QuerySerializedParamTest < ActiveRecord::TestCase
   def test_query_serialized_string
     ActiveRecord.use_yaml_unsafe_load = false
 
-    obj = YAMLObj.create!(payload: 'payload')
-    assert_equal obj, YAMLObj.find_by!(payload: 'payload')
+    obj = YAMLObj.create!(payload: "payload")
+    assert_equal obj, YAMLObj.find_by!(payload: "payload")
   end
 end
 
