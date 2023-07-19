@@ -56,6 +56,83 @@ class CoreTest < ActiveRecord::TestCase
     assert_match(/virtual_field: 1/, relation.inspect)
   end
 
+  def test_pretty_print_class
+    actual = +""
+    PP.pp(Topic, StringIO.new(actual))
+    assert_equal <<~EOS, actual
+      Topic(
+       id: integer,
+       title: string,
+       author_name: string,
+       author_email_address: string,
+       written_on: datetime,
+       bonus_time: time,
+       last_read: date,
+       content: text,
+       important: text,
+       binary_content: binary,
+       approved: boolean,
+       replies_count: integer,
+       unique_replies_count: integer,
+       parent_id: integer,
+       parent_title: string,
+       type: string,
+       group: string,
+       created_at: datetime,
+       updated_at: datetime)
+    EOS
+  end
+
+  def test_pretty_print_class_activerecord_base
+    actual = +""
+    PP.pp(ActiveRecord::Base, StringIO.new(actual))
+    assert_equal <<~EOS, actual
+      ActiveRecord::Base
+    EOS
+  end
+
+  def test_pretty_print_class_abstract_class
+    actual = +""
+    PP.pp(LoosePerson, StringIO.new(actual))
+    assert_equal <<~EOS, actual
+      LoosePerson(abstract)
+    EOS
+  end
+
+  def test_pretty_print_class_not_connected
+    dummy_class = Class.new(Topic) do
+      def self.connected?
+        false
+      end
+    end
+    actual = +""
+    PP.pp(dummy_class, StringIO.new(actual))
+    assert_equal <<~EOS, actual
+      #{dummy_class} (call '#{dummy_class}.connection' to establish a connection)
+    EOS
+  end
+
+  def test_pretty_print_class_without_table
+    actual = +""
+    PP.pp(NonExistentTable, StringIO.new(actual))
+    assert_equal <<~EOS, actual
+      NonExistentTable(Table doesn't exist)
+    EOS
+  end
+
+  def test_pretty_print_class_overridden_by_inspect
+    subtopic = Class.new(Topic) do
+      def self.inspect
+        "inspecting topic"
+      end
+    end
+    actual = +""
+    PP.pp(subtopic, StringIO.new(actual))
+    assert_equal <<~EOS, actual
+      inspecting topic
+    EOS
+  end
+
   def test_pretty_print_new
     topic = Topic.new
     actual = +""
