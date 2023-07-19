@@ -475,6 +475,22 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_on_unloaded_relation_with_composite_primary_key
+    assert_sql(/1 AS one.*LIMIT/) do
+      book = cpk_books(:cpk_great_author_first_book)
+      assert Cpk::Book.where(title: "The first book").include?(book)
+    end
+  end
+
+  def test_include_on_loaded_relation_with_composite_primary_key
+    books = Cpk::Book.where(title: "The first book").load
+    great_author_book = cpk_books(:cpk_great_author_first_book)
+
+    assert_no_queries do
+      assert books.include?(great_author_book)
+    end
+  end
+
   def test_member_on_unloaded_relation_with_match
     assert_sql(/1 AS one.*LIMIT/) do
       assert_equal true, Customer.where(name: "David").member?(customers(:david))
@@ -527,6 +543,22 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_no_queries do
       assert_equal false, customers.member?(mary)
+    end
+  end
+
+  def test_member_on_unloaded_relation_with_composite_primary_key
+    assert_sql(/1 AS one.*LIMIT/) do
+      book = cpk_books(:cpk_great_author_first_book)
+      assert Cpk::Book.where(title: "The first book").member?(book)
+    end
+  end
+
+  def test_member_on_loaded_relation_with_composite_primary_key
+    books = Cpk::Book.where(title: "The first book").load
+    great_author_book = cpk_books(:cpk_great_author_first_book)
+
+    assert_no_queries do
+      assert books.member?(great_author_book)
     end
   end
 

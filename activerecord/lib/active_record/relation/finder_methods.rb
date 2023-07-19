@@ -355,7 +355,12 @@ module ActiveRecord
       if loaded? || offset_value || limit_value || having_clause.any?
         records.include?(record)
       else
-        record.is_a?(klass) && exists?(record.id)
+        id = if record.class.composite_primary_key?
+          record.class.primary_key.zip(record.id).to_h
+        else
+          record.id
+        end
+        record.is_a?(klass) && exists?(id)
       end
     end
 
