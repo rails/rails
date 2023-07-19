@@ -1,3 +1,17 @@
+*   Additional optional parameter `expires_in` to `generates_token_for` instance method.
+
+    ```ruby
+    class User < ApplicationRecord
+      generates_token_for :password_reset, expires_in: 15.minutes { ... }
+    end
+
+    user = User.first
+    user.generate_token_for(:password_reset) # Expires in 15 minutes
+    user.generate_token_for(:password_reset, expires_in: 2.days) # Same purpose, but expires in 2 days
+    ```
+
+    *Lázaro Nixon*
+
 *   Specify callback in `has_secure_token`
 
     ```ruby

@@ -25,6 +25,7 @@ class TokenForTest < ActiveRecord::TestCase
     @user = User.create!(password_digest: "$2a$4$#{"x" * 22}#{"y" * 31}")
     @lookup_token = @user.generate_token_for(:lookup)
     @password_reset_token = @user.generate_token_for(:password_reset)
+    @password_reset_token_extended = @user.generate_token_for(:password_reset, expires_in: 2.days)
   end
 
   teardown do
@@ -76,6 +77,11 @@ class TokenForTest < ActiveRecord::TestCase
     assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
       User.find_by_token_for!(:password_reset, @password_reset_token)
     end
+  end
+
+  test "finds record when token was generated with custom expiration" do
+    travel 1.day
+    assert_equal @user, User.find_by_token_for(:password_reset, @password_reset_token_extended)
   end
 
   test "tokens do not expire by default" do

@@ -25,8 +25,8 @@ module ActiveRecord
         block ? [model.id, model.instance_eval(&block).as_json] : [model.id]
       end
 
-      def generate_token(model)
-        message_verifier.generate(payload_for(model), expires_in: expires_in, purpose: full_purpose)
+      def generate_token(model, expires_in_value = nil)
+        message_verifier.generate(payload_for(model), expires_in: expires_in_value || expires_in, purpose: full_purpose)
       end
 
       def resolve_token(token)
@@ -107,8 +107,8 @@ module ActiveRecord
     #
     # Use ClassMethods::generates_token_for to define a token purpose and
     # behavior.
-    def generate_token_for(purpose)
-      self.class.token_definitions.fetch(purpose).generate_token(self)
+    def generate_token_for(purpose, expires_in: nil)
+      self.class.token_definitions.fetch(purpose).generate_token(self, expires_in)
     end
   end
 end
