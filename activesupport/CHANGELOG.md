@@ -1,3 +1,7 @@
+*   Fix `Enumerable#sum` for `Enumerator#lazy`.
+
+    *fatkodima*, *Matthew Draper*, *Jonathan Hefner*
+
 *   Improve error message when EventedFileUpdateChecker is used without a
     compatible version of the Listen gem
 
