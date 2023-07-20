@@ -51,7 +51,7 @@ module ActiveRecord
       end
 
       def ==(other)
-        super && value_for_database == value_for_database
+        super && value_for_database == other.value_for_database
       end
       alias eql? ==
 
