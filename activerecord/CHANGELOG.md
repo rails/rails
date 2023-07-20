@@ -1,3 +1,17 @@
+*   Add support for drop table via rails migration: `rails generate migration drop_users`.
+
+    The output of the command will be:
+
+    ```ruby
+    class DropUsers< ActiveRecord::Migration[7.0]
+      def change
+        drop_table :users
+      end
+    end
+    ```
+
+    *Klemen Nagode*
+
 *   Don't show secrets for Active Record's `Cipher::Aes256Gcm#inspect`.
 
     Before:
