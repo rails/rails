@@ -212,9 +212,11 @@ module ActionCable
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
         def transmit(data, via: nil) # :doc:
-          status = "#{self.class.name} transmitting #{data.inspect.truncate(300)}"
-          status += " (via #{via})" if via
-          logger.debug(status)
+          logger.debug do
+            status = "#{self.class.name} transmitting #{data.inspect.truncate(300)}"
+            status += " (via #{via})" if via
+            status
+          end
 
           payload = { channel_class: self.class.name, data: data, via: via }
           ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
