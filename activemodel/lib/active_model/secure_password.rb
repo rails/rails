@@ -105,7 +105,7 @@ module ActiveModel
         begin
           require "bcrypt"
         rescue LoadError
-          $stderr.puts "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
+          warn "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
           raise
         end
 
