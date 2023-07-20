@@ -808,7 +808,6 @@ en:
         end
       RUBY
 
-      require "rack/file"
       boot_rails
 
       env = Rack::MockRequest.env_for("/")

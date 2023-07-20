@@ -1,3 +1,12 @@
+*   Add a `@server` instance variable referencing the `ActionCable.server`
+    singleton to `ActionCable::Channel::ConnectionStub`
+
+    This lets us delegate the `pubsub` and `config` method calls
+    to the server. This fixes `NoMethodError` errors when testing
+    channel logic that call `pubsub` (e.g. `stop_stream_for`).
+
+    *Julian Foo*
+
 *   Added `health_check_path` and `health_check_application` config to
     mount a given health check rack app on a given path.
     Useful when mounting Action Cable standalone.

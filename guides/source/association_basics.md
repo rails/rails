@@ -2885,13 +2885,13 @@ Entry.create! entryable: Message.new(subject: "hello!")
 
 ### Adding further delegation
 
-We can expand our `Entry` delegator and enhance further by defining `delegates` and use polymorphism to the subclasses.
+We can expand our `Entry` delegator and enhance it further by defining `delegate` and using polymorphism on the subclasses.
 For example, to delegate the `title` method from `Entry` to it's subclasses:
 
 ```ruby
 class Entry < ApplicationRecord
   delegated_type :entryable, types: %w[ Message Comment ]
-  delegates :title, to: :entryable
+  delegate :title, to: :entryable
 end
 
 class Message < ApplicationRecord

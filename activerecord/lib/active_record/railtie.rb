@@ -145,7 +145,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
               schema_cache_path: db_config.schema_cache_path
             )
 
-            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            cache = ActiveRecord::ConnectionAdapters::SchemaCache._load_from(filename)
             next if cache.nil?
 
             if check_schema_cache_dump_version
@@ -157,34 +157,49 @@ To keep using the current cache store, you can turn off cache versioning entirel
               end
               next if current_version.nil?
 
-              if cache.version != current_version
-                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.version}."
+              if cache.schema_version != current_version
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{cache.schema_version}."
                 next
               end
             end
 
             Rails.logger.info("Using schema cache file #{filename}")
-            connection_pool.set_schema_cache(cache)
+            connection_pool.schema_reflection.set_schema_cache(cache)
           end
         end
       end
     end
 
     initializer "active_record.define_attribute_methods" do |app|
+      # For resiliency, it is critical that a Rails application should be
+      # able to boot without depending on the database (or any other service)
+      # being responsive.
+      #
+      # Otherwise a bad deploy adding a lot of load on the database may require to
+      # entirely shutdown the application so the database can recover before a fixed
+      # version can be deployed again.
+      #
+      # This is why this initializer tries hard not to query the database, and if it
+      # does, it makes sure to rescue any possible database error.
+      check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
-          if app.config.eager_load
+          # In development and test we shouldn't eagerly define attribute methods because
+          # db:test:prepare will trigger later and might change the schema.
+          if app.config.eager_load && !Rails.env.local?
             begin
               descendants.each do |model|
-                # If the schema cache was loaded from a dump, we can use it without connecting
-                schema_cache = model.connection_pool.schema_cache
-
-                # If there's no connection yet, we avoid connecting.
-                schema_cache ||= model.connected? && model.connection.schema_cache
-
-                # If the schema cache doesn't have the columns
-                # hash for the model cached, `define_attribute_methods` would trigger a query.
-                if schema_cache && schema_cache.columns_hash?(model.table_name)
+                # If the schema cache doesn't have the columns for this model,
+                # we avoid calling `define_attribute_methods` as it would trigger a query.
+                #
+                # However if we're already connected to the database, it's too late so we might
+                # as well eagerly define the attributes and hope the database timeout is strict enough.
+                #
+                # Additionally if `check_schema_cache_dump_version` is enabled, we have to connect to the
+                # database anyway to load the schema cache dump, so we might as well do it during boot to
+                # save memory in pre-forking setups and avoid slowness during the first requests post deploy.
+                schema_reflection = model.connection_pool.schema_reflection
+                if check_schema_cache_dump_version || schema_reflection.cached?(model.table_name) || model.connected?
                   model.define_attribute_methods
                 end
               end
@@ -367,13 +382,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
           **config.active_record.encryption
 
         auto_filtered_parameters.enable if ActiveRecord::Encryption.config.add_to_filter_parameters
-      end
 
-      ActiveSupport.on_load(:active_record) do
-        # Support extended queries for deterministic attributes and validations
-        if ActiveRecord::Encryption.config.extend_queries
-          ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
-          ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+        ActiveSupport.on_load(:active_record) do
+          # Support extended queries for deterministic attributes and validations
+          if ActiveRecord::Encryption.config.extend_queries
+            ActiveRecord::Encryption::ExtendedDeterministicQueries.install_support
+            ActiveRecord::Encryption::ExtendedDeterministicUniquenessValidator.install_support
+          end
         end
       end
 

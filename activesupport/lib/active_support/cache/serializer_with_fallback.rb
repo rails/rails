@@ -76,8 +76,8 @@ module ActiveSupport
           return if !signature
 
           packed = [signature, entry.expires_at || -1.0, version&.bytesize || -1].pack(BARE_STRING_TEMPLATE)
-          packed << version if version
-          packed << value
+          packed << version.b if version
+          packed << value.b
         end
 
         def try_load_bare_string(dumped)

@@ -65,8 +65,7 @@ module ActiveRecord
     end
 
     def build_bind_attribute(column_name, value)
-      type = table.type(column_name)
-      Relation::QueryAttribute.new(column_name, type.immutable_value(value), type)
+      Relation::QueryAttribute.new(column_name, value, table.type(column_name))
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)

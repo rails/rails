@@ -298,6 +298,11 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p>\n  <b>Hello</b>\n</p>", view.render("test/builder_tag_nested_in_content_tag")
   end
 
+  def test_content_tag_nested_in_content_tag_with_data_attributes_out_of_erb
+    assert_equal "<div data-controller=\"read-more\" data-read-more-more-text-value=\"Read more\" data-read-more-less-text-value=\"Read less\"\>\n  <p class=\"content-class\" data-test-name=\"content\">Content text</p>\n  <button class=\"expand-button\" data-action=\"read-more#toggle\">Read more</button>\n</div>",
+                  view.render("test/content_tag_nested_in_content_tag_with_data_attributes_out_of_erb")
+  end
+
   def test_content_tag_with_escaped_array_class
     str = content_tag("p", "limelight", class: ["song", "play>"])
     assert_equal "<p class=\"song play&gt;\">limelight</p>", str

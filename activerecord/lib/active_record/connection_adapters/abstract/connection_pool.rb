@@ -10,22 +10,6 @@ require "active_record/connection_adapters/abstract/connection_pool/reaper"
 module ActiveRecord
   module ConnectionAdapters
     module AbstractPool # :nodoc:
-      def get_schema_cache(connection)
-        self.schema_cache ||= SchemaCache.new(connection)
-        schema_cache.connection = connection
-        schema_cache
-      end
-
-      def set_schema_cache(cache)
-        self.schema_cache = cache
-      end
-
-      def lazily_set_schema_cache
-        return unless ActiveRecord.lazily_load_schema_cache
-
-        cache = SchemaCache.load_from(db_config.lazy_schema_cache_path)
-        set_schema_cache(cache)
-      end
     end
 
     class NullPool # :nodoc:
@@ -38,7 +22,9 @@ module ActiveRecord
       end
       NULL_CONFIG = NullConfig.new # :nodoc:
 
-      attr_accessor :schema_cache
+      def schema_reflection
+        SchemaReflection.new(nil)
+      end
 
       def connection_class; end
       def checkin(_); end
@@ -125,7 +111,7 @@ module ActiveRecord
       attr_accessor :automatic_reconnect, :checkout_timeout
       attr_reader :db_config, :size, :reaper, :pool_config, :async_executor, :role, :shard
 
-      delegate :schema_cache, :schema_cache=, to: :pool_config
+      delegate :schema_reflection, :schema_reflection=, to: :pool_config
 
       # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
       # object which describes database connection information (e.g. adapter,
@@ -172,8 +158,6 @@ module ActiveRecord
         @lock_thread = false
 
         @async_executor = build_async_executor
-
-        lazily_set_schema_cache
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run

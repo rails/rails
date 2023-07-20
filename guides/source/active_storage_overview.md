@@ -572,6 +572,39 @@ You can bypass the content type inference from the data by passing in
 If you don’t provide a content type and Active Storage can’t determine the
 file’s content type automatically, it defaults to application/octet-stream.
 
+### Replacing vs Adding Attachments
+
+By default in Rails, attaching files to a `has_many_attached` association will replace
+any existing attachments. To instead add new attachments while retaining existing
+ones, set `Rails.application.config.replace_on_assign_to_many` to false.
+
+Alternatively, use hidden form fields with the [`signed_id`][ActiveStorage::Blob#signed_id]
+of each attached file:
+
+```erb
+<% @message.images.each do |image| %>
+  <%= form.hidden_field :images, multiple: true, value: image.signed_id %>
+<% end %>
+
+<%= form.file_field :images, multiple: true %>
+```
+
+This has the advantage of making it possible to remove existing attachments
+selectively, e.g. by using JavaScript to remove individual hidden fields.
+
+[ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
+
+### Form Validation
+
+Attachments aren't sent to the storage service until a successful `save` on the
+associated record. This means that if a form submission fails validation, any new
+attachment(s) will be lost and must be uploaded again. Since [direct uploads](#direct-uploads)
+are stored before the form is submitted, they can be used to retain uploads when validation fails:
+
+```erb
+<%= form.hidden_field :avatar, value: @user.avatar.signed_id if @user.avatar.attached? %>
+<%= form.file_field :avatar, direct_upload: true %>
+```
 
 Removing Files
 --------------
