@@ -6,6 +6,9 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module Quoting # :nodoc:
+        QUOTED_COLUMN_NAMES = Concurrent::Map.new # :nodoc:
+        QUOTED_TABLE_NAMES = Concurrent::Map.new # :nodoc:
+
         def cast_bound_value(value)
           case value
           when Rational
@@ -27,11 +30,11 @@ module ActiveRecord
         end
 
         def quote_column_name(name)
-          self.class.quoted_column_names[name] ||= "`#{super.gsub('`', '``')}`"
+          QUOTED_COLUMN_NAMES[name] ||= "`#{super.gsub('`', '``')}`"
         end
 
         def quote_table_name(name)
-          self.class.quoted_table_names[name] ||= super.gsub(".", "`.`").freeze
+          QUOTED_TABLE_NAMES[name] ||= super.gsub(".", "`.`").freeze
         end
 
         def unquoted_true
