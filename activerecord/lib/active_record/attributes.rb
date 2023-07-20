@@ -228,8 +228,7 @@ module ActiveRecord
           end
         end
 
-        self.attributes_to_define_after_schema_loads =
-          attributes_to_define_after_schema_loads.merge(name => [cast_type, default])
+        update_heritable_value_of(:attributes_to_define_after_schema_loads, name, [cast_type, default])
       end
 
       # This is the low level API which sits beneath +attribute+. It only

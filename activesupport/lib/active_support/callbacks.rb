@@ -970,11 +970,7 @@ module ActiveSupport
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
-            unless singleton_class.method_defined?(:__callbacks, false)
-              self.__callbacks = __callbacks.dup
-            end
-            self.__callbacks[name.to_sym] = callbacks
-            self.__callbacks
+            update_heritable_value_of(:__callbacks, name.to_sym, callbacks)
           end
       end
   end

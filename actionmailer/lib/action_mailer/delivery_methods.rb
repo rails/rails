@@ -15,7 +15,7 @@ module ActionMailer
       cattr_accessor :raise_delivery_errors, default: true
       cattr_accessor :perform_deliveries, default: true
 
-      class_attribute :delivery_methods, default: {}.freeze
+      class_attribute :delivery_methods, default: {}
       class_attribute :delivery_method, default: :smtp
 
       add_delivery_method :smtp, Mail::SMTP,
@@ -52,7 +52,7 @@ module ActionMailer
       def add_delivery_method(symbol, klass, default_options = {})
         class_attribute(:"#{symbol}_settings") unless respond_to?(:"#{symbol}_settings")
         public_send(:"#{symbol}_settings=", default_options)
-        self.delivery_methods = delivery_methods.merge(symbol.to_sym => klass).freeze
+        update_heritable_value_of(:delivery_methods, symbol.to_sym, klass)
       end
 
       def wrap_delivery_behavior(mail, method = nil, options = nil) # :nodoc:

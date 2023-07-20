@@ -202,7 +202,7 @@ module ActiveModel
       #   person.name_short?     # => true
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
-        self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
+        update_heritable_value_of(:attribute_aliases, new_name.to_s, old_name.to_s)
         ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
           attribute_method_patterns.each do |pattern|
             method_name = pattern.method_name(new_name).to_s

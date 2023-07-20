@@ -7,8 +7,15 @@ module ActiveRecord
   module Reflection # :nodoc:
     extend ActiveSupport::Concern
 
+    class LiloHash < Hash
+      def []=(key, value)
+        delete(key)
+        super
+      end
+    end
+
     included do
-      class_attribute :_reflections, instance_writer: false, default: {}
+      class_attribute :_reflections, instance_writer: false, default: LiloHash.new
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
       class_attribute :automatic_scope_inversing, instance_writer: false, default: false
     end
@@ -21,12 +28,11 @@ module ActiveRecord
 
       def add_reflection(ar, name, reflection)
         ar.clear_reflections_cache
-        name = -name.to_s
-        ar._reflections = ar._reflections.except(name).merge!(name => reflection)
+        ar.update_heritable_value_of(:_reflections, -name.to_s, reflection)
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
+        ar.update_heritable_value_of(:aggregate_reflections, -name.to_s, reflection)
       end
 
       private
@@ -128,6 +134,7 @@ module ActiveRecord
       end
 
       def clear_reflections_cache # :nodoc:
+        direct_descendants.each(&:clear_reflections_cache)
         @__reflections = nil
       end
 
