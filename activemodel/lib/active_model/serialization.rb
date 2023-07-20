@@ -91,6 +91,7 @@ module ActiveModel
     #   person.serializable_hash(except: :name) # => {"age"=>22}
     #   person.serializable_hash(methods: :capitalized_name)
     #   # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
+    #   person.serializable_hash(rename: {name: :first_name}) # => {"first_name"=>"bob", "age"=>22}
     #
     # Example with <tt>:include</tt> option
     #
@@ -143,6 +144,11 @@ module ActiveModel
         else
           records.serializable_hash(opts)
         end
+      end
+
+      options[:rename]&.each do |old_name, new_name|
+        old_name = old_name.to_s
+        hash[new_name.to_s] = hash.delete(old_name) if hash.key?(old_name)
       end
 
       hash

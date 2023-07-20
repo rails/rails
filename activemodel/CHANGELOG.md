@@ -1,3 +1,14 @@
+*   `serializable_hash` and `as_json` have a new `:rename` option.
+
+    It can be used to rename generated hash keys for attributes or methods:
+
+    ```ruby
+    person.serializable_hash(only: %w(name age), rename: { name: :first_name })
+      # => { "first_name" => "bob", "age" => 22 }
+    ```
+
+    *Dongcheol Park*
+
 *   Add a load hook for `ActiveModel::Model` (named `active_model`) to match the load hook for `ActiveRecord::Base` and
     allow for overriding aspects of the `ActiveModel::Model` class.
 

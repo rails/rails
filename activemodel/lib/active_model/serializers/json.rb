@@ -73,6 +73,12 @@ module ActiveModel
       #   #      "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true,
       #   #      "permalink" => "1-konata-izumi" }
       #
+      # To rename keys in the result hash, use <tt>:rename</tt>:
+      #
+      #   user.as_json(rename: { name: :full_name })
+      #   # => { "id" => 1, "full_name" => "Konata Izumi", "age" => 16,
+      #   #      "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true}
+      #
       # To include associations use <tt>:include</tt>:
       #
       #   user.as_json(include: :posts)

@@ -86,6 +86,16 @@ class SerializationTest < ActiveModel::TestCase
     assert_raise(NoMethodError) { @user.serializable_hash(methods: [:nada]) }
   end
 
+  def test_method_serializable_hash_should_work_with_rename_option
+    expected = { "first_name" => "David", "gender" => "male", "email" => "david@example.com" }
+    assert_equal expected, @user.serializable_hash(rename: { name: :first_name })
+  end
+
+  def test_method_serializable_hash_should_work_with_rename_and_methods
+    expected = { "name" => "David", "gender" => "male", "email" => "david@example.com", "foo2" => "i_am_foo", "bar2" => "i_am_bar" }
+    assert_equal expected, @user.serializable_hash(methods: [:foo, :bar], rename: { foo: :foo2, bar: :bar2 })
+  end
+
   def test_should_use_read_attribute_for_serialization
     def @user.read_attribute_for_serialization(n)
       "Jon"
