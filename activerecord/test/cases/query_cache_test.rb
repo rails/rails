@@ -737,7 +737,7 @@ class QuerySerializedParamTest < ActiveRecord::TestCase
 
   def setup
     @use_yaml_unsafe_load_was = ActiveRecord.use_yaml_unsafe_load
-    ActiveRecord.use_yaml_unsafe_load = true
+
     ActiveRecord::Base.connection.create_table("yaml_objs", force: true) do |t|
       t.text "payload"
     end
@@ -753,6 +753,8 @@ class QuerySerializedParamTest < ActiveRecord::TestCase
   end
 
   def test_query_serialized_active_record
+    ActiveRecord.use_yaml_unsafe_load = true
+
     topic = Topic.first
     assert_not_nil topic
 
@@ -766,6 +768,13 @@ class QuerySerializedParamTest < ActiveRecord::TestCase
     assert_equal obj, relation.first
 
     assert_nil YAMLObj.where(payload: { topic: topic }).first
+  end
+
+  def test_query_serialized_string
+    ActiveRecord.use_yaml_unsafe_load = false
+
+    obj = YAMLObj.create!(payload: "payload")
+    assert_equal obj, YAMLObj.find_by!(payload: "payload")
   end
 end
 
