@@ -203,34 +203,46 @@ module ActiveModel
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
-        ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
-          attribute_method_patterns.each do |pattern|
-            method_name = pattern.method_name(new_name).to_s
-            target_name = pattern.method_name(old_name).to_s
-            parameters = pattern.parameters
+        eagerly_generate_alias_attribute_methods(new_name, old_name)
+      end
 
-            mangled_name = target_name
-            unless NAME_COMPILABLE_REGEXP.match?(target_name)
-              mangled_name = "__temp__#{target_name.unpack1("h*")}"
-            end
+      def eagerly_generate_alias_attribute_methods(new_name, old_name) # :nodoc:
+        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+          generate_alias_attribute_methods(code_generator, new_name, old_name)
+        end
+      end
 
-            code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
-              body = if CALL_COMPILABLE_REGEXP.match?(target_name)
-                "self.#{target_name}(#{parameters || ''})"
-              else
-                call_args = [":'#{target_name}'"]
-                call_args << parameters if parameters
-                "send(#{call_args.join(", ")})"
-              end
+      def generate_alias_attribute_methods(code_generator, new_name, old_name)
+        attribute_method_patterns.each do |pattern|
+          alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+        end
+      end
 
-              modifier = pattern.parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
+      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
+        method_name = pattern.method_name(new_name).to_s
+        target_name = pattern.method_name(old_name).to_s
+        parameters = pattern.parameters
+        mangled_name = target_name
 
-              batch <<
-                "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
-                body <<
-                "end"
-            end
+        unless NAME_COMPILABLE_REGEXP.match?(target_name)
+          mangled_name = "__temp__#{target_name.unpack1("h*")}"
+        end
+
+        code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
+          body = if CALL_COMPILABLE_REGEXP.match?(target_name)
+            "self.#{target_name}(#{parameters || ''})"
+          else
+            call_args = [":'#{target_name}'"]
+            call_args << parameters if parameters
+            "send(#{call_args.join(", ")})"
           end
+
+          modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
+
+          batch <<
+            "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
+            body <<
+            "end"
         end
       end
 
