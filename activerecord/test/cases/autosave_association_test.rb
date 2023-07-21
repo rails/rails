@@ -2127,6 +2127,7 @@ end
 
 class TestCircularAutosaveAssociations < ActiveRecord::TestCase
   def setup
+    super
     @parent = Parent.create!(name: "P")
     @child = Child.new(name: "Hi!")
     @child.parent = @parent
