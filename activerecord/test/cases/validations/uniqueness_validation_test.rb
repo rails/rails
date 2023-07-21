@@ -36,6 +36,7 @@ class ReplyWithTitleObject < Reply
   validates_uniqueness_of :content, scope: :title
 
   def title; ReplyTitle.new; end
+  alias heading title
 end
 
 class TopicWithEvent < Topic

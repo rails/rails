@@ -1238,7 +1238,7 @@ class CookieCsrfTokenStorageStrategyControllerTest < ActionController::TestCase
 
   def test_csrf_token_cookie_has_same_site_lax
     get :cookie
-    assert_match "SameSite=Lax", @response.headers["Set-Cookie"]
+    assert_set_cookie_attributes("csrf_token", "SameSite=Lax")
   end
 
   include CookieAssertions

@@ -9,6 +9,11 @@ module ActiveRecord
         @connection       = ARUnit2Model.connection
         @cache            = new_bound_reflection
         @database_version = @connection.get_database_version
+        @check_schema_cache_dump_version_was = SchemaReflection.check_schema_cache_dump_version
+      end
+
+      def teardown
+        SchemaReflection.check_schema_cache_dump_version = @check_schema_cache_dump_version_was
       end
 
       def new_bound_reflection(connection = @connection)
@@ -19,6 +24,30 @@ module ActiveRecord
         BoundSchemaReflection.new(SchemaReflection.new(filename), connection).tap do |cache|
           cache.load!
         end
+      end
+
+      def test_cached?
+        cache = new_bound_reflection
+        assert_not cache.cached?("courses")
+
+        cache.columns("courses").size
+        assert cache.cached?("courses")
+
+        tempfile = Tempfile.new(["schema_cache-", ".yml"])
+        cache.dump_to(tempfile.path)
+
+        reflection = SchemaReflection.new(tempfile.path)
+
+        # `check_schema_cache_dump_version` forces us to have an active connection
+        # to load the cache.
+        assert_not reflection.cached?("courses")
+
+        # If we disable it we can load the cache
+        SchemaReflection.check_schema_cache_dump_version = false
+        assert reflection.cached?("courses")
+
+        cache = BoundSchemaReflection.new(reflection, :__unused_connection__)
+        assert cache.cached?("courses")
       end
 
       def test_yaml_dump_and_load

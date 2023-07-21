@@ -44,9 +44,66 @@ module ActiveRecord
         @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethods.new)
         private_constant :GeneratedAttributeMethods
         @attribute_methods_generated = false
+        @alias_attributes_mass_generated = false
         include @generated_attribute_methods
 
         super
+      end
+
+      def alias_attribute(new_name, old_name)
+        super
+
+        if @alias_attributes_mass_generated
+          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+            generate_alias_attribute_methods(code_generator, new_name, old_name)
+          end
+        end
+      end
+
+      def eagerly_generate_alias_attribute_methods(_new_name, _old_name) # :nodoc:
+        # alias attributes in Active Record are lazily generated
+      end
+
+      def generate_alias_attributes # :nodoc:
+        return if @alias_attributes_mass_generated
+
+        generated_attribute_methods.synchronize do
+          return if @alias_attributes_mass_generated
+          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+            attribute_aliases.each do |new_name, old_name|
+              generate_alias_attribute_methods(code_generator, new_name, old_name)
+            end
+          end
+
+          @alias_attributes_mass_generated = true
+        end
+      end
+
+      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+        method_name = pattern.method_name(new_name).to_s
+        target_name = pattern.method_name(old_name).to_s
+        parameters = pattern.parameters
+        old_name = old_name.to_s
+
+        method_defined = method_defined?(target_name) || private_method_defined?(target_name)
+        manually_defined = method_defined && self.instance_method(target_name).owner != generated_attribute_methods
+        reserved_method_name = ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(target_name)
+
+        if manually_defined && !reserved_method_name
+          aliased_method_redefined_as_well = method_defined_within?(method_name, self)
+          return if aliased_method_redefined_as_well
+
+          ActiveModel.deprecator.warn(
+            "#{self} model aliases `#{old_name}` and has a method called `#{target_name}` defined. " \
+            "Since Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore. " \
+            "You may want to additionally define `#{method_name}` to preserve the current behavior."
+          )
+          super
+        else
+          define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
+            namespace: :proxy_alias_attribute
+          )
+        end
       end
 
       # Generates all the attribute related methods for columns in the database
@@ -67,6 +124,7 @@ module ActiveRecord
         generated_attribute_methods.synchronize do
           super if defined?(@attribute_methods_generated) && @attribute_methods_generated
           @attribute_methods_generated = false
+          @alias_attributes_mass_generated = false
         end
       end
 
@@ -188,6 +246,7 @@ module ActiveRecord
           super
           child_class.initialize_generated_modules
           child_class.class_eval do
+            @alias_attributes_mass_generated = false
             @attribute_names = nil
           end
         end

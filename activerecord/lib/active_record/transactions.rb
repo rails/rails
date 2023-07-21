@@ -347,9 +347,9 @@ module ActiveRecord
       @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
-    # Executes +method+ within a transaction and captures its return value as a
-    # status flag. If the status is true the transaction is committed, otherwise
-    # a ROLLBACK is issued. In any case the status flag is returned.
+    # Executes a block within a transaction and captures its return value as a
+    # status flag. If the status is true, the transaction is committed,
+    # otherwise a ROLLBACK is issued. In any case, the status flag is returned.
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.

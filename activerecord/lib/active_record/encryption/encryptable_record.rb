@@ -72,8 +72,8 @@ module ActiveRecord
           end
 
           def global_previous_schemes_for(scheme)
-            ActiveRecord::Encryption.config.previous_schemes.collect do |previous_scheme|
-              scheme.merge(previous_scheme)
+            ActiveRecord::Encryption.config.previous_schemes.filter_map do |previous_scheme|
+              scheme.merge(previous_scheme) if scheme.compatible_with?(previous_scheme)
             end
           end
 

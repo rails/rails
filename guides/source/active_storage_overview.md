@@ -424,11 +424,11 @@ user.avatar.attached?
 ```
 
 In some cases you might want to override a default service for a specific attachment.
-You can configure specific services per attachment using the `service` option:
+You can configure specific services per attachment using the `service` option with the name of your service:
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :avatar, service: :s3
+  has_one_attached :avatar, service: :google
 end
 ```
 
@@ -1027,7 +1027,6 @@ Take care to allow:
 * All origins from which your app is accessed
 * The `PUT` request method
 * The following headers:
-  * `Origin`
   * `Content-Type`
   * `Content-MD5`
   * `Content-Disposition` (except for Azure Storage)
@@ -1043,19 +1042,15 @@ No CORS configuration is required for the Disk service since it shares your appâ
 [
   {
     "AllowedHeaders": [
-      "*"
+      "Content-Type",
+      "Content-MD5",
+      "Content-Disposition"
     ],
     "AllowedMethods": [
       "PUT"
     ],
     "AllowedOrigins": [
       "https://www.example.com"
-    ],
-    "ExposeHeaders": [
-      "Origin",
-      "Content-Type",
-      "Content-MD5",
-      "Content-Disposition"
     ],
     "MaxAgeSeconds": 3600
   }
@@ -1069,7 +1064,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
   {
     "origin": ["https://www.example.com"],
     "method": ["PUT"],
-    "responseHeader": ["Origin", "Content-Type", "Content-MD5", "Content-Disposition"],
+    "responseHeader": ["Content-Type", "Content-MD5", "Content-Disposition"],
     "maxAgeSeconds": 3600
   }
 ]
@@ -1082,7 +1077,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
   <CorsRule>
     <AllowedOrigins>https://www.example.com</AllowedOrigins>
     <AllowedMethods>PUT</AllowedMethods>
-    <AllowedHeaders>Origin, Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
+    <AllowedHeaders>Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
     <MaxAgeInSeconds>3600</MaxAgeInSeconds>
   </CorsRule>
 </Cors>
