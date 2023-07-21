@@ -268,8 +268,8 @@ module ActiveRecord
 
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
-    def changed_for_autosave?(forr = nil)
-      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?(forr)
+    def changed_for_autosave?
+      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
     private
@@ -294,7 +294,7 @@ module ActiveRecord
       # Go through nested autosave associations that are loaded in memory (without loading
       # any new ones), and return true if any are changed for autosave.
       # Returns false if already called to prevent an infinite loop.
-      def nested_records_changed_for_autosave?(forr = nil)
+      def nested_records_changed_for_autosave?
         @_nested_records_changed_for_autosave_already_called ||= false
         return false if @_nested_records_changed_for_autosave_already_called
         @_nested_records_changed_for_autosave_already_called = true
@@ -311,16 +311,30 @@ module ActiveRecord
       def autosave_visited?(record, forr)
         return false if !self.class.connection.instance_variable_defined?(:@autosave_tracker)
         if tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
-          result = tracker["#{record.class}##{record.object_id}_#{forr}"]
-          tracker["#{record.class}##{record.object_id}_#{forr}"] = true
-          result
+          tracker.has_key?("#{record.class}##{record.object_id}_#{forr}")
         end
       end
 
-      def autosave_visited!(record, forr)
+      def visit_autosave(record, forr)
         if self.class.connection.instance_variable_defined?(:@autosave_tracker) &&
           tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
-          tracker["#{record.class}##{record.object_id}_#{forr}"] = true
+          if tracker.has_key?("#{record.class}##{record.object_id}_#{forr}")
+            tracker["#{record.class}##{record.object_id}_#{forr}"]
+          else
+            tracker["#{record.class}##{record.object_id}_#{forr}"] = :visiting
+            value = yield
+            tracker["#{record.class}##{record.object_id}_#{forr}"] = value
+            value
+          end
+        else
+          yield
+        end
+      end
+      
+      def autosave_visited!(record, forr, value=true)
+        if self.class.connection.instance_variable_defined?(:@autosave_tracker) &&
+          tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
+          tracker["#{record.class}##{record.object_id}_#{forr}"] = value
         end
       end
 
@@ -329,9 +343,7 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        if record && (record.changed_for_autosave? || custom_validation_context?)
-          association_valid?(reflection, record)
-        end
+        association_valid?(reflection, record) if record && (record.changed_for_autosave? || custom_validation_context?)
       end
 
       # Validate the associated records if <tt>:validate</tt> or
@@ -352,12 +364,7 @@ module ActiveRecord
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         context = validation_context if custom_validation_context?
-        valid = if context
-          record.valid?(context)
-        elsif !autosave_visited?(record, :valid)
-          autosave_visited!(record, :valid)
-          record.valid?
-        end
+        valid = visit_autosave(record, :valid) { record.valid?(context) }
 
         unless valid
           if reflection.options[:autosave]
@@ -485,10 +492,7 @@ module ActiveRecord
                 association.set_inverse_instance(record)
               end
 
-              if !autosave_visited?(record, :save)
-                autosave_visited!(record, :save)
-                saved = record.save(validate: !autosave)
-              end
+              saved = visit_autosave(record, :save) { record.save(validate: !autosave) }
               
               raise ActiveRecord::Rollback if !saved && autosave
               saved
