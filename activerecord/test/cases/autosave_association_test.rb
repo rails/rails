@@ -2146,9 +2146,12 @@ class TestCircularAutosaveAssociations < ActiveRecord::TestCase
     assert_equal [nil, "P"], @parent.previous_changes[:name]
     assert_equal [nil, "Hi!"], @child.previous_changes[:name]
 
-    @parent.class.class_variable_set("@@foo", 0)
+    @parent.class.class_variable_set("@@after_save_foo", 0)
+    @parent.class.class_variable_set("@@after_validation_foo", 0)
+
     @parent.update!(name: "pp")
-    assert_equal 1, @parent.class.class_variable_get("@@foo")
+    assert_equal 1, @parent.class.class_variable_get("@@after_save_foo")
+    assert_equal 1, @parent.class.class_variable_get("@@after_validation_foo")
   end
 
   # The case below fail, because
@@ -2178,8 +2181,8 @@ class TestCircularAutosaveAssociations < ActiveRecord::TestCase
 
   # This case fails because of similar behaviour in different place
   def test_after_validation
-    @parent.class.class_variable_set("@@foo", 0)
+    @parent.class.class_variable_set("@@after_validation_foo", 0)
     @parent.update!(name: "pp")
-    assert_equal 1, @parent.class.class_variable_get("@@foo")
+    assert_equal 1, @parent.class.class_variable_get("@@after_validation_foo")
   end
 end
