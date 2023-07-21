@@ -357,9 +357,8 @@ module ActiveRecord
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         context = validation_context if custom_validation_context?
-        valid = visit_autosave(record, :valid) { record.valid?(context) }
 
-        unless valid
+        unless valid = visit_autosave(record, :valid) { record.valid?(context) }
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors)
 
@@ -421,7 +420,7 @@ module ActiveRecord
 
           # reconstruct the scope now that we know the owner's id
           association.reset_scope
-          
+
           if records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
