@@ -491,7 +491,7 @@ module ActiveRecord
   # In that case, beware of transactional tests, however, because they run test
   # cases in their own umbrella transaction. If you absolutely need to handle
   # these exceptions in tests please consider disabling transactional tests in
-  # the affected test class (`self.use_transactional_tests = false`).
+  # the affected test class (<tt>self.use_transactional_tests = false</tt>).
   #
   # Due to the aforementioned side-effects, this exception should not be raised
   # manually by users.
