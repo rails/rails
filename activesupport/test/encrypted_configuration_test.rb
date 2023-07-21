@@ -56,6 +56,16 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal @credentials.config, {}
   end
 
+  test "writing with element assignment and reading with element reference" do
+    @credentials[:foo] = 42
+    assert_equal 42, @credentials[:foo]
+  end
+
+  test "writing with dynamic accessor and reading with element reference" do
+    @credentials.foo = 42
+    assert_equal 42, @credentials[:foo]
+  end
+
   test "change configuration by key file" do
     @credentials.write({ something: { good: true } }.to_yaml)
     @credentials.change do |config_file|
