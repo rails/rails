@@ -331,13 +331,6 @@ module ActiveRecord
         end
       end
       
-      def autosave_visited!(record, forr, value=true)
-        if self.class.connection.instance_variable_defined?(:@autosave_tracker) &&
-          tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
-          tracker["#{record.class}##{record.object_id}_#{forr}"] = value
-        end
-      end
-
       # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
       # turned on for the association.
       def validate_single_association(reflection)
@@ -428,8 +421,8 @@ module ActiveRecord
 
           # reconstruct the scope now that we know the owner's id
           association.reset_scope
-          records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
-          if records
+          
+          if records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }
@@ -542,9 +535,8 @@ module ActiveRecord
             foreign_key.each { |key| self[key] = nil }
             record.destroy
           elsif autosave != false
-            if (record.new_record? || (autosave && record.changed_for_autosave?)) && !autosave_visited?(record, :save)
-              autosave_visited!(record, :save)
-              saved = record.save(validate: !autosave)
+            saved = if record.new_record? || (autosave && record.changed_for_autosave?)
+              visit_autosave(record, :save) { record.save(validate: !autosave) }
             end
             if association.updated?
               primary_key = Array(compute_primary_key(reflection, record)).map(&:to_s)
