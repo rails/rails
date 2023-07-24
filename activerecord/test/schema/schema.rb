@@ -157,6 +157,11 @@ ActiveRecord::Schema.define do
     t.date :updated_on
   end
 
+  create_table :children, force: :cascade do |t|
+    t.string :name
+    t.references :parent
+  end
+
   create_table :encrypted_books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
@@ -621,6 +626,10 @@ ActiveRecord::Schema.define do
     t.string :where
   end
 
+  create_table :grandparents, force: :cascade do |t|
+    t.string :name
+  end
+
   create_table :guids, force: true do |t|
     t.column :key, :string
   end
@@ -853,6 +862,11 @@ ActiveRecord::Schema.define do
     end
     t.column :happy_at,   :datetime
     t.string :essay_id
+  end
+
+  create_table :parents, force: :cascade do |t|
+    t.string :name
+    t.references :grandparent
   end
 
   create_table :paint_colors, force: true do |t|

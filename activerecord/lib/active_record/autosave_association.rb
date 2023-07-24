@@ -297,19 +297,40 @@ module ActiveRecord
       def nested_records_changed_for_autosave?
         @_nested_records_changed_for_autosave_already_called ||= false
         return false if @_nested_records_changed_for_autosave_already_called
-        begin
-          @_nested_records_changed_for_autosave_already_called = true
-          self.class._reflections.values.any? do |reflection|
-            if reflection.options[:autosave]
-              association = association_instance_get(reflection.name)
-              association && Array.wrap(association.target).any?(&:changed_for_autosave?)
-            end
+        @_nested_records_changed_for_autosave_already_called = true
+        self.class._reflections.values.any? do |reflection|
+          if reflection.options[:autosave]
+            association = association_instance_get(reflection.name)
+            association && Array.wrap(association.target).any?(&:changed_for_autosave?)
           end
-        ensure
-          @_nested_records_changed_for_autosave_already_called = false
+        end
+      ensure
+        @_nested_records_changed_for_autosave_already_called = false
+      end
+
+      def autosave_visited?(record, forr)
+        return false if !self.class.connection.instance_variable_defined?(:@autosave_tracker)
+        if tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
+          tracker.has_key?("#{record.class}##{record.object_id}_#{forr}")
         end
       end
 
+      def visit_autosave(record, forr)
+        if self.class.connection.instance_variable_defined?(:@autosave_tracker) &&
+          tracker = self.class.connection.instance_variable_get(:@autosave_tracker)
+          if tracker.has_key?("#{record.class}##{record.object_id}_#{forr}")
+            tracker["#{record.class}##{record.object_id}_#{forr}"]
+          else
+            tracker["#{record.class}##{record.object_id}_#{forr}"] = :visiting
+            value = yield
+            tracker["#{record.class}##{record.object_id}_#{forr}"] = value
+            value
+          end
+        else
+          yield
+        end
+      end
+      
       # Validate the association if <tt>:validate</tt> or <tt>:autosave</tt> is
       # turned on for the association.
       def validate_single_association(reflection)
@@ -337,7 +358,7 @@ module ActiveRecord
 
         context = validation_context if custom_validation_context?
 
-        unless valid = record.valid?(context)
+        unless valid = visit_autosave(record, :valid) { record.valid?(context) }
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord.index_nested_attribute_errors)
 
@@ -463,7 +484,8 @@ module ActiveRecord
                 association.set_inverse_instance(record)
               end
 
-              saved = record.save(validate: !autosave)
+              saved = visit_autosave(record, :save) { record.save(validate: !autosave) }
+              
               raise ActiveRecord::Rollback if !saved && autosave
               saved
             end
@@ -512,8 +534,9 @@ module ActiveRecord
             foreign_key.each { |key| self[key] = nil }
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
-
+            saved = if record.new_record? || (autosave && record.changed_for_autosave?)
+              visit_autosave(record, :save) { record.save(validate: !autosave) }
+            end
             if association.updated?
               primary_key = Array(compute_primary_key(reflection, record)).map(&:to_s)
               foreign_key = Array(reflection.foreign_key)

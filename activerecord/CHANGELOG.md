@@ -1,3 +1,11 @@
+*   Fix a bug where `previous_changes` can be empty although changes were made.
+
+    In circumstance where `autosave: true` is defined on many relations there
+    are time where this leads to `save` and `valid?` being called multiple times
+    during a save transaction and clearing the changes.
+
+    *Jonathan Bracy*
+
 *   Specify callback in `has_secure_token`
 
     ```ruby

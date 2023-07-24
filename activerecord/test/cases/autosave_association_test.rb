@@ -7,15 +7,18 @@ require "models/bird"
 require "models/post"
 require "models/comment"
 require "models/category"
+require "models/child"
 require "models/company"
 require "models/contract"
 require "models/customer"
 require "models/developer"
 require "models/computer"
+require "models/grandparent"
 require "models/invoice"
 require "models/line_item"
 require "models/mouse"
 require "models/order"
+require "models/parent"
 require "models/parrot"
 require "models/pirate"
 require "models/project"
@@ -2119,5 +2122,68 @@ class TestAutosaveAssociationOnABelongsToAssociationDefinedAsRecord < ActiveReco
     assert_nothing_raised do
       translation.save!
     end
+  end
+end
+
+class TestCircularAutosaveAssociations < ActiveRecord::TestCase
+  def setup
+    super
+    @parent = Parent.create!(name: "P")
+    @child = Child.new(name: "Hi!")
+    @child.parent = @parent
+
+    @child.save!
+  end
+
+  def test_previous_changes_are_present_after_saves
+    @grandparent = Grandparent.new(name: "G")
+    @parent = Parent.new(name: "P", grandparent: @grandparent)
+    @child = Child.new(name: "Hi!")
+    @child.parent = @parent
+
+    @child.save!
+
+    assert_equal [nil, "G"], @grandparent.previous_changes[:name]
+    assert_equal [nil, "P"], @parent.previous_changes[:name]
+    assert_equal [nil, "Hi!"], @child.previous_changes[:name]
+
+    @parent.class.class_variable_set("@@after_save_foo", 0)
+    @parent.class.class_variable_set("@@after_validation_foo", 0)
+
+    @parent.update!(name: "pp")
+    assert_equal 1, @parent.class.class_variable_get("@@after_save_foo")
+    assert_equal 1, @parent.class.class_variable_get("@@after_validation_foo")
+  end
+
+  # The case below fail, because
+  # https://github.com/rails/rails/blob/v4.2.7.1/activerecord/lib/active_record/autosave_association.rb#L441
+  # there `record.changed_for_autosave?` is true through it's not changed.
+  # It's true because `child` is changed.
+  # Therefore child is being saved in the wrong place, then saved one more time
+  # where it should be saved and as a result we see that `child.previous_changes` is {}
+  def test_previous_changes_are_present_after_save
+    assert_equal [nil, "Hi!"], @child.previous_changes[:name]
+  end
+
+  # This case pass because of another thing
+  # https://github.com/rails/rails/blob/v4.2.7.1/activerecord/lib/active_record/autosave_association.rb#L432
+  # association there is nil. But if I put debugger there and eval `parent` manually it would work
+  # as the third case.
+  def test_prev_changes_pass
+    child2 = Child.create!(name: "2", parent_id: @parent.id)
+    assert_equal [nil, "2"], child2.previous_changes[:name]
+  end
+
+  # This also fail for the same reason as test_prev_changes
+  def test_prev_changes2
+    child3 = Child.create!(name: "3", parent: @parent)
+    assert_equal [nil, "3"], child3.previous_changes[:name]
+  end
+
+  # This case fails because of similar behaviour in different place
+  def test_after_validation
+    @parent.class.class_variable_set("@@after_validation_foo", 0)
+    @parent.update!(name: "pp")
+    assert_equal 1, @parent.class.class_variable_get("@@after_validation_foo")
   end
 end
