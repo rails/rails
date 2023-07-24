@@ -14,13 +14,13 @@ class TransmissionsTest < ActionCable::TestCase
     end
   end
 
-  def test_assert_broadcasts_returns_broadcast_messages_if_block_given
-    message = assert_broadcasts("test", 1) do
+  def test_capture_broadcasts
+    messages = capture_broadcasts("test") do
       ActionCable.server.broadcast "test", "message"
     end
-    assert_equal "message", message
+    assert_equal "message", messages.first
 
-    messages = assert_broadcasts("test", 2) do
+    messages = capture_broadcasts("test") do
       ActionCable.server.broadcast "test", { message: "one" }
       ActionCable.server.broadcast "test", { message: "two" }
     end

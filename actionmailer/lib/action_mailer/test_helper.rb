@@ -32,34 +32,10 @@ module ActionMailer
     #       ContactMailer.welcome.deliver_later
     #     end
     #   end
-    #
-    # The method returns the +Mail::Message+s that were processed, enabling further
-    # analysis.
-    #
-    #   def test_emails_more_thoroughly
-    #     email = assert_emails 1 do
-    #       ContactMailer.welcome.deliver_now
-    #     end
-    #     assert_equal "Hi there", email.subject
-    #
-    #     emails = assert_emails 2 do
-    #       ContactMailer.welcome.deliver_now
-    #       ContactMailer.welcome.deliver_later
-    #     end
-    #     assert_equal "Hi there", emails.first.subject
-    #   end
     def assert_emails(number, &block)
       if block_given?
-        original_count = ActionMailer::Base.deliveries.size
-        deliver_enqueued_emails(&block)
-        new_count = ActionMailer::Base.deliveries.size
-        diff = new_count - original_count
+        diff = capture_emails(&block).length
         assert_equal number, diff, "#{number} emails expected, but #{diff} were sent"
-        if diff == 1
-          ActionMailer::Base.deliveries.last
-        else
-          ActionMailer::Base.deliveries.last(diff)
-        end
       else
         assert_equal number, ActionMailer::Base.deliveries.size
       end
@@ -274,6 +250,28 @@ module ActionMailer
     # immediately or before the given time.
     def deliver_enqueued_emails(queue: nil, at: nil, &block)
       perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, queue: queue, at: at, &block)
+    end
+
+    # Returns any emails that are sent in the block.
+    #
+    #   def test_emails
+    #     emails = capture_emails do
+    #       ContactMailer.welcome.deliver_now
+    #     end
+    #     assert_equal "Hi there", emails.first.subject
+    #
+    #     emails = capture_emails do
+    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_later
+    #     end
+    #     assert_equal "Hi there", emails.first.subject
+    #   end
+    def capture_emails(&block)
+      original_count = ActionMailer::Base.deliveries.size
+      deliver_enqueued_emails(&block)
+      new_count = ActionMailer::Base.deliveries.size
+      diff = new_count - original_count
+      ActionMailer::Base.deliveries.last(diff)
     end
 
     private
