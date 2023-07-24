@@ -95,7 +95,7 @@ module ActiveRecord
 
           ActiveModel.deprecator.warn(
             "#{self} model aliases `#{old_name}` and has a method called `#{target_name}` defined. " \
-            "Since Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore. " \
+            "Starting in Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore. " \
             "You may want to additionally define `#{method_name}` to preserve the current behavior."
           )
           super
