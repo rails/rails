@@ -1,3 +1,11 @@
+*   Fix `#previously_new_record?` to return true for destroyed records.
+
+    Before, if a record was created and then destroyed, `#previously_new_record?` would return true.
+    Now, any UPDATE or DELETE to a record is considered a change, and will result in `#previously_new_record?`
+    returning false.
+
+    *Adrianna Chang*
+
 *   Specify callback in `has_secure_token`
 
     ```ruby
