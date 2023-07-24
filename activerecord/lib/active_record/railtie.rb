@@ -186,20 +186,18 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport.on_load(:active_record) do
           # In development and test we shouldn't eagerly define attribute methods because
           # db:test:prepare will trigger later and might change the schema.
-          if app.config.eager_load && !Rails.env.local?
+          #
+          # Additionally if `check_schema_cache_dump_version` is enabled (which is the default),
+          # loading the schema cache dump trigger a database connection to compare the schema
+          # versions.
+          # This means the attribute methods will be lazily defined whent the model is accessed,
+          # likely as part of the first few requests or jobs. This isn't good for performance
+          # but we unfortunately have to arbitrate between resiliency and performance, and chose
+          # resiliency.
+          if !check_schema_cache_dump_version && app.config.eager_load && !Rails.env.local?
             begin
               descendants.each do |model|
-                # If the schema cache doesn't have the columns for this model,
-                # we avoid calling `define_attribute_methods` as it would trigger a query.
-                #
-                # However if we're already connected to the database, it's too late so we might
-                # as well eagerly define the attributes and hope the database timeout is strict enough.
-                #
-                # Additionally if `check_schema_cache_dump_version` is enabled, we have to connect to the
-                # database anyway to load the schema cache dump, so we might as well do it during boot to
-                # save memory in pre-forking setups and avoid slowness during the first requests post deploy.
-                schema_reflection = model.connection_pool.schema_reflection
-                if check_schema_cache_dump_version || schema_reflection.cached?(model.table_name) || model.connected?
+                if model.connection_pool.schema_reflection.cached?(model.table_name)
                   model.define_attribute_methods
                 end
               end
