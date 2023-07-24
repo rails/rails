@@ -92,14 +92,6 @@ module ActiveRecord
         /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
       end
 
-      def self.quoted_column_names # :nodoc:
-        @quoted_column_names ||= {}
-      end
-
-      def self.quoted_table_names # :nodoc:
-        @quoted_table_names ||= {}
-      end
-
       def self.find_cmd_and_exec(commands, *args) # :doc:
         commands = Array(commands)
 
