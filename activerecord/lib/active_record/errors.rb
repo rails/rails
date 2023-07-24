@@ -511,7 +511,7 @@ module ActiveRecord
   # SerializationFailure will be raised when a transaction is rolled
   # back by the database due to a serialization failure.
   #
-  # This is s subclass of TransactionRollbackError, please make sure to check
+  # This is a subclass of TransactionRollbackError, please make sure to check
   # its documentation to be aware of its caveats.
   class SerializationFailure < TransactionRollbackError
   end
