@@ -416,6 +416,56 @@ module ApplicationTests
       end
     end
 
+    def test_line_range_filter_syntax
+      app_file "test/models/post_test.rb", <<-RUBY
+        require "test_helper"
+
+        class PostTest < ActiveSupport::TestCase
+          test "first" do # 4
+            puts 'PostTest:FirstFilter'
+            assert true
+          end
+
+          test "second" do # 9
+            puts 'PostTest:Second'
+            assert true
+          end
+
+          test "third" do # 14
+            puts 'PostTest:Third'
+            assert true
+          end
+
+          test "fourth" do # 19
+            puts 'PostTest:Fourth'
+            assert true
+          end
+        end
+      RUBY
+
+      run_test_command("test/models/post_test.rb:4-14").tap do |output|
+        assert_match "PostTest:First", output
+        assert_match "PostTest:Second", output
+        assert_match "PostTest:Third", output
+        assert_match "3 runs, 3 assertions", output
+      end
+
+      run_test_command("test/models/post_test.rb:4-9:19").tap do |output|
+        assert_match "PostTest:First", output
+        assert_match "PostTest:Second", output
+        assert_match "PostTest:Fourth", output
+        assert_match "3 runs, 3 assertions", output
+      end
+
+      run_test_command("test/models/post_test.rb:4-9:14-19").tap do |output|
+        assert_match "PostTest:First", output
+        assert_match "PostTest:Second", output
+        assert_match "PostTest:Third", output
+        assert_match "PostTest:Fourth", output
+        assert_match "4 runs, 4 assertions", output
+      end
+    end
+
     def test_more_than_one_line_filter_test_method_syntax
       app_file "test/models/post_test.rb", <<-RUBY
         require "test_helper"
