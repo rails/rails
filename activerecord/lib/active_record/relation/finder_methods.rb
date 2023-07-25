@@ -18,7 +18,9 @@ module ActiveRecord
     #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
-    # NOTE: The returned records are in the same order as the ids you provide.
+    # NOTE: The returned records are in the same order as the ids you provide,
+    # but only if there is no order on the scope.
+    #
     # If you want the results to be sorted by database, you can use ActiveRecord::QueryMethods#where
     # method and provide an explicit ActiveRecord::QueryMethods#order option.
     # But ActiveRecord::QueryMethods#where method doesn't raise ActiveRecord::RecordNotFound.
