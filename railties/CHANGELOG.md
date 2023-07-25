@@ -1,3 +1,14 @@
+*   Support filtering tests by line ranges
+
+    The new syntax allows you to filter tests by line ranges. For example, the
+    following command runs tests from line 10 to 20.
+
+    ```bash
+    $ rails test test/models/user_test.rb:10-20
+    ```
+
+    *Shouichi Kamiya*, *Seonggi Yang*, *oljfte*, *Ryohei UEDA*
+
 *   Update default scaffold templates to set 303 (See Other) as status code
     on redirect for the update action for XHR requests other than GET or POST
     to avoid issues (e.g browsers trying to follow the redirect using the
