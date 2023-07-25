@@ -139,7 +139,7 @@ module ActiveSupport
 
       result.tr!("_", " ")
       result.lstrip!
-      if !keep_id_suffix && lower_case_and_underscored_word.end_with?("_id")
+      if !keep_id_suffix && lower_case_and_underscored_word&.end_with?("_id")
         result.delete_suffix!(" id")
       end
 
