@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "capybara", ">= 3.26"
+gem "capybara", ">= 3.38"
 
 require "capybara/dsl"
 require "capybara/minitest"
