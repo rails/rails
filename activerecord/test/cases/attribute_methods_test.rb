@@ -1156,7 +1156,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "#alias_attribute with an overridden original method issues a deprecation" do
     message = <<~MESSAGE.gsub("\n", " ")
     AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehavior model aliases `title` and has a method called
-    `title_was` defined. Since Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+    `title_was` defined. Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
     You may want to additionally define `subject_was` to preserve the current behavior.
     MESSAGE
 
@@ -1183,7 +1183,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "#alias_attribute with an overridden original method from a module issues a deprecation" do
     message = <<~MESSAGE.gsub("\n", " ")
     AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehaviorFromModule model aliases `title` and has a method
-    called `title_was` defined. Since Rails 7.2 `subject_was` will not be calling `title_was` anymore.
+    called `title_was` defined. Starting in Rails 7.2 `subject_was` will not be calling `title_was` anymore.
     You may want to additionally define `subject_was` to preserve the current behavior.
     MESSAGE
 
