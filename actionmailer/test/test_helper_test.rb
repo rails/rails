@@ -95,16 +95,17 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_emails_returns_the_emails_that_were_sent_if_a_block_is_given
+  def test_capture_emails
     assert_nothing_raised do
-      email = assert_emails 1 do
+      emails = capture_emails do
         TestHelperMailer.test.deliver_now
       end
+      email = emails.first
       assert_instance_of Mail::Message, email
       assert_equal "Hello, Earth", email.body.to_s
       assert_equal "Hi!", email.subject
 
-      emails = assert_emails 2 do
+      emails = capture_emails do
         TestHelperMailer.test.deliver_now
         TestHelperMailer.test.deliver_now
       end

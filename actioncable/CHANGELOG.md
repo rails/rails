@@ -13,17 +13,12 @@
 
     *Joé Dupuis*
 
-*   `assert_broadcasts` now returns the messages that were broadcast.
+*   Introduce the `capture_broadcasts` test helper.
 
-    This makes it easier to do further analysis on those messages:
+    Returns all messages broadcast in a block.
 
     ```ruby
-    message = assert_broadcasts("test", 1) do
-      ActionCable.server.broadcast "test", "message"
-    end
-    assert_equal "message", message
-
-    messages = assert_broadcasts("test", 2) do
+    messages = capture_broadcasts("test") do
       ActionCable.server.broadcast "test", { message: "one" }
       ActionCable.server.broadcast "test", { message: "two" }
     end

@@ -86,18 +86,13 @@
 
     *Sean Doyle*
 
-*   `assert_emails` now returns the emails that were sent.
+*   Introduce the `capture_emails` test helper.
 
-    This makes it easier to do further analysis on those emails:
+    Returns all emails that are sent in a block.
 
     ```ruby
-    def test_emails_more_thoroughly
-      email = assert_emails 1 do
-        ContactMailer.welcome.deliver_now
-      end
-      assert_email "Hi there", email.subject
-
-      emails = assert_emails 2 do
+    def test_emails
+      emails = capture_emails do
         ContactMailer.welcome.deliver_now
         ContactMailer.welcome.deliver_later
       end

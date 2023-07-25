@@ -52,12 +52,6 @@ module ActionCable
 
         actual_count = new_messages.size
         assert_equal number, actual_count, "#{number} broadcasts to #{stream} expected, but #{actual_count} were sent"
-
-        if new_messages.size == 1
-          ActiveSupport::JSON.decode(new_messages.first)
-        else
-          new_messages.map { |m| ActiveSupport::JSON.decode(m) }
-        end
       else
         actual_count = broadcasts(stream).size
         assert_equal number, actual_count, "#{number} broadcasts to #{stream} expected, but #{actual_count} were sent"
@@ -86,6 +80,22 @@ module ActionCable
     #
     def assert_no_broadcasts(stream, &block)
       assert_broadcasts stream, 0, &block
+    end
+
+    # Returns the messages that are broadcasted in the block.
+    #
+    #   def test_broadcasts
+    #     messages = capture_broadcasts('messages') do
+    #       ActionCable.server.broadcast 'messages', { text: 'hi' }
+    #       ActionCable.server.broadcast 'messages', { text: 'how are you?' }
+    #     end
+    #     assert_equal 2, messages.length
+    #     assert_equal({ text: 'hi' }, messages.first)
+    #     assert_equal({ text: 'how are you?' }, messages.last)
+    #   end
+    #
+    def capture_broadcasts(stream, &block)
+      new_broadcasts_from(broadcasts(stream), stream, "capture_broadcasts", &block).map { |m| ActiveSupport::JSON.decode(m) }
     end
 
     # Asserts that the specified message has been sent to the stream.
