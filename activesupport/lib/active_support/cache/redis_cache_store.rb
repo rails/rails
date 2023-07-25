@@ -142,10 +142,7 @@ module ActiveSupport
       #   cache.exist?('foo') # => true
       #   cache.exist?('bar') # => false
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
-        base_options = redis_options.extract!(
-          :coder, :compress, :compress_threshold,
-          :namespace, :expires_in, :race_condition_ttl, :skip_nil,
-        )
+        universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
 
         if pool_options = self.class.send(:retrieve_pool_options, redis_options)
           @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
@@ -157,7 +154,7 @@ module ActiveSupport
         @error_handler = error_handler
         @supports_pipelining = true
 
-        super(base_options)
+        super(universal_options)
       end
 
       def inspect

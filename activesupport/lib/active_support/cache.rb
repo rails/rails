@@ -21,14 +21,24 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expire_in, :expired_in, :race_condition_ttl, :coder, :skip_nil]
-
-    DEFAULT_COMPRESS_LIMIT = 1.kilobyte
+    UNIVERSAL_OPTIONS = [
+      :coder,
+      :compress,
+      :compress_threshold,
+      :expire_in,
+      :expired_in,
+      :expires_in,
+      :namespace,
+      :race_condition_ttl,
+      :skip_nil,
+    ]
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
       expires_in: [:expire_in, :expired_in]
     }.freeze
+
+    DEFAULT_COMPRESS_LIMIT = 1.kilobyte
 
     # Raised by coders when the cache entry can't be deserialized.
     # This error is treated as a cache miss.
