@@ -1,3 +1,7 @@
+*   Fix `ActiveSupport::Inflector.humanize(nil)` raising ``NoMethodError: undefined method `end_with?' for nil:NilClass``.
+
+    *James Robinson*
+
 *   Fix `Enumerable#sum` for `Enumerator#lazy`.
 
     *fatkodima*, *Matthew Draper*, *Jonathan Hefner*
