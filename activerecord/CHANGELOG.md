@@ -1,3 +1,23 @@
+*   Implemented ActiveRecord::Base.pretty_print to work with PP.
+
+    ```ruby
+    pp User
+    # => User(
+    #     id: integer,
+    #     first_name: string,
+    #     last_name: string,
+    #     birth_at: datetime,
+    #     email: string,
+    #     address: string,
+    #     active: boolean,
+    #     parent_id: integer,
+    #     type: string,
+    #     created_at: datetime,
+    #     updated_at: datetime)
+    ```
+
+    *osyo*
+
 *   Specify callback in `has_secure_token`
 
     ```ruby

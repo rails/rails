@@ -345,6 +345,24 @@ module ActiveRecord
         end
       end
 
+      # Takes a PP and prettily prints this Model class to it, allowing you to get a nice result from <tt>pp User</tt>
+      # when pp is required.
+      def pretty_print(pp)
+        return super if custom_inspect_method_defined? || self == Base || abstract_class? || !connected? || !table_exists?
+        pp.group(1, "#{self.name}(", ")") do
+          attr_list = attribute_types.map { |name, type| [name, type.type] }
+          pp.seplist(attr_list, proc { pp.text "," }) do |name, type|
+            pp.breakable " "
+            pp.group(1) do
+              pp.text name
+              pp.text ":"
+              pp.breakable
+              pp.text type
+            end
+          end
+        end
+      end
+
       # Override the default class equality method to provide support for decorated models.
       def ===(object) # :nodoc:
         object.is_a?(self)
@@ -416,6 +434,10 @@ module ActiveRecord
           rescue TypeError
             raise ActiveRecord::StatementInvalid
           end
+        end
+
+        def custom_inspect_method_defined?
+          self.method(:inspect).owner != ActiveRecord::Base.method(:inspect).owner
         end
     end
 
