@@ -564,7 +564,7 @@ module ActiveRecord
     end
 
     # Returns true if this object was just created -- that is, prior to the last
-    # save, the object didn't exist in the database and new_record? would have
+    # update or delete, the object didn't exist in the database and new_record? would have
     # returned true.
     def previously_new_record?
       @previously_new_record
@@ -663,6 +663,7 @@ module ActiveRecord
     def delete
       _delete_row if persisted?
       @destroyed = true
+      @previously_new_record = false
       freeze
     end
 
@@ -682,6 +683,7 @@ module ActiveRecord
         true
       end
       @destroyed = true
+      @previously_new_record = false
       freeze
     end
 
