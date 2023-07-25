@@ -691,7 +691,7 @@ module ActiveSupport
           when 7.1
             Cache::SerializerWithFallback[:marshal_7_1]
           else
-            Cache::SerializerWithFallback[Cache.format_version]
+            raise ArgumentError, "Unrecognized ActiveSupport::Cache.format_version: #{Cache.format_version.inspect}"
           end
         end
 
