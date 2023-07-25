@@ -968,6 +968,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal false, Topic.find(1).previously_new_record?
   end
 
+  def test_previously_new_record_on_destroyed_record
+    topic = Topic.create
+    assert_predicate topic, :previously_new_record?
+
+    topic.destroy
+    assert_not_predicate topic, :previously_new_record?
+  end
+
   def test_previously_persisted_returns_boolean
     assert_equal false, Topic.new.previously_persisted?
     assert_equal false, Topic.new.destroy.previously_persisted?
