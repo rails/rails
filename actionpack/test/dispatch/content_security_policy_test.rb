@@ -302,6 +302,51 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   end
 end
 
+class ContentSecurityPolicyMiddlewareTest < ActiveSupport::TestCase
+  def setup
+    @env = Rack::MockRequest.env_for("", {})
+    @env["action_dispatch.content_security_policy"] = ActionDispatch::ContentSecurityPolicy.new do |p|
+      p.default_src -> { :self  }
+    end
+    @env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
+    @env["action_dispatch.content_security_policy_report_only"] = false
+    @env["action_dispatch.show_exceptions"] = :none
+
+    @default_csp = "default-src 'self' https: http:"
+  end
+
+  def test_rack_lint
+    app = proc { [200, {}, []] }
+
+    assert_nothing_raised do
+      Rack::Lint.new(
+        ActionDispatch::ContentSecurityPolicy::Middleware.new(
+          Rack::Lint.new(app)
+        )
+      ).call(@env)
+    end
+  end
+
+  def test_does_not_override_app_content_security_policy
+    app = proc { [200, { ActionDispatch::Constants::CONTENT_SECURITY_POLICY => @default_csp }, []] }
+    _, headers, _ = Rack::Lint.new(
+      ActionDispatch::ContentSecurityPolicy::Middleware.new(Rack::Lint.new(app))
+    ).call(@env)
+
+    assert_equal @default_csp, headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY]
+  end
+
+  def test_does_not_override_app_content_security_policy_report_only
+    app = proc { [200, { ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY => @default_csp }, []] }
+    @env["action_dispatch.content_security_policy_report_only"] = true
+    _, headers, _ = Rack::Lint.new(
+      ActionDispatch::ContentSecurityPolicy::Middleware.new(Rack::Lint.new(app))
+    ).call(@env)
+
+    assert_equal @default_csp, headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY]
+  end
+end
+
 class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   class PolicyController < ActionController::Base
     def index
@@ -338,8 +383,10 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -488,8 +535,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -604,8 +653,10 @@ class DisabledContentSecurityPolicyIntegrationTest < ActionDispatch::Integration
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -660,8 +711,10 @@ class NonceDirectiveContentSecurityPolicyIntegrationTest < ActionDispatch::Integ
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -732,8 +785,10 @@ class HelpersContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app

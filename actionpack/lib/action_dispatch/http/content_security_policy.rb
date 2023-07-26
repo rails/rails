@@ -25,10 +25,6 @@ module ActionDispatch # :nodoc:
   #   end
   class ContentSecurityPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
-      POLICY = "Content-Security-Policy"
-      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only"
-
       def initialize(app)
         @app = app
       end
@@ -57,14 +53,15 @@ module ActionDispatch # :nodoc:
       private
         def header_name(request)
           if request.content_security_policy_report_only
-            POLICY_REPORT_ONLY
+            ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY
           else
-            POLICY
+            ActionDispatch::Constants::CONTENT_SECURITY_POLICY
           end
         end
 
         def policy_present?(headers)
-          headers[POLICY] || headers[POLICY_REPORT_ONLY]
+          headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY] ||
+            headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY]
         end
     end
 
