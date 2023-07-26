@@ -71,6 +71,39 @@ class CacheCoderTest < ActiveSupport::TestCase
     end
   end
 
+  test "lazily deserializes values" do
+    serializer = Module.new do
+      def self.dump(*); ""; end
+      def self.load(*); raise "LOAD!"; end
+    end
+
+    @coder = ActiveSupport::Cache::Coder.new(serializer, Compressor)
+    entry = ActiveSupport::Cache::Entry.new([], version: "abc", expires_in: 123)
+    roundtripped = @coder.load(@coder.dump(entry))
+
+    assert_equal entry.version, roundtripped.version
+    assert_equal entry.expires_at, roundtripped.expires_at
+    assert_raises(match: "LOAD!") { roundtripped.value }
+  end
+
+  test "lazily decompresses values" do
+    compressor = Module.new do
+      def self.deflate(*); ""; end
+      def self.inflate(*); raise "INFLATE!"; end
+    end
+
+    @coder = ActiveSupport::Cache::Coder.new(Serializer, compressor)
+
+    [[STRING], STRING].each do |value|
+      entry = ActiveSupport::Cache::Entry.new(value, version: "abc", expires_in: 123)
+      roundtripped = @coder.load(@coder.dump_compressed(entry, 1))
+
+      assert_equal entry.version, roundtripped.version
+      assert_equal entry.expires_at, roundtripped.expires_at
+      assert_raises(match: "INFLATE!") { roundtripped.value }
+    end
+  end
+
   private
     module Serializer
       extend self

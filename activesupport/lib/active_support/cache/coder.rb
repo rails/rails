@@ -56,15 +56,10 @@ module ActiveSupport
         version = load_version(dumped.byteslice(PACKED_VERSION_INDEX, version_length)) if version_length >= 0
         payload = dumped.byteslice((PACKED_VERSION_INDEX + [version_length, 0].max)..)
 
-        payload = @compressor.inflate(payload) if type & COMPRESSED_FLAG > 0
+        compressor = @compressor if type & COMPRESSED_FLAG > 0
+        serializer = STRING_DESERIALIZERS[type & ~COMPRESSED_FLAG] || @serializer
 
-        if string_encoding = STRING_ENCODINGS[type & ~COMPRESSED_FLAG]
-          value = payload.force_encoding(string_encoding)
-        else
-          value = @serializer.load(payload)
-        end
-
-        Cache::Entry.new(value, version: version, expires_at: expires_at)
+        LazyEntry.new(serializer, compressor, payload, version: version, expires_at: expires_at)
       end
 
       private
@@ -87,6 +82,41 @@ module ActiveSupport
         PACKED_VERSION_INDEX = [0].pack(PACKED_VERSION_LENGTH_TEMPLATE).bytesize
 
         MARSHAL_SIGNATURE = "\x04\x08".b.freeze
+
+        class StringDeserializer
+          def initialize(encoding)
+            @encoding = encoding
+          end
+
+          def load(payload)
+            payload.force_encoding(@encoding)
+          end
+        end
+
+        STRING_DESERIALIZERS = STRING_ENCODINGS.transform_values { |encoding| StringDeserializer.new(encoding) }
+
+        class LazyEntry < Cache::Entry
+          def initialize(serializer, compressor, payload, **options)
+            super(payload, **options)
+            @serializer = serializer
+            @compressor = compressor
+            @resolved = false
+          end
+
+          def value
+            if !@resolved
+              @value = @serializer.load(@compressor ? @compressor.inflate(@value) : @value)
+              @resolved = true
+            end
+            @value
+          end
+
+          def mismatched?(version)
+            super.tap { |mismatched| value if !mismatched }
+          rescue Cache::DeserializationError
+            true
+          end
+        end
 
         def signature?(dumped)
           dumped.is_a?(String) && dumped.start_with?(SIGNATURE)
