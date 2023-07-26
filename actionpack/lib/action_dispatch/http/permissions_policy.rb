@@ -23,13 +23,16 @@ module ActionDispatch # :nodoc:
   #
   class PermissionsPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
       # The Feature-Policy header has been renamed to Permissions-Policy.
       # The Permissions-Policy requires a different implementation and isn't
       # yet supported by all browsers. To avoid having to rename this
       # middleware in the future we use the new name for the middleware but
       # keep the old header name and implementation for now.
-      POLICY       = "Feature-Policy"
+      if Gem::Version.new(Rack::RELEASE) >= Gem::Version.new("3")
+        POLICY = "feature-policy"
+      else
+        POLICY = "Feature-Policy"
+      end
 
       def initialize(app)
         @app = app
@@ -56,7 +59,7 @@ module ActionDispatch # :nodoc:
 
       private
         def html_response?(headers)
-          if content_type = headers[CONTENT_TYPE]
+          if content_type = headers[Rack::CONTENT_TYPE]
             content_type.include?("html")
           end
         end
