@@ -411,6 +411,22 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_with_non_AR_object_returns_false_and_warns
+    customer_name = customers(:david).name
+    assert_no_queries do
+      result = nil
+      expected_message = <<~MSG.squish
+      `Customer::ActiveRecord_Relation#include?` expects an Active Record instance as an argument but got `String`.
+          Starting in Rails 7.2 `Customer::ActiveRecord_Relation#include?` will raise on any value passed other than
+          an Active Record instance of a correct class.
+      MSG
+      assert_deprecated(expected_message, ActiveRecord.deprecator) do
+        result = Customer.where(name: customer_name).include?("I am not an AR instance")
+      end
+      assert_equal false, result
+    end
+  end
+
   def test_include_on_unloaded_relation_with_match
     assert_sql(/1 AS one.*LIMIT/) do
       assert_equal true, Customer.where(name: "David").include?(customers(:david))
@@ -428,7 +444,16 @@ class FinderTest < ActiveRecord::TestCase
     assert Customer.exists?(topic.id)
 
     assert_no_queries do
-      assert_equal false, Customer.where(name: "David").include?(topic)
+      result = nil
+      expected_message = <<~MSG.squish
+      `Customer::ActiveRecord_Relation#include?` expects an Active Record instance as an argument but got `Topic`.
+          Starting in Rails 7.2 `Customer::ActiveRecord_Relation#include?` will raise on any value passed other than
+          an Active Record instance of a correct class.
+      MSG
+      assert_deprecated(expected_message, ActiveRecord.deprecator) do
+        result = Customer.where(name: "David").include?(topic)
+      end
+      assert_equal false, result
     end
   end
 
@@ -506,10 +531,20 @@ class FinderTest < ActiveRecord::TestCase
   def test_member_on_unloaded_relation_with_mismatched_class
     topic = topics(:first)
     assert Customer.exists?(topic.id)
+    result = nil
 
     assert_no_queries do
-      assert_equal false, Customer.where(name: "David").member?(topic)
+      expected_message = <<~MSG.squish
+      `Customer::ActiveRecord_Relation#include?` expects an Active Record instance as an argument but got `Topic`.
+          Starting in Rails 7.2 `Customer::ActiveRecord_Relation#include?` will raise on any value passed other than
+          an Active Record instance of a correct class.
+      MSG
+      assert_deprecated(expected_message, ActiveRecord.deprecator) do
+        result = Customer.where(name: "David").member?(topic)
+      end
     end
+
+    assert_equal(false, result)
   end
 
   def test_member_on_unloaded_relation_with_offset

@@ -352,6 +352,17 @@ module ActiveRecord
     # compared to the records in memory. If the relation is unloaded, an
     # efficient existence query is performed, as in #exists?.
     def include?(record)
+      if !record.is_a?(klass)
+        message = <<~MSG.squish
+          `#{self.class}#include?` expects an Active Record instance as an argument but got `#{record.class}`.
+          Starting in Rails 7.2 `#{self.class}#include?` will raise on any value passed other than an Active Record
+          instance of a correct class.
+        MSG
+        ActiveRecord.deprecator.warn(message)
+        # since it's not an AR record we know it can't be part of the relation
+        return false
+      end
+
       if loaded? || offset_value || limit_value || having_clause.any?
         records.include?(record)
       else
@@ -360,7 +371,8 @@ module ActiveRecord
         else
           record.id
         end
-        record.is_a?(klass) && exists?(id)
+
+        exists?(id)
       end
     end
 
