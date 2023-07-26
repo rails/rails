@@ -57,7 +57,7 @@ module ActiveRecord
           reflection.klass.transaction do
             record = build(attributes, &block)
             saved = record.save
-            replace_keys(record, force: true)
+            set_new_record(record)
             raise RecordInvalid.new(record) if !saved && raise_error
             record
           end
