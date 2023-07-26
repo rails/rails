@@ -14,7 +14,7 @@ module ActionDispatch
 
     def call(env)
       env["HTTPS"] = "on"
-      env["HTTP_X_FORWARDED_PORT"] = 443
+      env["HTTP_X_FORWARDED_PORT"] = "443"
       env["HTTP_X_FORWARDED_PROTO"] = "https"
       env["rack.url_scheme"] = "https"
 
