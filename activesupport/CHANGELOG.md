@@ -1,3 +1,9 @@
+*   When using cache format version >= 7.1 or a custom serializer, expired and
+    version-mismatched cache entries can now be detected without deserializing
+    their values.
+
+    *Jonathan Hefner*
+
 *   Make all cache stores return a boolean for `#delete`
 
     Previously the `RedisCacheStore#delete` would return `1` if the entry
