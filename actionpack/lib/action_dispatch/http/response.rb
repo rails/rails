@@ -38,10 +38,14 @@ module ActionDispatch # :nodoc:
       # For `Rack::Headers` (Rack 3+):
       require "rack/headers"
       Headers = ::Rack::Headers
+
+      LOCATION = "location"
     rescue LoadError
       # For `Rack::Utils::HeaderHash`:
       require "rack/utils"
       Headers = ::Rack::Utils::HeaderHash
+
+      LOCATION = "Location"
     end
 
     # To be deprecated:
@@ -81,7 +85,6 @@ module ActionDispatch # :nodoc:
 
     CONTENT_TYPE = "Content-Type"
     SET_COOKIE   = "Set-Cookie"
-    LOCATION     = "Location"
     NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304]
 
     cattr_accessor :default_charset, default: "utf-8"
