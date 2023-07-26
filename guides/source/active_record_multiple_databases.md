@@ -14,10 +14,10 @@ After reading this guide you will know:
 
 --------------------------------------------------------------------------------
 
-As an application grows in popularity and usage you'll need to scale the application
+As an application grows in popularity and usage, you'll need to scale the application
 to support your new users and their data. One way in which your application may need
-to scale is on the database level. Rails now has support for multiple databases
-so you don't have to store your data all in one place.
+to scale is on the database level. Rails supports using multiple databases, so you don't
+have to store your data all in one place.
 
 At this time the following features are supported:
 
@@ -32,10 +32,10 @@ The following features are not (yet) supported:
 
 ## Setting up Your Application
 
-While Rails tries to do most of the work for you there are still some steps you'll
+While Rails tries to do most of the work for you, there are still some steps you'll
 need to do to get your application ready for multiple databases.
 
-Let's say we have an application with a single writer database and we need to add a
+Let's say we have an application with a single writer database, and we need to add a
 new database for some new tables we're adding. The name of the new database will be
 "animals".
 
@@ -49,8 +49,8 @@ production:
   password: <%= ENV['ROOT_PASSWORD'] %>
 ```
 
-Let's add a replica for the first configuration, and a second database called animals and a
-replica for that as well. To do this we need to change our `database.yml` from a 2-tier
+Let's add a second database called animals and replicas for both databases as well. To do
+this, we need to change our `database.yml` from a 2-tier
 to a 3-tier config.
 
 If a primary configuration is provided, it will be used as the "default" configuration. If
@@ -152,7 +152,7 @@ config.active_record.reading_role = :readonly
 
 It's important to connect to your database in a single model and then inherit from that model
 for the tables rather than connect multiple individual models to the same database. Database
-clients have a limit to the number of open connections there can be and if you do this it will
+clients have a limit to the number of open connections there can be, and if you do this, it will
 multiply the number of connections you have since Rails uses the model class name for the
 connection specification name.
 
@@ -280,10 +280,10 @@ the middleware for automatic switching.
 Automatic switching allows the application to switch from the writer to replica or replica
 to writer based on the HTTP verb and whether there was a recent write by the requesting user.
 
-If the application is receiving a POST, PUT, DELETE, or PATCH request the application will
-automatically write to the writer database. For the specified time after the write, the
-application will read from the primary. For a GET or HEAD request the application will read
-from the replica unless there was a recent write.
+If the application receives a POST, PUT, DELETE, or PATCH request, the application will
+automatically write to the writer database. If the request is not one of those methods,
+but the application recently made a write, the writer database will also be used. All
+other requests will use the replica database.
 
 To activate the automatic connection switching middleware you can run the automatic swapping
 generator:
