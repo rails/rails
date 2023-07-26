@@ -404,7 +404,7 @@ module ApplicationTests
       rails %w(db:migrate)
 
       add_to_config <<~RUBY
-        config.cache_store = :file_store, #{app_path("tmp/cache").inspect}, { coder: :message_pack }
+        config.cache_store = :file_store, #{app_path("tmp/cache").inspect}, { serializer: :message_pack }
       RUBY
 
       require "#{app_path}/config/environment"

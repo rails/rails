@@ -17,6 +17,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheStoreVersionBehavior
   include CacheStoreCoderBehavior
   include CacheStoreCompressionBehavior
+  include CacheStoreSerializerBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
