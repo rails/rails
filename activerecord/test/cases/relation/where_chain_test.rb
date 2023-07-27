@@ -7,10 +7,11 @@ require "models/human"
 require "models/essay"
 require "models/comment"
 require "models/categorization"
+require "models/book"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses
+    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books
 
     def test_associated_with_association
       Post.where.associated(:author).tap do |relation|
@@ -47,6 +48,10 @@ module ActiveRecord
       assert_equal Author.find(1).posts.count, Post.where.associated(:author).merge(Author.where(id: 1)).count
     end
 
+    def test_associated_with_enum
+      assert_equal Author.find(2), Author.where.associated(:reading_listing).first
+    end
+
     def test_missing_with_association
       assert posts(:authorless).author.blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
@@ -76,6 +81,10 @@ module ActiveRecord
       # This query does not make much logical sense, but it is testing
       # that the generated SQL query is valid.
       assert_equal Author.find(1).posts.count, Post.where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_with_enum
+      assert_equal Author.find(2), Author.joins(:reading_listing).where.missing(:unread_listing).first
     end
 
     def test_not_inverts_where_clause
