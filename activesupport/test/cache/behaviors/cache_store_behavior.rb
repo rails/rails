@@ -419,8 +419,13 @@ module CacheStoreBehavior
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")
     assert @cache.exist?(key)
-    assert @cache.delete(key)
+    assert_same true, @cache.delete(key)
     assert_not @cache.exist?(key)
+  end
+
+  def test_delete_returns_false_if_not_exist
+    key = SecureRandom.alphanumeric
+    assert_same false, @cache.delete(key)
   end
 
   def test_delete_multi

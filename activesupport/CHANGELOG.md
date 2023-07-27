@@ -1,3 +1,14 @@
+*   Make all cache stores return a boolean for `#delete`
+
+    Previously the `RedisCacheStore#delete` would return `1` if the entry
+    exists and `0` otherwise. Now it returns true if the entry exists and false
+    otherwise, just like the other stores.
+
+    The `FileStore` would return `nil` if the entry doesn't exists and returns
+    `false` now as well.
+
+    *Petrik de Heus*
+
 *   Active Support cache stores now support replacing the default compressor via
     a `:compressor` option. The specified compressor must respond to `deflate`
     and `inflate`. For example:
@@ -53,8 +64,6 @@
     ActiveSupport::KeyGenerator::Aes256Gcm(secret).inspect
     "#<ActiveSupport::KeyGenerator:0x0000000104888038>"
     ```
-
-    *Petrik de Heus*
 
 *   Improve error message when EventedFileUpdateChecker is used without a
     compatible version of the Listen gem

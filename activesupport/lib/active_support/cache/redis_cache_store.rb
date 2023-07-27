@@ -370,7 +370,7 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.then { |c| c.del key }
+            redis.then { |c| c.del(key) == 1 }
           end
         end
 

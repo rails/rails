@@ -128,6 +128,8 @@ module ActiveSupport
               raise if File.exist?(key)
               false
             end
+          else
+            false
           end
         end
 
