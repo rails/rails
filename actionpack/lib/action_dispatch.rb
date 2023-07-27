@@ -87,6 +87,7 @@ module ActionDispatch
     autoload :Static
   end
 
+  autoload :Constants
   autoload :Journey
   autoload :MiddlewareStack, "action_dispatch/middleware/stack"
   autoload :Routing
