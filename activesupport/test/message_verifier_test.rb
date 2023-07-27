@@ -113,6 +113,29 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_match(/\A#<ActiveSupport::MessageVerifier:0x[0-9a-f]+>\z/, @verifier.inspect)
   end
 
+  test "expired?" do
+    message = @verifier.generate("hi", expires_at: Time.now.utc + 10)
+    assert_not @verifier.expired?(message)
+    travel_to 1.hour.from_now do
+      assert @verifier.expired?(message)
+    end
+
+    message_without_expiry = @verifier.generate("hi")
+    assert_not @verifier.expired?(message_without_expiry)
+    travel_to 1.hour.from_now do
+      assert_not @verifier.expired?(message_without_expiry)
+    end
+
+    message = @verifier.generate("hi", expires_at: Time.now.utc + 10, purpose: "stuff")
+    assert_not @verifier.expired?(message, purpose: "stuff")
+    travel_to 1.hour.from_now do
+      assert @verifier.expired?(message, purpose: "stuff")
+    end
+    assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+      assert @verifier.expired?(message, purpose: "things")
+    end
+  end
+
   private
     def make_codec(**options)
       ActiveSupport::MessageVerifier.new(@secret, **options)

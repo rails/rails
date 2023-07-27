@@ -1,3 +1,17 @@
+*   Add `ActiveSupport::MessageVerifier#expired?`
+
+    Returns `true` if a message has expired, `false` if it is still valid.
+
+    ```ruby
+    verifier = ActiveSupport::MessageVerifier.new("secret")
+    message = verifier.generate("hello", expires_at: Time.now.tomorrow)
+    verifier.expired?(message) # false
+    # 24 hours later...
+    verifier.expired?(message) # true
+    ```
+
+    *Alex Ghiculescu*
+
 *   Make all cache stores return a boolean for `#delete`
 
     Previously the `RedisCacheStore#delete` would return `1` if the entry

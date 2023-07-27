@@ -167,7 +167,7 @@ module ActiveSupport
     #   tampered_message = signed_message.chop # editing the message invalidates the signature
     #   verifier.valid_message?(tampered_message) # => false
     def valid_message?(message)
-      !!catch_and_ignore(:invalid_message_format) { extract_encoded(message) }
+      !!catch_and_ignore(:expired_message) { catch_and_ignore(:invalid_message_format) { extract_encoded(message) } }
     end
 
     # Decodes the signed message using the +MessageVerifier+'s secret.
@@ -211,7 +211,9 @@ module ActiveSupport
       catch_and_ignore :invalid_message_format do
         catch_and_raise :invalid_message_serialization do
           catch_and_ignore :invalid_message_content do
-            read_message(message, **options)
+            catch_and_ignore :expired_message do
+              read_message(message, **options)
+            end
           end
         end
       end
@@ -249,7 +251,9 @@ module ActiveSupport
       catch_and_raise :invalid_message_format, as: InvalidSignature do
         catch_and_raise :invalid_message_serialization do
           catch_and_raise :invalid_message_content, as: InvalidSignature do
-            read_message(message, **options)
+            catch_and_raise :expired_message, as: InvalidSignature do
+              read_message(message, **options)
+            end
           end
         end
       end
@@ -291,6 +295,39 @@ module ActiveSupport
     #   (See #verified and #verify.)
     def generate(value, **options)
       create_message(value, **options)
+    end
+
+    # Returns if the message has expired.
+    #
+    #   verifier = ActiveSupport::MessageVerifier.new("secret")
+    #   message = verifier.generate("hello", expires_at: Time.now.tomorrow)
+    #   verifier.expired?(message) # false
+    #     # 24 hours later...
+    #   verifier.expired?(message) # true
+    #
+    # Raises +InvalidSignature+ if the message was not signed with the same
+    # secret or was not Base64-encoded.
+    #
+    #   other_verifier = ActiveSupport::MessageVerifier.new("different_secret")
+    #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
+    #
+    # ==== Options
+    #
+    # [+:purpose+]
+    #   The purpose that the message was generated with. If the purpose does not
+    #   match, +verify+ will raise ActiveSupport::MessageVerifier::InvalidSignature.
+    def expired?(message, **options)
+      catch_and_raise :invalid_message_format, as: InvalidSignature do
+        catch_and_raise :invalid_message_serialization do
+          catch_and_raise :invalid_message_content, as: InvalidSignature do
+            catch :expired_message do
+              read_message(message, **options)
+              return false
+            end
+            true
+          end
+        end
+      end
     end
 
     def create_message(value, **options) # :nodoc:

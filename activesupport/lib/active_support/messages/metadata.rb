@@ -72,7 +72,7 @@ module ActiveSupport
           hash = envelope["_rails"]
 
           if hash["exp"] && Time.now.utc >= parse_expiry(hash["exp"])
-            throw :invalid_message_content, "expired"
+            throw :expired_message, "expired"
           end
 
           if hash["pur"] != purpose&.to_s
