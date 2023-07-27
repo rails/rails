@@ -142,8 +142,8 @@ class Array
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <objects type="array">
   #     <object>
-  #       <bar type="integer">2</bar>
   #       <foo type="integer">1</foo>
+  #       <bar type="integer">2</bar>
   #     </object>
   #     <object>
   #       <baz type="integer">3</baz>
