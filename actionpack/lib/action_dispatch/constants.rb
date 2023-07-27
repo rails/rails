@@ -14,6 +14,7 @@ module ActionDispatch
       FEATURE_POLICY = "Feature-Policy"
       X_REQUEST_ID = "X-Request-Id"
       SERVER_TIMING = "Server-Timing"
+      STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
     else
       VARY = "vary"
       CONTENT_ENCODING = "content-encoding"
@@ -23,6 +24,7 @@ module ActionDispatch
       FEATURE_POLICY = "feature-policy"
       X_REQUEST_ID = "x-request-id"
       SERVER_TIMING = "server-timing"
+      STRICT_TRANSPORT_SECURITY = "strict-transport-security"
     end
   end
 end
