@@ -3,16 +3,22 @@
 require "abstract_unit"
 require "zlib"
 
-module StaticTests
+class StaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
     [200, { "Content-Type" => "text/plain" }, ["Hello, World!"]]
   }
+
+  def public_path
+    "public"
+  end
 
   def setup
     silence_warnings do
       @default_internal_encoding = Encoding.default_internal
       @default_external_encoding = Encoding.default_external
     end
+    @root = "#{FIXTURE_LOAD_PATH}/#{public_path}"
+    @app = build_app(DummyApp, @root, headers: { "Cache-Control" => "public, max-age=60" })
   end
 
   def teardown
@@ -239,8 +245,9 @@ module StaticTests
       "X-Custom-Header"             => "I'm a teapot"
     }
 
-    app      = ActionDispatch::Static.new(DummyApp, @root, headers: headers)
-    response = Rack::MockRequest.new(app).request("GET", "/foo/bar.html")
+    @app = build_app(DummyApp, @root, headers: headers)
+
+    response = get("/foo/bar.html")
 
     assert_equal "http://rubyonrails.org", response.headers["Access-Control-Allow-Origin"]
     assert_equal "public, max-age=60",     response.headers["Cache-Control"]
@@ -248,9 +255,36 @@ module StaticTests
   end
 
   def test_ignores_unknown_http_methods
-    app = ActionDispatch::Static.new(DummyApp, @root)
+    response = Rack::MockRequest.new(@app).request("BAD_METHOD", "/foo/bar.html")
+    assert_equal 200, response.status
+  end
 
-    assert_nothing_raised { Rack::MockRequest.new(app).request("BAD_METHOD", "/foo/bar.html") }
+  def test_custom_handler_called_when_file_is_outside_root
+    filename = "shared.html.erb"
+    assert File.exist?(File.join(@root, "..", filename))
+    env = {
+      "REQUEST_METHOD" => "GET",
+      "REQUEST_PATH" => "/..%2F#{filename}",
+      "PATH_INFO" => "/..%2F#{filename}",
+      "REQUEST_URI" => "/..%2F#{filename}",
+      "HTTP_VERSION" => "HTTP/1.1",
+      "SERVER_NAME" => "localhost",
+      "SERVER_PORT" => "8080",
+      "QUERY_STRING" => ""
+    }
+    assert_equal(DummyApp.call(nil), @app.call(env))
+  end
+
+  def test_non_default_static_index
+    @app = build_app(DummyApp, @root, index: "other-index")
+    assert_html "/other-index.html", get("/other-index.html")
+    assert_html "/other-index.html", get("/other-index")
+    assert_html "/other-index.html", get("/")
+    assert_html "/other-index.html", get("")
+    assert_html "/foo/other-index.html", get("/foo/other-index.html")
+    assert_html "/foo/other-index.html", get("/foo/other-index")
+    assert_html "/foo/other-index.html", get("/foo/")
+    assert_html "/foo/other-index.html", get("/foo")
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames
@@ -271,6 +305,10 @@ module StaticTests
   end
 
   private
+    def build_app(app, path, index: "index", headers: {})
+      ActionDispatch::Static.new(app, path, index: index, headers: headers)
+    end
+
     def assert_gzip(file_name, response)
       expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
       actual   = ActiveSupport::Gzip.decompress(response.body)
@@ -301,55 +339,7 @@ module StaticTests
     end
 end
 
-class StaticTest < ActiveSupport::TestCase
-  def setup
-    super
-    @root = "#{FIXTURE_LOAD_PATH}/public"
-    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { "Cache-Control" => "public, max-age=60" })
-  end
-
-  def public_path
-    "public"
-  end
-
-  include StaticTests
-
-  def test_custom_handler_called_when_file_is_outside_root
-    filename = "shared.html.erb"
-    assert File.exist?(File.join(@root, "..", filename))
-    env = {
-      "REQUEST_METHOD" => "GET",
-      "REQUEST_PATH" => "/..%2F#{filename}",
-      "PATH_INFO" => "/..%2F#{filename}",
-      "REQUEST_URI" => "/..%2F#{filename}",
-      "HTTP_VERSION" => "HTTP/1.1",
-      "SERVER_NAME" => "localhost",
-      "SERVER_PORT" => "8080",
-      "QUERY_STRING" => ""
-    }
-    assert_equal(DummyApp.call(nil), @app.call(env))
-  end
-
-  def test_non_default_static_index
-    @app = ActionDispatch::Static.new(DummyApp, @root, index: "other-index")
-    assert_html "/other-index.html", get("/other-index.html")
-    assert_html "/other-index.html", get("/other-index")
-    assert_html "/other-index.html", get("/")
-    assert_html "/other-index.html", get("")
-    assert_html "/foo/other-index.html", get("/foo/other-index.html")
-    assert_html "/foo/other-index.html", get("/foo/other-index")
-    assert_html "/foo/other-index.html", get("/foo/")
-    assert_html "/foo/other-index.html", get("/foo")
-  end
-end
-
 class StaticEncodingTest < StaticTest
-  def setup
-    super
-    @root = "#{FIXTURE_LOAD_PATH}/公共"
-    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { "Cache-Control" => "public, max-age=60" })
-  end
-
   def public_path
     "公共"
   end
