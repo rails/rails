@@ -1,3 +1,7 @@
+*   Add `tags` to `ActiveStorage::Analyzer::AudioAnalyzer` output
+
+    *Keaton Roux*
+
 *   Add an option to preprocess variants
 
     ActiveStorage variants are processed on the fly when they are needed but
