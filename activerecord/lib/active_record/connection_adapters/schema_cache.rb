@@ -278,10 +278,10 @@ module ActiveRecord
       end
 
       def encode_with(coder) # :nodoc:
-        coder["columns"]          = @columns
-        coder["primary_keys"]     = @primary_keys
-        coder["data_sources"]     = @data_sources
-        coder["indexes"]          = @indexes
+        coder["columns"]          = @columns.sort.to_h
+        coder["primary_keys"]     = @primary_keys.sort.to_h
+        coder["data_sources"]     = @data_sources.sort.to_h
+        coder["indexes"]          = @indexes.sort.to_h
         coder["version"]          = @version
         coder["database_version"] = @database_version
       end
