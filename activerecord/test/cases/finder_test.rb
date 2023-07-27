@@ -411,6 +411,34 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_include_when_non_AR_object_passed_on_unloaded_relation
+    assert_no_queries do
+      assert_equal false, Customer.where(name: "David").include?("I'm not an AR object")
+    end
+  end
+
+  def test_include_when_non_AR_object_passed_on_loaded_relation
+    customers = Customer.where(name: "David").load
+
+    assert_no_queries do
+      assert_equal false, customers.include?("I'm not an AR object")
+    end
+  end
+
+  def test_member_when_non_AR_object_passed_on_unloaded_relation
+    assert_no_queries do
+      assert_equal false, Customer.where(name: "David").member?("I'm not an AR object")
+    end
+  end
+
+  def test_member_when_non_AR_object_passed_on_loaded_relation
+    customers = Customer.where(name: "David").load
+
+    assert_no_queries do
+      assert_equal false, customers.member?("I'm not an AR object")
+    end
+  end
+
   def test_include_on_unloaded_relation_with_match
     assert_sql(/1 AS one.*LIMIT/) do
       assert_equal true, Customer.where(name: "David").include?(customers(:david))

@@ -352,6 +352,10 @@ module ActiveRecord
     # compared to the records in memory. If the relation is unloaded, an
     # efficient existence query is performed, as in #exists?.
     def include?(record)
+      # The existing implementation relies on receiving an Active Record instance as the input parameter named record.
+      # Any non-Active Record object passed to this implementation is guaranteed to return `false`.
+      return false unless record.is_a?(klass)
+
       if loaded? || offset_value || limit_value || having_clause.any?
         records.include?(record)
       else
@@ -360,7 +364,8 @@ module ActiveRecord
         else
           record.id
         end
-        record.is_a?(klass) && exists?(id)
+
+        exists?(id)
       end
     end
 
