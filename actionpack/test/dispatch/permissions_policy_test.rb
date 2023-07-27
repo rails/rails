@@ -76,7 +76,7 @@ class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
 
     get "/index"
 
-    assert_equal "gyroscope 'self'", response.headers[ActionDispatch::PermissionsPolicy::Middleware::POLICY]
+    assert_equal "gyroscope 'self'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
   end
 
   test "non-html requests will not set a policy" do
@@ -84,15 +84,15 @@ class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
 
     get "/index"
 
-    assert_nil response.headers[ActionDispatch::PermissionsPolicy::Middleware::POLICY]
+    assert_nil response.headers[ActionDispatch::Constants::FEATURE_POLICY]
   end
 
   test "existing policies will not be overwritten" do
-    @app = build_app(->(env) { [200, { ActionDispatch::PermissionsPolicy::Middleware::POLICY => "gyroscope 'none'" }, []] })
+    @app = build_app(->(env) { [200, { ActionDispatch::Constants::FEATURE_POLICY => "gyroscope 'none'" }, []] })
 
     get "/index"
 
-    assert_equal "gyroscope 'none'", response.headers[ActionDispatch::PermissionsPolicy::Middleware::POLICY]
+    assert_equal "gyroscope 'none'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
   end
 
   private
@@ -289,6 +289,6 @@ class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationT
 
     def assert_policy(expected)
       assert_response :success
-      assert_equal expected, response.headers["Feature-Policy"]
+      assert_equal expected, response.headers[ActionDispatch::Constants::FEATURE_POLICY]
     end
 end

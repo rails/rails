@@ -5,7 +5,7 @@ require "rack/test"
 
 module ApplicationTests
   class PermissionsPolicyTest < ActiveSupport::TestCase
-    POLICY = ActionDispatch::PermissionsPolicy::Middleware::POLICY
+    POLICY = ActionDispatch::Constants::FEATURE_POLICY
 
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods

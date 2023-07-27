@@ -38,7 +38,7 @@ module ActionDispatch
         [302, {
           Rack::CONTENT_TYPE => "text/html; charset=#{Response.default_charset}",
           Rack::CONTENT_LENGTH => body.bytesize.to_s,
-          ActionDispatch::Response::LOCATION => location,
+          ActionDispatch::Constants::LOCATION => location,
         }, [body]]
       end
   end

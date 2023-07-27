@@ -21,19 +21,13 @@ module ActionDispatch # :nodoc:
   #     policy.payment     :self, "https://secure.example.com"
   #   end
   #
+  # The Feature-Policy header has been renamed to Permissions-Policy.
+  # The Permissions-Policy requires a different implementation and isn't
+  # yet supported by all browsers. To avoid having to rename this
+  # middleware in the future we use the new name for the middleware but
+  # keep the old header name and implementation for now.
   class PermissionsPolicy
     class Middleware
-      # The Feature-Policy header has been renamed to Permissions-Policy.
-      # The Permissions-Policy requires a different implementation and isn't
-      # yet supported by all browsers. To avoid having to rename this
-      # middleware in the future we use the new name for the middleware but
-      # keep the old header name and implementation for now.
-      if Gem::Version.new(Rack::RELEASE) >= Gem::Version.new("3")
-        POLICY = "feature-policy"
-      else
-        POLICY = "Feature-Policy"
-      end
-
       def initialize(app)
         @app = app
       end
@@ -47,11 +41,11 @@ module ActionDispatch # :nodoc:
         request = ActionDispatch::Request.new(env)
 
         if policy = request.permissions_policy
-          headers[POLICY] = policy.build(request.controller_instance)
+          headers[ActionDispatch::Constants::FEATURE_POLICY] = policy.build(request.controller_instance)
         end
 
         if policy_empty?(policy)
-          headers.delete(POLICY)
+          headers.delete(ActionDispatch::Constants::FEATURE_POLICY)
         end
 
         response
@@ -65,7 +59,7 @@ module ActionDispatch # :nodoc:
         end
 
         def policy_present?(headers)
-          headers[POLICY]
+          headers[ActionDispatch::Constants::FEATURE_POLICY]
         end
 
         def policy_empty?(policy)
