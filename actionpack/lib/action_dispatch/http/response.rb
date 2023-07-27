@@ -38,14 +38,10 @@ module ActionDispatch # :nodoc:
       # For `Rack::Headers` (Rack 3+):
       require "rack/headers"
       Headers = ::Rack::Headers
-
-      LOCATION = "location"
     rescue LoadError
       # For `Rack::Utils::HeaderHash`:
       require "rack/utils"
       Headers = ::Rack::Utils::HeaderHash
-
-      LOCATION = "Location"
     end
 
     # To be deprecated:
