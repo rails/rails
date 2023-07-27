@@ -65,7 +65,7 @@
     "#<ActiveSupport::KeyGenerator:0x0000000104888038>"
     ```
 
-    *Petrik de Heus* 
+    *Petrik de Heus*
 
 *   Improve error message when EventedFileUpdateChecker is used without a
     compatible version of the Listen gem
