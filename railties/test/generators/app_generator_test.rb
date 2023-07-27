@@ -537,9 +537,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory("test")
   end
 
+  def test_skip_git
+    run_generator [destination_root, "--skip-git"]
+
+    assert_no_file(".gitignore")
+    assert_no_file(".gitattributes")
+    assert_no_directory(".git")
+  end
+
+  def test_no_skip_git
+    run_generator [destination_root, "--no-skip-git"]
+
+    assert_file ".gitignore"
+    assert_file ".gitattributes"
+    assert_file ".git"
+  end
+
   def test_generator_if_skip_jbuilder_is_given
     run_generator [destination_root, "--skip-jbuilder"]
     assert_no_gem "jbuilder"
+  end
+
+  def test_generator_if_no_skip_jbuilder_is_given
+    run_generator [destination_root, "--no-skip-jbuilder"]
+
+    assert_gem "jbuilder"
   end
 
   def test_generator_if_skip_active_job_is_given
@@ -822,7 +844,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_hotwire
-    run_generator_and_bundler [destination_root]
+    run_generator_and_bundler [destination_root, "--no-skip-hotwire"]
     assert_gem "turbo-rails"
     assert_gem "stimulus-rails"
     assert_file "app/views/layouts/application.html.erb" do |content|
