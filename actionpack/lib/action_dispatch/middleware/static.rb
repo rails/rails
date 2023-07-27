@@ -50,6 +50,14 @@ module ActionDispatch
       "identity" => nil
     }
 
+    if Gem::Version.new(Rack::RELEASE) < Gem::Version.new("3")
+      VARY = "Vary"
+      CONTENT_ENCODING = "Content-Encoding"
+    else
+      VARY = "vary"
+      CONTENT_ENCODING = "content-encoding"
+    end
+
     def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript)/)
       @root = root.chomp("/").b
       @index = index
@@ -128,10 +136,10 @@ module ActionDispatch
             if content_encoding == "identity"
               return precompressed_filepath, headers
             else
-              headers["vary"] = "accept-encoding"
+              headers[VARY] = "accept-encoding"
 
               if accept_encoding.any? { |enc, _| /\b#{content_encoding}\b/i.match?(enc) }
-                headers["content-encoding"] = content_encoding
+                headers[CONTENT_ENCODING] = content_encoding
                 return precompressed_filepath, headers
               end
             end
