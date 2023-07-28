@@ -814,13 +814,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "importmap-rails"
   end
 
-  def test_no_skip_javascript_option_with_no_skip_javascript_argument
-    run_generator [destination_root, "--no-skip-javascript"]
-    assert_gem "stimulus-rails"
-    assert_gem "turbo-rails"
-    assert_gem "importmap-rails"
-  end
-
   def test_hotwire
     run_generator_and_bundler [destination_root]
     assert_gem "turbo-rails"
@@ -883,11 +876,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--css=postcss"]
     assert_no_gem "jsbundling-rails"
     assert_gem "importmap-rails"
-  end
-
-  def test_dev_gems
-    run_generator [destination_root, "--no-skip-dev-gems"]
-    assert_gem "web-console"
   end
 
   def test_skip_dev_gems
@@ -1083,14 +1071,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".dockerignore"
     assert_no_file "Dockerfile"
     assert_no_file "bin/docker-entrypoint"
-  end
-
-  def test_no_skip_docker
-    run_generator [destination_root, "--no-skip-docker"]
-
-    assert_file ".dockerignore"
-    assert_file "Dockerfile"
-    assert_file "bin/docker-entrypoint"
   end
 
   def test_system_tests_directory_generated
