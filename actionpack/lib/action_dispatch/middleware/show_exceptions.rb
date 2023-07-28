@@ -71,7 +71,8 @@ module ActionDispatch
       end
 
       def pass_response(status)
-        [status, { "Content-Type" => "text/html; charset=#{Response.default_charset}", "Content-Length" => "0" }, []]
+        [status, { Rack::CONTENT_TYPE => "text/html; charset=#{Response.default_charset}",
+                  Rack::CONTENT_LENGTH => "0" }, []]
       end
   end
 end
