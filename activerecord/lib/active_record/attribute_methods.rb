@@ -82,29 +82,118 @@ module ActiveRecord
 
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         method_name = pattern.method_name(new_name).to_s
-        target_name = pattern.method_name(old_name).to_s
-        parameters = pattern.parameters
         old_name = old_name.to_s
 
-        method_defined = method_defined?(target_name) || private_method_defined?(target_name)
-        manually_defined = method_defined && self.instance_method(target_name).owner != generated_attribute_methods
-        reserved_method_name = ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(target_name)
+        # In 7.2, this will always define_proxy_call.
+        #
+        # Until then, there's a few nuances to consider.
+        #
+        # If the target method hasn't been redefined by the user, we can
+        # go with define_proxy_call.
+        #
+        # If they've redefined method_name as well, there's nothing for
+        # us to do -- in 7.0, our definition was already there by now,
+        # and they've replaced it.
+        #
+        # Otherwise, with the target redefined but the aliasing still
+        # our responsibility, we need a deprecation warning. For that,
+        # we want to check for a few specific patterns so we can give
+        # the most helpful warning possible.
 
-        if manually_defined && !reserved_method_name
-          aliased_method_redefined_as_well = method_defined_within?(method_name, self)
-          return if aliased_method_redefined_as_well
+        aliased_method_redefined = method_defined_within?(method_name, self)
 
-          ActiveRecord.deprecator.warn(
-            "#{self} model aliases `#{old_name}` and has a method called `#{target_name}` defined. " \
-            "Starting in Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore. " \
-            "You may want to additionally define `#{method_name}` to preserve the current behavior."
-          )
-          super
-        else
-          define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
+        if aliased_method_redefined
+          # Not much for us to do here? The user has already (re)defined
+          # the method we were going to create.
+
+          # TODO: While not necessary for backwards compatibility, we
+          # should probably still define the method to ensure perfect
+          # forward compatibility when we stop checking this in 7.2.
+
+          return
+        end
+
+        # If the target method (including any further aliases) hasn't
+        # been redefined by the user, we can go with define_proxy_call.
+        # To establish that, we need to walk the chain of aliases.
+
+        all_targets_are_attribute_methods = true
+
+        far_name = next_name = old_name
+        while next_name
+          far_name = next_name
+
+          far_target = pattern.method_name(far_name).to_s
+          far_method = (instance_method(far_target) if method_defined?(far_target) || private_method_defined?(far_target))
+          if far_method
+            unless far_method.owner == generated_attribute_methods || far_method.owner == ActiveRecord::AttributeMethods::PrimaryKey
+              all_targets_are_attribute_methods = false
+              break
+            end
+          elsif attribute_aliases.key?(far_name)
+            # walk past a missing method in the alias chain: it might not be defined yet
+          else
+            all_targets_are_attribute_methods = false
+            break
+          end
+
+          next_name = attribute_aliases[far_name]
+        end
+
+        if all_targets_are_attribute_methods && has_attribute?(far_name)
+          define_proxy_call(code_generator, method_name, pattern.proxy_target, pattern.parameters, far_name,
             namespace: :proxy_alias_attribute
           )
+          return
         end
+
+        # We hit a non-attribute method, so we need a warning.
+
+        if far_method
+          # We found a method that doesn't belong to us
+
+          alias_chain = far_name == old_name ? "" : ", which in turn aliases to `#{far_name}`"
+          intro = "#{self} uses `alias_attribute :#{new_name}, :#{old_name}`#{alias_chain}"
+
+          if has_attribute?(far_name)
+            # It's an attribute, this is just an overridden method
+
+            where = far_method.owner == self ? "" : " in #{far_method.owner}"
+
+            ActiveRecord.deprecator.warn(
+              "#{intro}, and also overrides the `#{far_target}` method#{where}. " \
+              "In Rails 7.2, `#{method_name}` will directly access the `#{far_name}` attribute value instead of calling the method; " \
+              "explicitly forward or alias `#{method_name}` to `#{far_target}` to preserve the current behavior."
+            )
+
+          elsif reflect_on_association(far_name)
+            # Common anti-pattern: using alias_attribute to alias an association
+
+            ActiveRecord.deprecator.warn(
+              "#{intro}, but `#{far_name}` is an association. " \
+              "In Rails 7.2, alias_attribute will no longer work with associations; " \
+              "use `alias_association :#{new_name}, :#{far_name}` instead."
+            )
+
+          else
+            # Also anti-pattern: using alias_attribute to alias a plain method
+
+            ActiveRecord.deprecator.warn(
+              "#{intro}, but `#{far_name}` is not an attribute. " \
+              "In Rails 7.2, alias_attribute will no longer work with non-attributes; " \
+              "define `#{method_name}` or use `alias_method :#{method_name}, :#{far_target}` instead."
+            )
+          end
+        else
+          # We didn't find a method at all
+
+          # TODO: We should warn about this too. Either it's a typo, or
+          # it indicates a possible backwards compatibility issue we
+          # haven't directly addressed, like a target that's being provided
+          # by method_missing.
+        end
+
+        super
       end
 
       # Generates all the attribute related methods for columns in the database
