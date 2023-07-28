@@ -125,14 +125,22 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def self.build_app(app, *args)
+    Rack::Lint.new(
+      ActionDispatch::DebugExceptions.new(
+        Rack::Lint.new(app), *args,
+      ),
+    )
+  end
+
   Interceptor = proc { |request, exception| request.set_header("int", exception) }
   BadInterceptor = proc { |request, exception| raise "bad" }
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
-  ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
-  DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
-  InterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [Interceptor])
-  BadInterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
-  ApiApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+  ProductionApp  = build_app(Boomer.new(false), RoutesApp)
+  DevelopmentApp = build_app(Boomer.new(true), RoutesApp)
+  InterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [Interceptor])
+  BadInterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
+  ApiApp = build_app(Boomer.new(true), RoutesApp, :api)
 
   test "skip diagnosis if not showing detailed exceptions" do
     @app = ProductionApp
@@ -446,7 +454,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = DevelopmentApp
 
     get "/", headers: { "action_dispatch.show_exceptions" => :all }
-    assert_equal "text/html; charset=utf-8", response.headers["Content-Type"]
+    assert_equal "text/html; charset=utf-8", response.headers["content-type"]
   end
 
   test "uses logger from env" do
