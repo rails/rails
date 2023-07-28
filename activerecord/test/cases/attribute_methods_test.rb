@@ -1153,6 +1153,23 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  ToBeLoadedFirst = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :author_name
+  end
+
+  ToBeLoadedSecond = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :subject, :title
+  end
+
+  test "aliases to the same attribute name do not conflict with each other" do
+    first_model_object = ToBeLoadedFirst.new(author_name: "author 1")
+    assert_equal("author 1", first_model_object.subject)
+    second_model_object = ToBeLoadedSecond.new(title: "foo")
+    assert_equal("foo", second_model_object.subject)
+  end
+
   test "#alias_attribute with an overridden original method issues a deprecation" do
     message = <<~MESSAGE.gsub("\n", " ")
     AttributeMethodsTest::ClassWithDeprecatedAliasAttributeBehavior model aliases `title` and has a method called

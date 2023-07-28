@@ -101,7 +101,7 @@ module ActiveRecord
           super
         else
           define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
-            namespace: :proxy_alias_attribute
+            namespace: "proxy_alias_attribute_for_#{old_name}"
           )
         end
       end
