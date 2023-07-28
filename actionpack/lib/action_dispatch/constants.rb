@@ -11,12 +11,14 @@ module ActionDispatch
       LOCATION = "Location"
       FEATURE_POLICY = "Feature-Policy"
       X_REQUEST_ID = "X-Request-Id"
+      SERVER_TIMING = "Server-Timing"
     else
       VARY = "vary"
       CONTENT_ENCODING = "content-encoding"
       LOCATION = "location"
       FEATURE_POLICY = "feature-policy"
       X_REQUEST_ID = "x-request-id"
+      SERVER_TIMING = "server-timing"
     end
   end
 end
