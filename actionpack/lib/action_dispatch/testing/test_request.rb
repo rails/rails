@@ -32,7 +32,7 @@ module ActionDispatch
     end
 
     def port=(number)
-      set_header("SERVER_PORT", number.to_i)
+      set_header("SERVER_PORT", number)
     end
 
     def request_uri=(uri)
