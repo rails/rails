@@ -50,7 +50,7 @@ module ActionDispatch
         request.path_info = "/#{status}"
         request.request_method = "GET"
         response = @exceptions_app.call(request.env)
-        response[1]["X-Cascade"] == "pass" ? pass_response(status) : response
+        response[1][Constants::X_CASCADE] == "pass" ? pass_response(status) : response
       rescue Exception => failsafe_error
         $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
 

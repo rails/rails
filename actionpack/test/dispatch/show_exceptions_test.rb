@@ -117,9 +117,9 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "YOU FAILED", body
   end
 
-  test "returns an empty response if custom exceptions app returns X-Cascade pass" do
+  test "returns an empty response if custom exceptions app returns x-cascade pass" do
     exceptions_app = lambda do |env|
-      [404, { "X-Cascade" => "pass" }, []]
+      [404, { ActionDispatch::Constants::X_CASCADE => "pass" }, []]
     end
 
     @app = ActionDispatch::ShowExceptions.new(Boomer.new, exceptions_app)
