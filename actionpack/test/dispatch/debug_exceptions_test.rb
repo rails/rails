@@ -61,7 +61,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       case req.path
       when "/pass"
-        [404, { "X-Cascade" => "pass" }, self]
+        [404, { ActionDispatch::Constants::X_CASCADE => "pass" }, self]
       when "/not_found"
         controller = SimpleController.new
         raise AbstractController::ActionNotFound.new(nil, controller, :ello)

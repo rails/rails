@@ -13,6 +13,7 @@ module ActionDispatch
       LOCATION = "Location"
       FEATURE_POLICY = "Feature-Policy"
       X_REQUEST_ID = "X-Request-Id"
+      X_CASCADE = "X-Cascade"
       SERVER_TIMING = "Server-Timing"
       STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
     else
@@ -23,6 +24,7 @@ module ActionDispatch
       LOCATION = "location"
       FEATURE_POLICY = "feature-policy"
       X_REQUEST_ID = "x-request-id"
+      X_CASCADE = "x-cascade"
       SERVER_TIMING = "server-timing"
       STRICT_TRANSPORT_SECURITY = "strict-transport-security"
     end

@@ -46,7 +46,7 @@ module ActionDispatch
         end
 
         def serve(req)
-          return [ 404, { "X-Cascade" => "pass" }, [] ] unless matches?(req)
+          return [ 404, { Constants::X_CASCADE => "pass" }, [] ] unless matches?(req)
 
           @strategy.call @app, req
         end
