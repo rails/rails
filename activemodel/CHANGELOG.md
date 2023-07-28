@@ -1,3 +1,8 @@
+*   Raise an `ArgumentError` when attempting to cast a non-datetime string value in `ActiveModel::Type::DateTime`.
+    Previously, it would produce `nil` without error.
+
+    *Eddie Lebow*
+
 *   Add a load hook for `ActiveModel::Model` (named `active_model`) to match the load hook for `ActiveRecord::Base` and
     allow for overriding aspects of the `ActiveModel::Model` class.
 

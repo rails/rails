@@ -4,7 +4,7 @@ witty_retort:
   developer_id: 1
   content: Birdman is better!
   created_at: <%= 6.hours.ago.to_fs(:db) %>
-  updated_at: nil
+  updated_at: null
 
 another:
   id: 2
@@ -12,4 +12,4 @@ another:
   developer_id: 1
   content: Nuh uh!
   created_at: <%= 1.hour.ago.to_fs(:db) %>
-  updated_at: nil
+  updated_at: null

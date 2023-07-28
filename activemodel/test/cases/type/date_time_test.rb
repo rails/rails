@@ -8,10 +8,11 @@ module ActiveModel
       def test_type_cast_datetime_and_timestamp
         type = Type::DateTime.new
         assert_nil type.cast(nil)
-        assert_nil type.cast("")
-        assert_nil type.cast("  ")
-        assert_nil type.cast("ABC")
-        assert_nil type.cast(" " * 129)
+
+        assert_raises(ArgumentError, match: /Could not parse/) { type.cast("") }
+        assert_raises(ArgumentError, match: /Could not parse/) { type.cast("  ") }
+        assert_raises(ArgumentError, match: /Could not parse/) { type.cast("ABC") }
+        assert_raises(ArgumentError, match: /exceeds the limit/) { type.cast(" " * 129) }
 
         datetime_string = ::Time.now.utc.strftime("%FT%T")
         assert_equal datetime_string, type.cast(datetime_string).strftime("%FT%T")
@@ -21,7 +22,7 @@ module ActiveModel
         ["UTC", "US/Eastern"].each do |zone|
           with_timezone_config default: zone do
             type = Type::DateTime.new
-            assert_equal ::Time.utc(2013, 9, 4, 0, 0, 0), type.cast("Wed, 04 Sep 2013 03:00:00 EAT")
+            assert_equal ::DateTime.new(2013, 9, 4, 0, 0, 0.005, 0), type.cast("Wed, 04 Sep 2013 03:00:00.0050 EAT")
           end
         end
       end

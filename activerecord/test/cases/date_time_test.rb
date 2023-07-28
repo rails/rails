@@ -37,9 +37,7 @@ class DateTimeTest < ActiveRecord::TestCase
 
   def test_assign_empty_date_time
     task = Task.new
-    task.starting = ""
     task.ending = nil
-    assert_nil task.starting
     assert_nil task.ending
   end
 

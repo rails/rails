@@ -53,7 +53,6 @@ module ActiveModel
       private
         def cast_value(value)
           return apply_seconds_precision(value) unless value.is_a?(::String)
-          return if value.empty?
 
           fast_string_to_time(value) || fallback_string_to_time(value)
         end
@@ -65,11 +64,9 @@ module ActiveModel
         end
 
         def fallback_string_to_time(string)
-          time_hash = begin
-            ::Date._parse(string)
-          rescue ArgumentError
-          end
-          return unless time_hash
+          time_hash = ::Date._parse(string)
+
+          raise ArgumentError, "Could not parse time from string #{string}" if time_hash.blank?
 
           time_hash[:sec_fraction] = microseconds(time_hash)
 

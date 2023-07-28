@@ -83,7 +83,6 @@ module ActiveRecord
       topics(:first).update!(parent_id: 0, written_on: nil, bonus_time: nil, last_read: nil)
       assert_empty Topic.where(parent_id: Object.new)
       assert_empty Topic.where(parent_id: "not-a-number")
-      assert_empty Topic.where(written_on: "")
       assert_empty Topic.where(bonus_time: "")
       assert_empty Topic.where(last_read: "")
     end

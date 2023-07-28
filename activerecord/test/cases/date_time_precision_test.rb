@@ -178,7 +178,7 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
       end
 
       assert_nil Foo.create!(happened_at: nil).happened_at
-      assert_nil Foo.create!(happened_at: "").happened_at
+      assert_raises(ArgumentError, match: /Could not parse/) { Foo.create!(happened_at: "") }
     end
 
     def test_writing_a_date_attribute
