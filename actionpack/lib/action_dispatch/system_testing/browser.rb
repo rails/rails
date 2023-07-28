@@ -33,9 +33,9 @@ module ActionDispatch
       def preload
         case type
         when :chrome
-          ::Selenium::WebDriver::Chrome::Service.driver_path&.call
+          ::Selenium::WebDriver::Chrome::Service.driver_path.try(:call)
         when :firefox
-          ::Selenium::WebDriver::Firefox::Service.driver_path&.call
+          ::Selenium::WebDriver::Firefox::Service.driver_path.try(:call)
         end
       end
 
