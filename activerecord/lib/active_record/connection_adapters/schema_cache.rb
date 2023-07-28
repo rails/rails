@@ -130,7 +130,7 @@ module ActiveRecord
 
           if self.class.check_schema_cache_dump_version
             begin
-              current_version = connection.migration_context.current_version
+              current_version = connection.schema_version
 
               if new_cache.version(connection) != current_version
                 warn "Ignoring #{@cache_path} because it has expired. The current schema version is #{current_version}, but the one in the schema cache file is #{new_cache.schema_version}."
@@ -375,7 +375,7 @@ module ActiveRecord
       end
 
       def version(connection)
-        @version ||= connection.migration_context.current_version
+        @version ||= connection.schema_version
       end
 
       def schema_version
