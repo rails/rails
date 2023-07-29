@@ -14,8 +14,8 @@ gem "rake", ">= 13"
 
 gem "sprockets-rails", ">= 2.0.0"
 gem "propshaft", ">= 0.1.7"
-gem "capybara", ">= 3.38"
-gem "selenium-webdriver", ">= 4.0.0"
+gem "capybara", ">= 3.39"
+gem "selenium-webdriver", ">= 4.11.0"
 
 gem "rack-cache", "~> 1.2"
 gem "stimulus-rails"
@@ -120,10 +120,6 @@ end
 # Action Mailbox
 gem "aws-sdk-sns", require: false
 gem "webmock"
-
-group :ujs do
-  gem "webdrivers"
-end
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
