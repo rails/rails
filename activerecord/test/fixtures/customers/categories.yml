@@ -1,0 +1,8 @@
+_fixture:
+  model_class: Customers::Category
+
+new:
+  label: New customers
+
+loyal:
+  label: Loyal customers
