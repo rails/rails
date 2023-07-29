@@ -407,6 +407,30 @@ module ActiveRecord
         assert_same coder["columns"], schema_cache.instance_variable_get(:@columns)
       end
 
+      test "#encode_with sorts members" do
+        values = [["z", nil], ["y", nil], ["x", nil]]
+        expected = values.sort.to_h
+
+        coder = {
+          "columns" => values,
+          "primary_keys" => values,
+          "data_sources" => values,
+          "indexes" => values,
+          "deduplicated" => true
+        }
+
+        schema_cache = SchemaCache.allocate
+        schema_cache.init_with(coder)
+        schema_cache.encode_with(coder)
+
+        assert_equal expected, coder["columns"]
+        assert_equal expected, coder["primary_keys"]
+        assert_equal expected, coder["data_sources"]
+        assert_equal expected, coder["indexes"]
+        assert coder.key?("version")
+        assert coder.key?("database_version")
+      end
+
       private
         def schema_dump_path
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"
