@@ -420,7 +420,7 @@ module ActiveRecord
       @_destroy_callback_already_called ||= false
       return if @_destroy_callback_already_called
       @_destroy_callback_already_called = true
-      _run_destroy_callbacks { super }
+      run_destroy_callbacks { super }
     rescue RecordNotDestroyed => e
       @_association_destroy_exception = e
       false
@@ -447,6 +447,16 @@ module ActiveRecord
 
     def _update_record
       _run_update_callbacks { record_update_timestamps { super } }
+    end
+
+    def run_destroy_callbacks(&block)
+      if persisted?
+        _run_destroy_callbacks(&block)
+      else
+        run_callbacks(:destroy, :before) do
+          run_callbacks(:destroy, :around, &block)
+        end
+      end
     end
   end
 end

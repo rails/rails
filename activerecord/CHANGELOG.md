@@ -1,3 +1,10 @@
+*   Skip `after_destroy` callbacks if a record has not been persisted.
+
+    Before, if a non-persisted record was destroyed, `after_destroy` callbacks would run.
+    Now, only `before_destroy` and `around_destroy` callbacks will run for non-persisted records.
+
+    *Joshua Young*
+
 *   Fix `#previously_new_record?` to return true for destroyed records.
 
     Before, if a record was created and then destroyed, `#previously_new_record?` would return true.

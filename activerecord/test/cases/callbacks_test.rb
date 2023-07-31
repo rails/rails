@@ -146,6 +146,16 @@ class CallbackHaltedDeveloper < ActiveRecord::Base
   after_destroy { @after_destroy_called = true }
 end
 
+class DeveloperWithDestroyCallbacks < ActiveRecord::Base
+  self.table_name = "developers"
+
+  attr_accessor  :before_destroy_called, :around_destroy_called, :after_destroy_called
+
+  before_destroy { @before_destroy_called = true }
+  around_destroy { @around_destroy_called = true }
+  after_destroy  { @after_destroy_called  = true }
+end
+
 class CallbacksTest < ActiveRecord::TestCase
   fixtures :developers
 
@@ -439,6 +449,17 @@ class CallbacksTest < ActiveRecord::TestCase
     assert_not someone.destroy
     assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
     assert_not someone.after_destroy_called
+  end
+
+  def test_after_destroy_on_non_persisted_record
+    dev = DeveloperWithDestroyCallbacks.new
+    assert dev.valid?
+    assert_not dev.persisted?
+
+    assert_nil dev.destroy
+    assert dev.before_destroy_called
+    assert dev.around_destroy_called
+    assert_not dev.after_destroy_called
   end
 
   def test_callback_throwing_abort
