@@ -95,7 +95,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   test "touch account" do
     previous_account_updated_at  = @entry_with_message.account.updated_at
     previous_entry_updated_at    = @entry_with_message.updated_at
-    previous_messsage_updated_at = @entry_with_message.entryable.updated_at
+    previous_message_updated_at  = @entry_with_message.entryable.updated_at
 
     travel 5.seconds do
       Recipient.create! message: @entry_with_message.entryable, email_address: "test@test.com"
@@ -103,7 +103,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
     assert_not_equal @entry_with_message.reload.account.updated_at, previous_account_updated_at
     assert_not_equal @entry_with_message.reload.updated_at, previous_entry_updated_at
-    assert_not_equal @entry_with_message.reload.entryable.updated_at, previous_messsage_updated_at
+    assert_not_equal @entry_with_message.reload.entryable.updated_at, previous_message_updated_at
   end
 
   test "builder method" do

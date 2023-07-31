@@ -507,7 +507,7 @@ for detailed changes.
 
 * Calling `update_attributes` will now throw an `ArgumentError` whenever it
   gets a `nil` argument. More specifically, it will throw an error if the
-  argument that it gets passed does not respond to to
+  argument that it gets passed does not respond to
   `stringify_keys`. ([Pull Request](https://github.com/rails/rails/pull/9860))
 
 * `CollectionAssociation#first`/`#last` (e.g. `has_many`) use a `LIMIT`ed
