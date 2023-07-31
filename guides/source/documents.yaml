@@ -71,7 +71,6 @@
       description: >
         Action View is responsible for generating the HTML for web responses.
         This guide provides an introduction to Action View.
-      work_in_progress: true
     -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
@@ -130,12 +129,10 @@
         emails from your application, and many internals of Action Mailer.
     -
       name: Action Mailbox Basics
-      work_in_progress: true
       url: action_mailbox_basics.html
       description: This guide describes how to use Action Mailbox to receive emails.
     -
       name: Action Text Overview
-      work_in_progress: true
       url: action_text_overview.html
       description: This guide describes how to use Action Text to handle rich text content.
     -
@@ -162,13 +159,6 @@
         the same style and form as the rest of your Rails application. This
         guide explains how Action Cable works, and how to use WebSockets to
         create real-time features.
-    -
-      name: Webpacker
-      url: webpacker.html
-      description: >
-        This guide will show you how to install and use Webpacker to package
-        JavaScript, CSS, and other assets for the client-side of your Rails
-        application.
 -
   name: Digging Deeper
   documents:
@@ -219,7 +209,6 @@
         JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
     -
       name: The Rails Initialization Process
-      work_in_progress: true
       url: initialization.html
       description: >
         This guide explains the internals of the initialization process in
@@ -239,7 +228,6 @@
       description: This guide is an introduction to speeding up your Rails application with caching.
     -
       name: Active Support Instrumentation
-      work_in_progress: true
       url: active_support_instrumentation.html
       description: This guide explains how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
     -
@@ -248,7 +236,6 @@
       description: This guide explains how to effectively use Rails to develop a JSON API application.
     -
       name: Active Record and PostgreSQL
-      work_in_progress: true
       url: active_record_postgresql.html
       description: This guide covers PostgreSQL specific usage of Active Record.
     -
@@ -257,7 +244,6 @@
       description: This guide covers using multiple databases in your application.
     -
       name: Active Record Encryption
-      work_in_progress: true
       url: active_record_encryption.html
       description: This guide covers encrypting your database information using Active Record.
 
@@ -266,7 +252,6 @@
   documents:
     -
       name: The Basics of Creating Rails Plugins
-      work_in_progress: true
       url: plugins.html
       description: This guide covers how to build a plugin to extend the functionality of Rails.
     -
@@ -285,7 +270,6 @@
         additional functionality to their host applications. In this guide you
         will learn how to create your own engine and integrate it with a host
         application.
-      work_in_progress: true
     -
       name: Rails Application Templates
       url: rails_application_templates.html
@@ -293,13 +277,11 @@
         Application templates are simple Ruby files containing DSL for adding
         gems, initializers, etc. to your freshly created Rails project or an
         existing Rails project.
-      work_in_progress: true
 
     -
       name: Threading and Code Execution in Rails
       url: threading_and_code_execution.html
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
-      work_in_progress: true
 -
   name: Contributing
   documents:
