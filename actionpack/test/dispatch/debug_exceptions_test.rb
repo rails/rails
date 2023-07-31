@@ -165,7 +165,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test "closes the response body on cascade pass" do
     boomer = Boomer.new(false)
-    @app = ActionDispatch::DebugExceptions.new(boomer)
+    @app = self.class.build_app(boomer)
     assert_raise ActionController::RoutingError do
       get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
     end
