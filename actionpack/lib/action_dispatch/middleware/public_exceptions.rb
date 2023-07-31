@@ -55,7 +55,7 @@ module ActionDispatch
         if found || File.exist?(path)
           render_format(status, "text/html", File.read(path))
         else
-          [404, { "X-Cascade" => "pass" }, []]
+          [404, { Constants::X_CASCADE => "pass" }, []]
         end
       end
   end

@@ -2413,8 +2413,9 @@ Specifies which serialization format to use for the cache. Possible values are
 
 `7.0` serializes cache entries more efficiently.
 
-`7.1` further improves efficiency, and includes an optimization for bare string
-values such as view fragments.
+`7.1` further improves efficiency, and allows expired and version-mismatched
+cache entries to be detected without deserializing their values. It also
+includes an optimization for bare string values such as view fragments.
 
 All formats are backward and forward compatible, meaning cache entries written
 in one format can be read when using another format. This behavior makes it
@@ -3611,7 +3612,7 @@ evented file system monitor to detect changes when reloading is enabled:
 
 ```ruby
 group :development do
-  gem 'listen', '~> 3.3'
+  gem 'listen', '~> 3.5'
 end
 ```
 

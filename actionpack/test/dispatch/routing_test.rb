@@ -430,19 +430,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "queenbee#index", @response.body
 
     get "/admin", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
 
     get "/admin/accounts", headers: { "REMOTE_ADDR" => "192.168.1.100" }
     assert_equal "queenbee#accounts", @response.body
 
     get "/admin/accounts", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
 
     get "/admin/passwords", headers: { "REMOTE_ADDR" => "192.168.1.100" }
     assert_equal "queenbee#passwords", @response.body
 
     get "/admin/passwords", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
   end
 
   def test_global
@@ -890,13 +890,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/posts/1/comments", post_comments_path(post_id: 1)
 
     post "/posts"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     put "/posts/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     delete "/posts/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     delete "/posts/1/comments"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
   end
 
   def test_resource_routes_only_create_update_destroy
@@ -1325,7 +1325,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "articles#with_id", @response.body
 
     get "/articles/123/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
 
     assert_equal "/articles/rails/1", article_with_title_path(title: "rails", id: 1)
   end
@@ -1909,7 +1909,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get "/products/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     get "/products"
     assert_equal "products#root", @response.body
     get "/products/favorite"
@@ -1918,14 +1918,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "products#show", @response.body
 
     get "/products/1/images"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     get "/products/0001/images"
     assert_equal "images#index", @response.body
     get "/products/0001/images/0001"
     assert_equal "images#show", @response.body
 
     get "/dashboard", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     get "/dashboard", headers: { "REMOTE_ADDR" => "192.168.1.100" }
     assert_equal "dashboards#show", @response.body
   end

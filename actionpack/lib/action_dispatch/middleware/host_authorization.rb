@@ -104,8 +104,8 @@ module ActionDispatch
 
         def response(format, body)
           [RESPONSE_STATUS,
-           { "Content-Type" => "#{format}; charset=#{Response.default_charset}",
-             "Content-Length" => body.bytesize.to_s },
+           { Rack::CONTENT_TYPE => "#{format}; charset=#{Response.default_charset}",
+             Rack::CONTENT_LENGTH => body.bytesize.to_s },
            [body]]
         end
 

@@ -24,7 +24,7 @@ module ActionDispatch
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.use_cookies_with_metadata = false
     config.action_dispatch.perform_deep_munge = true
-    config.action_dispatch.request_id_header = "X-Request-Id"
+    config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
     config.action_dispatch.debug_exception_log_level = :fatal
 

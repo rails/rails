@@ -80,6 +80,22 @@ class CookieJarTest < ActiveSupport::TestCase
   end
 end
 
+class CookiesMiddlewareTest < ActiveSupport::TestCase
+  def test_sets_expected_cookie_header
+    request = ActionDispatch::Request.empty
+    request.cookie_jar[:foo] = "bar"
+    env = Rack::MockRequest.env_for("", request.env)
+
+    _status, headers, _body = Rack::Lint.new(
+      ActionDispatch::Cookies.new(
+        Rack::Lint.new(lambda { |_env| [ 200, {}, [] ] })
+      )
+    ).call(env)
+
+    assert_equal "foo=bar; path=/", headers["set-cookie"]
+  end
+end
+
 class CookiesTest < ActionController::TestCase
   include CookieAssertions
 

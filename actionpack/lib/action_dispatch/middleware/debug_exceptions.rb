@@ -28,7 +28,7 @@ module ActionDispatch
     def call(env)
       _, headers, body = response = @app.call(env)
 
-      if headers["X-Cascade"] == "pass"
+      if headers[Constants::X_CASCADE] == "pass"
         body.close if body.respond_to?(:close)
         raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
       end

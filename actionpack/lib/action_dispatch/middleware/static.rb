@@ -128,10 +128,10 @@ module ActionDispatch
             if content_encoding == "identity"
               return precompressed_filepath, headers
             else
-              headers["vary"] = "accept-encoding"
+              headers[ActionDispatch::Constants::VARY] = "accept-encoding"
 
               if accept_encoding.any? { |enc, _| /\b#{content_encoding}\b/i.match?(enc) }
-                headers["content-encoding"] = content_encoding
+                headers[ActionDispatch::Constants::CONTENT_ENCODING] = content_encoding
                 return precompressed_filepath, headers
               end
             end

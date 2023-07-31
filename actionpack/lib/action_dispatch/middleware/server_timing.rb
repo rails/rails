@@ -4,8 +4,6 @@ require "active_support/notifications"
 
 module ActionDispatch
   class ServerTiming
-    SERVER_TIMING_HEADER = "Server-Timing"
-
     class Subscriber # :nodoc:
       include Singleton
       KEY = :action_dispatch_server_timing_events
@@ -67,8 +65,10 @@ module ActionDispatch
         "%s;dur=%.2f" % [event_name, events_collection.sum(&:duration)]
       end
 
-      header_info.prepend(headers[SERVER_TIMING_HEADER]) if headers[SERVER_TIMING_HEADER].present?
-      headers[SERVER_TIMING_HEADER] = header_info.join(", ")
+      if headers[ActionDispatch::Constants::SERVER_TIMING].present?
+        header_info.prepend(headers[ActionDispatch::Constants::SERVER_TIMING])
+      end
+      headers[ActionDispatch::Constants::SERVER_TIMING] = header_info.join(", ")
 
       response
     end

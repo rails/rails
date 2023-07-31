@@ -1,3 +1,9 @@
+*   When using cache format version >= 7.1 or a custom serializer, expired and
+    version-mismatched cache entries can now be detected without deserializing
+    their values.
+
+    *Jonathan Hefner*
+
 *   Make all cache stores return a boolean for `#delete`
 
     Previously the `RedisCacheStore#delete` would return `1` if the entry
@@ -65,7 +71,7 @@
     "#<ActiveSupport::KeyGenerator:0x0000000104888038>"
     ```
 
-    *Petrik de Heus* 
+    *Petrik de Heus*
 
 *   Improve error message when EventedFileUpdateChecker is used without a
     compatible version of the Listen gem
