@@ -10,6 +10,7 @@ require "models/comment"
 require "models/category"
 require "models/person"
 require "models/reference"
+require "models/topic"
 
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts, :developers_projects
@@ -441,6 +442,14 @@ class RelationScopingTest < ActiveRecord::TestCase
       assert_equal "Scoping is set to apply to all queries and cannot be " \
        "unset in a nested block.", error.message
     end
+  end
+
+  def test_class_method_scope_chaining_does_not_leak_conditions_to_other_scopes
+    parent_topic = TopicWithClassMethodScopes.create!
+    TopicWithClassMethodScopes.create!(parent_id: parent_topic.id)
+    topics = TopicWithClassMethodScopes.toplevel_method_scope.has_children_method_scope
+
+    assert_includes topics, parent_topic
   end
 end
 

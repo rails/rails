@@ -148,6 +148,20 @@ class TitlePrimaryKeyTopic < Topic
   alias_attribute :id_value, :id
 end
 
+class TopicWithClassMethodScopes < Topic
+  def self.toplevel_method_scope
+    where(parent_id: nil)
+  end
+
+  def self.children_method_scope
+    where.not(parent_id: nil)
+  end
+
+  def self.has_children_method_scope
+    where(id: children_method_scope.select(:parent_id))
+  end
+end
+
 module Web
   class Topic < ActiveRecord::Base
     has_many :replies, dependent: :destroy, foreign_key: "parent_id", class_name: "Web::Reply"

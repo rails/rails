@@ -1,3 +1,9 @@
+*   Fix chaining class method scopes leaking into querying methods.
+
+    Fixes: #44792.
+
+    *Joshua Young*
+
 *   Fix `#previously_new_record?` to return true for destroyed records.
 
     Before, if a record was created and then destroyed, `#previously_new_record?` would return true.
