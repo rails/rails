@@ -181,7 +181,7 @@ var browser$1 = {
   // Introduced in Chrome 65: https://bugs.chromium.org/p/chromium/issues/detail?id=764439#c9
   composesExistingText: /Android.*Chrome/.test(navigator.userAgent),
   // Android 13, especially on Samsung keyboards, emits extra compositionend and beforeinput events
-  // that can make the input handler lose the the current selection or enter an infinite input -> render -> input
+  // that can make the input handler lose the current selection or enter an infinite input -> render -> input
   // loop.
   recentAndroid: androidVersion && androidVersion > 12,
   samsungAndroid: androidVersion && navigator.userAgent.match(/Android.*SM-/),
