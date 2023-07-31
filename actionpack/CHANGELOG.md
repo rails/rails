@@ -1,3 +1,9 @@
+*   Rename `fixture_file_upload` method to `file_fixture_upload`
+
+    Declare an alias to preserve the backwards compatibility of `fixture_file_upload`
+
+    *Sean Doyle*
+
 *   `ActionDispatch::SystemTesting::TestHelpers::ScreenshotHelper` saves the screenshot path in test metadata on failure.
 
     *Matija Čupić*
