@@ -257,6 +257,27 @@ module ActiveRecord
         batch_limit = remaining if remaining < batch_limit
       end
 
+      if self.loaded?
+        records = relation.to_a
+        if start || finish
+          records = records.filter { |record|
+            (start.nil? || record.id >= start) && (finish.nil? || record.id <= finish)
+          }
+        end
+
+        records = records.sort_by { |record| record.id }
+        if order == :desc
+          records.reverse!
+        end
+
+        (0...records.size).step(batch_limit).each do |start|
+          subrelation = relation.spawn
+          subrelation.load_records(records[start, batch_limit])
+          yield subrelation
+        end
+        return
+      end
+
       batch_orders = build_batch_orders(order)
       relation = relation.reorder(batch_orders.to_h).limit(batch_limit)
       relation = apply_limits(relation, start, finish, batch_orders)
