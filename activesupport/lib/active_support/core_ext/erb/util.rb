@@ -38,9 +38,7 @@ end
 class ERB
   module Util
     HTML_ESCAPE = { "&" => "&amp;",  ">" => "&gt;",   "<" => "&lt;", '"' => "&quot;", "'" => "&#39;" }
-    JSON_ESCAPE = { "&" => '\u0026', ">" => '\u003e', "<" => '\u003c', "\u2028" => '\u2028', "\u2029" => '\u2029' }
     HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+)|(#[xX][\dA-Fa-f]+));)/
-    JSON_ESCAPE_REGEXP = /[\u2028\u2029&><]/u
 
     # Following XML requirements: https://www.w3.org/TR/REC-xml/#NT-Name
     TAG_NAME_START_CODEPOINTS = "@:A-Z_a-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}" \
@@ -124,7 +122,12 @@ class ERB
     # JSON gem, do not provide this kind of protection by default; also some gems
     # might override +to_json+ to bypass Active Support's encoder).
     def json_escape(s)
-      result = s.to_s.gsub(JSON_ESCAPE_REGEXP, JSON_ESCAPE)
+      result = s.to_s.dup
+      result.gsub!(">", '\u003e')
+      result.gsub!("<", '\u003c')
+      result.gsub!("&", '\u0026')
+      result.gsub!("\u2028", '\u2028')
+      result.gsub!("\u2029", '\u2029')
       s.html_safe? ? result.html_safe : result
     end
 
