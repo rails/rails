@@ -409,10 +409,11 @@ module ActiveModel
             mangled_name = "__temp__#{name.unpack1("h*")}"
           end
 
-          code_generator.define_cached_method(name, as: mangled_name, namespace: :"#{namespace}_#{proxy_target}") do |batch|
-            call_args.map!(&:inspect)
-            call_args << parameters if parameters
+          call_args.map!(&:inspect)
+          call_args << parameters if parameters
+          namespace = :"#{namespace}_#{proxy_target}_#{call_args.join("_")}}"
 
+          code_generator.define_cached_method(name, as: mangled_name, namespace: namespace) do |batch|
             body = if CALL_COMPILABLE_REGEXP.match?(proxy_target)
               "self.#{proxy_target}(#{call_args.join(", ")})"
             else
