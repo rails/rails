@@ -406,7 +406,7 @@ module ApplicationTests
       assert_not_includes Post.instance_methods, :title
     end
 
-    test "does not eager load attribute methods in production when the schema cache is empty and the database not connected" do
+    test "does not eager load attribute methods in production when the schema cache is empty and and check_schema_cache_dump_version=false" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -423,7 +423,7 @@ module ApplicationTests
       assert_not_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
-    test "eager loads attribute methods in production when the schema cache is populated" do
+    test "eager loads attribute methods in production when the schema cache is populated and check_schema_cache_dump_version=false" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -442,18 +442,19 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.enable_reloading = false
         config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = false
       RUBY
 
       app_file "config/initializers/schema_cache.rb", <<-RUBY
-        ActiveRecord::Base.connection.schema_cache.add("posts")
+      ActiveRecord::Base.connection.schema_cache.add("posts")
       RUBY
 
       app "production"
 
-      assert_includes Post.instance_methods, :title
+      assert_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
-    test "does not attempt to eager load attribute methods for models that aren't connected" do
+    test "does not eager loads attribute methods in production when the schema cache is populated and check_schema_cache_dump_version=true" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -472,17 +473,16 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.enable_reloading = false
         config.eager_load = true
+        config.active_record.check_schema_cache_dump_version = true
       RUBY
 
-      app_file "app/models/comment.rb", <<-RUBY
-        class Comment < ActiveRecord::Base
-          establish_connection(adapter: "mysql2", database: "does_not_exist")
-        end
+      app_file "config/initializers/schema_cache.rb", <<-RUBY
+      ActiveRecord::Base.connection.schema_cache.add("posts")
       RUBY
 
-      assert_nothing_raised do
-        app "production"
-      end
+      app "production"
+
+      assert_not_includes (Post.instance_methods - ActiveRecord::Base.instance_methods), :title
     end
 
     test "application is always added to eager_load namespaces" do
