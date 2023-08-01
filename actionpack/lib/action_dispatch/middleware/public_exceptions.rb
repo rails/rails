@@ -44,8 +44,8 @@ module ActionDispatch
       end
 
       def render_format(status, content_type, body)
-        [status, { "Content-Type" => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
-                  "Content-Length" => body.bytesize.to_s }, [body]]
+        [status, { Rack::CONTENT_TYPE => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
+                  Rack::CONTENT_LENGTH => body.bytesize.to_s }, [body]]
       end
 
       def render_html(status)
