@@ -1,3 +1,7 @@
+*   Revert breaking changes to `has_one` relationship deleting the old record before the new one is validated.
+
+    *zzak*
+
 *   Fix support for Active Record instances being uses in queries.
 
     As of `7.0.5`, query arguments were deep duped to avoid mutations impacting
@@ -21,6 +25,10 @@
 *   Preserve timestamp when setting an `ActiveSupport::TimeWithZone` value to `timestamptz` attribute.
 
     *fatkodima*
+
+*   Fix assignment into an `has_one` relationship deleting the old record before the new one is validated.
+
+    *Jean Boussier*
 
 *   Fix where on association with has_one/has_many polymorphic relations.
 

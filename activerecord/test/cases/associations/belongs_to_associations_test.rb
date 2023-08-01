@@ -1428,15 +1428,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.id, client.client_of
   end
 
-  def test_should_set_foreign_key_on_create_association_with_unpersisted_owner
-    tagging = Tagging.new
-    tag = tagging.create_tag
-
-    assert_not_predicate tagging, :persisted?
-    assert_predicate tag, :persisted?
-    assert_equal tag.id, tagging.tag_id
-  end
-
   def test_self_referential_belongs_to_with_counter_cache_assigning_nil
     comment = Comment.create! post: posts(:thinking), body: "fuu"
     comment.parent = nil

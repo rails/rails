@@ -54,13 +54,11 @@ module ActiveRecord
         end
 
         def _create_record(attributes, raise_error = false, &block)
-          reflection.klass.transaction do
-            record = build(attributes, &block)
-            saved = record.save
-            replace_keys(record, force: true)
-            raise RecordInvalid.new(record) if !saved && raise_error
-            record
-          end
+          record = build_record(attributes, &block)
+          saved = record.save
+          set_new_record(record)
+          raise RecordInvalid.new(record) if !saved && raise_error
+          record
         end
     end
   end
