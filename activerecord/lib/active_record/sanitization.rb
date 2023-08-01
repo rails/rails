@@ -137,13 +137,18 @@ module ActiveRecord
       end
 
       # Accepts an array of conditions. The array has each value
-      # sanitized and interpolated into the SQL statement.
+      # sanitized and interpolated into the SQL statement. If using named bind
+      # variables in SQL statements where a colon is required verbatim use a
+      # backslash to escape.
       #
       #   sanitize_sql_array(["name=? and group_id=?", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id=4"
       #
       #   sanitize_sql_array(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
       #   # => "name='foo''bar' and group_id=4"
+      #
+      #   sanitize_sql_array(["TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "foo"])
+      #   # => "TO_TIMESTAMP('foo', 'YYYY/MM/DD HH12:MI:SS')"
       #
       #   sanitize_sql_array(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
@@ -206,9 +211,11 @@ module ActiveRecord
         end
 
         def replace_named_bind_variables(statement, bind_vars)
-          statement.gsub(/(:?):([a-zA-Z]\w*)/) do |match|
+          statement.gsub(/([:\\]?):([a-zA-Z]\w*)/) do |match|
             if $1 == ":" # skip postgresql casts
               match # return the whole match
+            elsif $1 == "\\" # escaped literal colon
+              match[1..-1] # return match with escaping backlash char removed
             elsif bind_vars.include?(match = $2.to_sym)
               replace_bind_variable(bind_vars[match])
             else
