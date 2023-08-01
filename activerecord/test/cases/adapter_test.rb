@@ -14,6 +14,32 @@ module ActiveRecord
       @connection.materialize_transactions
     end
 
+    unless current_adapter?(:SQLite3Adapter)
+      test "connect on db error" do
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        assert_raises ActiveRecord::NoDatabaseError do
+          @connection.class.new(db_config.configuration_hash.merge(database: "unknown")).connect!
+        end
+      end
+
+      test "connect on access denied error" do
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        assert_raises ActiveRecord::DatabaseConnectionError do
+          @connection.class.new(db_config.configuration_hash.merge(username: "unknown")).connect!
+        end
+      end
+
+      test "connect on host error" do
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        assert_raises ActiveRecord::DatabaseConnectionError do
+          @connection.class.new(db_config.configuration_hash.merge(host: "unknown")).connect!
+        end
+      end
+    end
+
     ##
     # PostgreSQL does not support null bytes in strings
     unless current_adapter?(:PostgreSQLAdapter) ||

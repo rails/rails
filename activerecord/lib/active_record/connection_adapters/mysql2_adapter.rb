@@ -25,9 +25,9 @@ module ActiveRecord
           ::Mysql2::Client.new(config)
         rescue ::Mysql2::Error => error
           case error.error_number
-          when ER_BAD_DB_ERROR
+          when ER_DBACCESS_DENIED_ERROR, ER_BAD_DB_ERROR
             raise ActiveRecord::NoDatabaseError.db_error(config[:database])
-          when ER_DBACCESS_DENIED_ERROR, ER_ACCESS_DENIED_ERROR
+          when ER_ACCESS_DENIED_ERROR
             raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
           when ER_CONN_HOST_ERROR, ER_UNKNOWN_HOST_ERROR
             raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
