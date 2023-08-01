@@ -123,7 +123,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_one_create_model_with_inheritance
-    tagging = tags(:misc).create_tagging(taggable: posts(:thinking))
+    tagging = tags(:misc).build_tagging(taggable: posts(:thinking))
+    tagging.save
     assert_equal "Post", tagging.taggable_type
   end
 
@@ -169,7 +170,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_create_polymorphic_has_one_with_scope
     old_count = Tagging.count
-    tagging = posts(:welcome).create_tagging(tag: tags(:misc))
+    tagging = posts(:welcome).build_tagging(tag: tags(:misc))
+    tagging.save
     assert_equal "Post", tagging.taggable_type
     assert_equal old_count + 1, Tagging.count
   end

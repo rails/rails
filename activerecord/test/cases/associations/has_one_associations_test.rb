@@ -118,6 +118,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm = companies(:rails_core)
     old_account_id = firm.account.id
     firm.account = Account.new(credit_limit: 5)
+    firm.save
     # account is dependent with nullify, therefore its firm_id should be nil
     assert_nil Account.find(old_account_id).firm_id
   end
@@ -311,9 +312,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
 
     bulb = pirate.create_foo_bulb
-    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
-
-    bulb = pirate.create_foo_bulb!
     assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
   end
 
@@ -533,26 +531,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_account.firm_name, "Account"
   end
 
-  def test_create_association_replaces_existing_without_dependent_option
+  def test_create_association_wont_replace_existing
     pirate = pirates(:blackbeard)
     orig_ship = pirate.ship
 
     assert_equal ships(:black_pearl), orig_ship
-    new_ship = pirate.create_ship
-    assert_not_equal ships(:black_pearl), new_ship
-    assert_equal new_ship, pirate.ship
-    assert_predicate new_ship, :new_record?
-    assert_nil orig_ship.pirate_id
-    assert_not orig_ship.changed? # check it was saved
-  end
 
-  def test_create_association_replaces_existing_with_dependent_option
-    pirate = pirates(:blackbeard).becomes(DestructivePirate)
-    orig_ship = pirate.dependent_ship
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
+      pirate.create_ship
+    end
 
-    new_ship = pirate.create_dependent_ship
-    assert_predicate new_ship, :new_record?
-    assert_predicate orig_ship, :destroyed?
+    assert_equal "Failed to save the new associated ship.", error.message
+    assert_equal pirate.ship, orig_ship
   end
 
   def test_creation_failure_due_to_new_record_should_raise_error
@@ -572,10 +562,11 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_replacement_failure_due_to_existing_record_should_raise_error
     pirate = pirates(:blackbeard)
     pirate.ship.name = nil
+    new_ship = ships(:interceptor)
 
     assert_not_predicate pirate.ship, :valid?
     error = assert_raise(ActiveRecord::RecordNotSaved) do
-      pirate.ship = ships(:interceptor)
+      pirate.ship = new_ship
     end
 
     assert_equal ships(:black_pearl), pirate.ship
@@ -583,6 +574,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "Failed to remove the existing associated ship. " \
                  "The record failed to save after its foreign key was set to nil.", error.message
     assert_equal pirate.ship, error.record
+    assert_not_equal new_ship, error.record
   end
 
   def test_replacement_failure_due_to_new_record_should_raise_error
@@ -612,6 +604,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.create_bulb
     assert_equal car.id, bulb.car_id
+
+    car.bulb.destroy!
 
     bulb = car.create_bulb car_id: car.id + 1
     assert_equal car.id, bulb.car_id
@@ -954,7 +948,31 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     content.create_content_position!
 
     assert_no_difference -> { ContentPosition.count } do
-      content.create_content_position!
+      assert_raises ActiveRecord::RecordNotSaved do
+        content.create_content_position!
+      end
+    end
+  end
+
+  class SuperSpecialContentPosition < ActiveRecord::Base
+    self.table_name = "content_positions"
+    belongs_to :content, class_name: name + "::SuperSpecialContentPosition"
+    validates :content_id, presence: true, uniqueness: true
+  end
+
+  class SuperSpecialContent < ActiveRecord::Base
+    self.table_name = "content"
+    has_one :content_position, foreign_key: :content_id, class_name: SuperSpecialContentPosition.name
+  end
+
+  test "raises if record already exists" do
+    content = SuperSpecialContent.create!
+    content.create_content_position!
+
+    assert_no_difference -> { ContentPosition.count } do
+      assert_raises ActiveRecord::RecordNotSaved do
+        content.create_content_position!
+      end
     end
   end
 

@@ -84,6 +84,21 @@ module ActiveRecord
           self.target = record
         end
 
+        def create_new_record(record)
+          raise_on_type_mismatch!(record) if record
+
+          return target unless load_target || record
+
+          if target.present? && target.persisted? && owner.persisted?
+            raise RecordNotSaved.new(
+              "Failed to save the new associated #{reflection.name}.",
+              record
+            )
+          end
+
+          set_new_record(record)
+        end
+
         # The reason that the save param for replace is false, if for create (not just build),
         # is because the setting of the foreign keys is actually handled by the scoping when
         # the record is instantiated, and so they are set straight away and do not need to be
@@ -109,7 +124,7 @@ module ActiveRecord
             nullify_owner_attributes(target)
             remove_inverse_instance(target)
 
-            if target.persisted? && owner.persisted? && !target.save
+            if method.nil? && target.persisted? && owner.persisted? && !target.save
               set_owner_attributes(target)
               raise RecordNotSaved.new(
                 "Failed to remove the existing associated #{reflection.name}. " \

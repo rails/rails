@@ -100,6 +100,10 @@ module ActiveRecord
           self.target = record
         end
 
+        def create_new_record(record)
+          set_new_record(record)
+        end
+
         def update_counters(by)
           if require_counter_update? && foreign_key_present?
             if target && !stale_target?
