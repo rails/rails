@@ -49,9 +49,7 @@ module ActiveModel
       defaults << :"errors.format"
       defaults << "%{attribute} %{message}"
 
-      parts = attribute.split(".")
-      parts.delete("base")
-      attribute = parts.join(".")
+      attribute = attribute.remove(/\.base\z/)
 
       attr_name = attribute.tr(".", "_").humanize
       attr_name = base_class.human_attribute_name(attribute, {
