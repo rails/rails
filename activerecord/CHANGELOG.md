@@ -1,3 +1,10 @@
+*   Revert "Fix autosave associations with validations added on `:base` of the associated objects."
+
+    This change intended to remove the :base attribute from the message,
+    but broke many assumptions which key these errors were stored.
+
+    *zzak*
+
 *   Revert breaking changes to `has_one` relationship deleting the old record before the new one is validated.
 
     *zzak*
