@@ -48,8 +48,48 @@ module ActiveRecord
       assert_equal Author.find(1).posts.count, Post.where.associated(:author).merge(Author.where(id: 1)).count
     end
 
+    def test_associated_unscoped_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.unscope(:where).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_unscoped_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_unscoped_merged_joined_extended_early_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.extending(Post::NamedExtension).joins(:author).unscope(:where).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_unscoped_merged_joined_extended_late_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.associated(:author).merge(Author.where(id: 1)).extending(Post::NamedExtension).count
+    end
+
+    def test_associated_ordered_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.order(created_at: :desc).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_associated_ordered_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).order(created_at: :desc).where.associated(:author).merge(Author.where(id: 1)).count
+    end
+
     def test_associated_with_enum
-      assert_equal Author.find(2), Author.where.associated(:reading_listing).first
+      assert_equal Author.find(2), Author.joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_ordered
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_unscoped
+      assert_equal Author.find(2), Author.unscope(:where).joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_extended_early
+      assert_equal Author.find(2), Author.extending(Author::NamedExtension).order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).first
+    end
+
+    def test_associated_with_enum_extended_late
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).extending(Author::NamedExtension).first
     end
 
     def test_missing_with_association
@@ -83,8 +123,48 @@ module ActiveRecord
       assert_equal Author.find(1).posts.count, Post.where.missing(:author).merge(Author.where(id: 1)).count
     end
 
+    def test_missing_unscoped_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_unscoped_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.unscope(:where).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_ordered_merged_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.order(created_at: :desc).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_ordered_merged_joined_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).order(created_at: :desc).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_unscoped_merged_joined_extended_early_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.extending(Post::NamedExtension).joins(:author).unscope(:where).where.missing(:author).merge(Author.where(id: 1)).count
+    end
+
+    def test_missing_unscoped_merged_joined_extended_late_with_scope_on_association
+      assert_equal Author.find(1).posts.count, Post.joins(:author).unscope(:where).where.missing(:author).merge(Author.where(id: 1)).extending(Post::NamedExtension).count
+    end
+
     def test_missing_with_enum
       assert_equal Author.find(2), Author.joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_ordered
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_unscoped
+      assert_equal Author.find(2), Author.unscope(:where).joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_extended_early
+      assert_equal Author.find(2), Author.extending(Author::NamedExtension).order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).first
+    end
+
+    def test_missing_with_enum_extended_late
+      assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).extending(Author::NamedExtension).first
     end
 
     def test_not_inverts_where_clause

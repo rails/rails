@@ -239,6 +239,16 @@ class Author < ActiveRecord::Base
   attr_accessor :post_log
   after_initialize :set_post_log
 
+  module NamedExtension
+    def author
+      "lifo"
+    end
+
+    def greeting
+      super + " :)"
+    end
+  end
+
   def set_post_log
     @post_log = []
   end
