@@ -597,7 +597,56 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_predicate reference_valid, :valid?
     assert_not_predicate reference_invalid, :valid?
     assert_not_predicate p, :valid?
-    assert_equal [{ error: "should be favorite" }], p.errors.details[:"references[1]"]
+    assert_equal [{ error: "should be favorite" }], p.errors.details[:"references[1].base"]
+    assert_equal "should be favorite", p.errors[:"references[1].base"].first
+  end
+
+  def test_indexed_errors_should_be_properly_translated
+    old_i18n_customize_full_message = ActiveModel::Error.i18n_customize_full_message
+    ActiveModel::Error.i18n_customize_full_message = true
+    I18n.backend.store_translations(
+      :en,
+      activerecord: {
+        errors: {
+          models: {
+            "person/references": {
+              format: "%{message}"
+            }
+          }
+        }
+      }
+    )
+    reference = Class.new(ActiveRecord::Base) do
+      self.table_name = "references"
+      def self.name; "Reference"; end
+
+      validate :should_be_favorite
+      validates_presence_of :job_id
+
+      private
+        def should_be_favorite
+          errors.add(:base, "should be favorite") unless favorite?
+        end
+    end
+
+    person = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      has_many :references, autosave: true, index_errors: true, anonymous_class: reference
+      def self.name; "Person"; end
+    end
+
+    p = person.new
+    reference_valid = reference.new(favorite: true, job_id: 1)
+    reference_invalid = reference.new(favorite: false)
+    p.references = [reference_valid, reference_invalid]
+
+    assert_predicate reference_valid, :valid?
+    assert_not_predicate reference_invalid, :valid?
+    assert_not_predicate p, :valid?
+    assert_equal ["should be favorite", "can’t be blank"], p.errors.full_messages
+  ensure
+    ActiveModel::Error.i18n_customize_full_message = old_i18n_customize_full_message
+    I18n.backend = I18n::Backend::Simple.new
   end
 
   def test_errors_details_should_be_indexed_when_global_flag_is_set
