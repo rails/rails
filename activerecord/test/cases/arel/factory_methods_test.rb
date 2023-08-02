@@ -41,6 +41,15 @@ module Arel
         assert_equal "LOWER", lower.name
         assert_equal [:one], lower.expressions.map(&:expr)
       end
+
+      def test_cast
+        relation = Table.new(:users)
+        field_node = relation[:active]
+        cast = @factory.cast field_node, "boolean"
+        assert_instance_of Nodes::NamedFunction, cast
+        assert_equal "CAST", cast.name
+        assert_equal %(CAST("users"."active" AS boolean)), cast.to_sql
+      end
     end
   end
 end
