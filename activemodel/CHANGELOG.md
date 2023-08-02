@@ -1,13 +1,14 @@
-*   Add a load hook for `ActiveModel::Model` (named `active_model`) to match the load hook for `ActiveRecord::Base` and
-    allow for overriding aspects of the `ActiveModel::Model` class.
-
-    *Lewis Buckley*
-
-*   Error.full_message should strip ":base" from the message
+*   Error.full_message now strips ":base" from the message.
 
     *zzak*
 
-*   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt compatibility.
+*   Add a load hook for `ActiveModel::Model` (named `active_model`) to match the load hook for
+    `ActiveRecord::Base` and allow for overriding aspects of the `ActiveModel::Model` class.
+
+    *Lewis Buckley*
+
+*   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt
+    compatibility.
 
     The previous password length validation only considered the character count, which may not
     accurately reflect the 72-byte size limit imposed by BCrypt. This change updates the validation
