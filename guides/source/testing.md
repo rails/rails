@@ -886,16 +886,6 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-In such a case, the gem `webdrivers` is no longer required. You could remove it
-completely or add `require:` option in `Gemfile`.
-
-```ruby
-# ...
-group :test do
-  gem "webdrivers", require: !ENV["SELENIUM_REMOTE_URL"] || ENV["SELENIUM_REMOTE_URL"].empty?
-end
-```
-
 Now you should get a connection to remote browser.
 
 ```bash

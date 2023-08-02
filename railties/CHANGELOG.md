@@ -1,3 +1,7 @@
+*   Omit `webdrivers` gem dependency from `Gemfile` template
+
+    *Sean Doyle*
+
 *   Support filtering tests by line ranges
 
     The new syntax allows you to filter tests by line ranges. For example, the
