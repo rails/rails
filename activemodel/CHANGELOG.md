@@ -3,6 +3,10 @@
 
     *Lewis Buckley*
 
+*   Error.full_message should strip ":base" from the message
+
+    *zzak*
+
 *   Improve password length validation in ActiveModel::SecurePassword to consider byte size for BCrypt compatibility.
 
     The previous password length validation only considered the character count, which may not
