@@ -1,3 +1,11 @@
+*   Error.full_message now strips ":base" from the message.
+
+    *zzak*
+
+*   Add a load hook for `ActiveModel::Model` (named `active_model`) to match the load hook for
+    `ActiveRecord::Base` and allow for overriding aspects of the `ActiveModel::Model` class.
+
+
 ## Rails 7.0.6 (June 29, 2023) ##
 
 *   No changes.

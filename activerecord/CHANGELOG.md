@@ -1,3 +1,10 @@
+*   Revert "Fix autosave associations with validations added on `:base` of the associated objects."
+
+    This change intended to remove the :base attribute from the message,
+    but broke many assumptions which key these errors were stored.
+
+    *zzak*
+
 *   Fix `#previously_new_record?` to return true for destroyed records.
 
     Before, if a record was created and then destroyed, `#previously_new_record?` would return true.
