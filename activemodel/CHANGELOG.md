@@ -1,3 +1,7 @@
+*   Error.full_message should strip ":base" from the message
+
+    *zzak*
+
 ## Rails 7.0.6 (June 29, 2023) ##
 
 *   No changes.
