@@ -217,6 +217,11 @@ class ErrorTest < ActiveModel::TestCase
     assert_not_equal error, person
   end
 
+  test "full_message returns the given message when the attribute contains base" do
+    error = ActiveModel::Error.new(Person.new, :"foo.base", "press the button")
+    assert_equal "foo press the button", error.full_message
+  end
+
   # details
 
   test "details which ignores callback and message options" do
