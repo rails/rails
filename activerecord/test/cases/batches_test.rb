@@ -423,6 +423,72 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_in_batches_when_loaded_runs_no_queries
+    posts = Post.all
+    posts.load
+    batch_count = 0
+    last_id = posts.map(&:id).min
+    assert_queries(0) do
+      posts.in_batches(of: 1) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_operator last_id, :<=, relation.map(&:id).min
+        last_id = relation.map(&:id).min
+      end
+    end
+
+    assert_equal posts.size, batch_count
+  end
+
+  def test_in_batches_when_loaded_runs_no_queries_with_order_argument
+    posts = Post.all.order(id: :asc)
+    posts.load
+    batch_count = 0
+    last_id = posts.map(&:id).max
+    assert_queries(0) do
+      posts.in_batches(of: 1, order: :desc) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_operator last_id, :>=, relation.map(&:id).max
+        last_id = relation.map(&:id).max
+      end
+    end
+
+    assert_equal posts.size, batch_count
+  end
+
+  def test_in_batches_when_loaded_runs_no_queries_with_start_and_end_arguments
+    posts = Post.all.order(id: :asc)
+    posts.load
+    batch_count = 0
+
+    start_id = posts.map(&:id)[1]
+    finish_id = posts.map(&:id)[-2]
+    assert_queries(0) do
+      posts.in_batches(of: 1, start: start_id, finish: finish_id) do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+
+    assert_equal posts.size - 2, batch_count
+  end
+
+  def test_in_batches_when_loaded_can_return_an_enum
+    posts = Post.all
+    posts.load
+    batch_count = 0
+
+    assert_queries(0) do
+      posts.in_batches(of: 1).each do |relation|
+        batch_count += 1
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+
+    assert_equal posts.size, batch_count
+  end
+
   def test_in_batches_should_return_relations
     assert_queries(@total + 1) do
       Post.in_batches(of: 1) do |relation|
