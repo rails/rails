@@ -48,7 +48,10 @@ module Arel
         cast = @factory.cast field_node, "boolean"
         assert_instance_of Nodes::NamedFunction, cast
         assert_equal "CAST", cast.name
-        assert_equal %(CAST("users"."active" AS boolean)), cast.to_sql
+        as_node = cast.expressions.first
+        assert_instance_of Nodes::As, as_node
+        assert_equal field_node, as_node.left
+        assert_equal "boolean", as_node.right
       end
     end
   end
