@@ -301,7 +301,7 @@ module ActiveRecord
           end
         else
           ids = batch_relation.ids
-          yielded_relation = where(primary_key => ids)
+          yielded_relation = where(primary_key => ids).order(batch_orders.to_h)
         end
 
         break if ids.empty?
