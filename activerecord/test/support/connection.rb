@@ -28,8 +28,7 @@ module ARTest
 
     arunit_adapter = ActiveRecord::Base.connection.pool.db_config.adapter
 
-    if connection_name != arunit_adapter
-      return if connection_name == "sqlite3_mem" && arunit_adapter == "sqlite3"
+    unless connection_name.include?(arunit_adapter)
       raise ArgumentError, "The connection name did not match the adapter name. Connection name is '#{connection_name}' and the adapter name is '#{arunit_adapter}'."
     end
   end
