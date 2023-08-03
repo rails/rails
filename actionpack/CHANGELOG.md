@@ -2,10 +2,12 @@
 
     *Matija Čupić*
 
-*   `ActionDispatch::Assertions#html_document` uses Nokogiri's HTML5 parser if it is available.
+*   `config.dom_testing_default_html_version` controls the HTML parser used by
+    `ActionDispatch::Assertions#html_document`.
 
-    The HTML5 parser better represents what the DOM would be in a browser. Previously this test
-    helper always used Nokogiri's HTML4 parser.
+    The Rails 7.1 default configuration opts into the HTML5 parser when it is supported, to better
+    represent what the DOM would be in a browser user agent. Previously this test helper always used
+    Nokogiri's HTML4 parser.
 
     *Mike Dalessio*
 

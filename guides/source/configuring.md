@@ -84,6 +84,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_support.raise_on_invalid_cache_expiration_time`](#config-active-support-raise-on-invalid-cache-expiration-time): `true`
 - [`config.active_support.use_message_serializer_for_metadata`](#config-active-support-use-message-serializer-for-metadata): `true`
 - [`config.add_autoload_paths_to_load_path`](#config-add-autoload-paths-to-load-path): `false`
+- [`config.dom_testing_default_html_version`](#config-dom-testing-default-html-version): `defined?(Nokogiri::HTML5) ? :html5 : :html4`
 - [`config.log_file_size`](#config-log-file-size): `100 * 1024 * 1024`
 - [`config.precompile_filter_parameters`](#config-precompile-filter-parameters): `true`
 
@@ -310,6 +311,19 @@ Sets the format used in responses when errors occur in the development environme
 #### `config.disable_sandbox`
 
 Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
+
+#### `config.dom_testing_default_html_version`
+
+Controls whether an HTML4 parser or an HTML5 parser is used by default by the test helpers in Action View, Action Dispatch, and `rails-dom-testing`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:html4`             |
+| 7.1                   | `:html5` (see NOTE)  |
+
+NOTE: Nokogiri's HTML5 parser is not supported on JRuby, so on JRuby platforms Rails will fall back to `:html4`.
 
 #### `config.eager_load`
 
@@ -2087,7 +2101,7 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 | (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
-NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to use `Rails::HTML4::Sanitizer`.
+NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
 
 ### Configuring Action Mailbox
 
@@ -2867,7 +2881,7 @@ Configures the HTML sanitizer used by Action Text by setting `ActionText::Conten
 | (original)            | `Rails::HTML4::Sanitizer`            | HTML4                  |
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
-NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to use `Rails::HTML4::Sanitizer`.
+NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
 
 ### Configuring a Database
 

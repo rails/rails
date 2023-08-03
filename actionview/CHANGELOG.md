@@ -56,6 +56,16 @@
 
     *Mike Dalessio*
 
+*   `config.dom_testing_default_html_version` controls the HTML parser used by
+    `ActionView::TestCase#document_root_element`, which creates the DOM used by the assertions in
+    Rails::Dom::Testing.
+
+    The Rails 7.1 default configuration opts into the HTML5 parser when it is supported, to better
+    represent what the DOM would be in a browser user agent. Previously this test helper always used
+    Nokogiri's HTML4 parser.
+
+    *Mike Dalessio*
+
 *   Add support for the HTML picture tag. It supports passing a String, an Array or a Block.
     Supports passing properties directly to the img tag via the `:image` key.
     Since the picture tag requires an img tag, the last element you provide will be used for the img tag.
