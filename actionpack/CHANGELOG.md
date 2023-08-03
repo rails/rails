@@ -1,3 +1,7 @@
+*   `ActionDispatch::SystemTesting::TestHelpers::ScreenshotHelper` saves the screenshot path in test metadata on failure.
+
+    *Matija Čupić*
+
 *   `ActionDispatch::Assertions#html_document` uses Nokogiri's HTML5 parser if it is available.
 
     The HTML5 parser better represents what the DOM would be in a browser. Previously this test
