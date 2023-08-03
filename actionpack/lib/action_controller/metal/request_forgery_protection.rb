@@ -147,7 +147,7 @@ module ActionController # :nodoc:
       #      end
       #    end
       #
-      #    class ApplicationController < ActionController:x:Base
+      #    class ApplicationController < ActionController::Base
       #      protect_from_forgery with: CustomStrategy
       #    end
       # * <tt>:store</tt> - Set the strategy to store and retrieve CSRF tokens.
@@ -172,7 +172,7 @@ module ActionController # :nodoc:
       #     end
       #   end
       #
-      #   class ApplicationController < ActionController:x:Base
+      #   class ApplicationController < ActionController::Base
       #     protect_from_forgery store: CustomStore.new
       #   end
       def protect_from_forgery(options = {})
