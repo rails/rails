@@ -11,7 +11,18 @@ class Time
       )
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
     elsif format == NOT_SET
-      to_default_s
+      if formatter = ::Time::DATE_FORMATS[:default]
+        ActiveSupport::Deprecation.warn(
+          "Using a :default format for Time#to_s is deprecated. Please use Time#to_fs instead."
+        )
+        if formatter.respond_to?(:call)
+          formatter.call(self).to_s
+        else
+          strftime(formatter)
+        end
+      else
+        to_default_s
+      end
     else
       ActiveSupport::Deprecation.warn(
         "Time#to_s(#{format.inspect}) is deprecated. Please use Time#to_fs(#{format.inspect}) instead."

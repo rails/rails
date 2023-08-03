@@ -54,6 +54,18 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_s_default_is_deprecated
+    datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
+
+    Time::DATE_FORMATS[:default] = "%Y/%m/%d"
+
+    assert_deprecated do
+      assert_equal "2005/02/21", datetime.to_s
+    end
+  ensure
+    Time::DATE_FORMATS.delete(:default)
+  end
+
   def test_to_fs
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
     assert_equal "2005-02-21 14:30:00",                 datetime.to_fs(:db)

@@ -35,6 +35,20 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_s_default_is_deprecated
+    number_range = (1..100)
+
+    ActiveSupport::RangeWithFormat::RANGE_FORMATS[:default] = -> (s, e) do
+      "s: #{s}, e: #{e}"
+    end
+
+    assert_deprecated do
+      assert_equal "s: 1, e: 100", number_range.to_s
+    end
+  ensure
+    ActiveSupport::RangeWithFormat::RANGE_FORMATS.delete(:default)
+  end
+
   def test_to_s_with_format_invalid_format
     number_range = (1..100)
 

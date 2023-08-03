@@ -221,7 +221,14 @@ module ActiveSupport
         )
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       elsif format == NOT_SET
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
+        if formatter = ::Time::DATE_FORMATS[:default]
+          ActiveSupport::Deprecation.warn(
+            "Using a :default format for TimeWithZone#to_s is deprecated. Please use TimeWithZone#to_fs instead."
+          )
+          formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
+        else
+          "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
+        end
       else
         ActiveSupport::Deprecation.warn(
           "TimeWithZone#to_s(#{format.inspect}) is deprecated. Please use TimeWithZone#to_fs(#{format.inspect}) instead."

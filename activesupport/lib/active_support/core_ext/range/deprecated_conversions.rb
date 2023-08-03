@@ -10,7 +10,14 @@ module ActiveSupport
         )
         formatter.call(first, last)
       elsif format == NOT_SET
-        super()
+        if formatter = RangeWithFormat::RANGE_FORMATS[:default]
+          ActiveSupport::Deprecation.warn(
+            "Using a :default format for Range#to_s is deprecated. Please use Range#to_fs instead."
+          )
+          formatter.call(first, last)
+        else
+          super()
+        end
       else
         ActiveSupport::Deprecation.warn(
           "Range#to_s(#{format.inspect}) is deprecated. Please use Range#to_fs(#{format.inspect}) instead."

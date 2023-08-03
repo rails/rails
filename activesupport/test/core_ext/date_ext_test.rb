@@ -50,6 +50,18 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_to_s_default_is_deprecated
+    date = Date.new(2005, 2, 21)
+
+    Date::DATE_FORMATS[:default] = "%Y/%m/%d"
+
+    assert_deprecated do
+      assert_equal "2005/02/21", date.to_s
+    end
+  ensure
+    Date::DATE_FORMATS.delete(:default)
+  end
+
   def test_to_s_with_single_digit_day
     date = Date.new(2005, 2, 1)
     assert_equal "2005-02-01",          date.to_s
