@@ -1,3 +1,11 @@
+*   Disables the session in `ActiveStorage::Blobs::ProxyController`
+    and `ActiveStorage::Representations::ProxyController`
+    in order to allow caching by default in some CDNs as CloudFlare
+
+    Fixes #44136
+
+    *Bruno Prieto*
+
 ## Rails 6.1.7.6 (August 22, 2023) ##
 
 *   No changes.
