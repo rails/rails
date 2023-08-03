@@ -531,7 +531,7 @@ const chatChannel = consumer.subscriptions.create({ channel: "ChatChannel", room
   received(data) {
     // data => { sent_by: "Paul", body: "This is a cool chat app." }
   }
-}
+})
 
 chatChannel.send({ sent_by: "Paul", body: "This is a cool chat app." })
 ```
