@@ -249,6 +249,7 @@ module ActiveRecord
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "include: #{index.include.inspect}" if index.include
+        index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts

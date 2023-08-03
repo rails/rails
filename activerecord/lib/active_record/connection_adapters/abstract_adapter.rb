@@ -575,6 +575,10 @@ module ActiveRecord
         true
       end
 
+      def supports_nulls_not_distinct?
+        false
+      end
+
       def return_value_after_insert?(column) # :nodoc:
         column.auto_incremented_by_db?
       end

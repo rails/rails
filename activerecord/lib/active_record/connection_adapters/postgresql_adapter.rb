@@ -277,6 +277,10 @@ module ActiveRecord
         database_version >= 12_00_00 # >= 12.0
       end
 
+      def supports_nulls_not_distinct?
+        database_version >= 15_00_00 # >= 15.0
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end

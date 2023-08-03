@@ -383,7 +383,7 @@ module ActiveRecord
       end
 
       def test_index_with_not_distinct_nulls
-        skip if ActiveRecord::Base.connection.database_version < 15_00_00
+        skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
 
         with_example_table do
           @connection.execute(<<~SQL)
