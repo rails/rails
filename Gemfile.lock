@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/github/trilogy.git
-  revision: 8e4ae98569c12894da9bcbee5edb32b76068dbfd
+  revision: a1f46bbb79f866c157ead6d483474670bdb17334
   branch: main
   glob: contrib/ruby/*.gemspec
   specs:
-    trilogy (2.4.0)
+    trilogy (2.4.1)
 
 GIT
   remote: https://github.com/matthewd/websocket-client-simple.git

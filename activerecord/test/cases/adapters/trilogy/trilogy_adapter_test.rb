@@ -29,7 +29,9 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#supports_json answers true without Maria DB and greater version" do
-    assert @conn.supports_json?
+    @conn.stub(:mariadb?, false) do
+      assert_equal true, @conn.supports_json?
+    end
   end
 
   test "#supports_json answers false without Maria DB and lesser version" do
