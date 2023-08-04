@@ -1070,7 +1070,7 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
 end
 
 class WithAnnotationsTest < ActiveRecord::TestCase
-  fixtures :pirates, :parrots, :parrots_pirates, :pirates, :treasures
+  fixtures :pirates, :parrots, :parrots_pirates, :treasures
 
   def test_belongs_to_with_annotation_includes_a_query_comment
     pirate = SpacePirate.where.not(parrot_id: nil).first
