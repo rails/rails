@@ -1465,13 +1465,12 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "gen_random_uuid()", column(:name).default_function
           Person.connection.execute("INSERT INTO delete_me DEFAULT VALUES")
-          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a.first
         else
           assert_equal "uuid()", column(:name).default_function
           Person.connection.execute("INSERT INTO delete_me () VALUES ()")
-          person_data = Person.connection.execute("SELECT * FROM delete_me ORDER BY id DESC").to_a(as: :hash).first
         end
 
+        person_data = Person.connection.select_one("SELECT * FROM delete_me ORDER BY id DESC")
         assert_match(/\A(.+)-(.+)-(.+)-(.+)\Z/, person_data.fetch("name"))
       end
     end
