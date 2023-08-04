@@ -9,12 +9,6 @@ module Arel
     end
 
     it "should create join nodes" do
-      join = @relation.create_string_join "foo"
-      assert_kind_of Arel::Nodes::StringJoin, join
-      assert_equal "foo", join.left
-    end
-
-    it "should create join nodes" do
       join = @relation.create_join "foo", "bar"
       assert_kind_of Arel::Nodes::InnerJoin, join
       assert_equal "foo", join.left
