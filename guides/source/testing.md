@@ -1083,6 +1083,8 @@ For dealing with the integration test runner, see [`ActionDispatch::Integration:
 
 When performing requests, we will have [`ActionDispatch::Integration::RequestHelpers`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for our use.
 
+If we need to upload files, take a look at [`ActionDispatch::TestProcess::FixtureFile`](https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html) to help.
+
 If we need to modify the session, or state of our integration test, take a look at [`ActionDispatch::Integration::Session`](https://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
 ### Implementing an Integration Test
