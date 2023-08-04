@@ -219,7 +219,7 @@ class ErrorTest < ActiveModel::TestCase
 
   test "full_message returns the given message when the attribute contains base" do
     error = ActiveModel::Error.new(Person.new, :"foo.base", "press the button")
-    assert_equal "foo press the button", error.full_message
+    assert_equal "foo.base press the button", error.full_message
   end
 
   # details
