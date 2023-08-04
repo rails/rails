@@ -42,6 +42,15 @@ module Arel
         assert_equal [:one], lower.expressions.map(&:expr)
       end
 
+      def test_coalesce
+        relation = Table.new(:users)
+        field_node = relation[:active]
+        coalesce = @factory.coalesce field_node, 0
+        assert_instance_of Nodes::NamedFunction, coalesce
+        assert_equal "COALESCE", coalesce.name
+        assert_equal [field_node, 0], coalesce.expressions
+      end
+
       def test_cast
         relation = Table.new(:users)
         field_node = relation[:active]
