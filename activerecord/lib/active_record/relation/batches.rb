@@ -252,13 +252,14 @@ module ActiveRecord
       end
 
       batch_limit = of
+
       if limit_value
         remaining   = limit_value
         batch_limit = remaining if remaining < batch_limit
       end
 
       if self.loaded?
-        return batch_on_loaded_relation(
+        batch_on_loaded_relation(
           relation: relation,
           start: start,
           finish: finish,
@@ -266,63 +267,18 @@ module ActiveRecord
           batch_limit: batch_limit,
           &block
         )
-      end
-
-      batch_orders = build_batch_orders(order)
-      relation = relation.reorder(batch_orders.to_h).limit(batch_limit)
-      relation = apply_limits(relation, start, finish, batch_orders)
-      relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
-      batch_relation = relation
-      empty_scope = to_sql == klass.unscoped.all.to_sql
-
-      loop do
-        if load
-          records = batch_relation.records
-          ids = records.map(&:id)
-          yielded_relation = where(primary_key => ids)
-          yielded_relation.load_records(records)
-        elsif (empty_scope && use_ranges != false) || use_ranges
-          ids = batch_relation.ids
-          finish = ids.last
-          if finish
-            yielded_relation = apply_finish_limit(batch_relation, finish, batch_orders)
-            yielded_relation = yielded_relation.except(:limit, :order)
-            yielded_relation.skip_query_cache!(false)
-          end
-        else
-          ids = batch_relation.ids
-          yielded_relation = where(primary_key => ids)
-        end
-
-        break if ids.empty?
-
-        primary_key_offset = ids.last
-        raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
-
-        block.call yielded_relation
-
-        break if ids.length < batch_limit
-
-        if limit_value
-          remaining -= ids.length
-
-          if remaining == 0
-            # Saves a useless iteration when the limit is a multiple of the
-            # batch size.
-            break
-          elsif remaining < batch_limit
-            relation = relation.limit(remaining)
-          end
-        end
-
-        batch_orders_copy = batch_orders.dup
-        _last_column, last_order = batch_orders_copy.pop
-        operators = batch_orders_copy.map do |_column, order|
-          order == :desc ? :lteq : :gteq
-        end
-        operators << (last_order == :desc ? :lt : :gt)
-
-        batch_relation = batch_condition(relation, primary_key, primary_key_offset, operators)
+      else
+        batch_on_unloaded_relation(
+          relation: relation,
+          start: start,
+          finish: finish,
+          load: load,
+          order: order,
+          use_ranges: use_ranges,
+          remaining: remaining,
+          batch_limit: batch_limit,
+          &block
+        )
       end
     end
 
@@ -402,6 +358,67 @@ module ActiveRecord
           subrelation.load_records(records[start, batch_limit])
 
           yield subrelation
+        end
+
+        nil
+      end
+
+      def batch_on_unloaded_relation(relation:, start:, finish:, load:, order:, use_ranges:, remaining:, batch_limit:)
+        batch_orders = build_batch_orders(order)
+        relation = relation.reorder(batch_orders.to_h).limit(batch_limit)
+        relation = apply_limits(relation, start, finish, batch_orders)
+        relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
+        batch_relation = relation
+        empty_scope = to_sql == klass.unscoped.all.to_sql
+
+        loop do
+          if load
+            records = batch_relation.records
+            ids = records.map(&:id)
+            yielded_relation = where(primary_key => ids)
+            yielded_relation.load_records(records)
+          elsif (empty_scope && use_ranges != false) || use_ranges
+            ids = batch_relation.ids
+            finish = ids.last
+            if finish
+              yielded_relation = apply_finish_limit(batch_relation, finish, batch_orders)
+              yielded_relation = yielded_relation.except(:limit, :order)
+              yielded_relation.skip_query_cache!(false)
+            end
+          else
+            ids = batch_relation.ids
+            yielded_relation = where(primary_key => ids)
+          end
+
+          break if ids.empty?
+
+          primary_key_offset = ids.last
+          raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
+
+          yield yielded_relation
+
+          break if ids.length < batch_limit
+
+          if limit_value
+            remaining -= ids.length
+
+            if remaining == 0
+              # Saves a useless iteration when the limit is a multiple of the
+              # batch size.
+              break
+            elsif remaining < batch_limit
+              relation = relation.limit(remaining)
+            end
+          end
+
+          batch_orders_copy = batch_orders.dup
+          _last_column, last_order = batch_orders_copy.pop
+          operators = batch_orders_copy.map do |_column, order|
+            order == :desc ? :lteq : :gteq
+          end
+          operators << (last_order == :desc ? :lt : :gt)
+
+          batch_relation = batch_condition(relation, primary_key, primary_key_offset, operators)
         end
 
         nil
