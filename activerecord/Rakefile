@@ -253,7 +253,7 @@ namespace :db do
     end
 
     desc "Drop the MySQL test databases"
-    task :drop do
+    task drop: ["db:mysql:build_user"] do
       %x( mysql #{mysql2_connection_arguments["arunit"]} -e "drop database IF EXISTS #{mysql2_config["arunit"]["database"]}" )
       %x( mysql #{mysql2_connection_arguments["arunit2"]} -e "drop database IF EXISTS #{mysql2_config["arunit2"]["database"]}" )
 
