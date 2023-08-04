@@ -237,8 +237,6 @@ module ActiveRecord
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: DEFAULT_ORDER, use_ranges: nil, &block)
-      relation = self
-
       unless Array(order).all? { |ord| [:asc, :desc].include?(ord) }
         raise ArgumentError, ":order must be :asc or :desc or an array consisting of :asc or :desc, got #{order.inspect}"
       end
@@ -260,7 +258,7 @@ module ActiveRecord
 
       if self.loaded?
         batch_on_loaded_relation(
-          relation: relation,
+          relation: self,
           start: start,
           finish: finish,
           order: order,
@@ -269,7 +267,7 @@ module ActiveRecord
         )
       else
         batch_on_unloaded_relation(
-          relation: relation,
+          relation: self,
           start: start,
           finish: finish,
           load: load,
