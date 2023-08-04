@@ -7,8 +7,8 @@ module ActiveModel
     class LengthValidator < EachValidator # :nodoc:
       include ResolveValue
 
-      MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
-      CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
+      MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long, min: :too_short, max: :too_long }.freeze
+      CHECKS    = { is: :==, minimum: :>=, maximum: :<=, min: :>=, max: :<= }.freeze
 
       RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long]
 
@@ -30,7 +30,7 @@ module ActiveModel
         keys = CHECKS.keys & options.keys
 
         if keys.empty?
-          raise ArgumentError, "Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option."
+          raise ArgumentError, "Range unspecified. Specify the :in, :within, :maximum, :minimum, :min, :max or :is option."
         end
 
         keys.each do |key|

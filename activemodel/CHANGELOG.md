@@ -1,3 +1,9 @@
+*   Support min & max for length validation
+
+    Provides a simple way for users to set length
+
+    *RobertChang*
+
 *   Error.full_message now strips ":base" from the message.
 
     *zzak*

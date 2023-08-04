@@ -496,4 +496,45 @@ class LengthValidationTest < ActiveModel::TestCase
     t.title = ""
     assert_predicate t, :valid?
   end
+
+  def test_validates_length_of_support_min
+    Topic.validates_length_of :title, min: 3
+
+    t = Topic.new(title: "a")
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too short (minimum is 3 characters)"], t.errors[:title]
+
+    t = Topic.new(title: "aaa")
+    assert_predicate t, :valid?
+  end
+
+  def test_validates_length_of_support_max
+    Topic.validates_length_of :title, max: 5
+
+    t = Topic.new(title: "aaaaaa")
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t = Topic.new(title: "aaaaa")
+    assert_predicate t, :valid?
+  end
+
+  def test_validates_length_of_support_min_and_max_both
+    Topic.validates_length_of :title, min: 3, max: 5
+
+    t = Topic.new(title: "a")
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too short (minimum is 3 characters)"], t.errors[:title]
+
+    t = Topic.new(title: "aaaaaa")
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t = Topic.new(title: "aaaa")
+    assert_predicate t, :valid?
+  end
 end
