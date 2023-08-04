@@ -599,6 +599,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_not_predicate p, :valid?
     assert_equal [{ error: "should be favorite" }], p.errors.details[:"references[1].base"]
     assert_equal "should be favorite", p.errors[:"references[1].base"].first
+    assert_equal ["References[1] should be favorite"], p.errors.full_messages
   end
 
   def test_indexed_errors_should_be_properly_translated
@@ -646,6 +647,55 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociationWithAcceptsNestedAttrib
     assert_equal ["should be favorite", "can’t be blank"], p.errors.full_messages
   ensure
     ActiveModel::Error.i18n_customize_full_message = old_i18n_customize_full_message
+    I18n.backend = I18n::Backend::Simple.new
+  end
+
+  def test_indexed_errors_on_base_attribute_should_be_properly_translated
+    I18n.backend.store_translations(
+      :en,
+      activerecord: {
+        attributes: {
+          person: {
+            reference: "Super reference",
+          },
+          reference: {
+            base: ""
+          }
+        }
+      }
+    )
+    reference = Class.new(ActiveRecord::Base) do
+      self.table_name = "references"
+      def self.name; "Reference"; end
+
+      validate :should_be_favorite
+      validates_presence_of :job_id
+
+      private
+        def should_be_favorite
+          errors.add(:base, "should be favorite") unless favorite?
+        end
+    end
+
+    person = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      def self.name; "Person"; end
+
+      has_one :reference, autosave: true, anonymous_class: reference
+      validates :reference, presence: true
+    end
+
+    p = person.new
+    assert_not_predicate p, :valid?
+    assert_equal ["Super reference can’t be blank"], p.errors.full_messages
+
+    reference_invalid = reference.new(favorite: false)
+    p.reference = reference_invalid
+
+    assert_not_predicate reference_invalid, :valid?
+    assert_not_predicate p, :valid?
+    assert_equal [" should be favorite", "Reference job can’t be blank"], p.errors.full_messages
+  ensure
     I18n.backend = I18n::Backend::Simple.new
   end
 
