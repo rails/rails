@@ -19,6 +19,30 @@ module Arel
         assert_equal :two, join.right
       end
 
+      def test_create_table_alias
+        table_alias = @factory.create_table_alias :one, :two
+        assert_kind_of Nodes::TableAlias, table_alias
+        assert_equal :two, table_alias.right
+      end
+
+      def test_create_and
+        and_node = @factory.create_and ["foo", "bar"]
+        assert_instance_of Nodes::And, and_node
+        assert_equal ["foo", "bar"], and_node.children
+      end
+
+      def test_create_string_join
+        join = @factory.create_string_join "foo"
+        assert_kind_of Arel::Nodes::StringJoin, join
+        assert_equal "foo", join.left
+      end
+
+      def test_grouping
+        grouping = @factory.grouping :one
+        assert_instance_of Nodes::Grouping, grouping
+        assert_equal :one, grouping.expr
+      end
+
       def test_create_on
         on = @factory.create_on :one
         assert_instance_of Nodes::On, on
