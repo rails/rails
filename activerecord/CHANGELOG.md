@@ -1,3 +1,11 @@
+*   Fix `ActiveRecord::QueryMethods#in_order_of` to include `nil`s, to match the
+    behavior of `Enumerable#in_order_of`.
+
+    For example, `Post.in_order_of(:title, [nil, "foo"])` will now include posts
+    with `nil` titles, the same as `Post.all.to_a.in_order_of(:title, [nil, "foo"])`.
+
+    *fatkodima*
+
 *   Revert "Fix autosave associations with validations added on `:base` of the associated objects."
 
     This change intended to remove the :base attribute from the message,
