@@ -870,7 +870,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_destroy_for_a_failed_to_destroy_cpk_record
     book = cpk_books(:cpk_great_author_first_book)
     book.fail_destroy = true
-    assert_raises(ActiveRecord::RecordNotDestroyed, match: /Failed to destroy Cpk::Book with \["author_id", "id"\]=/) do
+    assert_raises(ActiveRecord::RecordNotDestroyed, match: /Failed to destroy Book with \["author_id", "id"\]=/) do
       book.destroy!
     end
   end

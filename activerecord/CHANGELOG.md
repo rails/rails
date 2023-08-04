@@ -328,6 +328,13 @@
 
     *Theodor Tonum*
 
+*   Allow to override RecordNotDestroyed message
+
+    Now it can be overridden with I18n key
+    `activerecord.errors.messages.record_not_destroyed`.
+
+    *Enmy Pérez*
+
 *   Improve `ActiveRecord::Store` to raise a descriptive exception if the column is not either
     structured (e.g., PostgreSQL +hstore+/+json+, or MySQL +json+) or declared serializable via
     `ActiveRecord.store`.

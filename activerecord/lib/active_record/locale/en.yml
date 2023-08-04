@@ -15,6 +15,7 @@ en:
     errors:
       messages:
         record_invalid: "Validation failed: %{errors}"
+        record_not_destroyed: "Failed to destroy %{model} with %{key}"
         restrict_dependent_destroy:
           has_one: "Cannot delete record because a dependent %{record} exists"
           has_many: "Cannot delete record because dependent %{record} exist"

@@ -2866,7 +2866,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal [original_child], car.reload.failed_bulbs
-    assert_equal "Failed to destroy FailedBulb with #{FailedBulb.primary_key}=#{original_child.id}", error.message
+    assert_equal "Failed to destroy Failed bulb with #{FailedBulb.primary_key}=#{original_child.id}", error.message
   end
 
   test "updates counter cache when default scope is given" do
