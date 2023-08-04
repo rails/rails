@@ -1382,7 +1382,7 @@ Author.joins(books: [{ reviews: { customer: :orders } }, :supplier])
 This produces:
 
 ```sql
-SELECT * FROM authors
+SELECT authors.* FROM authors
   INNER JOIN books ON books.author_id = authors.id
   INNER JOIN reviews ON reviews.book_id = books.id
   INNER JOIN customers ON customers.id = reviews.customer_id
