@@ -496,4 +496,8 @@ class LengthValidationTest < ActiveModel::TestCase
     t.title = ""
     assert_predicate t, :valid?
   end
+
+  def test_validates_length_of_using_minium_with_maximum_raise_error
+    assert_raise(ArgumentError) { Topic.validates_length_of :title, minium: 3, maximum: 5 }
+  end
 end

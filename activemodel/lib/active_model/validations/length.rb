@@ -29,7 +29,7 @@ module ActiveModel
       def check_validity!
         keys = CHECKS.keys & options.keys
 
-        if keys.empty?
+        if keys.empty? || options.key?(:minium)
           raise ArgumentError, "Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option."
         end
 
