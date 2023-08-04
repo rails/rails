@@ -607,6 +607,13 @@ class TestCaseTest < ActionController::TestCase
     assert_equal "application/json", parsed_env["CONTENT_TYPE"]
   end
 
+  test "blank Content-Type header" do
+    @request.headers["Content-Type"] = ""
+    assert_raises(ActionDispatch::Http::MimeNegotiation::InvalidType) do
+      get :test_headers
+    end
+  end
+
   def test_using_as_json_sets_request_content_type_to_json
     post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
 
