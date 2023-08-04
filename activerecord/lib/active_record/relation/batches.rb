@@ -236,14 +236,14 @@ module ActiveRecord
     #
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
-    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: DEFAULT_ORDER, use_ranges: nil)
+    def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, order: DEFAULT_ORDER, use_ranges: nil, &block)
       relation = self
 
       unless Array(order).all? { |ord| [:asc, :desc].include?(ord) }
         raise ArgumentError, ":order must be :asc or :desc or an array consisting of :asc or :desc, got #{order.inspect}"
       end
 
-      unless block_given?
+      unless block
         return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, order: order, use_ranges: use_ranges)
       end
 
@@ -258,24 +258,14 @@ module ActiveRecord
       end
 
       if self.loaded?
-        records = relation.to_a
-        if start || finish
-          records = records.filter { |record|
-            (start.nil? || record.id >= start) && (finish.nil? || record.id <= finish)
-          }
-        end
-
-        records = records.sort_by { |record| record.id }
-        if order == :desc
-          records.reverse!
-        end
-
-        (0...records.size).step(batch_limit).each do |start|
-          subrelation = relation.spawn
-          subrelation.load_records(records[start, batch_limit])
-          yield subrelation
-        end
-        return
+        return batch_on_loaded_relation(
+          relation: relation,
+          start: start,
+          finish: finish,
+          order: order,
+          batch_limit: batch_limit,
+          &block
+        )
       end
 
       batch_orders = build_batch_orders(order)
@@ -309,7 +299,7 @@ module ActiveRecord
         primary_key_offset = ids.last
         raise ArgumentError.new("Primary key not included in the custom select clause") unless primary_key_offset
 
-        yield yielded_relation
+        block.call yielded_relation
 
         break if ids.length < batch_limit
 
@@ -390,6 +380,31 @@ module ActiveRecord
 
       def get_the_order_of_primary_key(order)
         Array(primary_key).zip(Array(order))
+      end
+
+      def batch_on_loaded_relation(relation:, start:, finish:, order:, batch_limit:)
+        records = relation.to_a
+
+        if start || finish
+          records = records.filter do |record|
+            (start.nil? || record.id >= start) && (finish.nil? || record.id <= finish)
+          end
+        end
+
+        records = records.sort_by { |record| record.id }
+
+        if order == :desc
+          records.reverse!
+        end
+
+        (0...records.size).step(batch_limit).each do |start|
+          subrelation = relation.spawn
+          subrelation.load_records(records[start, batch_limit])
+
+          yield subrelation
+        end
+
+        nil
       end
   end
 end
