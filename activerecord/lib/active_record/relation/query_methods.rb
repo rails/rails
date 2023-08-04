@@ -444,13 +444,16 @@ module ActiveRecord
       self
     end
 
-    # Allows to specify an order by a specific set of values. Depending on your
-    # adapter this will either use a CASE statement or a built-in function.
+    # Allows to specify an order by a specific set of values.
     #
     #   User.in_order_of(:id, [1, 5, 3])
     #   # SELECT "users".* FROM "users"
-    #   #   ORDER BY FIELD("users"."id", 1, 5, 3)
     #   #   WHERE "users"."id" IN (1, 5, 3)
+    #   #   ORDER BY CASE
+    #   #     WHEN "users"."id" = 1 THEN 1
+    #   #     WHEN "users"."id" = 5 THEN 2
+    #   #     WHEN "users"."id" = 3 THEN 3
+    #   #   END ASC
     #
     def in_order_of(column, values)
       klass.disallow_raw_sql!([column], permit: connection.column_name_with_order_matcher)
@@ -462,9 +465,16 @@ module ActiveRecord
       values = values.map { |value| type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Symbol) ? order_column(column.to_s) : column
 
+      where_clause =
+        if values.include?(nil)
+          arel_column.in(values.compact).or(arel_column.eq(nil))
+        else
+          arel_column.in(values)
+        end
+
       spawn
-        .order!(connection.field_ordered_value(arel_column, values))
-        .where!(arel_column.in(values))
+        .order!(build_case_for_value_position(arel_column, values))
+        .where!(where_clause)
     end
 
     # Replaces any existing order defined on the relation with the specified order.
@@ -1667,6 +1677,15 @@ module ActiveRecord
             Arel.sql(connection.quote_table_name(attr_name))
           end
         end
+      end
+
+      def build_case_for_value_position(column, values)
+        node = Arel::Nodes::Case.new
+        values.each.with_index(1) do |value, order|
+          node.when(column.eq(value)).then(order)
+        end
+
+        Arel::Nodes::Ascending.new(node)
       end
 
       def resolve_arel_attributes(attrs)

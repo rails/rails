@@ -138,11 +138,6 @@ module ActiveRecord
         true
       end
 
-      def field_ordered_value(column, values) # :nodoc:
-        field = Arel::Nodes::NamedFunction.new("FIELD", [column, values.reverse.map { |value| Arel::Nodes.build_quoted(value) }])
-        Arel::Nodes::Descending.new(field)
-      end
-
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end

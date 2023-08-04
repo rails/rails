@@ -69,4 +69,16 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
 
     assert_equal(order, posts.map(&:id))
   end
+
+  def test_in_order_of_with_nil
+    Book.destroy_all
+    Book.create!(format: "paperback")
+    Book.create!(format: "ebook")
+    Book.create!(format: nil)
+
+    order = ["ebook", nil, "paperback"]
+    books = Book.in_order_of(:format, order)
+
+    assert_equal(order, books.map(&:format))
+  end
 end
