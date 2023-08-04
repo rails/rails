@@ -163,8 +163,21 @@ module ActiveRecord
 
     def initialize(message = nil, record = nil)
       @record = record
+      message ||= i18n_message if record
+      message ||= "Failed to destroy the record"
       super(message)
     end
+
+    protected
+      def i18n_message
+        record_class = record.class
+
+        I18n.translate(
+          :"#{record_class.i18n_scope}.errors.messages.record_not_destroyed",
+          model: record_class.model_name.human,
+          key: "#{record_class.primary_key}=#{record.send(record_class.primary_key)}",
+        )
+      end
   end
 
   # Raised when Active Record finds multiple records but only expected one.
