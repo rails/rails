@@ -50,6 +50,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache
   end
 
+  parallelize(workers: 1)
+
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
