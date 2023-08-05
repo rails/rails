@@ -72,9 +72,7 @@ module ActiveSupport
         def execution_info
           if parallelized?
             "Running #{tests_count} tests in parallel using #{parallel_executor.size} #{parallelize_with}"
-          elsif !many_workers?
-            "Running #{tests_count} tests in a single process"
-          else
+          elsif many_workers?
             "Running #{tests_count} tests in a single process (parallelization threshold is #{threshold})"
           end
         end
