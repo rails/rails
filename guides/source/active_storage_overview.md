@@ -1336,7 +1336,7 @@ NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file tha
 Testing
 -------------------------------------------
 
-Use [`fixture_file_upload`][] to test uploading a file in an integration or controller test.
+Use [`file_fixture_upload`][] to test uploading a file in an integration or controller test.
 Rails handles files like any other parameter.
 
 ```ruby
@@ -1344,7 +1344,7 @@ class SignupController < ActionDispatch::IntegrationTest
   test "can sign up" do
     post signup_path, params: {
       name: "David",
-      avatar: fixture_file_upload("david.png", "image/png")
+      avatar: file_fixture_upload("david.png", "image/png")
     }
 
     user = User.order(:created_at).last
@@ -1353,7 +1353,7 @@ class SignupController < ActionDispatch::IntegrationTest
 end
 ```
 
-[`fixture_file_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html
+[`file_fixture_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html#method-i-file_fixture_upload
 
 ### Discarding Files Created During Tests
 
