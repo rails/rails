@@ -162,7 +162,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
             @new_test.stub :show, -> (_) { } do
               @new_test.take_failed_screenshot
 
-              assert_equal @new_test.send(:absolute_image_path), @new_test.metadata[:failure_screenshot_path]
+              assert_equal @new_test.send(:relative_image_path), @new_test.metadata[:failure_screenshot_path]
             end
           end
         end
