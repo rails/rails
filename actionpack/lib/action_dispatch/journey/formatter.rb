@@ -56,7 +56,7 @@ module ActionDispatch
         end
       end
 
-      def generate(name, options, path_parameters = {})
+      def generate(name, options, path_parameters)
         original_options = options.dup
         path_params = options.delete(:path_params) || {}
         options = path_params.merge(options)

@@ -771,7 +771,7 @@ module ActionDispatch
         # Generates a path from routes, returns a RouteWithParams or MissingRoute.
         # MissingRoute will raise ActionController::UrlGenerationError.
         def generate
-          @set.formatter.generate(named_route, options)
+          @set.formatter.generate(named_route, options, recall.except(:id))
         end
 
         def different_controller?
