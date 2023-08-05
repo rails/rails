@@ -3,7 +3,6 @@ yarn install
 
 sudo chown -R vscode:vscode /usr/local/bundle
 
-sudo service mariadb start
 sudo service redis-server start
 sudo service memcached start
 

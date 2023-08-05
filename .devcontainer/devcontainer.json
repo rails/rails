@@ -15,7 +15,8 @@
 	"containerEnv": {
 		"PGHOST": "postgres",
 		"PGUSER": "postgres",
-		"PGPASSWORD": "postgres"
+		"PGPASSWORD": "postgres",
+		"MYSQL_HOST": "mariadb"
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
