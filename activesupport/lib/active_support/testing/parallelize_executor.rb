@@ -9,6 +9,7 @@ module ActiveSupport
         @size = size
         @parallelize_with = with
         @threshold = threshold
+        @parallelized = false
       end
 
       def start
@@ -49,7 +50,7 @@ module ActiveSupport
         end
 
         def parallelized?
-          @parallelized if defined?(@parallelized)
+          @parallelized
         end
 
         def should_parallelize?
