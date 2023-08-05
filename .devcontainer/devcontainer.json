@@ -16,7 +16,8 @@
 		"PGHOST": "postgres",
 		"PGUSER": "postgres",
 		"PGPASSWORD": "postgres",
-		"MYSQL_HOST": "mariadb"
+		"MYSQL_HOST": "mariadb",
+		"REDIS_URL": "redis://redis/0"
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
