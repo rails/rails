@@ -3,8 +3,6 @@ yarn install
 
 sudo chown -R vscode:vscode /usr/local/bundle
 
-sudo service memcached start
-
 cd activerecord
 
 # Create PostgreSQL databases

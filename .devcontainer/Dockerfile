@@ -13,7 +13,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
         mariadb-client libmariadb-dev \
         postgresql-client postgresql-contrib libpq-dev \
-        memcached \
         ffmpeg mupdf mupdf-tools libvips poppler-utils
 
 
