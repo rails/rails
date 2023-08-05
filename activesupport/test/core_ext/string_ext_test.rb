@@ -441,6 +441,19 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_safe_constantize
     run_safe_constantize_tests_on(&:safe_constantize)
   end
+
+  def test_extract_numbers
+    assert_equal [], "".extract_numbers
+    assert_equal [42], "The answer is 42".extract_numbers
+    assert_equal [1, 2, 3], "The numbers are 1, 2, and 3".extract_numbers
+    assert_equal [123, 456, 789], "123abc456def789".extract_numbers
+    assert_equal [3.14159], "Pi is approximately 3.14159".extract_numbers
+    assert_equal [-10], "Temperature: -10°C".extract_numbers
+    assert_equal [123], "  123  ".extract_numbers
+    assert_equal [], "NoNumbersHere".extract_numbers
+    assert_equal [123, 456], "123 456".extract_numbers
+    assert_equal [1000000, 2000, 10], "1000000 2000 10".extract_numbers
+  end
 end
 
 class StringAccessTest < ActiveSupport::TestCase

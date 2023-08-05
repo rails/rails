@@ -1,3 +1,17 @@
+*   Add `String#extract_numbers` added to extract all numeric values from a given string.
+
+    The extract_numbers method has been added to the String class in ActiveSupport.
+    This method allows extracting all numeric values from a given string and returns
+    them as an array.
+
+    ```ruby
+    "The numbers are 1, 2, and 3".extract_numbers # Returns [1, 2, 3]
+    "NoNumbersHere".extract_numbers # Returns []
+    "Temperature: -10°C".extract_numbers # Returns [-10]
+    ```
+
+    *Akhil G Krishnan*
+
 *   When using cache format version >= 7.1 or a custom serializer, expired and
     version-mismatched cache entries can now be detected without deserializing
     their values.

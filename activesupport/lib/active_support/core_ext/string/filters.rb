@@ -148,4 +148,20 @@ class String
       dup
     end
   end
+
+  # Returns an array containing all the numbers found within the string.
+  #
+  # This method scans the string for sequences of digits and extracts them as integers.
+  # It then returns an array containing all the extracted numbers.
+  #
+  # Examples:
+  #   "abc123xyz456".extract_numbers  # => [123, 456]
+  #   "42 is the answer".extract_numbers  # => [42]
+  #   "The year is 2023".extract_numbers  # => [2023]
+  #
+  # Returns:
+  #   An array of integers representing the numbers found in the string.
+  def extract_numbers
+    scan(/-?\d*\.?\d+/).map(&:to_f)
+  end
 end

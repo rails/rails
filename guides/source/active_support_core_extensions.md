@@ -1280,6 +1280,17 @@ NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
 [String#truncate_words]: https://api.rubyonrails.org/classes/String.html#method-i-truncate_words
 
+
+### `extract_numbers`
+
+The method [`extract_numbers`][String#extract_numbers] returns an array of numbers found in the string:
+
+```ruby
+  "abc123def456ghi789zero0".extract_numbers # => [123, 456, 789, 0]
+```
+
+NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+
 ### `inquiry`
 
 The [`inquiry`][String#inquiry] method converts a string into a `StringInquirer` object making equality checks prettier.
