@@ -19,6 +19,7 @@ services:
     depends_on:
       - postgres
       - mariadb
+      - redis
 
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
@@ -45,9 +46,18 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: root
 
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - redis-data:/data
+
 networks:
   default:
 
 volumes:
   postgres-data:
   mariadb-data:
+  redis-data:
