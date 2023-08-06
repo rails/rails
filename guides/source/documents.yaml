@@ -162,13 +162,6 @@
         the same style and form as the rest of your Rails application. This
         guide explains how Action Cable works, and how to use WebSockets to
         create real-time features.
-    -
-      name: Webpacker
-      url: webpacker.html
-      description: >
-        This guide will show you how to install and use Webpacker to package
-        JavaScript, CSS, and other assets for the client-side of your Rails
-        application.
 -
   name: Digging Deeper
   documents:
