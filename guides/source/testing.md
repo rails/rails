@@ -421,6 +421,12 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
+You can also run a range of tests by providing the line range.
+
+```bash
+$ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
+```
+
 You can also run an entire directory of tests by providing the path to the directory.
 
 ```bash
@@ -437,6 +443,10 @@ Usage: rails test [options] [files or directories]
 You can run a single test by appending a line number to a filename:
 
     bin/rails test test/models/user_test.rb:27
+
+You can run multiple tests with in a line range by appending the line range to a filename:
+
+    bin/rails test test/models/user_test.rb:10-20
 
 You can run multiple files and directories at the same time:
 
