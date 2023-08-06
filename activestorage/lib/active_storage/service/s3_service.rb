@@ -15,7 +15,7 @@ module ActiveStorage
     attr_reader :multipart_upload_threshold, :upload_options
 
     def initialize(bucket:, upload: {}, public: false, **options)
-      @client = Aws::S3::Resource.new(**options)
+      @client = Aws::S3::Resource.new(**options.compact_blank!)
       @bucket = @client.bucket(bucket)
 
       @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes

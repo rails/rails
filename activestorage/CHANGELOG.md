@@ -1,3 +1,13 @@
+*   Update the `Service::S3Service#initialize` method to remove `access_key_id`,
+    `secret_access_key`, and `region` from the options parameter only if they are empty.
+    This change allows the AWS SDK to fall back to using the corresponding environment
+    variables in case these options are not explicitly provided, improving flexibility
+    and security.
+
+    Fixes #48836
+
+    *Jay Ang*
+
 *   Disables the session in `ActiveStorage::Blobs::ProxyController`
     and `ActiveStorage::Representations::ProxyController`
     in order to allow caching by default in some CDNs as CloudFlare

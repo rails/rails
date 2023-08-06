@@ -190,9 +190,38 @@ if SERVICE_CONFIGURATIONS[:s3]
       end
     end
 
+    test "service configuration uses environment variables for missing keys or empty values" do
+      setup_aws_env
+
+      s3_config = SERVICE_CONFIGURATIONS[:s3]
+      service = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS.merge(s3: s3_config.except(:access_key_id, :secret_access_key, :region)))
+
+      key  = SecureRandom.base58(24)
+      data = "Something else entirely!"
+      service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data))
+
+      assert_equal data, service.download(key)
+    ensure
+      service.delete(key)
+      teardown_aws_env
+    end
+
     private
       def build_service(configuration)
         ActiveStorage::Service.configure :s3, SERVICE_CONFIGURATIONS.deep_merge(s3: configuration)
+      end
+
+      def setup_aws_env
+        @aws_env = {
+          "AWS_ACCESS_KEY_ID" => SERVICE_CONFIGURATIONS[:s3][:access_key_id],
+          "AWS_SECRET_ACCESS_KEY" => SERVICE_CONFIGURATIONS[:s3][:secret_access_key],
+          "AWS_REGION" => SERVICE_CONFIGURATIONS[:s3][:region]
+        }
+        @aws_env.each { |key, value| ENV[key] = value }
+      end
+
+      def teardown_aws_env
+        @aws_env.keys.each { |key| ENV[key] = nil }
       end
   end
 else
