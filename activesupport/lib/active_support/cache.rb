@@ -303,6 +303,13 @@ module ActiveSupport
       #   serializer or compressor, you should specify the +:serializer+ or
       #   +:compressor+ options instead.
       #
+      #   If the store can handle cache entries directly, you may also specify
+      #   <tt>coder: nil</tt> to omit the serializer, compressor, and coder. For
+      #   example, if you are using ActiveSupport::Cache::MemoryStore and can
+      #   guarantee that cache values will not be mutated, you can specify
+      #   <tt>coder: nil</tt> to avoid the overhead of safeguarding against
+      #   mutation.
+      #
       #   The +:coder+ option is mutally exclusive with the +:serializer+ and
       #   +:compressor+ options. Specifying them together will raise an
       #   +ArgumentError+.

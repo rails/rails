@@ -53,6 +53,14 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert_equal @cache.class.name, events[0].payload[:store]
   end
 
+  def test_nil_coder_bypasses_mutation_safeguard
+    @cache = lookup_store(coder: nil)
+    value = {}
+    @cache.write("key", value)
+
+    assert_same value, @cache.read("key")
+  end
+
   private
     def compression_always_disabled_by_default?
       true
