@@ -496,4 +496,8 @@ class LengthValidationTest < ActiveModel::TestCase
     t.title = ""
     assert_predicate t, :valid?
   end
+
+  def test_validates_length_of_wrong_spelling_of_minium_and_maximum_at_same_time
+    assert_raise(ArgumentError) { Topic.validates_length_of :title, minium: 5, maximum: 10 }
+  end
 end

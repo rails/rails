@@ -11,6 +11,7 @@ module ActiveModel
       CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
 
       RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long]
+      TYPO_OPTIONS = [:minium]
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
@@ -29,7 +30,7 @@ module ActiveModel
       def check_validity!
         keys = CHECKS.keys & options.keys
 
-        if keys.empty?
+        if keys.empty? || options.keys.any? { |k| TYPO_OPTIONS.include?(k) }
           raise ArgumentError, "Range unspecified. Specify the :in, :within, :maximum, :minimum, or :is option."
         end
 
