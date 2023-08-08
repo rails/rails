@@ -226,21 +226,17 @@ namespace :db do
     desc "Create the MySQL Rails User"
     task :build_user do
       if ENV["MYSQL_CODESPACES"]
-        if ENV["MYSQL_SOCK"]
-          mysql_command = "sudo mysql -uroot -S #{ENV["MYSQL_SOCK"]} -e"
-        else
-          mysql_command = "sudo mysql -uroot -proot -e"
-        end
+        mysql_command = "mysql -uroot -proot -e"
       else
         mysql_command = "mysql -uroot -e"
       end
 
       mysql_configs.each do |config|
-        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit"]["username"]}'@'localhost';" )
-        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit2"]["username"]}'@'localhost';" )
-        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit"]["database"]}.* to '#{config["arunit"]["username"]}'@'localhost'" )
-        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit2"]["database"]}.* to '#{config["arunit2"]["username"]}'@'localhost'" )
-        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{config["arunit"]["username"]}'@'localhost';" )
+        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit"]["username"]}'@'%';" )
+        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit2"]["username"]}'@'%';" )
+        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit"]["database"]}.* to '#{config["arunit"]["username"]}'@'%'" )
+        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit2"]["database"]}.* to '#{config["arunit2"]["username"]}'@'%'" )
+        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{config["arunit"]["username"]}'@'%';" )
       end
     end
 
@@ -253,7 +249,7 @@ namespace :db do
     end
 
     desc "Drop the MySQL test databases"
-    task :drop do
+    task drop: ["db:mysql:build_user"] do
       %x( mysql #{mysql2_connection_arguments["arunit"]} -e "drop database IF EXISTS #{mysql2_config["arunit"]["database"]}" )
       %x( mysql #{mysql2_connection_arguments["arunit2"]} -e "drop database IF EXISTS #{mysql2_config["arunit2"]["database"]}" )
 
