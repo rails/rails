@@ -38,6 +38,7 @@ ActiveRecord::Schema.define do
     t.string :json_data_empty, null: true, default: "", limit: 1024
     t.text :params
     t.references :account
+    t.json :json_options
   end
 
   create_table :admin_user_jsons, force: true do |t|
