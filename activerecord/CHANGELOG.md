@@ -1,3 +1,9 @@
+*   Fix previous change tracking for `ActiveRecord::Store` when using a column with JSON structured database type
+
+    Before, the methods to access the changes made during the last save `#saved_change_to_key?`, `#saved_change_to_key`, and `#key_before_last_save` did not work if the store was defined as a `store_accessor` on a column with a JSON structured database type
+
+    *Robert DiMartino*
+
 *   Fully support `NULLS [NOT] DISTINCT` for PostgreSQL 15+ indexes.
 
     Previous work was done to allow the index to be created in a migration, but it was not
