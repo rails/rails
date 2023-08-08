@@ -198,21 +198,41 @@ namespace :db do
   namespace :mysql do
     connection_arguments = lambda do |connection_name|
       config = ARTest.config["connections"]["mysql2"][connection_name]
-      ["--user=#{config["username"]}", "--password=#{config["password"]}", ("--host=#{config["host"]}" if config["host"]), ("--socket=#{config["socket"]}" if config["socket"])].join(" ")
+      ["--user=#{config["username"]}", ("--password=#{config["password"]}" if config["password"]), ("--host=#{config["host"]}" if config["host"]), ("--socket=#{config["socket"]}" if config["socket"])].join(" ")
+    end
+
+
+    desc "Create the MySQL Rails User"
+    task :build_user do
+      config = ARTest.config["connections"]["mysql2"]
+
+      if ENV["MYSQL_CODESPACES"]
+        mysql_command = "mysql -uroot -proot -e"
+      else
+        mysql_command = "mysql -uroot -e"
+      end
+
+      %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit"]["username"]}'@'%';" )
+      %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit2"]["username"]}'@'%';" )
+      %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit"]["database"]}.* to '#{config["arunit"]["username"]}'@'%'" )
+      %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit2"]["database"]}.* to '#{config["arunit2"]["username"]}'@'%'" )
+      %x( #{mysql_command} "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{config["arunit"]["username"]}'@'%';" )
     end
 
     desc "Build the MySQL test databases"
     task :build do
       config = ARTest.config["connections"]["mysql2"]
+
       %x( mysql #{connection_arguments["arunit"]} -e "create DATABASE #{config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
       %x( mysql #{connection_arguments["arunit2"]} -e "create DATABASE #{config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
     end
 
     desc "Drop the MySQL test databases"
-    task :drop do
+    task drop: ["db:mysql:build_user"] do
       config = ARTest.config["connections"]["mysql2"]
-      %x( mysqladmin #{connection_arguments["arunit"]} -f drop #{config["arunit"]["database"]} )
-      %x( mysqladmin #{connection_arguments["arunit2"]} -f drop #{config["arunit2"]["database"]} )
+
+      %x( mysql #{connection_arguments["arunit"]} -e "drop database IF EXISTS #{config["arunit"]["database"]}" )
+      %x( mysql #{connection_arguments["arunit2"]} -e "drop database IF EXISTS #{config["arunit2"]["database"]}" )
     end
 
     desc "Rebuild the MySQL test databases"

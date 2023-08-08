@@ -3,22 +3,10 @@ yarn install
 
 sudo chown -R vscode:vscode /usr/local/bundle
 
-sudo service postgresql start
-sudo service mariadb start
-sudo service redis-server start
-sudo service memcached start
+cd activerecord
 
-# Create PostgreSQL users and databases
-sudo su postgres -c "createuser --superuser vscode"
-sudo su postgres -c "createdb -O vscode -E UTF8 -T template0 activerecord_unittest"
-sudo su postgres -c "createdb -O vscode -E UTF8 -T template0 activerecord_unittest2"
+# Create PostgreSQL databases
+bundle exec rake db:postgresql:rebuild
 
-# Create MySQL database and databases
-MYSQL_PWD=root sudo mysql -uroot <<SQL
-CREATE USER 'rails'@'localhost';
-CREATE DATABASE activerecord_unittest  DEFAULT CHARACTER SET utf8mb4;
-CREATE DATABASE activerecord_unittest2 DEFAULT CHARACTER SET utf8mb4;
-GRANT ALL PRIVILEGES ON activerecord_unittest.* to 'rails'@'localhost';
-GRANT ALL PRIVILEGES ON activerecord_unittest2.* to 'rails'@'localhost';
-GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to 'rails'@'localhost';
-SQL
+# Create MySQL databases
+MYSQL_CODESPACES=1 bundle exec rake db:mysql:rebuild
