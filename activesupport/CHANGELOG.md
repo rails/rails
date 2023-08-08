@@ -1,3 +1,7 @@
+*   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
+
+    *Yasuo Honda*
+
 *   Fix `delete_matched` for file cache store to work with keys longer than the
     max filename size.
 
