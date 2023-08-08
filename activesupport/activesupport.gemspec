@@ -39,4 +39,7 @@ Gem::Specification.new do |s|
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
   s.add_dependency "zeitwerk",        "~> 2.3"
   s.add_dependency "minitest",        ">= 5.1"
+  s.add_dependency "base64"
+  s.add_dependency "drb"
+  s.add_dependency "mutex_m"
 end

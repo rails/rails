@@ -1,3 +1,7 @@
+*   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
+
+    *Yasuo Honda*
+
 ## Rails 6.1.7.6 (August 22, 2023) ##
 
 *   No changes.
