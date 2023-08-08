@@ -1,3 +1,7 @@
+*   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
+
+    *Yasuo Honda*
+
 *   When using cache format version >= 7.1 or a custom serializer, expired and
     version-mismatched cache entries can now be detected without deserializing
     their values.
