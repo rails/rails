@@ -203,6 +203,7 @@ module ActiveModel
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
+        local_attribute_aliases[new_name.to_s] = old_name.to_s
         eagerly_generate_alias_attribute_methods(new_name, old_name)
       end
 
@@ -359,6 +360,10 @@ module ActiveModel
           undef_method(*instance_methods)
         end
         attribute_method_patterns_cache.clear
+      end
+
+      def local_attribute_aliases # :nodoc:
+        @local_attribute_aliases ||= {}
       end
 
       private
