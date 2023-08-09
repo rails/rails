@@ -524,7 +524,7 @@ module ApplicationTests
 
       app "development"
 
-      refute ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version
+      assert_not ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version
     end
 
     test "propagates use_schema_cache_dump=true to ActiveRecord::ConnectionAdapters::SchemaReflection" do
@@ -544,7 +544,7 @@ module ApplicationTests
 
       app "development"
 
-      refute ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump
+      assert_not ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump
     end
 
 
