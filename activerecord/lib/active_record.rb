@@ -447,6 +447,13 @@ module ActiveRecord
   singleton_class.attr_accessor :yaml_column_permitted_classes
   self.yaml_column_permitted_classes = [Symbol]
 
+  ##
+  # :singleton-method:
+  # Controls when to generate a value for <tt>has_secure_token</tt>
+  # declarations. Defaults to <tt>:create</tt>.
+  singleton_class.attr_accessor :generate_secure_token_on
+  self.generate_secure_token_on = :create
+
   def self.marshalling_format_version
     Marshalling.format_version
   end

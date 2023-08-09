@@ -16,6 +16,15 @@ class SecureTokenTest < ActiveRecord::TestCase
     assert_equal 36, @user.auth_token.size
   end
 
+  def test_generating_token_on_initialize_does_not_affect_reading_from_the_column
+    token = "abc123"
+
+    @user.update! token: token
+
+    assert_equal token, @user.reload.token
+    assert_equal token, User.find(@user.id).token
+  end
+
   def test_regenerating_the_secure_token
     @user.save
     old_token = @user.token
