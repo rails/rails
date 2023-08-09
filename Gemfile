@@ -59,7 +59,11 @@ group :mdl do
 end
 
 group :doc do
-  gem "sdoc", ">= 2.6.0"
+  if ENV["EDGE"]
+    gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
+  else
+    gem "sdoc", ">= 2.6.0"
+  end
   gem "rdoc", "~> 6.5"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
