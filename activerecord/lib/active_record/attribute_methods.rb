@@ -93,7 +93,7 @@ module ActiveRecord
           aliased_method_redefined_as_well = method_defined_within?(method_name, self)
           return if aliased_method_redefined_as_well
 
-          ActiveModel.deprecator.warn(
+          ActiveRecord.deprecator.warn(
             "#{self} model aliases `#{old_name}` and has a method called `#{target_name}` defined. " \
             "Starting in Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore. " \
             "You may want to additionally define `#{method_name}` to preserve the current behavior."
