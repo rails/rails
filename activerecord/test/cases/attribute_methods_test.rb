@@ -1177,7 +1177,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     You may want to additionally define `subject_was` to preserve the current behavior.
     MESSAGE
 
-    obj = assert_deprecated(message, ActiveModel.deprecator) do
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
       ClassWithDeprecatedAliasAttributeBehavior.new
     end
     obj.title = "hey"
@@ -1204,7 +1204,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     You may want to additionally define `subject_was` to preserve the current behavior.
     MESSAGE
 
-    obj = assert_deprecated(message, ActiveModel.deprecator) do
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
       ClassWithDeprecatedAliasAttributeBehaviorFromModule.new
     end
     obj.title = "hey"
@@ -1226,7 +1226,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "#alias_attribute with an overridden original method along with an overridden alias method doesn't issue a deprecation" do
-    obj = assert_not_deprecated(ActiveModel.deprecator) do
+    obj = assert_not_deprecated(ActiveRecord.deprecator) do
       ClassWithDeprecatedAliasAttributeBehaviorResolved.new
     end
     obj.title = "hey"
