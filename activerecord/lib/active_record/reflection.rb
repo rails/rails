@@ -102,10 +102,11 @@ module ActiveRecord
       #
       #   Account.reflect_on_all_associations             # returns an array of all associations
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
+      #   Account.reflect_on_all_associations(:has_many, :has_one)  # returns an array of all has_many and has_one associations
       #
-      def reflect_on_all_associations(macro = nil)
+      def reflect_on_all_associations(*macros)
         association_reflections = reflections.values
-        association_reflections.select! { |reflection| reflection.macro == macro } if macro
+        association_reflections.select! { |reflection| macros.include?(reflection.macro) } if macros.any?
         association_reflections
       end
 

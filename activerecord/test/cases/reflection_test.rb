@@ -573,6 +573,16 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reflect_on_multiple_associations
+    all_associations = Book.reflect_on_all_associations
+    has_many_and_has_one = Book.reflect_on_all_associations(:has_many, :has_one)
+
+    assert has_many_and_has_one.all? { |reflection| [:has_many, :has_one].include?(reflection.macro) }
+
+    # This assumes there are other associations such as belongs_to in the test model
+    assert has_many_and_has_one.count < all_associations.count
+  end
+
   def test_reflect_on_association_accepts_strings
     assert_nothing_raised do
       assert_equal Hotel.reflect_on_association("departments").name, :departments

@@ -1,3 +1,29 @@
+*   Allow `reflect_on_all_associations` to support multiple macros.
+
+    Previously, `reflect_on_all_association` would only allow a single macro to be passed in.
+    To return multiple associations, we would need to use custom select logic.
+
+    Before:
+
+    ```ruby
+    Model.reflect_on_all_associations(:has_many)
+    # Returns an array of all has_many associations
+
+    # To get array of more than one macro associations
+    Model.reflect_on_all_associations.select do |reflection|
+      %i[has_many has_one].include?(reflection.macro)
+    end
+    ```
+
+    After:
+
+    ```ruby
+    Model.reflect_on_all_associations(:has_many, :has_one)
+    # Returns an array of all has_many and has_one associations
+    ```
+
+    *Keshav Biswa*
+
 *   Fully support `NULLS [NOT] DISTINCT` for PostgreSQL 15+ indexes.
 
     Previous work was done to allow the index to be created in a migration, but it was not
