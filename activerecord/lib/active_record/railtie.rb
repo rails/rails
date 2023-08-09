@@ -132,8 +132,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.use_schema_cache_dump" do
+      ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump = config.active_record.use_schema_cache_dump
+    end
+
     initializer "active_record.check_schema_cache_dump" do
       check_schema_cache_dump_version = config.active_record.check_schema_cache_dump_version
+
+      ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version = check_schema_cache_dump_version
 
       if config.active_record.use_schema_cache_dump && !config.active_record.lazily_load_schema_cache
         config.after_initialize do |app|
