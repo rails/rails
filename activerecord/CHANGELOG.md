@@ -1,3 +1,19 @@
+*   Restores functionality to the missing method when using enums and fixes.
+
+    *paulreece*
+
+*   Fix `StatementCache::Substitute` with serialized type.
+
+    *ywenc*
+
+*   Fix `:db_runtime` on notification payload when application have multiple databases.
+
+    *Eileen M. Uchitelle*
+
+*   Correctly dump check constraints for MySQL 8.0.16+.
+
+    *Steve Hill*
+
 *   Fix `ActiveRecord::QueryMethods#in_order_of` to include `nil`s, to match the
     behavior of `Enumerable#in_order_of`.
 
@@ -34,6 +50,7 @@
     This broke the `noticed` gem.
 
     *Jean Boussier*
+
 
 ## Rails 7.0.6 (June 29, 2023) ##
 

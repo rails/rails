@@ -1,3 +1,7 @@
+*   Fix `Cache::NullStore` with local caching for repeated reads.
+
+    *fatkodima*
+
 *   Fix `to_s` with no arguments not respecting custom `:default` formats
 
     *Hartley McGuire*
@@ -14,6 +18,7 @@
     compatible version of the Listen gem
 
     *Hartley McGuire*
+
 
 ## Rails 7.0.6 (June 29, 2023) ##
 
