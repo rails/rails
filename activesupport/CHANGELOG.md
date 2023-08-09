@@ -1,3 +1,5 @@
+## Rails 7.0.7 (August 09, 2023) ##
+
 *   Fix `Cache::NullStore` with local caching for repeated reads.
 
     *fatkodima*

@@ -1,3 +1,5 @@
+## Rails 7.0.7 (August 09, 2023) ##
+
 *   Restores functionality to the missing method when using enums and fixes.
 
     *paulreece*
