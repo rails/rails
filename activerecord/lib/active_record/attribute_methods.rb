@@ -65,12 +65,13 @@ module ActiveRecord
       end
 
       def generate_alias_attributes # :nodoc:
+        superclass.generate_alias_attributes unless base_class?
         return if @alias_attributes_mass_generated
 
         generated_attribute_methods.synchronize do
           return if @alias_attributes_mass_generated
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
-            attribute_aliases.each do |new_name, old_name|
+            local_attribute_aliases.each do |new_name, old_name|
               generate_alias_attribute_methods(code_generator, new_name, old_name)
             end
           end
