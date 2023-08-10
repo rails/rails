@@ -40,10 +40,10 @@ module ActiveRecord
       # :singleton-method:
       #
       # Specifies the maximum number of records that will be destroyed in a
-      # single background job by the +dependent: :destroy_async+ association
-      # option. When +nil+ (default), all dependent records will be destroyed
-      # in a single background job. If specified, the records to be destroyed
-      # will be split into multiple background jobs.
+      # single background job by the <tt>dependent: :destroy_async</tt>
+      # association option. When +nil+ (default), all dependent records will be
+      # destroyed in a single background job. If specified, the records to be
+      # destroyed will be split into multiple background jobs.
       class_attribute :destroy_association_async_batch_size, instance_writer: false, instance_predicate: false, default: nil
 
       ##
