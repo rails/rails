@@ -1,4 +1,4 @@
-name: Build and test --dev image
+name: rails-new-docker
 
 on: [push, pull_request]
 
@@ -7,7 +7,7 @@ env:
   APP_PATH: dev/devrails
 
 jobs:
-  build-and-test-dev-image:
+  rails-new-docker:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && github.ref_name == 'main'
     continue-on-error: true
-    needs: build-and-test-dev-image
+    needs: [rails-new-docker]
     steps:
       - uses: zzak/action-discord@v4
         with:

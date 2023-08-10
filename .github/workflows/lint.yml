@@ -6,6 +6,38 @@ permissions:
   contents: read
 
 jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_ONLY: rubocop
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Ruby 3.2
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.2
+        bundler-cache: true
+
+    - name: RuboCop
+      run: bundle exec rubocop --parallel
+
+  mdl:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Ruby 3.2
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.2
+        bundler-cache: true
+
+    - name: mdl
+      run: bundle exec rake -f guides/Rakefile guides:lint
+
   rails-bin:
     name: Check rails-bin lints
     runs-on: ubuntu-latest
@@ -23,6 +55,7 @@ jobs:
         path: rails
     - run: bin/check-changelogs ./rails
     - run: bin/check-config-docs ./rails
+
   codespell:
     name: Check spelling all files with codespell
     runs-on: ubuntu-latest
@@ -32,7 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -46,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always() && github.ref_name == 'main'
     continue-on-error: true
-    needs: [rails-bin, codespell]
+    needs: [rubocop, mdl, rails-bin, codespell]
     steps:
       - uses: zzak/action-discord@v4
         with:
