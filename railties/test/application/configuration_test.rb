@@ -406,7 +406,7 @@ module ApplicationTests
       assert_not_includes Post.instance_methods, :title
     end
 
-    test "does not eager load attribute methods in production when the schema cache is empty and and check_schema_cache_dump_version=false" do
+    test "does not eager load attribute methods in production when the schema cache is empty and check_schema_cache_dump_version=false" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -506,6 +506,47 @@ module ApplicationTests
         app "development"
       end
     end
+
+    test "propagates check_schema_cache_dump_version=true to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.check_schema_cache_dump_version = true
+      RUBY
+
+      app "development"
+
+      assert ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version
+    end
+
+    test "propagates check_schema_cache_dump_version=false to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+
+      app "development"
+
+      assert_not ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version
+    end
+
+    test "propagates use_schema_cache_dump=true to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.use_schema_cache_dump = true
+      RUBY
+
+      app "development"
+
+      assert ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump
+    end
+
+    test "propagates use_schema_cache_dump=false to ActiveRecord::ConnectionAdapters::SchemaReflection" do
+      add_to_config <<-RUBY
+        config.active_record.use_schema_cache_dump = false
+      RUBY
+
+      app "development"
+
+      assert_not ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump
+    end
+
 
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
