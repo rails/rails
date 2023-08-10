@@ -67,6 +67,22 @@ module ActiveModel
       extend ActiveModel::Translation
     end
 
+    module ClassMethods
+      def filter_attributes
+        if defined?(@filter_attributes)
+          @filter_attributes
+        elsif superclass.respond_to?(:filter_attributes)
+          superclass.filter_attributes
+        else
+          []
+        end
+      end
+
+      def filter_attributes=(filter_attributes)
+        @filter_attributes = filter_attributes
+      end
+    end
+
     # Initializes a new model with the given +params+.
     #
     #   class Person
@@ -94,6 +110,41 @@ module ActiveModel
     #  person.persisted? # => false
     def persisted?
       false
+    end
+
+    def inspect
+      "<#{self.class.name} #{inspect_attributes.map { |k, v| "#{k}=#{v.inspect}" }.join(", ")}>"
+    end
+
+    def inspect_attributes
+      attributes.merge(self.class.filter_attributes.index_with do |filter_attribute|
+        "[FILTERED]"
+      end)
+    end
+
+    def method_missing(method_name, *args, &block)
+      case method_name
+      when "attributes", :attributes
+        self.class.define_method(method_name) do
+          if instance_variable_defined?(:@attributes)
+            instance_variable_get(:@attributes)
+          else
+            instance_variable_set(:@attributes, {})
+          end
+        end
+        public_send(method_name)
+      else
+        super
+      end
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      case method_name
+      when "attributes", :attributes
+        true
+      else
+        super
+      end
     end
   end
 end
