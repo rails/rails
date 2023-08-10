@@ -311,6 +311,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2011, 4, 1)..Date.new(2011, 6, 30), Date.new(2011, 6, 7).all_quarter
   end
 
+  def test_all_semester
+    assert_equal Date.new(2011, 1, 1)..Date.new(2011, 6, 30), Date.new(2011, 6, 7).all_semester
+  end
+
   def test_all_year
     assert_equal Date.new(2011, 1, 1)..Date.new(2011, 12, 31), Date.new(2011, 6, 7).all_year
   end

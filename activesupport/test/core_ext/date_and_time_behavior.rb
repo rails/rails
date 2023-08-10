@@ -107,6 +107,24 @@ module DateAndTimeBehavior
     assert_equal 4, date_time_init(2005, 12, 31, 23, 59, 59).quarter
   end
 
+  def test_beginning_of_semester
+    assert_equal date_time_init(2005, 1, 1, 0, 0, 0),  date_time_init(2005, 2, 15, 10, 10, 10).beginning_of_semester
+    assert_equal date_time_init(2005, 1, 1, 0, 0, 0),  date_time_init(2005, 1, 1, 0, 0, 0).beginning_of_semester
+    assert_equal date_time_init(2005, 1, 1, 0, 0, 0),  date_time_init(2005, 6, 30, 23, 59, 59).beginning_of_semester
+    assert_equal date_time_init(2005, 7, 1, 0, 0, 0),  date_time_init(2005, 8, 1, 0, 0, 0).beginning_of_semester
+    assert_equal date_time_init(2005, 7, 1, 0, 0, 0),  date_time_init(2005, 12, 31, 10, 10, 10).beginning_of_semester
+    assert_equal date_time_init(2005, 7, 1, 0, 0, 0),  date_time_init(2005, 7, 1, 0, 0, 0).beginning_of_semester
+  end
+
+  def test_end_of_semester
+    assert_equal date_time_init(2005, 6, 30, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 2, 15, 10, 10, 10).end_of_semester
+    assert_equal date_time_init(2005, 6, 30, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 1, 1, 0, 0, 0).end_of_semester
+    assert_equal date_time_init(2005, 6, 30, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 6, 30, 23, 59, 59).end_of_semester
+    assert_equal date_time_init(2005, 12, 31, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 8, 1, 0, 0, 0).end_of_semester
+    assert_equal date_time_init(2005, 12, 31, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 12, 31, 10, 10, 10).end_of_semester
+    assert_equal date_time_init(2005, 12, 31, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2005, 7, 1, 0, 0, 0).end_of_semester
+  end
+
   def test_beginning_of_year
     assert_equal date_time_init(2005, 1, 1, 0, 0, 0), date_time_init(2005, 2, 22, 10, 10, 10).beginning_of_year
   end

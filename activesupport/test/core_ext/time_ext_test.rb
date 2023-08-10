@@ -1276,6 +1276,10 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2011, 4, 1, 0, 0, 0)..Time.local(2011, 6, 30, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_quarter
   end
 
+  def test_all_semester
+    assert_equal Time.local(2011, 1, 1, 0, 0, 0)..Time.local(2011, 6, 30, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_semester
+  end
+
   def test_all_year
     assert_equal Time.local(2011, 1, 1, 0, 0, 0)..Time.local(2011, 12, 31, 23, 59, 59, Rational(999999999, 1000)), Time.local(2011, 6, 7, 10, 10, 10).all_year
   end

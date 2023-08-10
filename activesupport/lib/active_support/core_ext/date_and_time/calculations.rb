@@ -167,6 +167,36 @@ module DateAndTime
       (month / 3.0).ceil
     end
 
+    # Returns a new date/time at the start of the semester.
+    #
+    #   today = Date.today # => Thu, 10 Aug 2023
+    #   today.beginning_of_semester # => Sat, 01 Jul 2023
+    #
+    # +DateTime+ objects will have a time set to 0:00.
+    #
+    #   now = DateTime.current # => Thu, 10 Aug 2023 14:30:07 +0000
+    #   now.beginning_of_semester # => Sat, 01 Jul 2023 00:00:00 +0000
+    def beginning_of_semester
+      first_semester_month = month - (5 + month) % 6
+      beginning_of_month.change(month: first_semester_month)
+    end
+    alias :at_beginning_of_semester :beginning_of_semester
+
+    # Returns a new date/time at the end of the semester.
+    #
+    #   today = Date.today # => Thu, 10 Aug 2023
+    #   today.end_of_semester # => Sun, 31 Dec 2023
+    #
+    # +DateTime+ objects will have a time set to 23:59:59.
+    #
+    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    #   now.end_of_semester # => Sun, 31 Dec 2023 23:59:59 +0000
+    def end_of_semester
+      last_semester_month = month + (12 - month) % 6
+      beginning_of_month.change(month: last_semester_month).end_of_month
+    end
+    alias :at_end_of_semester :end_of_semester
+
     # Returns a new date/time at the beginning of the year.
     #
     #   today = Date.today # => Fri, 10 Jul 2015
@@ -325,6 +355,11 @@ module DateAndTime
     # Returns a Range representing the whole quarter of the current date/time.
     def all_quarter
       beginning_of_quarter..end_of_quarter
+    end
+
+    # Returns a Range representing the whole semester of the current date/time.
+    def all_semester
+      beginning_of_semester..end_of_semester
     end
 
     # Returns a Range representing the whole year of the current date/time.
