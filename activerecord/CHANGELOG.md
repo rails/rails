@@ -1,3 +1,7 @@
+*   Fix `encrypted_attribute?` to take into account context properties passed to `encrypts`.
+
+    *Maxime Réty*
+
 *   The object returned by `explain` now responds to `pluck`, `first`,
     `last`, `average`, `count`, `maximum`, `minimum`, and `sum`. Those
     new methods run `EXPLAIN` on the corresponding queries:
