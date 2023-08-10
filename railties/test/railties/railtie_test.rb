@@ -245,5 +245,26 @@ module RailtiesTest
 
       assert_match(/undefined method `abc' for.*RailtiesTest::RailtieTest::Foo/, error.original_message)
     end
+
+    test "rake environment can be called in the ralitie" do
+      $ran_block = false
+
+      class MyTie < Rails::Railtie
+        rake_tasks do
+          $ran_block = true
+        end
+      end
+
+      ::APP_RAKEFILE = "#{app_path}/Rakefile"
+      require "#{app_path}/config/environment"
+
+      assert_not $ran_block
+      require "rake"
+      require "rake/testtask"
+      require "rdoc/task"
+      load "rails/tasks/engine.rake"
+
+      assert $ran_block
+    end
   end
 end
