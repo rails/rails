@@ -74,7 +74,7 @@ class ActiveStorage::Variant
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
   #
-  # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
+  # Use <tt>url_for(variant)</tt> (or the implied form, like <tt>link_to variant</tt> or <tt>redirect_to variant</tt>) to get the stable URL
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
