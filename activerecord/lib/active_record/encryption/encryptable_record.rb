@@ -28,7 +28,7 @@ module ActiveRecord
         #   initialization vector based on the encrypted content. This means that the same content will generate
         #   the same ciphertexts. This enables querying encrypted text with Active Record. Deterministic encryption
         #   will use the oldest encryption scheme to encrypt new data by default. You can change this by setting
-        #   +deterministic: { fixed: false }+. That will make it use the newest encryption scheme for encrypting new
+        #   <tt>deterministic: { fixed: false }</tt>. That will make it use the newest encryption scheme for encrypting new
         #   data.
         # * <tt>:downcase</tt> - When true, it converts the encrypted content to downcase automatically. This allows to
         #   effectively ignore case when querying data. Notice that the case is lost. Use +:ignore_case+ if you are interested
