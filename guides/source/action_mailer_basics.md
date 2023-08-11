@@ -246,7 +246,7 @@ action. So `with(user: @user, account: @user.account)` makes `params[:user]` and
 `params[:account]` available in the mailer action. Just like controllers have
 params.
 
-The method `welcome_email` returns an [`ActionMailer::MessageDelivery`][] object which
+The method `weekly_summary` returns an [`ActionMailer::MessageDelivery`][] object which
 can then be told to `deliver_now` or `deliver_later` to send itself out. The
 `ActionMailer::MessageDelivery` object is a wrapper around a [`Mail::Message`][]. If
 you want to inspect, alter, or do anything else with the `Mail::Message` object you can
