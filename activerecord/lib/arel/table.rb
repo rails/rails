@@ -8,7 +8,8 @@ module Arel # :nodoc: all
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_accessor :name, :table_alias
+    attr_accessor :name
+    attr_reader :table_alias
 
     def initialize(name, as: nil, klass: nil, type_caster: klass&.type_caster)
       @name =
