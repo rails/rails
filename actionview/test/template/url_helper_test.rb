@@ -1352,24 +1352,24 @@ class PolymorphicSessionsControllerTest < ActionController::TestCase
   end
 end
 
-class MissingKeyUrlController < ActionController::Base
+class MissingUrlKeyController < ActionController::Base
   ROUTES = test_routes do
-    resources :missing_keys, except: [:edit], controller: "missing_key_url"
+    resources :tasks, controller: "missing_url_key"
   end
 
   def show
-    render plain: "#{missing_key_url}"
+    render plain: "#{task_url}"
   end
 end
 
-class MissingKeyUrlTest < ActionController::TestCase
+class MissingUrlKeyTest < ActionController::TestCase
   def setup
     super
-    @routes = MissingKeyUrlController::ROUTES
+    @routes = MissingUrlKeyController::ROUTES
   end
 
-  def test_new_nested_resource
-    @controller = MissingKeyUrlController.new
+  def test_url_without_key
+    @controller = MissingUrlKeyController.new
 
     assert_raises ActionController::UrlGenerationError do
       get :show, params: { id: 1 }

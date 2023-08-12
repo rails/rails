@@ -261,6 +261,7 @@ module ActionDispatch
 
           def call(t, method_name, args, inner_options, url_strategy)
             controller_options = t.url_options
+            controller_options[:_recall]&.delete(:id)
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
                                           inner_options || {},
@@ -771,7 +772,7 @@ module ActionDispatch
         # Generates a path from routes, returns a RouteWithParams or MissingRoute.
         # MissingRoute will raise ActionController::UrlGenerationError.
         def generate
-          @set.formatter.generate(named_route, options, recall.except(:id))
+          @set.formatter.generate(named_route, options, recall)
         end
 
         def different_controller?
