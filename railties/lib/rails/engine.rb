@@ -620,7 +620,7 @@ module Rails
       next if is_a?(Rails::Application)
 
       fixtures = config.root.join("test", "fixtures")
-      if fixtures_in_root_and_not_in_vendor?(fixtures)
+      if fixtures_in_root_and_not_in_gem_path?(fixtures)
         ActiveSupport.on_load(:active_record_fixtures) { self.fixture_paths |= ["#{fixtures}/"] }
       end
     end
@@ -728,9 +728,9 @@ module Rails
         end
       end
 
-      def fixtures_in_root_and_not_in_vendor?(fixtures)
+      def fixtures_in_root_and_not_in_gem_path?(fixtures)
         fixtures.exist? && fixtures.to_s.start_with?(Rails.root.to_s) &&
-          !fixtures.to_s.start_with?(Rails.root.join("vendor").to_s)
+          !Gem.path.any? { |gem_path| fixtures.to_s.start_with?(gem_path) }
       end
 
       def build_request(env)
