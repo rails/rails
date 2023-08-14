@@ -136,6 +136,7 @@ module ActiveRecord
       autoload :Read
       autoload :Serialization
       autoload :TimeZoneConversion
+      autoload :Validation
       autoload :Write
     end
   end
