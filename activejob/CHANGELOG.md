@@ -1,3 +1,13 @@
+*   Fix deserialization of ActiveSupport::Duration
+
+    Previously, a deserialized Duration would return an array from Duration#parts.
+    It will now return a hash just like a regular Duration.
+
+    This also fixes an error when trying to add or subtract from a deserialized Duration
+    (eg `duration + 1.year`).
+
+    *Jonathan del Strother*
+
 *   `perform_enqueued_jobs` is now compatible with all Active Job adapters
 
     This means that methods that depend on it, like Action Mailer's `assert_emails`,
