@@ -84,6 +84,11 @@ proper prerequisites installed. These include:
 * Ruby
 * SQLite3
 
+NOTE: GitHub provides a [Rails template](https://github.com/github/codespaces-rails)
+in [Codespaces](https://github.com/features/codespaces). You can quickly start
+creating a new Rails project in your browser by selecting the Rails template
+from [Codespaces templates](https://github.com/codespaces/templates).
+
 #### Installing Ruby
 
 Open up a command line prompt. On macOS open Terminal.app; on Windows choose
