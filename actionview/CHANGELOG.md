@@ -1,3 +1,10 @@
+*   Fix `render collection: @records, cache: true` inside `jbuilder` templates
+
+    The previous fix that shipped in `7.0.7` assumed template fragments are always strings,
+    this isn't true with `jbuilder`.
+
+    *Jean Boussier*
+
 ## Rails 7.0.7 (August 09, 2023) ##
 
 *   Fix `render collection: @records, cache: true` to cache fragments as bare strings
