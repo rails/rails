@@ -96,9 +96,16 @@ module ActionView
             build_rendered_template(content, template)
           else
             rendered_partial = yield
-            if fragment = rendered_partial.body&.to_str
-              entries_to_write[cache_key] = fragment
+            body = rendered_partial.body
+
+            # We want to cache buffers as raw strings. This both improve performance and
+            # avoid creating forward compatibility issues with the internal representation
+            # of these two types.
+            if body.is_a?(ActionView::OutputBuffer) || body.is_a?(ActiveSupport::SafeBuffer)
+              body = body.to_str
             end
+
+            entries_to_write[cache_key] = body
             rendered_partial
           end
         end
