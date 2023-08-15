@@ -618,6 +618,7 @@ module ActiveRecord
               default: column.default,
               user_provided_default: false
             )
+            alias_attribute :id_value, :id if name == "id"
           end
 
           super

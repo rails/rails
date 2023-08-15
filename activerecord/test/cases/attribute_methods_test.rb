@@ -44,6 +44,26 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal(123_456, order.id_value)
   end
 
+  test "#id_value alias returns the value in the id column, when id column exists" do
+    topic = Topic.new
+    assert_nil topic.id_value
+
+    topic = Topic.find(1)
+    assert_equal 1, topic.id_value
+  end
+
+  test "#id_value alias is not defined if id column doesn't exist" do
+    keyboard = Keyboard.create!
+
+    assert_empty keyboard.attribute_aliases
+  end
+
+  test "#id_value alias returns id column only for composite primary key models" do
+    order = ::Cpk::Order.create(id: [1, 2])
+
+    assert_equal 2, order.id_value
+  end
+
   test "attribute_for_inspect with a string" do
     t = topics(:first)
     t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
