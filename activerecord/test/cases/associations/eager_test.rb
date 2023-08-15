@@ -1688,6 +1688,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal(post.comments.sort, expected_comments.sort)
   end
 
+  test "preloading belongs_to association SQL" do
+    blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
+    posts = Sharded::BlogPost.where(blog_id: blog_ids).includes(:comments)
+
+    sql = capture_sql do
+      comments_collection = posts.map(&:comments)
+      assert_equal 3, comments_collection.size
+    end.last
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      assert_match(/WHERE `sharded_comments`.`blog_id` IN \(.+\) AND `sharded_comments`.`blog_post_id` IN \(.+\)/, sql)
+    else
+      assert_match(/WHERE "sharded_comments"."blog_id" IN \(.+\) AND "sharded_comments"."blog_post_id" IN \(.+\)/, sql)
+    end
+  end
+
   test "preloading has_many association associated by a composite query_constraints" do
     blog_ids = [sharded_blogs(:sharded_blog_one).id, sharded_blogs(:sharded_blog_two).id]
     comments = Sharded::Comment.where(blog_id: blog_ids).includes(:blog_post).to_a
