@@ -1,3 +1,9 @@
+*   Add `ActiveRecord::Base#id_value` alias to access the raw value of a record's id column.
+
+    This alias is only provided for models that declare an `:id` column.
+
+    *Adrianna Chang*
+
 *   Fix previous change tracking for `ActiveRecord::Store` when using a column with JSON structured database type
 
     Before, the methods to access the changes made during the last save `#saved_change_to_key?`, `#saved_change_to_key`, and `#key_before_last_save` did not work if the store was defined as a `store_accessor` on a column with a JSON structured database type
