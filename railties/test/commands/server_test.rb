@@ -306,6 +306,12 @@ class Rails::Command::ServerTest < ActiveSupport::TestCase
     assert_equal "http://127.0.0.1:4567", server.served_url
   end
 
+  def test_served_url_when_server_prints_it
+    args = %w(-u puma -b 127.0.0.1 -p 4567)
+    server = Rails::Server.new(parse_arguments(args))
+    assert_nil server.served_url
+  end
+
   private
     def run_command(*args)
       build_app
