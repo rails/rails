@@ -1,3 +1,8 @@
+*   Fix `HostAuthorization` potentially displaying the value of the
+    X_FORWARDED_HOST header when the HTTP_HOST header is being blocked.
+
+    *Hartley McGuire*, *Daniel Schlosser*
+
 *   Rename `fixture_file_upload` method to `file_fixture_upload`
 
     Declare an alias to preserve the backwards compatibility of `fixture_file_upload`

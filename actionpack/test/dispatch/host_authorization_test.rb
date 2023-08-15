@@ -21,7 +21,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     get "/", env: { "action_dispatch.show_detailed_exceptions" => true }
 
     assert_response :forbidden
-    assert_match "Blocked host: www.example.com", response.body
+    assert_match "Blocked hosts: www.example.com", response.body
   end
 
   test "allows all requests if hosts is empty" do
@@ -93,7 +93,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: www.example.local", response.body
+    assert_match "Blocked hosts: www.example.local", response.body
   end
 
   test "passes requests to allowed hosts with domain name notation" do
@@ -114,7 +114,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: .example.com", response.body
+    assert_match "Blocked hosts: .example.com", response.body
   end
 
   test "checks for requests with #=== to support wider range of host checks" do
@@ -140,7 +140,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     get "/", env: { "action_dispatch.show_detailed_exceptions" => true }
 
     assert_response :forbidden
-    assert_match "Blocked host: www.example.com", response.body
+    assert_match "Blocked hosts: www.example.com", response.body
   end
 
   test "blocks requests to unallowed host supporting custom responses" do
@@ -284,7 +284,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: 127.0.0.1", response.body
+    assert_match "Blocked hosts: www.example.com", response.body
   end
 
   test "blocks requests with spoofed relative X-FORWARDED-HOST" do
@@ -297,7 +297,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: //randomhost.com", response.body
+    assert_match "Blocked hosts: //randomhost.com", response.body
   end
 
   test "forwarded secondary hosts are allowed when permitted" do
@@ -322,7 +322,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: evil.com", response.body
+    assert_match "Blocked hosts: evil.com", response.body
   end
 
   test "does not consider IP addresses in X-FORWARDED-HOST spoofed when disabled" do
@@ -347,7 +347,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: localhost", response.body
+    assert_match "Blocked hosts: www.example.com", response.body
   end
 
   test "forwarded hosts should be permitted" do
@@ -360,7 +360,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: sub.domain.com", response.body
+    assert_match "Blocked hosts: sub.domain.com", response.body
   end
 
   test "sub-sub domains should not be permitted" do
@@ -372,7 +372,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: secondary.sub.domain.com", response.body
+    assert_match "Blocked hosts: secondary.sub.domain.com", response.body
   end
 
   test "forwarded hosts are allowed when permitted" do
@@ -420,7 +420,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
       }
 
       assert_response :forbidden
-      assert_match "Blocked host: #{host}", response.body
+      assert_match "Blocked hosts: #{host}", response.body
     end
   end
 
@@ -439,7 +439,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     get "/foo", env: { "action_dispatch.show_detailed_exceptions" => true }
 
     assert_response :forbidden
-    assert_match "Blocked host: www.example.com", response.body
+    assert_match "Blocked hosts: www.example.com", response.body
   end
 
   test "blocks requests with invalid hostnames" do
@@ -451,7 +451,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: attacker.com#x.example.com", response.body
+    assert_match "Blocked hosts: attacker.com#x.example.com", response.body
   end
 
   test "blocks requests to similar host" do
@@ -463,7 +463,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     }
 
     assert_response :forbidden
-    assert_match "Blocked host: sub-example.com", response.body
+    assert_match "Blocked hosts: sub-example.com", response.body
   end
 
   test "uses logger from the env" do
@@ -473,7 +473,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     get "/", env: { "action_dispatch.logger" => Logger.new(output) }
 
     assert_response :forbidden
-    assert_match "Blocked host: www.example.com", output.rewind && output.read
+    assert_match "Blocked hosts: www.example.com", output.rewind && output.read
   end
 
   test "uses ActionView::Base logger when no logger in the env" do
@@ -489,7 +489,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :forbidden
-    assert_match "Blocked host: www.example.com", output.rewind && output.read
+    assert_match "Blocked hosts: www.example.com", output.rewind && output.read
   end
 
   private
