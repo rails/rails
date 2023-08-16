@@ -139,7 +139,9 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     teardown do
       @cache.clear
-      @cache.redis.disconnect!
+      @cache.redis.with do |r|
+        r.respond_to?(:on_each_node, true) ? r.send(:on_each_node, :disconnect!) : r.disconnect!
+      end
     end
   end
 
@@ -153,7 +155,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget
-      assert_called(@cache.redis, :mget, returns: []) do
+      assert_called(redis_backend, :mget, returns: []) do
         @cache.fetch_multi("a", "b", "c") do |key|
           key * 2
         end
@@ -161,7 +163,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def test_fetch_multi_with_namespace
-      assert_called_with(@cache.redis, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
+      assert_called_with(redis_backend, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
         @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
           key * 2
         end
@@ -169,47 +171,47 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def test_fetch_multi_without_names
-      assert_not_called(@cache.redis, :mget) do
+      assert_not_called(redis_backend, :mget) do
         @cache.fetch_multi() { }
       end
     end
 
     def test_increment_expires_in
-      assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
-        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
+      assert_called_with redis_backend, :incrby, [ "#{@namespace}:foo", 1 ] do
+        assert_called_with redis_backend, :expire, [ "#{@namespace}:foo", 60 ] do
           @cache.increment "foo", 1, expires_in: 60
         end
       end
 
       # key and ttl exist
-      @cache.redis.setex "#{@namespace}:bar", 120, 1
-      assert_not_called @cache.redis, :expire do
+      redis_backend { |r| r.setex "#{@namespace}:bar", 120, 1 }
+      assert_not_called redis_backend, :expire do
         @cache.increment "bar", 1, expires_in: 2.minutes
       end
 
       # key exist but not have expire
-      @cache.redis.set "#{@namespace}:dar", 10
-      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
+      redis_backend { |r| r.set "#{@namespace}:dar", 10 }
+      assert_called_with redis_backend, :expire, [ "#{@namespace}:dar", 60 ] do
         @cache.increment "dar", 1, expires_in: 60
       end
     end
 
     def test_decrement_expires_in
-      assert_called_with @cache.redis, :decrby, [ "#{@namespace}:foo", 1 ] do
-        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
+      assert_called_with redis_backend, :decrby, [ "#{@namespace}:foo", 1 ] do
+        assert_called_with redis_backend, :expire, [ "#{@namespace}:foo", 60 ] do
           @cache.decrement "foo", 1, expires_in: 60
         end
       end
 
       # key and ttl exist
-      @cache.redis.setex "#{@namespace}:bar", 120, 1
-      assert_not_called @cache.redis, :expire do
+      redis_backend { |r| r.setex "#{@namespace}:bar", 120, 1 }
+      assert_not_called redis_backend, :expire do
         @cache.decrement "bar", 1, expires_in: 2.minutes
       end
 
       # key exist but not have expire
-      @cache.redis.set "#{@namespace}:dar", 10
-      assert_called_with @cache.redis, :expire, [ "#{@namespace}:dar", 60 ] do
+      redis_backend { |r| r.set "#{@namespace}:dar", 10 }
+      assert_called_with redis_backend, :expire, [ "#{@namespace}:dar", 60 ] do
         @cache.decrement "dar", 1, expires_in: 60
       end
     end
@@ -220,6 +222,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def test_large_object_with_default_compression_settings
       assert_compressed(LARGE_OBJECT)
+    end
+
+    def redis_backend
+      @cache.redis.with do |r|
+        yield r if block_given?
+        return r
+      end
     end
   end
 
@@ -257,6 +266,12 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     def after_teardown
       super
       ActiveSupport::Cache.format_version = @previous_format
+    end
+  end
+
+  class RedisCacheStoreWithDistributedRedisTest < RedisCacheStoreCommonBehaviorTest
+    def lookup_store(options = {})
+      super(options.merge(pool_size: 5, url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2))
     end
   end
 

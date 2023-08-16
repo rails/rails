@@ -1,3 +1,10 @@
+*   Fix CacheStore#write_multi when using a distributed Redis cache with a connection pool.
+
+    Fixes [#48938](https://github.com/rails/rails/issues/48938).
+
+    *Jonathan del Strother*
+
+
 ## Rails 7.0.7 (August 09, 2023) ##
 
 *   Fix `Cache::NullStore` with local caching for repeated reads.
