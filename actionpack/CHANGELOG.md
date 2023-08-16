@@ -1,3 +1,7 @@
+*   Add support for Playwright as a driver for system tests.
+
+    *Yuki Nishijima*
+
 *   Rename `fixture_file_upload` method to `file_fixture_upload`
 
     Declare an alias to preserve the backwards compatibility of `fixture_file_upload`
