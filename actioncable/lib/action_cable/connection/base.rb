@@ -250,7 +250,7 @@ module ActionCable
             request.filtered_path,
             websocket.possible? ? " [WebSocket]" : "[non-WebSocket]",
             request.ip,
-            Time.now.to_s ]
+            Time.now.to_fs ]
         end
 
         def finished_request_message
@@ -258,7 +258,7 @@ module ActionCable
             request.filtered_path,
             websocket.possible? ? " [WebSocket]" : "[non-WebSocket]",
             request.ip,
-            Time.now.to_s ]
+            Time.now.to_fs ]
         end
 
         def invalid_request_message
