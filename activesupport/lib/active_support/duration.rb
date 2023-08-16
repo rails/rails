@@ -3,7 +3,6 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/acts_like"
-require "active_support/core_ext/string/filters"
 
 module ActiveSupport
   # = Active Support \Duration
