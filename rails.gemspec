@@ -42,5 +42,5 @@ Gem::Specification.new do |s|
   s.add_dependency "actiontext",    version
   s.add_dependency "railties",      version
 
-  s.add_dependency "bundler", ">= 1.15.0"
+  s.add_dependency "bundler", ">= 2.2.0"
 end

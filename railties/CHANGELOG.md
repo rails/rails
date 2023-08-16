@@ -1,3 +1,11 @@
+*   Require `bundler` version >= 2.2.0
+
+    *zzak*
+
+*   Remove `git_source` from `Gemfile` for plugin generator.
+
+    *zzak*
+
 *   Omit `webdrivers` gem dependency from `Gemfile` template
 
     *Sean Doyle*
