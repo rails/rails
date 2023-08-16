@@ -3,7 +3,6 @@
 require "fileutils"
 require "action_dispatch"
 require "rails"
-require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
 require "rails/rackup/server"
