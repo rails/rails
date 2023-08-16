@@ -60,6 +60,14 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ js_errors: false }), driver.instance_variable_get(:@options)
   end
 
+  test "initializing the driver with Playwright" do
+    driver = ActionDispatch::SystemTesting::Driver.new(:playwright, screen_size: [1400, 1400], options: { headless: true })
+
+    assert_equal :playwright, driver.instance_variable_get(:@driver_type)
+    assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
+    assert_equal ({ headless: true }), driver.instance_variable_get(:@options)
+  end
+
   test "define extra capabilities using chrome" do
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome) do |option|
       option.add_argument("start-maximized")
