@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "erb"
 require "uri"
 require "active_support/actionable_error"
 
