@@ -1929,13 +1929,15 @@ require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
   test "that account is charged" do
-    BillingJob.perform_now(account, product)
+    perform_enqueued_jobs do
+      BillingJob.perform_later(account, product)
+    end
     assert account.reload.charged_for?(product)
   end
 end
 ```
 
-This test is pretty simple and only asserts that the job did work that was expected.
+This test is pretty simple and only asserts that the job did work that was expected. You can also use `perform_now` to run the job inline, but if you have retries configured, any exceptions raised by the job will be silently ignored, whereas `perform_enqueued_jobs` will fail the test and print the exception information.
 
 ### Custom Assertions and Testing Jobs inside Other Components
 
@@ -1981,6 +1983,25 @@ end
 
 All previously performed and enqueued jobs are cleared before any test runs,
 so you can safely assume that no jobs have already been executed in the scope of each test.
+
+### Testing that Exceptions are Raised
+
+Testing that your job raises an exception in certain cases can be tricky, especially when you have retries configured. The `perform_enqueued_jobs` helper fails any test where a job raises an exception, so to have the test succeed when the exception is raised you have call the job's `perform` method directly.
+
+```ruby
+require "test_helper"
+
+class BillingJobTest < ActiveJob::TestCase
+  test "does not charge accounts with insufficient funds" do
+    assert_raises(InsufficientFundsError) do
+      BillingJob.new(empty_account, product).perform
+    end
+    refute account.reload.charged_for?(product)
+  end
+end
+```
+
+This method is not recommended in general, as it circumvents some parts of the framework, such as argument serialization.
 
 Testing Action Cable
 --------------------
