@@ -135,6 +135,18 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal("{\"status\":400,\"error\":\"Bad Request\"}", body)
   end
 
+  test "failsafe prevents raising if exceptions_app raises" do
+    old_stderr, $stderr = $stderr, StringIO.new
+    @app = build_app(->(_) { raise })
+
+    get "/"
+
+    assert_response 500
+    assert_match(/500 Internal Server Error/, body)
+  ensure
+    $stderr = old_stderr
+  end
+
   private
     def build_app(exceptions_app = nil)
       exceptions_app ||= ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
