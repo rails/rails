@@ -84,6 +84,9 @@ module ActiveRecord
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         method_name = pattern.method_name(new_name).to_s
         old_name = old_name.to_s
+        target_method_name = pattern.method_name(old_name).to_s
+        target_method =  instance_method(target_method_name) if method_defined?(target_method_name) || private_method_defined?(target_method_name)
+        far_name = find_attribute_far_name(old_name)
 
         # In 7.2, this will always define_proxy_call.
         #
@@ -106,17 +109,16 @@ module ActiveRecord
         # forward compatibility when we stop checking this in 7.2.
         return if aliased_method_redefined?(method_name)
 
-        all_targets_are_attribute_methods, far_name, far_method, far_target = find_attribute_targets(old_name, pattern)
+        is_deprecated = add_alias_attribute_deprecation_warning(new_name, old_name, method_name, target_method_name, target_method, far_name)
 
-        if all_targets_are_attribute_methods && has_attribute?(far_name)
-          define_proxy_call(code_generator, method_name, pattern.proxy_target, pattern.parameters, far_name,
-            namespace: :proxy_alias_attribute
-          )
+        if is_deprecated
+          super
           return
         end
 
-        add_alias_attribute_deprecation_warning(far_name, far_method, far_target, new_name, old_name, method_name)
-        super
+        define_proxy_call(code_generator, method_name, pattern.proxy_target, pattern.parameters, far_name,
+            namespace: :proxy_alias_attribute
+        )
       end
 
       # Generates all the attribute related methods for columns in the database
