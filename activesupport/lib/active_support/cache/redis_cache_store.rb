@@ -313,13 +313,15 @@ module ActiveSupport
 
       private
         def set_redis_capabilities
-          case redis
-          when Redis::Distributed
-            @mget_capable = true
-            @mset_capable = false
-          else
-            @mget_capable = true
-            @mset_capable = true
+          redis.with do |c|
+            case c
+            when Redis::Distributed
+              @mget_capable = true
+              @mset_capable = false
+            else
+              @mget_capable = true
+              @mset_capable = true
+            end
           end
         end
 
