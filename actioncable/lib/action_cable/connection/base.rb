@@ -235,7 +235,7 @@ module ActionCable
 
           logger.error invalid_request_message
           logger.info finished_request_message
-          [ 404, { "Content-Type" => "text/plain; charset=utf-8" }, [ "Page not found" ] ]
+          [ 404, { Rack::CONTENT_TYPE => "text/plain; charset=utf-8" }, [ "Page not found" ] ]
         end
 
         # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.

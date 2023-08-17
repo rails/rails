@@ -9,7 +9,8 @@ class HealthCheckTest < ActionCable::TestCase
     @config.logger = Logger.new(nil)
     @server = ActionCable::Server::Base.new config: @config
     @server.config.cable = { adapter: "async" }.with_indifferent_access
-    @server.config.health_check_application = health_check_application
+
+    @app = Rack::Lint.new(@server)
   end
 
 
@@ -23,14 +24,23 @@ class HealthCheckTest < ActionCable::TestCase
     get "/up"
 
     assert_equal 200, response.first
-    assert_equal "Hello world!", response.last
+    assert_equal [], response.last.enum_for.to_a
+  end
+
+  test "health_check_application_can_be_customized" do
+    @server.config.health_check_path = "/up"
+    @server.config.health_check_application = health_check_application
+    get "/up"
+
+    assert_equal 200, response.first
+    assert_equal ["Hello world!"], response.last.enum_for.to_a
   end
 
 
   private
     def get(path)
       env = Rack::MockRequest.env_for "/up", "HTTP_HOST" => "localhost"
-      @response = @server.call env
+      @response = @app.call env
     end
 
     attr_reader :response
@@ -39,8 +49,8 @@ class HealthCheckTest < ActionCable::TestCase
       ->(env) {
         [
           200,
-          { "Content-Type" => "text/html" },
-          "Hello world!"
+          { Rack::CONTENT_TYPE => "text/html" },
+          ["Hello world!"],
         ]
       }
     end
