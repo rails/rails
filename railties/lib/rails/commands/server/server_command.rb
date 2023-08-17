@@ -94,9 +94,10 @@ module Rails
     class ServerCommand < Base # :nodoc:
       include EnvironmentArgument
 
+      RACK_HANDLER_GEMS = %w(cgi webrick scgi thin puma unicorn falcon)
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rack::Handler registry.
-      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
+      RACK_HANDLERS = RACK_HANDLER_GEMS + %w(fastcgi lsws)
       RECOMMENDED_SERVER = "puma"
 
       DEFAULT_PORT = 3000
@@ -259,7 +260,7 @@ module Rails
 
               Run `#{executable} --help` for more options.
             MSG
-          elsif server.in?(RACK_SERVERS)
+          elsif server.in?(RACK_HANDLER_GEMS)
             <<~MSG
               Could not load server "#{server}". Maybe you need to the add it to the Gemfile?
 
@@ -268,7 +269,7 @@ module Rails
               Run `#{executable} --help` for more options.
             MSG
           else
-            error = CorrectableNameError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
+            error = CorrectableNameError.new("Could not find server '#{server}'.", server, RACK_HANDLERS)
             <<~MSG
               #{error.detailed_message}
               Run `#{executable} --help` for more options.
