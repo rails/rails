@@ -19,19 +19,13 @@ jobs:
       with:
         bundler: none
         ruby-version: ${{ matrix.ruby-version }}
-    - uses: actions/cache@v3
-      with:
-        path: vendor/bundle
-        key: bundle-use-ruby-${{ matrix.os }}-${{ matrix.ruby-version }}-${{ hashFiles('**/Gemfile.lock') }}
-        restore-keys: |
-          bundle-use-ruby-${{ matrix.os }}-${{ matrix.ruby-version }}-
-    - name: Bundle install
+    - name: gem install rails.gemspec
       run: |
-        bundle config path vendor/bundle
-        bundle install --jobs 4 --retry 3
+        gem build rails.gemspec
+        gem install rails-*.gem
     - name: Generate --dev app
       run: |
-        bundle exec railties/exe/rails new $APP_PATH --dev
+        rails new $APP_PATH --dev
     - name: Build image
       run: |
         podman build -t $APP_NAME \
