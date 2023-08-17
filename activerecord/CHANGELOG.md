@@ -1,3 +1,7 @@
+*   Fix change_column setting datetime precision for 6.1 Migrations
+
+    *Hartley McGuire*
+
 *   Add `ActiveRecord::Base#id_value` alias to access the raw value of a record's id column.
 
     This alias is only provided for models that declare an `:id` column.
