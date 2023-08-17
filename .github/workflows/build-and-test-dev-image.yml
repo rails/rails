@@ -8,13 +8,27 @@ env:
 
 jobs:
   build-and-test-dev-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: ["2.7", "3.0", "3.1", "3.2"]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2'
-        bundler-cache: true
+        bundler: none
+        ruby-version: ${{ matrix.ruby-version }}
+    - uses: actions/cache@v3
+      with:
+        path: vendor/bundle
+        key: bundle-use-ruby-${{ matrix.os }}-${{ matrix.ruby-version }}-${{ hashFiles('**/Gemfile.lock') }}
+        restore-keys: |
+          bundle-use-ruby-${{ matrix.os }}-${{ matrix.ruby-version }}-
+    - name: Bundle install
+      run: |
+        bundle config path vendor/bundle
+        bundle install --jobs 4 --retry 3
     - name: Generate --dev app
       run: |
         bundle exec railties/exe/rails new $APP_PATH --dev
