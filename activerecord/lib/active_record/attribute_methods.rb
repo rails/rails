@@ -108,7 +108,7 @@ module ActiveRecord
         # our responsibility, we need a deprecation warning. For that,
         # we want to check for a few specific patterns so we can give
         # the most helpful warning possible.
-        deprecation_type = check_for_deprecations(target_method, far_name)
+        deprecation_type = check_for_deprecations(target_method, far_name, pattern)
         if deprecation_type
           add_alias_attribute_deprecation_warning(new_name, old_name, method_name, target_method_name, target_method, far_name, deprecation_type)
           super

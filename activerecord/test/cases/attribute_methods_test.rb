@@ -1331,6 +1331,21 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "A river runs through it", obj.heading
   end
 
+  class SubTopicWithTypo < Topic
+    alias_attribute :heading, :title_oops
+  end
+
+  test "#alias_attribute creates a new attribute" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::SubTopicWithTypo uses `alias_attribute :heading, :title_oops`, but `title_oops`
+    is not an attribute or a method. In Rails 7.2, alias_attribute will only work on attributes; use `attribute
+    :title_oops` first.
+    MESSAGE
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
+      SubTopicWithTypo.new
+    end
+  end
+
   private
     def new_topic_like_ar_class(&block)
       klass = Class.new(ActiveRecord::Base) do

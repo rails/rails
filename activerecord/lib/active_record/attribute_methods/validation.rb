@@ -11,11 +11,11 @@ module ActiveRecord
           method_defined_within?(method_name, self)
         end
 
-        def check_for_deprecations(target_method, target_association_name)
-          # TODO: We should warn about this too. Either it's a typo, or
-          # it indicates a possible backwards compatibility issue we
-          # haven't directly addressed, like a target that's being provided
-          # by method_missing
+        def check_for_deprecations(target_method, target_association_name, pattern)
+          if !target_method && !has_attribute?(target_association_name) && pattern.method_name(target_association_name).to_s == target_association_name.to_s
+            return :typo_in_target_name
+          end
+
           return unless target_method
           is_attribute_method = target_method.owner == generated_attribute_methods || target_method.owner == ActiveRecord::AttributeMethods::PrimaryKey
 
@@ -60,6 +60,12 @@ module ActiveRecord
               "#{intro}, but `#{far_name}` is not an attribute. " \
               "In Rails 7.2, alias_attribute will no longer work with non-attributes; " \
               "define `#{method_name}` or use `alias_method :#{method_name}, :#{old_name}` instead."
+            )
+          when :typo_in_target_name
+            ActiveRecord.deprecator.warn(
+              "#{intro}, but `#{far_name}` is not an attribute or a method. " \
+              "In Rails 7.2, alias_attribute will only work on attributes; " \
+              "use `attribute :#{old_name}` first."
             )
           end
         end
