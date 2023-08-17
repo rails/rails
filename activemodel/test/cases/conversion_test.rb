@@ -18,6 +18,10 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal [1], Contact.new(id: 1).to_key
   end
 
+  test "to_key doesn't double-wrap composite `id`s" do
+    assert_equal ["abc", "xyz"], Contact.new(id: ["abc", "xyz"]).to_key
+  end
+
   test "to_param default implementation returns nil for new records" do
     assert_nil Contact.new.to_param
   end

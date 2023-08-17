@@ -29,6 +29,13 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal keyboard.to_key, [keyboard.id]
   end
 
+  def test_to_key_with_composite_primary_key
+    order = Cpk::Order.new
+    assert_equal [nil, nil], order.to_key
+    order.id = [1, 2]
+    assert_equal [1, 2], order.to_key
+  end
+
   def test_read_attribute_with_custom_primary_key
     keyboard = Keyboard.create!
     assert_equal keyboard.key_number, keyboard.read_attribute(:id)
