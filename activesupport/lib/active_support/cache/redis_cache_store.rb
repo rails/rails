@@ -10,6 +10,7 @@ rescue LoadError
 end
 
 require "connection_pool"
+require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
@@ -455,8 +456,8 @@ module ActiveSupport
         def supports_expire_nx?
           return @supports_expire_nx if defined?(@supports_expire_nx)
 
-          redis_version = redis.then { |c| c.info("server").fetch("redis_version") }
-          @supports_expire_nx = Gem::Version.new(redis_version) >= Gem::Version.new("7.0.0")
+          redis_versions = redis.then { |c| Array.wrap(c.info("server")).pluck("redis_version") }
+          @supports_expire_nx = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("7.0.0") }
         end
 
         def failsafe(method, returning: nil)
