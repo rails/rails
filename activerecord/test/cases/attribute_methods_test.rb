@@ -1225,9 +1225,21 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  class ChildWithDeprecatedBehaviorResolved < ClassWithDeprecatedAliasAttributeBehaviorResolved
+  end
+
   test "#alias_attribute with an overridden original method along with an overridden alias method doesn't issue a deprecation" do
     obj = assert_not_deprecated(ActiveRecord.deprecator) do
       ClassWithDeprecatedAliasAttributeBehaviorResolved.new
+    end
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+    assert_equal("overridden_subject_was", obj.subject_was)
+  end
+
+  test "#alias_attribute with an overridden original method along with an overridden alias method in a parent class doesn't issue a deprecation" do
+    obj = assert_not_deprecated(ActiveRecord.deprecator) do
+      ChildWithDeprecatedBehaviorResolved.new
     end
     obj.title = "hey"
     assert_equal("hey", obj.subject)
