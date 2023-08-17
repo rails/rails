@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "rack"
+
 module ActionCable
   module Server
     # = Action Cable \Server \Configuration
@@ -25,7 +27,7 @@ module ActionCable
         @filter_parameters = []
 
         @health_check_application = ->(env) {
-          [204, { "Content-Type" => "text/html", "date" => Time.now.httpdate }, []]
+          [200, { Rack::CONTENT_TYPE => "text/html", "date" => Time.now.httpdate }, []]
         }
       end
 
