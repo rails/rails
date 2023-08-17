@@ -151,7 +151,9 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     teardown do
       @cache.clear
-      @cache.redis.disconnect!
+      @cache.redis.with do |r|
+        r.respond_to?(:on_each_node, true) ? r.send(:on_each_node, :disconnect!) : r.disconnect!
+      end
     end
   end
 
@@ -169,7 +171,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget
-      assert_called(@cache.redis, :mget, returns: []) do
+      assert_called(redis_backend, :mget, returns: []) do
         @cache.fetch_multi("a", "b", "c") do |key|
           key * 2
         end
@@ -177,7 +179,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def test_fetch_multi_with_namespace
-      assert_called_with(@cache.redis, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
+      assert_called_with(redis_backend, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
         @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
           key * 2
         end
@@ -186,39 +188,53 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def test_write_expires_at
       @cache.write "key_with_expires_at", "bar", expires_at: 30.minutes.from_now
-      assert @cache.redis.ttl("#{@namespace}:key_with_expires_at") > 0
+      redis_backend do |r|
+        assert r.ttl("#{@namespace}:key_with_expires_at") > 0
+      end
     end
 
     def test_increment_expires_in
       @cache.increment "foo", 1, expires_in: 60
-      assert @cache.redis.exists?("#{@namespace}:foo")
-      assert @cache.redis.ttl("#{@namespace}:foo") > 0
+      redis_backend do |r|
+        assert r.exists?("#{@namespace}:foo")
+        assert r.ttl("#{@namespace}:foo") > 0
+      end
 
       # key and ttl exist
-      @cache.redis.setex "#{@namespace}:bar", 120, 1
+      redis_backend { |r| r.setex "#{@namespace}:bar", 120, 1 }
       @cache.increment "bar", 1, expires_in: 60
-      assert @cache.redis.ttl("#{@namespace}:bar") > 60
+      redis_backend do |r|
+        assert r.ttl("#{@namespace}:bar") > 60
+      end
 
       # key exist but not have expire
-      @cache.redis.set "#{@namespace}:dar", 10
+      redis_backend { |r| r.set "#{@namespace}:dar", 10 }
       @cache.increment "dar", 1, expires_in: 60
-      assert @cache.redis.ttl("#{@namespace}:dar") > 0
+      redis_backend do |r|
+        assert r.ttl("#{@namespace}:dar") > 0
+      end
     end
 
     def test_decrement_expires_in
       @cache.decrement "foo", 1, expires_in: 60
-      assert @cache.redis.exists?("#{@namespace}:foo")
-      assert @cache.redis.ttl("#{@namespace}:foo") > 0
+      redis_backend do |r|
+        assert r.exists?("#{@namespace}:foo")
+        assert r.ttl("#{@namespace}:foo") > 0
+      end
 
       # key and ttl exist
-      @cache.redis.setex "#{@namespace}:bar", 120, 1
+      redis_backend { |r| r.setex "#{@namespace}:bar", 120, 1 }
       @cache.decrement "bar", 1, expires_in: 60
-      assert @cache.redis.ttl("#{@namespace}:bar") > 60
+      redis_backend do |r|
+        assert r.ttl("#{@namespace}:bar") > 60
+      end
 
       # key exist but not have expire
-      @cache.redis.set "#{@namespace}:dar", 10
+      redis_backend { |r| r.set "#{@namespace}:dar", 10 }
       @cache.decrement "dar", 1, expires_in: 60
-      assert @cache.redis.ttl("#{@namespace}:dar") > 0
+      redis_backend do |r|
+        assert r.ttl("#{@namespace}:dar") > 0
+      end
     end
 
     test "fetch caches nil" do
@@ -234,6 +250,19 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         assert_nil @cache.fetch("foo") { nil }
         assert_equal false, @cache.exist?("foo")
       end
+    end
+
+    def redis_backend
+      @cache.redis.with do |r|
+        yield r if block_given?
+        return r
+      end
+    end
+  end
+
+  class RedisCacheStoreWithDistributedRedisTest < RedisCacheStoreCommonBehaviorTest
+    def lookup_store(options = {})
+      super(options.merge(pool: { size: 5 }, url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2))
     end
   end
 
