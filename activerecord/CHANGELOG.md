@@ -283,9 +283,9 @@
 
     *Jean Boussier*
 
-*   Deprecate `check_pending!` in favor of `check_pending_migrations!`.
+*   Deprecate `check_pending!` in favor of `check_all_pending!`.
 
-    `check_pending!` will only check for pending migrations on the current database connection or the one passed in. This has been deprecated in favor of `check_pending_migrations!` which will find all pending migrations for the database configurations in a given environment.
+    `check_pending!` will only check for pending migrations on the current database connection or the one passed in. This has been deprecated in favor of `check_all_pending!` which will find all pending migrations for the database configurations in a given environment.
 
     *Eileen M. Uchitelle*
 

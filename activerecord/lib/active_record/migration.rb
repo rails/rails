@@ -644,10 +644,10 @@ module ActiveRecord
 
       # Raises ActiveRecord::PendingMigrationError error if any migrations are pending.
       #
-      # This is deprecated in favor of +check_pending_migrations!+
+      # This is deprecated in favor of +check_all_pending!+
       def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
         ActiveRecord.deprecator.warn(<<-MSG.squish)
-          The `check_pending!` method is deprecated in favor of `check_pending_migrations!`. The
+          The `check_pending!` method is deprecated in favor of `check_all_pending!`. The
           new implementation will loop through all available database configurations and find
           pending migrations. The prior implementation did not permit this.
         MSG
