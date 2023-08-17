@@ -30,6 +30,11 @@ class RecordIdentifierTest < ActiveSupport::TestCase
     assert_equal "#{@singular}_1", dom_id(@record)
   end
 
+  def test_dom_id_with_composite_primary_key_record
+    record = CompositePrimaryKeyRecord.new([1, 123])
+    assert_equal("composite_primary_key_record_1_123", dom_id(record))
+  end
+
   def test_dom_id_with_prefix
     @record.save
     assert_equal "edit_#{@singular}_1", dom_id(@record, :edit)

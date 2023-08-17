@@ -58,7 +58,7 @@ module ActiveModel
     #   person.to_key # => [1]
     def to_key
       key = respond_to?(:id) && id
-      key ? [key] : nil
+      key ? Array(key) : nil
     end
 
     # Returns a +string+ representing the object's key suitable for use in URLs,

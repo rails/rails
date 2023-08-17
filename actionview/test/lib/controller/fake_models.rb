@@ -217,3 +217,13 @@ class Plane
     @to_key = [1]
   end
 end
+
+class CompositePrimaryKeyRecord
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  attr_reader :id
+
+  def initialize(id)
+    @id = id
+  end
+end
