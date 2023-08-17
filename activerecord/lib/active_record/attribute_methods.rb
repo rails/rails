@@ -85,8 +85,13 @@ module ActiveRecord
         method_name = pattern.method_name(new_name).to_s
         old_name = old_name.to_s
         target_method_name = pattern.method_name(old_name).to_s
-        target_method =  instance_method(target_method_name) if method_defined?(target_method_name) || private_method_defined?(target_method_name)
+        target_method = instance_method(target_method_name) if method_defined?(target_method_name) || private_method_defined?(target_method_name)
         far_name = find_attribute_far_name(old_name)
+
+        # TODO: While not necessary for backwards compatibility, we
+        # should probably still define the method to ensure perfect
+        # forward compatibility when we stop checking this in 7.2.
+        return if aliased_method_redefined?(method_name)
 
         # In 7.2, this will always define_proxy_call.
         #
@@ -103,15 +108,9 @@ module ActiveRecord
         # our responsibility, we need a deprecation warning. For that,
         # we want to check for a few specific patterns so we can give
         # the most helpful warning possible.
-
-        # TODO: While not necessary for backwards compatibility, we
-        # should probably still define the method to ensure perfect
-        # forward compatibility when we stop checking this in 7.2.
-        return if aliased_method_redefined?(method_name)
-
-        is_deprecated = add_alias_attribute_deprecation_warning(new_name, old_name, method_name, target_method_name, target_method, far_name)
-
-        if is_deprecated
+        deprecation_type = check_for_deprecations(target_method, far_name)
+        if deprecation_type
+          add_alias_attribute_deprecation_warning(new_name, old_name, method_name, target_method_name, target_method, far_name, deprecation_type)
           super
           return
         end
