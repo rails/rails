@@ -86,7 +86,7 @@ module Rails
       end
 
       def use_puma?
-        server.to_s == "Rack::Handler::Puma"
+        server.to_s.end_with?("Handler::Puma")
       end
   end
 
@@ -96,7 +96,7 @@ module Rails
 
       RACK_HANDLER_GEMS = %w(cgi webrick scgi thin puma unicorn falcon)
       # Hard-coding a bunch of handlers here as we don't have a public way of
-      # querying them from the Rack::Handler registry.
+      # querying them from the Rackup::Handler registry.
       RACK_HANDLERS = RACK_HANDLER_GEMS + %w(fastcgi lsws)
       RECOMMENDED_SERVER = "puma"
 
