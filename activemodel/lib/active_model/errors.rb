@@ -3,7 +3,6 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
-require "active_support/core_ext/string/filters"
 require "active_model/error"
 require "active_model/nested_error"
 require "forwardable"
