@@ -489,6 +489,11 @@ module ActiveRecord
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
         @query_constraints_list = columns_list.map(&:to_s)
+        @has_query_constraints = @query_constraints_list
+      end
+
+      def has_query_constraints? # :nodoc:
+        @has_query_constraints
       end
 
       def query_constraints_list # :nodoc:
