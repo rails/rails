@@ -46,7 +46,11 @@ module Rails
     end
 
     def sandbox?
-      options[:sandbox]
+      return options[:sandbox] if !options[:sandbox].nil?
+
+      return false if Rails.env.local?
+
+      app.config.sandbox_by_default
     end
 
     def environment
@@ -79,7 +83,7 @@ module Rails
     class ConsoleCommand < Base # :nodoc:
       include EnvironmentArgument
 
-      class_option :sandbox, aliases: "-s", type: :boolean, default: false,
+      class_option :sandbox, aliases: "-s", type: :boolean, default: nil,
         desc: "Rollback database modifications on exit."
 
       def initialize(args = [], local_options = {}, config = {})
