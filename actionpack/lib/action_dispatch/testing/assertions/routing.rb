@@ -23,7 +23,6 @@ module ActionDispatch
         #     set.draw do
         #       resources :users
         #     end
-        #     assert_equal "/users", users_path
         #   end
         #
         def with_routing(&block)
