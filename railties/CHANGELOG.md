@@ -1,3 +1,14 @@
+*   Add an option to start rails console in sandbox mode by default
+
+    `sandbox_by_default` option is added to start rails console in sandbox
+    mode by default. With this option turned on, `--no-sandbox` must be
+    specified to start rails in non-sandbox mode.
+
+    Note that this option is ignored when rails environment is development
+    or test.
+
+    *Shouichi Kamiya*
+
 *   Omit `webdrivers` gem dependency from `Gemfile` template
 
     *Sean Doyle*
