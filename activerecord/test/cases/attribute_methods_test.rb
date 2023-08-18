@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/minimalistic"
 require "models/developer"
 require "models/auto_id"
+require "models/author"
 require "models/boolean"
 require "models/computer"
 require "models/topic"
@@ -1314,6 +1315,94 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     object = subclass.build(id: 123_456)
 
     assert_equal 123_456, object.id_value
+  end
+
+  ClassWithGeneratedAttributeMethodTarget = Class.new(ActiveRecord::Base) do
+    self.table_name = "topics"
+    alias_attribute :saved_title, :title_in_database
+  end
+
+  test "#alias_attribute with an _in_database method issues a deprecation warning" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithGeneratedAttributeMethodTarget model aliases `title_in_database`, but title_in_database is not an attribute.
+    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise. Use `alias_method :saved_title`, :title_in_database or define the method manually.
+    MESSAGE
+
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
+      ClassWithGeneratedAttributeMethodTarget.new
+    end
+    obj.title = "A river runs through it"
+    assert_nil obj.saved_title
+    obj.save
+    assert_equal "A river runs through it", obj.saved_title
+  end
+
+  ClassWithEnumMethodTarget = Class.new(ActiveRecord::Base) do
+    self.table_name = "books"
+
+    attribute :status, :string
+    enum status: {
+      pending: "0",
+      completed: "1",
+    }
+    alias_attribute :is_pending?, :pending?
+  end
+
+  test "#alias_attribute with enum method issues a deprecation warning" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithEnumMethodTarget model aliases `pending?`, but pending? is not an attribute.
+    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise.
+    Use `alias_method :is_pending?`, :pending? or define the method manually.
+    MESSAGE
+
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
+      ClassWithEnumMethodTarget.new
+    end
+    obj.status = "pending"
+    assert_predicate obj, :pending?
+    assert_predicate obj, :is_pending?
+  end
+
+  ClassWithAssociationTarget = Class.new(ActiveRecord::Base) do
+    self.table_name = "books"
+    belongs_to :author
+
+    alias_attribute :written_by, :author
+  end
+
+  test "#alias_attribute with an association method issues a deprecation warning" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithAssociationTarget model aliases `author`, but author is not an attribute.
+    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise.
+    Use `alias_method :written_by`, :author or define the method manually.
+    MESSAGE
+
+    obj = assert_deprecated(message, ActiveRecord.deprecator) do
+      ClassWithAssociationTarget.new
+    end
+    obj.author = Author.new(name: "Octavia E. Butler")
+    assert_equal "Octavia E. Butler", obj.written_by.name
+  end
+
+  ClassWithAliasedManuallyDefinedMethod = Class.new(ActiveRecord::Base) do
+    self.table_name = "books"
+    alias_attribute :print, :publish
+
+    def publish
+      "Publishing!"
+    end
+  end
+
+  test "#alias_attribute with a manually defined method issues a deprecation warning" do
+    message = <<~MESSAGE.gsub("\n", " ")
+    AttributeMethodsTest::ClassWithAliasedManuallyDefinedMethod model aliases `publish`, but publish is not an attribute.
+    Starting in Rails 7.2 `, alias_attribute with non-attribute targets will raise.
+    Use `alias_method :print`, :publish or define the method manually.
+    MESSAGE
+
+    assert_deprecated(message, ActiveRecord.deprecator) do
+      ClassWithAliasedManuallyDefinedMethod.new
+    end
   end
 
   private
