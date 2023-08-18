@@ -209,6 +209,11 @@ module ActiveRecord
             super
           end
 
+          def change(name, type, index: nil, **options)
+            options[:precision] ||= nil
+            super
+          end
+
           def column(name, type, index: nil, **options)
             options[:precision] ||= nil
             super
