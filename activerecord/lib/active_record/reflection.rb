@@ -523,7 +523,7 @@ module ActiveRecord
           else
             custom_primary_key.to_s.freeze
           end
-        elsif options[:query_constraints]
+        elsif active_record.has_query_constraints? || options[:query_constraints]
           active_record.query_constraints_list
         else
           primary_key(active_record).freeze
@@ -807,7 +807,7 @@ module ActiveRecord
 
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
-        if options[:query_constraints]
+        if !polymorphic? && ((klass || self.klass).has_query_constraints? || options[:query_constraints])
           (klass || self.klass).composite_query_constraints_list
         elsif primary_key = options[:primary_key]
           @association_primary_key ||= -primary_key.to_s
