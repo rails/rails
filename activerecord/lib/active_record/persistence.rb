@@ -493,7 +493,7 @@ module ActiveRecord
       end
 
       def has_query_constraints? # :nodoc:
-        @has_query_constraints ||= nil
+        @has_query_constraints
       end
 
       def query_constraints_list # :nodoc:
@@ -1140,6 +1140,7 @@ module ActiveRecord
       super
       @_trigger_destroy_callback = @_trigger_update_callback = nil
       @previously_new_record = false
+      @has_query_constraints = false
     end
 
     def strict_loaded_associations
