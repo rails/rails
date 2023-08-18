@@ -1,3 +1,7 @@
+*   Fix `change_table` setting datetime precision for 6.1 Migrations
+
+    *Hartley McGuire*
+
 *   Fix change_column setting datetime precision for 6.1 Migrations
 
     *Hartley McGuire*
