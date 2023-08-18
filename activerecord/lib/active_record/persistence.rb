@@ -962,10 +962,14 @@ module ActiveRecord
     # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
-    def increment!(attribute, by = 1, touch: nil)
+    def increment!(attribute, by = 1, touch: nil, unscoped: nil)
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
+
+      with_scoping_rules({ unscoped: unscoped }) do |_apply_scoping|
+        self.class.update_counters(id, attribute => change, touch: touch)
+      end
+
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -983,8 +987,8 @@ module ActiveRecord
     # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
-    def decrement!(attribute, by = 1, touch: nil)
-      increment!(attribute, -by, touch: touch)
+    def decrement!(attribute, by = 1, touch: nil, unscoped: nil)
+      increment!(attribute, -by, touch: touch, unscoped: unscoped)
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -1063,10 +1067,9 @@ module ActiveRecord
     def reload(options = nil)
       self.class.connection.clear_query_cache
 
-      fresh_object = if apply_scoping?(options)
-        _find_record((options || {}).merge(all_queries: true))
-      else
-        self.class.unscoped { _find_record(options) }
+      fresh_object = with_scoping_rules(options) do |apply_scoping|
+        options = (options || {}).merge(all_queries: true) if apply_scoping
+        _find_record(options)
       end
 
       @association_cache = fresh_object.instance_variable_get(:@association_cache)
@@ -1167,6 +1170,16 @@ module ActiveRecord
     def apply_scoping?(options)
       !(options && options[:unscoped]) &&
         (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
+    end
+
+    def with_scoping_rules(options, &block)
+      if apply_scoping?(options)
+        yield true
+      else
+        self.class.unscoped do
+          yield false
+        end
+      end
     end
 
     def _query_constraints_hash

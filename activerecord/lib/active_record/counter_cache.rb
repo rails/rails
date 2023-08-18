@@ -112,7 +112,7 @@ module ActiveRecord
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
-        unscoped.where!(primary_key => id).update_counters(counters)
+        all.where!(primary_key => id).update_counters(counters)
       end
 
       # Increment a numeric field by one, via a direct SQL update.

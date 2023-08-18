@@ -397,6 +397,54 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "update counters based on the current scope" do
+    t1, t2 = topics(:first, :second)
+
+    assert_no_difference -> { t1.reload.replies_count } do
+      assert_difference -> { t2.reload.replies_count }, -3 do
+        Topic.where(author_name: t2.author_name).scoping do
+          Topic.update_counters([t1.id, t2.id], replies_count: -3)
+        end
+      end
+    end
+  end
+
+  test "update counters based on the default scope" do
+    approved_topic = DefaultRejectedTopic.create(approved: true)
+    rejected_topic = DefaultRejectedTopic.create(approved: false, author_name: "Alice")
+    rejected_topic2 = DefaultRejectedTopic.create(approved: false, author_name: "Bob")
+    topic_ids = [approved_topic.id, rejected_topic.id, rejected_topic2.id]
+
+    assert_no_difference -> { approved_topic.reload.replies_count } do
+      assert_no_difference -> { rejected_topic2.reload.replies_count } do
+        assert_difference -> { rejected_topic.reload.replies_count }, -3 do
+          DefaultRejectedTopic.where(author_name: rejected_topic.author_name).scoping do
+            DefaultRejectedTopic.update_counters(topic_ids, replies_count: -3)
+          end
+        end
+      end
+    end
+  end
+
+  test "update counters can be unscoped" do
+    approved_topic = DefaultRejectedTopic.create(approved: true)
+    rejected_topic = DefaultRejectedTopic.create(approved: false, author_name: "Alice")
+    rejected_topic2 = DefaultRejectedTopic.create(approved: false, author_name: "Bob")
+    topic_ids = [approved_topic.id, rejected_topic.id, rejected_topic2.id]
+
+    assert_difference -> { approved_topic.reload.replies_count }, -3 do
+      assert_difference -> { rejected_topic2.reload.replies_count }, -3 do
+        assert_difference -> { rejected_topic.reload.replies_count }, -3 do
+          DefaultRejectedTopic.where(author_name: rejected_topic.author_name).scoping do
+            DefaultRejectedTopic.unscoped do
+              DefaultRejectedTopic.update_counters(topic_ids, replies_count: -3)
+            end
+          end
+        end
+      end
+    end
+  end
+
   private
     def assert_touching(record, *attributes)
       record.update_columns attributes.index_with(5.minutes.ago)

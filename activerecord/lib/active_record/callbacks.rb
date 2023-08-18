@@ -432,7 +432,7 @@ module ActiveRecord
       _run_touch_callbacks { super }
     end
 
-    def increment!(attribute, by = 1, touch: nil) # :nodoc:
+    def increment!(attribute, by = 1, touch: nil, unscoped: nil) # :nodoc:
       touch ? _run_touch_callbacks { super } : super
     end
 

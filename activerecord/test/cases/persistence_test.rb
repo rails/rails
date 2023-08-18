@@ -301,6 +301,72 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { topic.increment! }
   end
 
+  def test_increment_applies_default_scope_with_all_queries
+    topic = DefaultApprovedTopic.create(approved: true)
+    assert topic.class.default_scopes?(all_queries: true)
+
+    assert_difference -> { topic.reload.replies_count }, 1 do
+      update_sql = capture_sql { topic.increment!(:replies_count) }.first
+      assert_match(/approved/, update_sql)
+    end
+  end
+
+  def test_increment_applies_scopes_with_all_queries
+    topic = topics(:first)
+    assert_not topic.class.default_scopes?(all_queries: true)
+
+    assert_difference -> { topic.reload.replies_count }, 1 do
+      Topic.where(author_name: topic.author_name).scoping(all_queries: true) do
+        update_sql = capture_sql { topic.increment!(:replies_count) }.first
+        assert_match(/author_name/, update_sql)
+      end
+    end
+  end
+
+  def test_increment_ignores_default_scopes_without_all_queries
+    topic = DefaultRejectedTopic.create(author_name: "Pierre")
+    assert topic.class.default_scopes?
+
+    assert_difference -> { topic.reload.replies_count }, 1 do
+      update_sql = capture_sql { topic.increment!(:replies_count) }.first
+      assert_no_match(/author_name/, update_sql)
+    end
+  end
+
+  def test_increment_ignores_scopes_without_all_queries
+    topic = topics(:first)
+    assert_not topic.class.default_scopes?
+
+    assert_difference -> { topic.reload.replies_count }, 1 do
+      Topic.where(author_name: "Pierre").scoping do
+        update_sql = capture_sql { topic.increment!(:replies_count) }.first
+        assert_no_match(/author_name/, update_sql)
+      end
+    end
+  end
+
+  def test_increment_ignores_default_scopes_with_unscoped
+    topic = DefaultApprovedTopic.create(approved: true)
+    assert topic.class.default_scopes?(all_queries: true)
+
+    assert_difference -> { topic.reload.replies_count }, 1 do
+      update_sql = capture_sql { topic.increment!(:replies_count, unscoped: true) }.first
+      assert_no_match(/approved/, update_sql)
+    end
+  end
+
+  def test_increment_ignores_scopes_with_unscoped
+    topic = topics(:first)
+    assert_not topic.class.default_scopes?
+
+    assert_difference -> { topic.reload.replies_count }, 1 do
+      Topic.where("1=2").scoping(all_queries: true) do
+        update_sql = capture_sql { topic.increment!(:replies_count, unscoped: true) }.first
+        assert_no_match(/approved/, update_sql)
+      end
+    end
+  end
+
   def test_destroy_many
     clients = Client.find([2, 3])
 
