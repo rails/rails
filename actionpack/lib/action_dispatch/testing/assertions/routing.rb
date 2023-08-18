@@ -11,7 +11,7 @@ module ActionDispatch
     module RoutingAssertions
       extend ActiveSupport::Concern
 
-      class_methods do
+      module ClassMethods
         # A helper to make it easier to test different route configurations.
         # This method temporarily replaces @routes with a new RouteSet instance
         # before each test.
