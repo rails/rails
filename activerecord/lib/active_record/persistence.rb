@@ -487,13 +487,16 @@ module ActiveRecord
       #   # SELECT "developers".* FROM "developers" WHERE "developers"."company_id" = 1 AND "developers"."id" = 1 LIMIT 1
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
-
         @query_constraints_list = columns_list.map(&:to_s)
         @has_query_constraints = @query_constraints_list
       end
 
       def has_query_constraints? # :nodoc:
-        @has_query_constraints
+        if @has_query_constraints
+          @has_query_constraints
+        else
+          @has_query_constraints = nil
+        end
       end
 
       def query_constraints_list # :nodoc:
