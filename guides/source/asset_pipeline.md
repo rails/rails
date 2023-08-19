@@ -30,7 +30,7 @@ passing the `--skip-asset-pipeline` option.
 $ rails new appname --skip-asset-pipeline
 ```
 
-NOTE: This guide is focusing on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like `Babel`, `Typescript`, `Sass`, `React JSX format` or `TailwindCSS`. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
+NOTE: This guide focuses on the default asset pipeline using only `sprockets` for CSS and `importmap-rails` for JavaScript processing. The main limitation of those two is that there is no support for transpiling so you can't use things like `Babel`, `Typescript`, `Sass`, `React JSX format` or `TailwindCSS`. We encourage you to read the [Alternative Libraries section](#alternative-libraries) if you need transpiling for your JavaScript/CSS.
 
 ## Main Features
 
@@ -155,7 +155,7 @@ All of the configured import maps should be attached in `<head>` element of your
 
 ### Using npm packages via JavaScript CDNs
 
-You can use the `./bin/importmap` command that's added as part of the `importmap-rails` install to pin, unpin, or update npm packages in your import map. The binstub uses [`JSPM.org`](https://jspm.org/).
+You can use the `./bin/importmap` command that's added as part of the `importmap-rails` install to pin, unpin, or update npm packages in your import map. The binstub uses [`JSPM.org`](https://jspm.org/).
 
 It works like so:
 
@@ -212,7 +212,7 @@ Pinning "react" to https://ga.jspm.io/npm:react@17.0.2/dev.index.js
 Pinning "object-assign" to https://ga.jspm.io/npm:object-assign@4.1.1/index.js
 ```
 
-You can also pick an alternative, supported CDN provider when pinning, like [`unpkg`](https://unpkg.com/) or [`jsdelivr`](https://www.jsdelivr.com/) ([`jspm`](https://jspm.org/) is the default):
+You can also pick an alternative, supported CDN provider when pinning, like [`unpkg`](https://unpkg.com/) or [`jsdelivr`](https://www.jsdelivr.com/) ([`jspm`](https://jspm.org/) is the default):
 
 ```sh
 ./bin/importmap pin react --from jsdelivr
@@ -221,9 +221,9 @@ Pinning "react" to https://cdn.jsdelivr.net/npm/react@17.0.2/index.js
 
 Remember, though, that if you switch a pin from one provider to another, you may have to clean up dependencies added by the first provider that isn't used by the second provider.
 
-Run `./bin/importmap` to see all options.
+Run `./bin/importmap` to see all options.
 
-Note that this command is merely a convenience wrapper to resolving logical package names to CDN URLs. You can also just lookup the CDN URLs yourself, and then pin those. For example, if you wanted to use Skypack for React, you could just add the following to `config/importmap.rb`:
+Note that this command is merely a convenience wrapper to resolving logical package names to CDN URLs. You can also just lookup the CDN URLs yourself, and then pin those. For example, if you wanted to use Skypack for React, you could just add the following to `config/importmap.rb`:
 
 ```ruby
 pin "react", to: "https://cdn.skypack.dev/react"
@@ -231,7 +231,7 @@ pin "react", to: "https://cdn.skypack.dev/react"
 
 ### Preloading pinned modules
 
-To avoid the waterfall effect where the browser has to load one file after another before it can get to the deepest nested import, importmap-rails supports [modulepreload links](https://developers.google.com/web/updates/2017/12/modulepreload). Pinned modules can be preloaded by appending `preload: true` to the pin.
+To avoid the waterfall effect where the browser has to load one file after another before it can get to the deepest nested import, importmap-rails supports [modulepreload links](https://developers.google.com/web/updates/2017/12/modulepreload). Pinned modules can be preloaded by appending `preload: true` to the pin.
 
 It's a good idea to preload libraries or frameworks that are used throughout your app, as this will tell the browser to download them sooner.
 
@@ -273,7 +273,7 @@ in the `app/assets` are never served directly in production.
 
 ### Manifest Files and Directives
 
-When compiling assets with Sprockets, Sprockets needs to decide which top-level targets to compile, usually `application.css` and images. The top-level targets are defined in the Sprockets `manifest.js` file, by default it looks like this:
+When compiling assets with Sprockets, Sprockets needs to decide which top-level targets to compile, usually `application.css` and images. The top-level targets are defined in the Sprockets `manifest.js` file, by default it looks like this:
 
 ```js
 //= link_tree ../images
@@ -285,15 +285,15 @@ When compiling assets with Sprockets, Sprockets needs to decide which top-level 
 It contains _directives_ - instructions that tell Sprockets
 which files to require in order to build a single CSS or JavaScript file.
 
-This is meant to include the contents of all files found in the `./app/assets/images` directory or any subdirectories as well as any file recognized as JS directly at `./app/javascript` or `./vendor/javascript`.
+This is meant to include the contents of all files found in the `./app/assets/images` directory or any subdirectories as well as any file recognized as JS directly at `./app/javascript` or `./vendor/javascript`.
 
-It will load any CSS from the `./app/assets/stylesheets` directory (not including subdirectories). Assuming that you have `application.css` and `marketing.css` files in the `./app/assets/stylesheets` folder it will allow you to load those stylesheets with `<%= stylesheet_link_tag "application" %>` or `<%= stylesheet_link_tag "marketing" %>` from your views.
+It will load any CSS from the `./app/assets/stylesheets` directory (not including subdirectories). Assuming that you have `application.css` and `marketing.css` files in the `./app/assets/stylesheets` folder it will allow you to load those stylesheets with `<%= stylesheet_link_tag "application" %>` or `<%= stylesheet_link_tag "marketing" %>` from your views.
 
 You might notice that our JavaScript files aren't loaded from the `assets` directory by default, it's because `./app/javascript` is the default entry point for `importmap-rails` gem and the `vendor` folder is the place where downloaded JS packages would be stored.
 
 In the `manifest.js` you could also specify the `link` directive to load a specific file instead of the whole directory. `link` directive requires providing explicit file extension.
 
-Sprockets load the files specified, processes them if
+Sprockets loads the files specified, processes them if
 necessary, concatenates them into one single file, and then compresses them
 (based on the value of `config.assets.css_compressor` or `config.assets.js_compressor`).
 Compression reduces file size, enabling the browser to download the files faster.
@@ -344,7 +344,7 @@ For example, if you have a CSS library with many modules, which is stored in
 the manifest for all files in this library. This file could include a list of
 all the required files in order, or a simple `require_tree` directive.
 
-It is also somewhat similar to the way that a file in `public/library_name/index.html` can be reached by a request to `/library_name`. This means that you cannot directly use an index file.
+It is also somewhat similar to the way that a file in `public/library_name/index.html` can be reached by a request to `/library_name`. This means that you cannot directly use an index file.
 
 The library as a whole can be accessed in the `.css` files like so:
 
@@ -1050,7 +1050,7 @@ We are aware that there are no one-size-fits-it-all solutions for the various Ja
 
 ### jsbundling-rails
 
-[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) is a Node.js dependent alternative to the `importmap-rails` way of bundling JavaScript with [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/).
+[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) is a Node.js dependent alternative to the `importmap-rails` way of bundling JavaScript with [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/).
 
 The gem provides `yarn build --watch` process to automatically generate output in development. For production, it automatically hooks `javascript:build` task into `assets:precompile` task to ensure that all your package dependencies have been installed and JavaScript has been built for all entry points.
 
@@ -1060,17 +1060,17 @@ The gem provides `yarn build --watch` process to automatically generate output i
 
 [`Webpacker`](webpacker.html) was the default JavaScript pre-processor and bundler for Rails 5 and 6. It has now been retired. A successor called [`shakapacker`](https://github.com/shakacode/shakapacker) exists, but is not maintained by the Rails team or project.
 
-Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files. Read the [Webpacker guide](https://guides.rubyonrails.org/webpacker.html) to learn more.
+Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files.
 
 NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-rails/blob/main/docs/comparison_with_webpacker.md) document to understand the differences between `jsbundling-rails` and `webpacker`/`shakapacker`.
 
 ### cssbundling-rails
 
-[`cssbundling-rails`](https://github.com/rails/cssbundling-rails) allows bundling and processing of your CSS using [Tailwind CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/), [Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart Sass](https://sass-lang.com/), then delivers the CSS via the asset pipeline.
+[`cssbundling-rails`](https://github.com/rails/cssbundling-rails) allows bundling and processing of your CSS using [Tailwind CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/), [Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart Sass](https://sass-lang.com/), then delivers the CSS via the asset pipeline.
 
 It works in a similar way to `jsbundling-rails` so adds the Node.js dependency to your application with `yarn build:css --watch` process to regenerate your stylesheets in development and hooks into `assets:precompile` task in production.
 
-**What's the difference between Sprockets?** Sprockets on their own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
+**What's the difference between Sprockets?** Sprockets on its own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
 
 NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your Javascripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
 
