@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-require "webdrivers"
+if RUBY_VERSION < "3"
+  require "webdrivers"
+end
 require_relative "test_run"
 
 driver = if ARGV[1]
