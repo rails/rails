@@ -1,3 +1,7 @@
+*   Omit `webdrivers` gem dependency from `Gemfile` template
+
+    *Sean Doyle*
+
 ## Rails 7.0.7 (August 09, 2023) ##
 
 *   Update default scaffold templates to set 303 (See Other) as status code
