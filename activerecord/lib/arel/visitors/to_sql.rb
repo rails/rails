@@ -618,9 +618,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Or(o, collector)
-          if o.inspect.include?("TableAlias")
-            o.right.instance_values["left"].relation = Nodes::TableAlias.new(o.right.instance_values["left"].relation, o.left.instance_values["left"].relation.right)
-          end
+        
           stack = [o.right, o.left]
 
           while o = stack.pop
