@@ -492,8 +492,6 @@ module ActiveRecord
       end
 
       def has_query_constraints? # :nodoc:
-
-        
           @has_query_constraints
       end
 
