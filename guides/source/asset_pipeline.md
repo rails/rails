@@ -1060,7 +1060,7 @@ The gem provides `yarn build --watch` process to automatically generate output i
 
 [`Webpacker`](webpacker.html) was the default JavaScript pre-processor and bundler for Rails 5 and 6. It has now been retired. A successor called [`shakapacker`](https://github.com/shakacode/shakapacker) exists, but is not maintained by the Rails team or project.
 
-Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files. Read the [Webpacker guide](https://guides.rubyonrails.org/webpacker.html) to learn more.
+Unlike other libraries in this list `webpacker`/`shakapacker` is completely independent of Sprockets and could process both JavaScript and CSS files.
 
 NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-rails/blob/main/docs/comparison_with_webpacker.md) document to understand the differences between `jsbundling-rails` and `webpacker`/`shakapacker`.
 
@@ -1070,7 +1070,7 @@ NOTE: Read the [Comparison with Webpacker](https://github.com/rails/jsbundling-r
 
 It works in a similar way to `jsbundling-rails` so adds the Node.js dependency to your application with `yarn build:css --watch` process to regenerate your stylesheets in development and hooks into `assets:precompile` task in production.
 
-**What's the difference between Sprockets?** Sprockets on their own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
+**What's the difference between Sprockets?** Sprockets on its own is not able to transpile the Sass into CSS, Node.js is required to generate the `.css` files from your `.sass`  files. Once the `.css` files are generated then `Sprockets` is able to deliver them to your clients.
 
 NOTE: `cssbundling-rails` relies on Node to process the CSS. The `dartsass-rails` and `tailwindcss-rails` gems use standalone versions of Tailwind CSS and Dart Sass, meaning no Node dependency. If you are using `importmap-rails` to handle your Javascripts and `dartsass-rails` or `tailwindcss-rails` for CSS you could completely avoid the Node dependency resulting in a less complex solution.
 
