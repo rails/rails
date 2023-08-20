@@ -3,6 +3,7 @@
 TEST_ROOT       = __dir__
 ASSETS_ROOT     = TEST_ROOT + "/assets"
 FIXTURES_ROOT   = TEST_ROOT + "/fixtures"
+SCENARIOS_ROOT  = TEST_ROOT + "/scenarios"
 MODELS_ROOT     = TEST_ROOT + "/models"
 MIGRATIONS_ROOT = TEST_ROOT + "/migrations"
 SCHEMA_ROOT     = TEST_ROOT + "/schema"

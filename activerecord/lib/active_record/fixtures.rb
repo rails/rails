@@ -470,7 +470,9 @@ module ActiveRecord
   #
   # Any fixtures labeled "_fixture" are safely ignored.
   class FixtureSet
+    require "active_record/fixture_set/config"
     require "active_record/fixture_set/file"
+    require "active_record/fixture_set/scenario"
     require "active_record/fixture_set/render_context"
     require "active_record/fixture_set/table_rows"
 
@@ -589,6 +591,22 @@ module ActiveRecord
         @context_class ||= Class.new
       end
 
+      def create_scenario(path, config = ActiveRecord::Base, loaded_fixture_identifiers: {}, &block)
+        connection = block_given? ? block : lambda { ActiveRecord::Base.connection }
+
+        fixtures_map = {}
+        fixture_sets = Scenario.new(path, loaded_fixture_identifiers).map do |table_name, config|
+          fixtures_map[table_name] = new(
+            nil,
+            config.table_name,
+            config.model_class,
+            fixtures_config: config
+          )
+        end
+        insert(fixture_sets, connection, tables_to_delete: [])
+        fixtures_map
+      end
+
       private
         def read_and_insert(fixtures_directories, fixture_files, class_names, connection) # :nodoc:
           fixtures_map = {}
@@ -609,7 +627,7 @@ module ActiveRecord
           fixtures_map
         end
 
-        def insert(fixture_sets, connection) # :nodoc:
+        def insert(fixture_sets, connection, tables_to_delete: nil) # :nodoc:
           fixture_sets_by_connection = fixture_sets.group_by do |fixture_set|
             if fixture_set.model_class
               fixture_set.model_class.connection
@@ -627,7 +645,7 @@ module ActiveRecord
               end
             end
 
-            conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+            conn.insert_fixtures_set(table_rows_for_connection, tables_to_delete || table_rows_for_connection.keys)
 
             check_all_foreign_keys_valid!(conn)
 
@@ -653,17 +671,34 @@ module ActiveRecord
         end
     end
 
-    attr_reader :table_name, :name, :fixtures, :model_class, :ignored_fixtures, :config
+    attr_reader :table_name, :name, :rows, :model_class, :ignored_fixtures, :config
 
-    def initialize(_, name, class_name, path, config = ActiveRecord::Base)
+    def initialize(_, name, class_name, path = nil, config = ActiveRecord::Base, fixtures_config: nil)
+      if path
+        fixtures_config = read_fixture_files(path, name)
+      end
+
       @name     = name
-      @path     = path
       @config   = config
+      self.ignored_fixtures = fixtures_config.ignored_fixtures
+      self.model_class = class_name || fixtures_config.model_class || default_fixture_model_class
+      @table_name = model_class&.table_name || default_fixture_table_name
+      @rows = fixtures_config.rows
+    end
 
-      self.model_class = class_name
-      @fixtures = read_fixture_files(path)
+    def +(other_set)
+      config = Config.new(
+        table_name: table_name || other_set.table_name,
+        model_class: model_class || other_set.model_class,
+        ignored_fixtures: Array(ignored_fixtures) | Array(other_set.ignored_fixtures),
+        rows: rows.merge(other_set.rows)
+      )
 
-      @table_name = model_class&.table_name || self.class.default_fixture_table_name(name, config)
+      self.class.new(nil, name, model_class, fixtures_config: config)
+    end
+
+    def fixtures
+      @fixtures ||= @rows.transform_values { |row| Fixture.new(row, model_class) }
     end
 
     def [](x)
@@ -697,10 +732,12 @@ module ActiveRecord
 
     private
       def model_class=(class_name)
+        return unless class_name
+
         if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
           @model_class = class_name
         else
-          @model_class = class_name.safe_constantize if class_name
+          @model_class = class_name.safe_constantize
         end
       end
 
@@ -722,24 +759,19 @@ module ActiveRecord
       # Loads the fixtures from the YAML file at +path+.
       # If the file sets the +model_class+ and current instance value is not set,
       # it uses the file value.
-
-      def read_fixture_files(path)
-        yaml_files = Dir["#{path}{.yml,/{**,*}/*.yml}"].select { |f|
-          ::File.file?(f)
-        }
-
-        raise ArgumentError, "No fixture files found for #{@name}" if yaml_files.empty?
-
-        yaml_files.each_with_object({}) do |file, fixtures|
-          FixtureSet::File.open(file) do |fh|
-            self.model_class ||= fh.model_class if fh.model_class
-            self.model_class ||= default_fixture_model_class
-            self.ignored_fixtures ||= fh.ignored_fixtures
-            fh.each do |fixture_name, row|
-              fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
-            end
-          end
+      def read_fixture_files(path, name)
+        yaml_files = Dir["#{path}{.yml,/{**,*}/*.yml}"].select { |f| ::File.file?(f) }
+        if yaml_files.empty?
+          raise ArgumentError, "No fixture files found for #{name}"
         end
+
+        yaml_files.reduce(Config.new) do |result, file|
+          File.open(file) { |fh| result + fh.fixtures_config }
+        end
+      end
+
+      def default_fixture_table_name
+        self.class.default_fixture_table_name(@name, @config)
       end
 
       def default_fixture_model_class

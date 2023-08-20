@@ -1,0 +1,6 @@
+posts:
+  other_alex_post:
+    author: alex
+    title: Other Alex's post
+    body: Such a lovely day
+    type: Post

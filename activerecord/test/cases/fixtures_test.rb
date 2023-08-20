@@ -606,6 +606,82 @@ class FixturesTest < ActiveRecord::TestCase
   end
 end
 
+class TestLoadScenario < ActiveRecord::TestCase
+  fixtures :authors, :author_addresses, :organizations, :posts
+  fixtures :ships, :pirates
+
+  def setup
+    @path = SCENARIOS_ROOT + "/organisation_with_author_and_posts.yml"
+    # fixtures created but no scenario fixtures remain in between tests
+    assert_equal 3, Author.count
+  end
+
+  def test_create_scenario
+    load_scenario(@path)
+
+    author = Author.find_by(name: "Alex")
+
+    assert_equal "Alex", author.name
+    assert author.author_address
+    assert_equal "The code monkeys", author.organization.name
+    assert_equal 5, author.posts.count
+  end
+
+  def test_create_scenario_does_not_remove_fixtures
+    load_scenario(@path)
+
+    assert_equal 5, Author.count
+    assert_equal 5, authors.count
+  end
+
+  def test_table_access
+    load_scenario(@path)
+
+    assert_equal "Alex", authors(:alex).name
+  end
+
+  def test_scenario_access_existing_fixtures
+    load_scenario(@path)
+
+    assert_equal "No Such Agency", Author.find_by(name: "NSA Author").organization.name
+  end
+
+  def test_scenario_fixture_cannot_override_existing_fixtures
+    error = assert_raise(ActiveRecord::Fixture::FixtureError) do
+      load_scenario(SCENARIOS_ROOT + "/scenario_overriding_fixture.yml")
+    end
+
+    assert_equal "Fixture scenarios cannot override already existing fixtures: nsa", error.message
+  end
+
+  def test_scenario_fixture_cannot_override_existing_scenario_fixtures
+    load_scenario(@path)
+
+    error = assert_raise(ActiveRecord::Fixture::FixtureError) do
+      load_scenario(SCENARIOS_ROOT + "/scenario_overriding_scenario_fixture.yml")
+    end
+    assert_equal "Fixture scenarios cannot override already existing fixtures: code_monkeys", error.message
+  end
+
+  def test_can_load_multiple_scenarios
+    load_scenario(SCENARIOS_ROOT + "/ships_and_pirates.yml")
+    load_scenario(@path)
+
+    assert authors(:alex)
+    assert pirates(:scarlet)
+  end
+
+  def test_can_reference_scenario_fixtures_from_another_file
+    load_scenario(@path)
+    load_scenario(SCENARIOS_ROOT + "/posts_referencing_an_external_scenario_author.yml")
+
+    assert_equal 17, posts.count
+    assert posts(:other_alex_post)
+    assert posts(:alex_post1)
+  end
+end
+
+
 class HasManyThroughFixture < ActiveRecord::TestCase
   def make_model(name)
     Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }

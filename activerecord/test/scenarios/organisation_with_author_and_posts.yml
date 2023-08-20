@@ -1,0 +1,31 @@
+organizations:
+  _fixture:
+    model_class: Organization
+
+  code_monkeys:
+    name: The code monkeys
+
+posts:
+  <% 1.upto(5) do |i| %>
+  alex_post<%= i %>:
+    author: alex
+    title: Alex post <%= i %>
+    body: Such a lovely day
+    type: Post
+  <% end %>
+
+authors:
+  alex:
+    name: Alex
+    author_address_id: 100
+    organization: code_monkeys
+
+  nsa_author:
+    name: NSA Author
+    author_address_id: 100
+    organization: nsa
+
+author_addresses:
+  alex_address:
+    id: 100
+

@@ -1,0 +1,14 @@
+ships:
+  whispering_shadow:
+    name: "Whispering Shadow"
+    pirate: scarlet
+  golden_horizon:
+    name: "Golden Horizon"
+    pirate: morgan
+
+pirates:
+  scarlet:
+    catchphrase: "Avast, ye scallywags!"
+
+  morgan:
+    catchphrase: "Sailin' the high seas, we be!"

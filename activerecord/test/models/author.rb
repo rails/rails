@@ -195,6 +195,7 @@ class Author < ActiveRecord::Base
   belongs_to :owned_essay, primary_key: :name, class_name: "Essay"
   has_one :owned_essay_category, through: :owned_essay, source: :category
 
+  belongs_to :organization
   belongs_to :author_address,       dependent: :destroy
   belongs_to :author_address_extra, dependent: :delete, class_name: "AuthorAddress"
 

@@ -133,6 +133,7 @@ module ActiveRecord
       @@already_loaded_fixtures ||= {}
       @connection_subscriber = nil
       @saved_pool_configs = Hash.new { |hash, key| hash[key] = {} }
+      @loaded_scenarios = {}
 
       # Load fixtures once and begin transaction.
       if run_in_transaction?
@@ -255,6 +256,27 @@ module ActiveRecord
         ActiveRecord::FixtureSet.create_fixtures(fixture_paths, fixture_table_names, fixture_class_names, config).index_by(&:name)
       end
 
+      def load_scenario(path)
+        tables_names = @loaded_fixtures.keys | @loaded_scenarios.keys
+
+        identifiers = tables_names.index_with do |table_name|
+          Array(@loaded_fixtures[table_name]&.fixtures&.keys) |
+            Array(@loaded_scenarios[table_name]&.fixtures&.keys)
+        end
+
+        new_scenario_map = ActiveRecord::FixtureSet.create_scenario(path, loaded_fixture_identifiers: identifiers)
+
+        new_scenario_map.each do |table_name, fixture_set|
+          if @loaded_scenarios[table_name]
+            @loaded_scenarios[table_name] += fixture_set
+          else
+            @loaded_scenarios[table_name] = fixture_set
+          end
+        end
+
+        new_scenario_map
+      end
+
       def instantiate_fixtures
         if pre_loaded_fixtures
           raise RuntimeError, "Load fixtures before instantiating them." if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
@@ -291,7 +313,11 @@ module ActiveRecord
         force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
         return_single_record = fixture_names.size == 1
 
-        fixture_names = @loaded_fixtures[fs_name].fixtures.keys if fixture_names.empty?
+        if fixture_names.empty?
+          fixture_names = @loaded_fixtures[fs_name].fixtures.keys
+          fixture_names += @loaded_scenarios[fs_name].fixtures.keys if @loaded_scenarios[fs_name]
+        end
+
         @fixture_cache[fs_name] ||= {}
 
         instances = fixture_names.map do |f_name|
@@ -300,6 +326,8 @@ module ActiveRecord
 
           if @loaded_fixtures[fs_name][f_name]
             @fixture_cache[fs_name][f_name] ||= @loaded_fixtures[fs_name][f_name].find
+          elsif @loaded_scenarios[fs_name][f_name]
+            @loaded_scenarios[fs_name][f_name].find
           else
             raise StandardError, "No fixture named '#{f_name}' found for fixture set '#{fs_name}'"
           end
