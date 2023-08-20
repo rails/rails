@@ -153,7 +153,6 @@ module ActiveSupport
 
         @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
-        @supports_pipelining = true
 
         super(universal_options)
       end
@@ -294,15 +293,16 @@ module ActiveSupport
       end
 
       private
-        def pipelined(&block)
-          if @supports_pipelining
-            redis.then { |c| c.pipelined(&block) }
-          else
-            redis.then(&block)
-          end
-        rescue Redis::Distributed::CannotDistribute
-          @supports_pipelining = false
-          retry
+        def pipeline_entries(entries, &block)
+          redis.then { |c|
+            if c.is_a?(Redis::Distributed)
+              entries.group_by { |k, _v| c.node_for(k) }.each do |node, sub_entries|
+                node.pipelined { |pipe| yield(pipe, sub_entries) }
+              end
+            else
+              c.pipelined { |pipe| yield(pipe, entries) }
+            end
+          }
         end
 
         # Store provider interface:
@@ -387,10 +387,10 @@ module ActiveSupport
           return if entries.empty?
 
           failsafe :write_multi_entries do
-            pipelined do |pipeline|
+            pipeline_entries(entries) do |pipeline, sharded_entries|
               options = options.dup
               options[:pipeline] = pipeline
-              entries.each do |key, entry|
+              sharded_entries.each do |key, entry|
                 write_entry key, entry, **options
               end
             end
