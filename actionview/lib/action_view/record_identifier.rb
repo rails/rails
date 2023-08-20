@@ -91,6 +91,8 @@ module ActionView
     #   dom_id(Post.find(45), :edit) # => "edit_post_45"
     #   dom_id(Post, :custom)        # => "custom_post"
     def dom_id(record_or_class, prefix = nil)
+      raise ArgumentError, "dom_id must be passed a record_or_class as the first argument, you passed #{record_or_class.inspect}" unless record_or_class
+
       record_id = record_key_for_dom_id(record_or_class) unless record_or_class.is_a?(Class)
       if record_id
         "#{dom_class(record_or_class, prefix)}#{JOIN}#{record_id}"

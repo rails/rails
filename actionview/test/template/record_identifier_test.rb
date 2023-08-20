@@ -83,6 +83,12 @@ class RecordIdentifierWithoutActiveModelTest < ActiveSupport::TestCase
     assert_equal "edit_airplane_1", dom_id(@record, :edit)
   end
 
+  def test_dom_id_raises_useful_error_when_passed_nil
+    assert_raises ArgumentError do
+      ActionView::RecordIdentifier.dom_id(nil)
+    end
+  end
+
   def test_dom_class
     assert_equal "airplane", dom_class(@record)
   end
