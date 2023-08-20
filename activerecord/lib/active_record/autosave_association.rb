@@ -278,11 +278,11 @@ module ActiveRecord
         @_already_called = nil
       end
 
-      # Returns the record for an association collection that should be validated
-      # or saved. If +autosave+ is +false+ only new records will be returned,
+      # Returns the records for an association collection that should be saved.
+      # If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
-      def associated_records_to_validate_or_save(association, new_record, autosave)
-        if new_record || custom_validation_context?
+      def associated_records_to_save(association, new_record, autosave)
+        if new_record
           association && association.target
         elsif autosave
           association.target.find_all(&:changed_for_autosave?)
@@ -315,18 +315,34 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        association_valid?(reflection, record) if record && (record.changed_for_autosave? || custom_validation_context?)
+        return unless record
+
+        association_valid?(reflection, record)
       end
 
       # Validate the associated records if <tt>:validate</tt> or
       # <tt>:autosave</tt> is turned on for the association specified by
       # +reflection+.
       def validate_collection_association(reflection)
-        if association = association_instance_get(reflection.name)
-          if records = associated_records_to_validate_or_save(association, new_record?, reflection.options[:autosave])
-            records.each_with_index { |record, index| association_valid?(reflection, record, index) }
-          end
-        end
+        association = association_instance_get(reflection.name)
+        records = associated_records_to_validate(association, new_record?, reflection.options[:autosave])
+        return unless records
+
+        records.each_with_index { |record, index| association_valid?(reflection, record, index) }
+      end
+
+      # Returns the records for an association collection that should be validated.
+      #
+      # Only new records will be returned unless:
+      #
+      # * the parent is/was a new record itself
+      # * autosave is enabled; <tt>autosave: true</tt>
+      # * a custom validation context is being used
+      def associated_records_to_validate(association, new_record, autosave)
+        records = association && association.target
+        return records if new_record || autosave || custom_validation_context?
+
+        records&.find_all(&:new_record?)
       end
 
       # Returns whether or not the association is valid and applies any errors to
@@ -396,7 +412,7 @@ module ActiveRecord
           # reconstruct the scope now that we know the owner's id
           association.reset_scope
 
-          if records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
+          if records = associated_records_to_save(association, new_record_before_save, autosave)
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }

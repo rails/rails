@@ -1132,3 +1132,32 @@ class TestNestedAttributesForDelegatedType < ActiveRecord::TestCase
     assert_equal "Hello world!", @entry.entryable.subject
   end
 end
+
+class TestNestedAttributesValidationsWhenUnchanged < ActiveRecord::TestCase
+  setup do
+    Parrot.validates :updated_count, numericality: { only_integer: true  }
+    Pirate.accepts_nested_attributes_for :parrots
+  end
+
+  teardown do
+    Parrot._validators.delete(:updated_count)
+    Pirate.accepts_nested_attributes_for :parrots, allow_destroy: true, reject_if: proc(&:empty?)
+  end
+
+  def test_adds_validation_error_when_unchanged
+    pirate = Pirate.create!(catchphrase: "Not all treasure is silver and gold, mate.")
+    parrot = pirate.parrots.create!(name: "Jack", updated_count: 2)
+
+    parrot.assign_attributes(updated_count: 2.1)
+
+    assert_not parrot.changed?
+    assert_not parrot.save
+    assert_includes parrot.errors.full_messages, "Updated count must be an integer"
+
+    pirate.assign_attributes(parrots_attributes: [{ id: parrot.id, updated_count: 2.1 }])
+
+    assert_not pirate.parrot_changed?
+    assert_not pirate.save
+    assert_includes pirate.errors.full_messages, "Parrots updated count must be an integer"
+  end
+end
