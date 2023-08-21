@@ -98,7 +98,7 @@ module ActionDispatch
         def response_body(request)
           return "" unless request.get_header("action_dispatch.show_detailed_exceptions")
 
-          template = DebugView.new(host: request.host)
+          template = DebugView.new(hosts: request.env["action_dispatch.blocked_hosts"])
           template.render(template: "rescues/blocked_host", layout: "rescues/layout")
         end
 
@@ -114,7 +114,7 @@ module ActionDispatch
 
           return unless logger
 
-          logger.error("[#{self.class.name}] Blocked host: #{request.host}")
+          logger.error("[#{self.class.name}] Blocked hosts: #{request.env["action_dispatch.blocked_hosts"].join(", ")}")
         end
 
         def available_logger(request)
@@ -134,21 +134,28 @@ module ActionDispatch
       return @app.call(env) if @permissions.empty?
 
       request = Request.new(env)
+      hosts = blocked_hosts(request)
 
-      if authorized?(request) || excluded?(request)
+      if hosts.empty? || excluded?(request)
         mark_as_authorized(request)
         @app.call(env)
       else
+        env["action_dispatch.blocked_hosts"] = hosts
         @response_app.call(env)
       end
     end
 
     private
-      def authorized?(request)
-        origin_host = request.get_header("HTTP_HOST")
-        forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
+      def blocked_hosts(request)
+        hosts = []
 
-        @permissions.allows?(origin_host) && (forwarded_host.blank? || @permissions.allows?(forwarded_host))
+        origin_host = request.get_header("HTTP_HOST")
+        hosts << origin_host unless @permissions.allows?(origin_host)
+
+        forwarded_host = request.x_forwarded_host&.split(/,\s?/)&.last
+        hosts << forwarded_host unless forwarded_host.blank? || @permissions.allows?(forwarded_host)
+
+        hosts
       end
 
       def excluded?(request)
