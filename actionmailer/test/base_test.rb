@@ -1131,6 +1131,24 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
   end
 end
 
+class PreviewTest < ActiveSupport::TestCase
+  class A < ActionMailer::Preview; end
+
+  module B
+    class A < ActionMailer::Preview; end
+    class C < ActionMailer::Preview; end
+  end
+
+  class C < ActionMailer::Preview; end
+
+  test "all() returns mailers in alphabetical order" do
+    ActionMailer::Preview.stub(:descendants, [C, A, B::C, B::A]) do
+      mailers = ActionMailer::Preview.all
+      assert_equal [A, B::A, B::C, C], mailers
+    end
+  end
+end
+
 class BasePreviewTest < ActiveSupport::TestCase
   class BaseMailerPreview < ActionMailer::Preview
     def welcome
