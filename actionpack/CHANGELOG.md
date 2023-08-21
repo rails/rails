@@ -1,3 +1,7 @@
+*   Add support for Playwright as a driver for system tests.
+
+    *Yuki Nishijima*
+
 *   Fix `HostAuthorization` potentially displaying the value of the
     X_FORWARDED_HOST header when the HTTP_HOST header is being blocked.
 
