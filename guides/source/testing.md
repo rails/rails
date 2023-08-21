@@ -885,13 +885,16 @@ end
 
 If you want to use a remote browser, e.g.
 [Headless Chrome in Docker](https://github.com/SeleniumHQ/docker-selenium),
-you have to add remote `url` through `options`.
+you have to add remote `url`  and set `browser` as remote through `options`.
 
 ```ruby
 require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  options = ENV["SELENIUM_REMOTE_URL"].present? ? { url: ENV["SELENIUM_REMOTE_URL"] } : {}
+  options = {
+    browser: ENV["SELENIUM_REMOTE_URL"].blank? ? :chrome : :remote,
+    url: ENV["SELENIUM_REMOTE_URL"].blank? ? nil : ENV["SELENIUM_REMOTE_URL"]
+  }
   driven_by :selenium, using: :headless_chrome, options: options
 end
 ```
