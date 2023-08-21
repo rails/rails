@@ -57,6 +57,14 @@ TODO: Add description https://github.com/rails/rails/pull/48572
 
 TODO: Add description https://github.com/rails/rails/pull/44446
 
+### Allow templates to set strict `locals`.
+
+TODO: https://github.com/rails/rails/pull/45602
+
+### Add Rails.application.deprecators
+
+TODO: https://github.com/rails/rails/pull/46049
+
 Railties
 --------
 
