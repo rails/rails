@@ -360,7 +360,7 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "Specifying unknown algorithm name raises NotImplementedError" do
     assert_raise NotImplementedError do
-      user_with_unknown_algo = Class.new(User) do
+      Class.new(User) do
         has_secure_password algorithm: :some_hashing_name
       end.new
     end
