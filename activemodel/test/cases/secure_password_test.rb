@@ -290,6 +290,10 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_nil @user.password_salt
   end
 
+  test "password_algorithm" do
+    assert_equal @user.password_algorithm, :bcrypt
+  end
+
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
     ActiveModel::SecurePassword.min_cost = false
 
