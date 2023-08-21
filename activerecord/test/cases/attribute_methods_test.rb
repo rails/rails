@@ -1246,6 +1246,18 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal("overridden_subject_was", obj.subject_was)
   end
 
+  test "#alias_attribute method on an abstract class is available on subclasses" do
+    superclass = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      alias_attribute :id_value, :id
+    end
+    subclass = Class.new(superclass) { self.table_name = "topics" }
+
+    object = subclass.build(id: 123_456)
+
+    assert_equal 123_456, object.id_value
+  end
+
   private
     def new_topic_like_ar_class(&block)
       klass = Class.new(ActiveRecord::Base) do

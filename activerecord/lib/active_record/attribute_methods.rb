@@ -65,7 +65,7 @@ module ActiveRecord
       end
 
       def generate_alias_attributes # :nodoc:
-        superclass.generate_alias_attributes unless base_class?
+        superclass.generate_alias_attributes unless superclass == Base
         return if @alias_attributes_mass_generated
 
         generated_attribute_methods.synchronize do
