@@ -224,6 +224,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create!
     assert_equal "defaulty", bulb.name
+
+    bulb = car.create_bulb!
+    assert_equal "defaulty", bulb.name
   end
 
   def test_build_and_create_from_association_should_respect_passed_attributes_over_default_scope
@@ -258,6 +261,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.awesome_bulbs.create!(frickinawesome: false)
     assert_equal false, bulb.frickinawesome
+
+    bulb = car.create_awesome_bulb!(frickinawesome: false)
+    assert_equal false, bulb.frickinawesome
   end
 
   def test_build_and_create_from_association_should_respect_unscope_over_default_scope
@@ -286,6 +292,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     author = Author.new
 
     post = author.thinking_posts.build
+    assert_equal "So I was thinking", post.title
+
+    post = author.build_thinking_post
     assert_equal "So I was thinking", post.title
   end
 

@@ -75,6 +75,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
+    def self.define_association_name(name)
+      name.to_s.singularize
+    end
+
     private_class_method :valid_options, :define_callback, :define_extensions, :define_readers, :define_writers
   end
 end
