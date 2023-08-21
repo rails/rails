@@ -1,3 +1,37 @@
+*   `has_secure_password` can support different password hashing algorithms (if defined) using the `:algorithm` option:
+
+    ```ruby
+    module ActiveModel
+      module SecurePassword
+        class MyAlgo < Base
+          def self.algorithm_name
+            :my_algo
+          end
+
+          def hash_password(unencrypted_password, options = {})
+            SomeHashingLib.create_password_hash(unencrypted_password)
+          end
+
+          def verify_password(password, digest)
+            SomeHashingLib.verify_password_against_hash(password, digest)
+          end
+
+          def password_salt(digest)
+            SomeHashingLib.get_salt_from_hash(digest)
+          end
+        end
+      end
+    end
+    ```
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password :algorithm: :my_algo
+    end
+    ```
+
+    *Justin Bull*
+
 *   Error.full_message now strips ":base" from the message.
 
     *zzak*

@@ -12,7 +12,7 @@ module ActiveModel
       end
 
       def validate(record)
-        raise NotImplementedError
+        nil
       end
 
       def hash_password(unencrypted_password, options = {})
