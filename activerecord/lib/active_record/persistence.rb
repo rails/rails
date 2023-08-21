@@ -629,6 +629,7 @@ module ActiveRecord
           super
           subclass.class_eval do
             @_query_constraints_list = nil
+            @has_query_constraints = false
           end
         end
 
@@ -1140,7 +1141,6 @@ module ActiveRecord
       super
       @_trigger_destroy_callback = @_trigger_update_callback = nil
       @previously_new_record = false
-      @has_query_constraints = false
     end
 
     def strict_loaded_associations
