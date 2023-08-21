@@ -1,3 +1,7 @@
+*   Mailers are listed in alphabetical order on the mailer preview page now.
+
+    *Martin Spickermann*
+
 *   Deprecate passing params to `assert_enqueued_email_with` via the `:args`
     kwarg. `assert_enqueued_email_with` now supports a `:params` kwarg, so use
     that to pass params:
