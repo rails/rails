@@ -53,6 +53,10 @@ TODO: Add description https://github.com/rails/rails/pull/47770
 
 TODO: Add description https://github.com/rails/rails/pull/48572
 
+### Active Record API for general async queries
+
+TODO: Add description https://github.com/rails/rails/pull/44446
+
 Railties
 --------
 
