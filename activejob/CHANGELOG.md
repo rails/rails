@@ -1,3 +1,24 @@
+*   Add `after_discard` method.
+
+    This method lets job authors define a block which will be run when a job is about to be discarded. For example:
+
+    ```ruby
+      class AfterDiscardJob < ActiveJob::Base
+        after_discard do |job, exception|
+          Rails.logger.info("#{job.class} raised an exception: #{exception}")
+        end
+
+        def perform
+          raise StandardError
+        end
+      end
+    ```
+
+    The above job will run the block passed to `after_discard` after the job is discarded. The exception will
+    still be raised after the block has been run.
+
+    *Rob Cardy*
+
 *   Fix deserialization of ActiveSupport::Duration
 
     Previously, a deserialized Duration would return an array from Duration#parts.

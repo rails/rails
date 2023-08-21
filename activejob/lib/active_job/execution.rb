@@ -51,7 +51,11 @@ module ActiveJob
 
       _perform_job
     rescue Exception => exception
-      rescue_with_handler(exception) || raise
+      handled = rescue_with_handler(exception)
+      return handled if handled
+
+      run_after_discard_procs(exception)
+      raise
     end
 
     def perform(*)

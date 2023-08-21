@@ -9,6 +9,7 @@ module ActiveJob
 
     included do
       class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false, default: 0.0
+      class_attribute :after_discard_procs, default: []
     end
 
     module ClassMethods
@@ -65,8 +66,10 @@ module ActiveJob
               instrument :retry_stopped, error: error do
                 yield self, error
               end
+              run_after_discard_procs(error)
             else
               instrument :retry_stopped, error: error
+              run_after_discard_procs(error)
               raise error
             end
           end
@@ -95,8 +98,25 @@ module ActiveJob
         rescue_from(*exceptions) do |error|
           instrument :discard, error: error do
             yield self, error if block_given?
+            run_after_discard_procs(error)
           end
         end
+      end
+
+      # A block to run when a job is about to be discarded for any reason.
+      #
+      # ==== Example
+      #
+      #  class WorkJob < ActiveJob::Base
+      #    after_discard do |job, exception|
+      #      ExceptionNotifier.report(exception)
+      #    end
+      #
+      #    ...
+      #
+      #  end
+      def after_discard(&blk)
+        self.after_discard_procs += [blk]
       end
     end
 
@@ -164,6 +184,16 @@ module ActiveJob
           # Guard against jobs that were persisted before we started having individual executions counters per retry_on
           executions
         end
+      end
+
+      def run_after_discard_procs(exception)
+        exceptions = []
+        after_discard_procs.each do |blk|
+          instance_exec(self, exception, &blk)
+        rescue StandardError => e
+          exceptions << e
+        end
+        raise exceptions.last unless exceptions.empty?
       end
   end
 end
