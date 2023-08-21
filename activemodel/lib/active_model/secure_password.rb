@@ -111,10 +111,7 @@ module ActiveModel
       #
       def has_secure_password(attribute = :password, validations: true, algorithm: :bcrypt)
         password_hasher_klass = ActiveModel::SecurePassword.available_password_algorithms[algorithm]
-        if password_hasher_klass.nil?
-          warn "Unsupported password hashing algorithm '#{algorithm}'."
-          raise
-        end
+        raise NotImplementedError, "Unsupported password hashing algorithm '#{algorithm}'." if password_hasher_klass.nil?
 
         password_hasher = password_hasher_klass.new
         include InstanceMethodsOnActivation.new(attribute, password_hasher)
