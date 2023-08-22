@@ -38,7 +38,7 @@ module ActiveJob
         end
       else
         info do
-          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} at #{scheduled_at(event)}" + args_info(job)
+          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} at #{scheduled_at(event).to_fs}" + args_info(job)
         end
       end
     end

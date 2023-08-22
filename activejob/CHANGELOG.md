@@ -1,3 +1,7 @@
+* Avoid triggering `Time#to_s` deprecation in ActiveJob::LogSubscriber
+
+    *Jean Boussier*
+
 ## Rails 7.0.7 (August 09, 2023) ##
 
 *   No changes.
