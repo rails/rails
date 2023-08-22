@@ -4,6 +4,11 @@
     *Hartley McGuire*, *Daniel Schlosser*
 
 
+## Rails 7.0.7.1 (August 22, 2023) ##
+
+*   No changes.
+
+
 ## Rails 7.0.7 (August 09, 2023) ##
 
 *   No changes.
