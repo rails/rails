@@ -87,7 +87,8 @@ module ActiveRecord
         old_name = old_name.to_s
 
         method_defined = method_defined?(target_name) || private_method_defined?(target_name)
-        manually_defined = method_defined && self.instance_method(target_name).owner != generated_attribute_methods
+        manually_defined = method_defined &&
+          !self.instance_method(target_name).owner.is_a?(GeneratedAttributeMethods)
         reserved_method_name = ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(target_name)
 
         if manually_defined && !reserved_method_name
